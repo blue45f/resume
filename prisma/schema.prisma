@@ -1,0 +1,275 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Resume {
+  id        String   @id @default(uuid())
+  title     String   @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  personalInfo    PersonalInfo?
+  experiences     Experience[]
+  educations      Education[]
+  skills          Skill[]
+  projects        Project[]
+  certifications  Certification[]
+  languages       Language[]
+  awards          Award[]
+  activities      Activity[]
+  attachments     Attachment[]
+  tags            TagsOnResumes[]
+  versions        ResumeVersion[]
+  shareLinks      ShareLink[]
+  transformations LlmTransformation[]
+
+  @@map("resumes")
+}
+
+model PersonalInfo {
+  id       String @id @default(uuid())
+  resumeId String @unique @map("resume_id")
+  name     String @default("")
+  email    String @default("")
+  phone    String @default("")
+  address  String @default("")
+  website  String @default("")
+  summary  String @default("")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("personal_info")
+}
+
+model Experience {
+  id          String  @id @default(uuid())
+  resumeId    String  @map("resume_id")
+  company     String  @default("")
+  position    String  @default("")
+  startDate   String  @default("") @map("start_date")
+  endDate     String  @default("") @map("end_date")
+  current     Boolean @default(false)
+  description String  @default("")
+  sortOrder   Int     @default(0) @map("sort_order")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("experiences")
+}
+
+model Education {
+  id          String @id @default(uuid())
+  resumeId    String @map("resume_id")
+  school      String @default("")
+  degree      String @default("")
+  field       String @default("")
+  startDate   String @default("") @map("start_date")
+  endDate     String @default("") @map("end_date")
+  description String @default("")
+  sortOrder   Int    @default(0) @map("sort_order")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("educations")
+}
+
+model Skill {
+  id        String @id @default(uuid())
+  resumeId  String @map("resume_id")
+  category  String @default("")
+  items     String @default("")
+  sortOrder Int    @default(0) @map("sort_order")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("skills")
+}
+
+model Project {
+  id          String @id @default(uuid())
+  resumeId    String @map("resume_id")
+  name        String @default("")
+  role        String @default("")
+  startDate   String @default("") @map("start_date")
+  endDate     String @default("") @map("end_date")
+  description String @default("")
+  link        String @default("")
+  sortOrder   Int    @default(0) @map("sort_order")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("projects")
+}
+
+model Certification {
+  id           String  @id @default(uuid())
+  resumeId     String  @map("resume_id")
+  name         String  @default("")
+  issuer       String  @default("") // 발급기관
+  issueDate    String  @default("") @map("issue_date")
+  expiryDate   String  @default("") @map("expiry_date")
+  credentialId String  @default("") @map("credential_id") // 자격번호
+  description  String  @default("")
+  sortOrder    Int     @default(0) @map("sort_order")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("certifications")
+}
+
+model Language {
+  id        String @id @default(uuid())
+  resumeId  String @map("resume_id")
+  name      String @default("") // 언어명 (영어, 일본어 등)
+  testName  String @default("") @map("test_name") // 시험명 (TOEIC, JLPT 등)
+  score     String @default("") // 점수/등급
+  testDate  String @default("") @map("test_date")
+  sortOrder Int    @default(0) @map("sort_order")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("languages")
+}
+
+model Award {
+  id          String @id @default(uuid())
+  resumeId    String @map("resume_id")
+  name        String @default("") // 수상명
+  issuer      String @default("") // 수여기관
+  awardDate   String @default("") @map("award_date")
+  description String @default("")
+  sortOrder   Int    @default(0) @map("sort_order")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("awards")
+}
+
+model Activity {
+  id          String @id @default(uuid())
+  resumeId    String @map("resume_id")
+  name        String @default("") // 활동명
+  organization String @default("") // 기관/단체
+  role        String @default("") // 역할
+  startDate   String @default("") @map("start_date")
+  endDate     String @default("") @map("end_date")
+  description String @default("")
+  sortOrder   Int    @default(0) @map("sort_order")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("activities")
+}
+
+model Attachment {
+  id           String   @id @default(uuid())
+  resumeId     String   @map("resume_id")
+  filename     String // 저장된 파일명 (UUID)
+  originalName String   @map("original_name") // 원본 파일명
+  mimeType     String   @map("mime_type")
+  size         Int // bytes
+  category     String   @default("document") // certificate, portfolio, document, reference
+  description  String   @default("")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("attachments")
+}
+
+model Tag {
+  id      String          @id @default(uuid())
+  name    String          @unique
+  color   String          @default("#6366f1")
+  resumes TagsOnResumes[]
+
+  @@map("tags")
+}
+
+model TagsOnResumes {
+  resumeId String @map("resume_id")
+  tagId    String @map("tag_id")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([resumeId, tagId])
+  @@map("tags_on_resumes")
+}
+
+model ResumeVersion {
+  id            String   @id @default(uuid())
+  resumeId      String   @map("resume_id")
+  versionNumber Int      @map("version_number")
+  snapshot      String // JSON snapshot of full resume data
+  description   String   @default("")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@unique([resumeId, versionNumber])
+  @@index([resumeId])
+  @@map("resume_versions")
+}
+
+model Template {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  category    String   @default("general")
+  prompt      String   @default("") // LLM prompt template content
+  layout      String   @default("{}") // JSON: section order, visibility, style config for local transform
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("templates")
+}
+
+model ShareLink {
+  id           String    @id @default(uuid())
+  resumeId     String    @map("resume_id")
+  token        String    @unique
+  passwordHash String?   @map("password_hash")
+  expiresAt    DateTime? @map("expires_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("share_links")
+}
+
+model LlmTransformation {
+  id             String   @id @default(uuid())
+  resumeId       String   @map("resume_id")
+  templateType   String   @map("template_type")
+  targetLanguage String   @default("ko") @map("target_language")
+  jobDescription String?  @map("job_description")
+  result         String // JSON transformation result
+  tokensUsed     Int      @default(0) @map("tokens_used")
+  model          String   @default("unknown")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@index([createdAt])
+  @@map("llm_transformations")
+}
