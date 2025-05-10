@@ -1,0 +1,23 @@
+# Render Blueprint - 백엔드 API 서버
+services:
+  - type: web
+    name: resume-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev --include=dev && npx prisma generate && npx nest build --builder swc
+    startCommand: npx prisma migrate deploy && node dist-server/main.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:./data/resumes.db
+      - key: PORT
+        value: "3001"
+      - key: ALLOWED_ORIGINS
+        sync: false  # Vercel 도메인 입력 필요
+      - key: ANTHROPIC_API_KEY
+        sync: false  # 선택
+    disk:
+      name: resume-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1

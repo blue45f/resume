@@ -1,0 +1,23 @@
+import { PrismaService } from '../prisma/prisma.service';
+export declare class VersionsService {
+    private prisma;
+    constructor(prisma: PrismaService);
+    findAll(resumeId: string): Promise<{
+        createdAt: string;
+        id: string;
+        description: string;
+        versionNumber: number;
+    }[]>;
+    findOne(resumeId: string, versionId: string): Promise<{
+        snapshot: any;
+        createdAt: string;
+        id: string;
+        description: string;
+        resumeId: string;
+        versionNumber: number;
+    }>;
+    restore(resumeId: string, versionId: string): Promise<{
+        success: boolean;
+        restoredVersion: number;
+    }>;
+}

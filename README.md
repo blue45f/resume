@@ -95,10 +95,12 @@ npm run start:server   # node dist-server/main.js
 ### 테스트
 
 ```bash
-npm run test:e2e       # E2E 테스트 (34개)
+npm run test:e2e       # E2E 테스트 (55개)
 ```
 
 ## 접속 URL
+
+### 로컬 개발
 
 | 서비스 | URL |
 |--------|-----|
@@ -106,6 +108,14 @@ npm run test:e2e       # E2E 테스트 (34개)
 | API 서버 | http://localhost:3001 |
 | Swagger 문서 | http://localhost:3001/api/docs |
 | Prisma Studio | `npx prisma studio` → http://localhost:5555 |
+
+### 프로덕션
+
+| 서비스 | URL | 호스팅 |
+|--------|-----|--------|
+| 백엔드 API | https://resume-api-mm0o.onrender.com | Render (무료) |
+| 프론트엔드 | https://resume-silk-three.vercel.app | Vercel (무료) |
+| DB | Neon PostgreSQL | Neon (무료) |
 
 ## API 엔드포인트
 

@@ -3,8 +3,7 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "server",
   "compilerOptions": {
-    "builder": "swc",
-    "typeCheck": true,
+    "builder": "tsc",
     "tsConfigPath": "tsconfig.server.json",
     "outDir": "dist-server"
   }

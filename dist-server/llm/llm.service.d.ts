@@ -1,0 +1,50 @@
+import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../prisma/prisma.service';
+import { ResumesService } from '../resumes/resumes.service';
+import { LlmStreamChunk } from './llm-provider.interface';
+import { AnthropicProvider } from './providers/anthropic.provider';
+import { N8nWebhookProvider } from './providers/n8n-webhook.provider';
+import { OpenAiCompatibleProvider } from './providers/openai-compatible.provider';
+import { TransformResumeDto } from './dto/transform-resume.dto';
+export declare class LlmService {
+    private config;
+    private prisma;
+    private resumesService;
+    private anthropicProvider;
+    private n8nProvider;
+    private openAiCompatibleProvider;
+    private readonly logger;
+    private readonly providers;
+    private readonly defaultProvider;
+    constructor(config: ConfigService, prisma: PrismaService, resumesService: ResumesService, anthropicProvider: AnthropicProvider, n8nProvider: N8nWebhookProvider, openAiCompatibleProvider: OpenAiCompatibleProvider);
+    getAvailableProviders(): {
+        name: string;
+        available: boolean;
+        isDefault: boolean;
+    }[];
+    transform(resumeId: string, dto: TransformResumeDto): Promise<{
+        id: string;
+        text: string;
+        tokensUsed: number;
+        provider: string;
+        model: string;
+        createdAt: string;
+    }>;
+    transformStream(resumeId: string, dto: TransformResumeDto): AsyncGenerator<LlmStreamChunk>;
+    getTransformationHistory(resumeId: string): Promise<{
+        id: string;
+        templateType: string;
+        targetLanguage: string;
+        tokensUsed: number;
+        model: string;
+        createdAt: string;
+        result: any;
+    }[]>;
+    getUsageStats(): Promise<{
+        totalTransformations: number;
+        totalTokensUsed: number;
+    }>;
+    private getProvider;
+    private buildSystemPrompt;
+    private buildUserMessage;
+}

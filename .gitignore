@@ -9,8 +9,8 @@ lerna-debug.log*
 
 node_modules
 dist
-dist-server
 dist-ssr
+# dist-server는 Render 배포를 위해 Git에 포함
 *.local
 
 # Environment variables
@@ -39,3 +39,4 @@ prisma/migrations/**/migration_lock.toml
 *.njsproj
 *.sln
 *.sw?
+.vercel

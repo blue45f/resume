@@ -1,6 +1,9 @@
 import type { Resume, ResumeSummary, Template, TransformResult, LlmProvider, Tag } from '@/types/resume';
 
-const BASE = '/api';
+// 개발: Vite proxy로 /api → localhost:3001
+// 프로덕션: VITE_API_URL 환경변수로 백엔드 URL 지정
+const API_URL = import.meta.env.VITE_API_URL || '';
+const BASE = `${API_URL}/api`;
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -72,7 +75,7 @@ export async function* transformResumeStream(
   resumeId: string,
   data: { templateType: string; targetLanguage?: string; jobDescription?: string; provider?: string },
 ): AsyncGenerator<{ type: string; text?: string; id?: string; tokensUsed?: number }> {
-  const res = await fetch(`${BASE}/resumes/${resumeId}/transform/stream`, {
+  const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform/stream`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),

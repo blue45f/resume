@@ -10,10 +10,11 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log'],
   });
 
-  // Security headers
-  app.use(helmet());
+  const isProd = process.env.NODE_ENV === 'production';
 
-  // CORS - restrict in production
+  app.use(helmet({ contentSecurityPolicy: false }));
+
+  // CORS - 프론트엔드 도메인 허용
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
     'http://localhost:5173',
     'http://localhost:3001',
@@ -34,8 +35,7 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger - development only
-  if (process.env.NODE_ENV !== 'production') {
+  if (!isProd) {
     const config = new DocumentBuilder()
       .setTitle('Resume Platform API')
       .setDescription('LLM 기반 이력서 관리 플랫폼')
@@ -48,7 +48,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3001;
   await app.listen(port);
   Logger.log(`Server running on http://localhost:${port}`, 'Bootstrap');
-  if (process.env.NODE_ENV !== 'production') {
+  if (!isProd) {
     Logger.log(`Swagger docs at http://localhost:${port}/api/docs`, 'Bootstrap');
   }
 }
