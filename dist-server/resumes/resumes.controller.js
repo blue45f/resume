@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ResumesController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const auth_guard_1 = require("../auth/auth.guard");
 const resumes_service_1 = require("./resumes.service");
 const create_resume_dto_1 = require("./dto/create-resume.dto");
 const update_resume_dto_1 = require("./dto/update-resume.dto");
@@ -23,47 +24,68 @@ let ResumesController = class ResumesController {
     constructor(resumesService) {
         this.resumesService = resumesService;
     }
-    findAll() {
-        return this.resumesService.findAll();
+    findAll(req, isPublic) {
+        if (isPublic === 'true') {
+            return this.resumesService.findPublic();
+        }
+        return this.resumesService.findAll(req.user?.id);
     }
-    findOne(id) {
-        return this.resumesService.findOne(id);
+    findPublicResumes() {
+        return this.resumesService.findPublic();
     }
-    create(dto) {
-        return this.resumesService.create(dto);
+    findOne(id, req) {
+        return this.resumesService.findOne(id, req.user?.id);
+    }
+    create(dto, req) {
+        return this.resumesService.create(dto, req.user?.id);
     }
     update(id, dto) {
         return this.resumesService.update(id, dto);
     }
+    setVisibility(id, visibility) {
+        return this.resumesService.setVisibility(id, visibility);
+    }
     remove(id) {
         return this.resumesService.remove(id);
     }
-    duplicate(id) {
-        return this.resumesService.duplicate(id);
+    duplicate(id, req) {
+        return this.resumesService.duplicate(id, req.user?.id);
     }
 };
 exports.ResumesController = ResumesController;
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: '이력서 목록 조회' }),
+    (0, swagger_1.ApiOperation)({ summary: '내 이력서 목록 (로그인 시) 또는 공개 이력서 목록' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('public')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], ResumesController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('public'),
+    (0, auth_guard_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: '공개 이력서 목록' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
-], ResumesController.prototype, "findAll", null);
+], ResumesController.prototype, "findPublicResumes", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: '이력서 상세 조회' }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], ResumesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: '이력서 생성' }),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_resume_dto_1.CreateResumeDto]),
+    __metadata("design:paramtypes", [create_resume_dto_1.CreateResumeDto, Object]),
     __metadata("design:returntype", void 0)
 ], ResumesController.prototype, "create", null);
 __decorate([
@@ -76,6 +98,15 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ResumesController.prototype, "update", null);
 __decorate([
+    (0, common_1.Patch)(':id/visibility'),
+    (0, swagger_1.ApiOperation)({ summary: '이력서 공개/비공개 설정' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('visibility')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], ResumesController.prototype, "setVisibility", null);
+__decorate([
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiOperation)({ summary: '이력서 삭제' }),
     __param(0, (0, common_1.Param)('id')),
@@ -87,8 +118,9 @@ __decorate([
     (0, common_1.Post)(':id/duplicate'),
     (0, swagger_1.ApiOperation)({ summary: '이력서 복제' }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], ResumesController.prototype, "duplicate", null);
 exports.ResumesController = ResumesController = __decorate([

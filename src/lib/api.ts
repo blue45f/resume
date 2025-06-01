@@ -6,10 +6,10 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 const BASE = `${API_URL}/api`;
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
+  const token = localStorage.getItem('token');
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(url, { headers, ...options });
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: res.statusText }));
     throw new Error(error.message || `Request failed: ${res.status}`);
@@ -28,6 +28,9 @@ export const deleteResume = (id: string) =>
   request<{ success: boolean }>(`${BASE}/resumes/${id}`, { method: 'DELETE' });
 export const duplicateResume = (id: string) =>
   request<Resume>(`${BASE}/resumes/${id}/duplicate`, { method: 'POST' });
+export const setResumeVisibility = (id: string, visibility: string) =>
+  request<{ id: string; visibility: string }>(`${BASE}/resumes/${id}/visibility`, { method: 'PATCH', body: JSON.stringify({ visibility }) });
+export const fetchPublicResumes = () => request<ResumeSummary[]>(`${BASE}/resumes/public`);
 
 // Tags
 export const fetchTags = () => request<(Tag & { resumeCount: number })[]>(`${BASE}/tags`);

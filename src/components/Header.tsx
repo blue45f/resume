@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { getUser, clearAuth } from '@/lib/auth';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const user = getUser();
   const location = useLocation();
   const isHome = location.pathname === '/';
 
@@ -38,11 +41,27 @@ export default function Header() {
               태그
             </Link>
             <Link
+              to="/auto-generate"
+              className="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+            >
+              AI 생성
+            </Link>
+            <Link
               to="/resumes/new"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
             >
               + 새 이력서
             </Link>
+            {user ? (
+              <button
+                onClick={() => { clearAuth(); navigate('/'); window.location.reload(); }}
+                className="text-sm text-slate-500 hover:text-slate-700 px-2 py-1"
+              >
+                {user.name || user.email} 로그아웃
+              </button>
+            ) : (
+              <Link to="/login" className="text-sm text-blue-600 hover:text-blue-800 px-2 py-1">로그인</Link>
+            )}
           </nav>
 
           {/* Mobile hamburger */}

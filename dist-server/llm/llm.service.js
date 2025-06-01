@@ -16,6 +16,8 @@ const config_1 = require("@nestjs/config");
 const prisma_service_1 = require("../prisma/prisma.service");
 const resumes_service_1 = require("../resumes/resumes.service");
 const anthropic_provider_1 = require("./providers/anthropic.provider");
+const gemini_provider_1 = require("./providers/gemini.provider");
+const groq_provider_1 = require("./providers/groq.provider");
 const n8n_webhook_provider_1 = require("./providers/n8n-webhook.provider");
 const openai_compatible_provider_1 = require("./providers/openai-compatible.provider");
 const TEMPLATE_PROMPTS = {
@@ -54,32 +56,39 @@ let LlmService = LlmService_1 = class LlmService {
     prisma;
     resumesService;
     anthropicProvider;
+    geminiProvider;
+    groqProvider;
     n8nProvider;
     openAiCompatibleProvider;
     logger = new common_1.Logger(LlmService_1.name);
     providers = new Map();
     defaultProvider;
-    constructor(config, prisma, resumesService, anthropicProvider, n8nProvider, openAiCompatibleProvider) {
+    constructor(config, prisma, resumesService, anthropicProvider, geminiProvider, groqProvider, n8nProvider, openAiCompatibleProvider) {
         this.config = config;
         this.prisma = prisma;
         this.resumesService = resumesService;
         this.anthropicProvider = anthropicProvider;
+        this.geminiProvider = geminiProvider;
+        this.groqProvider = groqProvider;
         this.n8nProvider = n8nProvider;
         this.openAiCompatibleProvider = openAiCompatibleProvider;
-        if (anthropicProvider.isAvailable) {
+        if (geminiProvider.isAvailable)
+            this.providers.set('gemini', geminiProvider);
+        if (groqProvider.isAvailable)
+            this.providers.set('groq', groqProvider);
+        if (anthropicProvider.isAvailable)
             this.providers.set('anthropic', anthropicProvider);
-        }
-        if (n8nProvider.isAvailable) {
+        if (n8nProvider.isAvailable)
             this.providers.set('n8n', n8nProvider);
-        }
-        if (openAiCompatibleProvider.isAvailable) {
+        if (openAiCompatibleProvider.isAvailable)
             this.providers.set('openai-compatible', openAiCompatibleProvider);
-        }
         this.defaultProvider =
             this.config.get('LLM_DEFAULT_PROVIDER') ||
-                (n8nProvider.isAvailable ? 'n8n' :
-                    openAiCompatibleProvider.isAvailable ? 'openai-compatible' :
-                        'anthropic');
+                (geminiProvider.isAvailable ? 'gemini' :
+                    groqProvider.isAvailable ? 'groq' :
+                        n8nProvider.isAvailable ? 'n8n' :
+                            openAiCompatibleProvider.isAvailable ? 'openai-compatible' :
+                                'anthropic');
         this.logger.log(`LLM providers: [${[...this.providers.keys()].join(', ')}] | default: ${this.defaultProvider}`);
     }
     getAvailableProviders() {
@@ -167,6 +176,69 @@ let LlmService = LlmService_1 = class LlmService {
             result: JSON.parse(t.result),
         }));
     }
+    async autoGenerate(rawText, instruction, provider) {
+        const llm = this.getProvider(provider);
+        const systemPrompt = `당신은 이력서 데이터 파싱 전문가입니다. 사용자가 제공하는 비정형 텍스트(경력 메모, LinkedIn 복사, 이전 이력서, 자유 형식 등)를 분석하여 구조화된 이력서 JSON 데이터를 생성해주세요.
+
+반드시 아래 JSON 형식으로만 응답하세요. 설명이나 마크다운 없이 순수 JSON만 출력하세요.
+
+{
+  "title": "이력서 제목",
+  "personalInfo": {
+    "name": "", "email": "", "phone": "", "address": "", "website": "", "summary": ""
+  },
+  "experiences": [
+    { "company": "", "position": "", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "current": false, "description": "" }
+  ],
+  "educations": [
+    { "school": "", "degree": "", "field": "", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "description": "" }
+  ],
+  "skills": [
+    { "category": "", "items": "" }
+  ],
+  "projects": [
+    { "name": "", "role": "", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "description": "", "link": "" }
+  ],
+  "certifications": [
+    { "name": "", "issuer": "", "issueDate": "YYYY-MM-DD", "expiryDate": "", "credentialId": "", "description": "" }
+  ],
+  "languages": [
+    { "name": "", "testName": "", "score": "", "testDate": "YYYY-MM-DD" }
+  ],
+  "awards": [
+    { "name": "", "issuer": "", "awardDate": "YYYY-MM-DD", "description": "" }
+  ],
+  "activities": [
+    { "name": "", "organization": "", "role": "", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "description": "" }
+  ]
+}
+
+규칙:
+- 텍스트에 없는 정보는 빈 문자열로 두세요
+- 해당 섹션에 데이터가 없으면 빈 배열 []로 두세요
+- 날짜는 YYYY-MM-DD 형식, 정확하지 않으면 YYYY-MM-01 또는 YYYY-01-01 사용
+- 경력의 성과/업무를 description에 줄바꿈으로 구분하여 상세히 작성
+- title은 "이름의 이력서" 형식으로 자동 생성
+${instruction ? `\n추가 지시: ${instruction}` : ''}`;
+        const result = await llm.generate(systemPrompt, rawText);
+        let parsed;
+        try {
+            let jsonText = result.text;
+            const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+            if (jsonMatch)
+                jsonText = jsonMatch[0];
+            parsed = JSON.parse(jsonText);
+        }
+        catch {
+            throw new common_1.BadRequestException('LLM 응답을 파싱할 수 없습니다. 다시 시도해주세요.');
+        }
+        return {
+            resume: parsed,
+            tokensUsed: result.tokensUsed,
+            provider: result.provider,
+            model: result.model,
+        };
+    }
     async getUsageStats() {
         const stats = await this.prisma.llmTransformation.aggregate({
             _sum: { tokensUsed: true },
@@ -217,6 +289,8 @@ exports.LlmService = LlmService = LlmService_1 = __decorate([
         prisma_service_1.PrismaService,
         resumes_service_1.ResumesService,
         anthropic_provider_1.AnthropicProvider,
+        gemini_provider_1.GeminiProvider,
+        groq_provider_1.GroqProvider,
         n8n_webhook_provider_1.N8nWebhookProvider,
         openai_compatible_provider_1.OpenAiCompatibleProvider])
 ], LlmService);

@@ -12,8 +12,8 @@ export declare class TagsService {
         name: string;
         color?: string;
     }): Promise<{
-        name: string;
         id: string;
+        name: string;
         color: string;
     }>;
     remove(id: string): Promise<{

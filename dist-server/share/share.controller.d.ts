@@ -25,31 +25,31 @@ export declare class ShareController {
     }>;
     getShared(token: string, password?: string): Promise<{
         personalInfo: {
-            name: string;
+            id: string;
             email: string;
+            name: string;
+            summary: string;
             phone: string;
             address: string;
             website: string;
-            summary: string;
-            id: string;
             resumeId: string;
         } | null;
         experiences: {
             id: string;
+            description: string;
             company: string;
             position: string;
             startDate: string;
             endDate: string;
             current: boolean;
-            description: string;
             sortOrder: number;
             resumeId: string;
         }[];
         educations: {
             id: string;
+            description: string;
             startDate: string;
             endDate: string;
-            description: string;
             sortOrder: number;
             school: string;
             degree: string;
@@ -64,20 +64,22 @@ export declare class ShareController {
             resumeId: string;
         }[];
         projects: {
-            name: string;
             id: string;
+            name: string;
+            link: string;
+            description: string;
             startDate: string;
             endDate: string;
-            description: string;
             sortOrder: number;
             role: string;
-            link: string;
             resumeId: string;
         }[];
     } & {
         id: string;
-        title: string;
         createdAt: Date;
+        title: string;
+        visibility: string;
+        userId: string | null;
         updatedAt: Date;
     }>;
 }

@@ -4,9 +4,10 @@ import { UpdateResumeDto } from './dto/update-resume.dto';
 export declare class ResumesController {
     private readonly resumesService;
     constructor(resumesService: ResumesService);
-    findAll(): Promise<{
+    findAll(req: any, isPublic?: string): Promise<{
         id: any;
         title: any;
+        visibility: any;
         personalInfo: {
             name: any;
             email: any;
@@ -19,7 +20,23 @@ export declare class ResumesController {
         createdAt: any;
         updatedAt: any;
     }[]>;
-    findOne(id: string): Promise<{
+    findPublicResumes(): Promise<{
+        id: any;
+        title: any;
+        visibility: any;
+        personalInfo: {
+            name: any;
+            email: any;
+            phone: any;
+            address: any;
+            website: any;
+            summary: any;
+        };
+        tags: any;
+        createdAt: any;
+        updatedAt: any;
+    }[]>;
+    findOne(id: string, req: any): Promise<{
         experiences: {
             [k: string]: any;
         }[];
@@ -46,6 +63,7 @@ export declare class ResumesController {
         }[];
         id: any;
         title: any;
+        visibility: any;
         personalInfo: {
             name: any;
             email: any;
@@ -58,7 +76,7 @@ export declare class ResumesController {
         createdAt: any;
         updatedAt: any;
     }>;
-    create(dto: CreateResumeDto): Promise<{
+    create(dto: CreateResumeDto, req: any): Promise<{
         experiences: {
             [k: string]: any;
         }[];
@@ -85,6 +103,7 @@ export declare class ResumesController {
         }[];
         id: any;
         title: any;
+        visibility: any;
         personalInfo: {
             name: any;
             email: any;
@@ -124,6 +143,7 @@ export declare class ResumesController {
         }[];
         id: any;
         title: any;
+        visibility: any;
         personalInfo: {
             name: any;
             email: any;
@@ -136,10 +156,14 @@ export declare class ResumesController {
         createdAt: any;
         updatedAt: any;
     }>;
+    setVisibility(id: string, visibility: string): Promise<{
+        id: string;
+        visibility: string;
+    }>;
     remove(id: string): Promise<{
         success: boolean;
     }>;
-    duplicate(id: string): Promise<{
+    duplicate(id: string, req: any): Promise<{
         experiences: {
             [k: string]: any;
         }[];
@@ -166,6 +190,7 @@ export declare class ResumesController {
         }[];
         id: any;
         title: any;
+        visibility: any;
         personalInfo: {
             name: any;
             email: any;

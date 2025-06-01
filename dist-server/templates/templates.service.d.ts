@@ -3,22 +3,22 @@ export declare class TemplatesService {
     private prisma;
     constructor(prisma: PrismaService);
     findAll(): Promise<{
-        name: string;
         id: string;
+        name: string;
+        createdAt: Date;
         description: string;
         category: string;
-        createdAt: Date;
         updatedAt: Date;
         prompt: string;
         layout: string;
         isDefault: boolean;
     }[]>;
     findOne(id: string): Promise<{
-        name: string;
         id: string;
+        name: string;
+        createdAt: Date;
         description: string;
         category: string;
-        createdAt: Date;
         updatedAt: Date;
         prompt: string;
         layout: string;
@@ -32,11 +32,11 @@ export declare class TemplatesService {
         layout?: string;
         isDefault?: boolean;
     }): Promise<{
-        name: string;
         id: string;
+        name: string;
+        createdAt: Date;
         description: string;
         category: string;
-        createdAt: Date;
         updatedAt: Date;
         prompt: string;
         layout: string;
@@ -50,11 +50,11 @@ export declare class TemplatesService {
         layout?: string;
         isDefault?: boolean;
     }): Promise<{
-        name: string;
         id: string;
+        name: string;
+        createdAt: Date;
         description: string;
         category: string;
-        createdAt: Date;
         updatedAt: Date;
         prompt: string;
         layout: string;

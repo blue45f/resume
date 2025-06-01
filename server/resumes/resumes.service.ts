@@ -37,15 +37,25 @@ async function replaceCollection(
 export class ResumesService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(userId?: string) {
     const resumes = await this.prisma.resume.findMany({
+      where: userId ? { userId } : {},
       include: { personalInfo: true, tags: { include: { tag: true } } },
       orderBy: { updatedAt: 'desc' },
     });
     return resumes.map((r) => this.formatSummary(r));
   }
 
-  async findOne(id: string) {
+  async findPublic() {
+    const resumes = await this.prisma.resume.findMany({
+      where: { visibility: 'public' },
+      include: { personalInfo: true, tags: { include: { tag: true } } },
+      orderBy: { updatedAt: 'desc' },
+    });
+    return resumes.map((r) => this.formatSummary(r));
+  }
+
+  async findOne(id: string, _userId?: string) {
     const resume = await this.prisma.resume.findUnique({
       where: { id },
       include: FULL_INCLUDE,
@@ -54,10 +64,21 @@ export class ResumesService {
     return this.formatFull(resume);
   }
 
-  async create(dto: CreateResumeDto) {
+  async setVisibility(id: string, visibility: string) {
+    if (!['public', 'private', 'link-only'].includes(visibility)) {
+      throw new NotFoundException('유효하지 않은 공개 설정입니다');
+    }
+    const existing = await this.prisma.resume.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('이력서를 찾을 수 없습니다');
+    await this.prisma.resume.update({ where: { id }, data: { visibility } });
+    return { id, visibility };
+  }
+
+  async create(dto: CreateResumeDto, userId?: string) {
     const resume = await this.prisma.resume.create({
       data: {
         title: dto.title || '',
+        userId: userId || null,
         personalInfo: dto.personalInfo ? { create: dto.personalInfo } : undefined,
         experiences: dto.experiences?.length ? {
           create: dto.experiences.map((e, i) => ({
@@ -201,7 +222,7 @@ export class ResumesService {
     return { success: true };
   }
 
-  async duplicate(id: string) {
+  async duplicate(id: string, userId?: string) {
     const source = await this.prisma.resume.findUnique({ where: { id }, include: FULL_INCLUDE });
     if (!source) throw new NotFoundException('이력서를 찾을 수 없습니다');
     const f = this.formatFull(source);
@@ -211,7 +232,7 @@ export class ResumesService {
       educations: f.educations, skills: f.skills, projects: f.projects,
       certifications: f.certifications, languages: f.languages,
       awards: f.awards, activities: f.activities,
-    });
+    }, userId);
   }
 
   private async saveVersionSnapshot(resumeId: string) {
@@ -225,7 +246,7 @@ export class ResumesService {
 
   private formatSummary(resume: any) {
     return {
-      id: resume.id, title: resume.title,
+      id: resume.id, title: resume.title, visibility: resume.visibility || 'private',
       personalInfo: resume.personalInfo
         ? { name: resume.personalInfo.name, email: resume.personalInfo.email, phone: resume.personalInfo.phone, address: resume.personalInfo.address, website: resume.personalInfo.website, summary: resume.personalInfo.summary }
         : { name: '', email: '', phone: '', address: '', website: '', summary: '' },

@@ -4,9 +4,10 @@ import { UpdateResumeDto } from './dto/update-resume.dto';
 export declare class ResumesService {
     private prisma;
     constructor(prisma: PrismaService);
-    findAll(): Promise<{
+    findAll(userId?: string): Promise<{
         id: any;
         title: any;
+        visibility: any;
         personalInfo: {
             name: any;
             email: any;
@@ -19,7 +20,23 @@ export declare class ResumesService {
         createdAt: any;
         updatedAt: any;
     }[]>;
-    findOne(id: string): Promise<{
+    findPublic(): Promise<{
+        id: any;
+        title: any;
+        visibility: any;
+        personalInfo: {
+            name: any;
+            email: any;
+            phone: any;
+            address: any;
+            website: any;
+            summary: any;
+        };
+        tags: any;
+        createdAt: any;
+        updatedAt: any;
+    }[]>;
+    findOne(id: string, _userId?: string): Promise<{
         experiences: {
             [k: string]: any;
         }[];
@@ -46,6 +63,7 @@ export declare class ResumesService {
         }[];
         id: any;
         title: any;
+        visibility: any;
         personalInfo: {
             name: any;
             email: any;
@@ -58,7 +76,11 @@ export declare class ResumesService {
         createdAt: any;
         updatedAt: any;
     }>;
-    create(dto: CreateResumeDto): Promise<{
+    setVisibility(id: string, visibility: string): Promise<{
+        id: string;
+        visibility: string;
+    }>;
+    create(dto: CreateResumeDto, userId?: string): Promise<{
         experiences: {
             [k: string]: any;
         }[];
@@ -85,6 +107,7 @@ export declare class ResumesService {
         }[];
         id: any;
         title: any;
+        visibility: any;
         personalInfo: {
             name: any;
             email: any;
@@ -124,6 +147,7 @@ export declare class ResumesService {
         }[];
         id: any;
         title: any;
+        visibility: any;
         personalInfo: {
             name: any;
             email: any;
@@ -139,7 +163,7 @@ export declare class ResumesService {
     remove(id: string): Promise<{
         success: boolean;
     }>;
-    duplicate(id: string): Promise<{
+    duplicate(id: string, userId?: string): Promise<{
         experiences: {
             [k: string]: any;
         }[];
@@ -166,6 +190,7 @@ export declare class ResumesService {
         }[];
         id: any;
         title: any;
+        visibility: any;
         personalInfo: {
             name: any;
             email: any;

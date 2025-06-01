@@ -9,9 +9,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LlmModule = void 0;
 const common_1 = require("@nestjs/common");
 const llm_controller_1 = require("./llm.controller");
+const auto_generate_controller_1 = require("./auto-generate.controller");
 const llm_service_1 = require("./llm.service");
 const resumes_module_1 = require("../resumes/resumes.module");
 const anthropic_provider_1 = require("./providers/anthropic.provider");
+const gemini_provider_1 = require("./providers/gemini.provider");
+const groq_provider_1 = require("./providers/groq.provider");
 const n8n_webhook_provider_1 = require("./providers/n8n-webhook.provider");
 const openai_compatible_provider_1 = require("./providers/openai-compatible.provider");
 let LlmModule = class LlmModule {
@@ -20,10 +23,12 @@ exports.LlmModule = LlmModule;
 exports.LlmModule = LlmModule = __decorate([
     (0, common_1.Module)({
         imports: [resumes_module_1.ResumesModule],
-        controllers: [llm_controller_1.LlmController],
+        controllers: [llm_controller_1.LlmController, auto_generate_controller_1.AutoGenerateController],
         providers: [
             llm_service_1.LlmService,
             anthropic_provider_1.AnthropicProvider,
+            gemini_provider_1.GeminiProvider,
+            groq_provider_1.GroqProvider,
             n8n_webhook_provider_1.N8nWebhookProvider,
             openai_compatible_provider_1.OpenAiCompatibleProvider,
         ],

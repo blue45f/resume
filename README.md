@@ -120,23 +120,23 @@ npm run test:e2e       # E2E 테스트 (55개)
 ## API 엔드포인트
 
 ### 이력서
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
-| GET | /api/resumes | 이력서 목록 |
-| POST | /api/resumes | 이력서 생성 |
-| GET | /api/resumes/:id | 이력서 상세 |
-| PUT | /api/resumes/:id | 이력서 수정 |
-| DELETE | /api/resumes/:id | 이력서 삭제 |
-| POST | /api/resumes/:id/duplicate | 이력서 복제 |
+| 메서드    | 경로                         | 설명     |
+|--------|----------------------------|--------|
+| GET    | /api/resumes               | 이력서 목록 |
+| POST   | /api/resumes               | 이력서 생성 |
+| GET    | /api/resumes/:id           | 이력서 상세 |
+| PUT    | /api/resumes/:id           | 이력서 수정 |
+| DELETE | /api/resumes/:id           | 이력서 삭제 |
+| POST   | /api/resumes/:id/duplicate | 이력서 복제 |
 
 ### LLM 변환 (유료/무료 LLM)
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
-| POST | /api/resumes/:id/transform | LLM 양식 변환 |
-| POST | /api/resumes/:id/transform/stream | LLM 스트리밍 변환 |
-| GET | /api/resumes/:id/transform/history | 변환 이력 |
-| GET | /api/resumes/:id/transform/providers | LLM 프로바이더 목록 |
-| GET | /api/resumes/:id/transform/usage | 사용량 통계 |
+| 메서드  | 경로                                   | 설명           |
+|------|--------------------------------------|--------------|
+| POST | /api/resumes/:id/transform           | LLM 양식 변환    |
+| POST | /api/resumes/:id/transform/stream    | LLM 스트리밍 변환  |
+| GET  | /api/resumes/:id/transform/history   | 변환 이력        |
+| GET  | /api/resumes/:id/transform/providers | LLM 프로바이더 목록 |
+| GET  | /api/resumes/:id/transform/usage     | 사용량 통계       |
 
 ### 로컬 변환 (무료, LLM 불필요)
 | 메서드 | 경로 | 설명 |

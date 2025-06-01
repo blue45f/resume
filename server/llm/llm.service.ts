@@ -4,6 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ResumesService } from '../resumes/resumes.service';
 import { LlmProvider, LlmStreamChunk } from './llm-provider.interface';
 import { AnthropicProvider } from './providers/anthropic.provider';
+import { GeminiProvider } from './providers/gemini.provider';
+import { GroqProvider } from './providers/groq.provider';
 import { N8nWebhookProvider } from './providers/n8n-webhook.provider';
 import { OpenAiCompatibleProvider } from './providers/openai-compatible.provider';
 import { TransformResumeDto } from './dto/transform-resume.dto';
@@ -59,25 +61,24 @@ export class LlmService {
     private prisma: PrismaService,
     private resumesService: ResumesService,
     private anthropicProvider: AnthropicProvider,
+    private geminiProvider: GeminiProvider,
+    private groqProvider: GroqProvider,
     private n8nProvider: N8nWebhookProvider,
     private openAiCompatibleProvider: OpenAiCompatibleProvider,
   ) {
     // Register providers
-    if (anthropicProvider.isAvailable) {
-      this.providers.set('anthropic', anthropicProvider);
-    }
-    if (n8nProvider.isAvailable) {
-      this.providers.set('n8n', n8nProvider);
-    }
-    if (openAiCompatibleProvider.isAvailable) {
-      this.providers.set('openai-compatible', openAiCompatibleProvider);
-    }
+    if (geminiProvider.isAvailable) this.providers.set('gemini', geminiProvider);
+    if (groqProvider.isAvailable) this.providers.set('groq', groqProvider);
+    if (anthropicProvider.isAvailable) this.providers.set('anthropic', anthropicProvider);
+    if (n8nProvider.isAvailable) this.providers.set('n8n', n8nProvider);
+    if (openAiCompatibleProvider.isAvailable) this.providers.set('openai-compatible', openAiCompatibleProvider);
 
-    // Default provider priority: n8n (free) > openai-compatible (local/free) > anthropic (paid)
-    // Cost optimization: prefer free/local providers
+    // Default priority: gemini (free) > groq (free) > n8n > openai-compatible > anthropic (paid)
     this.defaultProvider =
       this.config.get<string>('LLM_DEFAULT_PROVIDER') ||
-      (n8nProvider.isAvailable ? 'n8n' :
+      (geminiProvider.isAvailable ? 'gemini' :
+       groqProvider.isAvailable ? 'groq' :
+       n8nProvider.isAvailable ? 'n8n' :
        openAiCompatibleProvider.isAvailable ? 'openai-compatible' :
        'anthropic');
 
@@ -182,6 +183,77 @@ export class LlmService {
       createdAt: t.createdAt.toISOString(),
       result: JSON.parse(t.result),
     }));
+  }
+
+  /**
+   * 비정형 텍스트로부터 이력서 자동 생성
+   */
+  async autoGenerate(rawText: string, instruction?: string, provider?: string) {
+    const llm = this.getProvider(provider);
+
+    const systemPrompt = `당신은 이력서 데이터 파싱 전문가입니다. 사용자가 제공하는 비정형 텍스트(경력 메모, LinkedIn 복사, 이전 이력서, 자유 형식 등)를 분석하여 구조화된 이력서 JSON 데이터를 생성해주세요.
+
+반드시 아래 JSON 형식으로만 응답하세요. 설명이나 마크다운 없이 순수 JSON만 출력하세요.
+
+{
+  "title": "이력서 제목",
+  "personalInfo": {
+    "name": "", "email": "", "phone": "", "address": "", "website": "", "summary": ""
+  },
+  "experiences": [
+    { "company": "", "position": "", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "current": false, "description": "" }
+  ],
+  "educations": [
+    { "school": "", "degree": "", "field": "", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "description": "" }
+  ],
+  "skills": [
+    { "category": "", "items": "" }
+  ],
+  "projects": [
+    { "name": "", "role": "", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "description": "", "link": "" }
+  ],
+  "certifications": [
+    { "name": "", "issuer": "", "issueDate": "YYYY-MM-DD", "expiryDate": "", "credentialId": "", "description": "" }
+  ],
+  "languages": [
+    { "name": "", "testName": "", "score": "", "testDate": "YYYY-MM-DD" }
+  ],
+  "awards": [
+    { "name": "", "issuer": "", "awardDate": "YYYY-MM-DD", "description": "" }
+  ],
+  "activities": [
+    { "name": "", "organization": "", "role": "", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "description": "" }
+  ]
+}
+
+규칙:
+- 텍스트에 없는 정보는 빈 문자열로 두세요
+- 해당 섹션에 데이터가 없으면 빈 배열 []로 두세요
+- 날짜는 YYYY-MM-DD 형식, 정확하지 않으면 YYYY-MM-01 또는 YYYY-01-01 사용
+- 경력의 성과/업무를 description에 줄바꿈으로 구분하여 상세히 작성
+- title은 "이름의 이력서" 형식으로 자동 생성
+${instruction ? `\n추가 지시: ${instruction}` : ''}`;
+
+    const result = await llm.generate(systemPrompt, rawText);
+
+    // JSON 파싱 시도
+    let parsed;
+    try {
+      // LLM 응답에서 JSON 블록 추출
+      let jsonText = result.text;
+      const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) jsonText = jsonMatch[0];
+      parsed = JSON.parse(jsonText);
+    } catch {
+      throw new BadRequestException('LLM 응답을 파싱할 수 없습니다. 다시 시도해주세요.');
+    }
+
+    return {
+      resume: parsed,
+      tokensUsed: result.tokensUsed,
+      provider: result.provider,
+      model: result.model,
+    };
   }
 
   async getUsageStats() {

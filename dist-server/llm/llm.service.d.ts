@@ -3,6 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ResumesService } from '../resumes/resumes.service';
 import { LlmStreamChunk } from './llm-provider.interface';
 import { AnthropicProvider } from './providers/anthropic.provider';
+import { GeminiProvider } from './providers/gemini.provider';
+import { GroqProvider } from './providers/groq.provider';
 import { N8nWebhookProvider } from './providers/n8n-webhook.provider';
 import { OpenAiCompatibleProvider } from './providers/openai-compatible.provider';
 import { TransformResumeDto } from './dto/transform-resume.dto';
@@ -11,12 +13,14 @@ export declare class LlmService {
     private prisma;
     private resumesService;
     private anthropicProvider;
+    private geminiProvider;
+    private groqProvider;
     private n8nProvider;
     private openAiCompatibleProvider;
     private readonly logger;
     private readonly providers;
     private readonly defaultProvider;
-    constructor(config: ConfigService, prisma: PrismaService, resumesService: ResumesService, anthropicProvider: AnthropicProvider, n8nProvider: N8nWebhookProvider, openAiCompatibleProvider: OpenAiCompatibleProvider);
+    constructor(config: ConfigService, prisma: PrismaService, resumesService: ResumesService, anthropicProvider: AnthropicProvider, geminiProvider: GeminiProvider, groqProvider: GroqProvider, n8nProvider: N8nWebhookProvider, openAiCompatibleProvider: OpenAiCompatibleProvider);
     getAvailableProviders(): {
         name: string;
         available: boolean;
@@ -40,6 +44,12 @@ export declare class LlmService {
         createdAt: string;
         result: any;
     }[]>;
+    autoGenerate(rawText: string, instruction?: string, provider?: string): Promise<{
+        resume: any;
+        tokensUsed: number;
+        provider: string;
+        model: string;
+    }>;
     getUsageStats(): Promise<{
         totalTransformations: number;
         totalTokensUsed: number;

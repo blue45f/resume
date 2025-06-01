@@ -12,6 +12,8 @@ const config_1 = require("@nestjs/config");
 const throttler_1 = require("@nestjs/throttler");
 const core_1 = require("@nestjs/core");
 const prisma_module_1 = require("./prisma/prisma.module");
+const auth_module_1 = require("./auth/auth.module");
+const auth_guard_1 = require("./auth/auth.guard");
 const resumes_module_1 = require("./resumes/resumes.module");
 const llm_module_1 = require("./llm/llm.module");
 const templates_module_1 = require("./templates/templates.module");
@@ -27,17 +29,10 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({ isGlobal: true }),
             throttler_1.ThrottlerModule.forRoot([
-                {
-                    name: 'short',
-                    ttl: 1000,
-                    limit: 10,
-                },
-                {
-                    name: 'medium',
-                    ttl: 60000,
-                    limit: 100,
-                },
+                { name: 'short', ttl: 1000, limit: 10 },
+                { name: 'medium', ttl: 60000, limit: 100 },
             ]),
+            auth_module_1.AuthModule,
             prisma_module_1.PrismaModule,
             resumes_module_1.ResumesModule,
             llm_module_1.LlmModule,
@@ -48,10 +43,8 @@ exports.AppModule = AppModule = __decorate([
             attachments_module_1.AttachmentsModule,
         ],
         providers: [
-            {
-                provide: core_1.APP_GUARD,
-                useClass: throttler_1.ThrottlerGuard,
-            },
+            { provide: core_1.APP_GUARD, useClass: throttler_1.ThrottlerGuard },
+            { provide: core_1.APP_GUARD, useClass: auth_guard_1.AuthGuard },
         ],
     })
 ], AppModule);

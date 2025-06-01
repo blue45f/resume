@@ -39,14 +39,23 @@ let ResumesService = class ResumesService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async findAll() {
+    async findAll(userId) {
         const resumes = await this.prisma.resume.findMany({
+            where: userId ? { userId } : {},
             include: { personalInfo: true, tags: { include: { tag: true } } },
             orderBy: { updatedAt: 'desc' },
         });
         return resumes.map((r) => this.formatSummary(r));
     }
-    async findOne(id) {
+    async findPublic() {
+        const resumes = await this.prisma.resume.findMany({
+            where: { visibility: 'public' },
+            include: { personalInfo: true, tags: { include: { tag: true } } },
+            orderBy: { updatedAt: 'desc' },
+        });
+        return resumes.map((r) => this.formatSummary(r));
+    }
+    async findOne(id, _userId) {
         const resume = await this.prisma.resume.findUnique({
             where: { id },
             include: FULL_INCLUDE,
@@ -55,10 +64,21 @@ let ResumesService = class ResumesService {
             throw new common_1.NotFoundException('이력서를 찾을 수 없습니다');
         return this.formatFull(resume);
     }
-    async create(dto) {
+    async setVisibility(id, visibility) {
+        if (!['public', 'private', 'link-only'].includes(visibility)) {
+            throw new common_1.NotFoundException('유효하지 않은 공개 설정입니다');
+        }
+        const existing = await this.prisma.resume.findUnique({ where: { id } });
+        if (!existing)
+            throw new common_1.NotFoundException('이력서를 찾을 수 없습니다');
+        await this.prisma.resume.update({ where: { id }, data: { visibility } });
+        return { id, visibility };
+    }
+    async create(dto, userId) {
         const resume = await this.prisma.resume.create({
             data: {
                 title: dto.title || '',
+                userId: userId || null,
                 personalInfo: dto.personalInfo ? { create: dto.personalInfo } : undefined,
                 experiences: dto.experiences?.length ? {
                     create: dto.experiences.map((e, i) => ({
@@ -189,7 +209,7 @@ let ResumesService = class ResumesService {
         await this.prisma.resume.delete({ where: { id } });
         return { success: true };
     }
-    async duplicate(id) {
+    async duplicate(id, userId) {
         const source = await this.prisma.resume.findUnique({ where: { id }, include: FULL_INCLUDE });
         if (!source)
             throw new common_1.NotFoundException('이력서를 찾을 수 없습니다');
@@ -200,7 +220,7 @@ let ResumesService = class ResumesService {
             educations: f.educations, skills: f.skills, projects: f.projects,
             certifications: f.certifications, languages: f.languages,
             awards: f.awards, activities: f.activities,
-        });
+        }, userId);
     }
     async saveVersionSnapshot(resumeId) {
         const current = await this.prisma.resume.findUnique({ where: { id: resumeId }, include: FULL_INCLUDE });
@@ -213,7 +233,7 @@ let ResumesService = class ResumesService {
     }
     formatSummary(resume) {
         return {
-            id: resume.id, title: resume.title,
+            id: resume.id, title: resume.title, visibility: resume.visibility || 'private',
             personalInfo: resume.personalInfo
                 ? { name: resume.personalInfo.name, email: resume.personalInfo.email, phone: resume.personalInfo.phone, address: resume.personalInfo.address, website: resume.personalInfo.website, summary: resume.personalInfo.summary }
                 : { name: '', email: '', phone: '', address: '', website: '', summary: '' },

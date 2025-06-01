@@ -7,12 +7,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Resume {
-  id        String   @id @default(uuid())
-  title     String   @default("")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  name       String   @default("")
+  avatar     String   @default("")
+  provider   String   @default("") // google, github, kakao
+  providerId String   @default("") @map("provider_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  resumes    Resume[]
 
+  @@unique([provider, providerId])
+  @@map("users")
+}
+
+model Resume {
+  id         String   @id @default(uuid())
+  title      String   @default("")
+  visibility String   @default("private") // public, private, link-only
+  userId     String?  @map("user_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user            User?            @relation(fields: [userId], references: [id])
   personalInfo    PersonalInfo?
   experiences     Experience[]
   educations      Education[]
@@ -28,6 +45,7 @@ model Resume {
   shareLinks      ShareLink[]
   transformations LlmTransformation[]
 
+  @@index([userId])
   @@map("resumes")
 }
 

@@ -10,8 +10,8 @@ export declare class TagsController {
         resumeCount: number;
     }[]>;
     create(dto: CreateTagDto): Promise<{
-        name: string;
         id: string;
+        name: string;
         color: string;
     }>;
     remove(id: string): Promise<{

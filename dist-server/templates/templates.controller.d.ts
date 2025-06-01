@@ -8,44 +8,44 @@ export declare class TemplatesController {
     private readonly resumesService;
     constructor(templatesService: TemplatesService, localTransformService: LocalTransformService, resumesService: ResumesService);
     findAll(): Promise<{
-        name: string;
         id: string;
+        name: string;
+        createdAt: Date;
         description: string;
         category: string;
-        createdAt: Date;
         updatedAt: Date;
         prompt: string;
         layout: string;
         isDefault: boolean;
     }[]>;
     findOne(id: string): Promise<{
-        name: string;
         id: string;
+        name: string;
+        createdAt: Date;
         description: string;
         category: string;
-        createdAt: Date;
         updatedAt: Date;
         prompt: string;
         layout: string;
         isDefault: boolean;
     }>;
     create(dto: CreateTemplateDto): Promise<{
-        name: string;
         id: string;
+        name: string;
+        createdAt: Date;
         description: string;
         category: string;
-        createdAt: Date;
         updatedAt: Date;
         prompt: string;
         layout: string;
         isDefault: boolean;
     }>;
     update(id: string, dto: UpdateTemplateDto): Promise<{
-        name: string;
         id: string;
+        name: string;
+        createdAt: Date;
         description: string;
         category: string;
-        createdAt: Date;
         updatedAt: Date;
         prompt: string;
         layout: string;
