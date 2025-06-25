@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsIn } from 'class-validator';
+import { IsString, IsOptional, IsIn, MaxLength } from 'class-validator';
 
 export const TEMPLATE_TYPES = [
   'standard',
@@ -30,14 +30,16 @@ export class TransformResumeDto {
   @IsIn(['ko', 'en'])
   targetLanguage?: string;
 
-  @ApiPropertyOptional({ description: 'Job Description (JD 맞춤 최적화용)' })
+  @ApiPropertyOptional({ description: 'Job Description (JD 맞춤 최적화용, 3000자 이내)' })
   @IsOptional()
   @IsString()
+  @MaxLength(3000, { message: 'JD는 3000자 이내여야 합니다' })
   jobDescription?: string;
 
-  @ApiPropertyOptional({ description: '커스텀 프롬프트 (custom 유형일 때)' })
+  @ApiPropertyOptional({ description: '커스텀 프롬프트 (custom 유형일 때, 2000자 이내)' })
   @IsOptional()
   @IsString()
+  @MaxLength(2000, { message: '커스텀 프롬프트는 2000자 이내여야 합니다' })
   customPrompt?: string;
 
   @ApiPropertyOptional({

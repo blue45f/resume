@@ -231,10 +231,15 @@ export class LlmService {
 - 해당 섹션에 데이터가 없으면 빈 배열 []로 두세요
 - 날짜는 YYYY-MM-DD 형식, 정확하지 않으면 YYYY-MM-01 또는 YYYY-01-01 사용
 - 경력의 성과/업무를 description에 줄바꿈으로 구분하여 상세히 작성
-- title은 "이름의 이력서" 형식으로 자동 생성
-${instruction ? `\n추가 지시: ${instruction}` : ''}`;
+- title은 "이름의 이력서" 형식으로 자동 생성`;
 
-    const result = await llm.generate(systemPrompt, rawText);
+    // instruction을 user message에 포함 (system prompt 인젝션 방지)
+    let userMessage = rawText;
+    if (instruction) {
+      userMessage += `\n\n추가 지시사항: ${instruction}`;
+    }
+
+    const result = await llm.generate(systemPrompt, userMessage);
 
     // JSON 파싱 시도
     let parsed;

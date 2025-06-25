@@ -36,6 +36,32 @@ export declare class ResumesService {
         createdAt: any;
         updatedAt: any;
     }[]>;
+    searchPublic(opts: {
+        query?: string;
+        tag?: string;
+        page: number;
+        limit: number;
+    }): Promise<{
+        data: {
+            id: any;
+            title: any;
+            visibility: any;
+            personalInfo: {
+                name: any;
+                email: any;
+                phone: any;
+                address: any;
+                website: any;
+                summary: any;
+            };
+            tags: any;
+            createdAt: any;
+            updatedAt: any;
+        }[];
+        total: number;
+        page: number;
+        totalPages: number;
+    }>;
     findOne(id: string, _userId?: string): Promise<{
         experiences: {
             [k: string]: any;

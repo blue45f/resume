@@ -78,9 +78,13 @@ export async function* transformResumeStream(
   resumeId: string,
   data: { templateType: string; targetLanguage?: string; jobDescription?: string; provider?: string },
 ): AsyncGenerator<{ type: string; text?: string; id?: string; tokensUsed?: number }> {
+  const token = localStorage.getItem('token');
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform/stream`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error('Transform stream failed');

@@ -20,22 +20,27 @@ export declare class ResumesController {
         createdAt: any;
         updatedAt: any;
     }[]>;
-    findPublicResumes(): Promise<{
-        id: any;
-        title: any;
-        visibility: any;
-        personalInfo: {
-            name: any;
-            email: any;
-            phone: any;
-            address: any;
-            website: any;
-            summary: any;
-        };
-        tags: any;
-        createdAt: any;
-        updatedAt: any;
-    }[]>;
+    findPublicResumes(query?: string, tag?: string, page?: string, limit?: string): Promise<{
+        data: {
+            id: any;
+            title: any;
+            visibility: any;
+            personalInfo: {
+                name: any;
+                email: any;
+                phone: any;
+                address: any;
+                website: any;
+                summary: any;
+            };
+            tags: any;
+            createdAt: any;
+            updatedAt: any;
+        }[];
+        total: number;
+        page: number;
+        totalPages: number;
+    }>;
     findOne(id: string, req: any): Promise<{
         experiences: {
             [k: string]: any;

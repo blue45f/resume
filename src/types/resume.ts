@@ -88,6 +88,7 @@ export interface Tag {
 export interface Resume {
   id: string;
   title: string;
+  visibility?: 'public' | 'private' | 'link-only';
   createdAt: string;
   updatedAt: string;
   personalInfo: PersonalInfo;

@@ -37,27 +37,49 @@ export class LlmController {
     @Body() dto: TransformResumeDto,
   ): Observable<MessageEvent> {
     return new Observable((subscriber) => {
+      let isAlive = true;
+      let generator: AsyncGenerator<any> | null = null;
+
+      const cleanup = () => {
+        isAlive = false;
+        if (generator?.return) generator.return(undefined).catch(() => {});
+      };
+
       const timeout = setTimeout(() => {
-        subscriber.next({
-          data: JSON.stringify({ type: 'error', message: '스트리밍 타임아웃 (60초)' }),
-        } as MessageEvent);
-        subscriber.complete();
+        if (isAlive) {
+          subscriber.next({
+            data: JSON.stringify({ type: 'error', message: '스트리밍 타임아웃 (60초)' }),
+          } as MessageEvent);
+          cleanup();
+          subscriber.complete();
+        }
       }, 60000);
 
       (async () => {
         try {
-          for await (const chunk of this.llmService.transformStream(resumeId, dto)) {
+          generator = this.llmService.transformStream(resumeId, dto);
+          for await (const chunk of generator) {
+            if (!isAlive) break;
             subscriber.next({ data: JSON.stringify(chunk) } as MessageEvent);
           }
         } catch (error: any) {
-          subscriber.next({
-            data: JSON.stringify({ type: 'error', message: error.message }),
-          } as MessageEvent);
+          if (isAlive) {
+            subscriber.next({
+              data: JSON.stringify({ type: 'error', message: error.message }),
+            } as MessageEvent);
+          }
         } finally {
           clearTimeout(timeout);
+          cleanup();
           subscriber.complete();
         }
       })();
+
+      // 클라이언트 연결 해제 시 cleanup
+      return () => {
+        clearTimeout(timeout);
+        cleanup();
+      };
     });
   }
 

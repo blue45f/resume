@@ -12,6 +12,7 @@ import { VersionsModule } from './versions/versions.module';
 import { TagsModule } from './tags/tags.module';
 import { ShareModule } from './share/share.module';
 import { AttachmentsModule } from './attachments/attachments.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AttachmentsModule } from './attachments/attachments.module';
     ]),
     AuthModule,
     PrismaModule,
+    HealthModule,
     ResumesModule,
     LlmModule,
     TemplatesModule,

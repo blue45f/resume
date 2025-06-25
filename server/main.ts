@@ -4,6 +4,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -11,6 +12,9 @@ async function bootstrap() {
   });
 
   const isProd = process.env.NODE_ENV === 'production';
+
+  // Graceful shutdown
+  app.enableShutdownHooks();
 
   app.use(helmet({ contentSecurityPolicy: false }));
 
@@ -21,12 +25,13 @@ async function bootstrap() {
   ];
   app.enableCors({
     origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     maxAge: 3600,
   });
 
   app.setGlobalPrefix('api');
+  app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -40,6 +45,7 @@ async function bootstrap() {
       .setTitle('Resume Platform API')
       .setDescription('LLM 기반 이력서 관리 플랫폼')
       .setVersion('2.0')
+      .addBearerAuth()
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, document);

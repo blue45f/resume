@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param } from '@nestjs/common';
+import { Controller, Get, Post, Param, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { VersionsService } from './versions.service';
 
@@ -27,7 +27,8 @@ export class VersionsController {
   restore(
     @Param('resumeId') resumeId: string,
     @Param('versionId') versionId: string,
+    @Req() req: any,
   ) {
-    return this.versionsService.restore(resumeId, versionId);
+    return this.versionsService.restore(resumeId, versionId, req.user?.id);
   }
 }

@@ -23,9 +23,18 @@ export class ResumesController {
 
   @Get('public')
   @Public()
-  @ApiOperation({ summary: '공개 이력서 목록' })
-  findPublicResumes() {
-    return this.resumesService.findPublic();
+  @ApiOperation({ summary: '공개 이력서 검색/목록' })
+  findPublicResumes(
+    @Query('q') query?: string,
+    @Query('tag') tag?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.resumesService.searchPublic({
+      query, tag,
+      page: parseInt(page || '1'),
+      limit: Math.min(parseInt(limit || '20'), 50),
+    });
   }
 
   @Get(':id')
@@ -42,8 +51,8 @@ export class ResumesController {
 
   @Put(':id')
   @ApiOperation({ summary: '이력서 수정' })
-  update(@Param('id') id: string, @Body() dto: UpdateResumeDto) {
-    return this.resumesService.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateResumeDto, @Req() req: any) {
+    return this.resumesService.update(id, dto, req.user?.id);
   }
 
   @Patch(':id/visibility')
@@ -51,14 +60,15 @@ export class ResumesController {
   setVisibility(
     @Param('id') id: string,
     @Body('visibility') visibility: string,
+    @Req() req: any,
   ) {
-    return this.resumesService.setVisibility(id, visibility);
+    return this.resumesService.setVisibility(id, visibility, req.user?.id);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '이력서 삭제' })
-  remove(@Param('id') id: string) {
-    return this.resumesService.remove(id);
+  remove(@Param('id') id: string, @Req() req: any) {
+    return this.resumesService.remove(id, req.user?.id);
   }
 
   @Post(':id/duplicate')

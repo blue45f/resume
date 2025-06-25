@@ -10,17 +10,24 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [filterTag, setFilterTag] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = async (signal?: AbortSignal) => {
     try {
       const [resumeData, tagData] = await Promise.all([fetchResumes(), fetchTags()]);
+      if (signal?.aborted) return;
       setResumes(resumeData);
       setTags(tagData);
+    } catch (err) {
+      if (signal?.aborted) return;
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const ac = new AbortController();
+    load(ac.signal);
+    return () => ac.abort();
+  }, []);
 
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`"${title || '제목 없음'}" 이력서를 삭제하시겠습니까?`)) return;

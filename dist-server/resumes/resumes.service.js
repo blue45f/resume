@@ -55,6 +55,35 @@ let ResumesService = class ResumesService {
         });
         return resumes.map((r) => this.formatSummary(r));
     }
+    async searchPublic(opts) {
+        const where = { visibility: 'public' };
+        if (opts.query) {
+            where.OR = [
+                { title: { contains: opts.query, mode: 'insensitive' } },
+                { personalInfo: { name: { contains: opts.query, mode: 'insensitive' } } },
+                { personalInfo: { summary: { contains: opts.query, mode: 'insensitive' } } },
+            ];
+        }
+        if (opts.tag) {
+            where.tags = { some: { tag: { name: opts.tag } } };
+        }
+        const [resumes, total] = await Promise.all([
+            this.prisma.resume.findMany({
+                where,
+                include: { personalInfo: true, tags: { include: { tag: true } } },
+                orderBy: { updatedAt: 'desc' },
+                skip: (opts.page - 1) * opts.limit,
+                take: opts.limit,
+            }),
+            this.prisma.resume.count({ where }),
+        ]);
+        return {
+            data: resumes.map((r) => this.formatSummary(r)),
+            total,
+            page: opts.page,
+            totalPages: Math.ceil(total / opts.limit),
+        };
+    }
     async findOne(id, _userId) {
         const resume = await this.prisma.resume.findUnique({
             where: { id },

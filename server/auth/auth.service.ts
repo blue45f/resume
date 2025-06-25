@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { randomBytes, createHash } from 'crypto';
 
 interface OAuthProfile {
   provider: string;
@@ -14,6 +15,9 @@ interface OAuthProfile {
 @Injectable()
 export class AuthService {
   private readonly frontendUrl: string;
+  // In-memory state store with TTL (5 min)
+  private readonly oauthStates = new Map<string, { createdAt: number }>();
+  private readonly STATE_TTL_MS = 5 * 60 * 1000;
 
   constructor(
     private prisma: PrismaService,
@@ -23,24 +27,42 @@ export class AuthService {
     this.frontendUrl = this.config.get('FRONTEND_URL') || 'http://localhost:5173';
   }
 
+  generateOAuthState(): string {
+    // Clean expired states
+    const now = Date.now();
+    for (const [key, val] of this.oauthStates) {
+      if (now - val.createdAt > this.STATE_TTL_MS) this.oauthStates.delete(key);
+    }
+    const state = randomBytes(16).toString('hex');
+    this.oauthStates.set(state, { createdAt: now });
+    return state;
+  }
+
+  validateOAuthState(state: string): boolean {
+    const entry = this.oauthStates.get(state);
+    if (!entry) return false;
+    this.oauthStates.delete(state); // 1회용
+    return Date.now() - entry.createdAt < this.STATE_TTL_MS;
+  }
+
   // ---- OAuth URL 생성 ----
 
-  getGoogleAuthUrl() {
+  getGoogleAuthUrl(state: string) {
     const clientId = this.config.get('GOOGLE_CLIENT_ID');
     const redirectUri = this.getCallbackUrl('google');
-    return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=email+profile&prompt=select_account`;
+    return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=email+profile&prompt=select_account&state=${state}`;
   }
 
-  getGithubAuthUrl() {
+  getGithubAuthUrl(state: string) {
     const clientId = this.config.get('GITHUB_CLIENT_ID');
     const redirectUri = this.getCallbackUrl('github');
-    return `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`;
+    return `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email&state=${state}`;
   }
 
-  getKakaoAuthUrl() {
+  getKakaoAuthUrl(state: string) {
     const clientId = this.config.get('KAKAO_CLIENT_ID');
     const redirectUri = this.getCallbackUrl('kakao');
-    return `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`;
+    return `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
   }
 
   // ---- OAuth 콜백 처리 ----

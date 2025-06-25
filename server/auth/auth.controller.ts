@@ -21,13 +21,17 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: 'Google 로그인 리다이렉트' })
   googleLogin(@Res() res: Response) {
-    res.redirect(this.authService.getGoogleAuthUrl());
+    const state = this.authService.generateOAuthState();
+    res.redirect(this.authService.getGoogleAuthUrl(state));
   }
 
   @Get('google/callback')
   @Public()
-  async googleCallback(@Query('code') code: string, @Res() res: Response) {
+  async googleCallback(@Query('code') code: string, @Query('state') state: string, @Res() res: Response) {
     try {
+      if (!this.authService.validateOAuthState(state)) {
+        throw new Error('Invalid OAuth state');
+      }
       const token = await this.authService.handleGoogleCallback(code);
       res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`);
     } catch {
@@ -40,13 +44,17 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: 'GitHub 로그인 리다이렉트' })
   githubLogin(@Res() res: Response) {
-    res.redirect(this.authService.getGithubAuthUrl());
+    const state = this.authService.generateOAuthState();
+    res.redirect(this.authService.getGithubAuthUrl(state));
   }
 
   @Get('github/callback')
   @Public()
-  async githubCallback(@Query('code') code: string, @Res() res: Response) {
+  async githubCallback(@Query('code') code: string, @Query('state') state: string, @Res() res: Response) {
     try {
+      if (!this.authService.validateOAuthState(state)) {
+        throw new Error('Invalid OAuth state');
+      }
       const token = await this.authService.handleGithubCallback(code);
       res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`);
     } catch {
@@ -59,13 +67,17 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: 'Kakao 로그인 리다이렉트' })
   kakaoLogin(@Res() res: Response) {
-    res.redirect(this.authService.getKakaoAuthUrl());
+    const state = this.authService.generateOAuthState();
+    res.redirect(this.authService.getKakaoAuthUrl(state));
   }
 
   @Get('kakao/callback')
   @Public()
-  async kakaoCallback(@Query('code') code: string, @Res() res: Response) {
+  async kakaoCallback(@Query('code') code: string, @Query('state') state: string, @Res() res: Response) {
     try {
+      if (!this.authService.validateOAuthState(state)) {
+        throw new Error('Invalid OAuth state');
+      }
       const token = await this.authService.handleKakaoCallback(code);
       res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`);
     } catch {

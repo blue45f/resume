@@ -34,6 +34,9 @@ export default function Header() {
                 이력서
               </Link>
             )}
+            <Link to="/explore" className="text-sm text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1">
+              탐색
+            </Link>
             <Link to="/templates" className="text-sm text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1">
               템플릿
             </Link>
@@ -85,6 +88,7 @@ export default function Header() {
         {menuOpen && (
           <nav className="sm:hidden pb-4 space-y-1 border-t border-slate-100 pt-3" aria-label="모바일 메뉴">
             <Link to="/" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">이력서</Link>
+            <Link to="/explore" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">탐색</Link>
             <Link to="/templates" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">템플릿</Link>
             <Link to="/tags" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">태그</Link>
             <Link to="/resumes/new" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm font-medium text-blue-600 rounded-lg hover:bg-blue-50">+ 새 이력서</Link>

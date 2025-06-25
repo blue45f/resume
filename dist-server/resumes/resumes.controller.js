@@ -30,8 +30,12 @@ let ResumesController = class ResumesController {
         }
         return this.resumesService.findAll(req.user?.id);
     }
-    findPublicResumes() {
-        return this.resumesService.findPublic();
+    findPublicResumes(query, tag, page, limit) {
+        return this.resumesService.searchPublic({
+            query, tag,
+            page: parseInt(page || '1'),
+            limit: Math.min(parseInt(limit || '20'), 50),
+        });
     }
     findOne(id, req) {
         return this.resumesService.findOne(id, req.user?.id);
@@ -65,9 +69,13 @@ __decorate([
 __decorate([
     (0, common_1.Get)('public'),
     (0, auth_guard_1.Public)(),
-    (0, swagger_1.ApiOperation)({ summary: '공개 이력서 목록' }),
+    (0, swagger_1.ApiOperation)({ summary: '공개 이력서 검색/목록' }),
+    __param(0, (0, common_1.Query)('q')),
+    __param(1, (0, common_1.Query)('tag')),
+    __param(2, (0, common_1.Query)('page')),
+    __param(3, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], ResumesController.prototype, "findPublicResumes", null);
 __decorate([

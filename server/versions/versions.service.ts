@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -34,13 +34,24 @@ export class VersionsService {
     };
   }
 
-  async restore(resumeId: string, versionId: string) {
+  async restore(resumeId: string, versionId: string, userId?: string) {
     const version = await this.prisma.resumeVersion.findFirst({
       where: { id: versionId, resumeId },
+      include: { resume: { select: { userId: true } } },
     });
     if (!version) throw new NotFoundException('버전을 찾을 수 없습니다');
 
-    const snapshot = JSON.parse(version.snapshot);
+    // 소유권 검증
+    if (version.resume.userId && version.resume.userId !== userId) {
+      throw new ForbiddenException('이 이력서의 버전을 복원할 권한이 없습니다');
+    }
+
+    let snapshot: any;
+    try {
+      snapshot = JSON.parse(version.snapshot);
+    } catch {
+      throw new BadRequestException('버전 데이터가 손상되었습니다');
+    }
 
     // Use a transaction to restore
     await this.prisma.$transaction(async (tx) => {

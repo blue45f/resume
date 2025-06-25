@@ -18,7 +18,14 @@ export default function EditResumePage() {
     fetchResume(id).then(setResume).catch(() => setNotFound(true));
   };
 
-  useEffect(() => { loadResume(); }, [id]);
+  useEffect(() => {
+    let cancelled = false;
+    if (!id) return;
+    fetchResume(id)
+      .then(data => { if (!cancelled) setResume(data); })
+      .catch(() => { if (!cancelled) setNotFound(true); });
+    return () => { cancelled = true; };
+  }, [id]);
 
   const handleSave = async (data: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!id) return;
@@ -68,7 +75,7 @@ export default function EditResumePage() {
             {/* 공개 설정 */}
             {id && (
               <select
-                value={(resume as any).visibility || 'private'}
+                value={resume.visibility || 'private'}
                 onChange={async (e) => {
                   await setResumeVisibility(id, e.target.value);
                   loadResume();

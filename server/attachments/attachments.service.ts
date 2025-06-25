@@ -1,12 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import { writeFile, unlink, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { join, resolve, extname } from 'path';
 import { existsSync } from 'fs';
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads');
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_TOTAL_SIZE_PER_RESUME = 100 * 1024 * 1024; // 100MB per resume
+const MAX_FILES_PER_RESUME = 20;
 const ALLOWED_TYPES = [
   'application/pdf',
   'image/jpeg', 'image/png', 'image/gif', 'image/webp',
@@ -17,6 +19,10 @@ const ALLOWED_TYPES = [
   'application/vnd.ms-powerpoint',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   'text/plain',
+];
+const ALLOWED_EXTENSIONS = [
+  '.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp',
+  '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt',
 ];
 
 @Injectable()
@@ -29,16 +35,33 @@ export class AttachmentsService {
     category: string,
     description: string,
   ) {
-    // Validate resume exists
-    const resume = await this.prisma.resume.findUnique({ where: { id: resumeId } });
+    // Validate resume exists + check cumulative limits
+    const resume = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      include: { attachments: { select: { size: true } } },
+    });
     if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+
+    if (resume.attachments.length >= MAX_FILES_PER_RESUME) {
+      throw new BadRequestException(`이력서당 최대 ${MAX_FILES_PER_RESUME}개의 파일만 업로드할 수 있습니다`);
+    }
+    const totalSize = resume.attachments.reduce((sum, a) => sum + a.size, 0);
+    if (totalSize + file.size > MAX_TOTAL_SIZE_PER_RESUME) {
+      throw new BadRequestException(`이력서의 총 파일 크기가 100MB를 초과할 수 없습니다 (현재: ${Math.round(totalSize / 1024 / 1024)}MB)`);
+    }
 
     // Validate file
     if (file.size > MAX_FILE_SIZE) {
-      throw new Error('파일 크기는 10MB 이하여야 합니다');
+      throw new BadRequestException('파일 크기는 10MB 이하여야 합니다');
     }
     if (!ALLOWED_TYPES.includes(file.mimetype)) {
-      throw new Error('허용되지 않는 파일 형식입니다');
+      throw new BadRequestException('허용되지 않는 파일 형식입니다');
+    }
+
+    // 확장자 이중 검증 (mime type spoofing 방지)
+    const ext = extname(file.originalname).toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      throw new BadRequestException('허용되지 않는 파일 확장자입니다');
     }
 
     // Ensure upload dir exists
@@ -46,10 +69,14 @@ export class AttachmentsService {
       await mkdir(UPLOAD_DIR, { recursive: true });
     }
 
-    // Save file
-    const ext = file.originalname.split('.').pop() || '';
-    const filename = `${randomUUID()}.${ext}`;
-    await writeFile(join(UPLOAD_DIR, filename), file.buffer);
+    // Save file with safe filename (UUID + validated extension)
+    const filename = `${randomUUID()}${ext}`;
+    const filePath = resolve(UPLOAD_DIR, filename);
+    // Path traversal 방지
+    if (!filePath.startsWith(resolve(UPLOAD_DIR))) {
+      throw new BadRequestException('잘못된 파일 경로입니다');
+    }
+    await writeFile(filePath, file.buffer);
 
     // Save to DB
     const attachment = await this.prisma.attachment.create({
@@ -75,9 +102,18 @@ export class AttachmentsService {
     return attachments.map(a => this.format(a));
   }
 
-  async getFilePath(id: string) {
-    const attachment = await this.prisma.attachment.findUnique({ where: { id } });
+  async getFilePath(id: string, userId?: string) {
+    const attachment = await this.prisma.attachment.findUnique({
+      where: { id },
+      include: { resume: { select: { userId: true, visibility: true } } },
+    });
     if (!attachment) throw new NotFoundException('파일을 찾을 수 없습니다');
+
+    // 비공개 이력서 첨부파일은 소유자만 다운로드 가능
+    if (attachment.resume.visibility === 'private' && attachment.resume.userId && attachment.resume.userId !== userId) {
+      throw new NotFoundException('파일을 찾을 수 없습니다');
+    }
+
     return {
       path: join(UPLOAD_DIR, attachment.filename),
       originalName: attachment.originalName,

@@ -7,10 +7,10 @@ LLM 기반 이력서 양식 변환 + 로컬 변환을 지원하는 풀스택 이
 | 영역    | 기술                                                                  |
 |-------|---------------------------------------------------------------------|
 | 서버    | NestJS 11, SWC, Prisma ORM                                          |
-| DB    | SQLite (Prisma를 통한 PostgreSQL 전환 가능)                                |
-| LLM   | Anthropic Claude / n8n Webhook / OpenAI Compatible (Ollama, Groq 등) |
-| 프론트엔드 | React 19, Vite 8, Tailwind CSS 4                                    |
-| 테스트   | Jest, Supertest (E2E 34개)                                           |
+| DB    | PostgreSQL (Neon), Prisma ORM                                       |
+| LLM   | Gemini / Groq / Anthropic / n8n Webhook / OpenAI Compatible        |
+| 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, MSW (목업)                         |
+| 테스트   | Jest, Supertest (E2E 55개 + Unit 30개)                                |
 
 ## 주요 기능
 
@@ -95,27 +95,35 @@ npm run start:server   # node dist-server/main.js
 ### 테스트
 
 ```bash
+npm run test:unit      # 유닛 테스트 (57개)
+npm run test:unit:cov  # 유닛 테스트 + 커버리지
 npm run test:e2e       # E2E 테스트 (55개)
+```
+
+### 프론트엔드 목업 모드 (백엔드 없이 개발)
+
+```bash
+npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 ```
 
 ## 접속 URL
 
 ### 로컬 개발
 
-| 서비스 | URL |
-|--------|-----|
-| 프론트엔드 | http://localhost:5173 |
-| API 서버 | http://localhost:3001 |
-| Swagger 문서 | http://localhost:3001/api/docs |
+| 서비스           | URL                                         |
+|---------------|---------------------------------------------|
+| 프론트엔드         | http://localhost:5173                       |
+| API 서버        | http://localhost:3001                       |
+| Swagger 문서    | http://localhost:3001/api/docs              |
 | Prisma Studio | `npx prisma studio` → http://localhost:5555 |
 
 ### 프로덕션
 
-| 서비스 | URL | 호스팅 |
-|--------|-----|--------|
+| 서비스     | URL                                  | 호스팅         |
+|---------|--------------------------------------|-------------|
 | 백엔드 API | https://resume-api-mm0o.onrender.com | Render (무료) |
-| 프론트엔드 | https://resume-silk-three.vercel.app | Vercel (무료) |
-| DB | Neon PostgreSQL | Neon (무료) |
+| 프론트엔드   | https://resume-silk-three.vercel.app | Vercel (무료) |
+| DB      | Neon PostgreSQL                      | Neon (무료)   |
 
 ## API 엔드포인트
 
@@ -139,10 +147,10 @@ npm run test:e2e       # E2E 테스트 (55개)
 | GET  | /api/resumes/:id/transform/usage     | 사용량 통계       |
 
 ### 로컬 변환 (무료, LLM 불필요)
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
+| 메서드  | 경로                                       | 설명            |
+|------|------------------------------------------|---------------|
 | POST | /api/templates/local-transform/:resumeId | 프리셋/템플릿 기반 변환 |
-| GET | /api/templates/presets/list | 프리셋 목록 (5종) |
+| GET  | /api/templates/presets/list              | 프리셋 목록 (5종)   |
 
 ### 템플릿 / 태그 / 버전 / 공유
 | 메서드                 | 경로                                     | 설명        |
@@ -158,29 +166,38 @@ npm run test:e2e       # E2E 테스트 (55개)
 
 ```
 ├── server/                    # NestJS 백엔드
-│   ├── main.ts               # 앱 진입점 (Helmet, CORS, Swagger)
+│   ├── main.ts               # 앱 진입점 (Helmet, CORS, Swagger, Graceful Shutdown)
 │   ├── app.module.ts          # 루트 모듈 (Rate Limiting)
+│   ├── common/filters/       # 글로벌 예외 필터
+│   ├── health/               # 헬스체크 엔드포인트
+│   ├── auth/                 # JWT + OAuth2 (Google/GitHub/Kakao) + CSRF State
 │   ├── prisma/               # Prisma 서비스
-│   ├── resumes/              # 이력서 CRUD + 자동 버전 관리
+│   ├── resumes/              # 이력서 CRUD + 소유권 검증 + 자동 버전 관리
 │   ├── llm/                  # LLM 변환 (다중 프로바이더)
-│   │   └── providers/        # Anthropic, n8n, OpenAI Compatible
+│   │   └── providers/        # Gemini, Groq, Anthropic, n8n, OpenAI Compatible
 │   ├── templates/            # 템플릿 CRUD + 로컬 변환
 │   ├── versions/             # 버전 조회/복원
 │   ├── tags/                 # 태그 CRUD + 이력서 매핑
-│   └── share/                # 공유 링크 (bcrypt)
+│   ├── share/                # 공유 링크 (bcrypt, 소유권 검증)
+│   └── attachments/          # 첨부파일 (MIME + 확장자 이중 검증)
 ├── src/                       # React 프론트엔드
 │   ├── components/
+│   │   ├── ErrorBoundary.tsx # 전역 에러 바운더리
 │   │   ├── Header.tsx        # 반응형 헤더 (모바일 메뉴)
 │   │   ├── ResumeForm.tsx    # 9탭 이력서 편집 폼
 │   │   ├── ResumePreview.tsx # 이력서 미리보기
 │   │   └── LlmTransformPanel.tsx  # 로컬/AI 변환 패널
-│   ├── pages/                # HomePage, Edit, New, Preview
+│   ├── mocks/                # MSW 목업 (백엔드 없이 개발)
+│   │   ├── handlers.ts       # API 핸들러
+│   │   ├── data.ts           # 샘플 데이터
+│   │   └── browser.ts        # 브라우저 워커
+│   ├── pages/                # HomePage, Edit, New, Preview, Explore
 │   ├── lib/api.ts            # API 클라이언트
 │   └── types/resume.ts       # TypeScript 타입
 ├── prisma/
 │   ├── schema.prisma         # DB 스키마 (16개 테이블)
 │   ├── seed.ts               # 시드 데이터
 │   └── migrations/           # 마이그레이션 이력
-├── test/app.e2e-spec.ts       # E2E 테스트 (34개)
-└── data/                      # SQLite DB 파일
+├── test/app.e2e-spec.ts       # E2E 테스트 (55개)
+└── jest-unit.config.js        # 유닛 테스트 설정
 ```

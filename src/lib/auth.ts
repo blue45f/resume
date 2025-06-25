@@ -14,7 +14,13 @@ export function getToken(): string | null {
 
 export function getUser(): User | null {
   const raw = localStorage.getItem('user');
-  return raw ? JSON.parse(raw) : null;
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    localStorage.removeItem('user');
+    return null;
+  }
 }
 
 export function setAuth(token: string, user: User) {

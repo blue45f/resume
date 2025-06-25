@@ -5,6 +5,7 @@ import {
   Delete,
   Param,
   Body,
+  Req,
   Res,
   UseInterceptors,
   UploadedFile,
@@ -43,8 +44,8 @@ export class AttachmentsController {
 
   @Get('attachments/:id/download')
   @ApiOperation({ summary: '파일 다운로드' })
-  async download(@Param('id') id: string, @Res() res: Response) {
-    const { path, originalName, mimeType } = await this.attachmentsService.getFilePath(id);
+  async download(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
+    const { path, originalName, mimeType } = await this.attachmentsService.getFilePath(id, req.user?.id);
     if (!existsSync(path)) {
       res.status(404).json({ message: '파일을 찾을 수 없습니다' });
       return;

@@ -46,6 +46,7 @@ model Resume {
   transformations LlmTransformation[]
 
   @@index([userId])
+  @@index([visibility])
   @@map("resumes")
 }
 

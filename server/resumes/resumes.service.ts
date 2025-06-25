@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
@@ -55,21 +55,73 @@ export class ResumesService {
     return resumes.map((r) => this.formatSummary(r));
   }
 
-  async findOne(id: string, _userId?: string) {
+  async searchPublic(opts: { query?: string; tag?: string; page: number; limit: number }) {
+    const where: any = { visibility: 'public' };
+
+    // 텍스트 검색 (이름, 제목, 요약)
+    if (opts.query) {
+      where.OR = [
+        { title: { contains: opts.query, mode: 'insensitive' } },
+        { personalInfo: { name: { contains: opts.query, mode: 'insensitive' } } },
+        { personalInfo: { summary: { contains: opts.query, mode: 'insensitive' } } },
+      ];
+    }
+
+    // 태그 필터
+    if (opts.tag) {
+      where.tags = { some: { tag: { name: opts.tag } } };
+    }
+
+    const [resumes, total] = await Promise.all([
+      this.prisma.resume.findMany({
+        where,
+        include: { personalInfo: true, tags: { include: { tag: true } } },
+        orderBy: { updatedAt: 'desc' },
+        skip: (opts.page - 1) * opts.limit,
+        take: opts.limit,
+      }),
+      this.prisma.resume.count({ where }),
+    ]);
+
+    return {
+      data: resumes.map((r) => this.formatSummary(r)),
+      total,
+      page: opts.page,
+      totalPages: Math.ceil(total / opts.limit),
+    };
+  }
+
+  async findOne(id: string, userId?: string) {
     const resume = await this.prisma.resume.findUnique({
       where: { id },
       include: FULL_INCLUDE,
     });
     if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+
+    // 비공개 이력서는 소유자만 조회 가능
+    if (resume.visibility === 'private' && resume.userId && resume.userId !== userId) {
+      throw new ForbiddenException('이 이력서에 접근할 권한이 없습니다');
+    }
+
     return this.formatFull(resume);
   }
 
-  async setVisibility(id: string, visibility: string) {
+  /** 소유권 검증 - 수정/삭제 시 사용 */
+  private async verifyOwnership(resumeId: string, userId?: string) {
+    const resume = await this.prisma.resume.findUnique({ where: { id: resumeId } });
+    if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+    // 소유자가 있는 이력서는 소유자만 수정/삭제 가능
+    if (resume.userId && resume.userId !== userId) {
+      throw new ForbiddenException('이 이력서를 수정할 권한이 없습니다');
+    }
+    return resume;
+  }
+
+  async setVisibility(id: string, visibility: string, userId?: string) {
     if (!['public', 'private', 'link-only'].includes(visibility)) {
       throw new NotFoundException('유효하지 않은 공개 설정입니다');
     }
-    const existing = await this.prisma.resume.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('이력서를 찾을 수 없습니다');
+    await this.verifyOwnership(id, userId);
     await this.prisma.resume.update({ where: { id }, data: { visibility } });
     return { id, visibility };
   }
@@ -144,9 +196,8 @@ export class ResumesService {
     return this.formatFull(resume);
   }
 
-  async update(id: string, dto: UpdateResumeDto) {
-    const existing = await this.prisma.resume.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('이력서를 찾을 수 없습니다');
+  async update(id: string, dto: UpdateResumeDto, userId?: string) {
+    const existing = await this.verifyOwnership(id, userId);
 
     await this.saveVersionSnapshot(id);
 
@@ -215,9 +266,8 @@ export class ResumesService {
     return this.findOne(id);
   }
 
-  async remove(id: string) {
-    const existing = await this.prisma.resume.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('이력서를 찾을 수 없습니다');
+  async remove(id: string, userId?: string) {
+    await this.verifyOwnership(id, userId);
     await this.prisma.resume.delete({ where: { id } });
     return { success: true };
   }
