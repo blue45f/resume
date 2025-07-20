@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -24,8 +24,8 @@ export class TemplatesService {
     prompt?: string;
     layout?: string;
     isDefault?: boolean;
-  }) {
-    return this.prisma.template.create({ data });
+  }, userId?: string) {
+    return this.prisma.template.create({ data: { ...data, userId: userId || null } });
   }
 
   async update(
@@ -38,15 +38,33 @@ export class TemplatesService {
       layout?: string;
       isDefault?: boolean;
     },
+    userId?: string,
+    role?: string,
   ) {
     const existing = await this.prisma.template.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('템플릿을 찾을 수 없습니다');
+    if (role !== 'admin') {
+      if (existing.isDefault) {
+        throw new ForbiddenException('기본 템플릿은 수정할 수 없습니다');
+      }
+      if (existing.userId && existing.userId !== userId) {
+        throw new ForbiddenException('이 템플릿을 수정할 권한이 없습니다');
+      }
+    }
     return this.prisma.template.update({ where: { id }, data });
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId?: string, role?: string) {
     const existing = await this.prisma.template.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('템플릿을 찾을 수 없습니다');
+    if (role !== 'admin') {
+      if (existing.isDefault) {
+        throw new ForbiddenException('기본 템플릿은 삭제할 수 없습니다');
+      }
+      if (existing.userId && existing.userId !== userId) {
+        throw new ForbiddenException('이 템플릿을 삭제할 권한이 없습니다');
+      }
+    }
     await this.prisma.template.delete({ where: { id } });
     return { success: true };
   }

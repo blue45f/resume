@@ -1,3 +1,8 @@
+export interface LinkItem {
+  label: string;
+  url: string;
+}
+
 export interface PersonalInfo {
   name: string;
   email: string;
@@ -5,16 +10,23 @@ export interface PersonalInfo {
   address: string;
   website: string;
   summary: string;
+  photo?: string;
+  birthYear?: string;
+  links?: LinkItem[];
+  military?: string;
 }
 
 export interface Experience {
   id: string;
   company: string;
   position: string;
+  department?: string;
   startDate: string;
   endDate: string;
   current: boolean;
   description: string;
+  achievements?: string;
+  techStack?: string;
 }
 
 export interface Education {
@@ -22,6 +34,7 @@ export interface Education {
   school: string;
   degree: string;
   field: string;
+  gpa?: string;
   startDate: string;
   endDate: string;
   description: string;
@@ -36,10 +49,12 @@ export interface Skill {
 export interface Project {
   id: string;
   name: string;
+  company?: string;
   role: string;
   startDate: string;
   endDate: string;
   description: string;
+  techStack?: string;
   link: string;
 }
 
@@ -140,7 +155,7 @@ export interface LlmProvider {
 export function createEmptyResumeData() {
   return {
     title: "",
-    personalInfo: { name: "", email: "", phone: "", address: "", website: "", summary: "" },
+    personalInfo: { name: "", email: "", phone: "", address: "", website: "", summary: "", photo: "", birthYear: "", links: [] as LinkItem[], military: "" },
     experiences: [] as Experience[],
     educations: [] as Education[],
     skills: [] as Skill[],

@@ -26,7 +26,11 @@ export default function PreviewPage() {
 
   useEffect(() => {
     if (!id) return;
-    fetchResume(id).then(setResume).catch(() => setNotFound(true));
+    let cancelled = false;
+    fetchResume(id)
+      .then(data => { if (!cancelled) setResume(data); })
+      .catch(() => { if (!cancelled) setNotFound(true); });
+    return () => { cancelled = true; };
   }, [id]);
 
   if (notFound) {
@@ -52,8 +56,25 @@ export default function PreviewPage() {
     return (
       <>
         <Header />
-        <main id="main-content" className="flex-1 flex items-center justify-center" role="main">
-          <p className="text-slate-500" aria-live="polite">불러오는 중...</p>
+        <main id="main-content" className="flex-1 py-8 px-4" role="main">
+          <div className="bg-white p-8 sm:p-12 max-w-[210mm] mx-auto shadow-lg animate-pulse">
+            <div className="text-center mb-10 pb-6 border-b-2 border-slate-200">
+              <div className="h-8 bg-slate-200 rounded w-48 mx-auto mb-3" />
+              <div className="h-4 bg-slate-100 rounded w-64 mx-auto" />
+            </div>
+            <div className="h-4 bg-slate-100 rounded w-full mb-2" />
+            <div className="h-4 bg-slate-100 rounded w-5/6 mb-2" />
+            <div className="h-4 bg-slate-100 rounded w-4/6 mb-8" />
+            <div className="h-6 bg-slate-200 rounded w-24 mb-4" />
+            <div className="space-y-3">
+              {[1,2,3].map(i => (
+                <div key={i}>
+                  <div className="h-5 bg-slate-100 rounded w-3/4 mb-1" />
+                  <div className="h-3 bg-slate-50 rounded w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
         </main>
       </>
     );

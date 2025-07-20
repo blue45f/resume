@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
+import { CardGridSkeleton } from '@/components/Skeleton';
+import { toast } from '@/components/Toast';
 import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchResumes, deleteResume, duplicateResume, fetchTags } from '@/lib/api';
 
@@ -31,13 +33,23 @@ export default function HomePage() {
 
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`"${title || '제목 없음'}" 이력서를 삭제하시겠습니까?`)) return;
-    await deleteResume(id);
-    load();
+    try {
+      await deleteResume(id);
+      toast('이력서가 삭제되었습니다', 'success');
+      load();
+    } catch {
+      toast('삭제에 실패했습니다', 'error');
+    }
   };
 
   const handleDuplicate = async (id: string) => {
-    await duplicateResume(id);
-    load();
+    try {
+      await duplicateResume(id);
+      toast('이력서가 복제되었습니다', 'success');
+      load();
+    } catch {
+      toast('복제에 실패했습니다', 'error');
+    }
   };
 
   const filtered = filterTag
@@ -48,8 +60,9 @@ export default function HomePage() {
     return (
       <>
         <Header />
-        <main id="main-content" className="flex-1 flex items-center justify-center" role="main">
-          <p className="text-slate-500" aria-live="polite">불러오는 중...</p>
+        <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+          <div className="h-8 bg-slate-200 rounded w-48 mb-6 animate-pulse" />
+          <CardGridSkeleton count={6} />
         </main>
       </>
     );
@@ -177,6 +190,14 @@ export default function HomePage() {
           </div>
         )}
       </main>
+      <footer className="no-print border-t border-slate-200 py-6 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-400">
+          <Link to="/about" className="hover:text-slate-600">서비스 소개</Link>
+          <Link to="/tutorial" className="hover:text-slate-600">사용 가이드</Link>
+          <Link to="/terms" className="hover:text-slate-600">이용약관</Link>
+          <span>이력서공방</span>
+        </div>
+      </footer>
     </>
   );
 }

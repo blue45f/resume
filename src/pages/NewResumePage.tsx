@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import ResumeForm from '@/components/ResumeForm';
+import { toast } from '@/components/Toast';
 import { createEmptyResumeData } from '@/types/resume';
 import type { Resume, Template } from '@/types/resume';
 import { createResume, fetchTemplates } from '@/lib/api';
@@ -28,14 +29,19 @@ export default function NewResumePage() {
   const [step, setStep] = useState<'template' | 'form'>('template');
 
   useEffect(() => {
-    fetchTemplates().then(setTemplates).catch(() => {});
+    let cancelled = false;
+    fetchTemplates().then(t => { if (!cancelled) setTemplates(t); }).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   const handleSave = async (data: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
     setSaving(true);
     try {
       const result = await createResume(data);
+      toast('이력서가 생성되었습니다', 'success');
       navigate(`/resumes/${result.id}/edit`);
+    } catch {
+      toast('이력서 생성에 실패했습니다', 'error');
     } finally {
       setSaving(false);
     }

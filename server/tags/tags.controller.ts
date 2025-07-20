@@ -20,14 +20,14 @@ export class TagsController {
 
   @Post()
   @ApiOperation({ summary: '태그 생성' })
-  create(@Body() dto: CreateTagDto) {
-    return this.tagsService.create(dto);
+  create(@Body() dto: CreateTagDto, @Req() req: any) {
+    return this.tagsService.create(dto, req.user?.id);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '태그 삭제' })
-  remove(@Param('id') id: string) {
-    return this.tagsService.remove(id);
+  remove(@Param('id') id: string, @Req() req: any) {
+    return this.tagsService.remove(id, req.user?.id, req.user?.role);
   }
 
   @Post(':tagId/resumes/:resumeId')

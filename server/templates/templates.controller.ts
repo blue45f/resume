@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { TemplatesService } from './templates.service';
@@ -36,20 +37,20 @@ export class TemplatesController {
 
   @Post()
   @ApiOperation({ summary: '템플릿 생성' })
-  create(@Body() dto: CreateTemplateDto) {
-    return this.templatesService.create(dto);
+  create(@Body() dto: CreateTemplateDto, @Req() req: any) {
+    return this.templatesService.create(dto, req.user?.id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: '템플릿 수정' })
-  update(@Param('id') id: string, @Body() dto: UpdateTemplateDto) {
-    return this.templatesService.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateTemplateDto, @Req() req: any) {
+    return this.templatesService.update(id, dto, req.user?.id, req.user?.role);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '템플릿 삭제' })
-  remove(@Param('id') id: string) {
-    return this.templatesService.remove(id);
+  remove(@Param('id') id: string, @Req() req: any) {
+    return this.templatesService.remove(id, req.user?.id, req.user?.role);
   }
 
   @Post('seed')

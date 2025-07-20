@@ -10,7 +10,7 @@ LLM 기반 이력서 양식 변환 + 로컬 변환을 지원하는 풀스택 이
 | DB    | PostgreSQL (Neon), Prisma ORM                                       |
 | LLM   | Gemini / Groq / Anthropic / n8n Webhook / OpenAI Compatible        |
 | 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, MSW (목업)                         |
-| 테스트   | Jest, Supertest (E2E 55개 + Unit 30개)                                |
+| 테스트   | Jest, Supertest (E2E 55개 + Unit 75개)                                |
 
 ## 주요 기능
 

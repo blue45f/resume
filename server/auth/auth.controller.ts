@@ -29,8 +29,8 @@ export class AuthController {
   @Public()
   async googleCallback(@Query('code') code: string, @Query('state') state: string, @Res() res: Response) {
     try {
-      if (!this.authService.validateOAuthState(state)) {
-        throw new Error('Invalid OAuth state');
+      if (!code || !this.authService.validateOAuthState(state)) {
+        throw new Error('Invalid OAuth state or missing code');
       }
       const token = await this.authService.handleGoogleCallback(code);
       res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`);
@@ -52,8 +52,8 @@ export class AuthController {
   @Public()
   async githubCallback(@Query('code') code: string, @Query('state') state: string, @Res() res: Response) {
     try {
-      if (!this.authService.validateOAuthState(state)) {
-        throw new Error('Invalid OAuth state');
+      if (!code || !this.authService.validateOAuthState(state)) {
+        throw new Error('Invalid OAuth state or missing code');
       }
       const token = await this.authService.handleGithubCallback(code);
       res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`);
@@ -75,7 +75,9 @@ export class AuthController {
   @Public()
   async kakaoCallback(@Query('code') code: string, @Query('state') state: string, @Res() res: Response) {
     try {
-      if (!this.authService.validateOAuthState(state)) {
+      // Kakao는 state 미전달 가능 → state 없으면 스킵
+      if (!code) throw new Error('Missing authorization code');
+      if (state && !this.authService.validateOAuthState(state)) {
         throw new Error('Invalid OAuth state');
       }
       const token = await this.authService.handleKakaoCallback(code);

@@ -5,18 +5,42 @@ services:
     runtime: node
     plan: free
     buildCommand: npm ci --omit=dev --include=dev && npx prisma generate && npx nest build --builder swc
-    startCommand: npx prisma migrate deploy && node dist-server/main.js
+    startCommand: npx prisma db push --skip-generate && node dist-server/main.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: file:./data/resumes.db
+        sync: false  # Neon PostgreSQL URL
       - key: PORT
         value: "3001"
+      - key: API_URL
+        value: https://resume-api-mm0o.onrender.com
+      - key: FRONTEND_URL
+        value: https://resume-silk-three.vercel.app
       - key: ALLOWED_ORIGINS
-        sync: false  # Vercel 도메인 입력 필요
+        value: https://resume-silk-three.vercel.app
+      - key: JWT_SECRET
+        sync: false  # 안전한 랜덤 문자열 (32자 이상)
+      # OAuth - GitHub
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      # OAuth - Google
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      # OAuth - Kakao
+      - key: KAKAO_CLIENT_ID
+        sync: false
+      # LLM
       - key: ANTHROPIC_API_KEY
-        sync: false  # 선택
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
     disk:
       name: resume-data
       mountPath: /opt/render/project/src/data

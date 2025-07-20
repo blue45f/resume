@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getUser, clearAuth } from '@/lib/auth';
 
@@ -8,6 +8,19 @@ export default function Header() {
   const user = getUser();
   const location = useLocation();
   const isHome = location.pathname === '/';
+
+  // Escape 키로 메뉴 닫기
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, [menuOpen]);
+
+  // 페이지 이동 시 메뉴 닫기
+  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
   return (
     <header className="no-print bg-white border-b border-slate-200 sticky top-0 z-50">
@@ -22,9 +35,9 @@ export default function Header() {
           <Link
             to="/"
             className="text-lg sm:text-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
-            aria-label="Resume Manager 홈"
+            aria-label="이력서공방 홈"
           >
-            Resume Manager
+            이력서공방
           </Link>
 
           {/* Desktop nav */}
@@ -34,13 +47,13 @@ export default function Header() {
                 이력서
               </Link>
             )}
-            <Link to="/explore" className="text-sm text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1">
+            <Link to="/explore" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/explore' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/explore' ? 'page' : undefined}>
               탐색
             </Link>
-            <Link to="/templates" className="text-sm text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1">
+            <Link to="/templates" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/templates' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/templates' ? 'page' : undefined}>
               템플릿
             </Link>
-            <Link to="/tags" className="text-sm text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1">
+            <Link to="/tags" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/tags' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/tags' ? 'page' : undefined}>
               태그
             </Link>
             <Link
@@ -58,7 +71,8 @@ export default function Header() {
             {user ? (
               <button
                 onClick={() => { clearAuth(); navigate('/'); window.location.reload(); }}
-                className="text-sm text-slate-500 hover:text-slate-700 px-2 py-1"
+                className="text-sm text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 transition-colors"
+                aria-label={`${user.name || user.email} 로그아웃`}
               >
                 {user.name || user.email} 로그아웃
               </button>

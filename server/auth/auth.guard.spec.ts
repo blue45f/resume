@@ -36,12 +36,12 @@ describe('AuthGuard', () => {
     expect((ctx.switchToHttp().getRequest() as any).user).toBeNull();
   });
 
-  it('유효한 JWT → user.id 설정', () => {
+  it('유효한 JWT → user.id + role 설정', () => {
     (reflector.getAllAndOverride as jest.Mock).mockReturnValue(false);
-    (jwtService.verify as jest.Mock).mockReturnValue({ sub: 'user-123' });
+    (jwtService.verify as jest.Mock).mockReturnValue({ sub: 'user-123', role: 'admin' });
     const ctx = createContext({ authorization: 'Bearer valid-token' });
     expect(guard.canActivate(ctx)).toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user).toEqual({ id: 'user-123' });
+    expect((ctx.switchToHttp().getRequest() as any).user).toEqual({ id: 'user-123', role: 'admin' });
   });
 
   it('잘못된 JWT → user = null, 통과 (soft auth)', () => {

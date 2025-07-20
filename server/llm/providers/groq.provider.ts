@@ -34,34 +34,54 @@ export class GroqProvider implements LlmProvider {
   async generate(systemPrompt: string, userMessage: string): Promise<LlmResponse> {
     if (!this.apiKey) throw new Error('GROQ_API_KEY not configured');
 
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: this.model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-        max_tokens: 4096,
-        stream: false,
-      }),
-      signal: AbortSignal.timeout(60000),
+    const body = JSON.stringify({
+      model: this.model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
+      ],
+      max_tokens: 4096,
+      stream: false,
     });
 
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Groq API error: ${res.status} ${err.slice(0, 200)}`);
+    let lastError: Error | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`,
+          },
+          body,
+          signal: AbortSignal.timeout(60000),
+        });
+
+        if (!res.ok) {
+          const err = await res.text().catch(() => '');
+          if ((res.status === 429 || res.status >= 500) && attempt < 2) {
+            this.logger.warn(`Groq ${res.status}, retry ${attempt + 1}/2`);
+            await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+            continue;
+          }
+          throw new Error(`Groq API error: ${res.status} ${err.slice(0, 200)}`);
+        }
+
+        const data = await res.json();
+        const text = data.choices?.[0]?.message?.content || '';
+        const tokensUsed = (data.usage?.prompt_tokens || 0) + (data.usage?.completion_tokens || 0);
+
+        return { text, tokensUsed, model: this.model, provider: this.name };
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        if (attempt < 2 && lastError.name !== 'AbortError') {
+          this.logger.warn(`Groq error, retry ${attempt + 1}/2: ${lastError.message}`);
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+      }
     }
-
-    const data = await res.json();
-    const text = data.choices?.[0]?.message?.content || '';
-    const tokensUsed = (data.usage?.prompt_tokens || 0) + (data.usage?.completion_tokens || 0);
-
-    return { text, tokensUsed, model: this.model, provider: this.name };
+    throw lastError || new Error('Groq: max retries exceeded');
   }
 
   async *generateStream(systemPrompt: string, userMessage: string): AsyncGenerator<LlmStreamChunk> {

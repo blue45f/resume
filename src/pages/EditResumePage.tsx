@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import ResumeForm from '@/components/ResumeForm';
+import { FormSkeleton } from '@/components/Skeleton';
+import { toast } from '@/components/Toast';
 import TagSelector from '@/components/TagSelector';
 import type { Resume } from '@/types/resume';
 import { fetchResume, updateResume, setResumeVisibility } from '@/lib/api';
@@ -32,7 +34,10 @@ export default function EditResumePage() {
     setSaving(true);
     try {
       await updateResume(id, data);
+      toast('이력서가 저장되었습니다', 'success');
       navigate(`/resumes/${id}/preview`);
+    } catch {
+      toast('저장에 실패했습니다. 다시 시도해주세요.', 'error');
     } finally {
       setSaving(false);
     }
@@ -58,8 +63,11 @@ export default function EditResumePage() {
     return (
       <>
         <Header />
-        <main id="main-content" className="flex-1 flex items-center justify-center" role="main">
-          <p className="text-slate-500" aria-live="polite">불러오는 중...</p>
+        <main id="main-content" className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+          <div className="h-8 bg-slate-200 rounded w-48 mb-6 animate-pulse" />
+          <div className="bg-white rounded-xl border border-slate-200 p-6">
+            <FormSkeleton />
+          </div>
         </main>
       </>
     );

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { ToastContainer } from '@/components/Toast';
 import HomePage from '@/pages/HomePage';
 import NewResumePage from '@/pages/NewResumePage';
 import EditResumePage from '@/pages/EditResumePage';
@@ -10,6 +11,9 @@ import LoginPage from '@/pages/LoginPage';
 import AuthCallbackPage from '@/pages/AuthCallbackPage';
 import AutoGeneratePage from '@/pages/AutoGeneratePage';
 import ExplorePage from '@/pages/ExplorePage';
+import AboutPage from '@/pages/AboutPage';
+import TutorialPage from '@/pages/TutorialPage';
+import TermsPage from '@/pages/TermsPage';
 
 export default function App() {
   return (
@@ -27,8 +31,12 @@ export default function App() {
             <Route path="/templates" element={<TemplatesPage />} />
             <Route path="/tags" element={<TagsPage />} />
             <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/tutorial" element={<TutorialPage />} />
+            <Route path="/terms" element={<TermsPage />} />
           </Routes>
         </div>
+        <ToastContainer />
       </BrowserRouter>
     </ErrorBoundary>
   );

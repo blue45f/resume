@@ -106,11 +106,11 @@ export class ResumesService {
     return this.formatFull(resume);
   }
 
-  /** 소유권 검증 - 수정/삭제 시 사용 */
-  private async verifyOwnership(resumeId: string, userId?: string) {
+  /** 소유권 검증 - 수정/삭제 시 사용 (admin은 모든 이력서 접근 가능) */
+  private async verifyOwnership(resumeId: string, userId?: string, role?: string) {
     const resume = await this.prisma.resume.findUnique({ where: { id: resumeId } });
     if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
-    // 소유자가 있는 이력서는 소유자만 수정/삭제 가능
+    if (role === 'admin') return resume;
     if (resume.userId && resume.userId !== userId) {
       throw new ForbiddenException('이 이력서를 수정할 권한이 없습니다');
     }
@@ -131,18 +131,24 @@ export class ResumesService {
       data: {
         title: dto.title || '',
         userId: userId || null,
-        personalInfo: dto.personalInfo ? { create: dto.personalInfo } : undefined,
+        personalInfo: dto.personalInfo ? { create: {
+          ...dto.personalInfo,
+          links: dto.personalInfo.links ? JSON.stringify(dto.personalInfo.links) : '[]',
+        } } : undefined,
         experiences: dto.experiences?.length ? {
           create: dto.experiences.map((e, i) => ({
             company: e.company || '', position: e.position || '',
+            department: e.department || '',
             startDate: e.startDate || '', endDate: e.endDate || '',
             current: e.current || false, description: e.description || '',
+            achievements: e.achievements || '', techStack: e.techStack || '',
             sortOrder: e.sortOrder ?? i,
           })),
         } : undefined,
         educations: dto.educations?.length ? {
           create: dto.educations.map((e, i) => ({
             school: e.school || '', degree: e.degree || '', field: e.field || '',
+            gpa: e.gpa || '',
             startDate: e.startDate || '', endDate: e.endDate || '',
             description: e.description || '', sortOrder: e.sortOrder ?? i,
           })),
@@ -154,10 +160,10 @@ export class ResumesService {
         } : undefined,
         projects: dto.projects?.length ? {
           create: dto.projects.map((p, i) => ({
-            name: p.name || '', role: p.role || '',
+            name: p.name || '', company: p.company || '', role: p.role || '',
             startDate: p.startDate || '', endDate: p.endDate || '',
-            description: p.description || '', link: p.link || '',
-            sortOrder: p.sortOrder ?? i,
+            description: p.description || '', techStack: p.techStack || '',
+            link: p.link || '', sortOrder: p.sortOrder ?? i,
           })),
         } : undefined,
         certifications: dto.certifications?.length ? {
@@ -205,22 +211,29 @@ export class ResumesService {
       await tx.resume.update({ where: { id }, data: { title: dto.title ?? existing.title } });
 
       if (dto.personalInfo) {
+        const piData = {
+          ...dto.personalInfo,
+          links: dto.personalInfo.links ? JSON.stringify(dto.personalInfo.links) : undefined,
+        };
         await tx.personalInfo.upsert({
           where: { resumeId: id },
-          create: { resumeId: id, ...dto.personalInfo },
-          update: dto.personalInfo,
+          create: { resumeId: id, ...piData, links: piData.links || '[]' },
+          update: piData,
         });
       }
 
       await replaceCollection(tx, tx.experience, id, dto.experiences, (e, i) => ({
         company: e.company || '', position: e.position || '',
+        department: e.department || '',
         startDate: e.startDate || '', endDate: e.endDate || '',
         current: e.current || false, description: e.description || '',
+        achievements: e.achievements || '', techStack: e.techStack || '',
         sortOrder: e.sortOrder ?? i,
       }));
 
       await replaceCollection(tx, tx.education, id, dto.educations, (e, i) => ({
         school: e.school || '', degree: e.degree || '', field: e.field || '',
+        gpa: e.gpa || '',
         startDate: e.startDate || '', endDate: e.endDate || '',
         description: e.description || '', sortOrder: e.sortOrder ?? i,
       }));
@@ -230,10 +243,10 @@ export class ResumesService {
       }));
 
       await replaceCollection(tx, tx.project, id, dto.projects, (p, i) => ({
-        name: p.name || '', role: p.role || '',
+        name: p.name || '', company: p.company || '', role: p.role || '',
         startDate: p.startDate || '', endDate: p.endDate || '',
-        description: p.description || '', link: p.link || '',
-        sortOrder: p.sortOrder ?? i,
+        description: p.description || '', techStack: p.techStack || '',
+        link: p.link || '', sortOrder: p.sortOrder ?? i,
       }));
 
       await replaceCollection(tx, tx.certification, id, dto.certifications, (c, i) => ({
@@ -295,11 +308,18 @@ export class ResumesService {
   }
 
   private formatSummary(resume: any) {
+    const pi = resume.personalInfo;
     return {
       id: resume.id, title: resume.title, visibility: resume.visibility || 'private',
-      personalInfo: resume.personalInfo
-        ? { name: resume.personalInfo.name, email: resume.personalInfo.email, phone: resume.personalInfo.phone, address: resume.personalInfo.address, website: resume.personalInfo.website, summary: resume.personalInfo.summary }
-        : { name: '', email: '', phone: '', address: '', website: '', summary: '' },
+      personalInfo: pi
+        ? {
+            name: pi.name, email: pi.email, phone: pi.phone, address: pi.address,
+            website: pi.website, summary: pi.summary, photo: pi.photo || '',
+            birthYear: pi.birthYear || '',
+            links: pi.links ? (typeof pi.links === 'string' ? JSON.parse(pi.links || '[]') : pi.links) : [],
+            military: pi.military || '',
+          }
+        : { name: '', email: '', phone: '', address: '', website: '', summary: '', photo: '', birthYear: '', links: [], military: '' },
       tags: resume.tags?.map((t: any) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })) ?? [],
       createdAt: resume.createdAt.toISOString(),
       updatedAt: resume.updatedAt.toISOString(),
@@ -312,10 +332,10 @@ export class ResumesService {
 
     return {
       ...this.formatSummary(resume),
-      experiences: pick(resume.experiences, ['id', 'company', 'position', 'startDate', 'endDate', 'current', 'description']),
-      educations: pick(resume.educations, ['id', 'school', 'degree', 'field', 'startDate', 'endDate', 'description']),
+      experiences: pick(resume.experiences, ['id', 'company', 'position', 'department', 'startDate', 'endDate', 'current', 'description', 'achievements', 'techStack']),
+      educations: pick(resume.educations, ['id', 'school', 'degree', 'field', 'gpa', 'startDate', 'endDate', 'description']),
       skills: pick(resume.skills, ['id', 'category', 'items']),
-      projects: pick(resume.projects, ['id', 'name', 'role', 'startDate', 'endDate', 'description', 'link']),
+      projects: pick(resume.projects, ['id', 'name', 'company', 'role', 'startDate', 'endDate', 'description', 'techStack', 'link']),
       certifications: pick(resume.certifications, ['id', 'name', 'issuer', 'issueDate', 'expiryDate', 'credentialId', 'description']),
       languages: pick(resume.languages, ['id', 'name', 'testName', 'score', 'testDate']),
       awards: pick(resume.awards, ['id', 'name', 'issuer', 'awardDate', 'description']),

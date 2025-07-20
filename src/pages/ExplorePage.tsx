@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
+import { CardGridSkeleton } from '@/components/Skeleton';
 import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchTags } from '@/lib/api';
 
@@ -121,7 +122,7 @@ export default function ExplorePage() {
 
         {/* 결과 */}
         {loading ? (
-          <p className="text-center text-slate-500 py-12">검색 중...</p>
+          <CardGridSkeleton count={6} />
         ) : !result || result.data.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-4xl mb-3" aria-hidden="true">🔍</p>

@@ -61,10 +61,15 @@ export class VersionsService {
       });
 
       if (snapshot.personalInfo) {
+        const piData = { ...snapshot.personalInfo };
+        // links가 배열이면 JSON으로 변환
+        if (Array.isArray(piData.links)) piData.links = JSON.stringify(piData.links);
+        // id 필드 제거 (Prisma가 자동 생성)
+        delete piData.id;
         await tx.personalInfo.upsert({
           where: { resumeId },
-          create: { resumeId, ...snapshot.personalInfo },
-          update: snapshot.personalInfo,
+          create: { resumeId, ...piData },
+          update: piData,
         });
       }
 
@@ -76,10 +81,13 @@ export class VersionsService {
             resumeId,
             company: e.company || '',
             position: e.position || '',
+            department: e.department || '',
             startDate: e.startDate || '',
             endDate: e.endDate || '',
             current: e.current || false,
             description: e.description || '',
+            achievements: e.achievements || '',
+            techStack: e.techStack || '',
             sortOrder: i,
           })),
         });
@@ -93,6 +101,7 @@ export class VersionsService {
             school: e.school || '',
             degree: e.degree || '',
             field: e.field || '',
+            gpa: e.gpa || '',
             startDate: e.startDate || '',
             endDate: e.endDate || '',
             description: e.description || '',
@@ -119,10 +128,12 @@ export class VersionsService {
           data: snapshot.projects.map((p: any, i: number) => ({
             resumeId,
             name: p.name || '',
+            company: p.company || '',
             role: p.role || '',
             startDate: p.startDate || '',
             endDate: p.endDate || '',
             description: p.description || '',
+            techStack: p.techStack || '',
             link: p.link || '',
             sortOrder: i,
           })),

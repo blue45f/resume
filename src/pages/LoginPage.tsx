@@ -15,7 +15,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Link to="/" className="text-2xl font-bold text-slate-900">Resume Manager</Link>
+          <Link to="/" className="text-2xl font-bold text-slate-900">이력서공방</Link>
           <p className="text-sm text-slate-500 mt-1">이력서 관리 플랫폼</p>
         </div>
 
@@ -42,7 +42,7 @@ export default function LoginPage() {
           </div>
 
           <p className="text-xs text-slate-400 text-center mt-6">
-            로그인하면 서비스 이용약관에 동의하는 것으로 간주합니다.
+            로그인하면 <Link to="/terms" className="underline hover:text-slate-600">이용약관</Link>에 동의하는 것으로 간주합니다.
           </p>
         </div>
 

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Experience, Education, Skill, Project, Certification, Language, Award, Activity } from '@/types/resume';
 import type { Resume } from '@/types/resume';
+import { toast } from '@/components/Toast';
 
 type ResumeData = Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>;
 
@@ -13,6 +14,33 @@ interface Props {
 export default function ResumeForm({ initialData, onSave, saving }: Props) {
   const [data, setData] = useState(initialData);
   const [activeTab, setActiveTab] = useState('personal');
+  const [dirty, setDirty] = useState(false);
+
+  // Ctrl+S / Cmd+S 키보드 저장
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (!saving) {
+          onSave(data);
+          toast('저장 중...', 'info');
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [data, saving, onSave]);
+
+  // 저장되지 않은 변경사항 경고
+  useEffect(() => {
+    if (!dirty) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [dirty]);
+
 
   const tabs = [
     { id: 'personal', label: '인적사항' },
@@ -27,6 +55,7 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
   ];
 
   const updatePersonalInfo = (field: string, value: string) => {
+    setDirty(true);
     setData(prev => ({
       ...prev,
       personalInfo: { ...prev.personalInfo, [field]: value },
@@ -183,21 +212,31 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
           className={inputClass}
           placeholder="예: 2026 상반기 이력서"
           value={data.title}
-          onChange={e => setData(prev => ({ ...prev, title: e.target.value }))}
+          onChange={e => { setDirty(true); setData(prev => ({ ...prev, title: e.target.value })); }}
         />
       </div>
 
       {/* Tabs */}
       <div className="border-b border-slate-200" role="tablist" aria-label="이력서 섹션">
         <nav className="flex gap-1 sm:gap-4 -mb-px overflow-x-auto">
-          {tabs.map(tab => (
+          {tabs.map((tab, idx) => (
             <button
               key={tab.id}
               type="button"
               role="tab"
+              tabIndex={activeTab === tab.id ? 0 : -1}
               aria-selected={activeTab === tab.id}
               aria-controls={`panel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
+              onKeyDown={(e) => {
+                let nextIdx = idx;
+                if (e.key === 'ArrowRight') nextIdx = (idx + 1) % tabs.length;
+                else if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + tabs.length) % tabs.length;
+                else return;
+                e.preventDefault();
+                setActiveTab(tabs[nextIdx].id);
+                (e.currentTarget.parentElement?.children[nextIdx] as HTMLElement)?.focus();
+              }}
               className={`py-3 px-2 sm:px-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset ${
                 activeTab === tab.id
                   ? 'border-blue-600 text-blue-600'
@@ -213,15 +252,55 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
       {/* Personal Info */}
       {activeTab === 'personal' && (
         <fieldset id="panel-personal" role="tabpanel" aria-label="인적사항">
+          {/* 증명사진 */}
+          <div className="flex items-start gap-6 mb-6">
+            <div className="shrink-0">
+              {data.personalInfo.photo ? (
+                <div className="relative group">
+                  <img src={data.personalInfo.photo} alt="증명사진" className="w-28 h-36 object-cover rounded-lg border border-slate-200" />
+                  <button
+                    type="button"
+                    onClick={() => updatePersonalInfo('photo', '')}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                    aria-label="사진 삭제"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-28 h-36 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors">
+                  <span className="text-2xl text-slate-300 mb-1">📷</span>
+                  <span className="text-xs text-slate-400">증명사진</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 2 * 1024 * 1024) { alert('사진은 2MB 이하만 가능합니다'); return; }
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        if (typeof reader.result === 'string') updatePersonalInfo('photo', reader.result);
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
+              )}
+            </div>
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="pi-name" className={labelClass}>이름</label>
+                <input id="pi-name" className={inputClass} value={data.personalInfo.name} onChange={e => updatePersonalInfo('name', e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor="pi-email" className={labelClass}>이메일</label>
+                <input id="pi-email" type="email" className={inputClass} value={data.personalInfo.email} onChange={e => updatePersonalInfo('email', e.target.value)} />
+              </div>
+            </div>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="pi-name" className={labelClass}>이름</label>
-              <input id="pi-name" className={inputClass} value={data.personalInfo.name} onChange={e => updatePersonalInfo('name', e.target.value)} />
-            </div>
-            <div>
-              <label htmlFor="pi-email" className={labelClass}>이메일</label>
-              <input id="pi-email" type="email" className={inputClass} value={data.personalInfo.email} onChange={e => updatePersonalInfo('email', e.target.value)} />
-            </div>
             <div>
               <label htmlFor="pi-phone" className={labelClass}>전화번호</label>
               <input id="pi-phone" type="tel" className={inputClass} value={data.personalInfo.phone} onChange={e => updatePersonalInfo('phone', e.target.value)} />
@@ -233,6 +312,14 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <div>
               <label htmlFor="pi-website" className={labelClass}>웹사이트 / GitHub</label>
               <input id="pi-website" type="url" className={inputClass} value={data.personalInfo.website} onChange={e => updatePersonalInfo('website', e.target.value)} />
+            </div>
+            <div>
+              <label htmlFor="pi-birth" className={labelClass}>생년</label>
+              <input id="pi-birth" className={inputClass} placeholder="예: 1990" value={data.personalInfo.birthYear || ''} onChange={e => updatePersonalInfo('birthYear', e.target.value)} />
+            </div>
+            <div>
+              <label htmlFor="pi-military" className={labelClass}>병역사항</label>
+              <input id="pi-military" className={inputClass} placeholder="예: 군필 | 육군 병장 제대" value={data.personalInfo.military || ''} onChange={e => updatePersonalInfo('military', e.target.value)} />
             </div>
             <div className="sm:col-span-2">
               <label htmlFor="pi-summary" className={labelClass}>자기소개</label>
@@ -260,6 +347,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
                   <label htmlFor={`exp-position-${exp.id}`} className={labelClass}>직위</label>
                   <input id={`exp-position-${exp.id}`} className={inputClass} value={exp.position} onChange={e => updateExperience(exp.id, 'position', e.target.value)} />
                 </div>
+                <div className="sm:col-span-2">
+                  <label htmlFor={`exp-dept-${exp.id}`} className={labelClass}>부서/팀</label>
+                  <input id={`exp-dept-${exp.id}`} className={inputClass} value={exp.department || ''} placeholder="예: 배민주문서비스팀" onChange={e => updateExperience(exp.id, 'department', e.target.value)} />
+                </div>
                 <div>
                   <label htmlFor={`exp-start-${exp.id}`} className={labelClass}>시작일</label>
                   <input id={`exp-start-${exp.id}`} type="date" className={inputClass} value={exp.startDate} onChange={e => updateExperience(exp.id, 'startDate', e.target.value)} />
@@ -276,7 +367,15 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`exp-desc-${exp.id}`} className={labelClass}>업무 내용</label>
-                  <textarea id={`exp-desc-${exp.id}`} className={inputClass + ' h-24 resize-none'} value={exp.description} onChange={e => updateExperience(exp.id, 'description', e.target.value)} placeholder="주요 업무와 성과를 작성하세요" />
+                  <textarea id={`exp-desc-${exp.id}`} className={inputClass + ' h-24 resize-none'} value={exp.description} onChange={e => updateExperience(exp.id, 'description', e.target.value)} placeholder="주요 업무를 작성하세요" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label htmlFor={`exp-achievements-${exp.id}`} className={labelClass}>주요 성과</label>
+                  <textarea id={`exp-achievements-${exp.id}`} className={inputClass + ' h-20 resize-none'} value={exp.achievements || ''} onChange={e => updateExperience(exp.id, 'achievements', e.target.value)} placeholder="정량적 성과 (예: 번들 70% 감소, VOC 69% 감소)" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label htmlFor={`exp-tech-${exp.id}`} className={labelClass}>기술 스택</label>
+                  <input id={`exp-tech-${exp.id}`} className={inputClass} value={exp.techStack || ''} onChange={e => updateExperience(exp.id, 'techStack', e.target.value)} placeholder="예: React, TypeScript, AWS S3" />
                 </div>
               </div>
             </fieldset>
@@ -306,6 +405,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
                 <div>
                   <label htmlFor={`edu-field-${edu.id}`} className={labelClass}>전공</label>
                   <input id={`edu-field-${edu.id}`} className={inputClass} value={edu.field} onChange={e => updateEducation(edu.id, 'field', e.target.value)} />
+                </div>
+                <div>
+                  <label htmlFor={`edu-gpa-${edu.id}`} className={labelClass}>학점</label>
+                  <input id={`edu-gpa-${edu.id}`} className={inputClass} value={edu.gpa || ''} placeholder="예: 3.8/4.5" onChange={e => updateEducation(edu.id, 'gpa', e.target.value)} />
                 </div>
                 <div className="flex gap-3">
                   <div className="flex-1">
@@ -368,6 +471,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
                   <input id={`proj-name-${proj.id}`} className={inputClass} value={proj.name} onChange={e => updateProject(proj.id, 'name', e.target.value)} />
                 </div>
                 <div>
+                  <label htmlFor={`proj-company-${proj.id}`} className={labelClass}>소속 회사</label>
+                  <input id={`proj-company-${proj.id}`} className={inputClass} value={proj.company || ''} placeholder="예: 우아한형제들" onChange={e => updateProject(proj.id, 'company', e.target.value)} />
+                </div>
+                <div>
                   <label htmlFor={`proj-role-${proj.id}`} className={labelClass}>역할</label>
                   <input id={`proj-role-${proj.id}`} className={inputClass} value={proj.role} onChange={e => updateProject(proj.id, 'role', e.target.value)} />
                 </div>
@@ -386,6 +493,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
                 <div className="sm:col-span-2">
                   <label htmlFor={`proj-desc-${proj.id}`} className={labelClass}>설명</label>
                   <textarea id={`proj-desc-${proj.id}`} className={inputClass + ' h-24 resize-none'} value={proj.description} placeholder="프로젝트 설명 및 기여한 내용" onChange={e => updateProject(proj.id, 'description', e.target.value)} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label htmlFor={`proj-tech-${proj.id}`} className={labelClass}>기술 스택</label>
+                  <input id={`proj-tech-${proj.id}`} className={inputClass} value={proj.techStack || ''} placeholder="예: React, TypeScript, AWS" onChange={e => updateProject(proj.id, 'techStack', e.target.value)} />
                 </div>
               </div>
             </fieldset>
@@ -544,15 +655,21 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
         </div>
       )}
 
-      <div className="flex justify-end pt-4">
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-          aria-busy={saving}
-        >
-          {saving ? '저장 중...' : '저장'}
-        </button>
+      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+        <span className="text-xs text-slate-400">
+          {dirty ? '변경사항이 있습니다' : ''}
+        </span>
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:inline text-xs text-slate-400">Ctrl+S</span>
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            aria-busy={saving}
+          >
+            {saving ? '저장 중...' : '저장'}
+          </button>
+        </div>
       </div>
     </form>
   );

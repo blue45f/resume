@@ -14,6 +14,7 @@ model User {
   avatar     String   @default("")
   provider   String   @default("") // google, github, kakao
   providerId String   @default("") @map("provider_id")
+  role       String   @default("user") // user, admin
   createdAt  DateTime @default(now()) @map("created_at")
   resumes    Resume[]
 
@@ -51,14 +52,18 @@ model Resume {
 }
 
 model PersonalInfo {
-  id       String @id @default(uuid())
-  resumeId String @unique @map("resume_id")
-  name     String @default("")
-  email    String @default("")
-  phone    String @default("")
-  address  String @default("")
-  website  String @default("")
-  summary  String @default("")
+  id        String @id @default(uuid())
+  resumeId  String @unique @map("resume_id")
+  name      String @default("")
+  email     String @default("")
+  phone     String @default("")
+  address   String @default("")
+  website   String @default("")
+  summary   String @default("")
+  photo     String @default("") // 증명사진 URL 또는 base64
+  birthYear String @default("") @map("birth_year")
+  links     String @default("")
+  military  String @default("")
 
   resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
@@ -70,10 +75,13 @@ model Experience {
   resumeId    String  @map("resume_id")
   company     String  @default("")
   position    String  @default("")
+  department  String  @default("") // 부서/팀
   startDate   String  @default("") @map("start_date")
   endDate     String  @default("") @map("end_date")
   current     Boolean @default(false)
   description String  @default("")
+  achievements String @default("") // 주요 성과 (하이라이트)
+  techStack   String  @default("") @map("tech_stack") // 사용 기술 (예: React, TypeScript, AWS)
   sortOrder   Int     @default(0) @map("sort_order")
 
   resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
@@ -88,6 +96,7 @@ model Education {
   school      String @default("")
   degree      String @default("")
   field       String @default("")
+  gpa         String @default("") // 학점 (예: 3.4/4.5)
   startDate   String @default("") @map("start_date")
   endDate     String @default("") @map("end_date")
   description String @default("")
@@ -116,10 +125,12 @@ model Project {
   id          String @id @default(uuid())
   resumeId    String @map("resume_id")
   name        String @default("")
+  company     String @default("") // 소속 회사
   role        String @default("")
   startDate   String @default("") @map("start_date")
   endDate     String @default("") @map("end_date")
   description String @default("")
+  techStack   String @default("") @map("tech_stack") // 사용 기술
   link        String @default("")
   sortOrder   Int    @default(0) @map("sort_order")
 
@@ -214,6 +225,7 @@ model Tag {
   id      String          @id @default(uuid())
   name    String          @unique
   color   String          @default("#6366f1")
+  userId  String?         @map("user_id") // 생성자 (null = 시스템/시드)
   resumes TagsOnResumes[]
 
   @@map("tags")
@@ -250,6 +262,7 @@ model Template {
   name        String
   description String   @default("")
   category    String   @default("general")
+  userId      String?  @map("user_id") // 생성자 (null = 시스템 기본 템플릿)
   prompt      String   @default("") // LLM prompt template content
   layout      String   @default("{}") // JSON: section order, visibility, style config for local transform
   isDefault   Boolean  @default(false) @map("is_default")

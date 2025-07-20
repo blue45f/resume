@@ -1,8 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { randomBytes, createHash } from 'crypto';
+import { randomBytes, createHmac } from 'crypto';
 
 interface OAuthProfile {
   provider: string;
@@ -15,9 +15,9 @@ interface OAuthProfile {
 @Injectable()
 export class AuthService {
   private readonly frontendUrl: string;
-  // In-memory state store with TTL (5 min)
-  private readonly oauthStates = new Map<string, { createdAt: number }>();
-  private readonly STATE_TTL_MS = 5 * 60 * 1000;
+  private readonly stateSecret: string;
+  private readonly logger = new Logger(AuthService.name);
+  private readonly STATE_TTL_MS = 10 * 60 * 1000; // 10분 (cold start 고려)
 
   constructor(
     private prisma: PrismaService,
@@ -25,24 +25,45 @@ export class AuthService {
     private config: ConfigService,
   ) {
     this.frontendUrl = this.config.get('FRONTEND_URL') || 'http://localhost:5173';
+    // JWT secret 재사용 (state 서명용)
+    this.stateSecret = this.config.get('JWT_SECRET') || 'dev-only-state-secret';
   }
 
+  /**
+   * HMAC 서명 기반 stateless OAuth state 생성
+   * 형식: {timestamp}.{nonce}.{hmac}
+   * 서버 재시작에도 검증 가능 (인메모리 저장 불필요)
+   */
   generateOAuthState(): string {
-    // Clean expired states
-    const now = Date.now();
-    for (const [key, val] of this.oauthStates) {
-      if (now - val.createdAt > this.STATE_TTL_MS) this.oauthStates.delete(key);
-    }
-    const state = randomBytes(16).toString('hex');
-    this.oauthStates.set(state, { createdAt: now });
-    return state;
+    const timestamp = Date.now().toString(36);
+    const nonce = randomBytes(8).toString('hex');
+    const payload = `${timestamp}.${nonce}`;
+    const hmac = createHmac('sha256', this.stateSecret).update(payload).digest('hex').slice(0, 16);
+    return `${payload}.${hmac}`;
   }
 
-  validateOAuthState(state: string): boolean {
-    const entry = this.oauthStates.get(state);
-    if (!entry) return false;
-    this.oauthStates.delete(state); // 1회용
-    return Date.now() - entry.createdAt < this.STATE_TTL_MS;
+  validateOAuthState(state: string | undefined): boolean {
+    if (!state) return false;
+    const parts = state.split('.');
+    if (parts.length !== 3) return false;
+
+    const [timestamp, nonce, hmac] = parts;
+    const payload = `${timestamp}.${nonce}`;
+    const expected = createHmac('sha256', this.stateSecret).update(payload).digest('hex').slice(0, 16);
+
+    if (hmac !== expected) {
+      this.logger.warn('OAuth state HMAC 불일치');
+      return false;
+    }
+
+    // TTL 확인
+    const createdAt = parseInt(timestamp, 36);
+    if (Date.now() - createdAt > this.STATE_TTL_MS) {
+      this.logger.warn('OAuth state 만료');
+      return false;
+    }
+
+    return true;
   }
 
   // ---- OAuth URL 생성 ----
@@ -169,7 +190,7 @@ export class AuthService {
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
-    return { id: user.id, email: user.email, name: user.name, avatar: user.avatar, provider: user.provider };
+    return { id: user.id, email: user.email, name: user.name, avatar: user.avatar, provider: user.provider, role: user.role || 'user' };
   }
 
   getAvailableProviders() {
@@ -213,7 +234,7 @@ export class AuthService {
       }
     }
 
-    return this.jwt.sign({ sub: user.id });
+    return this.jwt.sign({ sub: user.id, role: user.role || 'user' });
   }
 
   private getCallbackUrl(provider: string): string {

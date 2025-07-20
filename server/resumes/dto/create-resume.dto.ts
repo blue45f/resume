@@ -17,16 +17,23 @@ export class PersonalInfoDto {
   @ApiPropertyOptional() @IsOptional() @IsString() address?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() website?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() summary?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() photo?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() birthYear?: string;
+  @ApiPropertyOptional() @IsOptional() @IsArray() links?: { label: string; url: string }[];
+  @ApiPropertyOptional() @IsOptional() @IsString() military?: string;
 }
 
 export class ExperienceDto {
   @ApiPropertyOptional() @IsOptional() @IsString() id?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() company?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() position?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() department?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() startDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() endDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() current?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() achievements?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() techStack?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) sortOrder?: number;
 }
 
@@ -35,6 +42,7 @@ export class EducationDto {
   @ApiPropertyOptional() @IsOptional() @IsString() school?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() degree?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() field?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() gpa?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() startDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() endDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
@@ -51,10 +59,12 @@ export class SkillDto {
 export class ProjectDto {
   @ApiPropertyOptional() @IsOptional() @IsString() id?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() company?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() role?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() startDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() endDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() techStack?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() link?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) sortOrder?: number;
 }

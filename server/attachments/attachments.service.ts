@@ -5,7 +5,11 @@ import { writeFile, unlink, mkdir } from 'fs/promises';
 import { join, resolve, extname } from 'path';
 import { existsSync } from 'fs';
 
-const UPLOAD_DIR = join(process.cwd(), 'uploads');
+// Render persistent disk: /opt/render/project/src/data
+// 로컬: ./uploads
+const UPLOAD_DIR = process.env.NODE_ENV === 'production'
+  ? join(process.cwd(), 'data', 'uploads')
+  : join(process.cwd(), 'uploads');
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_TOTAL_SIZE_PER_RESUME = 100 * 1024 * 1024; // 100MB per resume
 const MAX_FILES_PER_RESUME = 20;

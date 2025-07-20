@@ -12,7 +12,7 @@ export class AnthropicProvider implements LlmProvider {
 
   constructor(private config: ConfigService) {
     const apiKey = this.config.get<string>('ANTHROPIC_API_KEY');
-    this.model = this.config.get<string>('ANTHROPIC_MODEL') || 'claude-sonnet-4-20250514';
+    this.model = this.config.get<string>('ANTHROPIC_MODEL') || 'claude-opus-4-6';
     if (apiKey) {
       this.client = new Anthropic({ apiKey });
       this.logger.log('Anthropic provider initialized');
