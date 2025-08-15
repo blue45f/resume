@@ -310,8 +310,12 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
               <input id="pi-address" className={inputClass} value={data.personalInfo.address} onChange={e => updatePersonalInfo('address', e.target.value)} />
             </div>
             <div>
-              <label htmlFor="pi-website" className={labelClass}>웹사이트 / GitHub</label>
-              <input id="pi-website" type="url" className={inputClass} value={data.personalInfo.website} onChange={e => updatePersonalInfo('website', e.target.value)} />
+              <label htmlFor="pi-website" className={labelClass}>웹사이트</label>
+              <input id="pi-website" type="url" className={inputClass} placeholder="https://example.com" value={data.personalInfo.website} onChange={e => updatePersonalInfo('website', e.target.value)} />
+            </div>
+            <div>
+              <label htmlFor="pi-github" className={labelClass}>GitHub</label>
+              <input id="pi-github" type="url" className={inputClass} placeholder="https://github.com/username" value={data.personalInfo.github || ''} onChange={e => updatePersonalInfo('github', e.target.value)} />
             </div>
             <div>
               <label htmlFor="pi-birth" className={labelClass}>생년</label>

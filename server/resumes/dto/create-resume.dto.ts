@@ -16,6 +16,7 @@ export class PersonalInfoDto {
   @ApiPropertyOptional() @IsOptional() @IsString() phone?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() address?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() website?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() github?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() summary?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() photo?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() birthYear?: string;

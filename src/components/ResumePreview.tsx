@@ -8,7 +8,7 @@ interface Props {
 function formatDate(date: string): string {
   if (!date) return '';
   const parts = date.split('-');
-  if (parts.length === 3) return `${parts[0]}.${parts[1]}.${parts[2]}`;
+  if (parts.length === 3) return `${parts[0]}.${parts[1]}`;
   if (parts.length === 2) return `${parts[0]}.${parts[1]}`;
   return parts[0];
 }
@@ -25,244 +25,280 @@ function TextBlock({ text, className }: { text: string; className?: string }) {
   );
 }
 
+function TechTags({ text, color = 'slate' }: { text: string; color?: 'slate' | 'blue' }) {
+  const bg = color === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500';
+  return (
+    <div className="flex flex-wrap gap-1 mt-1.5">
+      {text.split(',').map((t, i) => (
+        <span key={i} className={`px-1.5 py-0.5 text-xs rounded ${bg}`}>{t.trim()}</span>
+      ))}
+    </div>
+  );
+}
+
 const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
-  const { personalInfo, experiences, educations, skills, projects, certifications, languages, awards, activities } = resume;
+  const { personalInfo: pi, experiences, educations, skills, projects, certifications, languages, awards, activities } = resume;
+  const hasPhoto = !!pi.photo;
 
   return (
-    <div ref={ref} className="bg-white p-8 sm:p-12 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 font-['-apple-system','Pretendard','Noto_Sans_KR',sans-serif]">
-      {/* Header */}
-      <div className="mb-10 pb-6 border-b-2 border-slate-800">
-        <div className={personalInfo.photo ? 'flex items-start gap-6' : 'text-center'}>
-          {personalInfo.photo && (
-            <img src={personalInfo.photo} alt={`${personalInfo.name} 증명사진`} className="w-28 h-36 object-cover rounded-lg border border-slate-200 shrink-0 print:w-24 print:h-32" />
-          )}
-          <div className={personalInfo.photo ? '' : ''}>
-            <h1 className={`text-3xl font-extrabold text-slate-900 tracking-tight mb-3 ${!personalInfo.photo ? 'text-center' : ''}`}>{personalInfo.name || '이름'}</h1>
-        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm text-slate-500">
-          {personalInfo.email && <span>{personalInfo.email}</span>}
-          {personalInfo.phone && <span>{personalInfo.phone}</span>}
-          {personalInfo.address && <span>{personalInfo.address}</span>}
-          {personalInfo.birthYear && <span>{personalInfo.birthYear}년생</span>}
-          {personalInfo.website && <span className="text-blue-600 break-all">{personalInfo.website}</span>}
-        </div>
-        {personalInfo.links && personalInfo.links.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm mt-1">
-            {personalInfo.links.map((link, i) => (
-              <span key={i} className="text-slate-500">
-                {link.label}: <span className="text-blue-600 break-all">{link.url}</span>
-              </span>
-            ))}
-          </div>
-        )}
-        {personalInfo.military && (
-          <div className="text-xs text-slate-400 mt-1">{personalInfo.military}</div>
-        )}
-          </div>
-        </div>
-      </div>
+    <div ref={ref} className="bg-white p-6 sm:p-10 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 text-slate-800" style={{ fontFamily: "-apple-system, 'Pretendard', 'Noto Sans KR', sans-serif" }}>
 
-      {personalInfo.summary && (
-        <section className="mb-8">
-          <h2 className="text-base font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3">자기소개</h2>
-          <TextBlock text={personalInfo.summary} className="text-sm text-slate-700 leading-relaxed" />
-        </section>
+      {/* ===== Header ===== */}
+      <header className="mb-8 pb-6 border-b-2 border-slate-800">
+        <div className={hasPhoto ? 'flex gap-5' : ''}>
+          {hasPhoto && (
+            <img src={pi.photo} alt="" className="w-[100px] h-[130px] object-cover rounded border border-slate-200 shrink-0 print:w-[90px] print:h-[117px]" />
+          )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{pi.name || '이름'}</h1>
+
+            {/* 연락처 - 구분자로 명확히 분리 */}
+            <div className="mt-2.5 space-y-1 text-sm">
+              <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-slate-600">
+                {[
+                  pi.email && { icon: '✉', text: pi.email },
+                  pi.phone && { icon: '☎', text: pi.phone },
+                  pi.address && { icon: '📍', text: pi.address },
+                  pi.birthYear && { icon: '📅', text: `${pi.birthYear}년생` },
+                ].filter(Boolean).map((item, i) => (
+                  <span key={i} className="flex items-center gap-1">
+                    {i > 0 && <span className="text-slate-300 mx-1">|</span>}
+                    <span className="text-xs print:hidden" aria-hidden="true">{(item as any).icon}</span>
+                    <span>{(item as any).text}</span>
+                  </span>
+                ))}
+              </div>
+
+              {/* 웹사이트 / GitHub / 링크 */}
+              {(pi.website || pi.github || (pi.links && pi.links.length > 0)) && (
+                <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
+                  {pi.website && (
+                    <span className="flex items-center gap-1 text-blue-600">
+                      <span className="text-xs print:hidden" aria-hidden="true">🔗</span>
+                      <span className="break-all">{pi.website}</span>
+                    </span>
+                  )}
+                  {pi.github && (
+                    <span className="flex items-center gap-1">
+                      {pi.website && <span className="text-slate-300 mx-1">|</span>}
+                      <span className="text-xs print:hidden" aria-hidden="true">💻</span>
+                      <span className="text-blue-600 break-all">{pi.github}</span>
+                    </span>
+                  )}
+                  {pi.links?.map((link, i) => (
+                    <span key={i} className="flex items-center gap-1">
+                      <span className="text-slate-300 mx-1">|</span>
+                      <span className="text-slate-500">{link.label}:</span>
+                      <span className="text-blue-600 break-all">{link.url}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {pi.military && (
+                <div className="flex items-center gap-1 text-xs text-slate-400">
+                  <span className="print:hidden" aria-hidden="true">🎖</span>
+                  <span>{pi.military}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* ===== Summary ===== */}
+      {pi.summary && (
+        <Section title="자기소개">
+          <TextBlock text={pi.summary} className="text-sm text-slate-700 leading-relaxed" />
+        </Section>
       )}
 
+      {/* ===== Experience ===== */}
       {experiences.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-base font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3">경력</h2>
-          <div className="space-y-4">
+        <Section title="경력">
+          <div className="space-y-5">
             {experiences.map(exp => (
               <div key={exp.id}>
-                <div className="flex justify-between items-baseline">
-                  <div>
+                <div className="flex flex-wrap justify-between items-baseline gap-2">
+                  <div className="min-w-0">
                     <span className="font-semibold text-slate-900">{exp.company}</span>
                     {exp.position && <span className="text-slate-600 ml-2 text-sm">{exp.position}</span>}
-                    {exp.department && <span className="text-slate-400 ml-1 text-xs">({exp.department})</span>}
+                    {exp.department && <span className="text-slate-400 ml-1 text-xs">| {exp.department}</span>}
                   </div>
-                  <span className="text-xs text-slate-400 whitespace-nowrap ml-4 tabular-nums">
+                  <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
                     {formatDate(exp.startDate)}{(exp.endDate || exp.current) && ` — ${exp.current ? '현재' : formatDate(exp.endDate)}`}
                   </span>
                 </div>
-                {exp.description && <TextBlock text={exp.description} className="text-sm text-slate-700 mt-1 leading-relaxed" />}
+                {exp.description && <TextBlock text={exp.description} className="text-sm text-slate-600 mt-1.5 leading-relaxed" />}
                 {exp.achievements && (
-                  <div className="mt-1.5 pl-3 border-l-2 border-blue-200">
+                  <div className="mt-2 pl-3 border-l-2 border-blue-300 bg-blue-50/50 py-1.5 pr-2 rounded-r">
                     <TextBlock text={exp.achievements} className="text-sm text-blue-800 leading-relaxed" />
                   </div>
                 )}
-                {exp.techStack && (
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {exp.techStack.split(',').map((t, i) => (
-                      <span key={i} className="px-1.5 py-0.5 text-xs bg-slate-100 text-slate-500 rounded">{t.trim()}</span>
-                    ))}
-                  </div>
-                )}
+                {exp.techStack && <TechTags text={exp.techStack} />}
               </div>
             ))}
           </div>
-        </section>
+        </Section>
       )}
 
+      {/* ===== Education ===== */}
       {educations.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-base font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3">학력</h2>
-          <div className="space-y-4">
+        <Section title="학력">
+          <div className="space-y-3">
             {educations.map(edu => (
               <div key={edu.id}>
-                <div className="flex justify-between items-baseline">
+                <div className="flex flex-wrap justify-between items-baseline gap-2">
                   <div>
                     <span className="font-semibold text-slate-900">{edu.school}</span>
                     {edu.degree && <span className="text-slate-600 ml-2 text-sm">{edu.field && `${edu.field} `}{edu.degree}</span>}
-                    {edu.gpa && <span className="text-slate-400 ml-2 text-xs">({edu.gpa})</span>}
+                    {edu.gpa && <span className="text-slate-400 ml-2 text-xs">학점 {edu.gpa}</span>}
                   </div>
-                  <span className="text-xs text-slate-400 whitespace-nowrap ml-4 tabular-nums">
+                  <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
                     {formatDate(edu.startDate)}{edu.endDate && ` — ${formatDate(edu.endDate)}`}
                   </span>
                 </div>
-                {edu.description && <TextBlock text={edu.description} className="text-sm text-slate-700 mt-1" />}
+                {edu.description && <TextBlock text={edu.description} className="text-sm text-slate-600 mt-1" />}
               </div>
             ))}
           </div>
-        </section>
+        </Section>
       )}
 
+      {/* ===== Skills ===== */}
       {skills.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-base font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3">기술</h2>
-          <div className="space-y-2">
+        <Section title="기술">
+          <div className="space-y-1.5">
             {skills.map(skill => (
-              <div key={skill.id} className="flex text-sm">
-                <span className="font-semibold text-slate-900 min-w-[140px]">{skill.category}</span>
-                <span className="text-slate-700">{skill.items}</span>
+              <div key={skill.id} className="flex text-sm gap-2">
+                <span className="font-semibold text-slate-800 min-w-[120px] shrink-0">{skill.category}</span>
+                <span className="text-slate-600">{skill.items}</span>
               </div>
             ))}
           </div>
-        </section>
+        </Section>
       )}
 
+      {/* ===== Projects ===== */}
       {projects.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-base font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3">프로젝트</h2>
-          <div className="space-y-4">
+        <Section title="프로젝트">
+          <div className="space-y-5">
             {projects.map(proj => (
               <div key={proj.id}>
-                <div className="flex justify-between items-baseline">
-                  <div>
+                <div className="flex flex-wrap justify-between items-baseline gap-2">
+                  <div className="min-w-0">
                     <span className="font-semibold text-slate-900">{proj.name}</span>
-                    {proj.company && <span className="text-slate-500 ml-1 text-xs">@ {proj.company}</span>}
-                    {proj.role && <span className="text-slate-600 ml-2 text-sm">{proj.role}</span>}
+                    {proj.company && <span className="text-slate-400 ml-1 text-xs">@ {proj.company}</span>}
+                    {proj.role && <span className="text-slate-600 ml-2 text-sm">| {proj.role}</span>}
                   </div>
-                  <span className="text-xs text-slate-400 whitespace-nowrap ml-4 tabular-nums">
+                  <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
                     {formatDate(proj.startDate)}{proj.endDate && ` — ${formatDate(proj.endDate)}`}
                   </span>
                 </div>
-                {proj.description && <TextBlock text={proj.description} className="text-sm text-slate-700 mt-1 leading-relaxed" />}
-                {proj.techStack && (
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {proj.techStack.split(',').map((t, i) => (
-                      <span key={i} className="px-1.5 py-0.5 text-xs bg-blue-50 text-blue-600 rounded">{t.trim()}</span>
-                    ))}
-                  </div>
-                )}
-                {proj.link && <p className="text-sm text-blue-600 mt-1">{proj.link}</p>}
+                {proj.description && <TextBlock text={proj.description} className="text-sm text-slate-600 mt-1.5 leading-relaxed" />}
+                {proj.techStack && <TechTags text={proj.techStack} color="blue" />}
+                {proj.link && <p className="text-xs text-blue-600 mt-1 break-all">{proj.link}</p>}
               </div>
             ))}
           </div>
-        </section>
+        </Section>
       )}
 
+      {/* ===== Certifications ===== */}
       {certifications.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-base font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3">자격증</h2>
-          <div className="space-y-4">
+        <Section title="자격증">
+          <div className="space-y-2">
             {certifications.map(cert => (
               <div key={cert.id}>
-                <div className="flex justify-between items-baseline">
+                <div className="flex flex-wrap justify-between items-baseline gap-2">
                   <div>
                     <span className="font-semibold text-slate-900">{cert.name}</span>
                     {cert.issuer && <span className="text-slate-600 ml-2 text-sm">{cert.issuer}</span>}
+                    {cert.credentialId && <span className="text-slate-400 ml-2 text-xs">({cert.credentialId})</span>}
                   </div>
-                  <span className="text-xs text-slate-400 whitespace-nowrap ml-4 tabular-nums">
+                  <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
                     {formatDate(cert.issueDate)}{cert.expiryDate && ` — ${formatDate(cert.expiryDate)}`}
                   </span>
                 </div>
-                {cert.credentialId && <p className="text-xs text-slate-400 mt-0.5">자격번호: {cert.credentialId}</p>}
-                {cert.description && <TextBlock text={cert.description} className="text-sm text-slate-700 mt-1 leading-relaxed" />}
+                {cert.description && <TextBlock text={cert.description} className="text-sm text-slate-600 mt-1" />}
               </div>
             ))}
           </div>
-        </section>
+        </Section>
       )}
 
+      {/* ===== Languages ===== */}
       {languages.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-base font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3">어학</h2>
-          <div className="space-y-4">
+        <Section title="어학">
+          <div className="space-y-1">
             {languages.map(lang => (
-              <div key={lang.id}>
-                <div className="flex justify-between items-baseline">
-                  <div>
-                    <span className="font-semibold text-slate-900">{lang.name}</span>
-                    {lang.testName && <span className="text-slate-600 ml-2 text-sm">{lang.testName}</span>}
-                    {lang.score && <span className="text-slate-800 ml-2 text-sm font-medium">{lang.score}</span>}
-                  </div>
-                  <span className="text-xs text-slate-400 whitespace-nowrap ml-4 tabular-nums">
-                    {formatDate(lang.testDate)}
-                  </span>
+              <div key={lang.id} className="flex justify-between items-baseline">
+                <div>
+                  <span className="font-semibold text-slate-900">{lang.name}</span>
+                  {lang.testName && <span className="text-slate-600 ml-2 text-sm">{lang.testName}</span>}
+                  {lang.score && <span className="text-blue-600 ml-2 text-sm font-medium">{lang.score}</span>}
                 </div>
+                {lang.testDate && <span className="text-xs text-slate-400 tabular-nums">{formatDate(lang.testDate)}</span>}
               </div>
             ))}
           </div>
-        </section>
+        </Section>
       )}
 
+      {/* ===== Awards ===== */}
       {awards.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-base font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3">수상 경력</h2>
-          <div className="space-y-4">
+        <Section title="수상 경력">
+          <div className="space-y-2">
             {awards.map(award => (
               <div key={award.id}>
-                <div className="flex justify-between items-baseline">
+                <div className="flex flex-wrap justify-between items-baseline gap-2">
                   <div>
                     <span className="font-semibold text-slate-900">{award.name}</span>
                     {award.issuer && <span className="text-slate-600 ml-2 text-sm">{award.issuer}</span>}
                   </div>
-                  <span className="text-xs text-slate-400 whitespace-nowrap ml-4 tabular-nums">
-                    {formatDate(award.awardDate)}
-                  </span>
+                  {award.awardDate && <span className="text-xs text-slate-400 tabular-nums">{formatDate(award.awardDate)}</span>}
                 </div>
-                {award.description && <TextBlock text={award.description} className="text-sm text-slate-700 mt-1 leading-relaxed" />}
+                {award.description && <TextBlock text={award.description} className="text-sm text-slate-600 mt-1" />}
               </div>
             ))}
           </div>
-        </section>
+        </Section>
       )}
 
+      {/* ===== Activities ===== */}
       {activities.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-base font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3">활동/봉사</h2>
-          <div className="space-y-4">
+        <Section title="활동">
+          <div className="space-y-2">
             {activities.map(act => (
               <div key={act.id}>
-                <div className="flex justify-between items-baseline">
+                <div className="flex flex-wrap justify-between items-baseline gap-2">
                   <div>
                     <span className="font-semibold text-slate-900">{act.name}</span>
                     {act.organization && <span className="text-slate-600 ml-2 text-sm">{act.organization}</span>}
-                    {act.role && <span className="text-slate-500 ml-1 text-sm">({act.role})</span>}
+                    {act.role && <span className="text-slate-400 ml-1 text-xs">| {act.role}</span>}
                   </div>
-                  <span className="text-xs text-slate-400 whitespace-nowrap ml-4 tabular-nums">
+                  <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
                     {formatDate(act.startDate)}{act.endDate && ` — ${formatDate(act.endDate)}`}
                   </span>
                 </div>
-                {act.description && <TextBlock text={act.description} className="text-sm text-slate-700 mt-1 leading-relaxed" />}
+                {act.description && <TextBlock text={act.description} className="text-sm text-slate-600 mt-1" />}
               </div>
             ))}
           </div>
-        </section>
+        </Section>
       )}
     </div>
   );
 });
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mb-7">
+      <h2 className="text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3">{title}</h2>
+      {children}
+    </section>
+  );
+}
 
 ResumePreview.displayName = 'ResumePreview';
 

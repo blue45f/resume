@@ -59,6 +59,7 @@ model PersonalInfo {
   phone     String @default("")
   address   String @default("")
   website   String @default("")
+  github    String @default("") // GitHub URL
   summary   String @default("")
   photo     String @default("") // 증명사진 URL 또는 base64
   birthYear String @default("") @map("birth_year")

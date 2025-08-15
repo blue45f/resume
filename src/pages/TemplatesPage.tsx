@@ -20,6 +20,13 @@ const CATEGORY_OPTIONS = [
   { value: 'general', label: '일반' },
   { value: 'developer', label: '개발자' },
   { value: 'designer', label: '디자이너' },
+  { value: 'pm', label: '기획/PM' },
+  { value: 'marketing', label: '마케팅' },
+  { value: 'sales', label: '영업' },
+  { value: 'data', label: '데이터' },
+  { value: 'research', label: '연구' },
+  { value: 'entry', label: '신입/인턴' },
+  { value: 'freelance', label: '프리랜서' },
   { value: 'international', label: '해외/영문' },
   { value: 'custom', label: '커스텀' },
 ];

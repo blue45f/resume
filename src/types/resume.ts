@@ -9,6 +9,7 @@ export interface PersonalInfo {
   phone: string;
   address: string;
   website: string;
+  github?: string;
   summary: string;
   photo?: string;
   birthYear?: string;
@@ -155,7 +156,7 @@ export interface LlmProvider {
 export function createEmptyResumeData() {
   return {
     title: "",
-    personalInfo: { name: "", email: "", phone: "", address: "", website: "", summary: "", photo: "", birthYear: "", links: [] as LinkItem[], military: "" },
+    personalInfo: { name: "", email: "", phone: "", address: "", website: "", github: "", summary: "", photo: "", birthYear: "", links: [] as LinkItem[], military: "" },
     experiences: [] as Experience[],
     educations: [] as Education[],
     skills: [] as Skill[],

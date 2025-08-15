@@ -314,12 +314,12 @@ export class ResumesService {
       personalInfo: pi
         ? {
             name: pi.name, email: pi.email, phone: pi.phone, address: pi.address,
-            website: pi.website, summary: pi.summary, photo: pi.photo || '',
+            website: pi.website, github: pi.github || '', summary: pi.summary, photo: pi.photo || '',
             birthYear: pi.birthYear || '',
             links: pi.links ? (typeof pi.links === 'string' ? JSON.parse(pi.links || '[]') : pi.links) : [],
             military: pi.military || '',
           }
-        : { name: '', email: '', phone: '', address: '', website: '', summary: '', photo: '', birthYear: '', links: [], military: '' },
+        : { name: '', email: '', phone: '', address: '', website: '', github: '', summary: '', photo: '', birthYear: '', links: [], military: '' },
       tags: resume.tags?.map((t: any) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })) ?? [],
       createdAt: resume.createdAt.toISOString(),
       updatedAt: resume.updatedAt.toISOString(),

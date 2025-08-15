@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
+import { toast } from '@/components/Toast';
 import type { Tag } from '@/types/resume';
 import { fetchTags, createTag, deleteTag } from '@/lib/api';
 
@@ -16,16 +17,11 @@ export default function TagsPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      setTags(await fetchTags());
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    let cancelled = false;
+    fetchTags().then(t => { if (!cancelled) { setTags(t); setLoading(false); } }).catch(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -34,7 +30,8 @@ export default function TagsPage() {
     try {
       await createTag({ name: newName.trim(), color: newColor });
       setNewName('');
-      await load();
+      toast('태그가 생성되었습니다', 'success');
+      setTags(await fetchTags());
     } catch (err: any) {
       setError(err.message || '태그 생성에 실패했습니다');
     } finally {
@@ -43,9 +40,14 @@ export default function TagsPage() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`"${name}" 태그를 삭제하시겠습니까? 이력서에서도 제거됩니다.`)) return;
-    await deleteTag(id);
-    load();
+    if (!confirm(`"${name}" 태그를 삭제하시겠습니까?`)) return;
+    try {
+      await deleteTag(id);
+      toast('태그가 삭제되었습니다', 'success');
+      setTags(await fetchTags());
+    } catch (err: any) {
+      toast(err.message || '삭제에 실패했습니다', 'error');
+    }
   };
 
   return (
@@ -100,7 +102,15 @@ export default function TagsPage() {
 
         {/* Tag list */}
         {loading ? (
-          <p className="text-center text-slate-500 py-12">불러오는 중...</p>
+          <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 animate-pulse">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="flex items-center gap-3 px-6 py-3">
+                <div className="w-4 h-4 bg-slate-200 rounded-full" />
+                <div className="h-4 bg-slate-200 rounded w-24" />
+                <div className="h-3 bg-slate-100 rounded w-16" />
+              </div>
+            ))}
+          </div>
         ) : tags.length === 0 ? (
           <p className="text-center text-slate-500 py-12">등록된 태그가 없습니다</p>
         ) : (

@@ -17,7 +17,7 @@ export default function AutoGeneratePage() {
   const [instruction, setInstruction] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [preview, setPreview] = useState<any>(null);
+  const [preview, setPreview] = useState<{ resume: Record<string, any>; tokensUsed?: number; provider?: string } | null>(null);
 
   const handlePreview = async () => {
     if (!rawText.trim()) return;
@@ -189,6 +189,12 @@ export default function AutoGeneratePage() {
                 >
                   이 내용으로 이력서 저장
                 </button>
+              </div>
+            ) : loading ? (
+              <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+                <div className="inline-block w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4" />
+                <p className="text-sm text-slate-600 font-medium">AI가 이력서를 분석하고 있습니다...</p>
+                <p className="text-xs text-slate-400 mt-1">보통 10~30초 정도 소요됩니다</p>
               </div>
             ) : (
               <div className="bg-white rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-400">
