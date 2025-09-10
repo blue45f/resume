@@ -21,6 +21,13 @@ export class ResumesController {
     return this.resumesService.findAll(req.user?.id);
   }
 
+  @Get('@:username/:slug')
+  @Public()
+  @ApiOperation({ summary: '슬러그로 이력서 조회 (/@username/slug)' })
+  findBySlug(@Param('username') username: string, @Param('slug') slug: string) {
+    return this.resumesService.findBySlug(username, slug);
+  }
+
   @Get('public')
   @Public()
   @ApiOperation({ summary: '공개 이력서 검색/목록' })

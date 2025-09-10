@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
+import { timeAgo } from '@/lib/time';
 import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchResumes, deleteResume, duplicateResume, fetchTags } from '@/lib/api';
 
@@ -73,16 +74,31 @@ export default function HomePage() {
       <Header />
       <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
         {resumes.length === 0 ? (
-          <div className="text-center py-16 sm:py-20">
-            <div className="text-5xl sm:text-6xl mb-4" aria-hidden="true">&#128196;</div>
-            <h1 className="text-xl sm:text-2xl font-semibold text-slate-800 mb-2">이력서가 없습니다</h1>
-            <p className="text-slate-600 mb-6">첫 번째 이력서를 만들어보세요</p>
-            <Link
-              to="/resumes/new"
-              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-            >
-              + 새 이력서 만들기
-            </Link>
+          <div className="py-12 sm:py-16">
+            <div className="text-center mb-10">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">이력서공방에 오신 것을 환영합니다</h1>
+              <p className="text-slate-500 max-w-md mx-auto">AI가 도와주는 이력서 작성. 다양한 양식으로 변환하고, 깔끔한 URL로 공유하세요.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-10">
+              <Link to="/resumes/new" className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all group">
+                <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📝</span>
+                <span className="font-semibold text-slate-800">직접 작성</span>
+                <span className="text-xs text-slate-400 mt-1">템플릿 선택 후 작성</span>
+              </Link>
+              <Link to="/auto-generate" className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-lg transition-all group">
+                <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🤖</span>
+                <span className="font-semibold text-slate-800">AI 자동 생성</span>
+                <span className="text-xs text-slate-400 mt-1">텍스트 붙여넣기만</span>
+              </Link>
+              <Link to="/explore" className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-slate-200 hover:border-slate-400 hover:shadow-lg transition-all group">
+                <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🔍</span>
+                <span className="font-semibold text-slate-800">둘러보기</span>
+                <span className="text-xs text-slate-400 mt-1">공개 이력서 탐색</span>
+              </Link>
+            </div>
+            <div className="text-center">
+              <Link to="/tutorial" className="text-sm text-blue-600 hover:text-blue-800">사용 가이드 보기 &rarr;</Link>
+            </div>
           </div>
         ) : (
           <div>
@@ -136,8 +152,8 @@ export default function HomePage() {
                   <p className="text-sm text-slate-600 mb-1">
                     {resume.personalInfo.name || '이름 미입력'}
                   </p>
-                  <p className="text-xs text-slate-500 mb-2">
-                    수정일: {new Date(resume.updatedAt).toLocaleDateString('ko-KR')}
+                  <p className="text-xs text-slate-400 mb-2" title={new Date(resume.updatedAt).toLocaleString('ko-KR')}>
+                    {timeAgo(resume.updatedAt)}
                   </p>
 
                   {/* Tags */}

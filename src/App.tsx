@@ -14,6 +14,7 @@ import ExplorePage from '@/pages/ExplorePage';
 import AboutPage from '@/pages/AboutPage';
 import TutorialPage from '@/pages/TutorialPage';
 import TermsPage from '@/pages/TermsPage';
+import ProfileResumePage from '@/pages/ProfileResumePage';
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/tutorial" element={<TutorialPage />} />
             <Route path="/terms" element={<TermsPage />} />
+            <Route path="/@:username/:slug" element={<ProfileResumePage />} />
           </Routes>
         </div>
         <ToastContainer />

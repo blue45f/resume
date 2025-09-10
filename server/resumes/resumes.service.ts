@@ -91,6 +91,20 @@ export class ResumesService {
     };
   }
 
+  async findBySlug(username: string, slug: string) {
+    const user = await this.prisma.user.findFirst({ where: { username } });
+    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다');
+    const resume = await this.prisma.resume.findFirst({
+      where: { userId: user.id, slug },
+      include: FULL_INCLUDE,
+    });
+    if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+    if (resume.visibility === 'private') {
+      throw new NotFoundException('이력서를 찾을 수 없습니다');
+    }
+    return this.formatFull(resume);
+  }
+
   async findOne(id: string, userId?: string) {
     const resume = await this.prisma.resume.findUnique({
       where: { id },
@@ -126,10 +140,22 @@ export class ResumesService {
     return { id, visibility };
   }
 
+  private generateSlug(title: string): string {
+    return (title || 'untitled')
+      .replace(/[^\w가-힣\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .toLowerCase()
+      .slice(0, 60) || 'untitled';
+  }
+
   async create(dto: CreateResumeDto, userId?: string) {
+    const slug = this.generateSlug(dto.title || '');
     const resume = await this.prisma.resume.create({
       data: {
         title: dto.title || '',
+        slug,
         userId: userId || null,
         personalInfo: dto.personalInfo ? { create: {
           ...dto.personalInfo,
@@ -310,7 +336,7 @@ export class ResumesService {
   private formatSummary(resume: any) {
     const pi = resume.personalInfo;
     return {
-      id: resume.id, title: resume.title, visibility: resume.visibility || 'private',
+      id: resume.id, title: resume.title, slug: resume.slug || '', visibility: resume.visibility || 'private',
       personalInfo: pi
         ? {
             name: pi.name, email: pi.email, phone: pi.phone, address: pi.address,

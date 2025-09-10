@@ -11,6 +11,7 @@ model User {
   id         String   @id @default(uuid())
   email      String   @unique
   name       String   @default("")
+  username   String   @default("") // @username (프로필 URL)
   avatar     String   @default("")
   provider   String   @default("") // google, github, kakao
   providerId String   @default("") @map("provider_id")
@@ -25,6 +26,7 @@ model User {
 model Resume {
   id         String   @id @default(uuid())
   title      String   @default("")
+  slug       String   @default("") // URL 슬러그 (예: senior-frontend)
   visibility String   @default("private") // public, private, link-only
   userId     String?  @map("user_id")
   createdAt  DateTime @default(now()) @map("created_at")
