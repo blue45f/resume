@@ -100,4 +100,38 @@ export class LlmController {
   getUsage() {
     return this.llmService.getUsageStats();
   }
+
+  // ===== AI 분석 기능 =====
+
+  @Post('feedback')
+  @ApiOperation({ summary: 'AI 이력서 피드백 (점수 + 강점 + 개선점)' })
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  analyzeFeedback(
+    @Param('resumeId') resumeId: string,
+    @Body('provider') provider?: string,
+  ) {
+    return this.llmService.analyzeFeedback(resumeId, provider);
+  }
+
+  @Post('job-match')
+  @ApiOperation({ summary: 'AI JD 매칭 분석' })
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  analyzeJobMatch(
+    @Param('resumeId') resumeId: string,
+    @Body('jobDescription') jobDescription: string,
+    @Body('provider') provider?: string,
+  ) {
+    return this.llmService.analyzeJobMatch(resumeId, jobDescription, provider);
+  }
+
+  @Post('interview')
+  @ApiOperation({ summary: 'AI 면접 질문 생성' })
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  generateInterview(
+    @Param('resumeId') resumeId: string,
+    @Body('jobRole') jobRole?: string,
+    @Body('provider') provider?: string,
+  ) {
+    return this.llmService.generateInterviewQuestions(resumeId, jobRole, provider);
+  }
 }

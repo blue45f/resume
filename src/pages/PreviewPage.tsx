@@ -6,6 +6,8 @@ import ResumePreview from '@/components/ResumePreview';
 import LlmTransformPanel from '@/components/LlmTransformPanel';
 import VersionPanel from '@/components/VersionPanel';
 import AttachmentPanel from '@/components/AttachmentPanel';
+import AiAnalysisPanel from '@/components/AiAnalysisPanel';
+import CompletenessBar from '@/components/CompletenessBar';
 import type { Resume } from '@/types/resume';
 import { fetchResume } from '@/lib/api';
 
@@ -17,6 +19,7 @@ export default function PreviewPage() {
   const [showTransform, setShowTransform] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
+  const [showAiAnalysis, setShowAiAnalysis] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
@@ -117,6 +120,12 @@ export default function PreviewPage() {
                 버전
               </button>
               <button
+                onClick={() => setShowAiAnalysis(true)}
+                className="px-2.5 sm:px-3 py-2 bg-emerald-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-colors"
+              >
+                🤖 AI 분석
+              </button>
+              <button
                 onClick={() => setShowTransform(true)}
                 className="px-2.5 sm:px-4 py-2 bg-purple-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
               >
@@ -133,9 +142,17 @@ export default function PreviewPage() {
         </div>
 
         <div className="py-6 sm:py-8 px-4">
+          <div className="max-w-[210mm] mx-auto mb-4 no-print">
+            <CompletenessBar resume={resume} />
+          </div>
           <ResumePreview ref={contentRef} resume={resume} />
         </div>
       </main>
+
+      {/* AI Analysis Panel */}
+      {showAiAnalysis && id && (
+        <AiAnalysisPanel resumeId={id} onClose={() => setShowAiAnalysis(false)} />
+      )}
 
       {/* LLM Transform Panel */}
       {showTransform && id && (

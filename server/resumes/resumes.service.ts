@@ -102,6 +102,8 @@ export class ResumesService {
     if (resume.visibility === 'private') {
       throw new NotFoundException('이력서를 찾을 수 없습니다');
     }
+    // 조회수 증가 (비동기, 에러 무시)
+    this.prisma.resume.update({ where: { id: resume.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
     return this.formatFull(resume);
   }
 
@@ -336,7 +338,7 @@ export class ResumesService {
   private formatSummary(resume: any) {
     const pi = resume.personalInfo;
     return {
-      id: resume.id, title: resume.title, slug: resume.slug || '', visibility: resume.visibility || 'private',
+      id: resume.id, title: resume.title, slug: resume.slug || '', viewCount: resume.viewCount || 0, visibility: resume.visibility || 'private',
       personalInfo: pi
         ? {
             name: pi.name, email: pi.email, phone: pi.phone, address: pi.address,

@@ -5,6 +5,28 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
+/* Tiptap Editor */
+.tiptap {
+  outline: none;
+}
+.tiptap p {
+  margin: 0.25em 0;
+}
+.tiptap ul, .tiptap ol {
+  padding-left: 1.5em;
+  margin: 0.25em 0;
+}
+.tiptap li {
+  margin: 0.1em 0;
+}
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #9ca3af;
+  pointer-events: none;
+  height: 0;
+}
+
 body {
   margin: 0;
   background: #f8fafc;

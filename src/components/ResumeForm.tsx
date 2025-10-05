@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import type { Experience, Education, Skill, Project, Certification, Language, Award, Activity } from '@/types/resume';
 import type { Resume } from '@/types/resume';
 import { toast } from '@/components/Toast';
+
+const RichEditor = lazy(() => import('@/components/RichEditor'));
 
 type ResumeData = Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>;
 
@@ -326,8 +328,14 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
               <input id="pi-military" className={inputClass} placeholder="예: 군필 | 육군 병장 제대" value={data.personalInfo.military || ''} onChange={e => updatePersonalInfo('military', e.target.value)} />
             </div>
             <div className="sm:col-span-2">
-              <label htmlFor="pi-summary" className={labelClass}>자기소개</label>
-              <textarea id="pi-summary" className={inputClass + ' h-28 resize-none'} value={data.personalInfo.summary} onChange={e => updatePersonalInfo('summary', e.target.value)} />
+              <label className={labelClass}>자기소개</label>
+              <Suspense fallback={<textarea className={inputClass + ' h-28 resize-none'} value={data.personalInfo.summary} readOnly />}>
+                <RichEditor
+                  value={data.personalInfo.summary}
+                  onChange={v => updatePersonalInfo('summary', v)}
+                  placeholder="자기소개를 작성하세요..."
+                />
+              </Suspense>
             </div>
           </div>
         </fieldset>
@@ -370,12 +378,24 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
                   </div>
                 </div>
                 <div className="sm:col-span-2">
-                  <label htmlFor={`exp-desc-${exp.id}`} className={labelClass}>업무 내용</label>
-                  <textarea id={`exp-desc-${exp.id}`} className={inputClass + ' h-24 resize-none'} value={exp.description} onChange={e => updateExperience(exp.id, 'description', e.target.value)} placeholder="주요 업무를 작성하세요" />
+                  <label className={labelClass}>업무 내용</label>
+                  <Suspense fallback={<textarea className={inputClass + ' h-24 resize-none'} readOnly />}>
+                    <RichEditor
+                      value={exp.description}
+                      onChange={v => updateExperience(exp.id, 'description', v)}
+                      placeholder="주요 업무를 작성하세요 (볼드, 리스트 지원)"
+                    />
+                  </Suspense>
                 </div>
                 <div className="sm:col-span-2">
-                  <label htmlFor={`exp-achievements-${exp.id}`} className={labelClass}>주요 성과</label>
-                  <textarea id={`exp-achievements-${exp.id}`} className={inputClass + ' h-20 resize-none'} value={exp.achievements || ''} onChange={e => updateExperience(exp.id, 'achievements', e.target.value)} placeholder="정량적 성과 (예: 번들 70% 감소, VOC 69% 감소)" />
+                  <label className={labelClass}>주요 성과</label>
+                  <Suspense fallback={<textarea className={inputClass + ' h-20 resize-none'} readOnly />}>
+                    <RichEditor
+                      value={exp.achievements || ''}
+                      onChange={v => updateExperience(exp.id, 'achievements', v)}
+                      placeholder="정량적 성과 (예: 번들 70% 감소)"
+                    />
+                  </Suspense>
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`exp-tech-${exp.id}`} className={labelClass}>기술 스택</label>
@@ -495,8 +515,14 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
                   <input id={`proj-link-${proj.id}`} type="url" className={inputClass} value={proj.link} placeholder="https://..." onChange={e => updateProject(proj.id, 'link', e.target.value)} />
                 </div>
                 <div className="sm:col-span-2">
-                  <label htmlFor={`proj-desc-${proj.id}`} className={labelClass}>설명</label>
-                  <textarea id={`proj-desc-${proj.id}`} className={inputClass + ' h-24 resize-none'} value={proj.description} placeholder="프로젝트 설명 및 기여한 내용" onChange={e => updateProject(proj.id, 'description', e.target.value)} />
+                  <label className={labelClass}>설명</label>
+                  <Suspense fallback={<textarea className={inputClass + ' h-24 resize-none'} readOnly />}>
+                    <RichEditor
+                      value={proj.description}
+                      onChange={v => updateProject(proj.id, 'description', v)}
+                      placeholder="프로젝트 설명 및 기여한 내용"
+                    />
+                  </Suspense>
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`proj-tech-${proj.id}`} className={labelClass}>기술 스택</label>

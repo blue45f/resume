@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import type { Resume } from '@/types/resume';
+import SafeHtml from '@/components/SafeHtml';
 
 interface Props {
   resume: Resume;
@@ -13,17 +14,6 @@ function formatDate(date: string): string {
   return parts[0];
 }
 
-function TextBlock({ text, className }: { text: string; className?: string }) {
-  const lines = text.split('\n').filter(Boolean);
-  if (lines.length <= 1) {
-    return <p className={className}>{text}</p>;
-  }
-  return (
-    <ul className={`list-disc list-inside space-y-0.5 ${className || ''}`}>
-      {lines.map((line, i) => <li key={i}>{line}</li>)}
-    </ul>
-  );
-}
 
 function TechTags({ text, color = 'slate' }: { text: string; color?: 'slate' | 'blue' }) {
   const bg = color === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500';
@@ -109,7 +99,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
       {/* ===== Summary ===== */}
       {pi.summary && (
         <Section title="자기소개">
-          <TextBlock text={pi.summary} className="text-sm text-slate-700 leading-relaxed" />
+          <SafeHtml html={pi.summary} className="text-sm text-slate-700 leading-relaxed" />
         </Section>
       )}
 
@@ -129,10 +119,10 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
                     {formatDate(exp.startDate)}{(exp.endDate || exp.current) && ` — ${exp.current ? '현재' : formatDate(exp.endDate)}`}
                   </span>
                 </div>
-                {exp.description && <TextBlock text={exp.description} className="text-sm text-slate-600 mt-1.5 leading-relaxed" />}
+                {exp.description && <SafeHtml html={exp.description} className="text-sm text-slate-600 mt-1.5 leading-relaxed" />}
                 {exp.achievements && (
                   <div className="mt-2 pl-3 border-l-2 border-blue-300 bg-blue-50/50 py-1.5 pr-2 rounded-r">
-                    <TextBlock text={exp.achievements} className="text-sm text-blue-800 leading-relaxed" />
+                    <SafeHtml html={exp.achievements} className="text-sm text-blue-800 leading-relaxed" />
                   </div>
                 )}
                 {exp.techStack && <TechTags text={exp.techStack} />}
@@ -158,7 +148,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
                     {formatDate(edu.startDate)}{edu.endDate && ` — ${formatDate(edu.endDate)}`}
                   </span>
                 </div>
-                {edu.description && <TextBlock text={edu.description} className="text-sm text-slate-600 mt-1" />}
+                {edu.description && <SafeHtml html={edu.description} className="text-sm text-slate-600 mt-1" />}
               </div>
             ))}
           </div>
@@ -195,7 +185,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
                     {formatDate(proj.startDate)}{proj.endDate && ` — ${formatDate(proj.endDate)}`}
                   </span>
                 </div>
-                {proj.description && <TextBlock text={proj.description} className="text-sm text-slate-600 mt-1.5 leading-relaxed" />}
+                {proj.description && <SafeHtml html={proj.description} className="text-sm text-slate-600 mt-1.5 leading-relaxed" />}
                 {proj.techStack && <TechTags text={proj.techStack} color="blue" />}
                 {proj.link && <p className="text-xs text-blue-600 mt-1 break-all">{proj.link}</p>}
               </div>
@@ -220,7 +210,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
                     {formatDate(cert.issueDate)}{cert.expiryDate && ` — ${formatDate(cert.expiryDate)}`}
                   </span>
                 </div>
-                {cert.description && <TextBlock text={cert.description} className="text-sm text-slate-600 mt-1" />}
+                {cert.description && <SafeHtml html={cert.description} className="text-sm text-slate-600 mt-1" />}
               </div>
             ))}
           </div>
@@ -258,7 +248,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
                   </div>
                   {award.awardDate && <span className="text-xs text-slate-400 tabular-nums">{formatDate(award.awardDate)}</span>}
                 </div>
-                {award.description && <TextBlock text={award.description} className="text-sm text-slate-600 mt-1" />}
+                {award.description && <SafeHtml html={award.description} className="text-sm text-slate-600 mt-1" />}
               </div>
             ))}
           </div>
@@ -281,7 +271,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
                     {formatDate(act.startDate)}{act.endDate && ` — ${formatDate(act.endDate)}`}
                   </span>
                 </div>
-                {act.description && <TextBlock text={act.description} className="text-sm text-slate-600 mt-1" />}
+                {act.description && <SafeHtml html={act.description} className="text-sm text-slate-600 mt-1" />}
               </div>
             ))}
           </div>

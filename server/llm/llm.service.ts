@@ -316,8 +316,141 @@ export class LlmService {
   }
 
   private buildUserMessage(resume: any): string {
-    // Sanitize resume data - remove any potential injection attempts
     const sanitized = JSON.stringify(resume, null, 2);
     return `다음은 변환할 이력서 원본 데이터입니다:\n\n${sanitized}`;
+  }
+
+  // ==========================================
+  // AI 분석 기능
+  // ==========================================
+
+  /** AI 이력서 피드백 (점수 + 강점 + 개선점) */
+  async analyzeFeedback(resumeId: string, provider?: string) {
+    const llm = this.getProvider(provider);
+    const resume = await this.resumesService.findOne(resumeId);
+
+    const systemPrompt = `당신은 채용 전문가이자 이력서 컨설턴트입니다. 주어진 이력서를 분석하여 JSON으로 응답해주세요.
+
+반드시 아래 JSON 형식으로만 응답하세요:
+{
+  "score": 75,
+  "grade": "B+",
+  "summary": "전체적인 한줄 평가",
+  "strengths": ["강점1", "강점2", "강점3"],
+  "improvements": ["개선점1", "개선점2", "개선점3"],
+  "sectionScores": {
+    "personalInfo": {"score": 80, "feedback": "피드백"},
+    "experience": {"score": 70, "feedback": "피드백"},
+    "education": {"score": 90, "feedback": "피드백"},
+    "skills": {"score": 60, "feedback": "피드백"},
+    "projects": {"score": 75, "feedback": "피드백"}
+  },
+  "keywords": ["추천 키워드1", "추천 키워드2"],
+  "tips": ["구체적인 개선 팁1", "구체적인 개선 팁2"]
+}
+
+점수 기준:
+- 90-100: S (완벽한 이력서)
+- 80-89: A (우수)
+- 70-79: B (양호, 개선 여지 있음)
+- 60-69: C (보통, 보완 필요)
+- 50 미만: D (대폭 개선 필요)
+
+한국어로 작성하세요.`;
+
+    const result = await llm.generate(systemPrompt, JSON.stringify(resume, null, 2));
+
+    let parsed;
+    try {
+      const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : result.text);
+    } catch {
+      throw new BadRequestException('AI 분석 결과를 파싱할 수 없습니다. 다시 시도해주세요.');
+    }
+
+    return { feedback: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
+  }
+
+  /** AI JD 매칭 분석 */
+  async analyzeJobMatch(resumeId: string, jobDescription: string, provider?: string) {
+    if (!jobDescription || jobDescription.length < 20) {
+      throw new BadRequestException('채용공고(JD)를 20자 이상 입력해주세요.');
+    }
+    if (jobDescription.length > 5000) {
+      throw new BadRequestException('채용공고는 5000자 이내여야 합니다.');
+    }
+
+    const llm = this.getProvider(provider);
+    const resume = await this.resumesService.findOne(resumeId);
+
+    const systemPrompt = `당신은 채용 전문가입니다. 이력서와 채용공고(JD)를 비교 분석하여 JSON으로 응답해주세요.
+
+반드시 아래 JSON 형식으로만 응답하세요:
+{
+  "matchScore": 78,
+  "matchGrade": "B+",
+  "summary": "전체 매칭 한줄 평가",
+  "matchedSkills": ["매칭된 스킬1", "매칭된 스킬2"],
+  "missingSkills": ["부족한 스킬1", "부족한 스킬2"],
+  "matchedExperience": ["매칭된 경험1", "매칭된 경험2"],
+  "gaps": ["부족한 경험/자격1", "부족한 경험/자격2"],
+  "recommendations": ["이력서 수정 제안1", "이력서 수정 제안2"],
+  "coverLetterPoints": ["자소서에 강조할 포인트1", "자소서에 강조할 포인트2"],
+  "interviewPrep": ["면접에서 어필할 포인트1", "면접에서 어필할 포인트2"]
+}
+
+한국어로 작성하세요.`;
+
+    const userMessage = `[이력서]\n${JSON.stringify(resume, null, 2)}\n\n[채용공고(JD)]\n${jobDescription}`;
+    const result = await llm.generate(systemPrompt, userMessage);
+
+    let parsed;
+    try {
+      const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : result.text);
+    } catch {
+      throw new BadRequestException('AI 분석 결과를 파싱할 수 없습니다.');
+    }
+
+    return { analysis: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
+  }
+
+  /** AI 면접 질문 생성 */
+  async generateInterviewQuestions(resumeId: string, jobRole?: string, provider?: string) {
+    const llm = this.getProvider(provider);
+    const resume = await this.resumesService.findOne(resumeId);
+
+    const roleContext = jobRole ? `지원 직무: ${jobRole}\n` : '';
+
+    const systemPrompt = `당신은 기술 면접관입니다. 이력서를 분석하여 예상 면접 질문과 모범 답변을 JSON으로 생성해주세요.
+${roleContext}
+반드시 아래 JSON 형식으로만 응답하세요:
+{
+  "questions": [
+    {
+      "category": "경험/프로젝트",
+      "question": "면접 질문",
+      "intent": "면접관이 이 질문을 하는 의도",
+      "sampleAnswer": "이력서 기반 모범 답변 (300자 이내)",
+      "tips": "답변 시 주의할 점"
+    }
+  ]
+}
+
+카테고리: 자기소개, 경험/프로젝트, 기술역량, 문제해결, 리더십/협업, 성장/학습, 인성/가치관
+총 8-10개 질문을 생성하세요.
+한국어로 작성하세요.`;
+
+    const result = await llm.generate(systemPrompt, JSON.stringify(resume, null, 2));
+
+    let parsed;
+    try {
+      const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : result.text);
+    } catch {
+      throw new BadRequestException('AI 분석 결과를 파싱할 수 없습니다.');
+    }
+
+    return { interview: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
   }
 }

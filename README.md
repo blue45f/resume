@@ -1,30 +1,60 @@
-# 이력서 관리 플랫폼
+# 이력서공방
 
-LLM 기반 이력서 양식 변환 + 로컬 변환을 지원하는 풀스택 이력서 관리 서비스입니다.
+AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유, 버전 관리를 지원하는 풀스택 서비스입니다.
+
+> **운영 URL**: https://resume-silk-three.vercel.app
 
 ## 기술 스택
 
-| 영역    | 기술                                                                  |
-|-------|---------------------------------------------------------------------|
-| 서버    | NestJS 11, SWC, Prisma ORM                                          |
-| DB    | PostgreSQL (Neon), Prisma ORM                                       |
-| LLM   | Gemini / Groq / Anthropic / n8n Webhook / OpenAI Compatible        |
-| 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, MSW (목업)                         |
-| 테스트   | Jest, Supertest (E2E 55개 + Unit 75개)                                |
+| 영역 | 기술 |
+|------|------|
+| 서버 | NestJS 11, Prisma ORM, PostgreSQL (Neon) |
+| AI/LLM | Gemini (무료), Groq (무료), Anthropic Claude, n8n, OpenAI Compatible |
+| 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, TypeScript |
+| 인프라 | Vercel (프론트), Render (백엔드), Neon (DB) |
+| 보안 | JWT + OAuth2 (Google/GitHub/Kakao), Helmet, Rate Limiting, HMAC |
+| 테스트 | Jest, Supertest (E2E 55개 + Unit 75개) |
 
 ## 주요 기능
 
-- **이력서 CRUD** - 경력, 학력, 기술, 프로젝트, 자격증, 어학, 수상, 활동/봉사
-- **LLM 양식 변환** - AI를 통해 7가지 양식으로 변환 (스트리밍, LLM 프로바이더 선택 가능)
-- **로컬 변환** - LLM 없이 무료로 프리셋/커스텀 템플릿 기반 구조 변환
-- **다중 LLM 프로바이더** - Anthropic, n8n, Ollama/Groq 등 (비용 최소화)
-- **템플릿 관리** - 추가/수정/삭제 가능한 커스텀 템플릿 (layout 설정)
-- **버전 관리** - 수정 시 자동 스냅샷, 이전 버전 복원
-- **태그 시스템** - 이력서 분류 및 필터링
-- **공유 링크** - 고유 URL, 만료 시간, 비밀번호 보호 (bcrypt)
-- **PDF/인쇄** - 브라우저 인쇄 연동
-- **반응형 UI** - PC/모바일 대응, 웹접근성 (ARIA)
-- **보안** - Helmet, CORS, Rate Limiting, DTO 검증, Swagger (dev only)
+### 이력서 작성/관리
+- **9개 섹션**: 인적사항(사진/생년/병역/복수 링크), 경력(부서/성과/기술스택), 학력(학점), 기술, 프로젝트(소속회사/기술스택), 자격증, 어학, 수상, 활동
+- **증명사진 업로드**: base64 저장, 미리보기 좌측 배치
+- **자동 버전 관리**: 수정 시마다 자동 스냅샷, 이전 버전 복원
+- **이력서 복제**: 기존 이력서를 복사하여 새 이력서 생성
+- **키보드 단축키**: Ctrl+S 저장, Arrow Key 탭 전환
+
+### AI 기능 (5종)
+- **AI 양식 변환**: 8가지 양식(표준/경력기술서/자기소개서/LinkedIn/영문/개발자/디자이너/커스텀) + 스트리밍
+- **AI 이력서 자동 생성**: 비정형 텍스트 → 구조화된 이력서 JSON
+- **AI 이력서 피드백**: 점수(0-100), 등급, 강점/개선점, 섹션별 분석
+- **AI JD 매칭 분석**: 채용공고 매칭도(%), 매칭/부족 스킬, 수정 제안, 자소서 포인트
+- **AI 면접 질문 생성**: 8-10개 예상 질문 + 면접관 의도 + 모범 답변
+
+### 공유 & 프로필
+- **슬러그 URL**: `/@username/이력서-제목` 형태의 깔끔한 URL
+- **공유 링크**: 고유 URL, 만료 시간, 비밀번호 보호 (bcrypt)
+- **공개 이력서**: 탐색 페이지에서 검색/필터링
+- **조회수 추적**: 공개 이력서 조회 카운트
+- **이력서 완성도**: 섹션별 점수 + 개선 팁 (원티드 스타일)
+
+### 템플릿 & 태그
+- **26개 직종별 템플릿**: 개발자, 디자이너, 기획/PM, 마케터, 영업, 데이터, 연구, 의료, 교육, 회계, 법률, HR, 공무원, 물류, 건축, 외식, 무역, 크리에이터, 제조, 프리랜서, 신입 등
+- **태그 시스템**: 이력서 분류 및 필터링, 소유권 관리
+
+### 보안 & 권한
+- **소셜 로그인**: Google, GitHub, Kakao (OAuth2 + HMAC state)
+- **소유권 검증**: 이력서/태그/템플릿 CRUD 전체
+- **관리자 권한**: admin 역할 (전체 리소스 관리 가능)
+- **보안**: Helmet, CORS, Rate Limiting, JWT, DTO 검증, Path Traversal 방지
+
+### UI/UX
+- **반응형 디자인**: PC/태블릿/모바일 대응
+- **스켈레톤 로딩**: 목록/폼/미리보기 전체
+- **토스트 알림**: 성공/실패 피드백
+- **에러 바운더리**: 전역 에러 처리
+- **접근성**: ARIA, 키보드 네비게이션, 스크린 리더
+- **MSW 목업**: 백엔드 없이 프론트엔드 개발 가능
 
 ## 시작하기
 
@@ -59,8 +89,7 @@ PORT=3001
 NODE_ENV=development
 ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3001
 
-# LLM 프로바이더 (아래 중 하나 이상 설정)
-# 기본 우선순위: n8n(무료) > openai-compatible(로컬) > anthropic(유료)
+tm# 기본 우선순위: n8n(무료) > openai-compatible(로컬) > anthropic(유료)
 
 # Option 1: Anthropic Claude API
 ANTHROPIC_API_KEY=sk-ant-...

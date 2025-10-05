@@ -26,8 +26,9 @@ model User {
 model Resume {
   id         String   @id @default(uuid())
   title      String   @default("")
-  slug       String   @default("") // URL 슬러그 (예: senior-frontend)
-  visibility String   @default("private") // public, private, link-only
+  slug       String   @default("")
+  viewCount  Int      @default(0) @map("view_count") // 공개 조회수
+  visibility String   @default("private")
   userId     String?  @map("user_id")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
