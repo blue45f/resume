@@ -12,8 +12,8 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 | AI/LLM | Gemini (무료), Groq (무료), Anthropic Claude, n8n, OpenAI Compatible |
 | 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, TypeScript |
 | 인프라 | Vercel (프론트), Render (백엔드), Neon (DB) |
-| 보안 | JWT + OAuth2 (Google/GitHub/Kakao), Helmet, Rate Limiting, HMAC |
-| 테스트 | Jest, Supertest (E2E 55개 + Unit 75개) |
+| 보안 | JWT + OAuth2 (Google/GitHub/Kakao), Helmet + CSP, Rate Limiting (3-tier), HMAC, 요청 살균 |
+| 테스트 | Jest, Supertest (E2E 55개 + Unit 85개, 총 140개) |
 
 ## 주요 기능
 
@@ -46,14 +46,22 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **소셜 로그인**: Google, GitHub, Kakao (OAuth2 + HMAC state)
 - **소유권 검증**: 이력서/태그/템플릿 CRUD 전체
 - **관리자 권한**: admin 역할 (전체 리소스 관리 가능)
-- **보안**: Helmet, CORS, Rate Limiting, JWT, DTO 검증, Path Traversal 방지
+- **보안 헤더**: Helmet + CSP (프로덕션), X-Content-Type-Options, Referrer-Policy
+- **요청 살균**: HTML 태그 자동 제거, NoSQL 인젝션 방지 (`$` 접두사 차단)
+- **Rate Limiting**: 3-tier (short: 10/1s, medium: 100/60s, long: 1000/1h)
+- **기타**: CORS, JWT, DTO 검증, Path Traversal 방지
 
 ### UI/UX
+- **다크 모드**: 라이트/다크/시스템 자동 감지 (헤더 토글)
 - **반응형 디자인**: PC/태블릿/모바일 대응
+- **애니메이션**: fadeInUp, scaleIn, slideIn 등 매끄러운 전환 + 카드 스태거 효과
 - **스켈레톤 로딩**: 목록/폼/미리보기 전체
 - **토스트 알림**: 성공/실패 피드백
 - **에러 바운더리**: 전역 에러 처리
-- **접근성**: ARIA, 키보드 네비게이션, 스크린 리더
+- **키보드 단축키**: `?` 도움말, `N` 새 이력서, `Ctrl+S` 저장, `Ctrl+P` 인쇄
+- **공유 링크 복사**: 미리보기 페이지에서 원클릭 URL 복사
+- **카드 통계**: 조회수, 공개 상태 표시
+- **접근성**: ARIA, 키보드 네비게이션, 스크린 리더, focus-visible
 - **MSW 목업**: 백엔드 없이 프론트엔드 개발 가능
 
 ## 시작하기
@@ -102,6 +110,20 @@ ANTHROPIC_API_KEY=sk-ant-...
 # OPENAI_COMPATIBLE_MODEL=llama3
 ```
 
+### 소셜 로그인 설정 (Google OAuth)
+
+1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials)에서 **OAuth 2.0 클라이언트 ID** 생성
+2. **승인된 리디렉션 URI** 추가:
+   - 로컬: `http://localhost:3001/api/auth/google/callback`
+   - 프로덕션: `https://<your-api-domain>/api/auth/google/callback`
+3. `.env`에 추가:
+```bash
+GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxx
+```
+
+> GitHub, Kakao도 동일한 패턴으로 설정 가능. `.env.example` 참고.
+
 ### 개발 서버 실행
 
 ```bash
@@ -124,9 +146,10 @@ npm run start:server   # node dist-server/main.js
 ### 테스트
 
 ```bash
-npm run test:unit      # 유닛 테스트 (57개)
+npm run test:unit      # 유닛 테스트 (85개)
 npm run test:unit:cov  # 유닛 테스트 + 커버리지
 npm run test:e2e       # E2E 테스트 (55개)
+# 전체: 140개 테스트 (11 스위트)
 ```
 
 ### 프론트엔드 목업 모드 (백엔드 없이 개발)
@@ -197,7 +220,10 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 ├── server/                    # NestJS 백엔드
 │   ├── main.ts               # 앱 진입점 (Helmet, CORS, Swagger, Graceful Shutdown)
 │   ├── app.module.ts          # 루트 모듈 (Rate Limiting)
-│   ├── common/filters/       # 글로벌 예외 필터
+│   ├── common/
+│   │   ├── filters/          # 글로벌 예외 필터
+│   │   ├── middleware/       # 요청 살균 미들웨어 (XSS/NoSQL 방지)
+│   │   └── interceptors/    # 요청 로깅 인터셉터
 │   ├── health/               # 헬스체크 엔드포인트
 │   ├── auth/                 # JWT + OAuth2 (Google/GitHub/Kakao) + CSRF State
 │   ├── prisma/               # Prisma 서비스
@@ -215,13 +241,17 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── Header.tsx        # 반응형 헤더 (모바일 메뉴)
 │   │   ├── ResumeForm.tsx    # 9탭 이력서 편집 폼
 │   │   ├── ResumePreview.tsx # 이력서 미리보기
+│   │   ├── KeyboardShortcuts.tsx  # 키보드 단축키 모달
 │   │   └── LlmTransformPanel.tsx  # 로컬/AI 변환 패널
+│   ├── lib/
+│   │   ├── api.ts            # API 클라이언트
+│   │   ├── theme.ts          # 다크모드 테마 관리
+│   │   └── completeness.ts   # 이력서 완성도 계산
 │   ├── mocks/                # MSW 목업 (백엔드 없이 개발)
 │   │   ├── handlers.ts       # API 핸들러
 │   │   ├── data.ts           # 샘플 데이터
 │   │   └── browser.ts        # 브라우저 워커
 │   ├── pages/                # HomePage, Edit, New, Preview, Explore
-│   ├── lib/api.ts            # API 클라이언트
 │   └── types/resume.ts       # TypeScript 타입
 ├── prisma/
 │   ├── schema.prisma         # DB 스키마 (16개 테이블)

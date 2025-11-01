@@ -18,7 +18,10 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 // Resumes
-export const fetchResumes = () => request<ResumeSummary[]>(`${BASE}/resumes`);
+export const fetchResumes = async (): Promise<ResumeSummary[]> => {
+  const res = await request<{ data: ResumeSummary[] }>(`${BASE}/resumes`);
+  return res.data;
+};
 export const fetchResume = (id: string) => request<Resume>(`${BASE}/resumes/${id}`);
 export const createResume = (data: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) =>
   request<Resume>(`${BASE}/resumes`, { method: 'POST', body: JSON.stringify(data) });

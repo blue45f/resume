@@ -137,15 +137,19 @@ describe('ResumesService', () => {
   describe('findAll', () => {
     it('userId로 필터링된 목록 반환', async () => {
       mockPrisma.resume.findMany.mockResolvedValue([mockResume]);
+      mockPrisma.resume.count.mockResolvedValue(1);
       const result = await service.findAll('user-1');
       expect(mockPrisma.resume.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: { userId: 'user-1' } }),
       );
-      expect(result).toHaveLength(1);
+      expect(result.data).toHaveLength(1);
+      expect(result.total).toBe(1);
+      expect(result.page).toBe(1);
     });
 
     it('userId 없으면 전체 목록', async () => {
       mockPrisma.resume.findMany.mockResolvedValue([]);
+      mockPrisma.resume.count.mockResolvedValue(0);
       await service.findAll();
       expect(mockPrisma.resume.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: {} }),

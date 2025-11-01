@@ -104,6 +104,7 @@ export interface Tag {
 export interface Resume {
   id: string;
   title: string;
+  slug?: string;
   visibility?: 'public' | 'private' | 'link-only';
   createdAt: string;
   updatedAt: string;
@@ -122,6 +123,9 @@ export interface Resume {
 export interface ResumeSummary {
   id: string;
   title: string;
+  slug?: string;
+  viewCount?: number;
+  visibility?: 'public' | 'private' | 'link-only';
   personalInfo: PersonalInfo;
   tags: Tag[];
   createdAt: string;

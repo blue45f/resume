@@ -10,6 +10,7 @@ import TagsPage from '@/pages/TagsPage';
 import LoginPage from '@/pages/LoginPage';
 import AuthCallbackPage from '@/pages/AuthCallbackPage';
 import AutoGeneratePage from '@/pages/AutoGeneratePage';
+import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 import ExplorePage from '@/pages/ExplorePage';
 import AboutPage from '@/pages/AboutPage';
 import TutorialPage from '@/pages/TutorialPage';
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="/@:username/:slug" element={<ProfileResumePage />} />
           </Routes>
         </div>
+        <KeyboardShortcuts />
         <ToastContainer />
       </BrowserRouter>
     </ErrorBoundary>

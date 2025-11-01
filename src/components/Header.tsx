@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getUser, clearAuth } from '@/lib/auth';
+import { getTheme, setTheme } from '@/lib/theme';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setThemeState] = useState(getTheme());
   const navigate = useNavigate();
   const user = getUser();
   const location = useLocation();
   const isHome = location.pathname === '/';
+
+  const cycleTheme = () => {
+    const next = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
+    setTheme(next);
+    setThemeState(next);
+  };
+  const themeIcon = theme === 'dark' ? '\u{1F319}' : theme === 'light' ? '\u{2600}\u{FE0F}' : '\u{1F4BB}';
+  const themeLabel = theme === 'dark' ? '\uB2E4\uD06C' : theme === 'light' ? '\uB77C\uC774\uD2B8' : '\uC2DC\uC2A4\uD15C';
 
   // Escape 키로 메뉴 닫기
   useEffect(() => {
@@ -68,6 +78,15 @@ export default function Header() {
             >
               + 새 이력서
             </Link>
+            <button
+              onClick={cycleTheme}
+              className="flex items-center gap-1 px-2 py-1 text-sm text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              aria-label={`테마 변경 (현재: ${themeLabel})`}
+              title={`테마: ${themeLabel}`}
+            >
+              <span aria-hidden="true">{themeIcon}</span>
+              <span className="text-xs text-slate-400">{themeLabel}</span>
+            </button>
             {user ? (
               <button
                 onClick={() => { clearAuth(); navigate('/'); window.location.reload(); }}
@@ -106,6 +125,14 @@ export default function Header() {
             <Link to="/templates" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">템플릿</Link>
             <Link to="/tags" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">태그</Link>
             <Link to="/resumes/new" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm font-medium text-blue-600 rounded-lg hover:bg-blue-50">+ 새 이력서</Link>
+            <button
+              onClick={cycleTheme}
+              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+              aria-label={`테마 변경 (현재: ${themeLabel})`}
+            >
+              <span aria-hidden="true">{themeIcon}</span>
+              <span>테마: {themeLabel}</span>
+            </button>
           </nav>
         )}
       </div>

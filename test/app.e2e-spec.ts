@@ -117,8 +117,8 @@ describe('Resume Platform E2E (상세)', () => {
     it('목록 조회 정렬 (updatedAt DESC)', async () => {
       const r2 = await request(app.getHttpServer()).post('/api/resumes').send({ title: '새것' }).expect(201);
       const list = await request(app.getHttpServer()).get('/api/resumes').expect(200);
-      // 가장 최근 생성/수정된 것이 맨 앞
-      expect(list.body[0].title).toBe('새것');
+      // paginated 응답: { data, total, page, totalPages }
+      expect(list.body.data[0].title).toBe('새것');
       await request(app.getHttpServer()).delete(`/api/resumes/${r2.body.id}`);
     });
 

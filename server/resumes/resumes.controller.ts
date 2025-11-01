@@ -14,11 +14,20 @@ export class ResumesController {
 
   @Get()
   @ApiOperation({ summary: '내 이력서 목록 (로그인 시) 또는 공개 이력서 목록' })
-  findAll(@Req() req: any, @Query('public') isPublic?: string) {
+  findAll(
+    @Req() req: any,
+    @Query('public') isPublic?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     if (isPublic === 'true') {
       return this.resumesService.findPublic();
     }
-    return this.resumesService.findAll(req.user?.id);
+    return this.resumesService.findAll(
+      req.user?.id,
+      parseInt(page || '1'),
+      Math.min(parseInt(limit || '20'), 50),
+    );
   }
 
   @Get('@:username/:slug')

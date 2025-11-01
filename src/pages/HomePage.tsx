@@ -32,6 +32,18 @@ export default function HomePage() {
     return () => ac.abort();
   }, []);
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+      if (e.key === 'n' && !e.ctrlKey && !e.metaKey) {
+        window.location.href = '/resumes/new';
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`"${title || '제목 없음'}" 이력서를 삭제하시겠습니까?`)) return;
     try {
@@ -74,7 +86,7 @@ export default function HomePage() {
       <Header />
       <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
         {resumes.length === 0 ? (
-          <div className="py-12 sm:py-16">
+          <div className="py-12 sm:py-16 animate-fade-in">
             <div className="text-center mb-10">
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">이력서공방에 오신 것을 환영합니다</h1>
               <p className="text-slate-500 max-w-md mx-auto">AI가 도와주는 이력서 작성. 다양한 양식으로 변환하고, 깔끔한 URL로 공유하세요.</p>
@@ -141,10 +153,10 @@ export default function HomePage() {
 
             {/* Resume grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {filtered.map(resume => (
+              {filtered.map((resume, index) => (
                 <article
                   key={resume.id}
-                  className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 hover:shadow-md transition-shadow focus-within:ring-2 focus-within:ring-blue-500"
+                  className={`bg-white rounded-xl border border-slate-200 p-4 sm:p-5 hover:shadow-md transition-shadow focus-within:ring-2 focus-within:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)}`}
                 >
                   <h2 className="font-semibold text-slate-900 truncate mb-1">
                     {resume.title || '제목 없음'}
@@ -170,6 +182,19 @@ export default function HomePage() {
                       ))}
                     </div>
                   )}
+
+                  {/* Stats row */}
+                  <div className="flex items-center gap-3 mb-3 text-xs text-slate-400">
+                    {resume.viewCount != null && resume.viewCount > 0 && (
+                      <span className="flex items-center gap-1" title="조회수">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        {resume.viewCount}
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1" title={`공개: ${resume.visibility || 'private'}`}>
+                      {resume.visibility === 'public' ? '🌐 공개' : resume.visibility === 'link-only' ? '🔗 링크' : '🔒 비공개'}
+                    </span>
+                  </div>
 
                   {/* Actions - stack on small mobile */}
                   <div className="flex flex-wrap gap-2">

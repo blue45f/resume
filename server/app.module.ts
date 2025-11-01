@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { SanitizeMiddleware } from './common/middleware/sanitize.middleware';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/auth.guard';
@@ -20,6 +21,7 @@ import { HealthModule } from './health/health.module';
     ThrottlerModule.forRoot([
       { name: 'short', ttl: 1000, limit: 10 },
       { name: 'medium', ttl: 60000, limit: 100 },
+      { name: 'long', ttl: 3600000, limit: 1000 },
     ]),
     AuthModule,
     PrismaModule,
@@ -37,4 +39,8 @@ import { HealthModule } from './health/health.module';
     { provide: APP_GUARD, useClass: AuthGuard },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(SanitizeMiddleware).forRoutes('*');
+  }
+}

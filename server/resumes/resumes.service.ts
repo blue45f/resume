@@ -37,19 +37,40 @@ async function replaceCollection(
 export class ResumesService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(userId?: string) {
-    const resumes = await this.prisma.resume.findMany({
-      where: userId ? { userId } : {},
-      include: { personalInfo: true, tags: { include: { tag: true } } },
-      orderBy: { updatedAt: 'desc' },
-    });
-    return resumes.map((r) => this.formatSummary(r));
+  async findAll(userId?: string, page = 1, limit = 20) {
+    const where = userId ? { userId } : {};
+    const [resumes, total] = await Promise.all([
+      this.prisma.resume.findMany({
+        where,
+        include: {
+          personalInfo: {
+            select: { name: true, email: true, phone: true, summary: true, photo: true },
+          },
+          tags: { include: { tag: true } },
+        },
+        orderBy: { updatedAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.resume.count({ where }),
+    ]);
+    return {
+      data: resumes.map((r) => this.formatSummary(r)),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findPublic() {
     const resumes = await this.prisma.resume.findMany({
       where: { visibility: 'public' },
-      include: { personalInfo: true, tags: { include: { tag: true } } },
+      include: {
+        personalInfo: {
+          select: { name: true, email: true, phone: true, summary: true, photo: true },
+        },
+        tags: { include: { tag: true } },
+      },
       orderBy: { updatedAt: 'desc' },
     });
     return resumes.map((r) => this.formatSummary(r));
@@ -75,7 +96,12 @@ export class ResumesService {
     const [resumes, total] = await Promise.all([
       this.prisma.resume.findMany({
         where,
-        include: { personalInfo: true, tags: { include: { tag: true } } },
+        include: {
+          personalInfo: {
+            select: { name: true, email: true, phone: true, summary: true, photo: true },
+          },
+          tags: { include: { tag: true } },
+        },
         orderBy: { updatedAt: 'desc' },
         skip: (opts.page - 1) * opts.limit,
         take: opts.limit,
