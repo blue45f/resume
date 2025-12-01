@@ -38,12 +38,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       );
     }
 
-    response.status(status).json({
+    const isProd = process.env.NODE_ENV === 'production';
+
+    const body: Record<string, any> = {
       statusCode: status,
       error,
       message,
       timestamp: new Date().toISOString(),
-      path: request.url,
-    });
+    };
+
+    // Only expose request path in non-production (information leakage prevention)
+    if (!isProd) {
+      body.path = request.url;
+    }
+
+    response.status(status).json(body);
   }
 }

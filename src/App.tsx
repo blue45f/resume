@@ -1,21 +1,32 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ToastContainer } from '@/components/Toast';
 import HomePage from '@/pages/HomePage';
-import NewResumePage from '@/pages/NewResumePage';
-import EditResumePage from '@/pages/EditResumePage';
-import PreviewPage from '@/pages/PreviewPage';
-import TemplatesPage from '@/pages/TemplatesPage';
-import TagsPage from '@/pages/TagsPage';
 import LoginPage from '@/pages/LoginPage';
 import AuthCallbackPage from '@/pages/AuthCallbackPage';
-import AutoGeneratePage from '@/pages/AutoGeneratePage';
 import KeyboardShortcuts from '@/components/KeyboardShortcuts';
-import ExplorePage from '@/pages/ExplorePage';
-import AboutPage from '@/pages/AboutPage';
-import TutorialPage from '@/pages/TutorialPage';
-import TermsPage from '@/pages/TermsPage';
-import ProfileResumePage from '@/pages/ProfileResumePage';
+
+// Lazy-loaded pages (non-critical path)
+const NewResumePage = lazy(() => import('@/pages/NewResumePage'));
+const EditResumePage = lazy(() => import('@/pages/EditResumePage'));
+const PreviewPage = lazy(() => import('@/pages/PreviewPage'));
+const TemplatesPage = lazy(() => import('@/pages/TemplatesPage'));
+const TagsPage = lazy(() => import('@/pages/TagsPage'));
+const AutoGeneratePage = lazy(() => import('@/pages/AutoGeneratePage'));
+const ExplorePage = lazy(() => import('@/pages/ExplorePage'));
+const AboutPage = lazy(() => import('@/pages/AboutPage'));
+const TutorialPage = lazy(() => import('@/pages/TutorialPage'));
+const TermsPage = lazy(() => import('@/pages/TermsPage'));
+const ProfileResumePage = lazy(() => import('@/pages/ProfileResumePage'));
+
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
 
 export default function App() {
   return (
@@ -23,20 +34,23 @@ export default function App() {
       <BrowserRouter>
         <div className="min-h-screen flex flex-col bg-slate-50">
           <Routes>
+            {/* Critical path - eager loaded */}
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
-            <Route path="/auto-generate" element={<AutoGeneratePage />} />
-            <Route path="/resumes/new" element={<NewResumePage />} />
-            <Route path="/resumes/:id/edit" element={<EditResumePage />} />
-            <Route path="/resumes/:id/preview" element={<PreviewPage />} />
-            <Route path="/templates" element={<TemplatesPage />} />
-            <Route path="/tags" element={<TagsPage />} />
-            <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/tutorial" element={<TutorialPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/@:username/:slug" element={<ProfileResumePage />} />
+
+            {/* Lazy-loaded routes */}
+            <Route path="/auto-generate" element={<Suspense fallback={<PageLoader />}><AutoGeneratePage /></Suspense>} />
+            <Route path="/resumes/new" element={<Suspense fallback={<PageLoader />}><NewResumePage /></Suspense>} />
+            <Route path="/resumes/:id/edit" element={<Suspense fallback={<PageLoader />}><EditResumePage /></Suspense>} />
+            <Route path="/resumes/:id/preview" element={<Suspense fallback={<PageLoader />}><PreviewPage /></Suspense>} />
+            <Route path="/templates" element={<Suspense fallback={<PageLoader />}><TemplatesPage /></Suspense>} />
+            <Route path="/tags" element={<Suspense fallback={<PageLoader />}><TagsPage /></Suspense>} />
+            <Route path="/explore" element={<Suspense fallback={<PageLoader />}><ExplorePage /></Suspense>} />
+            <Route path="/about" element={<Suspense fallback={<PageLoader />}><AboutPage /></Suspense>} />
+            <Route path="/tutorial" element={<Suspense fallback={<PageLoader />}><TutorialPage /></Suspense>} />
+            <Route path="/terms" element={<Suspense fallback={<PageLoader />}><TermsPage /></Suspense>} />
+            <Route path="/@:username/:slug" element={<Suspense fallback={<PageLoader />}><ProfileResumePage /></Suspense>} />
           </Routes>
         </div>
         <KeyboardShortcuts />

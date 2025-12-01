@@ -92,17 +92,17 @@ export default function HomePage() {
               <p className="text-slate-500 max-w-md mx-auto">AI가 도와주는 이력서 작성. 다양한 양식으로 변환하고, 깔끔한 URL로 공유하세요.</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-10">
-              <Link to="/resumes/new" className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all group">
+              <Link to="/resumes/new" className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📝</span>
                 <span className="font-semibold text-slate-800">직접 작성</span>
                 <span className="text-xs text-slate-400 mt-1">템플릿 선택 후 작성</span>
               </Link>
-              <Link to="/auto-generate" className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-lg transition-all group">
+              <Link to="/auto-generate" className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🤖</span>
                 <span className="font-semibold text-slate-800">AI 자동 생성</span>
                 <span className="text-xs text-slate-400 mt-1">텍스트 붙여넣기만</span>
               </Link>
-              <Link to="/explore" className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-slate-200 hover:border-slate-400 hover:shadow-lg transition-all group">
+              <Link to="/explore" className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-slate-200 hover:border-slate-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🔍</span>
                 <span className="font-semibold text-slate-800">둘러보기</span>
                 <span className="text-xs text-slate-400 mt-1">공개 이력서 탐색</span>
@@ -156,7 +156,7 @@ export default function HomePage() {
               {filtered.map((resume, index) => (
                 <article
                   key={resume.id}
-                  className={`bg-white rounded-xl border border-slate-200 p-4 sm:p-5 hover:shadow-md transition-shadow focus-within:ring-2 focus-within:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)}`}
+                  className={`bg-white rounded-xl border border-slate-200 p-4 sm:p-5 hover:shadow-md transition-shadow duration-200 focus-within:ring-2 focus-within:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)} border-l-4 ${resume.visibility === 'public' ? 'border-l-emerald-400' : resume.visibility === 'link-only' ? 'border-l-blue-400' : 'border-l-slate-300'}`}
                 >
                   <h2 className="font-semibold text-slate-900 truncate mb-1">
                     {resume.title || '제목 없음'}
@@ -231,8 +231,8 @@ export default function HomePage() {
           </div>
         )}
       </main>
-      <footer className="no-print border-t border-slate-200 py-6 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-400">
+      <footer className="no-print border-t border-slate-200 py-8 mt-4 bg-white dark:bg-slate-900 dark:border-slate-700">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400 dark:text-slate-500">
           <Link to="/about" className="hover:text-slate-600">서비스 소개</Link>
           <Link to="/tutorial" className="hover:text-slate-600">사용 가이드</Link>
           <Link to="/terms" className="hover:text-slate-600">이용약관</Link>

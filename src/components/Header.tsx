@@ -33,7 +33,7 @@ export default function Header() {
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
   return (
-    <header className="no-print bg-white border-b border-slate-200 sticky top-0 z-50">
+    <header className="no-print bg-white/80 backdrop-blur-lg border-b border-slate-200/80 sticky top-0 z-50 dark:bg-slate-900/80 dark:border-slate-700/80">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg"
@@ -44,7 +44,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-14 sm:h-16">
           <Link
             to="/"
-            className="text-lg sm:text-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+            className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
             aria-label="이력서공방 홈"
           >
             이력서공방
@@ -68,19 +68,19 @@ export default function Header() {
             </Link>
             <Link
               to="/auto-generate"
-              className="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+              className="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-200"
             >
               AI 생성
             </Link>
             <Link
               to="/resumes/new"
-              className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
             >
               + 새 이력서
             </Link>
             <button
               onClick={cycleTheme}
-              className="flex items-center gap-1 px-2 py-1 text-sm text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              className="flex items-center gap-1 px-2 py-1.5 text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
               aria-label={`테마 변경 (현재: ${themeLabel})`}
               title={`테마: ${themeLabel}`}
             >
@@ -119,7 +119,7 @@ export default function Header() {
 
         {/* Mobile menu */}
         {menuOpen && (
-          <nav className="sm:hidden pb-4 space-y-1 border-t border-slate-100 pt-3" aria-label="모바일 메뉴">
+          <nav className="sm:hidden pb-4 space-y-1 border-t border-slate-100 dark:border-slate-700 pt-3 animate-fade-in" aria-label="모바일 메뉴">
             <Link to="/" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">이력서</Link>
             <Link to="/explore" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">탐색</Link>
             <Link to="/templates" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">템플릿</Link>

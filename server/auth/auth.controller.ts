@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Res, Req } from '@nestjs/common';
+import { Controller, Get, Post, Query, Res, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -33,6 +33,13 @@ export class AuthController {
         throw new Error('Invalid OAuth state or missing code');
       }
       const token = await this.authService.handleGoogleCallback(code);
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
+      });
       res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`);
     } catch {
       res.redirect(`${this.authService.getFrontendUrl()}/login?error=google_failed`);
@@ -56,6 +63,13 @@ export class AuthController {
         throw new Error('Invalid OAuth state or missing code');
       }
       const token = await this.authService.handleGithubCallback(code);
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
+      });
       res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`);
     } catch {
       res.redirect(`${this.authService.getFrontendUrl()}/login?error=github_failed`);
@@ -81,10 +95,26 @@ export class AuthController {
         throw new Error('Invalid OAuth state');
       }
       const token = await this.authService.handleKakaoCallback(code);
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
+      });
       res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`);
     } catch {
       res.redirect(`${this.authService.getFrontendUrl()}/login?error=kakao_failed`);
     }
+  }
+
+  // ---- 로그아웃 ----
+  @Post('logout')
+  @Public()
+  @ApiOperation({ summary: '로그아웃 (쿠키 삭제)' })
+  logout(@Res() res: Response) {
+    res.clearCookie('token', { path: '/' });
+    res.json({ success: true });
   }
 
   // ---- 내 정보 ----

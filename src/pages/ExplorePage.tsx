@@ -92,9 +92,9 @@ export default function ExplorePage() {
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             placeholder="이름, 제목, 기술 키워드로 검색..."
-            className="flex-1 px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 transition-colors duration-200"
           />
-          <button type="submit" className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+          <button type="submit" className="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
             검색
           </button>
         </form>
@@ -143,7 +143,7 @@ export default function ExplorePage() {
                 <Link
                   key={resume.id}
                   to={`/resumes/${resume.id}/preview`}
-                  className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md hover:border-blue-200 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
                 >
                   <h2 className="font-semibold text-slate-900 truncate mb-1">
                     {resume.title || '제목 없음'}
@@ -175,7 +175,7 @@ export default function ExplorePage() {
                 <button
                   onClick={() => goPage(page - 1)}
                   disabled={page <= 1}
-                  className="px-3 py-1.5 text-sm bg-slate-100 rounded-lg hover:bg-slate-200 disabled:opacity-30 transition-colors"
+                  className="px-3 py-1.5 text-sm font-medium bg-slate-100 rounded-xl hover:bg-slate-200 disabled:opacity-30 transition-colors"
                 >
                   이전
                 </button>
@@ -185,7 +185,7 @@ export default function ExplorePage() {
                 <button
                   onClick={() => goPage(page + 1)}
                   disabled={page >= result.totalPages}
-                  className="px-3 py-1.5 text-sm bg-slate-100 rounded-lg hover:bg-slate-200 disabled:opacity-30 transition-colors"
+                  className="px-3 py-1.5 text-sm font-medium bg-slate-100 rounded-xl hover:bg-slate-200 disabled:opacity-30 transition-colors"
                 >
                   다음
                 </button>

@@ -42,9 +42,11 @@ export class AuthGuard implements CanActivate {
 
   private extractToken(request: any): string | null {
     const auth = request.headers.authorization;
-    if (!auth || typeof auth !== 'string') return null;
-    const parts = auth.split(/\s+/);
-    if (parts.length !== 2 || parts[0] !== 'Bearer' || !parts[1]) return null;
-    return parts[1];
+    if (auth && typeof auth === 'string') {
+      const parts = auth.split(/\s+/);
+      if (parts.length === 2 && parts[0] === 'Bearer' && parts[1]) return parts[1];
+    }
+    // Fallback: httpOnly cookie
+    return request.cookies?.token || null;
   }
 }

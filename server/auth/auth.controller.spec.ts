@@ -22,6 +22,8 @@ function mockResponse(): Response {
     redirect: jest.fn(),
     status: jest.fn().mockReturnThis(),
     json: jest.fn(),
+    cookie: jest.fn(),
+    clearCookie: jest.fn(),
   } as any;
   return res;
 }

@@ -31,6 +31,8 @@ export function setAuth(token: string, user: User) {
 export function clearAuth() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
+  // Clear httpOnly cookie via server endpoint
+  fetch(`${API_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
 }
 
 export function authHeaders(): Record<string, string> {

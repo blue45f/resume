@@ -31,13 +31,13 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
   const hasPhoto = !!pi.photo;
 
   return (
-    <div ref={ref} className="bg-white p-6 sm:p-10 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 text-slate-800" style={{ fontFamily: "-apple-system, 'Pretendard', 'Noto Sans KR', sans-serif" }}>
+    <div ref={ref} className="bg-white p-6 sm:p-10 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 text-slate-800 overflow-hidden" style={{ fontFamily: "-apple-system, 'Pretendard', 'Noto Sans KR', sans-serif" }}>
 
       {/* ===== Header ===== */}
       <header className="mb-8 pb-6 border-b-2 border-slate-800">
         <div className={hasPhoto ? 'flex gap-5' : ''}>
           {hasPhoto && (
-            <img src={pi.photo} alt="" className="w-[100px] h-[130px] object-cover rounded border border-slate-200 shrink-0 print:w-[90px] print:h-[117px]" />
+            <img src={pi.photo} alt="" loading="lazy" className="w-[100px] h-[130px] object-cover rounded border border-slate-200 shrink-0 print:w-[90px] print:h-[117px]" />
           )}
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{pi.name || '이름'}</h1>
@@ -99,7 +99,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
       {/* ===== Summary ===== */}
       {pi.summary && (
         <Section title="자기소개">
-          <SafeHtml html={pi.summary} className="text-sm text-slate-700 leading-relaxed" />
+          <SafeHtml html={pi.summary} className="text-sm text-slate-700 leading-relaxed break-words" />
         </Section>
       )}
 
@@ -119,10 +119,10 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
                     {formatDate(exp.startDate)}{(exp.endDate || exp.current) && ` — ${exp.current ? '현재' : formatDate(exp.endDate)}`}
                   </span>
                 </div>
-                {exp.description && <SafeHtml html={exp.description} className="text-sm text-slate-600 mt-1.5 leading-relaxed" />}
+                {exp.description && <SafeHtml html={exp.description} className="text-sm text-slate-600 mt-1.5 leading-relaxed break-words" />}
                 {exp.achievements && (
                   <div className="mt-2 pl-3 border-l-2 border-blue-300 bg-blue-50/50 py-1.5 pr-2 rounded-r">
-                    <SafeHtml html={exp.achievements} className="text-sm text-blue-800 leading-relaxed" />
+                    <SafeHtml html={exp.achievements} className="text-sm text-blue-800 leading-relaxed break-words" />
                   </div>
                 )}
                 {exp.techStack && <TechTags text={exp.techStack} />}
@@ -162,7 +162,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
             {skills.map(skill => (
               <div key={skill.id} className="flex text-sm gap-2">
                 <span className="font-semibold text-slate-800 min-w-[120px] shrink-0">{skill.category}</span>
-                <span className="text-slate-600">{skill.items}</span>
+                <span className="text-slate-600 break-words">{skill.items}</span>
               </div>
             ))}
           </div>
@@ -185,7 +185,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
                     {formatDate(proj.startDate)}{proj.endDate && ` — ${formatDate(proj.endDate)}`}
                   </span>
                 </div>
-                {proj.description && <SafeHtml html={proj.description} className="text-sm text-slate-600 mt-1.5 leading-relaxed" />}
+                {proj.description && <SafeHtml html={proj.description} className="text-sm text-slate-600 mt-1.5 leading-relaxed break-words" />}
                 {proj.techStack && <TechTags text={proj.techStack} color="blue" />}
                 {proj.link && <p className="text-xs text-blue-600 mt-1 break-all">{proj.link}</p>}
               </div>
