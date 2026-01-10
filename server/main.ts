@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import compression from 'compression';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
@@ -17,6 +18,8 @@ async function bootstrap() {
 
   // Graceful shutdown
   app.enableShutdownHooks();
+
+  app.use(compression());
 
   app.use(
     helmet({

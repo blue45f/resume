@@ -30,7 +30,7 @@ export function ToastContainer() {
   if (messages.length === 0) return null;
 
   const bgColors = {
-    success: 'bg-green-600',
+    success: 'bg-green-500',
     error: 'bg-red-600',
     info: 'bg-slate-800',
   };
@@ -40,7 +40,7 @@ export function ToastContainer() {
       {messages.map(msg => (
         <div
           key={msg.id}
-          className={`${bgColors[msg.type]} text-white px-4 py-2.5 rounded-lg shadow-lg text-sm max-w-xs animate-[slideIn_0.2s_ease-out]`}
+          className={`${bgColors[msg.type]} text-white px-4 py-2.5 rounded-lg shadow-xl text-sm max-w-xs animate-[slideIn_0.2s_ease-out]`}
           role="alert"
         >
           {msg.text}

@@ -67,12 +67,12 @@ export default function NewResumePage() {
           <>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900">템플릿 선택</h1>
-                <p className="text-sm text-slate-500 mt-1">이력서 양식을 먼저 선택하세요. 나중에 변경할 수 있습니다.</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">템플릿 선택</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">이력서 양식을 먼저 선택하세요. 나중에 변경할 수 있습니다.</p>
               </div>
               <button
                 onClick={handleSkip}
-                className="text-sm text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-3 py-1.5"
+                className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-3 py-1.5"
               >
                 건너뛰기
               </button>
@@ -82,11 +82,11 @@ export default function NewResumePage() {
               {/* Blank template */}
               <button
                 onClick={handleSkip}
-                className="text-left bg-white rounded-xl border-2 border-dashed border-slate-300 p-5 hover:border-blue-400 hover:bg-blue-50/30 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-left bg-white dark:bg-slate-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 p-5 hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <div className="text-2xl mb-2" aria-hidden="true">📝</div>
-                <h3 className="font-semibold text-slate-900">빈 이력서</h3>
-                <p className="text-xs text-slate-500 mt-1">처음부터 직접 작성합니다</p>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">빈 이력서</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">처음부터 직접 작성합니다</p>
               </button>
 
               {templates.map(t => {
@@ -97,26 +97,26 @@ export default function NewResumePage() {
                   <button
                     key={t.id}
                     onClick={() => handleSelectTemplate(t.id)}
-                    className="text-left bg-white rounded-xl border border-slate-200 p-5 hover:border-blue-400 hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 hover:border-blue-400 hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-slate-900">{t.name}</h3>
+                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">{t.name}</h3>
                       {t.isDefault && (
                         <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full shrink-0">기본</span>
                       )}
                     </div>
                     {t.description && (
-                      <p className="text-xs text-slate-500 mb-3 line-clamp-2">{t.description}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 line-clamp-2">{t.description}</p>
                     )}
                     {sections.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {sections.slice(0, 5).map(s => (
-                          <span key={s} className="px-1.5 py-0.5 text-xs bg-slate-100 text-slate-500 rounded">
+                          <span key={s} className="px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">
                             {SECTION_LABELS[s] || s}
                           </span>
                         ))}
                         {sections.length > 5 && (
-                          <span className="px-1.5 py-0.5 text-xs bg-slate-100 text-slate-400 rounded">
+                          <span className="px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 rounded">
                             +{sections.length - 5}
                           </span>
                         )}
@@ -132,11 +132,11 @@ export default function NewResumePage() {
             <div className="flex items-center gap-3 mb-6">
               <button
                 onClick={() => setStep('template')}
-                className="text-sm text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
               >
                 &larr; 템플릿 선택
               </button>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
                 새 이력서 작성
               </h1>
               {selected && (
@@ -145,7 +145,7 @@ export default function NewResumePage() {
                 </span>
               )}
             </div>
-            <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6">
               <ResumeForm initialData={createEmptyResumeData()} onSave={handleSave} saving={saving} />
             </div>
           </>

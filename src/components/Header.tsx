@@ -66,6 +66,15 @@ export default function Header() {
             <Link to="/tags" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/tags' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/tags' ? 'page' : undefined}>
               태그
             </Link>
+            <Link to="/applications" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/applications' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/applications' ? 'page' : undefined}>
+              지원관리
+            </Link>
+            <Link to="/cover-letter" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/cover-letter' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`} aria-current={location.pathname === '/cover-letter' ? 'page' : undefined}>
+              자소서
+            </Link>
+            <Link to="/compare" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/compare' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`} aria-current={location.pathname === '/compare' ? 'page' : undefined}>
+              비교
+            </Link>
             <Link
               to="/auto-generate"
               className="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-200"
@@ -124,6 +133,9 @@ export default function Header() {
             <Link to="/explore" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">탐색</Link>
             <Link to="/templates" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">템플릿</Link>
             <Link to="/tags" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">태그</Link>
+            <Link to="/applications" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">지원관리</Link>
+            <Link to="/cover-letter" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">자소서</Link>
+            <Link to="/compare" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">비교</Link>
             <Link to="/resumes/new" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm font-medium text-blue-600 rounded-lg hover:bg-blue-50">+ 새 이력서</Link>
             <button
               onClick={cycleTheme}

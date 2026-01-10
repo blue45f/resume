@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { SanitizeMiddleware } from './common/middleware/sanitize.middleware';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/auth.guard';
@@ -14,6 +15,7 @@ import { TagsModule } from './tags/tags.module';
 import { ShareModule } from './share/share.module';
 import { AttachmentsModule } from './attachments/attachments.module';
 import { HealthModule } from './health/health.module';
+import { ApplicationsModule } from './applications/applications.module';
 
 @Module({
   imports: [
@@ -33,6 +35,7 @@ import { HealthModule } from './health/health.module';
     TagsModule,
     ShareModule,
     AttachmentsModule,
+    ApplicationsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
@@ -41,6 +44,6 @@ import { HealthModule } from './health/health.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(SanitizeMiddleware).forRoutes('*');
+    consumer.apply(RequestIdMiddleware, SanitizeMiddleware).forRoutes('*');
   }
 }

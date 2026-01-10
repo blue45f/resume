@@ -376,8 +376,8 @@ export class LlmService {
     if (!jobDescription || jobDescription.length < 20) {
       throw new BadRequestException('채용공고(JD)를 20자 이상 입력해주세요.');
     }
-    if (jobDescription.length > 5000) {
-      throw new BadRequestException('채용공고는 5000자 이내여야 합니다.');
+    if (jobDescription.length > MAX_JD_LENGTH) {
+      throw new BadRequestException(`채용공고는 ${MAX_JD_LENGTH}자 이내여야 합니다.`);
     }
 
     const llm = this.getProvider(provider);

@@ -8,6 +8,7 @@ import VersionPanel from '@/components/VersionPanel';
 import AttachmentPanel from '@/components/AttachmentPanel';
 import AiAnalysisPanel from '@/components/AiAnalysisPanel';
 import CompletenessBar from '@/components/CompletenessBar';
+import AtsScorePanel from '@/components/AtsScorePanel';
 import { toast } from '@/components/Toast';
 import type { Resume } from '@/types/resume';
 import { fetchResume } from '@/lib/api';
@@ -148,6 +149,19 @@ export default function PreviewPage() {
               >
                 변환
               </button>
+              <div className="relative group">
+                <button className="px-2.5 sm:px-3 py-2 text-slate-600 bg-slate-100 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                  내보내기
+                </button>
+                <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                  <a href={`/api/resumes/${id}/export/text`} download className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-t-xl">
+                    📄 텍스트 (.txt)
+                  </a>
+                  <a href={`/api/resumes/${id}/export/markdown`} download className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-b-xl">
+                    📝 마크다운 (.md)
+                  </a>
+                </div>
+              </div>
               <button
                 onClick={() => handlePrint()}
                 className="px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
@@ -159,8 +173,9 @@ export default function PreviewPage() {
         </div>
 
         <div className="py-6 sm:py-8 px-4">
-          <div className="max-w-[210mm] mx-auto mb-4 no-print">
+          <div className="max-w-[210mm] mx-auto mb-4 no-print space-y-3">
             <CompletenessBar resume={resume} />
+            <AtsScorePanel resume={resume} />
           </div>
           <ResumePreview ref={contentRef} resume={resume} />
         </div>

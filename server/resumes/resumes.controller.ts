@@ -1,16 +1,21 @@
 import {
-  Controller, Get, Post, Put, Patch, Delete, Body, Param, Req, Query,
+  Controller, Get, Post, Put, Patch, Delete, Body, Param, Req, Query, Res,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Response } from 'express';
 import { Public } from '../auth/auth.guard';
 import { ResumesService } from './resumes.service';
+import { ExportService } from './export.service';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 
 @ApiTags('resumes')
 @Controller('resumes')
 export class ResumesController {
-  constructor(private readonly resumesService: ResumesService) {}
+  constructor(
+    private readonly resumesService: ResumesService,
+    private readonly exportService: ExportService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: '내 이력서 목록 (로그인 시) 또는 공개 이력서 목록' })
@@ -91,5 +96,23 @@ export class ResumesController {
   @ApiOperation({ summary: '이력서 복제' })
   duplicate(@Param('id') id: string, @Req() req: any) {
     return this.resumesService.duplicate(id, req.user?.id);
+  }
+
+  @Get(':id/export/text')
+  @ApiOperation({ summary: '이력서 텍스트 내보내기' })
+  async exportText(@Param('id') id: string, @Res() res: Response) {
+    const text = await this.exportService.exportAsText(id);
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="resume.txt"`);
+    res.send(text);
+  }
+
+  @Get(':id/export/markdown')
+  @ApiOperation({ summary: '이력서 마크다운 내보내기' })
+  async exportMarkdown(@Param('id') id: string, @Res() res: Response) {
+    const text = await this.exportService.exportAsMarkdown(id);
+    res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="resume.md"`);
+    res.send(text);
   }
 }

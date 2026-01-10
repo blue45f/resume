@@ -221,15 +221,15 @@ export default function TemplatesPage() {
 
   const isEditing = editingId !== null || showCreate;
 
-  const inputClass = 'w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
-  const labelClass = 'block text-sm font-medium text-slate-700 mb-1';
+  const inputClass = 'w-full px-3 py-2 border border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+  const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1';
 
   return (
     <>
       <Header />
       <main id="main-content" className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">템플릿 관리</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">템플릿 관리</h1>
           {!isEditing && (
             <button
               onClick={startCreate}
@@ -242,8 +242,8 @@ export default function TemplatesPage() {
 
         {/* Edit / Create form */}
         {isEditing && (
-          <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 mb-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">
+          <div className="bg-white dark:bg-slate-800 dark:border-slate-700 rounded-xl border border-slate-200 p-4 sm:p-6 mb-6">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
               {editingId ? '템플릿 수정' : '새 템플릿 만들기'}
             </h2>
             <div className="space-y-4">
@@ -403,24 +403,24 @@ export default function TemplatesPage() {
               return (
                 <article
                   key={t.id}
-                  className={`bg-white rounded-xl border p-4 transition-shadow hover:shadow-md ${
-                    editingId === t.id ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-200'
+                  className={`bg-white dark:bg-slate-800 rounded-xl border p-4 transition-shadow hover:shadow-md animate-fade-in-up ${
+                    editingId === t.id ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-200 dark:border-slate-700'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-slate-900 truncate">{t.name}</h3>
-                      <span className="inline-block mt-0.5 px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-600">
+                      <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{t.name}</h3>
+                      <span className="inline-block mt-0.5 px-2 py-0.5 text-xs rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
                         {categoryLabel}
                       </span>
                     </div>
                     {t.isDefault && (
-                      <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 shrink-0">기본</span>
+                      <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shrink-0">기본</span>
                     )}
                   </div>
 
                   {t.description && (
-                    <p className="text-sm text-slate-500 mb-3 line-clamp-2">{t.description}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-3 line-clamp-2">{t.description}</p>
                   )}
 
                   {/* Section badges */}
@@ -428,13 +428,13 @@ export default function TemplatesPage() {
                     {layout.sections.slice(0, 5).map(s => {
                       const label = SECTION_OPTIONS.find(o => o.value === s)?.label || s;
                       return (
-                        <span key={s} className="px-1.5 py-0.5 text-xs bg-slate-50 text-slate-500 rounded">
+                        <span key={s} className="px-1.5 py-0.5 text-xs bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">
                           {label}
                         </span>
                       );
                     })}
                     {layout.sections.length > 5 && (
-                      <span className="px-1.5 py-0.5 text-xs bg-slate-50 text-slate-400 rounded">
+                      <span className="px-1.5 py-0.5 text-xs bg-slate-50 dark:bg-slate-700 text-slate-400 rounded">
                         +{layout.sections.length - 5}
                       </span>
                     )}

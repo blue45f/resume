@@ -49,13 +49,13 @@ export default function EditResumePage() {
         <Header />
         <main id="main-content" className="flex-1 flex items-center justify-center" role="main">
           <div className="text-center px-4 animate-fade-in">
-            <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+              <svg className="w-8 h-8 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9.75m0 0l2.25-2.25M9.75 15l2.25 2.25M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p className="text-lg font-medium text-slate-700 mb-1">이력서를 찾을 수 없습니다</p>
-            <p className="text-sm text-slate-500 mb-5">삭제되었거나 존재하지 않는 이력서입니다.</p>
+            <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-1">이력서를 찾을 수 없습니다</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">삭제되었거나 존재하지 않는 이력서입니다.</p>
             <button onClick={() => navigate('/')} className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">
               목록으로 돌아가기
             </button>
@@ -70,8 +70,8 @@ export default function EditResumePage() {
       <>
         <Header />
         <main id="main-content" className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
-          <div className="h-8 bg-slate-200 rounded w-48 mb-6 animate-pulse" />
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-48 mb-6 animate-pulse" />
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
             <FormSkeleton />
           </div>
         </main>
@@ -84,7 +84,7 @@ export default function EditResumePage() {
       <Header />
       <main id="main-content" className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">이력서 수정</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">이력서 수정</h1>
           <div className="flex items-center gap-3 flex-wrap">
             {/* 공개 설정 */}
             {id && (
@@ -94,7 +94,7 @@ export default function EditResumePage() {
                   await setResumeVisibility(id, e.target.value);
                   loadResume();
                 }}
-                className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 dark:text-slate-100"
                 aria-label="공개 설정"
               >
                 <option value="private">비공개</option>
@@ -111,7 +111,7 @@ export default function EditResumePage() {
             )}
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6">
           <ResumeForm
             initialData={{
               title: resume.title,

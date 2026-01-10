@@ -101,11 +101,11 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" role="dialog" aria-modal="true" aria-label="이력서 변환">
-      <div className="bg-white w-full sm:max-w-2xl sm:rounded-xl max-h-[92vh] flex flex-col rounded-t-xl overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 w-full sm:max-w-2xl sm:rounded-xl max-h-[92vh] flex flex-col rounded-t-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-slate-200">
-          <h2 className="text-lg font-bold text-slate-900">이력서 변환</h2>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg" aria-label="닫기">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-700">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">이력서 변환</h2>
+          <button onClick={onClose} className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg" aria-label="닫기">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -113,13 +113,13 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
         </div>
 
         {/* Mode tabs */}
-        <div className="flex border-b border-slate-200" role="tablist">
+        <div className="flex border-b border-slate-200 dark:border-slate-700" role="tablist">
           <button
             role="tab"
             aria-selected={mode === 'local'}
             onClick={() => { setMode('local'); setResult(''); setError(''); }}
             className={`flex-1 py-2.5 text-sm font-medium text-center transition-colors focus:outline-none ${
-              mode === 'local' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'
+              mode === 'local' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
             로컬 변환 (무료)
@@ -129,7 +129,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
             aria-selected={mode === 'llm'}
             onClick={() => { setMode('llm'); setResult(''); setError(''); }}
             className={`flex-1 py-2.5 text-sm font-medium text-center transition-colors focus:outline-none ${
-              mode === 'llm' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-slate-500 hover:text-slate-700'
+              mode === 'llm' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
             AI 변환 (LLM)
@@ -145,7 +145,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                 <button
                   onClick={() => setLocalSource('preset')}
                   className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                    localSource === 'preset' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600'
+                    localSource === 'preset' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
                   }`}
                 >
                   프리셋
@@ -153,7 +153,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                 <button
                   onClick={() => setLocalSource('template')}
                   className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                    localSource === 'template' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600'
+                    localSource === 'template' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
                   }`}
                 >
                   커스텀 템플릿
@@ -162,49 +162,49 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
 
               {localSource === 'preset' ? (
                 <fieldset>
-                  <legend className="text-sm font-medium text-slate-700 mb-2">프리셋 선택</legend>
+                  <legend className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">프리셋 선택</legend>
                   <div className="space-y-2">
                     {presets.map(p => (
                       <button
                         key={p.id}
                         onClick={() => setSelectedPreset(p.id)}
                         className={`w-full text-left px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          selectedPreset === p.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:bg-slate-50'
+                          selectedPreset === p.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                         }`}
                       >
-                        <div className="font-medium text-sm text-slate-900">{p.name}</div>
-                        <div className="text-xs text-slate-500 mt-0.5">{p.description}</div>
+                        <div className="font-medium text-sm text-slate-900 dark:text-slate-100">{p.name}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{p.description}</div>
                       </button>
                     ))}
                   </div>
                 </fieldset>
               ) : (
                 <fieldset>
-                  <legend className="text-sm font-medium text-slate-700 mb-2">템플릿 선택</legend>
+                  <legend className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">템플릿 선택</legend>
                   <div className="space-y-2">
                     {templates.map(t => (
                       <button
                         key={t.id}
                         onClick={() => setSelectedTemplate(t.id)}
                         className={`w-full text-left px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          selectedTemplate === t.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:bg-slate-50'
+                          selectedTemplate === t.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                         }`}
                       >
-                        <div className="font-medium text-sm text-slate-900">{t.name}</div>
-                        <div className="text-xs text-slate-500 mt-0.5">{t.description}</div>
+                        <div className="font-medium text-sm text-slate-900 dark:text-slate-100">{t.name}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{t.description}</div>
                       </button>
                     ))}
                   </div>
                 </fieldset>
               )}
 
-              <p className="text-xs text-slate-400">로컬 변환은 LLM 없이 데이터를 구조적으로 재배치합니다. 비용이 발생하지 않습니다.</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">로컬 변환은 LLM 없이 데이터를 구조적으로 재배치합니다. 비용이 발생하지 않습니다.</p>
             </>
           ) : (
             <>
               {/* LLM template selection */}
               <fieldset>
-                <legend className="text-sm font-medium text-slate-700 mb-2">변환 양식</legend>
+                <legend className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">변환 양식</legend>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {LLM_TEMPLATES.map(opt => (
                     <button
@@ -212,8 +212,8 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                       onClick={() => setTemplateType(opt.value)}
                       className={`px-3 py-2.5 text-sm rounded-lg border text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                         templateType === opt.value
-                          ? 'border-purple-500 bg-purple-50 text-purple-700 font-medium'
-                          : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-700 font-medium'
+                          : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                       }`}
                     >
                       <span aria-hidden="true">{opt.icon}</span> {opt.label}
@@ -223,9 +223,9 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
               </fieldset>
 
               <div>
-                <label htmlFor="target-lang" className="text-sm font-medium text-slate-700 mb-1 block">출력 언어</label>
+                <label htmlFor="target-lang" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">출력 언어</label>
                 <select id="target-lang" value={targetLanguage} onChange={e => setTargetLanguage(e.target.value)}
-                  className="w-full sm:w-auto px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                  className="w-full sm:w-auto px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-700 dark:text-slate-100">
                   <option value="ko">한국어</option>
                   <option value="en">English</option>
                 </select>
@@ -234,9 +234,9 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
               {/* LLM Provider selection */}
               {llmProviders.length > 0 && (
                 <div>
-                  <label htmlFor="llm-provider" className="text-sm font-medium text-slate-700 mb-1 block">LLM 프로바이더</label>
+                  <label htmlFor="llm-provider" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">LLM 프로바이더</label>
                   <select id="llm-provider" value={selectedProvider} onChange={e => setSelectedProvider(e.target.value)}
-                    className="w-full sm:w-auto px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    className="w-full sm:w-auto px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-700 dark:text-slate-100">
                     {llmProviders.map(p => (
                       <option key={p.name} value={p.name}>{p.name}{p.isDefault ? ' (기본)' : ''}</option>
                     ))}
@@ -250,12 +250,12 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
               )}
 
               <div>
-                <label htmlFor="jd-input" className="text-sm font-medium text-slate-700 mb-1 block">Job Description (선택)</label>
+                <label htmlFor="jd-input" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Job Description (선택)</label>
                 <textarea id="jd-input" value={jobDescription} onChange={e => setJobDescription(e.target.value)}
                   placeholder="JD를 붙여넣으면 맞춤 최적화됩니다"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-700 dark:text-slate-100"
                   maxLength={3000} />
-                <p className="text-xs text-slate-400 mt-1">{jobDescription.length}/3000자</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{jobDescription.length}/3000자</p>
               </div>
             </>
           )}
@@ -267,13 +267,13 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
           {result && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-700">변환 결과</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">변환 결과</span>
                 <div className="flex items-center gap-2">
-                  {tokensUsed > 0 && <span className="text-xs text-slate-400">{tokensUsed.toLocaleString()} tokens</span>}
-                  <button onClick={handleCopy} className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500">복사</button>
+                  {tokensUsed > 0 && <span className="text-xs text-slate-400 dark:text-slate-500">{tokensUsed.toLocaleString()} tokens</span>}
+                  <button onClick={handleCopy} className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500">복사</button>
                 </div>
               </div>
-              <div className="prose prose-sm max-w-none p-4 bg-slate-50 rounded-lg border border-slate-200 max-h-[40vh] overflow-y-auto text-slate-800 whitespace-pre-wrap" aria-live="polite">
+              <div className="prose prose-sm max-w-none p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 max-h-[40vh] overflow-y-auto text-slate-800 dark:text-slate-200 whitespace-pre-wrap" aria-live="polite">
                 {result}
               </div>
             </div>
@@ -281,8 +281,8 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-4 sm:px-6 py-3 border-t border-slate-200 flex flex-col sm:flex-row gap-2 sm:justify-end">
-          <button onClick={onClose} className="w-full sm:w-auto px-4 py-2.5 text-sm text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500">닫기</button>
+        <div className="px-4 sm:px-6 py-3 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row gap-2 sm:justify-end">
+          <button onClick={onClose} className="w-full sm:w-auto px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500">닫기</button>
           <button
             onClick={handleTransform}
             disabled={loading}

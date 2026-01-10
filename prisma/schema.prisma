@@ -17,7 +17,8 @@ model User {
   providerId String   @default("") @map("provider_id")
   role       String   @default("user") // user, admin
   createdAt  DateTime @default(now()) @map("created_at")
-  resumes    Resume[]
+  resumes      Resume[]
+  applications JobApplication[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -48,6 +49,7 @@ model Resume {
   versions        ResumeVersion[]
   shareLinks      ShareLink[]
   transformations LlmTransformation[]
+  applications    JobApplication[]
 
   @@index([userId])
   @@index([visibility])
@@ -308,4 +310,26 @@ model LlmTransformation {
   @@index([resumeId])
   @@index([createdAt])
   @@map("llm_transformations")
+}
+
+model JobApplication {
+  id          String   @id @default(uuid())
+  userId      String?
+  resumeId    String?
+  company     String
+  position    String
+  url         String?
+  status      String   @default("applied") // applied, screening, interview, offer, rejected, withdrawn
+  appliedDate String?
+  notes       String?
+  salary      String?
+  location    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user   User?   @relation(fields: [userId], references: [id])
+  resume Resume? @relation(fields: [resumeId], references: [id])
+
+  @@index([userId])
+  @@index([status])
 }

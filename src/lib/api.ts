@@ -121,3 +121,80 @@ export const restoreVersion = (resumeId: string, versionId: string) =>
     `${BASE}/resumes/${resumeId}/versions/${versionId}/restore`,
     { method: 'POST' },
   );
+
+// Export
+export const exportResumeText = (id: string) => `${BASE}/resumes/${id}/export/text`;
+export const exportResumeMarkdown = (id: string) => `${BASE}/resumes/${id}/export/markdown`;
+
+// Job Applications
+export interface JobApplication {
+  id: string;
+  company: string;
+  position: string;
+  url?: string;
+  status: string;
+  appliedDate?: string;
+  notes?: string;
+  salary?: string;
+  location?: string;
+  resumeId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const fetchApplications = () => request<JobApplication[]>(`${BASE}/applications`);
+export const fetchApplicationStats = () => request<{ total: number; byStatus: Record<string, number> }>(`${BASE}/applications/stats`);
+export const createApplication = (data: Partial<JobApplication>) =>
+  request<JobApplication>(`${BASE}/applications`, { method: 'POST', body: JSON.stringify(data) });
+export const updateApplication = (id: string, data: Partial<JobApplication>) =>
+  request<JobApplication>(`${BASE}/applications/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+export const deleteApplication = (id: string) =>
+  request<{ success: boolean }>(`${BASE}/applications/${id}`, { method: 'DELETE' });
+
+// AI Analysis
+export const analyzeResumeFeedback = (resumeId: string, provider?: string) =>
+  request<any>(`${BASE}/resumes/${resumeId}/transform/feedback`, {
+    method: 'POST', body: JSON.stringify({ provider }),
+  });
+export const analyzeJobMatch = (resumeId: string, jobDescription: string, provider?: string) =>
+  request<any>(`${BASE}/resumes/${resumeId}/transform/job-match`, {
+    method: 'POST', body: JSON.stringify({ jobDescription, provider }),
+  });
+export const generateInterviewQuestions = (resumeId: string, jobRole?: string, provider?: string) =>
+  request<any>(`${BASE}/resumes/${resumeId}/transform/interview`, {
+    method: 'POST', body: JSON.stringify({ jobRole, provider }),
+  });
+export const fetchTransformUsage = (resumeId: string) =>
+  request<{ totalTransformations: number; totalTokensUsed: number }>(`${BASE}/resumes/${resumeId}/transform/usage`);
+
+// Share Links
+export const createShareLink = (resumeId: string, data: { expiresInHours?: number; password?: string }) =>
+  request<{ id: string; token: string; expiresAt: string; hasPassword: boolean }>(
+    `${BASE}/resumes/${resumeId}/share`, { method: 'POST', body: JSON.stringify(data) },
+  );
+export const fetchShareLinks = (resumeId: string) =>
+  request<{ id: string; token: string; expiresAt: string; hasPassword: boolean; isExpired: boolean }[]>(
+    `${BASE}/resumes/${resumeId}/share`,
+  );
+export const deleteShareLink = (id: string) =>
+  request<{ success: boolean }>(`${BASE}/share/${id}`, { method: 'DELETE' });
+
+// Attachments
+export const uploadAttachment = async (resumeId: string, file: File, category?: string, description?: string) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (category) formData.append('category', category);
+  if (description) formData.append('description', description);
+  const token = localStorage.getItem('token');
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${BASE}/resumes/${resumeId}/attachments`, {
+    method: 'POST', headers, body: formData,
+  });
+  if (!res.ok) throw new Error('Upload failed');
+  return res.json();
+};
+export const fetchAttachments = (resumeId: string) =>
+  request<any[]>(`${BASE}/resumes/${resumeId}/attachments`);
+export const deleteAttachment = (id: string) =>
+  request<{ success: boolean }>(`${BASE}/attachments/${id}`, { method: 'DELETE' });

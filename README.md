@@ -13,7 +13,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 | 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, TypeScript |
 | 인프라 | Vercel (프론트), Render (백엔드), Neon (DB) |
 | 보안 | JWT + OAuth2 (Google/GitHub/Kakao), Helmet + CSP, Rate Limiting (3-tier), HMAC, 요청 살균 |
-| 테스트 | Jest, Supertest (E2E 55개 + Unit 85개, 총 140개) |
+| 테스트 | Jest, Supertest (E2E 55개 + Unit 91개, 총 146개) |
 
 ## 주요 기능
 
@@ -23,6 +23,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **자동 버전 관리**: 수정 시마다 자동 스냅샷, 이전 버전 복원
 - **이력서 복제**: 기존 이력서를 복사하여 새 이력서 생성
 - **키보드 단축키**: Ctrl+S 저장, Arrow Key 탭 전환
+- **내보내기**: 텍스트(.txt), 마크다운(.md) 형식으로 이력서 다운로드
 
 ### AI 기능 (5종)
 - **AI 양식 변환**: 8가지 양식(표준/경력기술서/자기소개서/LinkedIn/영문/개발자/디자이너/커스텀) + 스트리밍
@@ -48,6 +49,8 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **관리자 권한**: admin 역할 (전체 리소스 관리 가능)
 - **보안 헤더**: Helmet + CSP (프로덕션), X-Content-Type-Options, Referrer-Policy
 - **요청 살균**: HTML 태그 자동 제거, NoSQL 인젝션 방지 (`$` 접두사 차단)
+- **httpOnly 쿠키**: JWT를 httpOnly 쿠키로 저장 (XSS 방어)
+- **요청 추적**: X-Request-ID 헤더 자동 생성
 - **Rate Limiting**: 3-tier (short: 10/1s, medium: 100/60s, long: 1000/1h)
 - **기타**: CORS, JWT, DTO 검증, Path Traversal 방지
 
@@ -146,10 +149,10 @@ npm run start:server   # node dist-server/main.js
 ### 테스트
 
 ```bash
-npm run test:unit      # 유닛 테스트 (85개)
+npm run test:unit      # 유닛 테스트 (91개)
 npm run test:unit:cov  # 유닛 테스트 + 커버리지
 npm run test:e2e       # E2E 테스트 (55개)
-# 전체: 140개 테스트 (11 스위트)
+# 전체: 146개 테스트 (14 스위트)
 ```
 
 ### 프론트엔드 목업 모드 (백엔드 없이 개발)
@@ -188,6 +191,8 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 | PUT    | /api/resumes/:id           | 이력서 수정 |
 | DELETE | /api/resumes/:id           | 이력서 삭제 |
 | POST   | /api/resumes/:id/duplicate | 이력서 복제 |
+| GET    | /api/resumes/:id/export/text | 텍스트 내보내기 |
+| GET    | /api/resumes/:id/export/markdown | 마크다운 내보내기 |
 
 ### LLM 변환 (유료/무료 LLM)
 | 메서드  | 경로                                   | 설명           |
@@ -222,7 +227,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   ├── app.module.ts          # 루트 모듈 (Rate Limiting)
 │   ├── common/
 │   │   ├── filters/          # 글로벌 예외 필터
-│   │   ├── middleware/       # 요청 살균 미들웨어 (XSS/NoSQL 방지)
+│   │   ├── middleware/       # 요청 살균 + Request ID 미들웨어
 │   │   └── interceptors/    # 요청 로깅 인터셉터
 │   ├── health/               # 헬스체크 엔드포인트
 │   ├── auth/                 # JWT + OAuth2 (Google/GitHub/Kakao) + CSRF State

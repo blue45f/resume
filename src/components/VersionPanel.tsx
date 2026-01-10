@@ -62,13 +62,13 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" role="dialog" aria-modal="true" aria-label="버전 관리">
-      <div className="bg-white w-full sm:max-w-lg sm:rounded-xl max-h-[85vh] flex flex-col rounded-t-xl overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 w-full sm:max-w-lg sm:rounded-xl max-h-[85vh] flex flex-col rounded-t-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-200">
-          <h2 className="text-lg font-bold text-slate-900">버전 관리</h2>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">버전 관리</h2>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+            className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
             aria-label="닫기"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -87,19 +87,19 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
           )}
 
           {loading ? (
-            <p className="text-center text-slate-500 py-8" aria-live="polite">불러오는 중...</p>
+            <p className="text-center text-slate-500 dark:text-slate-400 py-8" aria-live="polite">불러오는 중...</p>
           ) : versions.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-slate-500 mb-1">저장된 버전이 없습니다</p>
-              <p className="text-xs text-slate-400">이력서를 수정하면 자동으로 버전이 생성됩니다</p>
+              <p className="text-slate-500 dark:text-slate-400 mb-1">저장된 버전이 없습니다</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">이력서를 수정하면 자동으로 버전이 생성됩니다</p>
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-xs text-slate-500 mb-3">이력서 수정 시 자동으로 이전 상태가 저장됩니다.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">이력서 수정 시 자동으로 이전 상태가 저장됩니다.</p>
               {versions.map((v, idx) => (
                 <div
                   key={v.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
@@ -107,10 +107,10 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
                         v{v.versionNumber}
                       </span>
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-900 truncate">
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
                           {idx === 0 ? '최신 버전' : `버전 ${v.versionNumber}`}
                         </p>
-                        <p className="text-xs text-slate-500">{formatDate(v.createdAt)}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(v.createdAt)}</p>
                       </div>
                     </div>
                   </div>
@@ -129,10 +129,10 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-4 sm:px-6 py-3 border-t border-slate-200">
+        <div className="px-4 sm:px-6 py-3 border-t border-slate-200 dark:border-slate-700">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2.5 text-sm text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+            className="w-full px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
           >
             닫기
           </button>

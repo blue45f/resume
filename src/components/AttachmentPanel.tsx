@@ -103,11 +103,11 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" role="dialog" aria-modal="true" aria-label="첨부파일 관리">
-      <div className="bg-white w-full sm:max-w-xl sm:rounded-xl max-h-[90vh] flex flex-col rounded-t-xl overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 w-full sm:max-w-xl sm:rounded-xl max-h-[90vh] flex flex-col rounded-t-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-200">
-          <h2 className="text-lg font-bold text-slate-900">첨부파일</h2>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg" aria-label="닫기">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">첨부파일</h2>
+          <button onClick={onClose} className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg" aria-label="닫기">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
@@ -116,16 +116,16 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
           {/* Upload area */}
           <div
-            className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors"
+            className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6 text-center hover:border-blue-400 transition-colors"
             onDragOver={e => e.preventDefault()}
             onDrop={handleDrop}
           >
-            <p className="text-sm text-slate-600 mb-3">파일을 드래그하거나 클릭하여 업로드</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">파일을 드래그하거나 클릭하여 업로드</p>
             <div className="flex flex-col sm:flex-row gap-2 items-center justify-center">
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 dark:text-slate-100"
                 aria-label="파일 분류"
               >
                 {CATEGORIES.map(c => (
@@ -137,7 +137,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
                 placeholder="설명 (선택)"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 dark:text-slate-100"
               />
               <label className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 cursor-pointer focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 transition-colors">
                 {uploading ? '업로드 중...' : '파일 선택'}
@@ -152,7 +152,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
                 />
               </label>
             </div>
-            <p className="text-xs text-slate-400 mt-2">PDF, 이미지, 문서 (최대 10MB)</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">PDF, 이미지, 문서 (최대 10MB)</p>
           </div>
 
           {error && (
@@ -161,18 +161,18 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
 
           {/* File list */}
           {loading ? (
-            <p className="text-center text-slate-500 py-4">불러오는 중...</p>
+            <p className="text-center text-slate-500 dark:text-slate-400 py-4">불러오는 중...</p>
           ) : attachments.length === 0 ? (
-            <p className="text-center text-slate-400 py-4 text-sm">첨부된 파일이 없습니다</p>
+            <p className="text-center text-slate-400 dark:text-slate-500 py-4 text-sm">첨부된 파일이 없습니다</p>
           ) : (
             <div className="space-y-2">
               {attachments.map(a => (
-                <div key={a.id} className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                <div key={a.id} className="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                   <span className="text-xl shrink-0" aria-hidden="true">{fileIcon(a.mimeType)}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">{a.originalName}</p>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <span className="px-1.5 py-0.5 bg-slate-100 rounded">
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{a.originalName}</p>
+                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded">
                         {CATEGORIES.find(c => c.value === a.category)?.label || a.category}
                       </span>
                       <span>{formatSize(a.size)}</span>
@@ -201,8 +201,8 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
           )}
         </div>
 
-        <div className="px-4 sm:px-6 py-3 border-t border-slate-200">
-          <button onClick={onClose} className="w-full px-4 py-2.5 text-sm text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500">닫기</button>
+        <div className="px-4 sm:px-6 py-3 border-t border-slate-200 dark:border-slate-700">
+          <button onClick={onClose} className="w-full px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500">닫기</button>
         </div>
       </div>
     </div>

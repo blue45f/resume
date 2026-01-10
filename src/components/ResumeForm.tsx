@@ -2,10 +2,32 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import type { Experience, Education, Skill, Project, Certification, Language, Award, Activity } from '@/types/resume';
 import type { Resume } from '@/types/resume';
 import { toast } from '@/components/Toast';
+import { sectionTips } from '@/lib/writingTips';
 
 const RichEditor = lazy(() => import('@/components/RichEditor'));
+import VoiceInput from '@/components/VoiceInput';
 
 type ResumeData = Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>;
+
+function useCollectionHandlers<T extends { id: string }>(
+  setData: React.Dispatch<React.SetStateAction<ResumeData>>,
+  key: string,
+  createEmpty: () => T,
+) {
+  const add = () => {
+    setData((prev: any) => ({ ...prev, [key]: [...prev[key], createEmpty()] }));
+  };
+  const update = (id: string, field: string, value: any) => {
+    setData((prev: any) => ({
+      ...prev,
+      [key]: prev[key].map((item: T) => item.id === id ? { ...item, [field]: value } : item),
+    }));
+  };
+  const remove = (id: string) => {
+    setData((prev: any) => ({ ...prev, [key]: prev[key].filter((item: T) => item.id !== id) }));
+  };
+  return { add, update, remove };
+}
 
 interface Props {
   initialData: ResumeData;
@@ -64,136 +86,42 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
     }));
   };
 
-  const addExperience = () => {
-    const item: Experience = {
-      id: crypto.randomUUID(), company: '', position: '',
-      startDate: '', endDate: '', current: false, description: '',
-    };
-    setData(prev => ({ ...prev, experiences: [...prev.experiences, item] }));
-  };
-  const updateExperience = (id: string, field: string, value: string | boolean) => {
-    setData(prev => ({
-      ...prev,
-      experiences: prev.experiences.map(e => e.id === id ? { ...e, [field]: value } : e),
-    }));
-  };
-  const removeExperience = (id: string) => {
-    setData(prev => ({ ...prev, experiences: prev.experiences.filter(e => e.id !== id) }));
-  };
+  const experiences = useCollectionHandlers(setData, 'experiences', () => ({
+    id: crypto.randomUUID(), company: '', position: '',
+    startDate: '', endDate: '', current: false, description: '',
+  } as Experience));
 
-  const addEducation = () => {
-    const item: Education = {
-      id: crypto.randomUUID(), school: '', degree: '', field: '',
-      startDate: '', endDate: '', description: '',
-    };
-    setData(prev => ({ ...prev, educations: [...prev.educations, item] }));
-  };
-  const updateEducation = (id: string, field: string, value: string) => {
-    setData(prev => ({
-      ...prev,
-      educations: prev.educations.map(e => e.id === id ? { ...e, [field]: value } : e),
-    }));
-  };
-  const removeEducation = (id: string) => {
-    setData(prev => ({ ...prev, educations: prev.educations.filter(e => e.id !== id) }));
-  };
+  const educations = useCollectionHandlers(setData, 'educations', () => ({
+    id: crypto.randomUUID(), school: '', degree: '', field: '',
+    startDate: '', endDate: '', description: '',
+  } as Education));
 
-  const addSkill = () => {
-    const item: Skill = { id: crypto.randomUUID(), category: '', items: '' };
-    setData(prev => ({ ...prev, skills: [...prev.skills, item] }));
-  };
-  const updateSkill = (id: string, field: string, value: string) => {
-    setData(prev => ({
-      ...prev,
-      skills: prev.skills.map(s => s.id === id ? { ...s, [field]: value } : s),
-    }));
-  };
-  const removeSkill = (id: string) => {
-    setData(prev => ({ ...prev, skills: prev.skills.filter(s => s.id !== id) }));
-  };
+  const skills = useCollectionHandlers(setData, 'skills', () => ({
+    id: crypto.randomUUID(), category: '', items: '',
+  } as Skill));
 
-  const addProject = () => {
-    const item: Project = {
-      id: crypto.randomUUID(), name: '', role: '',
-      startDate: '', endDate: '', description: '', link: '',
-    };
-    setData(prev => ({ ...prev, projects: [...prev.projects, item] }));
-  };
-  const updateProject = (id: string, field: string, value: string) => {
-    setData(prev => ({
-      ...prev,
-      projects: prev.projects.map(p => p.id === id ? { ...p, [field]: value } : p),
-    }));
-  };
-  const removeProject = (id: string) => {
-    setData(prev => ({ ...prev, projects: prev.projects.filter(p => p.id !== id) }));
-  };
+  const projects = useCollectionHandlers(setData, 'projects', () => ({
+    id: crypto.randomUUID(), name: '', role: '',
+    startDate: '', endDate: '', description: '', link: '',
+  } as Project));
 
-  const addCertification = () => {
-    const item: Certification = {
-      id: crypto.randomUUID(), name: '', issuer: '',
-      issueDate: '', expiryDate: '', credentialId: '', description: '',
-    };
-    setData(prev => ({ ...prev, certifications: [...prev.certifications, item] }));
-  };
-  const updateCertification = (id: string, field: string, value: string) => {
-    setData(prev => ({
-      ...prev,
-      certifications: prev.certifications.map(c => c.id === id ? { ...c, [field]: value } : c),
-    }));
-  };
-  const removeCertification = (id: string) => {
-    setData(prev => ({ ...prev, certifications: prev.certifications.filter(c => c.id !== id) }));
-  };
+  const certifications = useCollectionHandlers(setData, 'certifications', () => ({
+    id: crypto.randomUUID(), name: '', issuer: '',
+    issueDate: '', expiryDate: '', credentialId: '', description: '',
+  } as Certification));
 
-  const addLanguage = () => {
-    const item: Language = {
-      id: crypto.randomUUID(), name: '', testName: '', score: '', testDate: '',
-    };
-    setData(prev => ({ ...prev, languages: [...prev.languages, item] }));
-  };
-  const updateLanguage = (id: string, field: string, value: string) => {
-    setData(prev => ({
-      ...prev,
-      languages: prev.languages.map(l => l.id === id ? { ...l, [field]: value } : l),
-    }));
-  };
-  const removeLanguage = (id: string) => {
-    setData(prev => ({ ...prev, languages: prev.languages.filter(l => l.id !== id) }));
-  };
+  const languages = useCollectionHandlers(setData, 'languages', () => ({
+    id: crypto.randomUUID(), name: '', testName: '', score: '', testDate: '',
+  } as Language));
 
-  const addAward = () => {
-    const item: Award = {
-      id: crypto.randomUUID(), name: '', issuer: '', awardDate: '', description: '',
-    };
-    setData(prev => ({ ...prev, awards: [...prev.awards, item] }));
-  };
-  const updateAward = (id: string, field: string, value: string) => {
-    setData(prev => ({
-      ...prev,
-      awards: prev.awards.map(a => a.id === id ? { ...a, [field]: value } : a),
-    }));
-  };
-  const removeAward = (id: string) => {
-    setData(prev => ({ ...prev, awards: prev.awards.filter(a => a.id !== id) }));
-  };
+  const awards = useCollectionHandlers(setData, 'awards', () => ({
+    id: crypto.randomUUID(), name: '', issuer: '', awardDate: '', description: '',
+  } as Award));
 
-  const addActivity = () => {
-    const item: Activity = {
-      id: crypto.randomUUID(), name: '', organization: '', role: '',
-      startDate: '', endDate: '', description: '',
-    };
-    setData(prev => ({ ...prev, activities: [...prev.activities, item] }));
-  };
-  const updateActivity = (id: string, field: string, value: string) => {
-    setData(prev => ({
-      ...prev,
-      activities: prev.activities.map(a => a.id === id ? { ...a, [field]: value } : a),
-    }));
-  };
-  const removeActivity = (id: string) => {
-    setData(prev => ({ ...prev, activities: prev.activities.filter(a => a.id !== id) }));
-  };
+  const activities = useCollectionHandlers(setData, 'activities', () => ({
+    id: crypto.randomUUID(), name: '', organization: '', role: '',
+    startDate: '', endDate: '', description: '',
+  } as Activity));
 
   const inputClass = 'w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors';
   const labelClass = 'block text-sm font-medium text-slate-700 mb-1';
@@ -250,6 +178,16 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
           ))}
         </nav>
       </div>
+
+      {/* Writing Tips */}
+      {sectionTips[activeTab] && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+          <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1.5">💡 작성 팁</p>
+          <ul className="text-xs text-blue-600 dark:text-blue-300 space-y-0.5">
+            {sectionTips[activeTab].map((tip, i) => <li key={i}>• {tip}</li>)}
+          </ul>
+        </div>
+      )}
 
       {/* Personal Info */}
       {activeTab === 'personal' && (
@@ -328,7 +266,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
               <input id="pi-military" className={inputClass} placeholder="예: 군필 | 육군 병장 제대" value={data.personalInfo.military || ''} onChange={e => updatePersonalInfo('military', e.target.value)} />
             </div>
             <div className="sm:col-span-2">
-              <label className={labelClass}>자기소개</label>
+              <div className="flex items-center gap-2">
+                <label className={labelClass}>자기소개</label>
+                <VoiceInput onResult={(text) => updatePersonalInfo('summary', (data.personalInfo.summary || '') + ' ' + text)} />
+              </div>
               <Suspense fallback={<textarea className={inputClass + ' h-28 resize-none'} value={data.personalInfo.summary} readOnly />}>
                 <RichEditor
                   value={data.personalInfo.summary}
@@ -348,31 +289,31 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={exp.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">경력 {idx + 1}</legend>
-                <button type="button" onClick={() => removeExperience(exp.id)} className={deleteBtn} aria-label={`경력 ${idx + 1} 삭제`}>삭제</button>
+                <button type="button" onClick={() => experiences.remove(exp.id)} className={deleteBtn} aria-label={`경력 ${idx + 1} 삭제`}>삭제</button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor={`exp-company-${exp.id}`} className={labelClass}>회사명</label>
-                  <input id={`exp-company-${exp.id}`} className={inputClass} value={exp.company} onChange={e => updateExperience(exp.id, 'company', e.target.value)} />
+                  <input id={`exp-company-${exp.id}`} className={inputClass} value={exp.company} onChange={e => experiences.update(exp.id, 'company', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`exp-position-${exp.id}`} className={labelClass}>직위</label>
-                  <input id={`exp-position-${exp.id}`} className={inputClass} value={exp.position} onChange={e => updateExperience(exp.id, 'position', e.target.value)} />
+                  <input id={`exp-position-${exp.id}`} className={inputClass} value={exp.position} onChange={e => experiences.update(exp.id, 'position', e.target.value)} />
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`exp-dept-${exp.id}`} className={labelClass}>부서/팀</label>
-                  <input id={`exp-dept-${exp.id}`} className={inputClass} value={exp.department || ''} placeholder="예: 배민주문서비스팀" onChange={e => updateExperience(exp.id, 'department', e.target.value)} />
+                  <input id={`exp-dept-${exp.id}`} className={inputClass} value={exp.department || ''} placeholder="예: 배민주문서비스팀" onChange={e => experiences.update(exp.id, 'department', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`exp-start-${exp.id}`} className={labelClass}>시작일</label>
-                  <input id={`exp-start-${exp.id}`} type="date" className={inputClass} value={exp.startDate} onChange={e => updateExperience(exp.id, 'startDate', e.target.value)} />
+                  <input id={`exp-start-${exp.id}`} type="date" className={inputClass} value={exp.startDate} onChange={e => experiences.update(exp.id, 'startDate', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`exp-end-${exp.id}`} className={labelClass}>종료일</label>
                   <div className="flex items-center gap-2">
-                    <input id={`exp-end-${exp.id}`} type="date" className={inputClass} value={exp.endDate} disabled={exp.current} onChange={e => updateExperience(exp.id, 'endDate', e.target.value)} />
+                    <input id={`exp-end-${exp.id}`} type="date" className={inputClass} value={exp.endDate} disabled={exp.current} onChange={e => experiences.update(exp.id, 'endDate', e.target.value)} />
                     <label className="flex items-center gap-1 text-sm text-slate-700 whitespace-nowrap cursor-pointer">
-                      <input type="checkbox" checked={exp.current} onChange={e => updateExperience(exp.id, 'current', e.target.checked)} className="rounded" />
+                      <input type="checkbox" checked={exp.current} onChange={e => experiences.update(exp.id, 'current', e.target.checked)} className="rounded" />
                       재직중
                     </label>
                   </div>
@@ -382,7 +323,7 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
                   <Suspense fallback={<textarea className={inputClass + ' h-24 resize-none'} readOnly />}>
                     <RichEditor
                       value={exp.description}
-                      onChange={v => updateExperience(exp.id, 'description', v)}
+                      onChange={v => experiences.update(exp.id, 'description', v)}
                       placeholder="주요 업무를 작성하세요 (볼드, 리스트 지원)"
                     />
                   </Suspense>
@@ -392,19 +333,19 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
                   <Suspense fallback={<textarea className={inputClass + ' h-20 resize-none'} readOnly />}>
                     <RichEditor
                       value={exp.achievements || ''}
-                      onChange={v => updateExperience(exp.id, 'achievements', v)}
+                      onChange={v => experiences.update(exp.id, 'achievements', v)}
                       placeholder="정량적 성과 (예: 번들 70% 감소)"
                     />
                   </Suspense>
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`exp-tech-${exp.id}`} className={labelClass}>기술 스택</label>
-                  <input id={`exp-tech-${exp.id}`} className={inputClass} value={exp.techStack || ''} onChange={e => updateExperience(exp.id, 'techStack', e.target.value)} placeholder="예: React, TypeScript, AWS S3" />
+                  <input id={`exp-tech-${exp.id}`} className={inputClass} value={exp.techStack || ''} onChange={e => experiences.update(exp.id, 'techStack', e.target.value)} placeholder="예: React, TypeScript, AWS S3" />
                 </div>
               </div>
             </fieldset>
           ))}
-          <button type="button" onClick={addExperience} className={addBtn}>+ 경력 추가</button>
+          <button type="button" onClick={experiences.add} className={addBtn}>+ 경력 추가</button>
         </div>
       )}
 
@@ -415,43 +356,43 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={edu.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">학력 {idx + 1}</legend>
-                <button type="button" onClick={() => removeEducation(edu.id)} className={deleteBtn} aria-label={`학력 ${idx + 1} 삭제`}>삭제</button>
+                <button type="button" onClick={() => educations.remove(edu.id)} className={deleteBtn} aria-label={`학력 ${idx + 1} 삭제`}>삭제</button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor={`edu-school-${edu.id}`} className={labelClass}>학교명</label>
-                  <input id={`edu-school-${edu.id}`} className={inputClass} value={edu.school} onChange={e => updateEducation(edu.id, 'school', e.target.value)} />
+                  <input id={`edu-school-${edu.id}`} className={inputClass} value={edu.school} onChange={e => educations.update(edu.id, 'school', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`edu-degree-${edu.id}`} className={labelClass}>학위</label>
-                  <input id={`edu-degree-${edu.id}`} className={inputClass} value={edu.degree} placeholder="예: 학사, 석사" onChange={e => updateEducation(edu.id, 'degree', e.target.value)} />
+                  <input id={`edu-degree-${edu.id}`} className={inputClass} value={edu.degree} placeholder="예: 학사, 석사" onChange={e => educations.update(edu.id, 'degree', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`edu-field-${edu.id}`} className={labelClass}>전공</label>
-                  <input id={`edu-field-${edu.id}`} className={inputClass} value={edu.field} onChange={e => updateEducation(edu.id, 'field', e.target.value)} />
+                  <input id={`edu-field-${edu.id}`} className={inputClass} value={edu.field} onChange={e => educations.update(edu.id, 'field', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`edu-gpa-${edu.id}`} className={labelClass}>학점</label>
-                  <input id={`edu-gpa-${edu.id}`} className={inputClass} value={edu.gpa || ''} placeholder="예: 3.8/4.5" onChange={e => updateEducation(edu.id, 'gpa', e.target.value)} />
+                  <input id={`edu-gpa-${edu.id}`} className={inputClass} value={edu.gpa || ''} placeholder="예: 3.8/4.5" onChange={e => educations.update(edu.id, 'gpa', e.target.value)} />
                 </div>
                 <div className="flex gap-3">
                   <div className="flex-1">
                     <label htmlFor={`edu-start-${edu.id}`} className={labelClass}>입학</label>
-                    <input id={`edu-start-${edu.id}`} type="date" className={inputClass} value={edu.startDate} onChange={e => updateEducation(edu.id, 'startDate', e.target.value)} />
+                    <input id={`edu-start-${edu.id}`} type="date" className={inputClass} value={edu.startDate} onChange={e => educations.update(edu.id, 'startDate', e.target.value)} />
                   </div>
                   <div className="flex-1">
                     <label htmlFor={`edu-end-${edu.id}`} className={labelClass}>졸업</label>
-                    <input id={`edu-end-${edu.id}`} type="date" className={inputClass} value={edu.endDate} onChange={e => updateEducation(edu.id, 'endDate', e.target.value)} />
+                    <input id={`edu-end-${edu.id}`} type="date" className={inputClass} value={edu.endDate} onChange={e => educations.update(edu.id, 'endDate', e.target.value)} />
                   </div>
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`edu-desc-${edu.id}`} className={labelClass}>비고</label>
-                  <textarea id={`edu-desc-${edu.id}`} className={inputClass + ' h-20 resize-none'} value={edu.description} placeholder="학점, 수상 내역 등" onChange={e => updateEducation(edu.id, 'description', e.target.value)} />
+                  <textarea id={`edu-desc-${edu.id}`} className={inputClass + ' h-20 resize-none'} value={edu.description} placeholder="학점, 수상 내역 등" onChange={e => educations.update(edu.id, 'description', e.target.value)} />
                 </div>
               </div>
             </fieldset>
           ))}
-          <button type="button" onClick={addEducation} className={addBtn}>+ 학력 추가</button>
+          <button type="button" onClick={educations.add} className={addBtn}>+ 학력 추가</button>
         </div>
       )}
 
@@ -462,21 +403,21 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={skill.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">기술 {idx + 1}</legend>
-                <button type="button" onClick={() => removeSkill(skill.id)} className={deleteBtn} aria-label={`기술 ${idx + 1} 삭제`}>삭제</button>
+                <button type="button" onClick={() => skills.remove(skill.id)} className={deleteBtn} aria-label={`기술 ${idx + 1} 삭제`}>삭제</button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor={`skill-cat-${skill.id}`} className={labelClass}>카테고리</label>
-                  <input id={`skill-cat-${skill.id}`} className={inputClass} value={skill.category} placeholder="예: 프로그래밍 언어" onChange={e => updateSkill(skill.id, 'category', e.target.value)} />
+                  <input id={`skill-cat-${skill.id}`} className={inputClass} value={skill.category} placeholder="예: 프로그래밍 언어" onChange={e => skills.update(skill.id, 'category', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`skill-items-${skill.id}`} className={labelClass}>기술 목록</label>
-                  <input id={`skill-items-${skill.id}`} className={inputClass} value={skill.items} placeholder="예: TypeScript, React" onChange={e => updateSkill(skill.id, 'items', e.target.value)} />
+                  <input id={`skill-items-${skill.id}`} className={inputClass} value={skill.items} placeholder="예: TypeScript, React" onChange={e => skills.update(skill.id, 'items', e.target.value)} />
                 </div>
               </div>
             </fieldset>
           ))}
-          <button type="button" onClick={addSkill} className={addBtn}>+ 기술 추가</button>
+          <button type="button" onClick={skills.add} className={addBtn}>+ 기술 추가</button>
         </div>
       )}
 
@@ -487,51 +428,51 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={proj.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">프로젝트 {idx + 1}</legend>
-                <button type="button" onClick={() => removeProject(proj.id)} className={deleteBtn} aria-label={`프로젝트 ${idx + 1} 삭제`}>삭제</button>
+                <button type="button" onClick={() => projects.remove(proj.id)} className={deleteBtn} aria-label={`프로젝트 ${idx + 1} 삭제`}>삭제</button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor={`proj-name-${proj.id}`} className={labelClass}>프로젝트명</label>
-                  <input id={`proj-name-${proj.id}`} className={inputClass} value={proj.name} onChange={e => updateProject(proj.id, 'name', e.target.value)} />
+                  <input id={`proj-name-${proj.id}`} className={inputClass} value={proj.name} onChange={e => projects.update(proj.id, 'name', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`proj-company-${proj.id}`} className={labelClass}>소속 회사</label>
-                  <input id={`proj-company-${proj.id}`} className={inputClass} value={proj.company || ''} placeholder="예: 우아한형제들" onChange={e => updateProject(proj.id, 'company', e.target.value)} />
+                  <input id={`proj-company-${proj.id}`} className={inputClass} value={proj.company || ''} placeholder="예: 우아한형제들" onChange={e => projects.update(proj.id, 'company', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`proj-role-${proj.id}`} className={labelClass}>역할</label>
-                  <input id={`proj-role-${proj.id}`} className={inputClass} value={proj.role} onChange={e => updateProject(proj.id, 'role', e.target.value)} />
+                  <input id={`proj-role-${proj.id}`} className={inputClass} value={proj.role} onChange={e => projects.update(proj.id, 'role', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`proj-start-${proj.id}`} className={labelClass}>시작일</label>
-                  <input id={`proj-start-${proj.id}`} type="date" className={inputClass} value={proj.startDate} onChange={e => updateProject(proj.id, 'startDate', e.target.value)} />
+                  <input id={`proj-start-${proj.id}`} type="date" className={inputClass} value={proj.startDate} onChange={e => projects.update(proj.id, 'startDate', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`proj-end-${proj.id}`} className={labelClass}>종료일</label>
-                  <input id={`proj-end-${proj.id}`} type="date" className={inputClass} value={proj.endDate} onChange={e => updateProject(proj.id, 'endDate', e.target.value)} />
+                  <input id={`proj-end-${proj.id}`} type="date" className={inputClass} value={proj.endDate} onChange={e => projects.update(proj.id, 'endDate', e.target.value)} />
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`proj-link-${proj.id}`} className={labelClass}>링크</label>
-                  <input id={`proj-link-${proj.id}`} type="url" className={inputClass} value={proj.link} placeholder="https://..." onChange={e => updateProject(proj.id, 'link', e.target.value)} />
+                  <input id={`proj-link-${proj.id}`} type="url" className={inputClass} value={proj.link} placeholder="https://..." onChange={e => projects.update(proj.id, 'link', e.target.value)} />
                 </div>
                 <div className="sm:col-span-2">
                   <label className={labelClass}>설명</label>
                   <Suspense fallback={<textarea className={inputClass + ' h-24 resize-none'} readOnly />}>
                     <RichEditor
                       value={proj.description}
-                      onChange={v => updateProject(proj.id, 'description', v)}
+                      onChange={v => projects.update(proj.id, 'description', v)}
                       placeholder="프로젝트 설명 및 기여한 내용"
                     />
                   </Suspense>
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`proj-tech-${proj.id}`} className={labelClass}>기술 스택</label>
-                  <input id={`proj-tech-${proj.id}`} className={inputClass} value={proj.techStack || ''} placeholder="예: React, TypeScript, AWS" onChange={e => updateProject(proj.id, 'techStack', e.target.value)} />
+                  <input id={`proj-tech-${proj.id}`} className={inputClass} value={proj.techStack || ''} placeholder="예: React, TypeScript, AWS" onChange={e => projects.update(proj.id, 'techStack', e.target.value)} />
                 </div>
               </div>
             </fieldset>
           ))}
-          <button type="button" onClick={addProject} className={addBtn}>+ 프로젝트 추가</button>
+          <button type="button" onClick={projects.add} className={addBtn}>+ 프로젝트 추가</button>
         </div>
       )}
 
@@ -542,37 +483,37 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={cert.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">자격증 {idx + 1}</legend>
-                <button type="button" onClick={() => removeCertification(cert.id)} className={deleteBtn} aria-label={`자격증 ${idx + 1} 삭제`}>삭제</button>
+                <button type="button" onClick={() => certifications.remove(cert.id)} className={deleteBtn} aria-label={`자격증 ${idx + 1} 삭제`}>삭제</button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor={`cert-name-${cert.id}`} className={labelClass}>자격증명</label>
-                  <input id={`cert-name-${cert.id}`} className={inputClass} value={cert.name} onChange={e => updateCertification(cert.id, 'name', e.target.value)} />
+                  <input id={`cert-name-${cert.id}`} className={inputClass} value={cert.name} onChange={e => certifications.update(cert.id, 'name', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`cert-issuer-${cert.id}`} className={labelClass}>발급기관</label>
-                  <input id={`cert-issuer-${cert.id}`} className={inputClass} value={cert.issuer} onChange={e => updateCertification(cert.id, 'issuer', e.target.value)} />
+                  <input id={`cert-issuer-${cert.id}`} className={inputClass} value={cert.issuer} onChange={e => certifications.update(cert.id, 'issuer', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`cert-issue-${cert.id}`} className={labelClass}>취득일</label>
-                  <input id={`cert-issue-${cert.id}`} type="date" className={inputClass} value={cert.issueDate} onChange={e => updateCertification(cert.id, 'issueDate', e.target.value)} />
+                  <input id={`cert-issue-${cert.id}`} type="date" className={inputClass} value={cert.issueDate} onChange={e => certifications.update(cert.id, 'issueDate', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`cert-expiry-${cert.id}`} className={labelClass}>만료일</label>
-                  <input id={`cert-expiry-${cert.id}`} type="date" className={inputClass} value={cert.expiryDate} onChange={e => updateCertification(cert.id, 'expiryDate', e.target.value)} />
+                  <input id={`cert-expiry-${cert.id}`} type="date" className={inputClass} value={cert.expiryDate} onChange={e => certifications.update(cert.id, 'expiryDate', e.target.value)} />
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`cert-cred-${cert.id}`} className={labelClass}>자격번호</label>
-                  <input id={`cert-cred-${cert.id}`} className={inputClass} value={cert.credentialId} onChange={e => updateCertification(cert.id, 'credentialId', e.target.value)} />
+                  <input id={`cert-cred-${cert.id}`} className={inputClass} value={cert.credentialId} onChange={e => certifications.update(cert.id, 'credentialId', e.target.value)} />
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`cert-desc-${cert.id}`} className={labelClass}>비고</label>
-                  <textarea id={`cert-desc-${cert.id}`} className={inputClass + ' h-20 resize-none'} value={cert.description} onChange={e => updateCertification(cert.id, 'description', e.target.value)} />
+                  <textarea id={`cert-desc-${cert.id}`} className={inputClass + ' h-20 resize-none'} value={cert.description} onChange={e => certifications.update(cert.id, 'description', e.target.value)} />
                 </div>
               </div>
             </fieldset>
           ))}
-          <button type="button" onClick={addCertification} className={addBtn}>+ 자격증 추가</button>
+          <button type="button" onClick={certifications.add} className={addBtn}>+ 자격증 추가</button>
         </div>
       )}
 
@@ -583,29 +524,29 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={lang.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">어학 {idx + 1}</legend>
-                <button type="button" onClick={() => removeLanguage(lang.id)} className={deleteBtn} aria-label={`어학 ${idx + 1} 삭제`}>삭제</button>
+                <button type="button" onClick={() => languages.remove(lang.id)} className={deleteBtn} aria-label={`어학 ${idx + 1} 삭제`}>삭제</button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor={`lang-name-${lang.id}`} className={labelClass}>언어</label>
-                  <input id={`lang-name-${lang.id}`} className={inputClass} value={lang.name} placeholder="예: 영어" onChange={e => updateLanguage(lang.id, 'name', e.target.value)} />
+                  <input id={`lang-name-${lang.id}`} className={inputClass} value={lang.name} placeholder="예: 영어" onChange={e => languages.update(lang.id, 'name', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`lang-test-${lang.id}`} className={labelClass}>시험명</label>
-                  <input id={`lang-test-${lang.id}`} className={inputClass} value={lang.testName} placeholder="예: TOEIC, JLPT" onChange={e => updateLanguage(lang.id, 'testName', e.target.value)} />
+                  <input id={`lang-test-${lang.id}`} className={inputClass} value={lang.testName} placeholder="예: TOEIC, JLPT" onChange={e => languages.update(lang.id, 'testName', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`lang-score-${lang.id}`} className={labelClass}>점수/급수</label>
-                  <input id={`lang-score-${lang.id}`} className={inputClass} value={lang.score} placeholder="예: 990, N1" onChange={e => updateLanguage(lang.id, 'score', e.target.value)} />
+                  <input id={`lang-score-${lang.id}`} className={inputClass} value={lang.score} placeholder="예: 990, N1" onChange={e => languages.update(lang.id, 'score', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`lang-date-${lang.id}`} className={labelClass}>응시일</label>
-                  <input id={`lang-date-${lang.id}`} type="date" className={inputClass} value={lang.testDate} onChange={e => updateLanguage(lang.id, 'testDate', e.target.value)} />
+                  <input id={`lang-date-${lang.id}`} type="date" className={inputClass} value={lang.testDate} onChange={e => languages.update(lang.id, 'testDate', e.target.value)} />
                 </div>
               </div>
             </fieldset>
           ))}
-          <button type="button" onClick={addLanguage} className={addBtn}>+ 어학 추가</button>
+          <button type="button" onClick={languages.add} className={addBtn}>+ 어학 추가</button>
         </div>
       )}
 
@@ -616,29 +557,29 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={award.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">수상 {idx + 1}</legend>
-                <button type="button" onClick={() => removeAward(award.id)} className={deleteBtn} aria-label={`수상 ${idx + 1} 삭제`}>삭제</button>
+                <button type="button" onClick={() => awards.remove(award.id)} className={deleteBtn} aria-label={`수상 ${idx + 1} 삭제`}>삭제</button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor={`award-name-${award.id}`} className={labelClass}>수상명</label>
-                  <input id={`award-name-${award.id}`} className={inputClass} value={award.name} onChange={e => updateAward(award.id, 'name', e.target.value)} />
+                  <input id={`award-name-${award.id}`} className={inputClass} value={award.name} onChange={e => awards.update(award.id, 'name', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`award-issuer-${award.id}`} className={labelClass}>수여기관</label>
-                  <input id={`award-issuer-${award.id}`} className={inputClass} value={award.issuer} onChange={e => updateAward(award.id, 'issuer', e.target.value)} />
+                  <input id={`award-issuer-${award.id}`} className={inputClass} value={award.issuer} onChange={e => awards.update(award.id, 'issuer', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`award-date-${award.id}`} className={labelClass}>수상일</label>
-                  <input id={`award-date-${award.id}`} type="date" className={inputClass} value={award.awardDate} onChange={e => updateAward(award.id, 'awardDate', e.target.value)} />
+                  <input id={`award-date-${award.id}`} type="date" className={inputClass} value={award.awardDate} onChange={e => awards.update(award.id, 'awardDate', e.target.value)} />
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`award-desc-${award.id}`} className={labelClass}>설명</label>
-                  <textarea id={`award-desc-${award.id}`} className={inputClass + ' h-20 resize-none'} value={award.description} placeholder="수상 내용 및 의의" onChange={e => updateAward(award.id, 'description', e.target.value)} />
+                  <textarea id={`award-desc-${award.id}`} className={inputClass + ' h-20 resize-none'} value={award.description} placeholder="수상 내용 및 의의" onChange={e => awards.update(award.id, 'description', e.target.value)} />
                 </div>
               </div>
             </fieldset>
           ))}
-          <button type="button" onClick={addAward} className={addBtn}>+ 수상 추가</button>
+          <button type="button" onClick={awards.add} className={addBtn}>+ 수상 추가</button>
         </div>
       )}
 
@@ -649,39 +590,39 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={act.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">활동 {idx + 1}</legend>
-                <button type="button" onClick={() => removeActivity(act.id)} className={deleteBtn} aria-label={`활동 ${idx + 1} 삭제`}>삭제</button>
+                <button type="button" onClick={() => activities.remove(act.id)} className={deleteBtn} aria-label={`활동 ${idx + 1} 삭제`}>삭제</button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor={`act-name-${act.id}`} className={labelClass}>활동명</label>
-                  <input id={`act-name-${act.id}`} className={inputClass} value={act.name} onChange={e => updateActivity(act.id, 'name', e.target.value)} />
+                  <input id={`act-name-${act.id}`} className={inputClass} value={act.name} onChange={e => activities.update(act.id, 'name', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`act-org-${act.id}`} className={labelClass}>기관/단체</label>
-                  <input id={`act-org-${act.id}`} className={inputClass} value={act.organization} onChange={e => updateActivity(act.id, 'organization', e.target.value)} />
+                  <input id={`act-org-${act.id}`} className={inputClass} value={act.organization} onChange={e => activities.update(act.id, 'organization', e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor={`act-role-${act.id}`} className={labelClass}>역할</label>
-                  <input id={`act-role-${act.id}`} className={inputClass} value={act.role} onChange={e => updateActivity(act.id, 'role', e.target.value)} />
+                  <input id={`act-role-${act.id}`} className={inputClass} value={act.role} onChange={e => activities.update(act.id, 'role', e.target.value)} />
                 </div>
                 <div className="flex gap-3">
                   <div className="flex-1">
                     <label htmlFor={`act-start-${act.id}`} className={labelClass}>시작일</label>
-                    <input id={`act-start-${act.id}`} type="date" className={inputClass} value={act.startDate} onChange={e => updateActivity(act.id, 'startDate', e.target.value)} />
+                    <input id={`act-start-${act.id}`} type="date" className={inputClass} value={act.startDate} onChange={e => activities.update(act.id, 'startDate', e.target.value)} />
                   </div>
                   <div className="flex-1">
                     <label htmlFor={`act-end-${act.id}`} className={labelClass}>종료일</label>
-                    <input id={`act-end-${act.id}`} type="date" className={inputClass} value={act.endDate} onChange={e => updateActivity(act.id, 'endDate', e.target.value)} />
+                    <input id={`act-end-${act.id}`} type="date" className={inputClass} value={act.endDate} onChange={e => activities.update(act.id, 'endDate', e.target.value)} />
                   </div>
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`act-desc-${act.id}`} className={labelClass}>설명</label>
-                  <textarea id={`act-desc-${act.id}`} className={inputClass + ' h-24 resize-none'} value={act.description} placeholder="활동 내용 및 성과" onChange={e => updateActivity(act.id, 'description', e.target.value)} />
+                  <textarea id={`act-desc-${act.id}`} className={inputClass + ' h-24 resize-none'} value={act.description} placeholder="활동 내용 및 성과" onChange={e => activities.update(act.id, 'description', e.target.value)} />
                 </div>
               </div>
             </fieldset>
           ))}
-          <button type="button" onClick={addActivity} className={addBtn}>+ 활동 추가</button>
+          <button type="button" onClick={activities.add} className={addBtn}>+ 활동 추가</button>
         </div>
       )}
 

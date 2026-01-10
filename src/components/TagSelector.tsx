@@ -77,7 +77,7 @@ export default function TagSelector({ resumeId, currentTags, onUpdate }: Props) 
         ))}
         <button
           onClick={() => setOpen(!open)}
-          className="px-2 py-0.5 text-xs text-slate-500 bg-slate-100 rounded-full hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+          className="px-2 py-0.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
           aria-label="태그 추가"
           aria-expanded={open}
         >
@@ -87,12 +87,12 @@ export default function TagSelector({ resumeId, currentTags, onUpdate }: Props) 
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute left-0 top-full mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-30 py-2">
+        <div className="absolute left-0 top-full mt-1 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-30 py-2">
           {/* Create new */}
-          <div className="px-3 pb-2 border-b border-slate-100">
+          <div className="px-3 pb-2 border-b border-slate-100 dark:border-slate-700">
             <div className="flex gap-1">
               <input
-                className="flex-1 px-2 py-1 text-xs border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="flex-1 px-2 py-1 text-xs border border-slate-200 dark:border-slate-600 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-slate-700 dark:text-slate-100"
                 placeholder="새 태그 이름"
                 value={newTagName}
                 onChange={e => setNewTagName(e.target.value)}
@@ -111,16 +111,16 @@ export default function TagSelector({ resumeId, currentTags, onUpdate }: Props) 
           {/* Tag list */}
           <div className="max-h-48 overflow-y-auto">
             {allTags.length === 0 ? (
-              <p className="px-3 py-2 text-xs text-slate-400">태그가 없습니다</p>
+              <p className="px-3 py-2 text-xs text-slate-400 dark:text-slate-500">태그가 없습니다</p>
             ) : (
               allTags.map(tag => (
                 <button
                   key={tag.id}
                   onClick={() => handleToggle(tag.id)}
-                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-slate-50 flex items-center gap-2 focus:outline-none focus:bg-slate-50"
+                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 focus:outline-none focus:bg-slate-50 dark:focus:bg-slate-700"
                 >
                   <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: tag.color }} />
-                  <span className="flex-1 truncate text-slate-700">{tag.name}</span>
+                  <span className="flex-1 truncate text-slate-700 dark:text-slate-300">{tag.name}</span>
                   {currentIds.has(tag.id) && (
                     <svg className="w-4 h-4 text-blue-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
