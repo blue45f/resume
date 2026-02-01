@@ -245,4 +245,52 @@ export class AuthService {
   getFrontendUrl(): string {
     return this.frontendUrl;
   }
+
+  async register(email: string, password: string, name: string): Promise<string> {
+    if (!email || !password || !name) {
+      throw new UnauthorizedException('이메일, 비밀번호, 이름은 필수입니다');
+    }
+    if (password.length < 8) {
+      throw new UnauthorizedException('비밀번호는 8자 이상이어야 합니다');
+    }
+
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      throw new UnauthorizedException('이미 가입된 이메일입니다');
+    }
+
+    const bcrypt = await import('bcryptjs');
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        name,
+        passwordHash,
+        provider: 'local',
+        providerId: email,
+      },
+    });
+
+    return this.jwt.sign({ sub: user.id, role: user.role || 'user' });
+  }
+
+  async login(email: string, password: string): Promise<string> {
+    if (!email || !password) {
+      throw new UnauthorizedException('이메일과 비밀번호를 입력해주세요');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user || !user.passwordHash) {
+      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다');
+    }
+
+    const bcrypt = await import('bcryptjs');
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) {
+      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다');
+    }
+
+    return this.jwt.sign({ sub: user.id, role: user.role || 'user' });
+  }
 }

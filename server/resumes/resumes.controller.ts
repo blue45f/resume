@@ -6,6 +6,7 @@ import { Response } from 'express';
 import { Public } from '../auth/auth.guard';
 import { ResumesService } from './resumes.service';
 import { ExportService } from './export.service';
+import { AnalyticsService } from './analytics.service';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 
@@ -15,6 +16,7 @@ export class ResumesController {
   constructor(
     private readonly resumesService: ResumesService,
     private readonly exportService: ExportService,
+    private readonly analyticsService: AnalyticsService,
   ) {}
 
   @Get()
@@ -33,6 +35,12 @@ export class ResumesController {
       parseInt(page || '1'),
       Math.min(parseInt(limit || '20'), 50),
     );
+  }
+
+  @Get('dashboard/analytics')
+  @ApiOperation({ summary: '사용자 대시보드 분석' })
+  analytics(@Req() req: any) {
+    return this.analyticsService.getUserDashboard(req.user?.id);
   }
 
   @Get('@:username/:slug')

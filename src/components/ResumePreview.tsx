@@ -1,9 +1,11 @@
 import { forwardRef } from 'react';
 import type { Resume } from '@/types/resume';
 import SafeHtml from '@/components/SafeHtml';
+import { resumeThemes, type ResumeTheme } from '@/lib/resumeThemes';
 
 interface Props {
   resume: Resume;
+  themeId?: string;
 }
 
 function formatDate(date: string): string {
@@ -26,15 +28,16 @@ function TechTags({ text, color = 'slate' }: { text: string; color?: 'slate' | '
   );
 }
 
-const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
+const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, ref) => {
+  const theme = resumeThemes.find(t => t.id === themeId) || resumeThemes[0];
   const { personalInfo: pi, experiences, educations, skills, projects, certifications, languages, awards, activities } = resume;
   const hasPhoto = !!pi.photo;
 
   return (
-    <div ref={ref} className="bg-white p-6 sm:p-10 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 text-slate-800 overflow-hidden" style={{ fontFamily: "-apple-system, 'Pretendard', 'Noto Sans KR', sans-serif" }}>
+    <div ref={ref} className={`bg-white p-6 sm:p-10 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 ${theme.bodyStyle} overflow-hidden`} style={{ fontFamily: theme.fontFamily }}>
 
       {/* ===== Header ===== */}
-      <header className="mb-8 pb-6 border-b-2 border-slate-800">
+      <header className={theme.headerStyle}>
         <div className={hasPhoto ? 'flex gap-5' : ''}>
           {hasPhoto && (
             <img src={pi.photo} alt="" loading="lazy" className="w-[100px] h-[130px] object-cover rounded border border-slate-200 shrink-0 print:w-[90px] print:h-[117px]" />
@@ -98,14 +101,14 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
 
       {/* ===== Summary ===== */}
       {pi.summary && (
-        <Section title="자기소개">
+        <Section title="자기소개" theme={theme}>
           <SafeHtml html={pi.summary} className="text-sm text-slate-700 leading-relaxed break-words" />
         </Section>
       )}
 
       {/* ===== Experience ===== */}
       {experiences.length > 0 && (
-        <Section title="경력">
+        <Section title="경력" theme={theme}>
           <div className="space-y-5">
             {experiences.map(exp => (
               <div key={exp.id}>
@@ -134,7 +137,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
 
       {/* ===== Education ===== */}
       {educations.length > 0 && (
-        <Section title="학력">
+        <Section title="학력" theme={theme}>
           <div className="space-y-3">
             {educations.map(edu => (
               <div key={edu.id}>
@@ -157,7 +160,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
 
       {/* ===== Skills ===== */}
       {skills.length > 0 && (
-        <Section title="기술">
+        <Section title="기술" theme={theme}>
           <div className="space-y-1.5">
             {skills.map(skill => (
               <div key={skill.id} className="flex text-sm gap-2">
@@ -171,7 +174,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
 
       {/* ===== Projects ===== */}
       {projects.length > 0 && (
-        <Section title="프로젝트">
+        <Section title="프로젝트" theme={theme}>
           <div className="space-y-5">
             {projects.map(proj => (
               <div key={proj.id}>
@@ -196,7 +199,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
 
       {/* ===== Certifications ===== */}
       {certifications.length > 0 && (
-        <Section title="자격증">
+        <Section title="자격증" theme={theme}>
           <div className="space-y-2">
             {certifications.map(cert => (
               <div key={cert.id}>
@@ -219,7 +222,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
 
       {/* ===== Languages ===== */}
       {languages.length > 0 && (
-        <Section title="어학">
+        <Section title="어학" theme={theme}>
           <div className="space-y-1">
             {languages.map(lang => (
               <div key={lang.id} className="flex justify-between items-baseline">
@@ -237,7 +240,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
 
       {/* ===== Awards ===== */}
       {awards.length > 0 && (
-        <Section title="수상 경력">
+        <Section title="수상 경력" theme={theme}>
           <div className="space-y-2">
             {awards.map(award => (
               <div key={award.id}>
@@ -257,7 +260,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
 
       {/* ===== Activities ===== */}
       {activities.length > 0 && (
-        <Section title="활동">
+        <Section title="활동" theme={theme}>
           <div className="space-y-2">
             {activities.map(act => (
               <div key={act.id}>
@@ -281,10 +284,11 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume }, ref) => {
   );
 });
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, theme }: { title: string; children: React.ReactNode; theme?: ResumeTheme }) {
+  const defaultStyle = 'text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3';
   return (
     <section className="mb-7">
-      <h2 className="text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3">{title}</h2>
+      <h2 className={theme?.sectionTitleStyle || defaultStyle}>{title}</h2>
       {children}
     </section>
   );

@@ -15,6 +15,8 @@ const mockAuthService = {
   getFrontendUrl: jest.fn().mockReturnValue('http://localhost:5173'),
   getAvailableProviders: jest.fn(),
   getProfile: jest.fn(),
+  register: jest.fn(),
+  login: jest.fn(),
 };
 
 function mockResponse(): Response {

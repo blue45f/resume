@@ -4,6 +4,7 @@ import { useReactToPrint } from 'react-to-print';
 import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
 import LlmTransformPanel from '@/components/LlmTransformPanel';
+import { resumeThemes } from '@/lib/resumeThemes';
 import VersionPanel from '@/components/VersionPanel';
 import AttachmentPanel from '@/components/AttachmentPanel';
 import AiAnalysisPanel from '@/components/AiAnalysisPanel';
@@ -22,6 +23,7 @@ export default function PreviewPage() {
   const [showVersions, setShowVersions] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
   const [showAiAnalysis, setShowAiAnalysis] = useState(false);
+  const [themeId, setThemeId] = useState('classic');
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
@@ -170,6 +172,23 @@ export default function PreviewPage() {
               </button>
             </div>
           </div>
+          {/* Theme selector */}
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-2.5 flex items-center gap-1 overflow-x-auto">
+            {resumeThemes.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setThemeId(t.id)}
+                className={`px-2 py-1 text-xs rounded-lg transition-all duration-200 ${
+                  themeId === t.id
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                }`}
+                title={t.description}
+              >
+                {t.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="py-6 sm:py-8 px-4">
@@ -177,7 +196,7 @@ export default function PreviewPage() {
             <CompletenessBar resume={resume} />
             <AtsScorePanel resume={resume} />
           </div>
-          <ResumePreview ref={contentRef} resume={resume} />
+          <ResumePreview ref={contentRef} resume={resume} themeId={themeId} />
         </div>
       </main>
 

@@ -26,7 +26,31 @@ function useCollectionHandlers<T extends { id: string }>(
   const remove = (id: string) => {
     setData((prev: any) => ({ ...prev, [key]: prev[key].filter((item: T) => item.id !== id) }));
   };
-  return { add, update, remove };
+  const reorder = (fromIndex: number, toIndex: number) => {
+    setData((prev: any) => {
+      const arr = [...prev[key]];
+      const [moved] = arr.splice(fromIndex, 1);
+      arr.splice(toIndex, 0, moved);
+      return { ...prev, [key]: arr };
+    });
+  };
+  return { add, update, remove, reorder };
+}
+
+function ReorderButtons({ index, total, onMove }: { index: number; total: number; onMove: (from: number, to: number) => void }) {
+  if (total <= 1) return null;
+  return (
+    <div className="flex gap-0.5">
+      <button type="button" onClick={() => onMove(index, index - 1)} disabled={index === 0}
+        className="p-1 text-slate-400 hover:text-blue-600 disabled:opacity-20 rounded transition-colors" aria-label="위로">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+      </button>
+      <button type="button" onClick={() => onMove(index, index + 1)} disabled={index === total - 1}
+        className="p-1 text-slate-400 hover:text-blue-600 disabled:opacity-20 rounded transition-colors" aria-label="아래로">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+    </div>
+  );
 }
 
 interface Props {
@@ -289,7 +313,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={exp.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">경력 {idx + 1}</legend>
-                <button type="button" onClick={() => experiences.remove(exp.id)} className={deleteBtn} aria-label={`경력 ${idx + 1} 삭제`}>삭제</button>
+                <div className="flex items-center gap-1">
+                  <ReorderButtons index={idx} total={data.experiences.length} onMove={experiences.reorder} />
+                  <button type="button" onClick={() => experiences.remove(exp.id)} className={deleteBtn} aria-label={`경력 ${idx + 1} 삭제`}>삭제</button>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -356,7 +383,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={edu.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">학력 {idx + 1}</legend>
-                <button type="button" onClick={() => educations.remove(edu.id)} className={deleteBtn} aria-label={`학력 ${idx + 1} 삭제`}>삭제</button>
+                <div className="flex items-center gap-1">
+                  <ReorderButtons index={idx} total={data.educations.length} onMove={educations.reorder} />
+                  <button type="button" onClick={() => educations.remove(edu.id)} className={deleteBtn} aria-label={`학력 ${idx + 1} 삭제`}>삭제</button>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -403,7 +433,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={skill.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">기술 {idx + 1}</legend>
-                <button type="button" onClick={() => skills.remove(skill.id)} className={deleteBtn} aria-label={`기술 ${idx + 1} 삭제`}>삭제</button>
+                <div className="flex items-center gap-1">
+                  <ReorderButtons index={idx} total={data.skills.length} onMove={skills.reorder} />
+                  <button type="button" onClick={() => skills.remove(skill.id)} className={deleteBtn} aria-label={`기술 ${idx + 1} 삭제`}>삭제</button>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -428,7 +461,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={proj.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">프로젝트 {idx + 1}</legend>
-                <button type="button" onClick={() => projects.remove(proj.id)} className={deleteBtn} aria-label={`프로젝트 ${idx + 1} 삭제`}>삭제</button>
+                <div className="flex items-center gap-1">
+                  <ReorderButtons index={idx} total={data.projects.length} onMove={projects.reorder} />
+                  <button type="button" onClick={() => projects.remove(proj.id)} className={deleteBtn} aria-label={`프로젝트 ${idx + 1} 삭제`}>삭제</button>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -483,7 +519,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={cert.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">자격증 {idx + 1}</legend>
-                <button type="button" onClick={() => certifications.remove(cert.id)} className={deleteBtn} aria-label={`자격증 ${idx + 1} 삭제`}>삭제</button>
+                <div className="flex items-center gap-1">
+                  <ReorderButtons index={idx} total={data.certifications.length} onMove={certifications.reorder} />
+                  <button type="button" onClick={() => certifications.remove(cert.id)} className={deleteBtn} aria-label={`자격증 ${idx + 1} 삭제`}>삭제</button>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -524,7 +563,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={lang.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">어학 {idx + 1}</legend>
-                <button type="button" onClick={() => languages.remove(lang.id)} className={deleteBtn} aria-label={`어학 ${idx + 1} 삭제`}>삭제</button>
+                <div className="flex items-center gap-1">
+                  <ReorderButtons index={idx} total={data.languages.length} onMove={languages.reorder} />
+                  <button type="button" onClick={() => languages.remove(lang.id)} className={deleteBtn} aria-label={`어학 ${idx + 1} 삭제`}>삭제</button>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -557,7 +599,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={award.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">수상 {idx + 1}</legend>
-                <button type="button" onClick={() => awards.remove(award.id)} className={deleteBtn} aria-label={`수상 ${idx + 1} 삭제`}>삭제</button>
+                <div className="flex items-center gap-1">
+                  <ReorderButtons index={idx} total={data.awards.length} onMove={awards.reorder} />
+                  <button type="button" onClick={() => awards.remove(award.id)} className={deleteBtn} aria-label={`수상 ${idx + 1} 삭제`}>삭제</button>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -590,7 +635,10 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
             <fieldset key={act.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <legend className="text-sm font-medium text-slate-600">활동 {idx + 1}</legend>
-                <button type="button" onClick={() => activities.remove(act.id)} className={deleteBtn} aria-label={`활동 ${idx + 1} 삭제`}>삭제</button>
+                <div className="flex items-center gap-1">
+                  <ReorderButtons index={idx} total={data.activities.length} onMove={activities.reorder} />
+                  <button type="button" onClick={() => activities.remove(act.id)} className={deleteBtn} aria-label={`활동 ${idx + 1} 삭제`}>삭제</button>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>

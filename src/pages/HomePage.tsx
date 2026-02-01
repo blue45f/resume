@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
+import QuickImportModal from '@/components/QuickImportModal';
 import { timeAgo } from '@/lib/time';
 import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchResumes, deleteResume, duplicateResume, fetchTags } from '@/lib/api';
+import DashboardStats from '@/components/DashboardStats';
 
 export default function HomePage() {
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [tags, setTags] = useState<(Tag & { resumeCount: number })[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [showImport, setShowImport] = useState(false);
+  const navigate = useNavigate();
 
   const load = async (signal?: AbortSignal) => {
     try {
@@ -91,20 +95,25 @@ export default function HomePage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">이력서공방에 오신 것을 환영합니다</h1>
               <p className="text-slate-500 max-w-md mx-auto">AI가 도와주는 이력서 작성. 다양한 양식으로 변환하고, 깔끔한 URL로 공유하세요.</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-10">
-              <Link to="/resumes/new" className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 max-w-3xl mx-auto mb-10">
+              <Link to="/resumes/new" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📝</span>
-                <span className="font-semibold text-slate-800">직접 작성</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">직접 작성</span>
                 <span className="text-xs text-slate-400 mt-1">템플릿 선택 후 작성</span>
               </Link>
-              <Link to="/auto-generate" className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
+              <Link to="/auto-generate" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-purple-200 dark:border-purple-800 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🤖</span>
-                <span className="font-semibold text-slate-800">AI 자동 생성</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">AI 자동 생성</span>
                 <span className="text-xs text-slate-400 mt-1">텍스트 붙여넣기만</span>
               </Link>
-              <Link to="/explore" className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-slate-200 hover:border-slate-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
+              <button onClick={() => setShowImport(true)} className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-green-200 dark:border-green-800 hover:border-green-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
+                <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📋</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">빠른 가져오기</span>
+                <span className="text-xs text-slate-400 mt-1">텍스트 붙여넣기</span>
+              </button>
+              <Link to="/explore" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🔍</span>
-                <span className="font-semibold text-slate-800">둘러보기</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">둘러보기</span>
                 <span className="text-xs text-slate-400 mt-1">공개 이력서 탐색</span>
               </Link>
             </div>
@@ -119,6 +128,8 @@ export default function HomePage() {
                 내 이력서 ({filtered.length})
               </h1>
             </div>
+
+            <DashboardStats />
 
             {/* Tag filter */}
             {tags.length > 0 && (
@@ -239,6 +250,12 @@ export default function HomePage() {
           <span>이력서공방</span>
         </div>
       </footer>
+      {showImport && (
+        <QuickImportModal
+          onClose={() => setShowImport(false)}
+          onSuccess={(id) => { setShowImport(false); navigate(`/resumes/${id}/edit`); }}
+        />
+      )}
     </>
   );
 }

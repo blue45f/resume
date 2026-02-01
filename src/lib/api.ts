@@ -17,6 +17,12 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+// Email Auth
+export const registerUser = (data: { email: string; password: string; name: string }) =>
+  request<{ token: string }>(`${BASE}/auth/register`, { method: 'POST', body: JSON.stringify(data) });
+export const loginUser = (data: { email: string; password: string }) =>
+  request<{ token: string }>(`${BASE}/auth/login`, { method: 'POST', body: JSON.stringify(data) });
+
 // Resumes
 export const fetchResumes = async (): Promise<ResumeSummary[]> => {
   const res = await request<{ data: ResumeSummary[] }>(`${BASE}/resumes`);
@@ -34,6 +40,9 @@ export const duplicateResume = (id: string) =>
 export const setResumeVisibility = (id: string, visibility: string) =>
   request<{ id: string; visibility: string }>(`${BASE}/resumes/${id}/visibility`, { method: 'PATCH', body: JSON.stringify({ visibility }) });
 export const fetchPublicResumes = () => request<ResumeSummary[]>(`${BASE}/resumes/public`);
+
+// Analytics
+export const fetchDashboard = () => request<any>(`${BASE}/resumes/dashboard/analytics`);
 
 // Tags
 export const fetchTags = () => request<(Tag & { resumeCount: number })[]>(`${BASE}/tags`);

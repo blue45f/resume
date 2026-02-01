@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Res, Req } from '@nestjs/common';
+import { Controller, Get, Post, Query, Res, Req, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -105,6 +105,51 @@ export class AuthController {
       res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`);
     } catch {
       res.redirect(`${this.authService.getFrontendUrl()}/login?error=kakao_failed`);
+    }
+  }
+
+  // ---- 이메일 회원가입/로그인 ----
+  @Post('register')
+  @Public()
+  @ApiOperation({ summary: '이메일 회원가입' })
+  async register(
+    @Body() body: { email: string; password: string; name: string },
+    @Res() res: Response,
+  ) {
+    try {
+      const token = await this.authService.register(body.email, body.password, body.name);
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
+      });
+      res.json({ token });
+    } catch (e: any) {
+      res.status(401).json({ message: e.message || '회원가입에 실패했습니다' });
+    }
+  }
+
+  @Post('login')
+  @Public()
+  @ApiOperation({ summary: '이메일 로그인' })
+  async login(
+    @Body() body: { email: string; password: string },
+    @Res() res: Response,
+  ) {
+    try {
+      const token = await this.authService.login(body.email, body.password);
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
+      });
+      res.json({ token });
+    } catch (e: any) {
+      res.status(401).json({ message: e.message || '로그인에 실패했습니다' });
     }
   }
 

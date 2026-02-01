@@ -1,4 +1,5 @@
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getSocialLoginUrl } from '@/lib/auth';
 
 function GoogleIcon() {
@@ -37,6 +38,43 @@ const PROVIDERS = [
 export default function LoginPage() {
   const [params] = useSearchParams();
   const error = params.get('error');
+  const [mode, setMode] = useState<'social' | 'email'>('social');
+  const [isRegister, setIsRegister] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
+      const body = isRegister ? { email, password, name } : { email, password };
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || '인증에 실패했습니다');
+      localStorage.setItem('token', data.token);
+      const meRes = await fetch('/api/auth/me', {
+        headers: { Authorization: `Bearer ${data.token}` },
+      });
+      if (meRes.ok) {
+        const user = await meRes.json();
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      navigate('/');
+      window.location.reload();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 px-4">
@@ -55,7 +93,23 @@ export default function LoginPage() {
         {/* Card */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 text-center mb-1">로그인</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-8">소셜 계정으로 간편하게 시작하세요</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">계정으로 간편하게 시작하세요</p>
+
+          {/* Mode Tabs */}
+          <div className="flex mb-6 bg-slate-100 dark:bg-slate-700 rounded-xl p-1">
+            <button
+              onClick={() => setMode('social')}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${mode === 'social' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            >
+              소셜 로그인
+            </button>
+            <button
+              onClick={() => setMode('email')}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${mode === 'email' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            >
+              이메일 로그인
+            </button>
+          </div>
 
           {error && (
             <div role="alert" className="mb-6 p-3.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-400 text-center animate-fade-in">
@@ -63,6 +117,7 @@ export default function LoginPage() {
             </div>
           )}
 
+          {mode === 'social' && (
           <div className="space-y-3">
             {PROVIDERS.map(p => {
               const Icon = p.icon;
@@ -78,6 +133,28 @@ export default function LoginPage() {
               );
             })}
           </div>
+          )}
+
+          {mode === 'email' && (
+            <form onSubmit={handleEmailAuth} className="space-y-3">
+              {isRegister && (
+                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="이름" required
+                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              )}
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" required
+                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호 (8자 이상)" required minLength={8}
+                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <button type="submit" disabled={loading}
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all duration-200 shadow-sm">
+                {loading ? '처리 중...' : isRegister ? '회원가입' : '로그인'}
+              </button>
+              <button type="button" onClick={() => setIsRegister(!isRegister)}
+                className="w-full text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                {isRegister ? '이미 계정이 있으신가요? 로그인' : '계정이 없으신가요? 회원가입'}
+              </button>
+            </form>
+          )}
 
           <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
             <p className="text-xs text-slate-400 dark:text-slate-500 text-center leading-relaxed">

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
+import { toast } from '@/components/Toast';
 import type { Resume } from '@/types/resume';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -11,6 +12,7 @@ export default function ProfileResumePage() {
   const [resume, setResume] = useState<Resume | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [viewCount, setViewCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!username || !slug) return;
@@ -20,10 +22,26 @@ export default function ProfileResumePage() {
         if (!res.ok) throw new Error('Not found');
         return res.json();
       })
-      .then(data => { if (!cancelled) { setResume(data); setLoading(false); } })
+      .then(data => {
+        if (!cancelled) {
+          setResume(data);
+          if (data.viewCount != null) setViewCount(data.viewCount);
+          setLoading(false);
+        }
+      })
       .catch(() => { if (!cancelled) { setNotFound(true); setLoading(false); } });
     return () => { cancelled = true; };
   }, [username, slug]);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast('링크가 복사되었습니다', 'success');
+    } catch {
+      toast('링크 복사에 실패했습니다', 'error');
+    }
+  };
 
   if (loading) {
     return (
@@ -60,24 +78,66 @@ export default function ProfileResumePage() {
     );
   }
 
+  const { personalInfo } = resume;
+
   return (
     <>
       <Header />
       <main id="main-content" className="flex-1" role="main">
-        {/* Toolbar */}
-        <div className="no-print sticky top-14 sm:top-16 z-40 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+        {/* Sticky Toolbar */}
+        <div className="no-print sticky top-14 sm:top-16 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200/60 dark:border-slate-700/60">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-              <Link to="/explore" className="hover:text-slate-700 dark:hover:text-slate-300">&larr; 탐색</Link>
-              <span className="text-slate-300 dark:text-slate-600">|</span>
-              <span className="font-medium text-slate-700 dark:text-slate-300">@{username}/{slug}</span>
+            {/* Left: navigation + person info */}
+            <div className="flex items-center gap-3 min-w-0">
+              <Link to="/explore" className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 shrink-0">&larr; 탐색</Link>
+              <span className="text-slate-300 dark:text-slate-600 shrink-0">|</span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 truncate text-sm">
+                    {personalInfo.name || `@${username}`}
+                  </span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">@{username}/{slug}</span>
+                </div>
+                {(personalInfo.email || personalInfo.phone) && (
+                  <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500 truncate">
+                    {personalInfo.email && <span>{personalInfo.email}</span>}
+                    {personalInfo.email && personalInfo.phone && <span>·</span>}
+                    {personalInfo.phone && <span>{personalInfo.phone}</span>}
+                  </div>
+                )}
+              </div>
             </div>
-            <button
-              onClick={() => window.print()}
-              className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              PDF / 인쇄
-            </button>
+
+            {/* Right: stats + actions */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              {viewCount != null && viewCount > 0 && (
+                <span className="hidden sm:flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500" title="조회수">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  {viewCount.toLocaleString()}
+                </span>
+              )}
+              <button
+                onClick={handleShare}
+                className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                title="URL 복사"
+              >
+                공유하기
+              </button>
+              <a
+                href={`${API_URL}/api/resumes/${resume.id}/export/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                다운로드
+              </a>
+              <button
+                onClick={() => window.print()}
+                className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                인쇄
+              </button>
+            </div>
           </div>
         </div>
 
