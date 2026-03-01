@@ -275,6 +275,32 @@ export class AuthService {
     return this.jwt.sign({ sub: user.id, role: user.role || 'user' });
   }
 
+  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+    if (!newPassword || newPassword.length < 8) {
+      throw new UnauthorizedException('새 비밀번호는 8자 이상이어야 합니다');
+    }
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+
+    if (user.passwordHash) {
+      const bcrypt = await import('bcryptjs');
+      const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!valid) throw new UnauthorizedException('현재 비밀번호가 올바르지 않습니다');
+    }
+
+    const bcrypt = await import('bcryptjs');
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+  }
+
+  async deleteAccount(userId: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+
+    // Delete all user data (cascade should handle related records)
+    await this.prisma.user.delete({ where: { id: userId } });
+  }
+
   async login(email: string, password: string): Promise<string> {
     if (!email || !password) {
       throw new UnauthorizedException('이메일과 비밀번호를 입력해주세요');

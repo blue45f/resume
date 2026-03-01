@@ -1,0 +1,130 @@
+# API 문서
+
+> Base URL: `/api`
+> 인증: Bearer 토큰 또는 httpOnly 쿠키
+
+## 인증
+
+### POST /auth/register
+이메일 회원가입
+
+**Request:**
+```json
+{ "email": "user@example.com", "password": "12345678", "name": "홍길동" }
+```
+
+**Response:** `{ "token": "jwt..." }`
+
+### POST /auth/login
+이메일 로그인
+
+**Request:** `{ "email": "user@example.com", "password": "12345678" }`
+**Response:** `{ "token": "jwt..." }`
+
+### GET /auth/providers
+사용 가능한 소셜 로그인 목록
+
+**Response:** `["google", "github"]`
+
+### GET /auth/me
+현재 로그인 사용자 정보
+
+**Response:** `{ "id": "...", "email": "...", "name": "...", "provider": "local" }`
+
+### POST /auth/change-password
+비밀번호 변경 (로그인 필요)
+
+**Request:** `{ "currentPassword": "old", "newPassword": "new12345" }`
+
+### DELETE /auth/account
+계정 삭제 (로그인 필요, cascade 삭제)
+
+### POST /auth/logout
+로그아웃 (쿠키 삭제)
+
+## 이력서
+
+### GET /resumes
+내 이력서 목록 (paginated)
+
+**Query:** `page`, `limit`, `public=true`
+**Response:** `{ "data": [...], "total": 10, "page": 1, "totalPages": 1 }`
+
+### POST /resumes
+이력서 생성
+
+### GET /resumes/:id
+이력서 상세 (9개 섹션 포함)
+
+### PUT /resumes/:id
+이력서 수정
+
+### DELETE /resumes/:id
+이력서 삭제
+
+### POST /resumes/:id/duplicate
+이력서 복제
+
+### GET /resumes/:id/export/text
+텍스트 형식 다운로드
+
+### GET /resumes/:id/export/markdown
+마크다운 형식 다운로드
+
+### GET /resumes/dashboard/analytics
+대시보드 분석 (이력서 수, 조회수, AI 변환 수 등)
+
+## AI 변환
+
+### POST /resumes/:id/transform
+LLM 양식 변환
+
+**Request:** `{ "templateType": "standard", "provider": "gemini" }`
+
+### POST /resumes/:id/transform/stream
+스트리밍 변환 (SSE)
+
+### POST /resumes/:id/transform/feedback
+AI 이력서 피드백
+
+### POST /resumes/:id/transform/job-match
+JD 매칭 분석
+
+**Request:** `{ "jobDescription": "..." }`
+
+### POST /resumes/:id/transform/interview
+면접 질문 생성
+
+## 지원 관리
+
+### GET /applications
+지원 목록
+
+### GET /applications/stats
+상태별 통계
+
+### POST /applications
+지원 추가
+
+**Request:** `{ "company": "네이버", "position": "프론트엔드", "url": "...", "status": "applied" }`
+
+### PUT /applications/:id
+지원 수정
+
+### DELETE /applications/:id
+지원 삭제
+
+## 공유
+
+### POST /resumes/:id/share
+공유 링크 생성
+
+**Request:** `{ "expiresInHours": 48, "password": "optional" }`
+
+### GET /shared/:token
+공유 이력서 조회
+
+## 헬스체크
+
+### GET /health
+서버 상태 (DB, 메모리, 버전, OAuth 프로바이더 상태)

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Res, Req, Body } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Query, Res, Req, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -160,6 +160,43 @@ export class AuthController {
   logout(@Res() res: Response) {
     res.clearCookie('token', { path: '/' });
     res.json({ success: true });
+  }
+
+  // ---- 비밀번호 변경 ----
+  @Post('change-password')
+  @ApiOperation({ summary: '비밀번호 변경' })
+  async changePassword(
+    @Body() body: { currentPassword: string; newPassword: string },
+    @Req() req: any,
+    @Res() res: Response,
+  ) {
+    try {
+      if (!req.user?.id) {
+        res.status(401).json({ message: '로그인이 필요합니다' });
+        return;
+      }
+      await this.authService.changePassword(req.user.id, body.currentPassword, body.newPassword);
+      res.json({ success: true, message: '비밀번호가 변경되었습니다' });
+    } catch (e: any) {
+      res.status(401).json({ message: e.message || '비밀번호 변경에 실패했습니다' });
+    }
+  }
+
+  // ---- 계정 삭제 ----
+  @Delete('account')
+  @ApiOperation({ summary: '계정 삭제 (모든 데이터 영구 삭제)' })
+  async deleteAccount(@Req() req: any, @Res() res: Response) {
+    try {
+      if (!req.user?.id) {
+        res.status(401).json({ message: '로그인이 필요합니다' });
+        return;
+      }
+      await this.authService.deleteAccount(req.user.id);
+      res.clearCookie('token', { path: '/' });
+      res.json({ success: true, message: '계정이 삭제되었습니다' });
+    } catch (e: any) {
+      res.status(400).json({ message: e.message || '계정 삭제에 실패했습니다' });
+    }
   }
 
   // ---- 내 정보 ----

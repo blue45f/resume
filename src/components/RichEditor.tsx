@@ -54,13 +54,15 @@ export default function RichEditor({ value, onChange, placeholder, className }: 
   if (!editor) return null;
 
   return (
-    <div className={`border border-slate-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-colors ${className || ''}`}>
+    <div className={`border border-slate-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-colors dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 ${className || ''}`}>
       {/* Toolbar */}
-      <div className="flex items-center gap-0.5 px-2 py-1 bg-slate-50 border-b border-slate-200">
+      <div role="toolbar" aria-label="텍스트 서식" className="flex items-center gap-0.5 px-2 py-1 bg-slate-50 border-b border-slate-200 dark:bg-slate-800 dark:border-slate-600">
         <ToolbarBtn
           active={editor.isActive('bold')}
           onClick={() => editor.chain().focus().toggleBold().run()}
           title="굵게 (Ctrl+B)"
+          ariaLabel="굵게"
+          ariaPressed={editor.isActive('bold')}
         >
           <strong>B</strong>
         </ToolbarBtn>
@@ -68,6 +70,8 @@ export default function RichEditor({ value, onChange, placeholder, className }: 
           active={editor.isActive('italic')}
           onClick={() => editor.chain().focus().toggleItalic().run()}
           title="기울임 (Ctrl+I)"
+          ariaLabel="기울임"
+          ariaPressed={editor.isActive('italic')}
         >
           <em>I</em>
         </ToolbarBtn>
@@ -76,6 +80,8 @@ export default function RichEditor({ value, onChange, placeholder, className }: 
           active={editor.isActive('bulletList')}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           title="글머리 기호"
+          ariaLabel="목록"
+          ariaPressed={editor.isActive('bulletList')}
         >
           •
         </ToolbarBtn>
@@ -83,6 +89,8 @@ export default function RichEditor({ value, onChange, placeholder, className }: 
           active={editor.isActive('orderedList')}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           title="번호 매기기"
+          ariaLabel="번호 목록"
+          ariaPressed={editor.isActive('orderedList')}
         >
           1.
         </ToolbarBtn>
@@ -98,6 +106,8 @@ export default function RichEditor({ value, onChange, placeholder, className }: 
             }
           }}
           title="링크"
+          ariaLabel="링크 추가"
+          ariaPressed={editor.isActive('link')}
         >
           🔗
         </ToolbarBtn>
@@ -109,13 +119,15 @@ export default function RichEditor({ value, onChange, placeholder, className }: 
   );
 }
 
-function ToolbarBtn({ active, onClick, title, children }: { active: boolean; onClick: () => void; title: string; children: React.ReactNode }) {
+function ToolbarBtn({ active, onClick, title, ariaLabel, ariaPressed, children }: { active: boolean; onClick: () => void; title: string; ariaLabel?: string; ariaPressed?: boolean; children: React.ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
       title={title}
-      className={`w-7 h-7 flex items-center justify-center rounded text-xs transition-colors ${
+      aria-label={ariaLabel}
+      aria-pressed={ariaPressed}
+      className={`w-7 h-7 flex items-center justify-center rounded text-xs transition-colors dark:text-slate-300 dark:hover:bg-slate-700 ${
         active ? 'bg-blue-100 text-blue-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
       }`}
     >

@@ -15,6 +15,7 @@ export default function CoverLetterPage() {
   const [tone, setTone] = useState<'formal' | 'friendly' | 'passionate'>('formal');
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchResumes().then(setResumes).catch(() => {});
@@ -32,6 +33,7 @@ export default function CoverLetterPage() {
 
     setLoading(true);
     setResult('');
+    setError('');
     try {
       const token = localStorage.getItem('token');
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -54,7 +56,9 @@ export default function CoverLetterPage() {
       setResult(data.text || data.data?.text || JSON.stringify(data));
       toast('자기소개서가 생성되었습니다', 'success');
     } catch (e: any) {
-      toast(e.message || '생성에 실패했습니다', 'error');
+      const msg = e.message || '생성에 실패했습니다';
+      setError(msg);
+      toast(msg, 'error');
     } finally {
       setLoading(false);
     }
@@ -156,6 +160,11 @@ export default function CoverLetterPage() {
                 </button>
               )}
             </div>
+            {error && (
+              <div className="p-4 mb-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-400">
+                {error}
+              </div>
+            )}
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 min-h-[400px]">
               {loading ? (
                 <div className="flex items-center justify-center h-64">

@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 interface ToastMessage {
   id: number;
   text: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'info' | 'warning';
 }
 
 let toastId = 0;
@@ -19,7 +19,8 @@ export function ToastContainer() {
   const addToast = useCallback((text: string, type: ToastMessage['type']) => {
     const id = ++toastId;
     setMessages(prev => [...prev, { id, text, type }]);
-    setTimeout(() => setMessages(prev => prev.filter(m => m.id !== id)), 3000);
+    const duration = type === 'error' || type === 'warning' ? 4000 : 3000;
+    setTimeout(() => setMessages(prev => prev.filter(m => m.id !== id)), duration);
   }, []);
 
   useEffect(() => {
@@ -32,7 +33,8 @@ export function ToastContainer() {
   const bgColors = {
     success: 'bg-green-500',
     error: 'bg-red-600',
-    info: 'bg-slate-800',
+    info: 'bg-slate-800 dark:bg-slate-700',
+    warning: 'bg-amber-500',
   };
 
   return (
@@ -40,10 +42,11 @@ export function ToastContainer() {
       {messages.map(msg => (
         <div
           key={msg.id}
-          className={`${bgColors[msg.type]} text-white px-4 py-2.5 rounded-lg shadow-xl text-sm max-w-xs animate-[slideIn_0.2s_ease-out]`}
+          className={`${bgColors[msg.type]} text-white px-4 py-2.5 rounded-lg shadow-xl text-sm max-w-xs animate-[slideIn_0.2s_ease-out] flex items-center`}
           role="alert"
         >
-          {msg.text}
+          <span className="flex-1">{msg.text}</span>
+          <button onClick={() => setMessages(prev => prev.filter(m => m.id !== msg.id))} className="ml-2 opacity-70 hover:opacity-100" aria-label="닫기">&times;</button>
         </div>
       ))}
     </div>

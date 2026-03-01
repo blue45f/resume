@@ -40,7 +40,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
       <header className={theme.headerStyle}>
         <div className={hasPhoto ? 'flex gap-5' : ''}>
           {hasPhoto && (
-            <img src={pi.photo} alt="" loading="lazy" className="w-[100px] h-[130px] object-cover rounded border border-slate-200 shrink-0 print:w-[90px] print:h-[117px]" />
+            <img src={pi.photo} alt="" loading="lazy" decoding="async" className="w-[100px] h-[130px] object-cover rounded border border-slate-200 shrink-0 print:w-[90px] print:h-[117px]" />
           )}
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{pi.name || '이름'}</h1>

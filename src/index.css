@@ -27,6 +27,14 @@
   height: 0;
 }
 
+/* Tiptap Dark Mode */
+.dark .tiptap {
+  color: #e2e8f0;
+}
+.dark .tiptap p.is-editor-empty:first-child::before {
+  color: #64748b;
+}
+
 body {
   margin: 0;
   background: #f8fafc;

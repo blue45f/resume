@@ -70,8 +70,7 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         if (!saving) {
-          onSave(data);
-          toast('저장 중...', 'info');
+          handleSubmit();
         }
       }
     };
@@ -147,6 +146,28 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
     startDate: '', endDate: '', description: '',
   } as Activity));
 
+  const validate = (): string[] => {
+    const errors: string[] = [];
+    if (!data.title?.trim()) errors.push('이력서 제목을 입력해주세요');
+    if (!data.personalInfo.name?.trim()) errors.push('이름을 입력해주세요');
+    if (data.personalInfo.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.personalInfo.email)) {
+      errors.push('올바른 이메일 형식을 입력해주세요');
+    }
+    if (data.personalInfo.website && !data.personalInfo.website.startsWith('http')) {
+      errors.push('웹사이트 URL은 http:// 또는 https://로 시작해야 합니다');
+    }
+    return errors;
+  };
+
+  const handleSubmit = () => {
+    const errors = validate();
+    if (errors.length > 0) {
+      toast(errors[0], 'warning');
+      return;
+    }
+    onSave(data);
+  };
+
   const inputClass = 'w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors';
   const labelClass = 'block text-sm font-medium text-slate-700 mb-1';
   const deleteBtn = 'text-red-600 text-sm hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 rounded px-2 py-1 transition-colors';
@@ -155,7 +176,7 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
   return (
     <form
       className="space-y-6"
-      onSubmit={e => { e.preventDefault(); onSave(data); }}
+      onSubmit={e => { e.preventDefault(); handleSubmit(); }}
       aria-label="이력서 편집 폼"
     >
       <div>

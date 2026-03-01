@@ -6,6 +6,8 @@ import { getTheme, setTheme } from '@/lib/theme';
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setThemeState] = useState(getTheme());
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const user = getUser();
   const location = useLocation();
@@ -75,6 +77,25 @@ export default function Header() {
             <Link to="/compare" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/compare' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`} aria-current={location.pathname === '/compare' ? 'page' : undefined}>
               비교
             </Link>
+            {showSearch ? (
+              <form onSubmit={(e) => { e.preventDefault(); navigate(`/explore?q=${encodeURIComponent(searchQuery)}`); setShowSearch(false); setSearchQuery(''); }} className="flex items-center">
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="이력서 검색..."
+                  className="w-40 px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+                <button type="button" onClick={() => { setShowSearch(false); setSearchQuery(''); }} className="ml-1 text-slate-400 hover:text-slate-600 text-sm">
+                  &times;
+                </button>
+              </form>
+            ) : (
+              <button onClick={() => setShowSearch(true)} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 p-1.5 rounded-lg transition-colors" aria-label="검색">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </button>
+            )}
             <Link
               to="/auto-generate"
               className="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-200"
@@ -97,13 +118,18 @@ export default function Header() {
               <span className="text-xs text-slate-400">{themeLabel}</span>
             </button>
             {user ? (
-              <button
-                onClick={() => { clearAuth(); navigate('/'); window.location.reload(); }}
-                className="text-sm text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 transition-colors"
-                aria-label={`${user.name || user.email} 로그아웃`}
-              >
-                {user.name || user.email} 로그아웃
-              </button>
+              <>
+                <Link to="/settings" className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 transition-colors duration-200">
+                  {user.name || user.email}
+                </Link>
+                <button
+                  onClick={() => { clearAuth(); navigate('/'); window.location.reload(); }}
+                  className="text-sm text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 transition-colors duration-200"
+                  aria-label="로그아웃"
+                >
+                  로그아웃
+                </button>
+              </>
             ) : (
               <Link to="/login" className="text-sm text-blue-600 hover:text-blue-800 px-2 py-1">로그인</Link>
             )}
@@ -136,6 +162,7 @@ export default function Header() {
             <Link to="/applications" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">지원관리</Link>
             <Link to="/cover-letter" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">자소서</Link>
             <Link to="/compare" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">비교</Link>
+            <Link to="/settings" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-slate-50">설정</Link>
             <Link to="/resumes/new" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm font-medium text-blue-600 rounded-lg hover:bg-blue-50">+ 새 이력서</Link>
             <button
               onClick={cycleTheme}

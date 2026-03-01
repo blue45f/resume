@@ -97,8 +97,14 @@ export default function ApplicationsPage() {
         {showForm && (
           <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 mb-6 animate-fade-in-up">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              <input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} placeholder="회사명 *" required className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <input value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))} placeholder="포지션 *" required className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <div className="relative">
+                <input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} placeholder="회사명" required className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" />
+                {!form.company && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 text-sm font-bold" aria-hidden="true">*</span>}
+              </div>
+              <div className="relative">
+                <input value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))} placeholder="포지션" required className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" />
+                {!form.position && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 text-sm font-bold" aria-hidden="true">*</span>}
+              </div>
               <input value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} placeholder="공고 URL" className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="근무지" className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <input value={form.salary} onChange={e => setForm(f => ({ ...f, salary: e.target.value }))} placeholder="연봉" className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />

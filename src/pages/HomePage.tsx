@@ -8,6 +8,7 @@ import { timeAgo } from '@/lib/time';
 import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchResumes, deleteResume, duplicateResume, fetchTags } from '@/lib/api';
 import DashboardStats from '@/components/DashboardStats';
+import RecentActivity from '@/components/RecentActivity';
 
 export default function HomePage() {
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
@@ -15,6 +16,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectMode, setSelectMode] = useState(false);
   const navigate = useNavigate();
 
   const load = async (signal?: AbortSignal) => {
@@ -67,6 +70,31 @@ export default function HomePage() {
     } catch {
       toast('복제에 실패했습니다', 'error');
     }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === filtered.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(filtered.map(r => r.id)));
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`선택한 ${selectedIds.size}개의 이력서를 삭제하시겠습니까?`)) return;
+    for (const id of selectedIds) {
+      try { await deleteResume(id); } catch {}
+    }
+    toast(`${selectedIds.size}개 이력서가 삭제되었습니다`, 'success');
+    setSelectedIds(new Set());
+    setSelectMode(false);
+    load();
   };
 
   const filtered = filterTag
@@ -131,6 +159,8 @@ export default function HomePage() {
 
             <DashboardStats />
 
+            <RecentActivity />
+
             {/* Tag filter */}
             {tags.length > 0 && (
               <div className="flex gap-2 mb-4 overflow-x-auto pb-2" role="group" aria-label="태그 필터">
@@ -162,6 +192,30 @@ export default function HomePage() {
               </div>
             )}
 
+            {/* Bulk actions toolbar */}
+            <div className="flex items-center gap-3 mb-4">
+              <button
+                onClick={() => { setSelectMode(!selectMode); setSelectedIds(new Set()); }}
+                className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
+                  selectMode ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                }`}
+              >
+                {selectMode ? '선택 취소' : '선택'}
+              </button>
+              {selectMode && (
+                <>
+                  <button onClick={selectAll} className="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200">
+                    {selectedIds.size === filtered.length ? '전체 해제' : '전체 선택'}
+                  </button>
+                  {selectedIds.size > 0 && (
+                    <button onClick={handleBulkDelete} className="text-xs px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200">
+                      {selectedIds.size}개 삭제
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+
             {/* Resume grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {filtered.map((resume, index) => (
@@ -169,6 +223,17 @@ export default function HomePage() {
                   key={resume.id}
                   className={`bg-white rounded-xl border border-slate-200 p-4 sm:p-5 hover:shadow-md transition-shadow duration-200 focus-within:ring-2 focus-within:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)} border-l-4 ${resume.visibility === 'public' ? 'border-l-emerald-400' : resume.visibility === 'link-only' ? 'border-l-blue-400' : 'border-l-slate-300'}`}
                 >
+                  {selectMode && (
+                    <div className="mb-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(resume.id)}
+                        onChange={() => toggleSelect(resume.id)}
+                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        aria-label={`${resume.title} 선택`}
+                      />
+                    </div>
+                  )}
                   <h2 className="font-semibold text-slate-900 truncate mb-1">
                     {resume.title || '제목 없음'}
                   </h2>

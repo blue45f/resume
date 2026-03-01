@@ -13,7 +13,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 | 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, TypeScript |
 | 인프라 | Vercel (프론트), Render (백엔드), Neon (DB) |
 | 보안 | JWT + OAuth2 (Google/GitHub/Kakao), Helmet + CSP, Rate Limiting (3-tier), HMAC, 요청 살균 |
-| 테스트 | Jest, Supertest (E2E 55개 + Unit 91개, 총 146개) |
+| 테스트 | Jest, Supertest (185+ 테스트, 18 스위트) |
 
 ## 주요 기능
 
@@ -24,6 +24,10 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **이력서 복제**: 기존 이력서를 복사하여 새 이력서 생성
 - **키보드 단축키**: Ctrl+S 저장, Arrow Key 탭 전환
 - **내보내기**: 텍스트(.txt), 마크다운(.md) 형식으로 이력서 다운로드
+- **멀티 테마 프리뷰**: 5종(클래식/모던/미니멀/프로페셔널/크리에이티브) 실시간 전환
+- **섹션 순서 변경**: 항목별 위/아래 버튼으로 순서 조정
+- **빠른 가져오기**: LinkedIn/기존 이력서 텍스트 붙여넣기 → AI 자동 생성
+- **이력서 비교**: 2개 이력서 섹션별 시각 비교
 
 ### AI 기능 (5종)
 - **AI 양식 변환**: 8가지 양식(표준/경력기술서/자기소개서/LinkedIn/영문/개발자/디자이너/커스텀) + 스트리밍
@@ -31,6 +35,9 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **AI 이력서 피드백**: 점수(0-100), 등급, 강점/개선점, 섹션별 분석
 - **AI JD 매칭 분석**: 채용공고 매칭도(%), 매칭/부족 스킬, 수정 제안, 자소서 포인트
 - **AI 면접 질문 생성**: 8-10개 예상 질문 + 면접관 의도 + 모범 답변
+- **자기소개서 생성기**: 이력서+채용공고+어조 선택 → 맞춤 자기소개서
+- **ATS 호환성 검사**: 이력서 ATS 통과율 분석 (0-100점), 문제점/팁 제공
+- **섹션별 작성 팁**: 9개 섹션별 맥락 기반 코칭
 
 ### 공유 & 프로필
 - **슬러그 URL**: `/@username/이력서-제목` 형태의 깔끔한 URL
@@ -38,6 +45,10 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **공개 이력서**: 탐색 페이지에서 검색/필터링
 - **조회수 추적**: 공개 이력서 조회 카운트
 - **이력서 완성도**: 섹션별 점수 + 개선 팁 (원티드 스타일)
+
+### 지원 관리
+- **지원 내역 추적**: 회사별 지원 현황 CRUD, 상태별 필터(지원/서류/면접/합격/불합격)
+- **대시보드 통계**: 이력서 수, 공개 수, 총 조회수, AI 변환 수, 최근 편집
 
 ### 템플릿 & 태그
 - **26개 직종별 템플릿**: 개발자, 디자이너, 기획/PM, 마케터, 영업, 데이터, 연구, 의료, 교육, 회계, 법률, HR, 공무원, 물류, 건축, 외식, 무역, 크리에이터, 제조, 프리랜서, 신입 등
@@ -49,6 +60,9 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **관리자 권한**: admin 역할 (전체 리소스 관리 가능)
 - **보안 헤더**: Helmet + CSP (프로덕션), X-Content-Type-Options, Referrer-Policy
 - **요청 살균**: HTML 태그 자동 제거, NoSQL 인젝션 방지 (`$` 접두사 차단)
+- **이메일 회원가입/로그인**: bcrypt 비밀번호 해싱, 8자 최소
+- **비밀번호 변경**: 로그인 후 설정 페이지에서 변경
+- **계정 삭제**: GDPR 준수, 모든 데이터 cascade 삭제
 - **httpOnly 쿠키**: JWT를 httpOnly 쿠키로 저장 (XSS 방어)
 - **요청 추적**: X-Request-ID 헤더 자동 생성
 - **Rate Limiting**: 3-tier (short: 10/1s, medium: 100/60s, long: 1000/1h)
@@ -65,6 +79,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **공유 링크 복사**: 미리보기 페이지에서 원클릭 URL 복사
 - **카드 통계**: 조회수, 공개 상태 표시
 - **접근성**: ARIA, 키보드 네비게이션, 스크린 리더, focus-visible
+- **음성 입력**: Web Speech API 기반 자기소개 음성 작성
 - **MSW 목업**: 백엔드 없이 프론트엔드 개발 가능
 
 ## 시작하기
@@ -149,10 +164,10 @@ npm run start:server   # node dist-server/main.js
 ### 테스트
 
 ```bash
-npm run test:unit      # 유닛 테스트 (91개)
+npm run test:unit      # 유닛 테스트 (130개+)
 npm run test:unit:cov  # 유닛 테스트 + 커버리지
 npm run test:e2e       # E2E 테스트 (55개)
-# 전체: 146개 테스트 (14 스위트)
+# 전체: 185+ 테스트 (18 스위트)
 ```
 
 ### 프론트엔드 목업 모드 (백엔드 없이 개발)
@@ -182,6 +197,15 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 
 ## API 엔드포인트
 
+### 인증
+| 메서드    | 경로                         | 설명     |
+|--------|----------------------------|--------|
+| POST   | /api/auth/register         | 이메일 회원가입 |
+| POST   | /api/auth/login            | 이메일 로그인 |
+| POST   | /api/auth/logout           | 로그아웃 |
+| POST   | /api/auth/change-password  | 비밀번호 변경 |
+| DELETE | /api/auth/account          | 계정 삭제 |
+
 ### 이력서
 | 메서드    | 경로                         | 설명     |
 |--------|----------------------------|--------|
@@ -208,6 +232,20 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 |------|------------------------------------------|---------------|
 | POST | /api/templates/local-transform/:resumeId | 프리셋/템플릿 기반 변환 |
 | GET  | /api/templates/presets/list              | 프리셋 목록 (5종)   |
+
+### 지원 관리
+| 메서드    | 경로                         | 설명     |
+|--------|----------------------------|--------|
+| GET    | /api/applications          | 지원 목록 |
+| GET    | /api/applications/stats    | 지원 통계 |
+| POST   | /api/applications          | 지원 추가 |
+| PUT    | /api/applications/:id      | 지원 수정 |
+| DELETE | /api/applications/:id      | 지원 삭제 |
+
+### 분석
+| 메서드    | 경로                              | 설명     |
+|--------|---------------------------------|--------|
+| GET    | /api/resumes/dashboard/analytics | 대시보드 분석 |
 
 ### 템플릿 / 태그 / 버전 / 공유
 | 메서드                 | 경로                                     | 설명        |
@@ -239,6 +277,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   ├── versions/             # 버전 조회/복원
 │   ├── tags/                 # 태그 CRUD + 이력서 매핑
 │   ├── share/                # 공유 링크 (bcrypt, 소유권 검증)
+│   ├── applications/         # 지원 관리 CRUD
 │   └── attachments/          # 첨부파일 (MIME + 확장자 이중 검증)
 ├── src/                       # React 프론트엔드
 │   ├── components/
@@ -247,16 +286,28 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── ResumeForm.tsx    # 9탭 이력서 편집 폼
 │   │   ├── ResumePreview.tsx # 이력서 미리보기
 │   │   ├── KeyboardShortcuts.tsx  # 키보드 단축키 모달
-│   │   └── LlmTransformPanel.tsx  # 로컬/AI 변환 패널
+│   │   ├── LlmTransformPanel.tsx  # 로컬/AI 변환 패널
+│   │   ├── AtsScorePanel.tsx  # ATS 호환성 검사
+│   │   ├── DashboardStats.tsx # 대시보드 통계
+│   │   ├── VoiceInput.tsx     # 음성 입력
+│   │   └── QuickImportModal.tsx # 빠른 가져오기
 │   ├── lib/
 │   │   ├── api.ts            # API 클라이언트
 │   │   ├── theme.ts          # 다크모드 테마 관리
-│   │   └── completeness.ts   # 이력서 완성도 계산
+│   │   ├── completeness.ts   # 이력서 완성도 계산
+│   │   ├── ats.ts            # ATS 호환성 분석
+│   │   ├── resumeThemes.ts   # 멀티 테마 정의
+│   │   └── writingTips.ts    # 섹션별 작성 팁
 │   ├── mocks/                # MSW 목업 (백엔드 없이 개발)
 │   │   ├── handlers.ts       # API 핸들러
 │   │   ├── data.ts           # 샘플 데이터
 │   │   └── browser.ts        # 브라우저 워커
-│   ├── pages/                # HomePage, Edit, New, Preview, Explore
+│   ├── pages/
+│   │   ├── ApplicationsPage   # 지원 관리
+│   │   ├── CoverLetterPage    # 자소서 생성기
+│   │   ├── ComparePage        # 이력서 비교
+│   │   ├── SettingsPage       # 사용자 설정
+│   │   └── ...                # HomePage, Edit, New, Preview, Explore
 │   └── types/resume.ts       # TypeScript 타입
 ├── prisma/
 │   ├── schema.prisma         # DB 스키마 (16개 테이블)
