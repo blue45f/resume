@@ -19,6 +19,8 @@ export default function ApplicationsPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ company: '', position: '', url: '', status: 'applied', notes: '', salary: '', location: '' });
   const [filter, setFilter] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'recent' | 'company'>('recent');
 
   const load = () => {
     fetchApplications().then(setApps).catch(() => {}).finally(() => setLoading(false));
@@ -54,7 +56,16 @@ export default function ApplicationsPage() {
     } catch { toast('삭제에 실패했습니다', 'error'); }
   };
 
-  const filtered = filter ? apps.filter(a => a.status === filter) : apps;
+  const filtered = apps
+    .filter(a => !filter || a.status === filter)
+    .filter(a => !searchQuery ||
+      a.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      a.position.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === 'company') return a.company.localeCompare(b.company, 'ko');
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
   const stats = STATUSES.map(s => ({ ...s, count: apps.filter(a => a.status === s.value).length }));
 
   return (
@@ -91,6 +102,23 @@ export default function ApplicationsPage() {
               {s.label} ({s.count})
             </button>
           ))}
+        </div>
+
+        {/* Search & Sort */}
+        <div className="flex items-center gap-2 mb-4">
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="회사명 또는 포지션 검색..."
+            className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={() => setSortBy(sortBy === 'recent' ? 'company' : 'recent')}
+            className="px-3 py-2 text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          >
+            {sortBy === 'recent' ? '최신순' : '회사순'}
+          </button>
         </div>
 
         {/* Add Form */}

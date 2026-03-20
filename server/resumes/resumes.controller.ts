@@ -4,6 +4,7 @@ import {
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Public } from '../auth/auth.guard';
+import { CacheTTL } from '../common/interceptors/cache.interceptor';
 import { ResumesService } from './resumes.service';
 import { ExportService } from './export.service';
 import { AnalyticsService } from './analytics.service';
@@ -45,6 +46,7 @@ export class ResumesController {
 
   @Get('@:username/:slug')
   @Public()
+  @CacheTTL(60)
   @ApiOperation({ summary: '슬러그로 이력서 조회 (/@username/slug)' })
   findBySlug(@Param('username') username: string, @Param('slug') slug: string) {
     return this.resumesService.findBySlug(username, slug);
@@ -52,15 +54,17 @@ export class ResumesController {
 
   @Get('public')
   @Public()
+  @CacheTTL(60)
   @ApiOperation({ summary: '공개 이력서 검색/목록' })
   findPublicResumes(
     @Query('q') query?: string,
     @Query('tag') tag?: string,
+    @Query('sort') sort?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.resumesService.searchPublic({
-      query, tag,
+      query, tag, sort,
       page: parseInt(page || '1'),
       limit: Math.min(parseInt(limit || '20'), 50),
     });

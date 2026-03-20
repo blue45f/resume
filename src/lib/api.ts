@@ -1,4 +1,5 @@
 import type { Resume, ResumeSummary, Template, TransformResult, LlmProvider, Tag } from '@/types/resume';
+import { getCached, setCache } from './cache';
 
 // 개발: Vite proxy로 /api → localhost:3001
 // 프로덕션: VITE_API_URL 환경변수로 백엔드 URL 지정
@@ -45,7 +46,13 @@ export const fetchPublicResumes = () => request<ResumeSummary[]>(`${BASE}/resume
 export const fetchDashboard = () => request<any>(`${BASE}/resumes/dashboard/analytics`);
 
 // Tags
-export const fetchTags = () => request<(Tag & { resumeCount: number })[]>(`${BASE}/tags`);
+export const fetchTags = async (): Promise<(Tag & { resumeCount: number })[]> => {
+  const cached = getCached<(Tag & { resumeCount: number })[]>('tags', 2 * 60 * 1000);
+  if (cached) return cached;
+  const data = await request<(Tag & { resumeCount: number })[]>(`${BASE}/tags`);
+  setCache('tags', data);
+  return data;
+};
 export const createTag = (data: { name: string; color?: string }) =>
   request<Tag>(`${BASE}/tags`, { method: 'POST', body: JSON.stringify(data) });
 export const deleteTag = (id: string) =>
@@ -56,7 +63,13 @@ export const removeTagFromResume = (tagId: string, resumeId: string) =>
   request<{ success: boolean }>(`${BASE}/tags/${tagId}/resumes/${resumeId}`, { method: 'DELETE' });
 
 // Templates
-export const fetchTemplates = () => request<Template[]>(`${BASE}/templates`);
+export const fetchTemplates = async (): Promise<Template[]> => {
+  const cached = getCached<Template[]>('templates', 5 * 60 * 1000);
+  if (cached) return cached;
+  const data = await request<Template[]>(`${BASE}/templates`);
+  setCache('templates', data);
+  return data;
+};
 export const fetchTemplate = (id: string) => request<Template>(`${BASE}/templates/${id}`);
 export const createTemplate = (data: { name: string; description?: string; category?: string; prompt?: string; layout?: string }) =>
   request<Template>(`${BASE}/templates`, { method: 'POST', body: JSON.stringify(data) });

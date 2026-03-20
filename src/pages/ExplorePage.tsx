@@ -20,6 +20,7 @@ export default function ExplorePage() {
   const [tags, setTags] = useState<(Tag & { resumeCount: number })[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState(params.get('q') || '');
+  const [sortBy, setSortBy] = useState<'recent' | 'views'>('recent');
 
   const query = params.get('q') || '';
   const tag = params.get('tag') || '';
@@ -31,6 +32,7 @@ export default function ExplorePage() {
       const qs = new URLSearchParams();
       if (query) qs.set('q', query);
       if (tag) qs.set('tag', tag);
+      if (sortBy === 'views') qs.set('sort', 'views');
       qs.set('page', String(page));
       qs.set('limit', '12');
 
@@ -47,7 +49,7 @@ export default function ExplorePage() {
     const ac = new AbortController();
     search(ac.signal);
     return () => ac.abort();
-  }, [query, tag, page]);
+  }, [query, tag, page, sortBy]);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,6 +100,23 @@ export default function ExplorePage() {
             검색
           </button>
         </form>
+
+        {/* 정렬 */}
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xs text-slate-500 dark:text-slate-400">정렬:</span>
+          <button
+            onClick={() => setSortBy('recent')}
+            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${sortBy === 'recent' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}
+          >
+            최신순
+          </button>
+          <button
+            onClick={() => setSortBy('views')}
+            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${sortBy === 'views' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}
+          >
+            인기순
+          </button>
+        </div>
 
         {/* 태그 필터 */}
         {tags.length > 0 && (

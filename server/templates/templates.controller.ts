@@ -13,6 +13,7 @@ import { TemplatesService } from './templates.service';
 import { LocalTransformService } from './local-transform.service';
 import { ResumesService } from '../resumes/resumes.service';
 import { CreateTemplateDto, UpdateTemplateDto, LocalTransformDto } from './dto/template.dto';
+import { CacheTTL } from '../common/interceptors/cache.interceptor';
 
 @ApiTags('templates')
 @Controller('templates')
@@ -24,6 +25,7 @@ export class TemplatesController {
   ) {}
 
   @Get()
+  @CacheTTL(300)
   @ApiOperation({ summary: '템플릿 목록 조회' })
   findAll() {
     return this.templatesService.findAll();

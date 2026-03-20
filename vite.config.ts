@@ -15,4 +15,16 @@ export default defineConfig({
       '/api': 'http://localhost:3001',
     },
   },
+  build: {
+    target: 'es2022',
+    cssMinify: 'lightningcss',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'tiptap': ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-link', '@tiptap/extension-placeholder'],
+        },
+      },
+    },
+  },
 })

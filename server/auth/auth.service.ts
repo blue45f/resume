@@ -45,7 +45,8 @@ export class AuthService {
   validateOAuthState(state: string | undefined): boolean {
     if (!state) return false;
     const parts = state.split('.');
-    if (parts.length !== 3) return false;
+    // 3 parts = normal login, 4 parts = linking mode (timestamp.nonce.hmac.userId)
+    if (parts.length !== 3 && parts.length !== 4) return false;
 
     const [timestamp, nonce, hmac] = parts;
     const payload = `${timestamp}.${nonce}`;
@@ -64,6 +65,15 @@ export class AuthService {
     }
 
     return true;
+  }
+
+  /**
+   * state에서 linking mode의 userId를 추출. 없으면 null.
+   */
+  extractLinkUserId(state: string): string | null {
+    const parts = state.split('.');
+    if (parts.length === 4) return parts[3];
+    return null;
   }
 
   // ---- OAuth URL 생성 ----
@@ -199,6 +209,125 @@ export class AuthService {
     if (this.config.get('GITHUB_CLIENT_ID')) providers.push('github');
     if (this.config.get('KAKAO_CLIENT_ID')) providers.push('kakao');
     return providers;
+  }
+
+  // ---- 소셜 계정 연동 ----
+
+  async getGoogleProfile(code: string): Promise<OAuthProfile> {
+    const clientId = this.config.get('GOOGLE_CLIENT_ID');
+    const clientSecret = this.config.get('GOOGLE_CLIENT_SECRET');
+    const redirectUri = this.getCallbackUrl('google');
+
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: redirectUri, grant_type: 'authorization_code' }),
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenData.access_token) throw new UnauthorizedException('Google 인증 실패');
+
+    const profileRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const profile = await profileRes.json();
+
+    return {
+      provider: 'google',
+      providerId: profile.id,
+      email: profile.email || '',
+      name: profile.name || '',
+      avatar: profile.picture || '',
+    };
+  }
+
+  async getGithubProfile(code: string): Promise<OAuthProfile> {
+    const clientId = this.config.get('GITHUB_CLIENT_ID');
+    const clientSecret = this.config.get('GITHUB_CLIENT_SECRET');
+
+    const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, code }),
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenData.access_token) throw new UnauthorizedException('GitHub 인증 실패');
+
+    const profileRes = await fetch('https://api.github.com/user', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const profile = await profileRes.json();
+
+    let email = profile.email || '';
+    if (!email) {
+      const emailsRes = await fetch('https://api.github.com/user/emails', {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
+      });
+      const emails = await emailsRes.json();
+      const primary = emails.find((e: any) => e.primary);
+      email = primary?.email || emails[0]?.email || '';
+    }
+
+    return {
+      provider: 'github',
+      providerId: String(profile.id),
+      email,
+      name: profile.name || profile.login || '',
+      avatar: profile.avatar_url || '',
+    };
+  }
+
+  async getKakaoProfile(code: string): Promise<OAuthProfile> {
+    const clientId = this.config.get('KAKAO_CLIENT_ID');
+    const redirectUri = this.getCallbackUrl('kakao');
+
+    const tokenRes = await fetch('https://kauth.kakao.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `grant_type=authorization_code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${code}`,
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenData.access_token) throw new UnauthorizedException('Kakao 인증 실패');
+
+    const profileRes = await fetch('https://kapi.kakao.com/v2/user/me', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const profile = await profileRes.json();
+    const kakaoAccount = profile.kakao_account || {};
+
+    return {
+      provider: 'kakao',
+      providerId: String(profile.id),
+      email: kakaoAccount.email || '',
+      name: kakaoAccount.profile?.nickname || '',
+      avatar: kakaoAccount.profile?.thumbnail_image_url || '',
+    };
+  }
+
+  async linkSocialAccount(userId: string, provider: string, providerId: string, avatar?: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+
+    // Check if this social account is already linked to another user
+    const existing = await this.prisma.user.findFirst({
+      where: { provider, providerId, id: { not: userId } },
+    });
+    if (existing) {
+      throw new UnauthorizedException('이 소셜 계정은 다른 사용자에게 연결되어 있습니다');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { provider, providerId, avatar: avatar || user.avatar },
+    });
+  }
+
+  async getLinkedAccounts(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException();
+    return {
+      provider: user.provider,
+      hasPassword: !!user.passwordHash,
+    };
   }
 
   // ---- 내부 ----

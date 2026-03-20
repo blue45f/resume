@@ -2,7 +2,10 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { CacheHeaderInterceptor } from './common/interceptors/cache.interceptor';
+import { ETagInterceptor } from './common/interceptors/etag.interceptor';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { Reflector } from '@nestjs/core';
 import compression from 'compression';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -58,6 +61,9 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalInterceptors(new LoggingInterceptor());
+  const reflector = app.get(Reflector);
+  app.useGlobalInterceptors(new CacheHeaderInterceptor(reflector));
+  app.useGlobalInterceptors(new ETagInterceptor());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

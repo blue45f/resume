@@ -76,7 +76,7 @@ export class ResumesService {
     return resumes.map((r) => this.formatSummary(r));
   }
 
-  async searchPublic(opts: { query?: string; tag?: string; page: number; limit: number }) {
+  async searchPublic(opts: { query?: string; tag?: string; sort?: string; page: number; limit: number }) {
     const where: any = { visibility: 'public' };
 
     // 텍스트 검색 (이름, 제목, 요약)
@@ -93,6 +93,10 @@ export class ResumesService {
       where.tags = { some: { tag: { name: opts.tag } } };
     }
 
+    const orderBy = opts.sort === 'views'
+      ? { viewCount: 'desc' as const }
+      : { updatedAt: 'desc' as const };
+
     const [resumes, total] = await Promise.all([
       this.prisma.resume.findMany({
         where,
@@ -102,7 +106,7 @@ export class ResumesService {
           },
           tags: { include: { tag: true } },
         },
-        orderBy: { updatedAt: 'desc' },
+        orderBy,
         skip: (opts.page - 1) * opts.limit,
         take: opts.limit,
       }),

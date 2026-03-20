@@ -17,6 +17,12 @@ const mockAuthService = {
   getProfile: jest.fn(),
   register: jest.fn(),
   login: jest.fn(),
+  extractLinkUserId: jest.fn().mockReturnValue(null),
+  linkSocialAccount: jest.fn(),
+  getLinkedAccounts: jest.fn(),
+  getGoogleProfile: jest.fn(),
+  getGithubProfile: jest.fn(),
+  getKakaoProfile: jest.fn(),
 };
 
 function mockResponse(): Response {

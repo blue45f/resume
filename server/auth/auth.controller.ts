@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Query, Res, Req, Body } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Query, Res, Req, Body, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -32,6 +32,16 @@ export class AuthController {
       if (!code || !this.authService.validateOAuthState(state)) {
         throw new Error('Invalid OAuth state or missing code');
       }
+
+      // Check if this is a link request (state contains userId)
+      const linkUserId = this.authService.extractLinkUserId(state);
+      if (linkUserId) {
+        const profile = await this.authService.getGoogleProfile(code);
+        await this.authService.linkSocialAccount(linkUserId, 'google', profile.providerId, profile.avatar);
+        res.redirect(`${this.authService.getFrontendUrl()}/settings?linked=google`);
+        return;
+      }
+
       const token = await this.authService.handleGoogleCallback(code);
       res.cookie('token', token, {
         httpOnly: true,
@@ -62,6 +72,15 @@ export class AuthController {
       if (!code || !this.authService.validateOAuthState(state)) {
         throw new Error('Invalid OAuth state or missing code');
       }
+
+      const linkUserId = this.authService.extractLinkUserId(state);
+      if (linkUserId) {
+        const profile = await this.authService.getGithubProfile(code);
+        await this.authService.linkSocialAccount(linkUserId, 'github', profile.providerId, profile.avatar);
+        res.redirect(`${this.authService.getFrontendUrl()}/settings?linked=github`);
+        return;
+      }
+
       const token = await this.authService.handleGithubCallback(code);
       res.cookie('token', token, {
         httpOnly: true,
@@ -94,6 +113,17 @@ export class AuthController {
       if (state && !this.authService.validateOAuthState(state)) {
         throw new Error('Invalid OAuth state');
       }
+
+      if (state) {
+        const linkUserId = this.authService.extractLinkUserId(state);
+        if (linkUserId) {
+          const profile = await this.authService.getKakaoProfile(code);
+          await this.authService.linkSocialAccount(linkUserId, 'kakao', profile.providerId, profile.avatar);
+          res.redirect(`${this.authService.getFrontendUrl()}/settings?linked=kakao`);
+          return;
+        }
+      }
+
       const token = await this.authService.handleKakaoCallback(code);
       res.cookie('token', token, {
         httpOnly: true,
@@ -196,6 +226,37 @@ export class AuthController {
       res.json({ success: true, message: '계정이 삭제되었습니다' });
     } catch (e: any) {
       res.status(400).json({ message: e.message || '계정 삭제에 실패했습니다' });
+    }
+  }
+
+  // ---- 소셜 계정 연동 ----
+  @Get('linked-accounts')
+  @ApiOperation({ summary: '연결된 소셜 계정 정보' })
+  getLinkedAccounts(@Req() req: any) {
+    if (!req.user?.id) return null;
+    return this.authService.getLinkedAccounts(req.user.id);
+  }
+
+  @Get('link/:provider')
+  @ApiOperation({ summary: '소셜 계정 연동 시작' })
+  linkSocial(@Param('provider') provider: string, @Req() req: any, @Res() res: Response) {
+    if (!req.user?.id) {
+      res.redirect(`${this.authService.getFrontendUrl()}/login`);
+      return;
+    }
+    const state = this.authService.generateOAuthState() + '.' + req.user.id;
+    switch (provider) {
+      case 'google':
+        res.redirect(this.authService.getGoogleAuthUrl(state));
+        break;
+      case 'github':
+        res.redirect(this.authService.getGithubAuthUrl(state));
+        break;
+      case 'kakao':
+        res.redirect(this.authService.getKakaoAuthUrl(state));
+        break;
+      default:
+        res.status(400).json({ message: '지원하지 않는 프로바이더입니다' });
     }
   }
 

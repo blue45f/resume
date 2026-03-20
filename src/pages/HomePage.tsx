@@ -15,6 +15,8 @@ export default function HomePage() {
   const [tags, setTags] = useState<(Tag & { resumeCount: number })[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'updatedAt' | 'title' | 'viewCount'>('updatedAt');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [showImport, setShowImport] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
@@ -100,6 +102,23 @@ export default function HomePage() {
   const filtered = filterTag
     ? resumes.filter(r => r.tags?.some(t => t.id === filterTag))
     : resumes;
+
+  const sorted = [...filtered].sort((a, b) => {
+    let cmp = 0;
+    switch (sortBy) {
+      case 'title':
+        cmp = (a.title || '').localeCompare(b.title || '', 'ko');
+        break;
+      case 'viewCount':
+        cmp = (a.viewCount || 0) - (b.viewCount || 0);
+        break;
+      case 'updatedAt':
+      default:
+        cmp = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+        break;
+    }
+    return sortOrder === 'desc' ? -cmp : cmp;
+  });
 
   if (loading) {
     return (
@@ -192,6 +211,34 @@ export default function HomePage() {
               </div>
             )}
 
+            {/* Sort */}
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xs text-slate-500 dark:text-slate-400">정렬:</span>
+              {[
+                { value: 'updatedAt', label: '최근 수정' },
+                { value: 'title', label: '이름순' },
+                { value: 'viewCount', label: '조회수' },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => {
+                    if (sortBy === opt.value) setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+                    else { setSortBy(opt.value as any); setSortOrder('desc'); }
+                  }}
+                  className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${
+                    sortBy === opt.value
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {opt.label}
+                  {sortBy === opt.value && (
+                    <span className="ml-1">{sortOrder === 'desc' ? '\u2193' : '\u2191'}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
             {/* Bulk actions toolbar */}
             <div className="flex items-center gap-3 mb-4">
               <button
@@ -218,7 +265,7 @@ export default function HomePage() {
 
             {/* Resume grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {filtered.map((resume, index) => (
+              {sorted.map((resume, index) => (
                 <article
                   key={resume.id}
                   className={`bg-white rounded-xl border border-slate-200 p-4 sm:p-5 hover:shadow-md transition-shadow duration-200 focus-within:ring-2 focus-within:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)} border-l-4 ${resume.visibility === 'public' ? 'border-l-emerald-400' : resume.visibility === 'link-only' ? 'border-l-blue-400' : 'border-l-slate-300'}`}

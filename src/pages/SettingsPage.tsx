@@ -99,6 +99,39 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* Social Account Linking */}
+        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">소셜 계정 연동</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">소셜 계정을 연동하면 해당 계정으로도 로그인할 수 있습니다.</p>
+          <div className="space-y-3">
+            {[
+              { id: 'google', name: 'Google', color: 'border-slate-200 hover:border-blue-300' },
+              { id: 'github', name: 'GitHub', color: 'border-slate-200 hover:border-slate-400' },
+              { id: 'kakao', name: 'Kakao', color: 'border-slate-200 hover:border-yellow-300' },
+            ].map(p => {
+              const isLinked = user.provider === p.id;
+              return (
+                <div key={p.id} className={`flex items-center justify-between p-3 rounded-xl border ${p.color} dark:border-slate-600 transition-colors`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{p.name}</span>
+                    {isLinked && (
+                      <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">연동됨</span>
+                    )}
+                  </div>
+                  {!isLinked && (
+                    <a
+                      href={`${API_URL}/api/auth/link/${p.id}`}
+                      className="text-sm px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                    >
+                      연동하기
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         {/* Change Password - only for local accounts */}
         {user.provider === 'local' && (
           <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">

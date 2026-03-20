@@ -2,6 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Public } from '../auth/auth.guard';
+import { CacheTTL } from '../common/interceptors/cache.interceptor';
 import { PrismaService } from '../prisma/prisma.service';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -17,6 +18,7 @@ export class HealthController {
 
   @Get()
   @Public()
+  @CacheTTL(10)
   @ApiOperation({ summary: '서버 상태 확인' })
   async check() {
     let dbStatus = 'ok';
