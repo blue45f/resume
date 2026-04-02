@@ -219,6 +219,35 @@ async function main() {
     console.log(`  ✓ 샘플 이력서 ${sampleResumes.length}개 생성`);
   }
 
+  // Seed sample comments on public resumes
+  const commentCount = await prisma.comment.count();
+  if (commentCount === 0) {
+    const publicResumes = await prisma.resume.findMany({
+      where: { visibility: 'public' },
+      take: 3,
+      select: { id: true },
+    });
+
+    const sampleComments = [
+      { authorName: '취준생A', content: '이력서 구성이 정말 깔끔하네요! 경력 섹션에서 성과를 수치로 표현한 부분이 인상적입니다.' },
+      { authorName: '현직 HR', content: 'ATS 호환성이 좋아 보입니다. 기술 스택을 카테고리별로 분류한 것이 가독성을 높여주네요.' },
+      { authorName: '시니어 개발자', content: '프로젝트 설명에 본인의 역할과 기여도를 더 구체적으로 적으면 좋을 것 같습니다. 예를 들어 "팀 내 프론트엔드 리드로서..." 같은 표현이요.' },
+      { authorName: '디자이너', content: '전체적인 레이아웃이 깔끔합니다. 섹션 간 여백이 적절하고 읽기 편해요.' },
+      { authorName: '커리어 코치', content: '자기소개를 좀 더 보강하면 좋겠습니다. 핵심 역량 3가지와 차별화 포인트를 명확히 해보세요.' },
+      { authorName: '같은 직군', content: '저도 비슷한 경력인데 참고가 많이 됩니다. 기술 스택 정리 방식을 벤치마킹하겠습니다!' },
+    ];
+
+    for (const resume of publicResumes) {
+      const commentsToAdd = sampleComments.slice(0, Math.min(3 + publicResumes.indexOf(resume), sampleComments.length));
+      for (const comment of commentsToAdd) {
+        await prisma.comment.create({
+          data: { resumeId: resume.id, ...comment },
+        });
+      }
+    }
+    console.log(`  ✓ 샘플 댓글 ${publicResumes.length * 3}개+ 생성`);
+  }
+
   console.log('시드 완료!');
 }
 

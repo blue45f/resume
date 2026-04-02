@@ -16,6 +16,7 @@ import { ShareModule } from './share/share.module';
 import { AttachmentsModule } from './attachments/attachments.module';
 import { HealthModule } from './health/health.module';
 import { ApplicationsModule } from './applications/applications.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ApplicationsModule } from './applications/applications.module';
     ShareModule,
     AttachmentsModule,
     ApplicationsModule,
+    CommentsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

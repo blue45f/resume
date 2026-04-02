@@ -8,6 +8,7 @@ import { resumeThemes } from '@/lib/resumeThemes';
 import VersionPanel from '@/components/VersionPanel';
 import AttachmentPanel from '@/components/AttachmentPanel';
 import AiAnalysisPanel from '@/components/AiAnalysisPanel';
+import CommentSection from '@/components/CommentSection';
 import CompletenessBar from '@/components/CompletenessBar';
 import AtsScorePanel from '@/components/AtsScorePanel';
 import { toast } from '@/components/Toast';
@@ -213,6 +214,9 @@ export default function PreviewPage() {
             <AtsScorePanel resume={resume} />
           </div>
           <ResumePreview ref={contentRef} resume={resume} themeId={themeId} />
+          <div className="max-w-[210mm] mx-auto mt-6">
+            <CommentSection resumeId={id!} isPublic={resume.visibility === 'public'} />
+          </div>
         </div>
       </main>
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
+import CommentSection from '@/components/CommentSection';
 import { toast } from '@/components/Toast';
 import type { Resume } from '@/types/resume';
 
@@ -150,6 +151,9 @@ export default function ProfileResumePage() {
 
         <div className="py-6 sm:py-8 px-4">
           <ResumePreview ref={null} resume={resume} />
+          <div className="max-w-[210mm] mx-auto mt-6">
+            <CommentSection resumeId={resume.id} isPublic={true} />
+          </div>
         </div>
       </main>
     </>

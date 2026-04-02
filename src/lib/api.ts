@@ -160,6 +160,7 @@ export interface JobApplication {
   salary?: string;
   location?: string;
   resumeId?: string;
+  visibility?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -19,7 +19,7 @@ export default function ApplicationsPage() {
   const [apps, setApps] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ company: '', position: '', url: '', status: 'applied', notes: '', salary: '', location: '' });
+  const [form, setForm] = useState({ company: '', position: '', url: '', status: 'applied', notes: '', salary: '', location: '', visibility: 'private' });
   const [filter, setFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'company'>('recent');
@@ -42,7 +42,7 @@ export default function ApplicationsPage() {
       await createApplication({ ...form, appliedDate: new Date().toISOString().slice(0, 10) });
       toast('지원 내역이 추가되었습니다', 'success');
       setShowForm(false);
-      setForm({ company: '', position: '', url: '', status: 'applied', notes: '', salary: '', location: '' });
+      setForm({ company: '', position: '', url: '', status: 'applied', notes: '', salary: '', location: '', visibility: 'private' });
       load();
     } catch { toast('추가에 실패했습니다', 'error'); }
   };
@@ -144,6 +144,10 @@ export default function ApplicationsPage() {
               <input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="근무지" className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <input value={form.salary} onChange={e => setForm(f => ({ ...f, salary: e.target.value }))} placeholder="연봉" className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="메모" rows={2} className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:col-span-2" />
+              <select value={form.visibility || 'private'} onChange={e => setForm(f => ({ ...f, visibility: e.target.value }))} className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="private">비공개</option>
+                <option value="public">공개</option>
+              </select>
             </div>
             <div className="flex gap-2 justify-end">
               <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800">취소</button>
@@ -166,7 +170,12 @@ export default function ApplicationsPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{app.company}</h3>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">{app.position}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        {app.position}
+                        {app.visibility === 'public' && (
+                          <span className="ml-2 text-xs px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded">공개</span>
+                        )}
+                      </p>
                       <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-400">
                         {app.location && <span>{app.location}</span>}
                         {app.salary && <span>· {app.salary}</span>}
