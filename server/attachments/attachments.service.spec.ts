@@ -170,22 +170,22 @@ describe('AttachmentsService', () => {
     });
   });
 
-  describe('getFilePath', () => {
+  describe('getFileData', () => {
     it('파일 경로 반환', async () => {
       mockPrisma.attachment.findUnique.mockResolvedValue({
         ...mockAttachment,
         resume: { userId: 'user-1', visibility: 'public' },
       });
 
-      const result = await service.getFilePath('att-1', 'user-1');
+      const result = await service.getFileData('att-1', 'user-1');
       expect(result.originalName).toBe('이력서.pdf');
       expect(result.mimeType).toBe('application/pdf');
-      expect(result.path).toContain('abc-uuid.pdf');
+      expect(result.originalName).toBeDefined();
     });
 
     it('존재하지 않는 파일 → NotFoundException', async () => {
       mockPrisma.attachment.findUnique.mockResolvedValue(null);
-      await expect(service.getFilePath('fake')).rejects.toThrow(NotFoundException);
+      await expect(service.getFileData('fake')).rejects.toThrow(NotFoundException);
     });
 
     it('비공개 이력서의 첨부파일 - 다른 사용자 → NotFoundException', async () => {
@@ -194,7 +194,7 @@ describe('AttachmentsService', () => {
         resume: { userId: 'user-1', visibility: 'private' },
       });
 
-      await expect(service.getFilePath('att-1', 'other-user')).rejects.toThrow(NotFoundException);
+      await expect(service.getFileData('att-1', 'other-user')).rejects.toThrow(NotFoundException);
     });
   });
 

@@ -14,7 +14,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 import { Response } from 'express';
-import { createReadStream, existsSync } from 'fs';
 import { AttachmentsService } from './attachments.service';
 
 @ApiTags('attachments')
@@ -45,14 +44,14 @@ export class AttachmentsController {
   @Get('attachments/:id/download')
   @ApiOperation({ summary: '파일 다운로드' })
   async download(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
-    const { path, originalName, mimeType } = await this.attachmentsService.getFilePath(id, req.user?.id);
-    if (!existsSync(path)) {
+    const { data, originalName, mimeType } = await this.attachmentsService.getFileData(id, req.user?.id);
+    if (!data) {
       res.status(404).json({ message: '파일을 찾을 수 없습니다' });
       return;
     }
     res.setHeader('Content-Type', mimeType);
     res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(originalName)}`);
-    createReadStream(path).pipe(res);
+    res.send(data);
   }
 
   @Delete('attachments/:id')

@@ -227,6 +227,7 @@ model Attachment {
   originalName String   @map("original_name") // 원본 파일명
   mimeType     String   @map("mime_type")
   size         Int // bytes
+  data         String?  // base64 인코딩된 파일 데이터 (DB 저장 모드)
   category     String   @default("document") // certificate, portfolio, document, reference
   description  String   @default("")
   createdAt    DateTime @default(now()) @map("created_at")

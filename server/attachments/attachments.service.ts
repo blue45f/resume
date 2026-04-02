@@ -1,17 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
-import { writeFile, unlink, mkdir } from 'fs/promises';
-import { join, resolve, extname } from 'path';
-import { existsSync } from 'fs';
+import { extname } from 'path';
 
-// Render persistent disk: /opt/render/project/src/data
-// 로컬: ./uploads
-const UPLOAD_DIR = process.env.NODE_ENV === 'production'
-  ? join(process.cwd(), 'data', 'uploads')
-  : join(process.cwd(), 'uploads');
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const MAX_TOTAL_SIZE_PER_RESUME = 100 * 1024 * 1024; // 100MB per resume
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB (DB 저장이므로 축소)
+const MAX_TOTAL_SIZE_PER_RESUME = 50 * 1024 * 1024; // 50MB per resume
 const MAX_FILES_PER_RESUME = 20;
 const ALLOWED_TYPES = [
   'application/pdf',
@@ -39,7 +32,6 @@ export class AttachmentsService {
     category: string,
     description: string,
   ) {
-    // Validate resume exists + check cumulative limits
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       include: { attachments: { select: { size: true } } },
@@ -51,38 +43,25 @@ export class AttachmentsService {
     }
     const totalSize = resume.attachments.reduce((sum, a) => sum + a.size, 0);
     if (totalSize + file.size > MAX_TOTAL_SIZE_PER_RESUME) {
-      throw new BadRequestException(`이력서의 총 파일 크기가 100MB를 초과할 수 없습니다 (현재: ${Math.round(totalSize / 1024 / 1024)}MB)`);
+      throw new BadRequestException(`이력서의 총 파일 크기가 50MB를 초과할 수 없습니다`);
     }
 
-    // Validate file
     if (file.size > MAX_FILE_SIZE) {
-      throw new BadRequestException('파일 크기는 10MB 이하여야 합니다');
+      throw new BadRequestException('파일 크기는 5MB 이하여야 합니다');
     }
     if (!ALLOWED_TYPES.includes(file.mimetype)) {
       throw new BadRequestException('허용되지 않는 파일 형식입니다');
     }
 
-    // 확장자 이중 검증 (mime type spoofing 방지)
     const ext = extname(file.originalname).toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
       throw new BadRequestException('허용되지 않는 파일 확장자입니다');
     }
 
-    // Ensure upload dir exists
-    if (!existsSync(UPLOAD_DIR)) {
-      await mkdir(UPLOAD_DIR, { recursive: true });
-    }
-
-    // Save file with safe filename (UUID + validated extension)
+    // DB에 base64로 저장 (Render 무료 플랜 호환)
+    const data = file.buffer.toString('base64');
     const filename = `${randomUUID()}${ext}`;
-    const filePath = resolve(UPLOAD_DIR, filename);
-    // Path traversal 방지
-    if (!filePath.startsWith(resolve(UPLOAD_DIR))) {
-      throw new BadRequestException('잘못된 파일 경로입니다');
-    }
-    await writeFile(filePath, file.buffer);
 
-    // Save to DB
     const attachment = await this.prisma.attachment.create({
       data: {
         resumeId,
@@ -90,6 +69,7 @@ export class AttachmentsService {
         originalName: file.originalname,
         mimeType: file.mimetype,
         size: file.size,
+        data,
         category: category || 'document',
         description: description || '',
       },
@@ -102,24 +82,27 @@ export class AttachmentsService {
     const attachments = await this.prisma.attachment.findMany({
       where: { resumeId },
       orderBy: { createdAt: 'desc' },
+      select: {
+        id: true, resumeId: true, filename: true, originalName: true,
+        mimeType: true, size: true, category: true, description: true, createdAt: true,
+      },
     });
     return attachments.map(a => this.format(a));
   }
 
-  async getFilePath(id: string, userId?: string) {
+  async getFileData(id: string, userId?: string) {
     const attachment = await this.prisma.attachment.findUnique({
       where: { id },
       include: { resume: { select: { userId: true, visibility: true } } },
     });
     if (!attachment) throw new NotFoundException('파일을 찾을 수 없습니다');
 
-    // 비공개 이력서 첨부파일은 소유자만 다운로드 가능
     if (attachment.resume.visibility === 'private' && attachment.resume.userId && attachment.resume.userId !== userId) {
       throw new NotFoundException('파일을 찾을 수 없습니다');
     }
 
     return {
-      path: join(UPLOAD_DIR, attachment.filename),
+      data: attachment.data ? Buffer.from(attachment.data, 'base64') : null,
       originalName: attachment.originalName,
       mimeType: attachment.mimeType,
     };
@@ -129,11 +112,6 @@ export class AttachmentsService {
     const attachment = await this.prisma.attachment.findUnique({ where: { id } });
     if (!attachment) throw new NotFoundException('파일을 찾을 수 없습니다');
 
-    // Delete file
-    const filePath = join(UPLOAD_DIR, attachment.filename);
-    try { await unlink(filePath); } catch { /* file may not exist */ }
-
-    // Delete DB record
     await this.prisma.attachment.delete({ where: { id } });
     return { success: true };
   }
@@ -148,7 +126,7 @@ export class AttachmentsService {
       category: a.category,
       description: a.description,
       downloadUrl: `/api/attachments/${a.id}/download`,
-      createdAt: a.createdAt.toISOString(),
+      createdAt: a.createdAt?.toISOString?.() || a.createdAt,
     };
   }
 }
