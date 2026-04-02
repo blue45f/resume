@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from './auth.guard';
+import { RegisterDto, LoginDto, ChangePasswordDto } from './dto/auth.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -143,11 +144,11 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: '이메일 회원가입' })
   async register(
-    @Body() body: { email: string; password: string; name: string },
+    @Body() dto: RegisterDto,
     @Res() res: Response,
   ) {
     try {
-      const token = await this.authService.register(body.email, body.password, body.name);
+      const token = await this.authService.register(dto.email, dto.password, dto.name!);
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -165,11 +166,11 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: '이메일 로그인' })
   async login(
-    @Body() body: { email: string; password: string },
+    @Body() dto: LoginDto,
     @Res() res: Response,
   ) {
     try {
-      const token = await this.authService.login(body.email, body.password);
+      const token = await this.authService.login(dto.email, dto.password);
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -196,7 +197,7 @@ export class AuthController {
   @Post('change-password')
   @ApiOperation({ summary: '비밀번호 변경' })
   async changePassword(
-    @Body() body: { currentPassword: string; newPassword: string },
+    @Body() dto: ChangePasswordDto,
     @Req() req: any,
     @Res() res: Response,
   ) {
@@ -205,7 +206,7 @@ export class AuthController {
         res.status(401).json({ message: '로그인이 필요합니다' });
         return;
       }
-      await this.authService.changePassword(req.user.id, body.currentPassword, body.newPassword);
+      await this.authService.changePassword(req.user.id, dto.currentPassword, dto.newPassword);
       res.json({ success: true, message: '비밀번호가 변경되었습니다' });
     } catch (e: any) {
       res.status(401).json({ message: e.message || '비밀번호 변경에 실패했습니다' });

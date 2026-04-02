@@ -42,6 +42,14 @@ export const setResumeVisibility = (id: string, visibility: string) =>
   request<{ id: string; visibility: string }>(`${BASE}/resumes/${id}/visibility`, { method: 'PATCH', body: JSON.stringify({ visibility }) });
 export const fetchPublicResumes = () => request<ResumeSummary[]>(`${BASE}/resumes/public`);
 
+// Bookmarks
+export const addBookmark = (resumeId: string) =>
+  request<{ bookmarked: boolean }>(`${BASE}/resumes/${resumeId}/bookmark`, { method: 'POST' });
+export const removeBookmark = (resumeId: string) =>
+  request<{ bookmarked: boolean }>(`${BASE}/resumes/${resumeId}/bookmark`, { method: 'DELETE' });
+export const fetchBookmarks = () =>
+  request<{ id: string; resumeId: string; title: string; name: string; createdAt: string }[]>(`${BASE}/resumes/bookmarks/list`);
+
 // Analytics
 export const fetchDashboard = () => request<any>(`${BASE}/resumes/dashboard/analytics`);
 

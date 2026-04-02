@@ -13,7 +13,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 | 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, TypeScript |
 | 인프라 | Vercel (프론트), Render (백엔드), Neon (DB) |
 | 보안 | JWT + OAuth2 (Google/GitHub/Kakao), Helmet + CSP, Rate Limiting (3-tier), HMAC, 요청 살균 |
-| 테스트 | Jest, Supertest (185+ 테스트, 18 스위트) |
+| 테스트 | Jest, Supertest (190+ 테스트, 19+ 스위트) |
 
 ## 주요 기능
 
@@ -45,14 +45,21 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **공개 이력서**: 탐색 페이지에서 검색/필터링
 - **조회수 추적**: 공개 이력서 조회 카운트
 - **이력서 완성도**: 섹션별 점수 + 개선 팁 (원티드 스타일)
+- **커뮤니티 의견**: 공개 이력서에 의견/조언 댓글 (5-500자)
+- **이력서 북마크**: 관심 있는 공개 이력서 저장
 
 ### 지원 관리
 - **지원 내역 추적**: 회사별 지원 현황 CRUD, 상태별 필터(지원/서류/면접/합격/불합격)
 - **대시보드 통계**: 이력서 수, 공개 수, 총 조회수, AI 변환 수, 최근 편집
+- **공개/비공개 설정**: 지원 목록 visibility 전환
+- **지원 댓글**: 공개 지원에 의견 남기기
 
 ### 템플릿 & 태그
 - **26개 직종별 템플릿**: 개발자, 디자이너, 기획/PM, 마케터, 영업, 데이터, 연구, 의료, 교육, 회계, 법률, HR, 공무원, 물류, 건축, 외식, 무역, 크리에이터, 제조, 프리랜서, 신입 등
 - **태그 시스템**: 이력서 분류 및 필터링, 소유권 관리
+
+### 관리자
+- **사이트 통계**: 회원/이력서/콘텐츠/활동 현황 대시보드 (/admin)
 
 ### 보안 & 권한
 - **소셜 로그인**: Google, GitHub, Kakao (OAuth2 + HMAC state)
@@ -66,6 +73,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **httpOnly 쿠키**: JWT를 httpOnly 쿠키로 저장 (XSS 방어)
 - **요청 추적**: X-Request-ID 헤더 자동 생성
 - **Rate Limiting**: 3-tier (short: 10/1s, medium: 100/60s, long: 1000/1h)
+- **DTO 입력 검증**: class-validator 기반 모든 입력 필드 검증
 - **기타**: CORS, JWT, DTO 검증, Path Traversal 방지
 
 ### UI/UX
@@ -80,6 +88,11 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **카드 통계**: 조회수, 공개 상태 표시
 - **접근성**: ARIA, 키보드 네비게이션, 스크린 리더, focus-visible
 - **음성 입력**: Web Speech API 기반 자기소개 음성 작성
+- **공유 Footer**: 4컬럼 사이트맵 푸터 (8개 페이지)
+- **Breadcrumb**: 편집 페이지 경로 탐색
+- **ScrollToTop**: 스크롤 시 맨위 이동 버튼
+- **EmptyState**: 7가지 상황별 SVG 일러스트
+- **페이지 타이틀**: 13개 페이지 동적 document.title
 - **MSW 목업**: 백엔드 없이 프론트엔드 개발 가능
 
 ## 시작하기
@@ -167,7 +180,7 @@ npm run start:server   # node dist-server/main.js
 npm run test:unit      # 유닛 테스트 (130개+)
 npm run test:unit:cov  # 유닛 테스트 + 커버리지
 npm run test:e2e       # E2E 테스트 (55개)
-# 전체: 185+ 테스트 (18 스위트)
+# 전체: 190+ 테스트 (19+ 스위트)
 ```
 
 ### 프론트엔드 목업 모드 (백엔드 없이 개발)
@@ -257,6 +270,27 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 | POST                | /api/resumes/:id/share                 | 공유 링크 생성  |
 | GET                 | /api/shared/:token                     | 공유 이력서 조회 |
 
+### 댓글
+| 메서드    | 경로                                      | 설명         |
+|--------|-------------------------------------------|------------|
+| GET    | /api/resumes/:id/comments                 | 이력서 댓글 목록 |
+| POST   | /api/resumes/:id/comments                 | 댓글 작성     |
+| DELETE | /api/resumes/:id/comments/:commentId      | 댓글 삭제     |
+| GET    | /api/applications/:id/comments            | 지원 댓글 목록 |
+| POST   | /api/applications/:id/comments            | 지원 댓글 작성 |
+
+### 북마크
+| 메서드    | 경로                           | 설명         |
+|--------|-------------------------------|------------|
+| POST   | /api/resumes/:id/bookmark     | 북마크 추가    |
+| DELETE | /api/resumes/:id/bookmark     | 북마크 해제    |
+| GET    | /api/resumes/bookmarks/list   | 내 북마크 목록  |
+
+### 관리자
+| 메서드  | 경로                        | 설명         |
+|------|---------------------------|------------|
+| GET  | /api/health/admin/stats   | 사이트 전체 통계 |
+
 ## 프로젝트 구조
 
 ```
@@ -278,6 +312,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   ├── tags/                 # 태그 CRUD + 이력서 매핑
 │   ├── share/                # 공유 링크 (bcrypt, 소유권 검증)
 │   ├── applications/         # 지원 관리 CRUD
+│   ├── comments/             # 커뮤니티 댓글 CRUD
 │   └── attachments/          # 첨부파일 (MIME + 확장자 이중 검증)
 ├── src/                       # React 프론트엔드
 │   ├── components/
@@ -290,7 +325,13 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── AtsScorePanel.tsx  # ATS 호환성 검사
 │   │   ├── DashboardStats.tsx # 대시보드 통계
 │   │   ├── VoiceInput.tsx     # 음성 입력
-│   │   └── QuickImportModal.tsx # 빠른 가져오기
+│   │   ├── QuickImportModal.tsx # 빠른 가져오기
+│   │   ├── BookmarkButton.tsx # 북마크 토글
+│   │   ├── CommentSection.tsx # 댓글 섹션
+│   │   ├── Footer.tsx        # 공유 푸터
+│   │   ├── ScrollToTop.tsx   # 맨위 이동
+│   │   ├── Breadcrumb.tsx    # 경로 탐색
+│   │   └── EmptyState.tsx    # 빈 상태 UI
 │   ├── lib/
 │   │   ├── api.ts            # API 클라이언트
 │   │   ├── theme.ts          # 다크모드 테마 관리
@@ -307,6 +348,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── CoverLetterPage    # 자소서 생성기
 │   │   ├── ComparePage        # 이력서 비교
 │   │   ├── SettingsPage       # 사용자 설정
+│   │   ├── AdminPage          # 관리자 통계
 │   │   └── ...                # HomePage, Edit, New, Preview, Explore
 │   └── types/resume.ts       # TypeScript 타입
 ├── prisma/

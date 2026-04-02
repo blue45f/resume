@@ -124,6 +124,47 @@ JD 매칭 분석
 ### GET /shared/:token
 공유 이력서 조회
 
+## 댓글
+
+### GET /resumes/:resumeId/comments
+이력서 댓글 목록 (공개 이력서만)
+
+**Response:** `[{ "id": "...", "authorName": "취준생A", "content": "좋은 이력서네요", "createdAt": "..." }]`
+
+### POST /resumes/:resumeId/comments
+댓글 작성 (로그인 필요)
+
+**Request:** `{ "content": "의견 내용 (5-500자)" }`
+
+### DELETE /resumes/:resumeId/comments/:commentId
+댓글 삭제 (작성자만)
+
+## 북마크
+
+### POST /resumes/:id/bookmark
+북마크 추가 (로그인 필요)
+
+### DELETE /resumes/:id/bookmark
+북마크 해제
+
+### GET /resumes/bookmarks/list
+내 북마크 목록
+
+## 관리자
+
+### GET /health/admin/stats
+사이트 전체 통계
+
+**Response:**
+```json
+{
+  "users": { "total": 10, "today": 1, "week": 3, "month": 8 },
+  "resumes": { "total": 25, "today": 2, "week": 5, "public": 16 },
+  "content": { "templates": 26, "tags": 8, "comments": 15, "versions": 50 },
+  "activity": { "applications": 30, "transforms": 12, "totalViews": 1500 }
+}
+```
+
 ## 헬스체크
 
 ### GET /health

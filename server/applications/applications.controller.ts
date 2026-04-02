@@ -2,6 +2,7 @@ import { Controller, Get, Post, Put, Delete, Body, Param, Req } from '@nestjs/co
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ApplicationsService } from './applications.service';
 import { Public } from '../auth/auth.guard';
+import { CreateApplicationDto, UpdateApplicationDto } from './dto/application.dto';
 
 @ApiTags('applications')
 @Controller('applications')
@@ -22,14 +23,14 @@ export class ApplicationsController {
 
   @Post()
   @ApiOperation({ summary: '지원 내역 추가' })
-  create(@Body() body: { company: string; position: string; url?: string; status?: string; appliedDate?: string; notes?: string; salary?: string; location?: string; resumeId?: string }, @Req() req: any) {
-    return this.service.create(body, req.user?.id);
+  create(@Body() dto: CreateApplicationDto, @Req() req: any) {
+    return this.service.create(dto, req.user?.id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: '지원 내역 수정' })
-  update(@Param('id') id: string, @Body() body: any, @Req() req: any) {
-    return this.service.update(id, body, req.user?.id);
+  update(@Param('id') id: string, @Body() dto: UpdateApplicationDto, @Req() req: any) {
+    return this.service.update(id, dto, req.user?.id);
   }
 
   @Delete(':id')

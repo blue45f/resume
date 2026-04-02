@@ -14,6 +14,7 @@ import AtsScorePanel from '@/components/AtsScorePanel';
 import { toast } from '@/components/Toast';
 import type { Resume } from '@/types/resume';
 import { fetchResume } from '@/lib/api';
+import BookmarkButton from '@/components/BookmarkButton';
 
 export default function PreviewPage() {
   const { id } = useParams<{ id: string }>();
@@ -147,6 +148,9 @@ export default function PreviewPage() {
               >
                 버전
               </button>
+              {resume.visibility === 'public' && (
+                <BookmarkButton resumeId={id!} />
+              )}
               <button
                 onClick={() => setShowAiAnalysis(true)}
                 className="px-2.5 sm:px-3 py-2 bg-emerald-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-colors"

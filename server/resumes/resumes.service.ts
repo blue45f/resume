@@ -365,6 +365,39 @@ export class ResumesService {
     });
   }
 
+  // --- Bookmark ---
+  async addBookmark(resumeId: string, userId: string) {
+    try {
+      await this.prisma.bookmark.create({ data: { userId, resumeId } });
+    } catch {} // unique constraint - already bookmarked
+    return { bookmarked: true };
+  }
+
+  async removeBookmark(resumeId: string, userId: string) {
+    await this.prisma.bookmark.deleteMany({ where: { userId, resumeId } });
+    return { bookmarked: false };
+  }
+
+  async getBookmarks(userId: string) {
+    const bookmarks = await this.prisma.bookmark.findMany({
+      where: { userId },
+      include: { resume: { include: { personalInfo: { select: { name: true } } } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    return bookmarks.map(b => ({
+      id: b.id,
+      resumeId: b.resume.id,
+      title: b.resume.title,
+      name: (b.resume as any).personalInfo?.name || '',
+      createdAt: b.createdAt.toISOString(),
+    }));
+  }
+
+  async isBookmarked(resumeId: string, userId: string): Promise<boolean> {
+    const bookmark = await this.prisma.bookmark.findFirst({ where: { userId, resumeId } });
+    return !!bookmark;
+  }
+
   private formatSummary(resume: any) {
     const pi = resume.personalInfo;
     return {

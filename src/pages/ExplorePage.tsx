@@ -6,6 +6,7 @@ import { CardGridSkeleton } from '@/components/Skeleton';
 import EmptyState from '@/components/EmptyState';
 import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchTags } from '@/lib/api';
+import BookmarkButton from '@/components/BookmarkButton';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -165,9 +166,12 @@ export default function ExplorePage() {
                   to={`/resumes/${resume.id}/preview`}
                   className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
                 >
-                  <h2 className="font-semibold text-slate-900 truncate mb-1">
-                    {resume.title || '제목 없음'}
-                  </h2>
+                  <div className="flex items-start justify-between">
+                    <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate mb-1 flex-1">
+                      {resume.title || '제목 없음'}
+                    </h2>
+                    <BookmarkButton resumeId={resume.id} size="sm" />
+                  </div>
                   <p className="text-sm text-slate-600 mb-1">
                     {resume.personalInfo?.name || '이름 미입력'}
                   </p>

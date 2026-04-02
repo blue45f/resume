@@ -44,6 +44,13 @@ export class ResumesController {
     return this.analyticsService.getUserDashboard(req.user?.id);
   }
 
+  @Get('bookmarks/list')
+  @ApiOperation({ summary: '내 북마크 목록' })
+  getBookmarks(@Req() req: any) {
+    if (!req.user?.id) return [];
+    return this.resumesService.getBookmarks(req.user.id);
+  }
+
   @Get('@:username/:slug')
   @Public()
   @CacheTTL(60)
@@ -68,6 +75,14 @@ export class ResumesController {
       page: parseInt(page || '1'),
       limit: Math.min(parseInt(limit || '20'), 50),
     });
+  }
+
+  @Get(':id/bookmark/status')
+  @ApiOperation({ summary: '북마크 여부 확인' })
+  async isBookmarked(@Param('id') id: string, @Req() req: any) {
+    if (!req.user?.id) return { bookmarked: false };
+    const bookmarked = await this.resumesService.isBookmarked(id, req.user.id);
+    return { bookmarked };
   }
 
   @Get(':id')
@@ -102,6 +117,20 @@ export class ResumesController {
   @ApiOperation({ summary: '이력서 삭제' })
   remove(@Param('id') id: string, @Req() req: any) {
     return this.resumesService.remove(id, req.user?.id);
+  }
+
+  @Post(':id/bookmark')
+  @ApiOperation({ summary: '이력서 북마크 추가' })
+  addBookmark(@Param('id') id: string, @Req() req: any) {
+    if (!req.user?.id) return { error: '로그인이 필요합니다' };
+    return this.resumesService.addBookmark(id, req.user.id);
+  }
+
+  @Delete(':id/bookmark')
+  @ApiOperation({ summary: '이력서 북마크 해제' })
+  removeBookmark(@Param('id') id: string, @Req() req: any) {
+    if (!req.user?.id) return { error: '로그인이 필요합니다' };
+    return this.resumesService.removeBookmark(id, req.user.id);
   }
 
   @Post(':id/duplicate')

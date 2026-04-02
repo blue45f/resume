@@ -23,11 +23,11 @@ export default function AuthCallbackPage() {
   }, [params, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
       {error ? (
-        <p className="text-red-600">{error}</p>
+        <p className="text-red-600 dark:text-red-400">{error}</p>
       ) : (
-        <p className="text-slate-500">로그인 처리 중...</p>
+        <p className="text-slate-500 dark:text-slate-400">로그인 처리 중...</p>
       )}
     </div>
   );

@@ -2,6 +2,7 @@ import { Controller, Get, Post, Delete, Param, Body, Req } from '@nestjs/common'
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Public } from '../auth/auth.guard';
 import { CommentsService } from './comments.service';
+import { CreateCommentDto } from './dto/comment.dto';
 
 @ApiTags('comments')
 @Controller('resumes/:resumeId/comments')
@@ -19,10 +20,10 @@ export class CommentsController {
   @ApiOperation({ summary: '의견 작성' })
   create(
     @Param('resumeId') resumeId: string,
-    @Body() body: { content: string; authorName?: string },
+    @Body() dto: CreateCommentDto,
     @Req() req: any,
   ) {
-    return this.service.create(resumeId, body.content, req.user?.id, body.authorName);
+    return this.service.create(resumeId, dto.content, req.user?.id, dto.authorName);
   }
 
   @Delete(':commentId')

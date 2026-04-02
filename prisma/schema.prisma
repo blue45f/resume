@@ -22,6 +22,7 @@ model User {
   applications JobApplication[]
   comments     Comment[]
   applicationComments ApplicationComment[]
+  bookmarks    Bookmark[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -54,6 +55,7 @@ model Resume {
   transformations LlmTransformation[]
   applications    JobApplication[]
   comments        Comment[]
+  bookmarks       Bookmark[]
 
   @@index([userId])
   @@index([visibility])
@@ -352,6 +354,20 @@ model Comment {
   user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([resumeId])
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  resumeId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resumeId])
+  @@index([userId])
+  @@map("bookmarks")
 }
 
 model ApplicationComment {
