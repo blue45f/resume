@@ -45,13 +45,13 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
           )}
           <div className="flex-1 min-w-0">
             <h1 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
-              ['professional', 'startup', 'tech'].includes(theme.id) ? 'text-white' : 'text-slate-900'
+              ['professional', 'startup', 'tech', 'creative', 'dark', 'portfolio'].includes(theme.id) ? 'text-white' : 'text-slate-900'
             }`}>{pi.name || '이름'}</h1>
 
             {/* 연락처 - 구분자로 명확히 분리 */}
             <div className="mt-2.5 space-y-1 text-sm">
               <div className={`flex flex-wrap items-center gap-x-1 gap-y-0.5 ${
-                ['professional', 'startup', 'tech'].includes(theme.id) ? 'text-white/80' : 'text-slate-600'
+                ['professional', 'startup', 'tech', 'creative', 'dark', 'portfolio'].includes(theme.id) ? 'text-white/80' : 'text-slate-600'
               }`}>
                 {[
                   pi.email && { icon: '✉', text: pi.email },
@@ -70,7 +70,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
               {/* 웹사이트 / GitHub / 링크 */}
               {(pi.website || pi.github || (pi.links && pi.links.length > 0)) && (
                 <div className={`flex flex-wrap items-center gap-x-1 gap-y-0.5 ${
-                  ['professional', 'startup', 'tech'].includes(theme.id) ? 'text-white/70' : ''
+                  ['professional', 'startup', 'tech', 'creative', 'dark', 'portfolio'].includes(theme.id) ? 'text-white/70' : ''
                 }`}>
                   {pi.website && (
                     <span className="flex items-center gap-1 text-blue-600">

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 interface Attachment {
   id: string;
   originalName: string;
@@ -50,7 +52,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/resumes/${resumeId}/attachments`);
+      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/attachments`);
       if (res.ok) setAttachments(await res.json());
     } finally {
       setLoading(false);
@@ -71,7 +73,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
       formData.append('description', description);
 
       try {
-        const res = await fetch(`/api/resumes/${resumeId}/attachments`, {
+        const res = await fetch(`${API_URL}/api/resumes/${resumeId}/attachments`, {
           method: 'POST',
           body: formData,
         });
@@ -92,7 +94,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`"${name}" 파일을 삭제하시겠습니까?`)) return;
-    await fetch(`/api/attachments/${id}`, { method: 'DELETE' });
+    await fetch(`${API_URL}/api/attachments/${id}`, { method: 'DELETE' });
     load();
   };
 
