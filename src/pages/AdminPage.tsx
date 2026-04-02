@@ -135,8 +135,8 @@ export default function AdminPage() {
                   <span className="w-1.5 h-4 bg-indigo-500 rounded" />
                   최근 가입 회원
                 </h2>
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                  <table className="w-full text-sm">
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
+                  <table className="w-full text-sm min-w-[500px]">
                     <thead>
                       <tr className="bg-slate-50 dark:bg-slate-900 text-left">
                         <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">이름</th>
@@ -289,8 +289,8 @@ function UserManagement() {
   if (loading) return <p className="text-sm text-slate-400 py-4 text-center">불러오는 중...</p>;
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-      <table className="w-full text-sm">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
+      <table className="w-full text-sm min-w-[500px]">
         <thead>
           <tr className="bg-slate-50 dark:bg-slate-900 text-left">
             <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">이름</th>

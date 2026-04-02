@@ -108,7 +108,7 @@ export default function TranslatePage() {
             {/* Target language */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">번역 언어</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {TARGET_LANGUAGES.map(lang => (
                   <button
                     key={lang.code}

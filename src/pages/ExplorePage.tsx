@@ -152,7 +152,7 @@ export default function ExplorePage() {
         )}
 
         {/* 정렬 + 보기 모드 */}
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-4 overflow-x-auto scrollbar-none">
           <span className="text-xs text-slate-500 dark:text-slate-400">정렬:</span>
           <button
             onClick={() => setSortBy('recent')}
@@ -317,7 +317,7 @@ export default function ExplorePage() {
 
             {/* 페이지네이션 */}
             {result.totalPages > 1 && (
-              <div className="flex items-center justify-between gap-2 mt-8">
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-8">
                 <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                   <span className="text-xs">표시</span>
                   <select

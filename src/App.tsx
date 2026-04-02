@@ -44,7 +44,7 @@ export default function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <ScrollReset />
-        <div className="min-h-screen flex flex-col bg-slate-50">
+        <div className="min-h-screen flex flex-col bg-slate-50 overflow-x-hidden">
           <Routes>
             {/* Critical path - eager loaded */}
             <Route path="/" element={<HomePage />} />

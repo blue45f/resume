@@ -17,6 +17,7 @@ import TransformHistory from '@/components/TransformHistory';
 import ResumeTrend from '@/components/ResumeTrend';
 import SkillChart from '@/components/SkillChart';
 import CareerTimeline from '@/components/CareerTimeline';
+import KeywordAnalysis from '@/components/KeywordAnalysis';
 import ResumeStats from '@/components/ResumeStats';
 import { toast } from '@/components/Toast';
 import type { Resume } from '@/types/resume';
@@ -139,7 +140,7 @@ export default function PreviewPage() {
                 편집
               </button>
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap overflow-x-auto scrollbar-none">
               <button
                 onClick={handleCopyLink}
                 className="px-2.5 sm:px-3 py-2 text-slate-600 bg-slate-100 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
@@ -196,7 +197,7 @@ export default function PreviewPage() {
               </div>
               <button
                 onClick={() => handlePrint()}
-                className="px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                className="px-2 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
               >
                 PDF / 인쇄
               </button>
@@ -240,6 +241,7 @@ export default function PreviewPage() {
             <ResumeTrend resumeId={id!} />
             <SkillChart resume={resume} />
             <CareerTimeline resume={resume} />
+            <KeywordAnalysis resume={resume} />
           </div>
           <ResumePreview ref={contentRef} resume={resume} themeId={themeId} />
           <div className="max-w-[210mm] mx-auto mt-3 px-1">

@@ -168,7 +168,7 @@ export default function ApplicationsPage() {
               const statusInfo = STATUSES.find(s => s.value === app.status) || STATUSES[0];
               return (
                 <div key={app.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:shadow-md transition-all duration-200 animate-fade-in-up">
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{app.company}</h3>
                       <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -184,7 +184,7 @@ export default function ApplicationsPage() {
                       </div>
                       {app.notes && <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-2">{app.notes}</p>}
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                       <select
                         value={app.status}
                         onChange={e => handleStatusChange(app.id, e.target.value)}
