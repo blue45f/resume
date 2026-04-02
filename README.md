@@ -76,6 +76,12 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **26개 직종별 템플릿**: 개발자, 디자이너, 기획/PM, 마케터, 영업, 데이터, 연구, 의료, 교육, 회계, 법률, HR, 공무원, 물류, 건축, 외식, 무역, 크리에이터, 제조, 프리랜서, 신입 등
 - **태그 시스템**: 이력서 분류 및 필터링, 소유권 관리
 
+### 수익화
+- **구독 플랜**: Free/Pro/Enterprise 3단계 (월간/연간)
+- **기능 게이팅**: FeatureGate 컴포넌트로 유료 기능 접근 제어
+- **관리자 설정**: 플랜별 가격/기능 ON/OFF 실시간 조정
+- **요금제 페이지**: /pricing 기능 비교표
+
 ### 관리자
 - **사이트 통계**: 회원/이력서/콘텐츠/활동 현황 대시보드 (/admin)
 - **사용자 관리**: 전체 회원 목록, 관리자 역할 지정/해제
@@ -394,6 +400,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── CareerTimeline.tsx    # 경력 타임라인
 │   │   ├── QuickActions.tsx      # 플로팅 액션
 │   │   ├── ProfileBadges.tsx     # 프로필 뱃지
+│   │   ├── FeatureGate.tsx       # 유료 기능 접근 제어
 │   │   ├── OnboardingBanner.tsx  # 온보딩 가이드
 │   │   ├── CookieConsent.tsx     # 쿠키 동의
 │   │   ├── ScrollReset.tsx       # 라우트 스크롤
@@ -404,6 +411,8 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── completeness.ts   # 이력서 완성도 계산
 │   │   ├── ats.ts            # ATS 호환성 분석
 │   │   ├── resumeThemes.ts   # 멀티 테마 정의
+│   │   ├── plans.ts             # 구독 플랜 설정
+│   │   ├── i18n.ts              # 다국어 번역
 │   │   ├── similarity.ts        # 중복 감지 알고리즘
 │   │   ├── useDebounce.ts       # 디바운스 훅
 │   │   └── writingTips.ts    # 섹션별 작성 팁
@@ -415,6 +424,8 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── ApplicationsPage   # 지원 관리
 │   │   ├── CoverLetterPage    # 자소서 생성기
 │   │   ├── ComparePage        # 이력서 비교
+│   │   ├── PricingPage         # 요금제
+│   │   ├── TranslatePage       # AI 번역
 │   │   ├── SettingsPage       # 사용자 설정
 │   │   ├── AdminPage          # 관리자 통계
 │   │   └── ...                # HomePage, Edit, New, Preview, Explore

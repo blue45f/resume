@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import FeatureGate from '@/components/FeatureGate';
 import { toast } from '@/components/Toast';
 import { fetchResumes } from '@/lib/api';
 import type { ResumeSummary } from '@/types/resume';
@@ -147,13 +148,15 @@ export default function CoverLetterPage() {
               />
             </div>
 
-            <button
-              onClick={handleGenerate}
-              disabled={loading || !selectedResumeId || !jobDescription.trim()}
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow"
-            >
-              {loading ? '생성 중...' : '자기소개서 생성'}
-            </button>
+            <FeatureGate feature="coverLetter">
+              <button
+                onClick={handleGenerate}
+                disabled={loading || !selectedResumeId || !jobDescription.trim()}
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow"
+              >
+                {loading ? '생성 중...' : '자기소개서 생성'}
+              </button>
+            </FeatureGate>
           </div>
 
           {/* Result */}

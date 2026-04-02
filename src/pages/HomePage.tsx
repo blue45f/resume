@@ -221,6 +221,7 @@ export default function HomePage() {
 
             <div className="text-center">
               <Link to="/tutorial" className="text-sm text-blue-600 hover:text-blue-800">사용 가이드 보기 &rarr;</Link>
+              <Link to="/pricing" className="text-sm text-purple-600 hover:text-purple-800 ml-4">요금제 보기 &rarr;</Link>
             </div>
 
             <SiteStatsBar />

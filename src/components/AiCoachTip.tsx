@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import FeatureGate from '@/components/FeatureGate';
 import { toast } from '@/components/Toast';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -45,34 +46,36 @@ export default function AiCoachTip({ resumeId, section, currentText, onApply }: 
   };
 
   return (
-    <div className="mt-1">
-      <button
-        onClick={expanded ? () => setExpanded(false) : getSuggestion}
-        disabled={loading}
-        className="inline-flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors disabled:opacity-50"
-      >
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        {loading ? 'AI 분석 중...' : expanded ? '닫기' : 'AI 개선 제안'}
-      </button>
+    <FeatureGate feature="aiCoaching" fallback={null}>
+      <div className="mt-1">
+        <button
+          onClick={expanded ? () => setExpanded(false) : getSuggestion}
+          disabled={loading}
+          className="inline-flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors disabled:opacity-50"
+        >
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          {loading ? 'AI 분석 중...' : expanded ? '닫기' : 'AI 개선 제안'}
+        </button>
 
-      {expanded && suggestion && (
-        <div className="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg animate-fade-in">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-medium text-purple-700 dark:text-purple-400">AI 개선안</span>
-            {onApply && (
-              <button
-                onClick={() => { onApply(suggestion); toast('개선안이 적용되었습니다', 'success'); }}
-                className="text-xs px-2 py-0.5 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-              >
-                적용
-              </button>
-            )}
+        {expanded && suggestion && (
+          <div className="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg animate-fade-in">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium text-purple-700 dark:text-purple-400">AI 개선안</span>
+              {onApply && (
+                <button
+                  onClick={() => { onApply(suggestion); toast('개선안이 적용되었습니다', 'success'); }}
+                  className="text-xs px-2 py-0.5 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                >
+                  적용
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-purple-800 dark:text-purple-300 whitespace-pre-wrap leading-relaxed">{suggestion}</p>
           </div>
-          <p className="text-xs text-purple-800 dark:text-purple-300 whitespace-pre-wrap leading-relaxed">{suggestion}</p>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </FeatureGate>
   );
 }
