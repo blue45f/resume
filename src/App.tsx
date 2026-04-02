@@ -9,6 +9,7 @@ import AuthCallbackPage from '@/pages/AuthCallbackPage';
 import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 import ScrollToTop from '@/components/ScrollToTop';
 import ScrollReset from '@/components/ScrollReset';
+import QuickActions from '@/components/QuickActions';
 
 // Lazy-loaded pages (non-critical path)
 const NewResumePage = lazy(() => import('@/pages/NewResumePage'));
@@ -69,6 +70,7 @@ export default function App() {
             <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />
           </Routes>
         </div>
+        <QuickActions />
         <ScrollToTop />
         <KeyboardShortcuts />
         <CookieConsent />

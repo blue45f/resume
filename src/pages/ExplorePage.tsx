@@ -31,6 +31,9 @@ export default function ExplorePage() {
   const [searchInput, setSearchInput] = useState(params.get('q') || '');
   const [sortBy, setSortBy] = useState<'recent' | 'views'>('recent');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('recent-searches') || '[]'); } catch { return []; }
+  });
 
   const query = params.get('q') || '';
   const tag = params.get('tag') || '';
@@ -78,8 +81,12 @@ export default function ExplorePage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const next = new URLSearchParams(params);
-    if (searchInput) next.set('q', searchInput);
-    else next.delete('q');
+    if (searchInput) {
+      next.set('q', searchInput);
+      const updated = [searchInput, ...recentSearches.filter(s => s !== searchInput)].slice(0, 5);
+      setRecentSearches(updated);
+      localStorage.setItem('recent-searches', JSON.stringify(updated));
+    } else next.delete('q');
     next.delete('page');
     setParams(next);
   };
@@ -118,6 +125,31 @@ export default function ExplorePage() {
             검색
           </button>
         </form>
+
+        {/* 최근 검색 */}
+        {!query && recentSearches.length > 0 && (
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">최근</span>
+            <div className="flex gap-1.5 overflow-x-auto">
+              {recentSearches.map(s => (
+                <button
+                  key={s}
+                  onClick={() => { setSearchInput(s); const next = new URLSearchParams(params); next.set('q', s); next.delete('page'); setParams(next); }}
+                  className="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 transition-colors whitespace-nowrap"
+                >
+                  {s}
+                </button>
+              ))}
+              <button
+                onClick={() => { setRecentSearches([]); localStorage.removeItem('recent-searches'); }}
+                className="text-xs text-slate-300 dark:text-slate-600 hover:text-slate-500 shrink-0"
+                aria-label="검색 기록 삭제"
+              >
+                &times;
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* 정렬 + 보기 모드 */}
         <div className="flex items-center gap-2 mb-4">

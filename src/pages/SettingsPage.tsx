@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { getUser, clearAuth } from '@/lib/auth';
+import ProfileBadges from '@/components/ProfileBadges';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -100,6 +101,9 @@ export default function SettingsPage() {
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                   {user.provider === 'local' ? '이메일 계정' : `${user.provider} 계정`}
                 </p>
+                <div className="mt-2">
+                  <ProfileBadges resumeCount={0} isAdmin={user?.role === 'admin'} />
+                </div>
               </div>
             </div>
           </div>
