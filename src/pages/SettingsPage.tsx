@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
@@ -100,6 +100,12 @@ export default function SettingsPage() {
                 <p className="text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                   {user.provider === 'local' ? '이메일 계정' : `${user.provider} 계정`}
+                </p>
+                <p className="text-xs mt-1">
+                  <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+                    {user.plan === 'pro' ? '⭐ 프로' : user.plan === 'enterprise' ? '💎 엔터프라이즈' : '🆓 무료'}
+                  </span>
+                  <Link to="/pricing" className="ml-2 text-blue-600 dark:text-blue-400 hover:underline">변경</Link>
                 </p>
                 <div className="mt-2">
                   <ProfileBadges resumeCount={0} isAdmin={user?.role === 'admin'} />

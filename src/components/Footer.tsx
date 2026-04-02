@@ -55,6 +55,7 @@ export default function Footer() {
               <li><Link to="/about" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">서비스 소개</Link></li>
               <li><Link to="/tutorial" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">사용 가이드</Link></li>
               <li><Link to="/terms" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">이용약관</Link></li>
+              <li><Link to="/pricing" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">요금제</Link></li>
             </ul>
           </div>
           <div>

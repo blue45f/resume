@@ -27,6 +27,7 @@ const ApplicationsPage = lazy(() => import('@/pages/ApplicationsPage'));
 const CoverLetterPage = lazy(() => import('@/pages/CoverLetterPage'));
 const ComparePage = lazy(() => import('@/pages/ComparePage'));
 const TranslatePage = lazy(() => import('@/pages/TranslatePage'));
+const PricingPage = lazy(() => import('@/pages/PricingPage'));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 const AdminPage = lazy(() => import('@/pages/AdminPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
@@ -66,6 +67,7 @@ export default function App() {
             <Route path="/cover-letter" element={<Suspense fallback={<PageLoader />}><CoverLetterPage /></Suspense>} />
             <Route path="/compare" element={<Suspense fallback={<PageLoader />}><ComparePage /></Suspense>} />
             <Route path="/translate" element={<Suspense fallback={<PageLoader />}><TranslatePage /></Suspense>} />
+            <Route path="/pricing" element={<Suspense fallback={<PageLoader />}><PricingPage /></Suspense>} />
             <Route path="/settings" element={<Suspense fallback={<PageLoader />}><SettingsPage /></Suspense>} />
             <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AdminPage /></Suspense>} />
             <Route path="/@:username/:slug" element={<Suspense fallback={<PageLoader />}><ProfileResumePage /></Suspense>} />

@@ -17,6 +17,8 @@ model User {
   providerId String   @default("") @map("provider_id")
   passwordHash  String?   @map("password_hash")
   role       String   @default("user") // user, admin
+  plan          String   @default("free") // free, pro, enterprise
+  planExpiresAt DateTime? @map("plan_expires_at")
   createdAt  DateTime @default(now()) @map("created_at")
   resumes      Resume[]
   applications JobApplication[]
