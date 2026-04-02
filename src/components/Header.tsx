@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getUser, clearAuth } from '@/lib/auth';
 import { getTheme, setTheme } from '@/lib/theme';
+import NotificationBell from '@/components/NotificationBell';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -113,6 +114,7 @@ export default function Header() {
             >
               + 새 이력서
             </Link>
+            {user && <NotificationBell />}
             <button
               onClick={cycleTheme}
               className="flex items-center gap-1 px-2 py-1.5 text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"

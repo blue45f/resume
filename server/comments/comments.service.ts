@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CommentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async findByResume(resumeId: string) {
     // Only allow comments on public resumes
@@ -35,9 +39,21 @@ export class CommentsService {
       if (user) name = user.name || user.email;
     }
 
-    return this.prisma.comment.create({
+    const comment = await this.prisma.comment.create({
       data: { resumeId, userId, authorName: name, content: content.trim() },
     });
+
+    // Notify resume owner
+    if (resume.userId && resume.userId !== userId) {
+      await this.notificationsService.create(
+        resume.userId,
+        'comment',
+        `${name}님이 이력서에 의견을 남겼습니다: "${content.slice(0, 50)}..."`,
+        `/resumes/${resumeId}/preview`,
+      );
+    }
+
+    return comment;
   }
 
   async remove(id: string, userId?: string) {

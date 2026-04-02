@@ -23,6 +23,7 @@ model User {
   comments     Comment[]
   applicationComments ApplicationComment[]
   bookmarks    Bookmark[]
+  notifications Notification[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -368,6 +369,20 @@ model Bookmark {
   @@unique([userId, resumeId])
   @@index([userId])
   @@map("bookmarks")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // comment, bookmark, application_comment
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
 }
 
 model ApplicationComment {
