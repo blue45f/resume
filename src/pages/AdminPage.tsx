@@ -215,6 +215,15 @@ export default function AdminPage() {
               <UserManagement />
             </section>
 
+            {/* Recent Public Resumes */}
+            <section className="mt-6">
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-4 bg-green-500 rounded" />
+                공개 이력서 관리
+              </h2>
+              <RecentResumes />
+            </section>
+
             {/* Quick Admin Links */}
             <section className="mt-6">
               <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
@@ -329,6 +338,75 @@ function UserManagement() {
   );
 }
 
+function RecentResumes() {
+  const [resumes, setResumes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const API = import.meta.env.VITE_API_URL || '';
+    fetch(`${API}/api/resumes/public?limit=10`)
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(d => setResumes(d.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleHide = async (id: string) => {
+    if (!confirm('이 이력서를 비공개로 변경하시겠습니까?')) return;
+    const token = localStorage.getItem('token');
+    const API = import.meta.env.VITE_API_URL || '';
+    const res = await fetch(`${API}/api/resumes/${id}/visibility`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ visibility: 'private' }),
+    });
+    if (res.ok) {
+      toast('비공개로 변경되었습니다', 'success');
+      setResumes(prev => prev.filter(r => r.id !== id));
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('이 이력서를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+    const token = localStorage.getItem('token');
+    const API = import.meta.env.VITE_API_URL || '';
+    const res = await fetch(`${API}/api/resumes/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      toast('이력서가 삭제되었습니다', 'success');
+      setResumes(prev => prev.filter(r => r.id !== id));
+    }
+  };
+
+  if (loading) return <p className="text-sm text-slate-400 py-4 text-center">불러오는 중...</p>;
+  if (resumes.length === 0) return <p className="text-sm text-slate-400 py-4 text-center">공개 이력서가 없습니다</p>;
+
+  return (
+    <div className="space-y-2">
+      {resumes.map(r => (
+        <div key={r.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="min-w-0 flex-1">
+            <Link to={`/resumes/${r.id}/preview`} className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 truncate block">
+              {r.title || '제목 없음'}
+            </Link>
+            <span className="text-xs text-slate-400">{r.personalInfo?.name || '이름 없음'}</span>
+          </div>
+          <div className="flex gap-1.5 shrink-0 ml-2">
+            <button onClick={() => handleHide(r.id)} className="text-xs px-2 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-lg hover:bg-amber-100 transition-colors">
+              숨기기
+            </button>
+            <button onClick={() => handleDelete(r.id)} className="text-xs px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 transition-colors">
+              삭제
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ContentModeration() {
   const handleHideResume = async (resumeId: string) => {
     if (!confirm('이 이력서를 비공개로 변경하시겠습니까?')) return;
@@ -379,8 +457,8 @@ function ContentModeration() {
             지원 목록 검토 &rarr;
           </Link>
         </div>
-        <p className="text-xs text-slate-400 dark:text-slate-500">
-          관리자 계정으로 탐색 페이지에서 이력서를 열면 비공개 전환 및 댓글 삭제가 가능합니다.
+        <p className="text-xs text-slate-400 dark:text-slate-500 whitespace-pre-line">
+          관리자 계정으로 이력서를 열면 모든 댓글에 &quot;삭제&quot; 버튼이 표시됩니다.{'\n'}공개 이력서의 &quot;공개 설정&quot;을 &quot;비공개&quot;로 변경하면 탐색에서 숨겨집니다.
         </p>
       </div>
     </div>
