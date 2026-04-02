@@ -33,6 +33,7 @@ const PaymentPage = lazy(() => import('@/pages/PaymentPage'));
 const PaymentResultPage = lazy(() => import('@/pages/PaymentResultPage'));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 const AdminPage = lazy(() => import('@/pages/AdminPage'));
+const MessagesPage = lazy(() => import('@/pages/MessagesPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
 function PageLoader() {
@@ -76,6 +77,7 @@ export default function App() {
             <Route path="/payment/success" element={<Suspense fallback={<PageLoader />}><PaymentResultPage /></Suspense>} />
             <Route path="/payment/fail" element={<Suspense fallback={<PageLoader />}><PaymentResultPage /></Suspense>} />
             <Route path="/settings" element={<Suspense fallback={<PageLoader />}><SettingsPage /></Suspense>} />
+            <Route path="/messages" element={<Suspense fallback={<PageLoader />}><MessagesPage /></Suspense>} />
             <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AdminPage /></Suspense>} />
             <Route path="/@:username/:slug" element={<Suspense fallback={<PageLoader />}><ProfileResumePage /></Suspense>} />
             <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />

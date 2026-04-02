@@ -43,7 +43,7 @@ export class TemplatesService {
   ) {
     const existing = await this.prisma.template.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('템플릿을 찾을 수 없습니다');
-    if (role !== 'admin') {
+    if (role !== 'admin' && role !== 'superadmin') {
       if (existing.isDefault) {
         throw new ForbiddenException('기본 템플릿은 수정할 수 없습니다');
       }
@@ -57,7 +57,7 @@ export class TemplatesService {
   async remove(id: string, userId?: string, role?: string) {
     const existing = await this.prisma.template.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('템플릿을 찾을 수 없습니다');
-    if (role !== 'admin') {
+    if (role !== 'admin' && role !== 'superadmin') {
       if (existing.isDefault) {
         throw new ForbiddenException('기본 템플릿은 삭제할 수 없습니다');
       }

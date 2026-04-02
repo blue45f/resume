@@ -35,7 +35,7 @@ export class TagsService {
     const existing = await this.prisma.tag.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('태그를 찾을 수 없습니다');
     // admin은 모든 태그 삭제 가능
-    if (role !== 'admin' && existing.userId && existing.userId !== userId) {
+    if (role !== 'admin' && role !== 'superadmin' && existing.userId && existing.userId !== userId) {
       throw new ForbiddenException('이 태그를 삭제할 권한이 없습니다');
     }
     await this.prisma.tag.delete({ where: { id } });

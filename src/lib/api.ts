@@ -252,6 +252,12 @@ export const sendScoutMessage = (data: { receiverId: string; resumeId?: string; 
   request<any>(`${BASE}/social/scout`, { method: 'POST', body: JSON.stringify(data) });
 export const fetchScouts = () => request<any[]>(`${BASE}/social/scouts`);
 
+// Messages
+export const sendDirectMessage = (receiverId: string, content: string) =>
+  request<any>(`${BASE}/social/messages/${receiverId}`, { method: 'POST', body: JSON.stringify({ content }) });
+export const fetchConversations = () => request<any[]>(`${BASE}/social/messages`);
+export const fetchMessages = (partnerId: string) => request<any[]>(`${BASE}/social/messages/${partnerId}`);
+
 // Cover Letters
 export const fetchCoverLetters = () => request<any[]>(`${BASE}/cover-letters`);
 export const fetchCoverLetter = (id: string) => request<any>(`${BASE}/cover-letters/${id}`);

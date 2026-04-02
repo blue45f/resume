@@ -31,18 +31,23 @@ export default function AdminPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
+    if (!user || user.role !== 'admin' && user.role !== 'superadmin') {
       navigate('/');
     }
   }, [user]);
 
-  useEffect(() => {
-    document.title = '관리자 통계 — 이력서공방';
+  const loadStats = () => {
+    setLoading(true);
     fetch(`${API_URL}/api/health/admin/stats`)
       .then(r => r.ok ? r.json() : null)
       .then(setStats)
       .catch(() => {})
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    document.title = '관리자 통계 — 이력서공방';
+    loadStats();
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
   }, []);
 
@@ -60,13 +65,21 @@ export default function AdminPage() {
     );
   };
 
-  if (!user || user.role !== 'admin') return null;
+  if (!user || user.role !== 'admin' && user.role !== 'superadmin') return null;
 
   return (
     <>
       <Header />
       <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">관리자 통계</h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">관리자 통계</h1>
+          <button
+            onClick={() => loadStats()}
+            className="text-xs px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg hover:bg-slate-200 transition-colors"
+          >
+            새로고침
+          </button>
+        </div>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">사이트 전체 현황을 한눈에 확인합니다</p>
 
         {loading ? (
@@ -265,6 +278,9 @@ export default function AdminPage() {
 function UserManagement() {
   const [users, setUsers] = useState<{ id: string; name: string; email: string; provider: string; role: string; createdAt: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const perPage = 10;
 
   const load = () => {
     const token = localStorage.getItem('token');
@@ -298,52 +314,79 @@ function UserManagement() {
 
   if (loading) return <p className="text-sm text-slate-400 py-4 text-center">불러오는 중...</p>;
 
+  const filtered = users.filter(u =>
+    !search || u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase())
+  );
+  const totalPages = Math.ceil(filtered.length / perPage);
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
-      <table className="w-full text-sm min-w-[500px]">
-        <thead>
-          <tr className="bg-slate-50 dark:bg-slate-900 text-left">
-            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">이름</th>
-            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:table-cell">이메일</th>
-            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">로그인</th>
-            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">역할</th>
-            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">관리</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-          {users.map(u => (
-            <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-              <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-medium">{u.name || '—'}</td>
-              <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 hidden sm:table-cell truncate max-w-[200px]">{u.email}</td>
-              <td className="px-4 py-2.5">
-                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  u.provider === 'google' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
-                  u.provider === 'github' ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300' :
-                  u.provider === 'local' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
-                  'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                }`}>{u.provider}</span>
-              </td>
-              <td className="px-4 py-2.5">
-                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  u.role === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                }`}>{u.role || 'user'}</span>
-              </td>
-              <td className="px-4 py-2.5">
-                <button
-                  onClick={() => toggleRole(u.id, u.role || 'user')}
-                  className={`text-xs px-2 py-1 rounded-lg transition-colors ${
-                    u.role === 'admin'
-                      ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                      : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100'
-                  }`}
-                >
-                  {u.role === 'admin' ? '해제' : '관리자 지정'}
-                </button>
-              </td>
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <input
+          type="search"
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(1); }}
+          placeholder="이름 또는 이메일 검색..."
+          className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
+        />
+        <span className="text-xs text-slate-400 shrink-0">{filtered.length}명</span>
+      </div>
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
+        <table className="w-full text-sm min-w-[500px]">
+          <thead>
+            <tr className="bg-slate-50 dark:bg-slate-900 text-left">
+              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">이름</th>
+              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:table-cell">이메일</th>
+              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">로그인</th>
+              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">역할</th>
+              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">관리</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+            {paginated.map(u => (
+              <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-medium">{u.name || '—'}</td>
+                <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 hidden sm:table-cell truncate max-w-[200px]">{u.email}</td>
+                <td className="px-4 py-2.5">
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    u.provider === 'google' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                    u.provider === 'github' ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300' :
+                    u.provider === 'local' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                    'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                  }`}>{u.provider}</span>
+                </td>
+                <td className="px-4 py-2.5">
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    u.role === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                  }`}>{u.role || 'user'}</span>
+                </td>
+                <td className="px-4 py-2.5">
+                  <button
+                    onClick={() => toggleRole(u.id, u.role || 'user')}
+                    className={`text-xs px-2 py-1 rounded-lg transition-colors ${
+                      u.role === 'admin'
+                        ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                        : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100'
+                    }`}
+                  >
+                    {u.role === 'admin' ? '해제' : '관리자 지정'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-3">
+          <span className="text-xs text-slate-400">{page} / {totalPages} 페이지</span>
+          <div className="flex gap-1">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30">이전</button>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30">다음</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -351,10 +394,12 @@ function UserManagement() {
 function RecentResumes() {
   const [resumes, setResumes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const perPage = 10;
 
   useEffect(() => {
     const API = import.meta.env.VITE_API_URL || '';
-    fetch(`${API}/api/resumes/public?limit=10`)
+    fetch(`${API}/api/resumes/public?limit=50`)
       .then(r => r.ok ? r.json() : { data: [] })
       .then(d => setResumes(d.data || []))
       .catch(() => {})
@@ -393,26 +438,40 @@ function RecentResumes() {
   if (loading) return <p className="text-sm text-slate-400 py-4 text-center">불러오는 중...</p>;
   if (resumes.length === 0) return <p className="text-sm text-slate-400 py-4 text-center">공개 이력서가 없습니다</p>;
 
+  const totalPages = Math.ceil(resumes.length / perPage);
+  const paginated = resumes.slice((page - 1) * perPage, page * perPage);
+
   return (
-    <div className="space-y-2">
-      {resumes.map(r => (
-        <div key={r.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-          <div className="min-w-0 flex-1">
-            <Link to={`/resumes/${r.id}/preview`} className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 truncate block">
-              {r.title || '제목 없음'}
-            </Link>
-            <span className="text-xs text-slate-400">{r.personalInfo?.name || '이름 없음'}</span>
+    <div>
+      <div className="space-y-2">
+        {paginated.map(r => (
+          <div key={r.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+            <div className="min-w-0 flex-1">
+              <Link to={`/resumes/${r.id}/preview`} className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 truncate block">
+                {r.title || '제목 없음'}
+              </Link>
+              <span className="text-xs text-slate-400">{r.personalInfo?.name || '이름 없음'}</span>
+            </div>
+            <div className="flex gap-1.5 shrink-0 ml-2">
+              <button onClick={() => handleHide(r.id)} className="text-xs px-2 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-lg hover:bg-amber-100 transition-colors">
+                숨기기
+              </button>
+              <button onClick={() => handleDelete(r.id)} className="text-xs px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 transition-colors">
+                삭제
+              </button>
+            </div>
           </div>
-          <div className="flex gap-1.5 shrink-0 ml-2">
-            <button onClick={() => handleHide(r.id)} className="text-xs px-2 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-lg hover:bg-amber-100 transition-colors">
-              숨기기
-            </button>
-            <button onClick={() => handleDelete(r.id)} className="text-xs px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 transition-colors">
-              삭제
-            </button>
+        ))}
+      </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-3">
+          <span className="text-xs text-slate-400">{page} / {totalPages} 페이지</span>
+          <div className="flex gap-1">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30">이전</button>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30">다음</button>
           </div>
         </div>
-      ))}
+      )}
     </div>
   );
 }

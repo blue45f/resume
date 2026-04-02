@@ -31,6 +31,8 @@ model User {
   following      Follow[]         @relation("Followers")
   sentScouts     ScoutMessage[]   @relation("SentScouts")
   receivedScouts ScoutMessage[]   @relation("ReceivedScouts")
+  sentMessages     DirectMessage[] @relation("SentMessages")
+  receivedMessages DirectMessage[] @relation("ReceivedMessages")
   coverLetters   CoverLetter[]
 
   @@unique([provider, providerId])
@@ -477,4 +479,20 @@ model CoverLetter {
   @@index([userId])
   @@index([resumeId])
   @@map("cover_letters")
+}
+
+model DirectMessage {
+  id         String   @id @default(uuid())
+  senderId   String   @map("sender_id")
+  receiverId String   @map("receiver_id")
+  content    String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId, receiverId])
+  @@index([receiverId, read])
+  @@map("direct_messages")
 }

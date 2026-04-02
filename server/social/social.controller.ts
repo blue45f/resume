@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Param, Body, Req } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, Req, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { SocialService } from './social.service';
 
@@ -54,5 +54,34 @@ export class SocialController {
   markRead(@Param('id') id: string, @Req() req: any) {
     if (!req.user?.id) return { success: false };
     return this.service.markScoutRead(id, req.user.id);
+  }
+
+  @Get('messages')
+  @ApiOperation({ summary: '대화 목록' })
+  getConversations(@Req() req: any) {
+    if (!req.user?.id) return [];
+    return this.service.getConversations(req.user.id);
+  }
+
+  @Get('messages/unread/count')
+  @ApiOperation({ summary: '읽지 않은 쪽지 수' })
+  async getUnreadCount(@Req() req: any) {
+    if (!req.user?.id) return { count: 0 };
+    const count = await this.service.getUnreadMessageCount(req.user.id);
+    return { count };
+  }
+
+  @Get('messages/:partnerId')
+  @ApiOperation({ summary: '대화 내용' })
+  getMessages(@Param('partnerId') partnerId: string, @Req() req: any) {
+    if (!req.user?.id) return [];
+    return this.service.getMessages(req.user.id, partnerId);
+  }
+
+  @Post('messages/:receiverId')
+  @ApiOperation({ summary: '쪽지 보내기' })
+  sendMessage(@Param('receiverId') receiverId: string, @Body('content') content: string, @Req() req: any) {
+    if (!req.user?.id) return { error: '로그인 필요' };
+    return this.service.sendMessage(req.user.id, receiverId, content);
   }
 }

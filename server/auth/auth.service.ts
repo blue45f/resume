@@ -199,10 +199,10 @@ export class AuthService {
 
   async setUserRole(adminUserId: string, targetUserId: string, role: string) {
     const admin = await this.prisma.user.findUnique({ where: { id: adminUserId } });
-    if (!admin || admin.role !== 'admin') {
+    if (!admin || admin.role !== 'superadmin') {
       throw new UnauthorizedException('관리자만 역할을 변경할 수 있습니다');
     }
-    if (!['user', 'admin'].includes(role)) {
+    if (!['user', 'admin', 'superadmin'].includes(role)) {
       throw new UnauthorizedException('유효하지 않은 역할입니다');
     }
     await this.prisma.user.update({ where: { id: targetUserId }, data: { role } });

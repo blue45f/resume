@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
 import CommentSection from '@/components/CommentSection';
 import { toast } from '@/components/Toast';
+import { getUser } from '@/lib/auth';
 import type { Resume } from '@/types/resume';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -14,6 +15,7 @@ export default function ProfileResumePage() {
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
   const [viewCount, setViewCount] = useState<number | null>(null);
+  const user = getUser();
 
   useEffect(() => {
     if (resume) {
@@ -153,6 +155,25 @@ export default function ProfileResumePage() {
               >
                 인쇄
               </button>
+              {user && resume.userId && user.id !== resume.userId && (
+                <button
+                  onClick={() => {
+                    const msg = prompt('스카우트 메시지를 입력하세요:');
+                    if (msg && msg.trim()) {
+                      const token = localStorage.getItem('token');
+                      fetch(`${API_URL}/api/social/scout`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ receiverId: resume.userId, resumeId: resume.id, company: '', position: '', message: msg }),
+                      }).then(() => toast('스카우트 메시지가 전송되었습니다', 'success'))
+                        .catch(() => toast('전송에 실패했습니다', 'error'));
+                    }
+                  }}
+                  className="px-2.5 sm:px-3 py-2 bg-emerald-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-emerald-700 transition-all duration-200"
+                >
+                  스카우트
+                </button>
+              )}
             </div>
           </div>
         </div>

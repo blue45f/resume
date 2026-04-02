@@ -158,7 +158,7 @@ export class ResumesService {
   private async verifyOwnership(resumeId: string, userId?: string, role?: string) {
     const resume = await this.prisma.resume.findUnique({ where: { id: resumeId } });
     if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
-    if (role === 'admin') return resume;
+    if (role === 'admin' || role === 'superadmin') return resume;
     if (resume.userId && resume.userId !== userId) {
       throw new ForbiddenException('이 이력서를 수정할 권한이 없습니다');
     }

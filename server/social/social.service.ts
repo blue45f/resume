@@ -61,4 +61,84 @@ export class SocialService {
     });
     return { success: true };
   }
+
+  // Direct Messages
+  async sendMessage(senderId: string, receiverId: string, content: string) {
+    if (senderId === receiverId) throw new ForbiddenException('자신에게 메시지를 보낼 수 없습니다');
+    if (!content || content.trim().length < 1) throw new ForbiddenException('메시지를 입력해주세요');
+    return this.prisma.directMessage.create({
+      data: { senderId, receiverId, content: content.trim() },
+    });
+  }
+
+  async getConversations(userId: string) {
+    const sent = await this.prisma.directMessage.findMany({
+      where: { senderId: userId },
+      select: { receiverId: true },
+      distinct: ['receiverId'],
+    });
+    const received = await this.prisma.directMessage.findMany({
+      where: { receiverId: userId },
+      select: { senderId: true },
+      distinct: ['senderId'],
+    });
+
+    const partnerIds = new Set([
+      ...sent.map(s => s.receiverId),
+      ...received.map(r => r.senderId),
+    ]);
+
+    const conversations = [];
+    for (const partnerId of partnerIds) {
+      const lastMessage = await this.prisma.directMessage.findFirst({
+        where: {
+          OR: [
+            { senderId: userId, receiverId: partnerId },
+            { senderId: partnerId, receiverId: userId },
+          ],
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      const unreadCount = await this.prisma.directMessage.count({
+        where: { senderId: partnerId, receiverId: userId, read: false },
+      });
+      const partner = await this.prisma.user.findUnique({
+        where: { id: partnerId },
+        select: { id: true, name: true, email: true, avatar: true },
+      });
+      if (partner && lastMessage) {
+        conversations.push({
+          partner,
+          lastMessage: { content: lastMessage.content, createdAt: lastMessage.createdAt, isMine: lastMessage.senderId === userId },
+          unreadCount,
+        });
+      }
+    }
+
+    return conversations.sort((a, b) => new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime());
+  }
+
+  async getMessages(userId: string, partnerId: string) {
+    await this.prisma.directMessage.updateMany({
+      where: { senderId: partnerId, receiverId: userId, read: false },
+      data: { read: true },
+    });
+
+    return this.prisma.directMessage.findMany({
+      where: {
+        OR: [
+          { senderId: userId, receiverId: partnerId },
+          { senderId: partnerId, receiverId: userId },
+        ],
+      },
+      orderBy: { createdAt: 'asc' },
+      take: 100,
+    });
+  }
+
+  async getUnreadMessageCount(userId: string): Promise<number> {
+    return this.prisma.directMessage.count({
+      where: { receiverId: userId, read: false },
+    });
+  }
 }

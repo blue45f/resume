@@ -47,7 +47,7 @@ export class NotificationsController {
   @ApiOperation({ summary: '오래된 읽은 알림 정리 (관리자 전용)' })
   cleanup(@Req() req: any) {
     if (!req.user?.id) return { success: false };
-    if (req.user.role !== 'admin') {
+    if (req.user.role !== 'superadmin') {
       throw new ForbiddenException('관리자만 사용할 수 있습니다');
     }
     return this.service.cleanupOld();

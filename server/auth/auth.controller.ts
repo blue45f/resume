@@ -274,7 +274,7 @@ export class AuthController {
   @Get('admin/users')
   @ApiOperation({ summary: '전체 사용자 목록 (관리자)' })
   async getAllUsers(@Req() req: any) {
-    if (req.user?.role !== 'admin') return [];
+    if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') return [];
     return this.authService.getAllUsers();
   }
 

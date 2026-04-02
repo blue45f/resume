@@ -85,7 +85,7 @@ export default function Header() {
                 <Link to="/pricing" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">요금제</Link>
               </div>
             </div>
-            {user?.role === 'admin' && (
+            {user?.role === 'admin' || user?.role === 'superadmin' && (
               <Link to="/admin" className={`text-sm rounded px-2 py-1 ${location.pathname === '/admin' ? 'text-red-600 font-medium' : 'text-red-500 hover:text-red-700 dark:text-red-400'}`}>
                 {t('nav.admin')}
               </Link>
@@ -183,7 +183,8 @@ export default function Header() {
               <>
                 <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                 <Link to="/settings" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('common.settings')}</Link>
-                {user?.role === 'admin' && (
+                <Link to="/messages" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">쪽지</Link>
+                {user?.role === 'admin' || user?.role === 'superadmin' && (
                   <Link to="/admin" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-red-500 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30">관리자</Link>
                 )}
               </>
