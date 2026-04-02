@@ -123,13 +123,13 @@ export class ResumesController {
     @Body('visibility') visibility: string,
     @Req() req: any,
   ) {
-    return this.resumesService.setVisibility(id, visibility, req.user?.id);
+    return this.resumesService.setVisibility(id, visibility, req.user?.id, req.user?.role);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '이력서 삭제' })
   remove(@Param('id') id: string, @Req() req: any) {
-    return this.resumesService.remove(id, req.user?.id);
+    return this.resumesService.remove(id, req.user?.id, req.user?.role);
   }
 
   @Post(':id/bookmark')

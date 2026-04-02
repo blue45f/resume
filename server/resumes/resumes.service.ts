@@ -165,11 +165,11 @@ export class ResumesService {
     return resume;
   }
 
-  async setVisibility(id: string, visibility: string, userId?: string) {
+  async setVisibility(id: string, visibility: string, userId?: string, role?: string) {
     if (!['public', 'private', 'link-only'].includes(visibility)) {
       throw new NotFoundException('유효하지 않은 공개 설정입니다');
     }
-    await this.verifyOwnership(id, userId);
+    await this.verifyOwnership(id, userId, role);
     await this.prisma.resume.update({ where: { id }, data: { visibility } });
     return { id, visibility };
   }
@@ -339,8 +339,8 @@ export class ResumesService {
     return this.findOne(id);
   }
 
-  async remove(id: string, userId?: string) {
-    await this.verifyOwnership(id, userId);
+  async remove(id: string, userId?: string, role?: string) {
+    await this.verifyOwnership(id, userId, role);
     await this.prisma.resume.delete({ where: { id } });
     return { success: true };
   }

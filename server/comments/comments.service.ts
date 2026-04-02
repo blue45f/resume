@@ -58,11 +58,11 @@ export class CommentsService {
     return comment;
   }
 
-  async remove(id: string, userId?: string) {
+  async remove(id: string, userId?: string, role?: string) {
     const comment = await this.prisma.comment.findUnique({ where: { id } });
     if (!comment) throw new NotFoundException('의견을 찾을 수 없습니다');
-    // Only author can delete
-    if (comment.userId !== userId) {
+    // Author or admin can delete
+    if (comment.userId !== userId && role !== 'admin') {
       throw new ForbiddenException('삭제 권한이 없습니다');
     }
     await this.prisma.comment.delete({ where: { id } });

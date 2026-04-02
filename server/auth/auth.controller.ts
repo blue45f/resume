@@ -268,4 +268,29 @@ export class AuthController {
     if (!req.user) return null;
     return this.authService.getProfile(req.user.id);
   }
+
+  // ---- 관리자 기능 ----
+
+  @Get('admin/users')
+  @ApiOperation({ summary: '전체 사용자 목록 (관리자)' })
+  async getAllUsers(@Req() req: any) {
+    if (req.user?.role !== 'admin') return [];
+    return this.authService.getAllUsers();
+  }
+
+  @Post('admin/users/:userId/role')
+  @ApiOperation({ summary: '사용자 역할 변경 (관리자)' })
+  async setUserRole(
+    @Param('userId') userId: string,
+    @Body('role') role: string,
+    @Req() req: any,
+    @Res() res: Response,
+  ) {
+    try {
+      const result = await this.authService.setUserRole(req.user?.id, userId, role);
+      res.json(result);
+    } catch (e: any) {
+      res.status(403).json({ message: e.message || '권한이 없습니다' });
+    }
+  }
 }

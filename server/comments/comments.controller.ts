@@ -31,6 +31,6 @@ export class CommentsController {
   @Delete(':commentId')
   @ApiOperation({ summary: '의견 삭제' })
   remove(@Param('commentId') commentId: string, @Req() req: any) {
-    return this.service.remove(commentId, req.user?.id);
+    return this.service.remove(commentId, req.user?.id, req.user?.role);
   }
 }

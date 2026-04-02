@@ -44,7 +44,7 @@ export default function ExplorePage() {
       if (tag) qs.set('tag', tag);
       if (sortBy === 'views') qs.set('sort', 'views');
       qs.set('page', String(page));
-      qs.set('limit', '12');
+      qs.set('limit', params.get('limit') || '12');
 
       const res = await fetch(`${API_URL}/api/resumes/public?${qs}`, { signal });
       if (res.ok && !signal?.aborted) setResult(await res.json());
@@ -59,7 +59,7 @@ export default function ExplorePage() {
     const ac = new AbortController();
     search(ac.signal);
     return () => ac.abort();
-  }, [query, tag, page, sortBy]);
+  }, [query, tag, page, sortBy, params.get('limit')]);
 
   useEffect(() => {
     let cancelled = false;
@@ -276,24 +276,43 @@ export default function ExplorePage() {
 
             {/* 페이지네이션 */}
             {result.totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-8">
-                <button
-                  onClick={() => goPage(page - 1)}
-                  disabled={page <= 1}
-                  className="px-3 py-1.5 text-sm font-medium bg-slate-100 rounded-xl hover:bg-slate-200 disabled:opacity-30 transition-colors"
-                >
-                  이전
-                </button>
-                <span className="text-sm text-slate-500">
-                  {result.page} / {result.totalPages}
-                </span>
-                <button
-                  onClick={() => goPage(page + 1)}
-                  disabled={page >= result.totalPages}
-                  className="px-3 py-1.5 text-sm font-medium bg-slate-100 rounded-xl hover:bg-slate-200 disabled:opacity-30 transition-colors"
-                >
-                  다음
-                </button>
+              <div className="flex items-center justify-between gap-2 mt-8">
+                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                  <span className="text-xs">표시</span>
+                  <select
+                    value={params.get('limit') || '12'}
+                    onChange={e => {
+                      const next = new URLSearchParams(params);
+                      next.set('limit', e.target.value);
+                      next.set('page', '1');
+                      setParams(next);
+                    }}
+                    className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-300 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="6">6개</option>
+                    <option value="12">12개</option>
+                    <option value="24">24개</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => goPage(page - 1)}
+                    disabled={page <= 1}
+                    className="px-3 py-1.5 text-sm font-medium bg-slate-100 rounded-xl hover:bg-slate-200 disabled:opacity-30 transition-colors"
+                  >
+                    이전
+                  </button>
+                  <span className="text-sm text-slate-500">
+                    {result.page} / {result.totalPages}
+                  </span>
+                  <button
+                    onClick={() => goPage(page + 1)}
+                    disabled={page >= result.totalPages}
+                    className="px-3 py-1.5 text-sm font-medium bg-slate-100 rounded-xl hover:bg-slate-200 disabled:opacity-30 transition-colors"
+                  >
+                    다음
+                  </button>
+                </div>
               </div>
             )}
           </>

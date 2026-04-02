@@ -142,6 +142,29 @@ body {
 :focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Prevent focus ring overflow */
+.overflow-hidden :focus-visible,
+.overflow-x-auto :focus-visible {
+  outline-offset: -2px;
+}
+
+/* Better focus for inputs */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6;
+  border-color: #3b82f6;
+}
+
+.dark input:focus-visible,
+.dark textarea:focus-visible,
+.dark select:focus-visible {
+  box-shadow: 0 0 0 2px #60a5fa;
+  border-color: #60a5fa;
 }
 
 /* Smooth scroll */
@@ -231,4 +254,38 @@ html {
 }
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/* Modern input styling */
+input, textarea, select {
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Smooth card hover */
+.hover\:shadow-md:hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Better button press feedback */
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Modern gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass morphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .glass {
+  background: rgba(15, 23, 42, 0.8);
 }

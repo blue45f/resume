@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/components/Toast';
 import { timeAgo } from '@/lib/time';
+import { getUser } from '@/lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -21,6 +22,7 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const currentUser = getUser();
 
   const load = () => {
     fetch(`${API_URL}/api/resumes/${resumeId}/comments`)
@@ -116,6 +118,15 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
                   <span className="text-xs text-slate-400 dark:text-slate-500">{timeAgo(c.createdAt)}</span>
                 </div>
                 <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{c.content}</p>
+                {(currentUser?.role === 'admin' || (currentUser?.id && currentUser.id === c.userId)) && (
+                  <button
+                    onClick={() => handleDelete(c.id)}
+                    className="text-xs text-slate-400 hover:text-red-500 transition-colors mt-1"
+                    aria-label="삭제"
+                  >
+                    삭제
+                  </button>
+                )}
               </div>
             </div>
           ))}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -131,26 +132,35 @@ export default function AdminPage() {
             {stats.recentUsers && stats.recentUsers.length > 0 && (
               <section>
                 <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                  <span className="w-1.5 h-4 bg-rose-500 rounded" />
+                  <span className="w-1.5 h-4 bg-indigo-500 rounded" />
                   최근 가입 회원
                 </h2>
                 <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-slate-200 dark:border-slate-700 text-left">
-                        <th className="px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">이름</th>
-                        <th className="px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:table-cell">이메일</th>
-                        <th className="px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">로그인</th>
-                        <th className="px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">가입일</th>
+                      <tr className="bg-slate-50 dark:bg-slate-900 text-left">
+                        <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">이름</th>
+                        <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:table-cell">이메일</th>
+                        <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">로그인</th>
+                        <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">가입일</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                       {stats.recentUsers.map(u => (
-                        <tr key={u.id} className="border-b border-slate-100 dark:border-slate-700/50 last:border-0">
-                          <td className="px-4 py-2 text-slate-700 dark:text-slate-300">{u.name || '(미설정)'}</td>
-                          <td className="px-4 py-2 text-slate-500 dark:text-slate-400 hidden sm:table-cell">{u.email}</td>
-                          <td className="px-4 py-2 text-slate-500 dark:text-slate-400 capitalize">{u.provider}</td>
-                          <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{new Date(u.createdAt).toLocaleDateString('ko-KR')}</td>
+                        <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                          <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-medium">{u.name || '—'}</td>
+                          <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 hidden sm:table-cell">{u.email}</td>
+                          <td className="px-4 py-2.5">
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              u.provider === 'google' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                              u.provider === 'github' ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300' :
+                              u.provider === 'kakao' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                              'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            }`}>
+                              {u.provider}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2.5 text-xs text-slate-400 dark:text-slate-500">{new Date(u.createdAt).toLocaleDateString('ko-KR')}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -158,6 +168,52 @@ export default function AdminPage() {
                 </div>
               </section>
             )}
+
+            {/* Weekly Overview */}
+            <section>
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-4 bg-rose-500 rounded" />
+                주간 활동
+              </h2>
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                <div className="grid grid-cols-3 gap-4">
+                  {[
+                    { label: '신규 회원', value: stats.users.week, max: Math.max(stats.users.week, stats.resumes.week, 1), color: 'bg-blue-500' },
+                    { label: '신규 이력서', value: stats.resumes.week, max: Math.max(stats.users.week, stats.resumes.week, 1), color: 'bg-green-500' },
+                    { label: '총 활동', value: stats.content.versions, max: Math.max(stats.content.versions, 1), color: 'bg-purple-500' },
+                  ].map(item => (
+                    <div key={item.label} className="text-center">
+                      <div className="h-24 flex items-end justify-center mb-2">
+                        <div
+                          className={`w-8 ${item.color} rounded-t transition-all duration-500`}
+                          style={{ height: `${Math.max((item.value / item.max) * 100, 8)}%` }}
+                        />
+                      </div>
+                      <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{item.value}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Content Moderation */}
+            <section className="mt-6">
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-4 bg-red-500 rounded" />
+                콘텐츠 관리
+              </h2>
+              <ContentModeration />
+            </section>
+
+            {/* User Management */}
+            <section>
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-4 bg-rose-500 rounded" />
+                사용자 관리
+              </h2>
+              <UserManagement />
+            </section>
 
             {/* Quick Admin Links */}
             <section className="mt-6">
@@ -184,5 +240,149 @@ export default function AdminPage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+function UserManagement() {
+  const [users, setUsers] = useState<{ id: string; name: string; email: string; provider: string; role: string; createdAt: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = () => {
+    const token = localStorage.getItem('token');
+    fetch(`${API_URL}/api/auth/admin/users`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : [])
+      .then(setUsers)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const toggleRole = async (userId: string, currentRole: string) => {
+    const newRole = currentRole === 'admin' ? 'user' : 'admin';
+    if (!confirm(`이 사용자를 ${newRole === 'admin' ? '관리자로 지정' : '일반 사용자로 변경'}하시겠습니까?`)) return;
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/api/auth/admin/users/${userId}/role`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ role: newRole }),
+    });
+    if (res.ok) {
+      toast(`역할이 ${newRole}로 변경되었습니다`, 'success');
+      load();
+    } else {
+      toast('변경에 실패했습니다', 'error');
+    }
+  };
+
+  if (loading) return <p className="text-sm text-slate-400 py-4 text-center">불러오는 중...</p>;
+
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="bg-slate-50 dark:bg-slate-900 text-left">
+            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">이름</th>
+            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:table-cell">이메일</th>
+            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">로그인</th>
+            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">역할</th>
+            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">관리</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+          {users.map(u => (
+            <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+              <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-medium">{u.name || '—'}</td>
+              <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 hidden sm:table-cell truncate max-w-[200px]">{u.email}</td>
+              <td className="px-4 py-2.5">
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  u.provider === 'google' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                  u.provider === 'github' ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300' :
+                  u.provider === 'local' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                  'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                }`}>{u.provider}</span>
+              </td>
+              <td className="px-4 py-2.5">
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  u.role === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                }`}>{u.role || 'user'}</span>
+              </td>
+              <td className="px-4 py-2.5">
+                <button
+                  onClick={() => toggleRole(u.id, u.role || 'user')}
+                  className={`text-xs px-2 py-1 rounded-lg transition-colors ${
+                    u.role === 'admin'
+                      ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                      : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100'
+                  }`}
+                >
+                  {u.role === 'admin' ? '해제' : '관리자 지정'}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function ContentModeration() {
+  const handleHideResume = async (resumeId: string) => {
+    if (!confirm('이 이력서를 비공개로 변경하시겠습니까?')) return;
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/api/resumes/${resumeId}/visibility`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ visibility: 'private' }),
+    });
+    if (res.ok) {
+      toast('이력서가 비공개로 변경되었습니다', 'success');
+    } else {
+      toast('변경에 실패했습니다', 'error');
+    }
+  };
+
+  const handleDeleteComment = async (resumeId: string, commentId: string) => {
+    if (!confirm('이 댓글을 삭제하시겠습니까?')) return;
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/api/resumes/${resumeId}/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      toast('댓글이 삭제되었습니다', 'success');
+    } else {
+      toast('삭제에 실패했습니다', 'error');
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+        부적절한 공개 콘텐츠를 비공개로 전환하거나 댓글을 삭제할 수 있습니다.
+      </p>
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Link
+            to="/explore"
+            className="flex-1 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-center"
+          >
+            공개 이력서 검토 &rarr;
+          </Link>
+          <Link
+            to="/applications"
+            className="flex-1 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-center"
+          >
+            지원 목록 검토 &rarr;
+          </Link>
+        </div>
+        <p className="text-xs text-slate-400 dark:text-slate-500">
+          관리자 계정으로 탐색 페이지에서 이력서를 열면 비공개 전환 및 댓글 삭제가 가능합니다.
+        </p>
+      </div>
+    </div>
   );
 }
