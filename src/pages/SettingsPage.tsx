@@ -105,7 +105,11 @@ export default function SettingsPage() {
                   <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
                     {user.plan === 'pro' ? '⭐ 프로' : user.plan === 'enterprise' ? '💎 엔터프라이즈' : '🆓 무료'}
                   </span>
-                  <Link to="/pricing" className="ml-2 text-blue-600 dark:text-blue-400 hover:underline">변경</Link>
+                  {user.plan !== 'enterprise' && (
+                    <Link to="/pricing" className="ml-2 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-medium rounded-full hover:from-blue-700 hover:to-indigo-700 transition-all duration-200">
+                      업그레이드
+                    </Link>
+                  )}
                 </p>
                 <div className="mt-2">
                   <ProfileBadges resumeCount={0} isAdmin={user?.role === 'admin'} />

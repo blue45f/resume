@@ -80,6 +80,8 @@ export default function Header() {
                 <Link to="/cover-letter" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
                 <Link to="/compare" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.compare')}</Link>
                 <Link to="/translate" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">번역</Link>
+                <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
+                <Link to="/pricing" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">요금제</Link>
               </div>
             </div>
             {user?.role === 'admin' && (
@@ -168,6 +170,7 @@ export default function Header() {
             <Link to="/cover-letter" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
             <Link to="/compare" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.compare')}</Link>
             <Link to="/translate" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">번역</Link>
+            <Link to="/pricing" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">요금제</Link>
 
             <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
 
