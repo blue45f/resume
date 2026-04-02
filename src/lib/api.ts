@@ -202,6 +202,13 @@ export const generateInterviewQuestions = (resumeId: string, jobRole?: string, p
 export const fetchTransformUsage = (resumeId: string) =>
   request<{ totalTransformations: number; totalTokensUsed: number }>(`${BASE}/resumes/${resumeId}/transform/usage`);
 
+// Translation
+export const translateResume = (resumeId: string, targetLanguage: string) =>
+  request<{ text: string }>(`${BASE}/resumes/${resumeId}/transform`, {
+    method: 'POST',
+    body: JSON.stringify({ templateType: 'english', targetLanguage }),
+  });
+
 // Share Links
 export const createShareLink = (resumeId: string, data: { expiresInHours?: number; password?: string }) =>
   request<{ id: string; token: string; expiresAt: string; hasPassword: boolean }>(

@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getUser, clearAuth } from '@/lib/auth';
 import { getTheme, setTheme } from '@/lib/theme';
+import { t, getLocale, setLocale, LOCALES, getLocaleName } from '@/lib/i18n';
 import NotificationBell from '@/components/NotificationBell';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setThemeState] = useState(getTheme());
+  const [locale, setLocaleState] = useState(getLocale());
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
@@ -57,30 +59,33 @@ export default function Header() {
           <nav className="hidden sm:flex items-center gap-3" aria-label="주요 메뉴">
             {!isHome && (
               <Link to="/" className="text-sm text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1">
-                이력서
+                {t('nav.resumes')}
               </Link>
             )}
             <Link to="/explore" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/explore' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/explore' ? 'page' : undefined}>
-              탐색
+              {t('nav.explore')}
             </Link>
             <Link to="/templates" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/templates' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/templates' ? 'page' : undefined}>
-              템플릿
+              {t('nav.templates')}
             </Link>
             <Link to="/tags" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/tags' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/tags' ? 'page' : undefined}>
-              태그
+              {t('nav.tags')}
             </Link>
             <Link to="/applications" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/applications' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/applications' ? 'page' : undefined}>
-              지원관리
+              {t('nav.applications')}
             </Link>
             <Link to="/cover-letter" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/cover-letter' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`} aria-current={location.pathname === '/cover-letter' ? 'page' : undefined}>
-              자소서
+              {t('nav.coverLetter')}
             </Link>
             <Link to="/compare" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/compare' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`} aria-current={location.pathname === '/compare' ? 'page' : undefined}>
-              비교
+              {t('nav.compare')}
+            </Link>
+            <Link to="/translate" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/translate' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`} aria-current={location.pathname === '/translate' ? 'page' : undefined}>
+              번역
             </Link>
             {user?.role === 'admin' && (
               <Link to="/admin" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/admin' ? 'text-red-600 font-medium' : 'text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300'}`}>
-                관리자
+                {t('nav.admin')}
               </Link>
             )}
             {showSearch ? (
@@ -106,13 +111,13 @@ export default function Header() {
               to="/auto-generate"
               className="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-200"
             >
-              AI 생성
+              {t('nav.aiGenerate')}
             </Link>
             <Link
               to="/resumes/new"
               className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
             >
-              + 새 이력서
+              {t('nav.newResume')}
             </Link>
             {user && <NotificationBell />}
             <button
@@ -124,6 +129,16 @@ export default function Header() {
               <span aria-hidden="true">{themeIcon}</span>
               <span className="text-xs text-slate-400">{themeLabel}</span>
             </button>
+            <select
+              value={locale}
+              onChange={e => { setLocale(e.target.value as any); setLocaleState(e.target.value as any); }}
+              className="text-xs px-1.5 py-1 border border-slate-200 dark:border-slate-600 rounded-lg bg-transparent text-slate-600 dark:text-slate-300 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              aria-label="언어 선택"
+            >
+              {LOCALES.map(l => (
+                <option key={l} value={l}>{getLocaleName(l)}</option>
+              ))}
+            </select>
             {user ? (
               <>
                 <Link to="/settings" className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 transition-colors duration-200">
@@ -134,11 +149,11 @@ export default function Header() {
                   className="text-sm text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 transition-colors duration-200"
                   aria-label="로그아웃"
                 >
-                  로그아웃
+                  {t('common.logout')}
                 </button>
               </>
             ) : (
-              <Link to="/login" className="text-sm text-blue-600 hover:text-blue-800 px-2 py-1">로그인</Link>
+              <Link to="/login" className="text-sm text-blue-600 hover:text-blue-800 px-2 py-1">{t('common.login')}</Link>
             )}
           </nav>
 
@@ -172,6 +187,7 @@ export default function Header() {
             <Link to="/applications" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">지원관리</Link>
             <Link to="/cover-letter" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">자소서</Link>
             <Link to="/compare" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">이력서 비교</Link>
+            <Link to="/translate" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">번역</Link>
 
             <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
 
