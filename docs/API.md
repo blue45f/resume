@@ -42,6 +42,12 @@
 ### POST /auth/logout
 로그아웃 (쿠키 삭제)
 
+### GET /auth/linked-accounts
+연결된 소셜 계정 목록 (로그인 필요)
+
+### GET /auth/link/:provider
+소셜 계정 연결 (Google/GitHub/Kakao)
+
 ## 이력서
 
 ### GET /resumes
@@ -107,6 +113,12 @@ JD 매칭 분석
 ### POST /resumes/:id/transform/interview
 면접 질문 생성
 
+### POST /resumes/:id/transform/preview
+텍스트 → 이력서 미리보기 (AI 자동 생성)
+
+### POST /resumes/:id/transform/create
+텍스트 → 이력서 생성 (AI 자동 생성)
+
 ## 지원 관리
 
 ### GET /applications
@@ -132,6 +144,12 @@ JD 매칭 분석
 공유 링크 생성
 
 **Request:** `{ "expiresInHours": 48, "password": "optional" }`
+
+### GET /resumes/:resumeId/share
+공유 링크 조회
+
+### DELETE /share/:id
+공유 링크 삭제
 
 ### GET /shared/:token
 공유 이력서 조회
@@ -219,6 +237,38 @@ JD 매칭 분석
 지원에 댓글 작성 (로그인 필요)
 
 **Request:** `{ "content": "조언 내용 (5자 이상)" }`
+
+## 첨부파일
+
+### POST /resumes/:resumeId/attachments
+첨부파일 업로드 (MIME + 확장자 이중 검증)
+
+### GET /resumes/:resumeId/attachments
+이력서 첨부파일 목록
+
+### GET /attachments/:id/download
+첨부파일 다운로드
+
+### DELETE /attachments/:id
+첨부파일 삭제 (소유자만)
+
+## 결제
+
+### POST /payment
+결제 페이지 (Toss Payments 연동)
+
+### GET /payment/success
+결제 성공 콜백
+
+### GET /payment/fail
+결제 실패 콜백
+
+## 사용량
+
+### GET /health/usage
+내 사용량 조회 (로그인 필요)
+
+**Response:** `[{ "feature": "transform", "count": 5 }, { "feature": "feedback", "count": 2 }]`
 
 ## 헬스체크
 
