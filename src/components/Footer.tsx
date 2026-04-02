@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { t } from '@/lib/i18n';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -67,7 +68,7 @@ export default function Footer() {
         </div>
         <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 dark:text-slate-500">
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            <span>&copy; 2025 이력서공방. 오픈소스 프로젝트.</span>
+            <span>{t('footer.copyright')}. {t('footer.openSource')}.</span>
             <SiteStats />
           </div>
           <div className="flex items-center gap-4">

@@ -11,6 +11,7 @@ import { fetchResumes, deleteResume, duplicateResume, fetchTags, fetchBookmarks 
 import DashboardStats from '@/components/DashboardStats';
 import RecentActivity from '@/components/RecentActivity';
 import OnboardingBanner from '@/components/OnboardingBanner';
+import { t } from '@/lib/i18n';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -172,32 +173,33 @@ export default function HomePage() {
                 AI 기반 이력서 관리 플랫폼
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
-                이력서를 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">스마트하게</span> 관리하세요
+                {t('home.welcome').split(/스마트하게|smartly|スマートに/).length > 1 ? (
+                  <>{t('home.welcome').split(/스마트하게|smartly|スマートに/)[0]}<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{t('home.welcome').match(/스마트하게|smartly|スマートに/)?.[0]}</span>{t('home.welcome').split(/스마트하게|smartly|スマートに/)[1]}</>
+                ) : t('home.welcome')}
               </h1>
               <p className="text-slate-500 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
-                AI가 도와주는 이력서 작성. 10가지 테마로 미리보기하고,
-                ATS 호환성을 검사하고, 다양한 양식으로 변환하세요.
+                {t('home.welcomeDesc')}
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 max-w-3xl mx-auto mb-10">
               <Link to="/resumes/new" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📝</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">직접 작성</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.directWrite')}</span>
                 <span className="text-xs text-slate-400 mt-1">템플릿 선택 후 작성</span>
               </Link>
               <Link to="/auto-generate" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-purple-200 dark:border-purple-800 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🤖</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">AI 자동 생성</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.aiGenerate')}</span>
                 <span className="text-xs text-slate-400 mt-1">텍스트 붙여넣기만</span>
               </Link>
               <button onClick={() => setShowImport(true)} className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-green-200 dark:border-green-800 hover:border-green-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📋</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">빠른 가져오기</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.quickImport')}</span>
                 <span className="text-xs text-slate-400 mt-1">텍스트 붙여넣기</span>
               </button>
               <Link to="/explore" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🔍</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">둘러보기</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.explore')}</span>
                 <span className="text-xs text-slate-400 mt-1">공개 이력서 탐색</span>
               </Link>
             </div>
@@ -227,7 +229,7 @@ export default function HomePage() {
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
-                내 이력서 ({filtered.length})
+                {t('home.myResumes')} ({filtered.length})
               </h1>
             </div>
 

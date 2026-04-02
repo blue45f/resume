@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import type { Experience, Education, Skill, Project, Certification, Language, Award, Activity } from '@/types/resume';
 import type { Resume } from '@/types/resume';
 import { toast } from '@/components/Toast';
+import { t } from '@/lib/i18n';
 import { sectionTips } from '@/lib/writingTips';
 
 const RichEditor = lazy(() => import('@/components/RichEditor'));
@@ -107,15 +108,15 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
 
 
   const tabs = [
-    { id: 'personal', label: '인적사항' },
-    { id: 'experience', label: '경력' },
-    { id: 'education', label: '학력' },
-    { id: 'skills', label: '기술' },
-    { id: 'projects', label: '프로젝트' },
-    { id: 'certifications', label: '자격증' },
-    { id: 'languages', label: '어학' },
-    { id: 'awards', label: '수상' },
-    { id: 'activities', label: '활동' },
+    { id: 'personal', label: t('resume.personal') },
+    { id: 'experience', label: t('resume.experience') },
+    { id: 'education', label: t('resume.education') },
+    { id: 'skills', label: t('resume.skills') },
+    { id: 'projects', label: t('resume.projects') },
+    { id: 'certifications', label: t('resume.certifications') },
+    { id: 'languages', label: t('resume.languages') },
+    { id: 'awards', label: t('resume.awards') },
+    { id: 'activities', label: t('resume.activities') },
   ];
 
   const updatePersonalInfo = (field: string, value: string) => {

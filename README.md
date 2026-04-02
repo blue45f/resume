@@ -99,6 +99,10 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **댓글 스팸 방지**: Rate Limiting (5회/분)
 - **기타**: CORS, JWT, DTO 검증, Path Traversal 방지
 
+### 다국어
+- **다국어 지원**: 한국어, English, 日本語 (헤더 언어 스위처)
+- **AI 이력서 번역**: 영어/일본어/중국어/한국어로 AI 번역 + 다운로드
+
 ### UI/UX
 - **다크 모드**: 라이트/다크/시스템 자동 감지 (헤더 토글)
 - **반응형 디자인**: PC/태블릿/모바일 대응
@@ -267,7 +271,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 ### LLM 변환 (유료/무료 LLM)
 | 메서드  | 경로                                   | 설명           |
 |------|--------------------------------------|--------------|
-| POST | /api/resumes/:id/transform           | LLM 양식 변환    |
+| POST | /api/resumes/:id/transform           | LLM 양식 변환 / AI 이력서 번역 (targetLanguage 파라미터) |
 | POST | /api/resumes/:id/transform/stream    | LLM 스트리밍 변환  |
 | GET  | /api/resumes/:id/transform/history   | 변환 이력        |
 | GET  | /api/resumes/:id/transform/providers | LLM 프로바이더 목록 |
