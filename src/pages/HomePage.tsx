@@ -11,6 +11,30 @@ import { fetchResumes, deleteResume, duplicateResume, fetchTags } from '@/lib/ap
 import DashboardStats from '@/components/DashboardStats';
 import RecentActivity from '@/components/RecentActivity';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
+function SiteStatsBar() {
+  const [stats, setStats] = useState<{ users: number; resumes: number; views: number; templates: number } | null>(null);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/health/admin/stats`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d) setStats({ users: d.users.total, resumes: d.resumes.total, views: d.activity.totalViews, templates: d.content.templates });
+      })
+      .catch(() => {});
+  }, []);
+
+  return (
+    <div className="flex flex-wrap justify-center gap-6 text-center text-xs text-slate-400 dark:text-slate-500 mt-6">
+      <span><strong className="text-slate-700 dark:text-slate-300 text-sm">{stats?.users || '—'}</strong> 회원</span>
+      <span><strong className="text-slate-700 dark:text-slate-300 text-sm">{stats?.resumes || '—'}</strong> 이력서</span>
+      <span><strong className="text-slate-700 dark:text-slate-300 text-sm">{stats?.views?.toLocaleString() || '—'}</strong> 조회</span>
+      <span><strong className="text-slate-700 dark:text-slate-300 text-sm">{stats?.templates || 26}</strong> 템플릿</span>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [tags, setTags] = useState<(Tag & { resumeCount: number })[]>([]);
@@ -194,12 +218,7 @@ export default function HomePage() {
               <Link to="/tutorial" className="text-sm text-blue-600 hover:text-blue-800">사용 가이드 보기 &rarr;</Link>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-6 text-center text-xs text-slate-400 dark:text-slate-500 mt-6">
-              <span><strong className="text-slate-700 dark:text-slate-300 text-sm">187+</strong> 테스트 통과</span>
-              <span><strong className="text-slate-700 dark:text-slate-300 text-sm">26</strong> 직종 템플릿</span>
-              <span><strong className="text-slate-700 dark:text-slate-300 text-sm">10</strong> 프리뷰 테마</span>
-              <span><strong className="text-slate-700 dark:text-slate-300 text-sm">5</strong> AI 분석</span>
-            </div>
+            <SiteStatsBar />
           </div>
         ) : (
           <div>
