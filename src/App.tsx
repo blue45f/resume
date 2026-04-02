@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ToastContainer } from '@/components/Toast';
+import CookieConsent from '@/components/CookieConsent';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
 import AuthCallbackPage from '@/pages/AuthCallbackPage';
@@ -25,6 +26,7 @@ const CoverLetterPage = lazy(() => import('@/pages/CoverLetterPage'));
 const ComparePage = lazy(() => import('@/pages/ComparePage'));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 const AdminPage = lazy(() => import('@/pages/AdminPage'));
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
 function PageLoader() {
   return (
@@ -62,10 +64,12 @@ export default function App() {
             <Route path="/settings" element={<Suspense fallback={<PageLoader />}><SettingsPage /></Suspense>} />
             <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AdminPage /></Suspense>} />
             <Route path="/@:username/:slug" element={<Suspense fallback={<PageLoader />}><ProfileResumePage /></Suspense>} />
+            <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />
           </Routes>
         </div>
         <ScrollToTop />
         <KeyboardShortcuts />
+        <CookieConsent />
         <ToastContainer />
       </BrowserRouter>
     </ErrorBoundary>

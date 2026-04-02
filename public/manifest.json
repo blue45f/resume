@@ -1,0 +1,16 @@
+{
+  "name": "이력서공방",
+  "short_name": "이력서공방",
+  "description": "AI 기반 이력서 관리 플랫폼",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

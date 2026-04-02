@@ -101,6 +101,80 @@ export default function TermsPage() {
             시행일: 2026년 3월 30일
           </div>
         </div>
+
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-8 mt-16">개인정보 처리방침</h1>
+
+        <div className="prose prose-slate max-w-none space-y-8">
+          <section>
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2">1. 수집하는 개인정보</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
+              이력서공방은 서비스 제공을 위해 다음과 같은 최소한의 개인정보를 수집합니다.
+            </p>
+            <ul className="text-sm text-slate-600 dark:text-slate-400 mt-2 space-y-1 list-disc list-inside">
+              <li><strong>소셜 로그인 정보:</strong> 이메일 주소, 이름, 프로필 사진 (Google, GitHub, Kakao OAuth를 통해 제공)</li>
+              <li><strong>이력서 데이터:</strong> 사용자가 직접 입력한 인적사항, 경력, 학력, 자격증 등</li>
+              <li><strong>서비스 이용 기록:</strong> 접속 로그, 이력서 조회수, 기능 사용 이력</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2">2. 개인정보 이용 목적</h2>
+            <ul className="text-sm text-slate-600 dark:text-slate-400 mt-3 space-y-1 list-disc list-inside">
+              <li>회원 식별 및 로그인 인증</li>
+              <li>이력서 저장, 관리, 공유 기능 제공</li>
+              <li>AI 기반 이력서 변환 및 분석 서비스 제공</li>
+              <li>서비스 개선 및 통계 분석 (비식별 처리)</li>
+              <li>고객 문의 대응</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2">3. 보관 기간</h2>
+            <ul className="text-sm text-slate-600 dark:text-slate-400 mt-3 space-y-1 list-disc list-inside">
+              <li><strong>회원 정보:</strong> 회원 탈퇴 시까지 보관하며, 탈퇴 즉시 삭제</li>
+              <li><strong>이력서 데이터:</strong> 사용자가 삭제할 때까지 보관하며, 삭제 시 관련 데이터 즉시 삭제 (cascade)</li>
+              <li><strong>서비스 이용 기록:</strong> 최대 1년간 보관 후 자동 삭제</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2">4. 제3자 제공</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
+              이력서공방은 사용자의 동의 없이 개인정보를 제3자에게 제공하지 않습니다.
+              다만, AI 이력서 변환 기능 이용 시 이력서 데이터가 LLM 프로바이더(Google Gemini, Groq, Anthropic)에
+              전송되며, 이는 서비스 제공에 필수적인 처리로서 각 프로바이더의 데이터 처리 정책이 적용됩니다.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2">5. 사용자 권리</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
+              사용자는 언제든지 다음의 권리를 행사할 수 있습니다.
+            </p>
+            <ul className="text-sm text-slate-600 dark:text-slate-400 mt-2 space-y-1 list-disc list-inside">
+              <li><strong>열람:</strong> 수집된 개인정보의 내용을 확인할 수 있습니다 (설정 페이지)</li>
+              <li><strong>수정:</strong> 개인정보 및 이력서 데이터를 자유롭게 수정할 수 있습니다</li>
+              <li><strong>삭제:</strong> 이력서 삭제 및 회원 탈퇴를 통해 모든 데이터를 삭제할 수 있습니다</li>
+              <li><strong>동의 철회:</strong> 서비스 이용 동의를 언제든지 철회할 수 있으며, 이 경우 회원 탈퇴로 처리됩니다</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2">6. 쿠키 사용</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
+              이력서공방은 로그인 세션 유지 및 사용자 환경 설정 저장을 위해 쿠키와 로컬 스토리지를 사용합니다.
+              사용자는 브라우저 설정에서 쿠키를 비활성화할 수 있으나, 이 경우 일부 기능(로그인 등)이 제한될 수 있습니다.
+            </p>
+            <ul className="text-sm text-slate-600 dark:text-slate-400 mt-2 space-y-1 list-disc list-inside">
+              <li><strong>필수 쿠키:</strong> 로그인 인증 토큰, 세션 관리</li>
+              <li><strong>기능 쿠키:</strong> 다크 모드 설정, 쿠키 동의 여부, 사용자 환경 설정</li>
+            </ul>
+          </section>
+
+          <div className="text-xs text-slate-400 dark:text-slate-500 pt-4 border-t border-slate-100 dark:border-slate-700">
+            시행일: 2026년 4월 2일
+          </div>
+        </div>
       </main>
     </>
   );
