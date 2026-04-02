@@ -161,7 +161,7 @@ export default function Header() {
 
           {/* Mobile hamburger */}
           <button
-            className="sm:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+            className="sm:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="메뉴 열기"
             aria-expanded={menuOpen}

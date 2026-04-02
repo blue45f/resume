@@ -289,3 +289,21 @@ button:active:not(:disabled) {
 .dark .glass {
   background: rgba(15, 23, 42, 0.8);
 }
+
+/* Mobile touch improvements */
+@media (max-width: 640px) {
+  /* Increase tap targets */
+  button, a, select {
+    min-height: 36px;
+  }
+
+  /* Prevent text size adjustment */
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Better input sizing - prevents iOS zoom on focus */
+  input, textarea, select {
+    font-size: 16px;
+  }
+}

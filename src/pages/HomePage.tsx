@@ -181,7 +181,7 @@ export default function HomePage() {
                 {t('home.welcomeDesc')}
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 max-w-3xl mx-auto mb-10">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl sm:max-w-3xl mx-auto mb-10">
               <Link to="/resumes/new" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📝</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.directWrite')}</span>

@@ -5,7 +5,7 @@ export default function QuickActions() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-20 right-6 z-40 no-print">
+    <div className="fixed bottom-20 sm:bottom-20 right-4 sm:right-6 z-40 no-print">
       {open && (
         <div className="mb-3 space-y-2 animate-fade-in-up">
           {[
@@ -27,7 +27,7 @@ export default function QuickActions() {
       )}
       <button
         onClick={() => setOpen(!open)}
-        className={`w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 ${
+        className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 ${
           open
             ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 rotate-45'
             : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-xl'

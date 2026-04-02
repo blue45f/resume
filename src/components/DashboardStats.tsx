@@ -36,7 +36,7 @@ export default function DashboardStats() {
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+    <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-6">
       {stats.map(s => (
         <div key={s.label} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-center">
           <span className="text-lg">{s.icon}</span>
