@@ -8,6 +8,7 @@ import LoginPage from '@/pages/LoginPage';
 import AuthCallbackPage from '@/pages/AuthCallbackPage';
 import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 import ScrollToTop from '@/components/ScrollToTop';
+import ScrollReset from '@/components/ScrollReset';
 
 // Lazy-loaded pages (non-critical path)
 const NewResumePage = lazy(() => import('@/pages/NewResumePage'));
@@ -40,6 +41,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
+        <ScrollReset />
         <div className="min-h-screen flex flex-col bg-slate-50">
           <Routes>
             {/* Critical path - eager loaded */}
