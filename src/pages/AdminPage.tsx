@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
+import { PLANS } from '@/lib/plans';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -224,6 +225,15 @@ export default function AdminPage() {
               <RecentResumes />
             </section>
 
+            {/* Plan Configuration */}
+            <section className="mt-6">
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-4 bg-blue-500 rounded" />
+                요금제 설정
+              </h2>
+              <PlanConfig />
+            </section>
+
             {/* Quick Admin Links */}
             <section className="mt-6">
               <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
@@ -403,6 +413,102 @@ function RecentResumes() {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function PlanConfig() {
+  const [plans, setPlans] = useState(PLANS.map(p => ({ ...p })));
+  const [saved, setSaved] = useState(false);
+
+  const updateFeature = (planIdx: number, feature: string, value: any) => {
+    setPlans(prev => {
+      const updated = [...prev];
+      updated[planIdx] = {
+        ...updated[planIdx],
+        features: { ...updated[planIdx].features, [feature]: value },
+      };
+      return updated;
+    });
+    setSaved(false);
+  };
+
+  const updatePrice = (planIdx: number, price: number) => {
+    setPlans(prev => {
+      const updated = [...prev];
+      updated[planIdx] = { ...updated[planIdx], price };
+      return updated;
+    });
+    setSaved(false);
+  };
+
+  const handleSave = () => {
+    // In production, this would save to backend
+    localStorage.setItem('admin-plan-config', JSON.stringify(plans));
+    setSaved(true);
+    toast('요금제 설정이 저장되었습니다', 'success');
+  };
+
+  return (
+    <div className="space-y-4">
+      {plans.map((plan, planIdx) => (
+        <div key={plan.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{plan.badge}</span>
+              <h4 className="font-semibold text-slate-900 dark:text-slate-100">{plan.name}</h4>
+            </div>
+            {plan.id !== 'free' && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500">월 가격:</span>
+                <input
+                  type="number"
+                  value={plan.price}
+                  onChange={e => updatePrice(planIdx, parseInt(e.target.value) || 0)}
+                  className="w-24 px-2 py-1 text-sm text-right border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
+                />
+                <span className="text-xs text-slate-400">원</span>
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {[
+              { key: 'maxResumes', label: '이력서 수', type: 'number' },
+              { key: 'aiTransformsPerMonth', label: 'AI 변환/월', type: 'number' },
+              { key: 'themes', label: '테마 수', type: 'number' },
+              { key: 'atsCheck', label: 'ATS 검사', type: 'boolean' },
+              { key: 'aiCoaching', label: 'AI 코칭', type: 'boolean' },
+              { key: 'coverLetter', label: '자소서', type: 'boolean' },
+              { key: 'translation', label: '번역', type: 'boolean' },
+              { key: 'jobTracker', label: '지원관리', type: 'boolean' },
+              { key: 'prioritySupport', label: '우선지원', type: 'boolean' },
+            ].map(feat => (
+              <div key={feat.key} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                <span className="text-xs text-slate-600 dark:text-slate-400">{feat.label}</span>
+                {feat.type === 'boolean' ? (
+                  <button
+                    onClick={() => updateFeature(planIdx, feat.key, !(plan.features as any)[feat.key])}
+                    className={`w-8 h-4 rounded-full transition-colors ${(plan.features as any)[feat.key] ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+                  >
+                    <span className={`block w-3 h-3 bg-white rounded-full transition-transform ${(plan.features as any)[feat.key] ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                  </button>
+                ) : (
+                  <input
+                    type="number"
+                    value={(plan.features as any)[feat.key]}
+                    onChange={e => updateFeature(planIdx, feat.key, parseInt(e.target.value) || 0)}
+                    className="w-16 px-1.5 py-0.5 text-xs text-right border border-slate-200 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-slate-200"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <button onClick={handleSave} className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
+        {saved ? '\u2713 저장됨' : '설정 저장'}
+      </button>
+      <p className="text-xs text-slate-400">-1 = 무제한, 0 = 사용 불가</p>
     </div>
   );
 }
