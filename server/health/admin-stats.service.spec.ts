@@ -3,7 +3,7 @@ import { AdminStatsService } from './admin-stats.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 const mockPrisma = {
-  user: { count: jest.fn() },
+  user: { count: jest.fn(), findMany: jest.fn() },
   resume: { count: jest.fn(), aggregate: jest.fn() },
   template: { count: jest.fn() },
   tag: { count: jest.fn() },
@@ -24,6 +24,7 @@ describe('AdminStatsService', () => {
     jest.clearAllMocks();
     // Default mocks
     mockPrisma.user.count.mockResolvedValue(10);
+    mockPrisma.user.findMany.mockResolvedValue([{ id: 'u1', name: 'Test', email: 't@t.com', provider: 'local', createdAt: new Date() }]);
     mockPrisma.resume.count.mockResolvedValue(25);
     mockPrisma.resume.aggregate.mockResolvedValue({ _sum: { viewCount: 1500 } });
     mockPrisma.template.count.mockResolvedValue(26);

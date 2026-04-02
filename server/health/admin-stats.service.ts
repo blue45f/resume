@@ -35,11 +35,24 @@ export class AdminStatsService {
       this.prisma.resume.count({ where: { visibility: 'public' } }),
     ]);
 
+    const recentUsers = await this.prisma.user.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: { id: true, name: true, email: true, provider: true, createdAt: true },
+    });
+
     return {
       users: { total: totalUsers, today: newUsersToday, week: newUsersWeek, month: newUsersMonth },
       resumes: { total: totalResumes, today: newResumesToday, week: newResumesWeek, public: publicResumes },
       content: { templates: totalTemplates, tags: totalTags, comments: totalComments, versions: totalVersions },
       activity: { applications: totalApplications, transforms: totalTransforms, totalViews: totalViews._sum.viewCount || 0 },
+      recentUsers: recentUsers.map(u => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        provider: u.provider,
+        createdAt: u.createdAt.toISOString(),
+      })),
     };
   }
 }

@@ -1,19 +1,38 @@
 import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { getUser } from '@/lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
+
+interface RecentUser {
+  id: string;
+  name: string | null;
+  email: string;
+  provider: string;
+  createdAt: string;
+}
 
 interface Stats {
   users: { total: number; today: number; week: number; month: number };
   resumes: { total: number; today: number; week: number; public: number };
   content: { templates: number; tags: number; comments: number; versions: number };
   activity: { applications: number; transforms: number; totalViews: number };
+  recentUsers?: RecentUser[];
 }
 
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const user = getUser();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user || user.role !== 'admin') {
+      navigate('/');
+    }
+  }, [user]);
 
   useEffect(() => {
     document.title = '관리자 통계 — 이력서공방';
@@ -38,6 +57,8 @@ export default function AdminPage() {
       </div>
     );
   };
+
+  if (!user || user.role !== 'admin') return null;
 
   return (
     <>
@@ -104,6 +125,58 @@ export default function AdminPage() {
                 <StatCard label="총 조회수" value={stats.activity.totalViews} color="amber" />
                 <StatCard label="AI 변환" value={stats.activity.transforms} color="blue" />
                 <StatCard label="지원 내역" value={stats.activity.applications} color="green" />
+              </div>
+            </section>
+            {/* Recent Users */}
+            {stats.recentUsers && stats.recentUsers.length > 0 && (
+              <section>
+                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                  <span className="w-1.5 h-4 bg-rose-500 rounded" />
+                  최근 가입 회원
+                </h2>
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-700 text-left">
+                        <th className="px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">이름</th>
+                        <th className="px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:table-cell">이메일</th>
+                        <th className="px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">로그인</th>
+                        <th className="px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">가입일</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stats.recentUsers.map(u => (
+                        <tr key={u.id} className="border-b border-slate-100 dark:border-slate-700/50 last:border-0">
+                          <td className="px-4 py-2 text-slate-700 dark:text-slate-300">{u.name || '(미설정)'}</td>
+                          <td className="px-4 py-2 text-slate-500 dark:text-slate-400 hidden sm:table-cell">{u.email}</td>
+                          <td className="px-4 py-2 text-slate-500 dark:text-slate-400 capitalize">{u.provider}</td>
+                          <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{new Date(u.createdAt).toLocaleDateString('ko-KR')}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
+
+            {/* Quick Admin Links */}
+            <section className="mt-6">
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-4 bg-slate-500 rounded" />
+                관리 도구
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { label: '템플릿 관리', to: '/templates', icon: '📄' },
+                  { label: '태그 관리', to: '/tags', icon: '🏷️' },
+                  { label: '공개 이력서', to: '/explore', icon: '🔍' },
+                  { label: '사용 가이드', to: '/tutorial', icon: '📖' },
+                ].map(link => (
+                  <Link key={link.to} to={link.to} className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200 text-sm text-slate-700 dark:text-slate-300">
+                    <span>{link.icon}</span>
+                    {link.label}
+                  </Link>
+                ))}
               </div>
             </section>
           </div>

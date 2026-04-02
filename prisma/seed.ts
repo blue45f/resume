@@ -276,6 +276,47 @@ async function main() {
     }
   }
 
+  // Seed sample notifications
+  const notifCount = await prisma.notification.count();
+  if (notifCount === 0) {
+    const users = await prisma.user.findMany({ take: 2, select: { id: true } });
+    if (users.length > 0) {
+      const sampleNotifs = [
+        { type: 'comment', message: '취준생A님이 이력서에 의견을 남겼습니다: "이력서 구성이 깔끔하네요!"', link: '/explore' },
+        { type: 'comment', message: '현직 HR님이 이력서에 조언을 남겼습니다: "ATS 호환성이 좋아 보입니다"', link: '/explore' },
+        { type: 'bookmark', message: '누군가 당신의 이력서를 북마크했습니다', link: '/explore' },
+        { type: 'application_comment', message: '선배 개발자님이 지원 내역에 조언을 남겼습니다', link: '/applications' },
+      ];
+      for (const notif of sampleNotifs) {
+        await prisma.notification.create({
+          data: { userId: users[0].id, ...notif },
+        });
+      }
+      console.log(`  ✓ 샘플 알림 ${sampleNotifs.length}개 생성`);
+    }
+  }
+
+  // Seed sample bookmarks
+  const bookmarkCount = await prisma.bookmark.count();
+  if (bookmarkCount === 0) {
+    const users = await prisma.user.findMany({ take: 1, select: { id: true } });
+    const publicResumes = await prisma.resume.findMany({
+      where: { visibility: 'public' },
+      take: 3,
+      select: { id: true },
+    });
+    if (users.length > 0 && publicResumes.length > 0) {
+      for (const resume of publicResumes) {
+        try {
+          await prisma.bookmark.create({
+            data: { userId: users[0].id, resumeId: resume.id },
+          });
+        } catch {} // unique constraint
+      }
+      console.log(`  ✓ 샘플 북마크 ${publicResumes.length}개 생성`);
+    }
+  }
+
   console.log('시드 완료!');
 }
 
