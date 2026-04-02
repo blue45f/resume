@@ -60,8 +60,28 @@ export default function CoverLetterPage() {
         throw new Error(err.message || '생성에 실패했습니다');
       }
       const data = await res.json();
-      setResult(data.text || data.data?.text || JSON.stringify(data));
+      const generatedText = data.text || data.data?.text || JSON.stringify(data);
+      setResult(generatedText);
       toast('자기소개서가 생성되었습니다', 'success');
+
+      // Auto-save the cover letter
+      if (generatedText) {
+        const saveToken = localStorage.getItem('token');
+        if (saveToken) {
+          fetch(`${API_URL}/api/cover-letters`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${saveToken}` },
+            body: JSON.stringify({
+              resumeId: selectedResumeId,
+              company: companyName,
+              position,
+              tone,
+              jobDescription,
+              content: generatedText,
+            }),
+          }).catch(() => {});
+        }
+      }
     } catch (e: any) {
       const msg = e.message || '생성에 실패했습니다';
       setError(msg);

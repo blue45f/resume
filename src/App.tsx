@@ -25,6 +25,7 @@ const TermsPage = lazy(() => import('@/pages/TermsPage'));
 const ProfileResumePage = lazy(() => import('@/pages/ProfileResumePage'));
 const ApplicationsPage = lazy(() => import('@/pages/ApplicationsPage'));
 const CoverLetterPage = lazy(() => import('@/pages/CoverLetterPage'));
+const MyCoverLettersPage = lazy(() => import('@/pages/MyCoverLettersPage'));
 const ComparePage = lazy(() => import('@/pages/ComparePage'));
 const TranslatePage = lazy(() => import('@/pages/TranslatePage'));
 const PricingPage = lazy(() => import('@/pages/PricingPage'));
@@ -67,6 +68,7 @@ export default function App() {
             <Route path="/tutorial" element={<Suspense fallback={<PageLoader />}><TutorialPage /></Suspense>} />
             <Route path="/terms" element={<Suspense fallback={<PageLoader />}><TermsPage /></Suspense>} />
             <Route path="/cover-letter" element={<Suspense fallback={<PageLoader />}><CoverLetterPage /></Suspense>} />
+            <Route path="/my-cover-letters" element={<Suspense fallback={<PageLoader />}><MyCoverLettersPage /></Suspense>} />
             <Route path="/compare" element={<Suspense fallback={<PageLoader />}><ComparePage /></Suspense>} />
             <Route path="/translate" element={<Suspense fallback={<PageLoader />}><TranslatePage /></Suspense>} />
             <Route path="/pricing" element={<Suspense fallback={<PageLoader />}><PricingPage /></Suspense>} />

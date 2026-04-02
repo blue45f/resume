@@ -251,3 +251,9 @@ export const fetchFollowing = () => request<any[]>(`${BASE}/social/following`);
 export const sendScoutMessage = (data: { receiverId: string; resumeId?: string; company: string; position: string; message: string }) =>
   request<any>(`${BASE}/social/scout`, { method: 'POST', body: JSON.stringify(data) });
 export const fetchScouts = () => request<any[]>(`${BASE}/social/scouts`);
+
+// Cover Letters
+export const fetchCoverLetters = () => request<any[]>(`${BASE}/cover-letters`);
+export const fetchCoverLetter = (id: string) => request<any>(`${BASE}/cover-letters/${id}`);
+export const deleteCoverLetter = (id: string) =>
+  request<{ success: boolean }>(`${BASE}/cover-letters/${id}`, { method: 'DELETE' });

@@ -31,6 +31,7 @@ model User {
   following      Follow[]         @relation("Followers")
   sentScouts     ScoutMessage[]   @relation("SentScouts")
   receivedScouts ScoutMessage[]   @relation("ReceivedScouts")
+  coverLetters   CoverLetter[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -65,6 +66,7 @@ model Resume {
   comments        Comment[]
   bookmarks       Bookmark[]
   scoutMessages   ScoutMessage[]
+  coverLetters    CoverLetter[]
 
   @@index([userId])
   @@index([visibility])
@@ -347,6 +349,7 @@ model JobApplication {
   user     User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   applicationComments ApplicationComment[]
+  coverLetters CoverLetter[]
 
   @@index([userId])
   @@index([status])
@@ -452,4 +455,26 @@ model ScoutMessage {
 
   @@index([receiverId, read])
   @@map("scout_messages")
+}
+
+model CoverLetter {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  resumeId      String?  @map("resume_id")
+  applicationId String?  @map("application_id")
+  company       String   @default("")
+  position      String   @default("")
+  tone          String   @default("formal")
+  jobDescription String  @default("") @map("job_description")
+  content       String
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume      Resume?         @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  application JobApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([resumeId])
+  @@map("cover_letters")
 }
