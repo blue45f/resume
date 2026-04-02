@@ -73,8 +73,12 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
       formData.append('description', description);
 
       try {
+        const token = localStorage.getItem('token');
+        const headers: Record<string, string> = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
         const res = await fetch(`${API_URL}/api/resumes/${resumeId}/attachments`, {
           method: 'POST',
+          headers,
           body: formData,
         });
         if (!res.ok) {
@@ -188,7 +192,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
                   </div>
                   <div className="flex gap-1 shrink-0">
                     <a
-                      href={a.downloadUrl}
+                      href={a.downloadUrl.startsWith('http') ? a.downloadUrl : `${API_URL}${a.downloadUrl}`}
                       className="px-2 py-1 text-xs text-blue-600 bg-blue-50 rounded hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       download
                     >

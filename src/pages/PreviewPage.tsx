@@ -18,6 +18,7 @@ import ResumeTrend from '@/components/ResumeTrend';
 import SkillChart from '@/components/SkillChart';
 import CareerTimeline from '@/components/CareerTimeline';
 import KeywordAnalysis from '@/components/KeywordAnalysis';
+import AttachmentList from '@/components/AttachmentList';
 import ResumeStats from '@/components/ResumeStats';
 import { toast } from '@/components/Toast';
 import type { Resume } from '@/types/resume';
@@ -251,6 +252,7 @@ export default function PreviewPage() {
             <SkillChart resume={resume} />
             <CareerTimeline resume={resume} />
             <KeywordAnalysis resume={resume} />
+            <AttachmentList resumeId={id!} />
           </div>
           <ResumePreview ref={contentRef} resume={resume} themeId={themeId} />
           <div className="max-w-[210mm] mx-auto mt-3 px-1">
