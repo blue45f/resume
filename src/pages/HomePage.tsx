@@ -7,7 +7,7 @@ import QuickImportModal from '@/components/QuickImportModal';
 import Footer from '@/components/Footer';
 import { timeAgo } from '@/lib/time';
 import type { ResumeSummary, Tag } from '@/types/resume';
-import { fetchResumes, deleteResume, duplicateResume, fetchTags } from '@/lib/api';
+import { fetchResumes, deleteResume, duplicateResume, fetchTags, fetchBookmarks } from '@/lib/api';
 import DashboardStats from '@/components/DashboardStats';
 import RecentActivity from '@/components/RecentActivity';
 
@@ -45,6 +45,7 @@ export default function HomePage() {
   const [showImport, setShowImport] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
+  const [bookmarks, setBookmarks] = useState<{ id: string; resumeId: string; title: string; name: string }[]>([]);
   const navigate = useNavigate();
 
   const load = async (signal?: AbortSignal) => {
@@ -53,6 +54,7 @@ export default function HomePage() {
       if (signal?.aborted) return;
       setResumes(resumeData);
       setTags(tagData);
+      fetchBookmarks().then(setBookmarks).catch(() => {});
     } catch (err) {
       if (signal?.aborted) return;
     } finally {
@@ -229,6 +231,23 @@ export default function HomePage() {
             </div>
 
             <DashboardStats />
+
+            {bookmarks.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">북마크한 이력서</h3>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {bookmarks.slice(0, 5).map(b => (
+                    <Link
+                      key={b.id}
+                      to={`/resumes/${b.resumeId}/preview`}
+                      className="shrink-0 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                    >
+                      {b.title || b.name || '이력서'}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <RecentActivity />
 

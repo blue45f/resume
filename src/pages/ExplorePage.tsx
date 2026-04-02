@@ -29,6 +29,7 @@ export default function ExplorePage() {
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState(params.get('q') || '');
   const [sortBy, setSortBy] = useState<'recent' | 'views'>('recent');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const query = params.get('q') || '';
   const tag = params.get('tag') || '';
@@ -109,7 +110,7 @@ export default function ExplorePage() {
           </button>
         </form>
 
-        {/* 정렬 */}
+        {/* 정렬 + 보기 모드 */}
         <div className="flex items-center gap-2 mb-4">
           <span className="text-xs text-slate-500 dark:text-slate-400">정렬:</span>
           <button
@@ -124,6 +125,22 @@ export default function ExplorePage() {
           >
             인기순
           </button>
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+              aria-label="그리드 보기"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+              aria-label="리스트 보기"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </button>
+          </div>
         </div>
 
         {/* 태그 필터 */}
@@ -159,30 +176,32 @@ export default function ExplorePage() {
               {query && <> · "<span className="font-medium text-slate-700">{query}</span>" 검색 결과</>}
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
               {result.data.map(resume => (
                 <Link
                   key={resume.id}
                   to={`/resumes/${resume.id}/preview`}
-                  className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
+                  className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up ${viewMode === 'list' ? 'flex items-center gap-4' : ''}`}
                 >
-                  <div className="flex items-start justify-between">
-                    <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate mb-1 flex-1">
-                      {resume.title || '제목 없음'}
-                    </h2>
-                    <BookmarkButton resumeId={resume.id} size="sm" />
-                  </div>
-                  <p className="text-sm text-slate-600 mb-1">
-                    {resume.personalInfo?.name || '이름 미입력'}
-                  </p>
-                  {resume.personalInfo?.summary && (
-                    <p className="text-xs text-slate-400 line-clamp-2 mb-2">
-                      {resume.personalInfo.summary}
+                  <div className={viewMode === 'list' ? 'flex-1 min-w-0' : ''}>
+                    <div className="flex items-start justify-between">
+                      <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate mb-1 flex-1">
+                        {resume.title || '제목 없음'}
+                      </h2>
+                      <BookmarkButton resumeId={resume.id} size="sm" />
+                    </div>
+                    <p className="text-sm text-slate-600 mb-1">
+                      {resume.personalInfo?.name || '이름 미입력'}
                     </p>
-                  )}
+                    {resume.personalInfo?.summary && (
+                      <p className={`text-xs text-slate-400 ${viewMode === 'list' ? 'line-clamp-1' : 'line-clamp-2'} mb-2`}>
+                        {resume.personalInfo.summary.replace(/<[^>]*>/g, '')}
+                      </p>
+                    )}
+                  </div>
                   {resume.tags?.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {resume.tags.map(t => (
+                    <div className={`flex flex-wrap gap-1 ${viewMode === 'list' ? 'shrink-0' : ''}`}>
+                      {(viewMode === 'list' ? resume.tags.slice(0, 3) : resume.tags).map(t => (
                         <span key={t.id} className="px-1.5 py-0.5 text-xs rounded-full" style={{ backgroundColor: `${t.color}20`, color: t.color }}>
                           {t.name}
                         </span>

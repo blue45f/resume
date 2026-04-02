@@ -11,6 +11,8 @@ import AiAnalysisPanel from '@/components/AiAnalysisPanel';
 import CommentSection from '@/components/CommentSection';
 import CompletenessBar from '@/components/CompletenessBar';
 import AtsScorePanel from '@/components/AtsScorePanel';
+import SimilarityPanel from '@/components/SimilarityPanel';
+import ResumeStats from '@/components/ResumeStats';
 import { toast } from '@/components/Toast';
 import type { Resume } from '@/types/resume';
 import { fetchResume } from '@/lib/api';
@@ -225,8 +227,12 @@ export default function PreviewPage() {
           <div className="max-w-[210mm] mx-auto mb-4 no-print space-y-3">
             <CompletenessBar resume={resume} />
             <AtsScorePanel resume={resume} />
+            <SimilarityPanel resume={resume} />
           </div>
           <ResumePreview ref={contentRef} resume={resume} themeId={themeId} />
+          <div className="max-w-[210mm] mx-auto mt-3 px-1">
+            <ResumeStats resume={resume} />
+          </div>
           <div className="max-w-[210mm] mx-auto mt-6">
             <CommentSection resumeId={id!} isPublic={resume.visibility === 'public'} />
           </div>
