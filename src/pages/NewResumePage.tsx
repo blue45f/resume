@@ -34,7 +34,8 @@ export default function NewResumePage() {
   const [existingTitles, setExistingTitles] = useState<string[]>([]);
   const user = getUser();
   const plan = getPlan(user?.plan || 'free');
-  const atLimit = plan.features.maxResumes > 0 && resumeCount >= plan.features.maxResumes;
+  const isAdminUser = user?.role === 'admin' || user?.role === 'superadmin';
+  const atLimit = !isAdminUser && plan.features.maxResumes > 0 && resumeCount >= plan.features.maxResumes;
 
   useEffect(() => {
     document.title = '새 이력서 — 이력서공방';

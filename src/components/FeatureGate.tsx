@@ -12,7 +12,7 @@ export default function FeatureGate({ feature, children, fallback }: Props) {
   const user = getUser();
   const userPlan = user?.plan || 'free';
 
-  if (canAccess(userPlan, feature)) {
+  if (canAccess(userPlan, feature, user?.role)) {
     return <>{children}</>;
   }
 

@@ -16,6 +16,13 @@ export class UsageService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new ForbiddenException('사용자를 찾을 수 없습니다');
 
+    // admin/superadmin은 모든 기능 무제한
+    const role = user.role || 'user';
+    if (role === 'admin' || role === 'superadmin') {
+      await this.prisma.usageLog.create({ data: { userId, feature } });
+      return;
+    }
+
     const plan = user.plan || 'free';
     const limit = PLAN_LIMITS[plan]?.[feature] ?? 0;
 

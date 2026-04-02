@@ -209,7 +209,8 @@ export default function PreviewPage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-2.5 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
             {resumeThemes.map(t => {
               const currentUser = getUser();
-              const locked = t.premium && (!currentUser?.plan || currentUser.plan === 'free');
+              const isAdminUser = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+              const locked = t.premium && !isAdminUser && (!currentUser?.plan || currentUser.plan === 'free');
               return (
                 <button
                   key={t.id}

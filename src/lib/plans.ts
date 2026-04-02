@@ -94,7 +94,9 @@ export function getPlan(planId: string): PlanConfig {
   return PLANS.find(p => p.id === planId) || PLANS[0];
 }
 
-export function canAccess(userPlan: string, feature: keyof PlanConfig['features']): boolean {
+export function canAccess(userPlan: string, feature: keyof PlanConfig['features'], userRole?: string): boolean {
+  // admin/superadmin은 모든 기능 사용 가능
+  if (userRole === 'admin' || userRole === 'superadmin') return true;
   const plan = getPlan(userPlan);
   const value = plan.features[feature];
   if (typeof value === 'boolean') return value;
