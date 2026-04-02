@@ -6,6 +6,7 @@ export interface User {
   name: string;
   avatar: string;
   provider: string;
+  role?: string;
 }
 
 export function getToken(): string | null {

@@ -1,4 +1,30 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
+
+function SiteStats() {
+  const [stats, setStats] = useState<{ users: number; resumes: number; views: number } | null>(null);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/health/admin/stats`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d) setStats({ users: d.users.total, resumes: d.resumes.total, views: d.activity.totalViews });
+      })
+      .catch(() => {});
+  }, []);
+
+  if (!stats) return null;
+
+  return (
+    <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-slate-500">
+      <span><strong className="text-slate-500 dark:text-slate-400">{stats.users}</strong> 회원</span>
+      <span><strong className="text-slate-500 dark:text-slate-400">{stats.resumes}</strong> 이력서</span>
+      <span><strong className="text-slate-500 dark:text-slate-400">{stats.views.toLocaleString()}</strong> 조회</span>
+    </div>
+  );
+}
 
 export default function Footer() {
   return (
@@ -40,7 +66,10 @@ export default function Footer() {
           </div>
         </div>
         <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 dark:text-slate-500">
-          <span>&copy; 2025 이력서공방. 오픈소스 프로젝트.</span>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <span>&copy; 2025 이력서공방. 오픈소스 프로젝트.</span>
+            <SiteStats />
+          </div>
           <div className="flex items-center gap-4">
             <Link to="/terms" className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">이용약관</Link>
             <Link to="/about" className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">서비스 소개</Link>

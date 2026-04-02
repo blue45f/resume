@@ -248,6 +248,34 @@ async function main() {
     console.log(`  ✓ 샘플 댓글 ${publicResumes.length * 3}개+ 생성`);
   }
 
+  // Seed sample application comments on public applications
+  const appCommentCount = await prisma.applicationComment.count();
+  if (appCommentCount === 0) {
+    const publicApps = await prisma.jobApplication.findMany({
+      where: { visibility: 'public' },
+      take: 3,
+      select: { id: true, company: true },
+    });
+
+    const appComments = [
+      { authorName: '선배 개발자', content: '이 회사 면접에서는 시스템 설계 질문이 많이 나와요. 준비하시면 도움이 될 겁니다!' },
+      { authorName: '현직자', content: '좋은 회사입니다. 팀 문화가 좋고 성장할 수 있는 환경이에요.' },
+      { authorName: '취준 동기', content: '저도 여기 지원했어요! 서류 통과하셨으면 좋겠습니다.' },
+      { authorName: '커리어 코치', content: '이 포지션이라면 포트폴리오에 관련 프로젝트를 강조하세요.' },
+    ];
+
+    for (const app of publicApps) {
+      for (const comment of appComments.slice(0, 2)) {
+        await prisma.applicationComment.create({
+          data: { applicationId: app.id, ...comment },
+        });
+      }
+    }
+    if (publicApps.length > 0) {
+      console.log(`  ✓ 샘플 지원 댓글 ${publicApps.length * 2}개 생성`);
+    }
+  }
+
   console.log('시드 완료!');
 }
 

@@ -77,6 +77,11 @@ export default function Header() {
             <Link to="/compare" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/compare' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`} aria-current={location.pathname === '/compare' ? 'page' : undefined}>
               비교
             </Link>
+            {user?.role === 'admin' && (
+              <Link to="/admin" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/admin' ? 'text-red-600 font-medium' : 'text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300'}`}>
+                관리자
+              </Link>
+            )}
             {showSearch ? (
               <form onSubmit={(e) => { e.preventDefault(); navigate(`/explore?q=${encodeURIComponent(searchQuery)}`); setShowSearch(false); setSearchQuery(''); }} className="flex items-center">
                 <input
@@ -175,6 +180,9 @@ export default function Header() {
               <>
                 <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                 <Link to="/settings" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">설정</Link>
+                {user?.role === 'admin' && (
+                  <Link to="/admin" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-red-500 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30">관리자</Link>
+                )}
               </>
             )}
 
