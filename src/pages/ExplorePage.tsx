@@ -173,6 +173,37 @@ export default function ExplorePage() {
           </div>
         )}
 
+        {/* 직종 카테고리 빠른 필터 */}
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+          {['전체', '개발', '디자인', '기획/PM', '데이터', '마케팅'].map(cat => (
+            <button
+              key={cat}
+              onClick={() => {
+                if (cat === '전체') {
+                  const next = new URLSearchParams(params);
+                  next.delete('q');
+                  next.delete('page');
+                  setSearchInput('');
+                  setParams(next);
+                } else {
+                  setSearchInput(cat);
+                  const next = new URLSearchParams(params);
+                  next.set('q', cat);
+                  next.delete('page');
+                  setParams(next);
+                }
+              }}
+              className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
+                (cat === '전체' && !query) || query === cat
+                  ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
         {/* 인기 기술 */}
         {popularSkills.length > 0 && (
           <div className="mb-6">

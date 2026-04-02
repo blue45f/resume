@@ -211,6 +211,151 @@ async function main() {
         },
         activities: { create: [] },
       },
+      {
+        title: '디자이너 포트폴리오',
+        slug: 'designer-portfolio',
+        visibility: 'public',
+        personalInfo: {
+          create: {
+            name: '박지현',
+            email: 'jihyun.park@example.com',
+            phone: '010-5555-7777',
+            address: '서울시 마포구',
+            website: 'https://jihyun.design',
+            github: '',
+            summary: '<p>8년차 UI/UX 디자이너입니다. 사용자 리서치부터 프로토타이핑, 디자인 시스템까지 풀사이클 디자인 경험을 보유하고 있습니다.</p>',
+            photo: '',
+            birthYear: '1992',
+            links: '[]',
+            military: '',
+          },
+        },
+        experiences: {
+          create: [
+            { company: '토스', position: 'Product Designer', department: '디자인팀', startDate: '2021-03', endDate: '', current: true, description: '<p>토스 앱 핵심 화면 UI/UX 설계</p>', achievements: '<ul><li>디자인 시스템 구축 (100+ 컴포넌트)</li><li>사용자 전환율 25% 향상</li></ul>', techStack: 'Figma, Framer, Principle', sortOrder: 0 },
+            { company: '네이버', position: 'UX Designer', department: '', startDate: '2018-01', endDate: '2021-02', current: false, description: '<p>네이버 쇼핑 UX 개선</p>', achievements: '', techStack: 'Sketch, InVision, Zeplin', sortOrder: 1 },
+          ],
+        },
+        educations: {
+          create: [
+            { school: '홍익대학교', degree: '학사', field: '시각디자인', gpa: '', startDate: '2010-03', endDate: '2014-02', description: '', sortOrder: 0 },
+          ],
+        },
+        skills: {
+          create: [
+            { category: 'Design', items: 'Figma, Sketch, Adobe XD, Photoshop, Illustrator', sortOrder: 0 },
+            { category: 'Prototyping', items: 'Framer, Principle, ProtoPie', sortOrder: 1 },
+            { category: 'Research', items: 'User Interview, Usability Testing, A/B Testing', sortOrder: 2 },
+          ],
+        },
+        projects: { create: [] },
+        certifications: { create: [] },
+        languages: {
+          create: [
+            { name: '영어', testName: 'OPIC', score: 'IH', testDate: '2023-03', sortOrder: 0 },
+          ],
+        },
+        awards: {
+          create: [
+            { name: 'iF Design Award', issuer: 'iF International Forum Design', awardDate: '2023-04', description: '토스 앱 리디자인', sortOrder: 0 },
+          ],
+        },
+        activities: { create: [] },
+      },
+      {
+        title: '데이터 사이언티스트 이력서',
+        slug: 'data-scientist',
+        visibility: 'public',
+        personalInfo: {
+          create: {
+            name: '최영호',
+            email: 'youngho@example.com',
+            phone: '010-3333-4444',
+            address: '서울시 역삼동',
+            website: '',
+            github: 'https://github.com/youngho-choi',
+            summary: '<p>ML/DL 기반 데이터 분석 및 모델링 전문가. 추천 시스템과 NLP 분야에서 프로덕션 경험을 보유하고 있습니다.</p>',
+            photo: '',
+            birthYear: '1994',
+            links: '[]',
+            military: '육군 병장 만기전역',
+          },
+        },
+        experiences: {
+          create: [
+            { company: '쿠팡', position: 'ML Engineer', department: '추천팀', startDate: '2022-01', endDate: '', current: true, description: '<p>상품 추천 알고리즘 개발 및 운영</p>', achievements: '<ul><li>추천 CTR 18% 향상</li><li>실시간 추론 파이프라인 구축</li></ul>', techStack: 'Python, TensorFlow, Spark, Airflow', sortOrder: 0 },
+          ],
+        },
+        educations: {
+          create: [
+            { school: '서울대학교', degree: '석사', field: '데이터사이언스', gpa: '4.2/4.3', startDate: '2018-03', endDate: '2020-02', description: '추천 시스템 연구', sortOrder: 0 },
+            { school: '연세대학교', degree: '학사', field: '통계학', gpa: '3.9/4.3', startDate: '2014-03', endDate: '2018-02', description: '', sortOrder: 1 },
+          ],
+        },
+        skills: {
+          create: [
+            { category: 'ML/DL', items: 'TensorFlow, PyTorch, scikit-learn, XGBoost', sortOrder: 0 },
+            { category: 'Data', items: 'Python, SQL, Spark, Pandas, NumPy', sortOrder: 1 },
+            { category: 'Infra', items: 'AWS SageMaker, Kubernetes, MLflow, Airflow', sortOrder: 2 },
+          ],
+        },
+        projects: { create: [] },
+        certifications: { create: [] },
+        languages: { create: [] },
+        awards: { create: [] },
+        activities: { create: [] },
+      },
+      {
+        title: 'PM/기획자 이력서',
+        slug: 'product-manager',
+        visibility: 'public',
+        personalInfo: {
+          create: {
+            name: '정수민',
+            email: 'sumin.jung@example.com',
+            phone: '010-8888-9999',
+            address: '서울시 강남구',
+            website: 'https://sumin.notion.site',
+            github: '',
+            summary: '<p>B2B SaaS 제품 기획 5년차. 데이터 기반 의사결정과 애자일 방법론에 능숙합니다. 사용자 문제를 정의하고 해결하는 것을 좋아합니다.</p>',
+            photo: '',
+            birthYear: '1996',
+            links: '[]',
+            military: '',
+          },
+        },
+        experiences: {
+          create: [
+            { company: '당근마켓', position: 'Product Manager', department: '광고사업팀', startDate: '2022-06', endDate: '', current: true, description: '<p>당근 비즈니스 광고 상품 기획</p>', achievements: '<ul><li>광고 매출 2배 성장 기여</li><li>셀프서브 광고 시스템 기획 및 런칭</li></ul>', techStack: 'Jira, Confluence, Amplitude, SQL', sortOrder: 0 },
+            { company: '리디', position: 'Product Owner', department: '', startDate: '2020-01', endDate: '2022-05', current: false, description: '<p>전자책 구독 서비스 기획</p>', achievements: '', techStack: 'Figma, Google Analytics, Mixpanel', sortOrder: 1 },
+          ],
+        },
+        educations: {
+          create: [
+            { school: '성균관대학교', degree: '학사', field: '경영학', gpa: '3.7/4.5', startDate: '2014-03', endDate: '2018-02', description: '', sortOrder: 0 },
+          ],
+        },
+        skills: {
+          create: [
+            { category: '기획', items: 'PRD 작성, 와이어프레임, 사용자 스토리, A/B 테스트', sortOrder: 0 },
+            { category: '도구', items: 'Jira, Confluence, Figma, Amplitude, SQL', sortOrder: 1 },
+            { category: '방법론', items: 'Agile/Scrum, Design Thinking, OKR', sortOrder: 2 },
+          ],
+        },
+        projects: { create: [] },
+        certifications: {
+          create: [
+            { name: 'CSPO (Certified Scrum Product Owner)', issuer: 'Scrum Alliance', issueDate: '2021-08', expiryDate: '', credentialId: '', description: '', sortOrder: 0 },
+          ],
+        },
+        languages: {
+          create: [
+            { name: '영어', testName: 'TOEIC Speaking', score: 'Lv.7', testDate: '2022-05', sortOrder: 0 },
+          ],
+        },
+        awards: { create: [] },
+        activities: { create: [] },
+      },
     ];
 
     for (const data of sampleResumes) {
