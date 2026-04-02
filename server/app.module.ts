@@ -18,6 +18,7 @@ import { HealthModule } from './health/health.module';
 import { ApplicationsModule } from './applications/applications.module';
 import { CommentsModule } from './comments/comments.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { SocialModule } from './social/social.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     ApplicationsModule,
     CommentsModule,
     NotificationsModule,
+    SocialModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

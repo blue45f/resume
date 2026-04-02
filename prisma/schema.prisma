@@ -27,6 +27,10 @@ model User {
   bookmarks    Bookmark[]
   notifications Notification[]
   usageLogs     UsageLog[]
+  followers      Follow[]         @relation("Following")
+  following      Follow[]         @relation("Followers")
+  sentScouts     ScoutMessage[]   @relation("SentScouts")
+  receivedScouts ScoutMessage[]   @relation("ReceivedScouts")
 
   @@unique([provider, providerId])
   @@map("users")
@@ -60,6 +64,7 @@ model Resume {
   applications    JobApplication[]
   comments        Comment[]
   bookmarks       Bookmark[]
+  scoutMessages   ScoutMessage[]
 
   @@index([userId])
   @@index([visibility])
@@ -413,4 +418,38 @@ model ApplicationComment {
   user        User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([applicationId])
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  follower  User @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+model ScoutMessage {
+  id         String   @id @default(uuid())
+  senderId   String   @map("sender_id")
+  receiverId String   @map("receiver_id")
+  resumeId   String?  @map("resume_id")
+  company    String   @default("")
+  position   String   @default("")
+  message    String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  sender   User    @relation("SentScouts", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User    @relation("ReceivedScouts", fields: [receiverId], references: [id], onDelete: Cascade)
+  resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+
+  @@index([receiverId, read])
+  @@map("scout_messages")
 }

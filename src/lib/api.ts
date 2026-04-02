@@ -240,3 +240,14 @@ export const fetchAttachments = (resumeId: string) =>
   request<any[]>(`${BASE}/resumes/${resumeId}/attachments`);
 export const deleteAttachment = (id: string) =>
   request<{ success: boolean }>(`${BASE}/attachments/${id}`, { method: 'DELETE' });
+
+// Social
+export const followUser = (userId: string) =>
+  request<{ followed: boolean }>(`${BASE}/social/follow/${userId}`, { method: 'POST' });
+export const unfollowUser = (userId: string) =>
+  request<{ followed: boolean }>(`${BASE}/social/follow/${userId}`, { method: 'DELETE' });
+export const fetchFollowers = () => request<any[]>(`${BASE}/social/followers`);
+export const fetchFollowing = () => request<any[]>(`${BASE}/social/following`);
+export const sendScoutMessage = (data: { receiverId: string; resumeId?: string; company: string; position: string; message: string }) =>
+  request<any>(`${BASE}/social/scout`, { method: 'POST', body: JSON.stringify(data) });
+export const fetchScouts = () => request<any[]>(`${BASE}/social/scouts`);
