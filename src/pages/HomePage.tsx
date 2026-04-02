@@ -415,6 +415,18 @@ export default function HomePage() {
                       복제
                     </button>
                     <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const url = `${window.location.origin}/resumes/${resume.id}/preview`;
+                        navigator.clipboard.writeText(url);
+                        toast('링크가 복사되었습니다', 'success');
+                      }}
+                      className="px-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                      aria-label={`${resume.title} 링크 복사`}
+                    >
+                      공유
+                    </button>
+                    <button
                       onClick={() => handleDelete(resume.id, resume.title)}
                       className="px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
                       aria-label={`${resume.title} 삭제`}

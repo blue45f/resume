@@ -197,6 +197,20 @@ export default function ApplicationsPage() {
                       </button>
                     </div>
                   </div>
+                  {/* Status timeline */}
+                  <div className="flex items-center gap-0.5 mt-2">
+                    {['applied', 'screening', 'interview', 'offer'].map((step, i) => {
+                      const stepOrder = ['applied', 'screening', 'interview', 'offer'];
+                      const currentOrder = stepOrder.indexOf(app.status);
+                      const isActive = i <= currentOrder && app.status !== 'rejected' && app.status !== 'withdrawn';
+                      return (
+                        <div key={step} className="flex items-center">
+                          <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-600'}`} />
+                          {i < 3 && <div className={`w-4 h-0.5 ${isActive && i < currentOrder ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-600'}`} />}
+                        </div>
+                      );
+                    })}
+                  </div>
                   {app.url && (
                     <a href={app.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 mt-2 hover:underline">
                       공고 보기 &rarr;

@@ -25,7 +25,9 @@ function calculateSimilarity(a: string, b: string): number {
   return union > 0 ? intersection / union : 0;
 }
 
-export function findDuplicates(resume: any): SimilarityIssue[] {
+import type { Resume } from '@/types/resume';
+
+export function findDuplicates(resume: Resume): SimilarityIssue[] {
   const issues: SimilarityIssue[] = [];
 
   // Check experience descriptions

@@ -153,6 +153,44 @@ export default function SettingsPage() {
           </section>
         )}
 
+        {/* Data Export */}
+        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">데이터 내보내기</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">모든 이력서와 지원 내역을 JSON 파일로 다운로드합니다.</p>
+          <button
+            onClick={async () => {
+              try {
+                const token = localStorage.getItem('token');
+                const headers: Record<string, string> = {};
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const [resumesRes, appsRes] = await Promise.all([
+                  fetch(`${API_URL}/api/resumes`, { headers }),
+                  fetch(`${API_URL}/api/applications`, { headers }),
+                ]);
+
+                const resumes = await resumesRes.json();
+                const apps = await appsRes.json();
+
+                const data = { exportDate: new Date().toISOString(), resumes: resumes.data || resumes, applications: apps };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `이력서공방_데이터_${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                toast('데이터가 다운로드되었습니다', 'success');
+              } catch {
+                toast('다운로드에 실패했습니다', 'error');
+              }
+            }}
+            className="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all duration-200"
+          >
+            JSON으로 내보내기
+          </button>
+        </section>
+
         {/* Danger Zone */}
         <section className="bg-white dark:bg-slate-800 rounded-2xl border border-red-200 dark:border-red-900 p-6">
           <h2 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">위험 영역</h2>
