@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react';
 const shortcuts = [
   { keys: ['Ctrl/⌘', 'S'], description: '이력서 저장' },
   { keys: ['Ctrl/⌘', 'P'], description: 'PDF 인쇄' },
-  { keys: ['?'], description: '단축키 도움말' },
-  { keys: ['Esc'], description: '패널/모달 닫기' },
+  { keys: ['?'], description: '단축키 도움말 토글' },
+  { keys: ['Esc'], description: '모달/패널 닫기' },
   { keys: ['N'], description: '새 이력서 (홈에서)' },
+  { keys: ['\u2190', '\u2192'], description: '탭 이동 (편집 페이지)' },
 ];
 
 export default function KeyboardShortcuts() {

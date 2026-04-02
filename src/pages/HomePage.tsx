@@ -10,6 +10,7 @@ import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchResumes, deleteResume, duplicateResume, fetchTags, fetchBookmarks } from '@/lib/api';
 import DashboardStats from '@/components/DashboardStats';
 import RecentActivity from '@/components/RecentActivity';
+import OnboardingBanner from '@/components/OnboardingBanner';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -229,6 +230,8 @@ export default function HomePage() {
                 내 이력서 ({filtered.length})
               </h1>
             </div>
+
+            <OnboardingBanner />
 
             <DashboardStats />
 
