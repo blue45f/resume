@@ -12,6 +12,7 @@ import DashboardStats from '@/components/DashboardStats';
 import RecentActivity from '@/components/RecentActivity';
 import OnboardingBanner from '@/components/OnboardingBanner';
 import { t } from '@/lib/i18n';
+import { getUser } from '@/lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -49,6 +50,7 @@ export default function HomePage() {
   const [selectMode, setSelectMode] = useState(false);
   const [bookmarks, setBookmarks] = useState<{ id: string; resumeId: string; title: string; name: string }[]>([]);
   const navigate = useNavigate();
+  const user = getUser();
 
   const load = async (signal?: AbortSignal) => {
     try {
@@ -237,6 +239,18 @@ export default function HomePage() {
             <OnboardingBanner />
 
             <DashboardStats />
+
+            {user && (!user.plan || user.plan === 'free') && resumes.length >= 2 && (
+              <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center justify-between animate-fade-in">
+                <div>
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300">프로 플랜으로 업그레이드</p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">무제한 AI 변환, 자소서, 번역 기능을 사용하세요</p>
+                </div>
+                <Link to="/pricing" className="shrink-0 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                  요금제 보기
+                </Link>
+              </div>
+            )}
 
             {bookmarks.length > 0 && (
               <div className="mb-6">

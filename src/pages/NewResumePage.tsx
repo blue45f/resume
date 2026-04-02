@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ResumeForm from '@/components/ResumeForm';
 import { toast } from '@/components/Toast';
 import { createEmptyResumeData } from '@/types/resume';
 import type { Resume, Template } from '@/types/resume';
-import { createResume, fetchTemplates } from '@/lib/api';
+import { createResume, fetchTemplates, fetchResumes } from '@/lib/api';
+import { getUser } from '@/lib/auth';
+import { getPlan } from '@/lib/plans';
 
 const SECTION_LABELS: Record<string, string> = {
   personalInfo: '인적사항', summary: '자기소개', experiences: '경력',
@@ -28,10 +30,18 @@ export default function NewResumePage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [step, setStep] = useState<'template' | 'form'>('template');
+  const [resumeCount, setResumeCount] = useState(0);
+  const user = getUser();
+  const plan = getPlan(user?.plan || 'free');
+  const atLimit = plan.features.maxResumes > 0 && resumeCount >= plan.features.maxResumes;
 
   useEffect(() => {
     document.title = '새 이력서 — 이력서공방';
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
+
+  useEffect(() => {
+    fetchResumes().then(r => setResumeCount(r.length)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -69,7 +79,18 @@ export default function NewResumePage() {
     <>
       <Header />
       <main id="main-content" className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
-        {step === 'template' ? (
+        {atLimit ? (
+          <div className="text-center py-12 animate-fade-in">
+            <span className="text-4xl mb-4 block">📊</span>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">이력서 한도 도달</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              무료 플랜에서는 최대 {plan.features.maxResumes}개의 이력서를 생성할 수 있습니다.
+            </p>
+            <Link to="/pricing" className="inline-block px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
+              프로 플랜으로 업그레이드
+            </Link>
+          </div>
+        ) : step === 'template' ? (
           <>
             <div className="flex items-center justify-between mb-6">
               <div>

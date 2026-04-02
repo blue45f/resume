@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { getUser, clearAuth } from '@/lib/auth';
 import ProfileBadges from '@/components/ProfileBadges';
+import { getPlan } from '@/lib/plans';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -126,11 +127,18 @@ export default function SettingsPage() {
                   <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                     <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">이번 달 사용량</p>
                     <div className="flex flex-wrap gap-2">
-                      {usage.map(u => (
-                        <span key={u.feature} className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg">
-                          {u.feature === 'ai_transform' ? 'AI 변환' : u.feature === 'cover_letter' ? '자소서' : u.feature === 'translation' ? '번역' : u.feature}: {u.count}회
-                        </span>
-                      ))}
+                      {usage.map(u => {
+                        const planConfig = getPlan(user?.plan || 'free');
+                        const featureKey = u.feature === 'ai_transform' ? 'aiTransformsPerMonth' as const : null;
+                        const limit = featureKey ? planConfig.features[featureKey] : 0;
+                        const remaining = limit === -1 ? '∞' : limit > 0 ? Math.max(0, limit - u.count) : '-';
+                        const label = u.feature === 'ai_transform' ? 'AI 변환' : u.feature === 'cover_letter' ? '자소서' : u.feature === 'translation' ? '번역' : u.feature;
+                        return (
+                          <span key={u.feature} className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg">
+                            {label}: {u.count}회 {limit === -1 ? '(무제한)' : limit > 0 ? `/ ${limit}회 (잔여 ${remaining})` : ''}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -187,6 +195,36 @@ export default function SettingsPage() {
                 {changingPw ? '변경 중...' : '비밀번호 변경'}
               </button>
             </form>
+          </section>
+        )}
+
+        {/* Credit Purchase */}
+        {(!user?.plan || user.plan === 'free') && (
+          <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">AI 크레딧</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              무료 플랜의 월 한도를 초과하면 추가 크레딧을 구매할 수 있습니다.
+            </p>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              {[
+                { credits: 10, price: 1900, popular: false },
+                { credits: 30, price: 4900, popular: true },
+                { credits: 100, price: 9900, popular: false },
+              ].map(pack => (
+                <button
+                  key={pack.credits}
+                  className={`p-3 rounded-xl border text-center transition-all duration-200 ${
+                    pack.popular ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{pack.credits}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">크레딧</p>
+                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">₩{pack.price.toLocaleString()}</p>
+                  {pack.popular && <span className="text-xs text-blue-500">인기</span>}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-slate-400">결제 시스템 준비 중입니다. 프로 플랜을 추천합니다.</p>
           </section>
         )}
 

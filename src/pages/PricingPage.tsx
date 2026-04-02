@@ -7,7 +7,7 @@ import { getUser } from '@/lib/auth';
 
 export default function PricingPage() {
   const [yearly, setYearly] = useState(false);
-  const user = getUser();
+  const _user = getUser();
 
   useEffect(() => {
     document.title = '요금제 — 이력서공방';
@@ -117,7 +117,7 @@ export default function PricingPage() {
               </ul>
 
               <Link
-                to={plan.id === 'free' ? '/resumes/new' : '/settings'}
+                to={plan.id === 'free' ? '/resumes/new' : `/payment?plan=${plan.id}&period=${yearly ? 'yearly' : 'monthly'}`}
                 className={`block w-full py-3 text-center text-sm font-medium rounded-xl transition-all duration-200 ${
                   plan.popular
                     ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'

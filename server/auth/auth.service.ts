@@ -221,7 +221,12 @@ export class AuthService {
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
-    return { id: user.id, email: user.email, name: user.name, avatar: user.avatar, provider: user.provider, role: user.role || 'user' };
+    const resumeCount = await this.prisma.resume.count({ where: { userId } });
+    return {
+      id: user.id, email: user.email, name: user.name, avatar: user.avatar,
+      provider: user.provider, role: user.role || 'user', plan: user.plan || 'free',
+      resumeCount,
+    };
   }
 
   getAvailableProviders() {

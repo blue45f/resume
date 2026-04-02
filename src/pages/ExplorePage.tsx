@@ -6,6 +6,7 @@ import { CardGridSkeleton } from '@/components/Skeleton';
 import EmptyState from '@/components/EmptyState';
 import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchTags } from '@/lib/api';
+import { getUser } from '@/lib/auth';
 import BookmarkButton from '@/components/BookmarkButton';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -111,6 +112,17 @@ export default function ExplorePage() {
       <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">공개 이력서 탐색</h1>
         <p className="text-sm text-slate-500 mb-6">공개 설정된 이력서를 검색하고 열람할 수 있습니다.</p>
+
+        {(() => { const u = getUser(); return u && (!u?.plan || u.plan === 'free') ? (
+          <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p className="text-sm text-purple-800 dark:text-purple-300">
+              ⭐ <strong>프로 플랜</strong>으로 AI 무제한, 번역, 자소서 기능을 사용하세요
+            </p>
+            <Link to="/pricing" className="shrink-0 px-3 py-1 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors">
+              업그레이드
+            </Link>
+          </div>
+        ) : null; })()}
 
         {/* 검색바 */}
         <form onSubmit={handleSearch} className="flex gap-2 mb-4">
@@ -277,6 +289,9 @@ export default function ExplorePage() {
                   to={`/resumes/${resume.id}/preview`}
                   className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up ${viewMode === 'list' ? 'flex items-center gap-4' : ''}`}
                 >
+                  {viewMode === 'grid' && (
+                    <div className="h-1 -mx-5 -mt-5 mb-4 rounded-t-2xl bg-gradient-to-r from-blue-500 to-indigo-500" />
+                  )}
                   <div className={viewMode === 'list' ? 'flex-1 min-w-0' : ''}>
                     <div className="flex items-start justify-between">
                       <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate mb-1 flex-1">

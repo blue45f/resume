@@ -7,6 +7,7 @@ export interface ResumeTheme {
   bodyStyle: string;
   accentColor: string;
   fontFamily: string;
+  premium?: boolean;
 }
 
 export const resumeThemes: ResumeTheme[] = [
@@ -49,6 +50,7 @@ export const resumeThemes: ResumeTheme[] = [
     bodyStyle: 'text-slate-700',
     accentColor: 'slate',
     fontFamily: "'Noto Sans KR', sans-serif",
+    premium: true,
   },
   {
     id: 'creative',
@@ -59,6 +61,7 @@ export const resumeThemes: ResumeTheme[] = [
     bodyStyle: 'text-slate-700',
     accentColor: 'purple',
     fontFamily: "'Pretendard', sans-serif",
+    premium: true,
   },
   {
     id: 'executive',
@@ -69,6 +72,7 @@ export const resumeThemes: ResumeTheme[] = [
     bodyStyle: 'text-slate-700',
     accentColor: 'slate',
     fontFamily: "'Georgia', 'Noto Serif KR', serif",
+    premium: true,
   },
   {
     id: 'startup',
@@ -79,6 +83,7 @@ export const resumeThemes: ResumeTheme[] = [
     bodyStyle: 'text-slate-700',
     accentColor: 'indigo',
     fontFamily: "'Inter', -apple-system, sans-serif",
+    premium: true,
   },
   {
     id: 'academic',
@@ -89,6 +94,7 @@ export const resumeThemes: ResumeTheme[] = [
     bodyStyle: 'text-slate-800 leading-relaxed',
     accentColor: 'slate',
     fontFamily: "'Times New Roman', 'Noto Serif KR', serif",
+    premium: true,
   },
   {
     id: 'tech',
@@ -99,6 +105,7 @@ export const resumeThemes: ResumeTheme[] = [
     bodyStyle: 'text-slate-700',
     accentColor: 'green',
     fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+    premium: true,
   },
   {
     id: 'elegant',
@@ -109,5 +116,6 @@ export const resumeThemes: ResumeTheme[] = [
     bodyStyle: 'text-slate-700',
     accentColor: 'amber',
     fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
+    premium: true,
   },
 ];
