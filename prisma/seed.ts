@@ -76,6 +76,26 @@ async function main() {
     console.log('✓ 기본 태그 5개 생성 완료');
   }
 
+  // Seed sample job applications
+  const appCount = await prisma.jobApplication.count();
+  if (appCount === 0) {
+    const sampleApplications = [
+      { company: '네이버', position: '프론트엔드 개발자', status: 'interview', url: 'https://recruit.navercorp.com', location: '성남시 분당구', salary: '6,000만원', notes: '2차 면접 예정', appliedDate: '2025-03-15' },
+      { company: '카카오', position: 'React 개발자', status: 'applied', url: 'https://careers.kakao.com', location: '성남시 판교', salary: '5,500만원', notes: '서류 접수 완료', appliedDate: '2025-03-20' },
+      { company: '토스', position: '웹 프론트엔드', status: 'screening', url: 'https://toss.im/career', location: '서울시 강남구', salary: '7,000만원', appliedDate: '2025-03-18' },
+      { company: '쿠팡', position: 'Software Engineer', status: 'offer', url: 'https://www.coupang.jobs', location: '서울시 송파구', salary: '8,000만원', notes: '오퍼 수령, 처우 협상 중', appliedDate: '2025-02-28' },
+      { company: '당근마켓', position: 'Frontend Developer', status: 'rejected', url: 'https://about.daangn.com/jobs', location: '서울시 서초구', salary: '6,500만원', notes: '코딩 테스트 탈락', appliedDate: '2025-03-01' },
+      { company: '라인', position: 'Web Developer', status: 'applied', url: 'https://careers.linecorp.com', location: '성남시 분당구', salary: '6,000만원', appliedDate: '2025-03-25' },
+      { company: 'NHN', position: '프론트엔드 엔지니어', status: 'interview', location: '성남시 분당구', salary: '5,000만원', notes: '1차 기술 면접 통과', appliedDate: '2025-03-10' },
+      { company: '우아한형제들', position: 'React Developer', status: 'withdrawn', url: 'https://career.woowahan.com', location: '서울시 송파구', notes: '다른 오퍼 수락으로 취소', appliedDate: '2025-03-05' },
+    ];
+
+    for (const app of sampleApplications) {
+      await prisma.jobApplication.create({ data: app });
+    }
+    console.log(`  ✓ 샘플 지원 내역 ${sampleApplications.length}개 생성`);
+  }
+
   console.log('시드 완료!');
 }
 

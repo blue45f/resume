@@ -40,3 +40,4 @@ prisma/migrations/**/migration_lock.toml
 *.sln
 *.sw?
 .vercel
+docs/DEPLOY_KEYS.md

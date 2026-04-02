@@ -173,18 +173,27 @@ export default function PreviewPage() {
             </div>
           </div>
           {/* Theme selector */}
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-2.5 flex items-center gap-1 overflow-x-auto">
+          {/* Theme selector */}
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-2.5 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
             {resumeThemes.map(t => (
               <button
                 key={t.id}
                 onClick={() => setThemeId(t.id)}
-                className={`px-2 py-1 text-xs rounded-lg transition-all duration-200 ${
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg whitespace-nowrap transition-all duration-200 ${
                   themeId === t.id
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
                 }`}
                 title={t.description}
               >
+                <span className={`w-2 h-2 rounded-full ${
+                  t.accentColor === 'blue' ? 'bg-blue-500' :
+                  t.accentColor === 'slate' ? 'bg-slate-500' :
+                  t.accentColor === 'purple' ? 'bg-purple-500' :
+                  t.accentColor === 'indigo' ? 'bg-indigo-500' :
+                  t.accentColor === 'green' ? 'bg-green-500' :
+                  t.accentColor === 'amber' ? 'bg-amber-500' : 'bg-slate-500'
+                }`} />
                 {t.name}
               </button>
             ))}

@@ -130,6 +130,113 @@ const steps = [
       </div>
     ),
   },
+  {
+    id: 'ats',
+    title: '7. ATS 호환성 검사',
+    icon: '7',
+    content: (
+      <div className="space-y-3">
+        <p>이력서가 ATS(지원자 추적 시스템)를 통과할 수 있는지 자동으로 분석합니다.</p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>미리보기 페이지 하단의 <strong>"ATS 호환성 점수"</strong> 패널을 확인하세요</li>
+          <li>0-100점 스코어와 A-F 등급을 제공합니다</li>
+          <li>이름, 이메일, 경력, 기술 등 필수 항목 누락 여부를 체크합니다</li>
+          <li>각 문제점에 대한 구체적인 개선 팁을 제공합니다</li>
+        </ul>
+        <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-100 dark:border-emerald-800 text-sm text-emerald-800 dark:text-emerald-300">
+          <strong>Tip:</strong> ATS 점수 80점 이상이면 대부분의 기업 채용 시스템을 통과할 수 있습니다.
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'coverletter',
+    title: '8. AI 자기소개서 생성',
+    icon: '8',
+    content: (
+      <div className="space-y-3">
+        <p>이력서와 채용 공고를 기반으로 AI가 맞춤 자기소개서를 작성합니다.</p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>상단 메뉴의 <strong>"자소서"</strong>를 클릭하세요</li>
+          <li>이력서를 선택하고, 채용 공고를 붙여넣으세요</li>
+          <li>회사명, 포지션, 어조(격식/친근/열정)를 선택할 수 있습니다</li>
+          <li>생성된 결과는 클립보드에 복사하여 바로 사용 가능합니다</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'applications',
+    title: '9. 지원 관리',
+    icon: '9',
+    content: (
+      <div className="space-y-3">
+        <p>지원한 회사를 체계적으로 추적하고 관리할 수 있습니다.</p>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {['지원완료', '서류심사', '면접', '합격', '불합격', '취소'].map(s => (
+            <span key={s} className="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-full">{s}</span>
+          ))}
+        </div>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>상단 메뉴의 <strong>"지원관리"</strong>에서 지원 내역을 추가/수정/삭제할 수 있습니다</li>
+          <li>상태별 필터링과 회사/포지션 검색이 가능합니다</li>
+          <li>연봉, 근무지, 메모 등 상세 정보를 기록할 수 있습니다</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'themes',
+    title: '10. 이력서 테마',
+    icon: '10',
+    content: (
+      <div className="space-y-3">
+        <p>10가지 프리뷰 테마로 이력서의 시각적 스타일을 변경할 수 있습니다.</p>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          {['클래식', '모던', '미니멀', '프로페셔널', '크리에이티브', '임원급', '스타트업', '학술', '테크', '엘레강트'].map(t => (
+            <div key={t} className="p-2 text-center text-xs bg-slate-50 dark:bg-slate-900 rounded-lg border dark:border-slate-700">{t}</div>
+          ))}
+        </div>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          미리보기 페이지 상단의 테마 셀렉터에서 실시간으로 전환할 수 있습니다. PDF 인쇄 시에도 선택한 테마가 적용됩니다.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'voice',
+    title: '11. 음성 입력',
+    icon: '11',
+    content: (
+      <div className="space-y-3">
+        <p>자기소개를 음성으로 입력할 수 있습니다 (Chrome, Edge 브라우저 지원).</p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>이력서 편집 → 인적사항 탭에서 자기소개 옆의 <strong>"음성"</strong> 버튼을 클릭하세요</li>
+          <li>한국어로 말하면 자동으로 텍스트로 변환됩니다</li>
+          <li>녹음 중에는 버튼이 빨간색으로 표시됩니다</li>
+        </ul>
+        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-300">
+          <strong>참고:</strong> 브라우저의 마이크 권한을 허용해야 합니다. Safari에서는 지원되지 않을 수 있습니다.
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'settings',
+    title: '12. 계정 설정',
+    icon: '12',
+    content: (
+      <div className="space-y-3">
+        <p>프로필, 비밀번호, 소셜 계정 연동을 관리할 수 있습니다.</p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>상단의 사용자 이름을 클릭하면 설정 페이지로 이동합니다</li>
+          <li>이메일 계정은 비밀번호 변경이 가능합니다</li>
+          <li>Google, GitHub, Kakao 소셜 계정을 연동/해제할 수 있습니다</li>
+          <li><strong className="text-red-600">계정 삭제</strong>는 모든 데이터가 영구 삭제되므로 주의하세요</li>
+        </ul>
+      </div>
+    ),
+  },
 ];
 
 export default function TutorialPage() {
@@ -174,12 +281,15 @@ export default function TutorialPage() {
           ))}
         </div>
 
-        <div className="mt-8 text-center">
-          <Link
-            to="/resumes/new"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-          >
-            지금 이력서 만들기
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link to="/resumes/new" className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm">
+            이력서 만들기
+          </Link>
+          <Link to="/auto-generate" className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-medium rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 shadow-sm">
+            AI 자동 생성
+          </Link>
+          <Link to="/explore" className="inline-flex items-center px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200">
+            이력서 둘러보기
           </Link>
         </div>
       </main>

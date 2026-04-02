@@ -65,4 +65,28 @@ describe('SanitizeMiddleware', () => {
     middleware.use(req, res, next);
     expect(next).toHaveBeenCalled();
   });
+
+  it('HTML 허용 필드(summary, description, achievements)는 태그를 유지한다', () => {
+    const { req } = run({
+      summary: '<p>자기소개 <strong>강조</strong></p>',
+      description: '<ul><li>항목1</li></ul>',
+      achievements: '<b>성과</b>',
+      name: '<b>이름</b>',
+    });
+    expect(req.body.summary).toBe('<p>자기소개 <strong>강조</strong></p>');
+    expect(req.body.description).toBe('<ul><li>항목1</li></ul>');
+    expect(req.body.achievements).toBe('<b>성과</b>');
+    expect(req.body.name).toBe('이름'); // 일반 필드는 태그 제거
+  });
+
+  it('중첩 객체의 HTML 허용 필드도 유지한다', () => {
+    const { req } = run({
+      personalInfo: { summary: '<p>소개</p>', name: '<b>이름</b>' },
+      experiences: [{ description: '<p>업무</p>', company: '<b>회사</b>' }],
+    });
+    expect(req.body.personalInfo.summary).toBe('<p>소개</p>');
+    expect(req.body.personalInfo.name).toBe('이름');
+    expect(req.body.experiences[0].description).toBe('<p>업무</p>');
+    expect(req.body.experiences[0].company).toBe('회사');
+  });
 });

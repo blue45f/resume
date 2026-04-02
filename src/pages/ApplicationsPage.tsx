@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import { toast } from '@/components/Toast';
+import EmptyState from '@/components/EmptyState';
 import { fetchApplications, createApplication, updateApplication, deleteApplication } from '@/lib/api';
 import type { JobApplication } from '@/lib/api';
 
@@ -149,11 +150,7 @@ export default function ApplicationsPage() {
         {loading ? (
           <div className="text-center py-12 text-slate-500">불러오는 중...</div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 animate-fade-in">
-            <p className="text-4xl mb-3">📋</p>
-            <p className="text-slate-500 dark:text-slate-400">지원 내역이 없습니다</p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">위의 "+ 지원 추가" 버튼으로 시작하세요</p>
-          </div>
+          <EmptyState type={searchQuery ? 'search' : 'application'} query={searchQuery || undefined} />
         ) : (
           <div className="space-y-3">
             {filtered.map(app => {

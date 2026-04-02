@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import { CardGridSkeleton } from '@/components/Skeleton';
+import EmptyState from '@/components/EmptyState';
 import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchTags } from '@/lib/api';
 
@@ -143,13 +144,7 @@ export default function ExplorePage() {
         {loading ? (
           <CardGridSkeleton count={6} />
         ) : !result || result.data.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-4xl mb-3" aria-hidden="true">🔍</p>
-            <p className="text-slate-500">
-              {query || tag ? '검색 결과가 없습니다' : '공개된 이력서가 없습니다'}
-            </p>
-            <p className="text-xs text-slate-400 mt-1">이력서 편집에서 공개 설정을 하면 여기에 노출됩니다.</p>
-          </div>
+          <EmptyState type={query || tag ? 'search' : 'resume'} query={query || undefined} />
         ) : (
           <>
             <p className="text-sm text-slate-500 mb-4">
