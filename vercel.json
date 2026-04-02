@@ -3,6 +3,7 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://resume-api-mm0o.onrender.com/api/:path*" },
     { "source": "/((?!api).*)", "destination": "/index.html" }
   ],
   "headers": [
