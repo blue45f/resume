@@ -168,4 +168,27 @@ describe('ResumesService', () => {
       expect(result.page).toBe(1);
     });
   });
+
+  describe('bookmarks', () => {
+    it('북마크 추가', async () => {
+      mockPrisma.bookmark.create = jest.fn().mockResolvedValue({ id: 'b1' });
+      const result = await service.addBookmark('resume-1', 'user-1');
+      expect(result.bookmarked).toBe(true);
+    });
+
+    it('북마크 해제', async () => {
+      mockPrisma.bookmark.deleteMany = jest.fn().mockResolvedValue({ count: 1 });
+      const result = await service.removeBookmark('resume-1', 'user-1');
+      expect(result.bookmarked).toBe(false);
+    });
+
+    it('북마크 목록', async () => {
+      mockPrisma.bookmark.findMany = jest.fn().mockResolvedValue([
+        { id: 'b1', resume: { id: 'r1', title: '테스트', personalInfo: { name: '홍길동' } }, createdAt: new Date() },
+      ]);
+      const result = await service.getBookmarks('user-1');
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe('테스트');
+    });
+  });
 });
