@@ -1,9 +1,13 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class SocialService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async follow(followerId: string, followingId: string) {
     if (followerId === followingId) throw new ForbiddenException('자신을 팔로우할 수 없습니다');
@@ -42,9 +46,20 @@ export class SocialService {
   // Scout messages
   async sendScout(senderId: string, data: { receiverId: string; resumeId?: string; company: string; position: string; message: string }) {
     if (data.message.length > 2000) throw new ForbiddenException('스카우트 메시지는 2000자 이내로 입력해주세요');
-    return this.prisma.scoutMessage.create({
+    const scout = await this.prisma.scoutMessage.create({
       data: { senderId, ...data },
     });
+    try {
+      const sender = await this.prisma.user.findUnique({ where: { id: senderId }, select: { name: true } });
+      const senderName = sender?.name || '누군가';
+      await this.notificationsService.create(
+        data.receiverId,
+        'scout',
+        `${senderName}님이 스카우트 제안을 보냈습니다`,
+        '/scouts',
+      );
+    } catch {}
+    return scout;
   }
 
   async getReceivedScouts(userId: string) {
@@ -68,9 +83,19 @@ export class SocialService {
     if (senderId === receiverId) throw new ForbiddenException('자신에게 메시지를 보낼 수 없습니다');
     if (!content || content.trim().length < 1) throw new ForbiddenException('메시지를 입력해주세요');
     if (content.length > 1000) throw new ForbiddenException('메시지는 1000자 이내로 입력해주세요');
-    return this.prisma.directMessage.create({
+    const message = await this.prisma.directMessage.create({
       data: { senderId, receiverId, content: content.trim() },
     });
+    try {
+      const sender = await this.prisma.user.findUnique({ where: { id: senderId }, select: { name: true } });
+      await this.notificationsService.create(
+        receiverId,
+        'message',
+        `${sender?.name || '누군가'}님이 쪽지를 보냈습니다`,
+        '/messages',
+      );
+    } catch {}
+    return message;
   }
 
   async getConversations(userId: string) {

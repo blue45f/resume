@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SocialService } from './social.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { ForbiddenException } from '@nestjs/common';
 
 const mockPrisma = {
@@ -15,7 +16,7 @@ describe('SocialService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SocialService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [SocialService, { provide: PrismaService, useValue: mockPrisma }, { provide: NotificationsService, useValue: { create: jest.fn() } }],
     }).compile();
     service = module.get(SocialService);
     jest.clearAllMocks();
