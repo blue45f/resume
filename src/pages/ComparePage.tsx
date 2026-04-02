@@ -53,18 +53,24 @@ export default function ComparePage() {
   const CompareBar = ({ label, leftVal, rightVal }: { label: string; leftVal: number; rightVal: number }) => {
     const max = Math.max(leftVal, rightVal, 1);
     return (
-      <div className="flex items-center gap-3 py-2">
-        <span className="text-xs text-slate-500 dark:text-slate-400 w-16 text-right tabular-nums">{leftVal}</span>
-        <div className="flex-1 flex gap-1 h-5">
-          <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-l-full overflow-hidden flex justify-end">
-            <div className="bg-blue-500 rounded-l-full transition-all duration-300" style={{ width: `${(leftVal / max) * 100}%` }} />
-          </div>
-          <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-r-full overflow-hidden">
-            <div className="bg-emerald-500 rounded-r-full transition-all duration-300" style={{ width: `${(rightVal / max) * 100}%` }} />
-          </div>
+      <div className="py-2">
+        <div className="flex items-center justify-between mb-1 sm:hidden">
+          <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">{label}</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">{leftVal} vs {rightVal}</span>
         </div>
-        <span className="text-xs text-slate-500 dark:text-slate-400 w-16 tabular-nums">{rightVal}</span>
-        <span className="text-xs text-slate-600 dark:text-slate-300 w-16 font-medium">{label}</span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-slate-500 dark:text-slate-400 w-16 text-right tabular-nums hidden sm:block">{leftVal}</span>
+          <div className="flex-1 flex gap-1 h-5">
+            <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-l-full overflow-hidden flex justify-end">
+              <div className="bg-blue-500 rounded-l-full transition-all duration-300" style={{ width: `${(leftVal / max) * 100}%` }} />
+            </div>
+            <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-r-full overflow-hidden">
+              <div className="bg-emerald-500 rounded-r-full transition-all duration-300" style={{ width: `${(rightVal / max) * 100}%` }} />
+            </div>
+          </div>
+          <span className="text-xs text-slate-500 dark:text-slate-400 w-16 tabular-nums hidden sm:block">{rightVal}</span>
+          <span className="text-xs text-slate-600 dark:text-slate-300 w-16 font-medium hidden sm:block">{label}</span>
+        </div>
       </div>
     );
   };
@@ -76,7 +82,7 @@ export default function ComparePage() {
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">이력서 비교</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">두 이력서를 선택하여 섹션별 내용을 비교합니다</p>
 
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <div>
             <label className="block text-sm font-medium text-blue-600 mb-1.5">이력서 A</label>
             <Selector value={leftId} onChange={setLeftId} exclude={rightId} />
@@ -124,7 +130,7 @@ export default function ComparePage() {
             </div>
 
             {/* Summary comparison */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-white dark:bg-slate-800 rounded-xl border border-blue-200 dark:border-blue-800 p-4">
                 <h4 className="text-sm font-semibold text-blue-600 mb-2">{left.personalInfo.name || '이름 없음'}</h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-4">

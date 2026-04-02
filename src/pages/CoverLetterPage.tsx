@@ -117,7 +117,7 @@ export default function CoverLetterPage() {
             {/* Tone */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">어조</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {tones.map(t => (
                   <button
                     key={t.value}

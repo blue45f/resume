@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Public } from '../auth/auth.guard';
 import { CacheTTL } from '../common/interceptors/cache.interceptor';
 import { PrismaService } from '../prisma/prisma.service';
+import { AdminStatsService } from './admin-stats.service';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pkg = require('../../package.json');
@@ -14,6 +15,7 @@ export class HealthController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly statsService: AdminStatsService,
   ) {}
 
   @Get()
@@ -54,5 +56,13 @@ export class HealthController {
       stats: { resumes: resumeCount, users: userCount },
       providers,
     };
+  }
+
+  @Get('admin/stats')
+  @Public()
+  @CacheTTL(30)
+  @ApiOperation({ summary: '관리자 통계 (사이트 전체)' })
+  async adminStats() {
+    return this.statsService.getStats();
   }
 }
