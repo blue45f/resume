@@ -34,6 +34,9 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **이력서 통계**: 글자수, 단어수, 읽기 시간, 섹션 수
 - **기술 분포 차트**: 카테고리별 기술 스택 시각화
 - **경력 타임라인**: 경력+학력 시간순 시각화
+- **북마크 페이지**: /bookmarks 전용 관리
+- **자소서 저장**: 이력서↔자소서↔지원내역 연결 (/my-cover-letters)
+- **첨부파일 미리보기**: 미리보기에서 첨부파일 자동 표시
 
 ### AI 기능
 - **AI 양식 변환**: 8가지 양식(표준/경력기술서/자기소개서/LinkedIn/영문/개발자/디자이너/커스텀) + 스트리밍
@@ -47,6 +50,11 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **키워드 분석**: 이력서 키워드 빈도/분포 분석
 - **AI 이력서 번역**: 영어/일본어/중국어/한국어로 AI 번역 + 다운로드
 - **AI 변환 이력**: 변환 결과 목록 + 원클릭 복사
+
+### 소셜
+- **스카우트 제안**: 기업 관계자가 공개 이력서에 직접 제안 (/scouts)
+- **1:1 쪽지**: 회원 간 다이렉트 메시지 (/messages)
+- **팔로우/팔로잉**: 관심 사용자 팔로우
 
 ### 공유 & 프로필
 - **슬러그 URL**: `/@username/이력서-제목` 형태의 깔끔한 URL
@@ -380,6 +388,23 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 | POST   | /api/notifications/read-all     | 모든 알림 읽음               |
 | POST   | /api/notifications/:id/read     | 알림 읽음                  |
 | DELETE | /api/notifications/cleanup      | 오래된 알림 정리 (관리자)        |
+
+### 소셜
+| 메서드   | 경로                                | 설명         |
+|--------|-------------------------------------|------------|
+| POST   | /api/social/follow/:userId          | 팔로우        |
+| DELETE | /api/social/follow/:userId          | 언팔로우       |
+| POST   | /api/social/scout                   | 스카우트 전송   |
+| GET    | /api/social/scouts                  | 받은 스카우트   |
+| POST   | /api/social/messages/:receiverId    | 쪽지 전송     |
+| GET    | /api/social/messages                | 대화 목록     |
+| GET    | /api/social/messages/:partnerId     | 대화 내용     |
+
+### 자소서
+| 메서드  | 경로                     | 설명         |
+|------|------------------------|------------|
+| GET  | /api/cover-letters     | 내 자소서 목록  |
+| POST | /api/cover-letters     | 자소서 저장    |
 
 ### 관리자
 | 메서드  | 경로                                  | 설명                   |

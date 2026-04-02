@@ -41,6 +41,7 @@ export class SocialService {
 
   // Scout messages
   async sendScout(senderId: string, data: { receiverId: string; resumeId?: string; company: string; position: string; message: string }) {
+    if (data.message.length > 2000) throw new ForbiddenException('스카우트 메시지는 2000자 이내로 입력해주세요');
     return this.prisma.scoutMessage.create({
       data: { senderId, ...data },
     });
@@ -66,6 +67,7 @@ export class SocialService {
   async sendMessage(senderId: string, receiverId: string, content: string) {
     if (senderId === receiverId) throw new ForbiddenException('자신에게 메시지를 보낼 수 없습니다');
     if (!content || content.trim().length < 1) throw new ForbiddenException('메시지를 입력해주세요');
+    if (content.length > 1000) throw new ForbiddenException('메시지는 1000자 이내로 입력해주세요');
     return this.prisma.directMessage.create({
       data: { senderId, receiverId, content: content.trim() },
     });

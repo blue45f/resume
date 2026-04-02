@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Delete, Param, Body, Req, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { SocialService } from './social.service';
 
 @ApiTags('social')
@@ -8,6 +9,7 @@ export class SocialController {
   constructor(private readonly service: SocialService) {}
 
   @Post('follow/:userId')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '팔로우' })
   follow(@Param('userId') userId: string, @Req() req: any) {
     if (!req.user?.id) return { error: '로그인 필요' };
@@ -36,6 +38,7 @@ export class SocialController {
   }
 
   @Post('scout')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '스카우트 메시지 보내기' })
   sendScout(@Body() body: { receiverId: string; resumeId?: string; company: string; position: string; message: string }, @Req() req: any) {
     if (!req.user?.id) return { error: '로그인 필요' };
@@ -79,6 +82,7 @@ export class SocialController {
   }
 
   @Post('messages/:receiverId')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '쪽지 보내기' })
   sendMessage(@Param('receiverId') receiverId: string, @Body('content') content: string, @Req() req: any) {
     if (!req.user?.id) return { error: '로그인 필요' };
