@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import ResumeForm from '@/components/ResumeForm';
 import { toast } from '@/components/Toast';
 import { createEmptyResumeData } from '@/types/resume';
@@ -27,6 +28,11 @@ export default function NewResumePage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [step, setStep] = useState<'template' | 'form'>('template');
+
+  useEffect(() => {
+    document.title = '새 이력서 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -143,7 +149,7 @@ export default function NewResumePage() {
                 새 이력서 작성
               </h1>
               {selected && (
-                <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
+                <span className="px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full">
                   {selected.name}
                 </span>
               )}
@@ -154,6 +160,7 @@ export default function NewResumePage() {
           </>
         )}
       </main>
+      <Footer />
     </>
   );
 }

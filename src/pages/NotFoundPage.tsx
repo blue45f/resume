@@ -1,7 +1,14 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export default function NotFoundPage() {
+  useEffect(() => {
+    document.title = '페이지를 찾을 수 없습니다 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
+
   return (
     <>
       <Header />
@@ -20,6 +27,7 @@ export default function NotFoundPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </>
   );
 }

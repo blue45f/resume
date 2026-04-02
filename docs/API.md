@@ -164,6 +164,17 @@ JD 매칭 분석
 
 ## 관리자
 
+### GET /auth/admin/users
+전체 사용자 목록 (관리자 전용)
+
+**Response:** `[{ "id": "...", "name": "...", "email": "...", "provider": "...", "role": "user", "createdAt": "..." }]`
+
+### POST /auth/admin/users/:userId/role
+사용자 역할 변경 (관리자 전용)
+
+**Request:** `{ "role": "admin" }`  
+**Response:** `{ "success": true, "userId": "...", "role": "admin" }`
+
 ### GET /health/admin/stats
 사이트 전체 통계
 

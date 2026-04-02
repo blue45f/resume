@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -18,6 +19,11 @@ export default function AutoGeneratePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<{ resume: Record<string, any>; tokensUsed?: number; provider?: string } | null>(null);
+
+  useEffect(() => {
+    document.title = 'AI 자동 생성 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
 
   const handlePreview = async () => {
     if (!rawText.trim()) return;
@@ -206,6 +212,7 @@ export default function AutoGeneratePage() {
           </div>
         </div>
       </main>
+      <Footer />
     </>
   );
 }

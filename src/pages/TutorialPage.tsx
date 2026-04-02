@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const steps = [
   {
@@ -298,6 +299,7 @@ export default function TutorialPage() {
           </Link>
         </div>
       </main>
+      <Footer />
     </>
   );
 }

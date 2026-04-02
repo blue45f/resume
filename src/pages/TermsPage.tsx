@@ -1,6 +1,13 @@
+import { useEffect } from 'react';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export default function TermsPage() {
+  useEffect(() => {
+    document.title = '이용약관 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
+
   return (
     <>
       <Header />
@@ -176,6 +183,7 @@ export default function TermsPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </>
   );
 }
