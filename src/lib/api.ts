@@ -52,6 +52,10 @@ export const fetchBookmarks = () =>
 
 // Analytics
 export const fetchDashboard = () => request<any>(`${BASE}/resumes/dashboard/analytics`);
+export const fetchResumeTrend = (resumeId: string) =>
+  request<{ version: number; sections: number; createdAt: string }[]>(`${BASE}/resumes/trend/${resumeId}`);
+export const fetchPopularSkills = () =>
+  request<{ name: string; count: number }[]>(`${BASE}/resumes/popular-skills`);
 
 // Tags
 export const fetchTags = async (): Promise<(Tag & { resumeCount: number })[]> => {

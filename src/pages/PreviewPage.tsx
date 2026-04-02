@@ -14,6 +14,7 @@ import AtsScorePanel from '@/components/AtsScorePanel';
 import SimilarityPanel from '@/components/SimilarityPanel';
 import ResumeChecklist from '@/components/ResumeChecklist';
 import TransformHistory from '@/components/TransformHistory';
+import ResumeTrend from '@/components/ResumeTrend';
 import ResumeStats from '@/components/ResumeStats';
 import { toast } from '@/components/Toast';
 import type { Resume } from '@/types/resume';
@@ -232,6 +233,7 @@ export default function PreviewPage() {
             <SimilarityPanel resume={resume} />
             <ResumeChecklist resume={resume} />
             <TransformHistory resumeId={id!} />
+            <ResumeTrend resumeId={id!} />
           </div>
           <ResumePreview ref={contentRef} resume={resume} themeId={themeId} />
           <div className="max-w-[210mm] mx-auto mt-3 px-1">

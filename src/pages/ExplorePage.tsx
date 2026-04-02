@@ -26,6 +26,7 @@ export default function ExplorePage() {
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
   }, []);
   const [tags, setTags] = useState<(Tag & { resumeCount: number })[]>([]);
+  const [popularSkills, setPopularSkills] = useState<{ name: string; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState(params.get('q') || '');
   const [sortBy, setSortBy] = useState<'recent' | 'views'>('recent');
@@ -64,6 +65,14 @@ export default function ExplorePage() {
     let cancelled = false;
     fetchTags().then(t => { if (!cancelled) setTags(t); }).catch(() => {});
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    const API = import.meta.env.VITE_API_URL || '';
+    fetch(`${API}/api/resumes/popular-skills`)
+      .then(r => r.ok ? r.json() : [])
+      .then(setPopularSkills)
+      .catch(() => {});
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -161,6 +170,28 @@ export default function ExplorePage() {
                 {t.name}
               </button>
             ))}
+          </div>
+        )}
+
+        {/* 인기 기술 */}
+        {popularSkills.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">인기 기술</h3>
+            <div className="flex flex-wrap gap-1.5">
+              {popularSkills.slice(0, 15).map((skill, i) => {
+                const size = i < 3 ? 'text-sm font-medium' : i < 8 ? 'text-xs' : 'text-xs opacity-70';
+                return (
+                  <button
+                    key={skill.name}
+                    onClick={() => { setSearchInput(skill.name); const next = new URLSearchParams(params); next.set('q', skill.name); next.delete('page'); setParams(next); }}
+                    className={`px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${size}`}
+                  >
+                    {skill.name}
+                    <span className="ml-1 text-slate-400 dark:text-slate-500">({skill.count})</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
