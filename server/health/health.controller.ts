@@ -1,10 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Public } from '../auth/auth.guard';
 import { CacheTTL } from '../common/interceptors/cache.interceptor';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminStatsService } from './admin-stats.service';
+import { UsageService } from './usage.service';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pkg = require('../../package.json');
@@ -16,6 +17,7 @@ export class HealthController {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
     private readonly statsService: AdminStatsService,
+    private readonly usageService: UsageService,
   ) {}
 
   @Get()
@@ -56,6 +58,13 @@ export class HealthController {
       stats: { resumes: resumeCount, users: userCount },
       providers,
     };
+  }
+
+  @Get('usage')
+  @ApiOperation({ summary: '내 사용량 조회' })
+  async getUsage(@Req() req: any) {
+    if (!req.user?.id) return [];
+    return this.usageService.getUsage(req.user.id);
   }
 
   @Get('admin/stats')

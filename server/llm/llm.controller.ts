@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Body,
+  Req,
   Sse,
   MessageEvent,
 } from '@nestjs/common';
@@ -12,19 +13,27 @@ import { Throttle } from '@nestjs/throttler';
 import { Observable } from 'rxjs';
 import { LlmService } from './llm.service';
 import { TransformResumeDto } from './dto/transform-resume.dto';
+import { UsageService } from '../health/usage.service';
 
 @ApiTags('llm')
 @Controller('resumes/:resumeId/transform')
 export class LlmController {
-  constructor(private readonly llmService: LlmService) {}
+  constructor(
+    private readonly llmService: LlmService,
+    private readonly usageService: UsageService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'LLM으로 이력서 양식 변환' })
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests/min (cost control)
-  transform(
+  async transform(
     @Param('resumeId') resumeId: string,
     @Body() dto: TransformResumeDto,
+    @Req() req: any,
   ) {
+    if (req.user?.id) {
+      await this.usageService.checkAndLog(req.user.id, 'ai_transform');
+    }
     return this.llmService.transform(resumeId, dto);
   }
 

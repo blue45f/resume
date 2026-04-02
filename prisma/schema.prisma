@@ -26,6 +26,7 @@ model User {
   applicationComments ApplicationComment[]
   bookmarks    Bookmark[]
   notifications Notification[]
+  usageLogs     UsageLog[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -385,6 +386,18 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, read])
+}
+
+model UsageLog {
+  id        String   @id @default(uuid())
+  userId    String
+  feature   String   // ai_transform, cover_letter, translation, ai_coaching
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, feature, createdAt])
+  @@map("usage_logs")
 }
 
 model ApplicationComment {

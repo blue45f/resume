@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPw, setChangingPw] = useState(false);
+  const [usage, setUsage] = useState<{ feature: string; count: number }[]>([]);
 
   useEffect(() => {
     if (!user) navigate('/login');
@@ -23,6 +24,16 @@ export default function SettingsPage() {
   useEffect(() => {
     document.title = '설정 — 이력서공방';
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch(`${API_URL}/api/health/usage`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : [])
+        .then(setUsage)
+        .catch(() => {});
+    }
   }, []);
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -111,6 +122,18 @@ export default function SettingsPage() {
                     </Link>
                   )}
                 </p>
+                {usage.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">이번 달 사용량</p>
+                    <div className="flex flex-wrap gap-2">
+                      {usage.map(u => (
+                        <span key={u.feature} className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg">
+                          {u.feature === 'ai_transform' ? 'AI 변환' : u.feature === 'cover_letter' ? '자소서' : u.feature === 'translation' ? '번역' : u.feature}: {u.count}회
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="mt-2">
                   <ProfileBadges resumeCount={0} isAdmin={user?.role === 'admin'} />
                 </div>
