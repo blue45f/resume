@@ -161,7 +161,7 @@ export default function ApplicationsPage() {
         {loading ? (
           <div className="text-center py-12 text-slate-500">불러오는 중...</div>
         ) : filtered.length === 0 ? (
-          <EmptyState type={searchQuery ? 'search' : 'application'} query={searchQuery || undefined} />
+          <EmptyState type={searchQuery || filter ? 'search' : 'application'} query={searchQuery || filter || undefined} />
         ) : (
           <div className="space-y-3">
             {filtered.map(app => {

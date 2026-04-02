@@ -31,6 +31,7 @@ export default function NewResumePage() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [step, setStep] = useState<'template' | 'form'>('template');
   const [resumeCount, setResumeCount] = useState(0);
+  const [existingTitles, setExistingTitles] = useState<string[]>([]);
   const user = getUser();
   const plan = getPlan(user?.plan || 'free');
   const atLimit = plan.features.maxResumes > 0 && resumeCount >= plan.features.maxResumes;
@@ -41,7 +42,10 @@ export default function NewResumePage() {
   }, []);
 
   useEffect(() => {
-    fetchResumes().then(r => setResumeCount(r.length)).catch(() => {});
+    fetchResumes().then(r => {
+      setResumeCount(r.length);
+      setExistingTitles(r.map(res => res.title.toLowerCase()));
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -51,6 +55,8 @@ export default function NewResumePage() {
   }, []);
 
   const handleSave = async (data: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const isDuplicate = existingTitles.includes((data.title || '').toLowerCase());
+    if (isDuplicate && !confirm('같은 제목의 이력서가 이미 있습니다. 계속 생성하시겠습니까?')) return;
     setSaving(true);
     try {
       const result = await createResume(data);

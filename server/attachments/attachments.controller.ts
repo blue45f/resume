@@ -44,7 +44,15 @@ export class AttachmentsController {
   @Get('attachments/:id/download')
   @ApiOperation({ summary: '파일 다운로드' })
   async download(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
-    const { data, originalName, mimeType } = await this.attachmentsService.getFileData(id, req.user?.id);
+    const result = await this.attachmentsService.getFileData(id, req.user?.id);
+
+    // Cloudinary URL → 리다이렉트
+    if ('redirectUrl' in result && result.redirectUrl) {
+      res.redirect(result.redirectUrl);
+      return;
+    }
+
+    const { data, originalName, mimeType } = result as any;
     if (!data) {
       res.status(404).json({ message: '파일을 찾을 수 없습니다' });
       return;

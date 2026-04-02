@@ -56,9 +56,37 @@ async function main() {
             'Optimize this resume data for a LinkedIn profile. Include a compelling headline, engaging summary, and keyword-rich experience descriptions.',
           isDefault: true,
         },
+        {
+          name: 'AI/ML 엔지니어',
+          description: 'AI 및 머신러닝 엔지니어 전용',
+          category: 'developer',
+          prompt: 'AI/ML 엔지니어에 최적화된 이력서로 변환해주세요. 모델 개발 경험, 논문, 기술 스택을 강조하세요.',
+          isDefault: false,
+        },
+        {
+          name: 'DevOps/SRE',
+          description: 'DevOps 및 사이트 신뢰성 엔지니어',
+          category: 'developer',
+          prompt: 'DevOps/SRE 이력서로 변환해주세요. 인프라 자동화, CI/CD, 모니터링 경험을 강조하세요.',
+          isDefault: false,
+        },
+        {
+          name: 'UX 리서처',
+          description: 'UX 리서처 및 사용성 전문가',
+          category: 'designer',
+          prompt: 'UX 리서치 전문가 이력서로 변환해주세요. 사용자 리서치, A/B 테스트, 인사이트 도출 경험을 강조하세요.',
+          isDefault: false,
+        },
+        {
+          name: '스타트업 창업자',
+          description: '스타트업 경험 강조',
+          category: 'general',
+          prompt: '스타트업 창업/공동창업 경험을 강조하는 이력서로 변환해주세요. 사업 성과, 팀 빌딩, 자금 조달 경험을 포함하세요.',
+          isDefault: false,
+        },
       ],
     });
-    console.log('✓ 기본 템플릿 6개 생성 완료');
+    console.log('✓ 기본 템플릿 10개 생성 완료');
   }
 
   // Seed sample tags

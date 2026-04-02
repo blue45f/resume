@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import { extname } from 'path';
+import { v2 as cloudinary } from 'cloudinary';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB (DB 저장이므로 축소)
-const MAX_TOTAL_SIZE_PER_RESUME = 50 * 1024 * 1024; // 50MB per resume
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_TOTAL_SIZE_PER_RESUME = 100 * 1024 * 1024; // 100MB
 const MAX_FILES_PER_RESUME = 20;
 const ALLOWED_TYPES = [
   'application/pdf',
@@ -24,7 +26,28 @@ const ALLOWED_EXTENSIONS = [
 
 @Injectable()
 export class AttachmentsService {
-  constructor(private prisma: PrismaService) {}
+  private useCloudinary: boolean;
+
+  constructor(
+    private prisma: PrismaService,
+    private config: ConfigService,
+  ) {
+    // Cloudinary 설정 (환경변수가 있으면 사용)
+    const cloudName = this.config.get('CLOUDINARY_CLOUD_NAME');
+    const apiKey = this.config.get('CLOUDINARY_API_KEY');
+    const apiSecret = this.config.get('CLOUDINARY_API_SECRET');
+
+    this.useCloudinary = !!(cloudName && apiKey && apiSecret);
+
+    if (this.useCloudinary) {
+      cloudinary.config({
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
+        secure: true,
+      });
+    }
+  }
 
   async upload(
     resumeId: string,
@@ -43,11 +66,11 @@ export class AttachmentsService {
     }
     const totalSize = resume.attachments.reduce((sum, a) => sum + a.size, 0);
     if (totalSize + file.size > MAX_TOTAL_SIZE_PER_RESUME) {
-      throw new BadRequestException(`이력서의 총 파일 크기가 50MB를 초과할 수 없습니다`);
+      throw new BadRequestException('이력서의 총 파일 크기가 100MB를 초과할 수 없습니다');
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      throw new BadRequestException('파일 크기는 5MB 이하여야 합니다');
+      throw new BadRequestException('파일 크기는 10MB 이하여야 합니다');
     }
     if (!ALLOWED_TYPES.includes(file.mimetype)) {
       throw new BadRequestException('허용되지 않는 파일 형식입니다');
@@ -58,14 +81,36 @@ export class AttachmentsService {
       throw new BadRequestException('허용되지 않는 파일 확장자입니다');
     }
 
-    // DB에 base64로 저장 (Render 무료 플랜 호환)
-    const data = file.buffer.toString('base64');
     const filename = `${randomUUID()}${ext}`;
+    let data: string | null = null;
+    let cloudinaryUrl: string | null = null;
+
+    if (this.useCloudinary) {
+      // Cloudinary에 업로드 (raw 타입으로 문서도 지원)
+      const result = await new Promise<any>((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            resource_type: 'raw',
+            folder: `resume-attachments/${resumeId}`,
+            public_id: filename,
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          },
+        );
+        stream.end(file.buffer);
+      });
+      cloudinaryUrl = result.secure_url;
+    } else {
+      // Cloudinary 미설정: DB base64 저장 (폴백)
+      data = file.buffer.toString('base64');
+    }
 
     const attachment = await this.prisma.attachment.create({
       data: {
         resumeId,
-        filename,
+        filename: cloudinaryUrl || filename,
         originalName: file.originalname,
         mimeType: file.mimetype,
         size: file.size,
@@ -101,6 +146,12 @@ export class AttachmentsService {
       throw new NotFoundException('파일을 찾을 수 없습니다');
     }
 
+    // Cloudinary URL인 경우 리다이렉트
+    if (attachment.filename.startsWith('http')) {
+      return { redirectUrl: attachment.filename, originalName: attachment.originalName, mimeType: attachment.mimeType };
+    }
+
+    // DB base64 데이터
     return {
       data: attachment.data ? Buffer.from(attachment.data, 'base64') : null,
       originalName: attachment.originalName,
@@ -112,11 +163,24 @@ export class AttachmentsService {
     const attachment = await this.prisma.attachment.findUnique({ where: { id } });
     if (!attachment) throw new NotFoundException('파일을 찾을 수 없습니다');
 
+    // Cloudinary에서 삭제
+    if (this.useCloudinary && attachment.filename.startsWith('http')) {
+      try {
+        // URL에서 public_id 추출
+        const parts = attachment.filename.split('/upload/');
+        if (parts[1]) {
+          const publicId = parts[1].replace(/^v\d+\//, '').replace(/\.[^.]+$/, '');
+          await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+        }
+      } catch { /* 삭제 실패해도 DB 레코드는 삭제 */ }
+    }
+
     await this.prisma.attachment.delete({ where: { id } });
     return { success: true };
   }
 
   private format(a: any) {
+    const isCloudinary = a.filename?.startsWith('http');
     return {
       id: a.id,
       resumeId: a.resumeId,
@@ -125,7 +189,7 @@ export class AttachmentsService {
       size: a.size,
       category: a.category,
       description: a.description,
-      downloadUrl: `/api/attachments/${a.id}/download`,
+      downloadUrl: isCloudinary ? a.filename : `/api/attachments/${a.id}/download`,
       createdAt: a.createdAt?.toISOString?.() || a.createdAt,
     };
   }

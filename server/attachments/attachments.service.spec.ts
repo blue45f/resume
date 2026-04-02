@@ -1,17 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { AttachmentsService } from './attachments.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 
-// Mock fs/promises and fs
-jest.mock('fs/promises', () => ({
-  writeFile: jest.fn().mockResolvedValue(undefined),
-  unlink: jest.fn().mockResolvedValue(undefined),
-  mkdir: jest.fn().mockResolvedValue(undefined),
-}));
-jest.mock('fs', () => ({
-  existsSync: jest.fn().mockReturnValue(true),
-}));
+// Mock cloudinary
+jest.mock('cloudinary', () => ({ v2: { config: jest.fn(), uploader: { upload_stream: jest.fn(), destroy: jest.fn() } } }));
 
 const mockAttachment = {
   id: 'att-1',
@@ -65,13 +59,12 @@ describe('AttachmentsService', () => {
       providers: [
         AttachmentsService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: ConfigService, useValue: { get: () => null } },
       ],
     }).compile();
     service = module.get(AttachmentsService);
     jest.clearAllMocks();
-    // Re-mock fs after clearAllMocks
-    const fs = require('fs');
-    fs.existsSync.mockReturnValue(true);
+    // Cloudinary 모드에서는 fs 불필요
   });
 
   describe('upload', () => {

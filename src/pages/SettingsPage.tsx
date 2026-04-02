@@ -9,6 +9,48 @@ import { getPlan } from '@/lib/plans';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
+function RecentActivityList() {
+  const [activities, setActivities] = useState<any[]>([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    fetch(`${API_URL}/api/resumes/dashboard/analytics`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        const acts: any[] = [];
+        for (const v of data.recentVersions || []) {
+          acts.push({ type: 'edit', desc: `이력서 버전 ${v.versionNumber} 저장`, date: v.createdAt });
+        }
+        for (const r of data.resumes?.slice(0, 3) || []) {
+          acts.push({ type: 'resume', desc: `"${r.title}" 조회 ${r.viewCount}회`, date: r.updatedAt });
+        }
+        acts.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setActivities(acts.slice(0, 8));
+      })
+      .catch(() => {});
+  }, []);
+
+  if (activities.length === 0) return <p className="text-sm text-slate-400 text-center py-4">최근 활동이 없습니다</p>;
+
+  const icons: Record<string, string> = { edit: '✏️', resume: '📄', transform: '🤖' };
+
+  return (
+    <div className="space-y-2">
+      {activities.map((a, i) => (
+        <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+          <span className="text-sm">{icons[a.type] || '📌'}</span>
+          <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 truncate">{a.desc}</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{new Date(a.date).toLocaleDateString('ko-KR')}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const navigate = useNavigate();
   const user = getUser();
@@ -148,6 +190,12 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Recent Activity */}
+        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">최근 활동</h2>
+          <RecentActivityList />
         </section>
 
         {/* Social Account Linking */}
