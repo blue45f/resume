@@ -24,6 +24,8 @@ import { fetchResume } from '@/lib/api';
 import BookmarkButton from '@/components/BookmarkButton';
 import QrCodeModal from '@/components/QrCodeModal';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 export default function PreviewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -184,10 +186,10 @@ export default function PreviewPage() {
                   내보내기
                 </button>
                 <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-                  <a href={`/api/resumes/${id}/export/text`} download className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-t-xl">
+                  <a href={`${API_URL}/api/resumes/${id}/export/text`} download={`${resume?.title || 'resume'}.txt`} className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-t-xl">
                     📄 텍스트 (.txt)
                   </a>
-                  <a href={`/api/resumes/${id}/export/markdown`} download className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-b-xl">
+                  <a href={`${API_URL}/api/resumes/${id}/export/markdown`} download={`${resume?.title || 'resume'}.md`} className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-b-xl">
                     📝 마크다운 (.md)
                   </a>
                 </div>

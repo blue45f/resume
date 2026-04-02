@@ -146,6 +146,31 @@ export default function TranslatePage() {
                 <div className="flex gap-2">
                   <button onClick={handleCopy} className="text-xs text-blue-600 dark:text-blue-400 hover:underline">복사</button>
                   <button onClick={handleDownload} className="text-xs text-blue-600 dark:text-blue-400 hover:underline">다운로드</button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const token = localStorage.getItem('token');
+                        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+                        if (token) headers['Authorization'] = `Bearer ${token}`;
+                        const res = await fetch(`${API_URL}/api/auto-generate/create`, {
+                          method: 'POST', headers,
+                          body: JSON.stringify({ text: result }),
+                        });
+                        if (res.ok) {
+                          const data = await res.json();
+                          toast('번역된 이력서가 저장되었습니다', 'success');
+                          window.location.href = `/resumes/${data.id}/edit`;
+                        } else {
+                          toast('저장에 실패했습니다', 'error');
+                        }
+                      } catch {
+                        toast('저장에 실패했습니다', 'error');
+                      }
+                    }}
+                    className="text-xs text-green-600 dark:text-green-400 hover:underline"
+                  >
+                    새 이력서로 저장
+                  </button>
                 </div>
               )}
             </div>

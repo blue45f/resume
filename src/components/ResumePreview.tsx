@@ -2,6 +2,7 @@ import { forwardRef } from 'react';
 import type { Resume } from '@/types/resume';
 import SafeHtml from '@/components/SafeHtml';
 import { resumeThemes, type ResumeTheme } from '@/lib/resumeThemes';
+import { t } from '@/lib/i18n';
 
 interface Props {
   resume: Resume;
@@ -21,8 +22,8 @@ function TechTags({ text, color = 'slate' }: { text: string; color?: 'slate' | '
   const bg = color === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500';
   return (
     <div className="flex flex-wrap gap-1 mt-1.5">
-      {text.split(',').map((t, i) => (
-        <span key={i} className={`px-1.5 py-0.5 text-xs rounded ${bg}`}>{t.trim()}</span>
+      {text.split(',').map((tag, i) => (
+        <span key={i} className={`px-1.5 py-0.5 text-xs rounded ${bg}`}>{tag.trim()}</span>
       ))}
     </div>
   );
@@ -107,14 +108,14 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
 
       {/* ===== Summary ===== */}
       {pi.summary && (
-        <Section title="자기소개" theme={theme}>
+        <Section title={t('resume.summary')} theme={theme}>
           <SafeHtml html={pi.summary} className="text-sm text-slate-700 leading-relaxed break-words" />
         </Section>
       )}
 
       {/* ===== Experience ===== */}
       {experiences.length > 0 && (
-        <Section title="경력" theme={theme}>
+        <Section title={t('resume.experience')} theme={theme}>
           <div className="space-y-5">
             {experiences.map(exp => (
               <div key={exp.id}>
@@ -143,7 +144,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
 
       {/* ===== Education ===== */}
       {educations.length > 0 && (
-        <Section title="학력" theme={theme}>
+        <Section title={t('resume.education')} theme={theme}>
           <div className="space-y-3">
             {educations.map(edu => (
               <div key={edu.id}>
@@ -166,7 +167,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
 
       {/* ===== Skills ===== */}
       {skills.length > 0 && (
-        <Section title="기술" theme={theme}>
+        <Section title={t('resume.skills')} theme={theme}>
           <div className="space-y-1.5">
             {skills.map(skill => (
               <div key={skill.id} className="flex text-sm gap-2">
@@ -180,7 +181,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
 
       {/* ===== Projects ===== */}
       {projects.length > 0 && (
-        <Section title="프로젝트" theme={theme}>
+        <Section title={t('resume.projects')} theme={theme}>
           <div className="space-y-5">
             {projects.map(proj => (
               <div key={proj.id}>
@@ -205,7 +206,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
 
       {/* ===== Certifications ===== */}
       {certifications.length > 0 && (
-        <Section title="자격증" theme={theme}>
+        <Section title={t('resume.certifications')} theme={theme}>
           <div className="space-y-2">
             {certifications.map(cert => (
               <div key={cert.id}>
@@ -228,7 +229,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
 
       {/* ===== Languages ===== */}
       {languages.length > 0 && (
-        <Section title="어학" theme={theme}>
+        <Section title={t('resume.languages')} theme={theme}>
           <div className="space-y-1">
             {languages.map(lang => (
               <div key={lang.id} className="flex justify-between items-baseline">
@@ -246,7 +247,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
 
       {/* ===== Awards ===== */}
       {awards.length > 0 && (
-        <Section title="수상 경력" theme={theme}>
+        <Section title={t('resume.awards')} theme={theme}>
           <div className="space-y-2">
             {awards.map(award => (
               <div key={award.id}>
@@ -266,7 +267,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
 
       {/* ===== Activities ===== */}
       {activities.length > 0 && (
-        <Section title="활동" theme={theme}>
+        <Section title={t('resume.activities')} theme={theme}>
           <div className="space-y-2">
             {activities.map(act => (
               <div key={act.id}>
