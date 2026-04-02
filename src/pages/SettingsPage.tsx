@@ -184,6 +184,11 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 )}
+                <div className="flex gap-3 mt-3">
+                  <Link to="/bookmarks" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">내 북마크</Link>
+                  <Link to="/my-cover-letters" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">내 자소서</Link>
+                  <Link to="/messages" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">쪽지</Link>
+                </div>
                 <div className="mt-2">
                   <ProfileBadges resumeCount={0} isAdmin={user?.role === 'admin'} />
                 </div>

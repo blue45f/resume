@@ -39,6 +39,7 @@ export default function Footer() {
               <li><Link to="/auto-generate" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">AI 자동 생성</Link></li>
               <li><Link to="/templates" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">템플릿</Link></li>
               <li><Link to="/explore" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">공개 이력서</Link></li>
+              <li><Link to="/bookmarks" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">북마크</Link></li>
             </ul>
           </div>
           <div>
