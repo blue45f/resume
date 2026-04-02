@@ -232,7 +232,7 @@ export default function PreviewPage() {
         </div>
 
         <div className="py-6 sm:py-8 px-4">
-          <div className="max-w-[210mm] mx-auto mb-4 no-print space-y-3">
+          <div className="max-w-[210mm] mx-auto mb-4 no-print space-y-4">
             <CompletenessBar resume={resume} />
             <AtsScorePanel resume={resume} />
             <SimilarityPanel resume={resume} />

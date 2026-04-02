@@ -74,15 +74,17 @@ export default function Header() {
             <Link to="/applications" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/applications' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/applications' ? 'page' : undefined}>
               {t('nav.applications')}
             </Link>
-            <Link to="/cover-letter" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/cover-letter' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`} aria-current={location.pathname === '/cover-letter' ? 'page' : undefined}>
-              {t('nav.coverLetter')}
-            </Link>
-            <Link to="/compare" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/compare' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`} aria-current={location.pathname === '/compare' ? 'page' : undefined}>
-              {t('nav.compare')}
-            </Link>
-            <Link to="/translate" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/translate' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`} aria-current={location.pathname === '/translate' ? 'page' : undefined}>
-              번역
-            </Link>
+            {/* Tools dropdown */}
+            <div className="relative group">
+              <button className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                도구 ▾
+              </button>
+              <div className="absolute left-0 top-full mt-1 w-36 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-1">
+                <Link to="/cover-letter" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
+                <Link to="/compare" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.compare')}</Link>
+                <Link to="/translate" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">번역</Link>
+              </div>
+            </div>
             {user?.role === 'admin' && (
               <Link to="/admin" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/admin' ? 'text-red-600 font-medium' : 'text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300'}`}>
                 {t('nav.admin')}

@@ -386,7 +386,7 @@ function RecentResumes() {
   return (
     <div className="space-y-2">
       {resumes.map(r => (
-        <div key={r.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+        <div key={r.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
           <div className="min-w-0 flex-1">
             <Link to={`/resumes/${r.id}/preview`} className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 truncate block">
               {r.title || '제목 없음'}
