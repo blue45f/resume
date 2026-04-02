@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { fetchResumes } from '@/lib/api';
 import type { ResumeSummary } from '@/types/resume';
@@ -19,6 +20,11 @@ export default function CoverLetterPage() {
 
   useEffect(() => {
     fetchResumes().then(setResumes).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    document.title = '자기소개서 생성 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
   }, []);
 
   const tones = [
@@ -187,6 +193,7 @@ export default function CoverLetterPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </>
   );
 }

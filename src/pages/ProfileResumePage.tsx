@@ -15,6 +15,13 @@ export default function ProfileResumePage() {
   const [viewCount, setViewCount] = useState<number | null>(null);
 
   useEffect(() => {
+    if (resume) {
+      document.title = `${resume.personalInfo.name || resume.title || '이력서'} — 이력서공방`;
+    }
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, [resume]);
+
+  useEffect(() => {
     if (!username || !slug) return;
     let cancelled = false;
     fetch(`${API_URL}/api/resumes/@${username}/${slug}`)

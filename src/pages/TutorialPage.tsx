@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 
@@ -241,6 +241,11 @@ const steps = [
 
 export default function TutorialPage() {
   const [openStep, setOpenStep] = useState<string | null>('create');
+
+  useEffect(() => {
+    document.title = '사용 가이드 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
 
   return (
     <>

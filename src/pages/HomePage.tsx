@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
 import QuickImportModal from '@/components/QuickImportModal';
+import Footer from '@/components/Footer';
 import { timeAgo } from '@/lib/time';
 import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchResumes, deleteResume, duplicateResume, fetchTags } from '@/lib/api';
@@ -138,9 +139,18 @@ export default function HomePage() {
       <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
         {resumes.length === 0 ? (
           <div className="py-12 sm:py-16 animate-fade-in">
-            <div className="text-center mb-10">
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">이력서공방에 오신 것을 환영합니다</h1>
-              <p className="text-slate-500 max-w-md mx-auto">AI가 도와주는 이력서 작성. 다양한 양식으로 변환하고, 깔끔한 URL로 공유하세요.</p>
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium mb-4 animate-fade-in">
+                <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                AI 기반 이력서 관리 플랫폼
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
+                이력서를 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">스마트하게</span> 관리하세요
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
+                AI가 도와주는 이력서 작성. 10가지 테마로 미리보기하고,
+                ATS 호환성을 검사하고, 다양한 양식으로 변환하세요.
+              </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 max-w-3xl mx-auto mb-10">
               <Link to="/resumes/new" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
@@ -164,8 +174,31 @@ export default function HomePage() {
                 <span className="text-xs text-slate-400 mt-1">공개 이력서 탐색</span>
               </Link>
             </div>
+
+            {/* Feature highlights */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mt-12 mb-8">
+              {[
+                { icon: '🤖', title: 'AI 분석 5종', desc: '피드백, JD매칭, 면접질문, ATS검사, 자소서' },
+                { icon: '🎨', title: '테마 10종', desc: '클래식부터 테크까지 실시간 전환' },
+                { icon: '🔒', title: '완전 무료', desc: '무료 LLM 활용, 비용 0원' },
+              ].map(f => (
+                <div key={f.title} className="text-center p-4 animate-fade-in-up">
+                  <span className="text-2xl mb-2 block">{f.icon}</span>
+                  <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{f.title}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+
             <div className="text-center">
               <Link to="/tutorial" className="text-sm text-blue-600 hover:text-blue-800">사용 가이드 보기 &rarr;</Link>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-6 text-center text-xs text-slate-400 dark:text-slate-500 mt-6">
+              <span><strong className="text-slate-700 dark:text-slate-300 text-sm">187+</strong> 테스트 통과</span>
+              <span><strong className="text-slate-700 dark:text-slate-300 text-sm">26</strong> 직종 템플릿</span>
+              <span><strong className="text-slate-700 dark:text-slate-300 text-sm">10</strong> 프리뷰 테마</span>
+              <span><strong className="text-slate-700 dark:text-slate-300 text-sm">5</strong> AI 분석</span>
             </div>
           </div>
         ) : (
@@ -354,14 +387,7 @@ export default function HomePage() {
           </div>
         )}
       </main>
-      <footer className="no-print border-t border-slate-200 py-8 mt-4 bg-white dark:bg-slate-900 dark:border-slate-700">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400 dark:text-slate-500">
-          <Link to="/about" className="hover:text-slate-600">서비스 소개</Link>
-          <Link to="/tutorial" className="hover:text-slate-600">사용 가이드</Link>
-          <Link to="/terms" className="hover:text-slate-600">이용약관</Link>
-          <span>이력서공방</span>
-        </div>
-      </footer>
+      <Footer />
       {showImport && (
         <QuickImportModal
           onClose={() => setShowImport(false)}

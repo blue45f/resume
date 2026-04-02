@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import EmptyState from '@/components/EmptyState';
 import type { ResumeSummary, Tag } from '@/types/resume';
@@ -18,6 +19,11 @@ interface SearchResult {
 export default function ExplorePage() {
   const [params, setParams] = useSearchParams();
   const [result, setResult] = useState<SearchResult | null>(null);
+
+  useEffect(() => {
+    document.title = '공개 이력서 탐색 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
   const [tags, setTags] = useState<(Tag & { resumeCount: number })[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState(params.get('q') || '');
@@ -208,6 +214,7 @@ export default function ExplorePage() {
           </>
         )}
       </main>
+      <Footer />
     </>
   );
 }

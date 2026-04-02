@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { getUser, clearAuth } from '@/lib/auth';
 
@@ -17,6 +18,11 @@ export default function SettingsPage() {
   useEffect(() => {
     if (!user) navigate('/login');
   }, [user]);
+
+  useEffect(() => {
+    document.title = '설정 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +167,7 @@ export default function SettingsPage() {
           </button>
         </section>
       </main>
+      <Footer />
     </>
   );
 }

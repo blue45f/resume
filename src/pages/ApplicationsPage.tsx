@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import EmptyState from '@/components/EmptyState';
 import { fetchApplications, createApplication, updateApplication, deleteApplication } from '@/lib/api';
@@ -28,6 +29,11 @@ export default function ApplicationsPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    document.title = '지원 관리 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,6 +198,7 @@ export default function ApplicationsPage() {
           </div>
         )}
       </main>
+      <Footer />
     </>
   );
 }

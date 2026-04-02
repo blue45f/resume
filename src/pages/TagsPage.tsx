@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import type { Tag } from '@/types/resume';
 import { fetchTags, createTag, deleteTag } from '@/lib/api';
@@ -21,6 +22,11 @@ export default function TagsPage() {
     let cancelled = false;
     fetchTags().then(t => { if (!cancelled) { setTags(t); setLoading(false); } }).catch(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    document.title = '태그 관리 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
   }, []);
 
   const handleCreate = async () => {
@@ -139,6 +145,7 @@ export default function TagsPage() {
           </div>
         )}
       </main>
+      <Footer />
     </>
   );
 }

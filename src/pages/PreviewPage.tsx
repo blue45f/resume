@@ -49,6 +49,13 @@ export default function PreviewPage() {
     return () => { cancelled = true; };
   }, [id]);
 
+  useEffect(() => {
+    if (resume) {
+      document.title = `${resume.personalInfo.name || resume.title || '이력서'} — 이력서공방`;
+    }
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, [resume]);
+
   if (notFound) {
     return (
       <>

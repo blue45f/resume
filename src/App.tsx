@@ -6,6 +6,7 @@ import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
 import AuthCallbackPage from '@/pages/AuthCallbackPage';
 import KeyboardShortcuts from '@/components/KeyboardShortcuts';
+import ScrollToTop from '@/components/ScrollToTop';
 
 // Lazy-loaded pages (non-critical path)
 const NewResumePage = lazy(() => import('@/pages/NewResumePage'));
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="/@:username/:slug" element={<Suspense fallback={<PageLoader />}><ProfileResumePage /></Suspense>} />
           </Routes>
         </div>
+        <ScrollToTop />
         <KeyboardShortcuts />
         <ToastContainer />
       </BrowserRouter>

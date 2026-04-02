@@ -89,7 +89,7 @@ export default function NewResumePage() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">처음부터 직접 작성합니다</p>
               </button>
 
-              {templates.map(t => {
+              {templates.map((t, index) => {
                 const layout = parseLayout(t.layout || '{}');
                 const sections: string[] = layout.sections || [];
 
@@ -97,12 +97,12 @@ export default function NewResumePage() {
                   <button
                     key={t.id}
                     onClick={() => handleSelectTemplate(t.id)}
-                    className="text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 hover:border-blue-400 hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)} group`}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">{t.name}</h3>
+                      <h3 className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{t.name}</h3>
                       {t.isDefault && (
-                        <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full shrink-0">기본</span>
+                        <span className="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full shrink-0">기본</span>
                       )}
                     </div>
                     {t.description && (
@@ -111,7 +111,7 @@ export default function NewResumePage() {
                     {sections.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {sections.slice(0, 5).map(s => (
-                          <span key={s} className="px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">
+                          <span key={s} className="px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded">
                             {SECTION_LABELS[s] || s}
                           </span>
                         ))}
@@ -121,6 +121,9 @@ export default function NewResumePage() {
                           </span>
                         )}
                       </div>
+                    )}
+                    {sections.length === 0 && (
+                      <p className="text-xs text-slate-400 dark:text-slate-500 italic">섹션 정보 없음</p>
                     )}
                   </button>
                 );

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
+import Breadcrumb from '@/components/Breadcrumb';
 import ResumeForm from '@/components/ResumeForm';
 import { FormSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
@@ -28,6 +29,13 @@ export default function EditResumePage() {
       .catch(() => { if (!cancelled) setNotFound(true); });
     return () => { cancelled = true; };
   }, [id]);
+
+  useEffect(() => {
+    if (resume) {
+      document.title = `${resume.title || '이력서'} 수정 — 이력서공방`;
+    }
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, [resume]);
 
   const handleSave = async (data: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!id) return;
@@ -83,6 +91,10 @@ export default function EditResumePage() {
     <>
       <Header />
       <main id="main-content" className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+        <Breadcrumb items={[
+          { label: resume.title || '이력서', to: `/resumes/${id}/preview` },
+          { label: '수정' },
+        ]} />
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">이력서 수정</h1>
           <div className="flex items-center gap-3 flex-wrap">

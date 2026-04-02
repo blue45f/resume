@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import type { Template } from '@/types/resume';
 import { fetchTemplates, createTemplate, updateTemplate, deleteTemplate } from '@/lib/api';
 
@@ -100,6 +101,11 @@ export default function TemplatesPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    document.title = '템플릿 관리 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
 
   const resetForm = () => {
     setFormName('');
@@ -461,6 +467,7 @@ export default function TemplatesPage() {
           </div>
         )}
       </main>
+      <Footer />
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { fetchResumes, fetchResume } from '@/lib/api';
 import { calculateCompleteness } from '@/lib/completeness';
 import type { Resume, ResumeSummary } from '@/types/resume';
@@ -13,6 +14,11 @@ export default function ComparePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { fetchResumes().then(setResumes).catch(() => {}); }, []);
+
+  useEffect(() => {
+    document.title = '이력서 비교 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
 
   useEffect(() => {
     if (leftId) fetchResume(leftId).then(setLeft).catch(() => setLeft(null));
@@ -144,6 +150,7 @@ export default function ComparePage() {
           </div>
         )}
       </main>
+      <Footer />
     </>
   );
 }

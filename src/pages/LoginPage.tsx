@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getSocialLoginUrl } from '@/lib/auth';
 
@@ -39,6 +39,11 @@ export default function LoginPage() {
   const [params] = useSearchParams();
   const error = params.get('error');
   const [mode, setMode] = useState<'social' | 'email'>('social');
+
+  useEffect(() => {
+    document.title = '로그인 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -166,6 +171,21 @@ export default function LoginPage() {
         <p className="text-center text-sm text-slate-400 dark:text-slate-500 mt-6">
           <Link to="/" className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200">비로그인으로 사용하기 &rarr;</Link>
         </p>
+
+        <div className="flex flex-wrap justify-center gap-4 mt-8 text-xs text-slate-400 dark:text-slate-500">
+          <span className="flex items-center gap-1">
+            <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+            무료 사용
+          </span>
+          <span className="flex items-center gap-1">
+            <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+            데이터 안전
+          </span>
+          <span className="flex items-center gap-1">
+            <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+            오픈소스
+          </span>
+        </div>
       </div>
     </div>
   );

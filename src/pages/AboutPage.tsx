@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 
@@ -65,6 +66,11 @@ const techStack = [
 ];
 
 export default function AboutPage() {
+  useEffect(() => {
+    document.title = '서비스 소개 — 이력서공방';
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
+
   return (
     <>
       <Header />
