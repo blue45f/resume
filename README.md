@@ -13,7 +13,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 | 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, TypeScript |
 | 인프라 | Vercel (프론트), Render (백엔드), Neon (DB) |
 | 보안 | JWT + OAuth2 (Google/GitHub/Kakao), Helmet + CSP, Rate Limiting (3-tier), HMAC, 요청 살균 |
-| 테스트 | Jest, Supertest (195+ 테스트, 20+ 스위트) |
+| 테스트 | Jest, Supertest (200+ 테스트, 20+ 스위트) |
 
 ## 주요 기능
 
@@ -28,6 +28,10 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **섹션 순서 변경**: 항목별 위/아래 버튼으로 순서 조정
 - **빠른 가져오기**: LinkedIn/기존 이력서 텍스트 붙여넣기 → AI 자동 생성
 - **이력서 비교**: 2개 이력서 섹션별 시각 비교
+- **자동 저장**: 30초 비활성 후 자동 저장 + 상태 표시
+- **작성 체크리스트**: 12개 항목 완성도 체크 (필수/권장/선택)
+- **중복 감지**: 경력/프로젝트 간 유사 콘텐츠 경고
+- **이력서 통계**: 글자수, 단어수, 읽기 시간, 섹션 수
 
 ### AI 기능 (5종)
 - **AI 양식 변환**: 8가지 양식(표준/경력기술서/자기소개서/LinkedIn/영문/개발자/디자이너/커스텀) + 스트리밍
@@ -38,6 +42,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **자기소개서 생성기**: 이력서+채용공고+어조 선택 → 맞춤 자기소개서
 - **ATS 호환성 검사**: 이력서 ATS 통과율 분석 (0-100점), 문제점/팁 제공
 - **섹션별 작성 팁**: 9개 섹션별 맥락 기반 코칭
+- **AI 변환 이력**: 변환 결과 목록 + 원클릭 복사
 
 ### 공유 & 프로필
 - **슬러그 URL**: `/@username/이력서-제목` 형태의 깔끔한 URL
@@ -49,6 +54,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **이력서 북마크**: 관심 있는 공개 이력서 저장
 - **QR 코드 공유**: QR 코드 + Twitter/LinkedIn/이메일 공유
 - **소셜 공유**: LinkedIn, Twitter 원클릭 공유
+- **인기 기술**: 공개 이력서 기반 인기 기술 스택 순위
 
 ### 지원 관리
 - **지원 내역 추적**: 회사별 지원 현황 CRUD, 상태별 필터(지원/서류/면접/합격/불합격)
@@ -99,6 +105,8 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **페이지 타이틀**: 13개 페이지 동적 document.title
 - **알림 벨**: 헤더 알림 뱃지 + 드롭다운
 - **사이트 통계**: 푸터 실시간 회원/이력서/조회수 표시
+- **탐색 뷰 모드**: 그리드/리스트 뷰 전환
+- **북마크 프리뷰**: 홈페이지 북마크 이력서 가로 스크롤
 - **MSW 목업**: 백엔드 없이 프론트엔드 개발 가능
 
 ## 시작하기
@@ -183,10 +191,10 @@ npm run start:server   # node dist-server/main.js
 ### 테스트
 
 ```bash
-npm run test:unit      # 유닛 테스트 (130개+)
+npm run test:unit      # 유닛 테스트 (145개+)
 npm run test:unit:cov  # 유닛 테스트 + 커버리지
 npm run test:e2e       # E2E 테스트 (55개)
-# 전체: 195+ 테스트 (20+ 스위트)
+# 전체: 200+ 테스트 (20+ 스위트)
 ```
 
 ### 프론트엔드 목업 모드 (백엔드 없이 개발)
@@ -265,6 +273,8 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 | 메서드    | 경로                              | 설명     |
 |--------|---------------------------------|--------|
 | GET    | /api/resumes/dashboard/analytics | 대시보드 분석 |
+| GET    | /api/resumes/trend/:resumeId     | 이력서 변경 추이 |
+| GET    | /api/resumes/popular-skills      | 인기 기술 스택 |
 
 ### 템플릿 / 태그 / 버전 / 공유
 | 메서드                 | 경로                                     | 설명        |
@@ -351,6 +361,10 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── Footer.tsx        # 공유 푸터
 │   │   ├── ScrollToTop.tsx   # 맨위 이동
 │   │   ├── Breadcrumb.tsx    # 경로 탐색
+│   │   ├── ResumeChecklist.tsx   # 작성 체크리스트
+│   │   ├── ResumeStats.tsx       # 이력서 통계
+│   │   ├── SimilarityPanel.tsx   # 중복 감지
+│   │   ├── TransformHistory.tsx  # 변환 이력
 │   │   └── EmptyState.tsx    # 빈 상태 UI
 │   ├── lib/
 │   │   ├── api.ts            # API 클라이언트
@@ -358,6 +372,8 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── completeness.ts   # 이력서 완성도 계산
 │   │   ├── ats.ts            # ATS 호환성 분석
 │   │   ├── resumeThemes.ts   # 멀티 테마 정의
+│   │   ├── similarity.ts        # 중복 감지 알고리즘
+│   │   ├── useDebounce.ts       # 디바운스 훅
 │   │   └── writingTips.ts    # 섹션별 작성 팁
 │   ├── mocks/                # MSW 목업 (백엔드 없이 개발)
 │   │   ├── handlers.ts       # API 핸들러

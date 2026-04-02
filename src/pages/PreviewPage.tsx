@@ -12,6 +12,8 @@ import CommentSection from '@/components/CommentSection';
 import CompletenessBar from '@/components/CompletenessBar';
 import AtsScorePanel from '@/components/AtsScorePanel';
 import SimilarityPanel from '@/components/SimilarityPanel';
+import ResumeChecklist from '@/components/ResumeChecklist';
+import TransformHistory from '@/components/TransformHistory';
 import ResumeStats from '@/components/ResumeStats';
 import { toast } from '@/components/Toast';
 import type { Resume } from '@/types/resume';
@@ -228,6 +230,8 @@ export default function PreviewPage() {
             <CompletenessBar resume={resume} />
             <AtsScorePanel resume={resume} />
             <SimilarityPanel resume={resume} />
+            <ResumeChecklist resume={resume} />
+            <TransformHistory resumeId={id!} />
           </div>
           <ResumePreview ref={contentRef} resume={resume} themeId={themeId} />
           <div className="max-w-[210mm] mx-auto mt-3 px-1">

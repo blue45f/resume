@@ -71,8 +71,20 @@
 ### GET /resumes/:id/export/markdown
 마크다운 형식 다운로드
 
+## 분석
+
 ### GET /resumes/dashboard/analytics
-대시보드 분석 (이력서 수, 조회수, AI 변환 수 등)
+사용자 대시보드 분석
+
+### GET /resumes/trend/:resumeId
+이력서 변경 추이 (버전별 섹션 수)
+
+**Response:** `[{ "version": 1, "sections": 5, "createdAt": "..." }]`
+
+### GET /resumes/popular-skills
+공개 이력서 기반 인기 기술 스택
+
+**Response:** `[{ "name": "react", "count": 15 }, { "name": "typescript", "count": 12 }]`
 
 ## AI 변환
 

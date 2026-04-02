@@ -44,6 +44,19 @@ export class ResumesController {
     return this.analyticsService.getUserDashboard(req.user?.id);
   }
 
+  @Get('trend/:resumeId')
+  @ApiOperation({ summary: '이력서 변경 추이' })
+  getResumeTrend(@Param('resumeId') resumeId: string) {
+    return this.analyticsService.getResumeTrend(resumeId);
+  }
+
+  @Get('popular-skills')
+  @Public()
+  @ApiOperation({ summary: '인기 기술 스택' })
+  getPopularSkills() {
+    return this.analyticsService.getPopularSkills();
+  }
+
   @Get('bookmarks/list')
   @ApiOperation({ summary: '내 북마크 목록' })
   getBookmarks(@Req() req: any) {

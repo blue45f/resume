@@ -14,6 +14,12 @@ const mockPrisma = {
   llmTransformation: {
     count: jest.fn(),
   },
+  skill: {
+    findMany: jest.fn(),
+  },
+  bookmark: {
+    count: jest.fn(),
+  },
 };
 
 describe('AnalyticsService', () => {
@@ -28,6 +34,28 @@ describe('AnalyticsService', () => {
     }).compile();
     service = module.get(AnalyticsService);
     jest.clearAllMocks();
+  });
+
+  it('이력서 변경 추이 반환', async () => {
+    mockPrisma.resumeVersion.findMany.mockResolvedValue([
+      { versionNumber: 1, snapshot: JSON.stringify({ experiences: [{}], skills: [{}] }), createdAt: new Date() },
+      { versionNumber: 2, snapshot: JSON.stringify({ experiences: [{}], skills: [{}], projects: [{}] }), createdAt: new Date() },
+    ]);
+    const result = await service.getResumeTrend('r1');
+    expect(result).toHaveLength(2);
+    expect(result[0].sections).toBe(2);
+    expect(result[1].sections).toBe(3);
+  });
+
+  it('인기 기술 스택 반환', async () => {
+    mockPrisma.skill.findMany.mockResolvedValue([
+      { items: 'React, TypeScript, Node.js' },
+      { items: 'React, Python' },
+      { items: 'TypeScript, Java' },
+    ]);
+    const result = await service.getPopularSkills();
+    expect(result[0].name).toBe('react');
+    expect(result[0].count).toBe(2);
   });
 
   it('대시보드 통계 반환', async () => {

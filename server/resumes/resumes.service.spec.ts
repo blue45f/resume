@@ -32,6 +32,7 @@ const mockPrisma: Record<string, any> = {
     count: jest.fn(),
   },
   personalInfo: { upsert: jest.fn() },
+  bookmark: { count: jest.fn().mockResolvedValue(0) },
   experience: { deleteMany: jest.fn(), createMany: jest.fn() },
   education: { deleteMany: jest.fn(), createMany: jest.fn() },
   skill: { deleteMany: jest.fn(), createMany: jest.fn() },

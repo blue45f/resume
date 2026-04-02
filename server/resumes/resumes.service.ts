@@ -149,7 +149,9 @@ export class ResumesService {
       throw new ForbiddenException('이 이력서에 접근할 권한이 없습니다');
     }
 
-    return this.formatFull(resume);
+    const result = this.formatFull(resume);
+    const bookmarkCount = await this.prisma.bookmark.count({ where: { resumeId: id } });
+    return { ...result, bookmarkCount };
   }
 
   /** 소유권 검증 - 수정/삭제 시 사용 (admin은 모든 이력서 접근 가능) */

@@ -63,6 +63,8 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
   const [data, setData] = useState(initialData);
   const [activeTab, setActiveTab] = useState('personal');
   const [dirty, setDirty] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Ctrl+S / Cmd+S 키보드 저장
   useEffect(() => {
@@ -87,6 +89,21 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [dirty]);
+
+  // Auto-save after 30 seconds of inactivity
+  useEffect(() => {
+    if (!dirty) return;
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    const timer = setTimeout(() => {
+      if (dirty && !saving) {
+        onSave(data);
+        setLastSaved(new Date());
+        setDirty(false);
+      }
+    }, 30000);
+    setAutoSaveTimer(timer);
+    return () => { if (timer) clearTimeout(timer); };
+  }, [data, dirty]);
 
 
   const tabs = [
@@ -700,6 +717,16 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
           {dirty ? '변경사항이 있습니다' : ''}
         </span>
         <div className="flex items-center gap-3">
+          {lastSaved && (
+            <span className="text-xs text-green-500 dark:text-green-400">
+              자동 저장됨 {lastSaved.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+          {dirty && !saving && (
+            <span className="text-xs text-amber-500 dark:text-amber-400 animate-pulse">
+              변경사항 있음
+            </span>
+          )}
           <span className="hidden sm:inline text-xs text-slate-400">Ctrl+S</span>
           <button
             type="submit"
