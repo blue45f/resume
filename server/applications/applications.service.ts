@@ -63,6 +63,8 @@ export class ApplicationsService {
       throw new ForbiddenException('5자 이상 입력해주세요');
     }
 
+    const cleanContent = content.trim().replace(/<[^>]*>/g, '');
+
     let authorName = '익명';
     if (userId) {
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -70,7 +72,7 @@ export class ApplicationsService {
     }
 
     return this.prisma.applicationComment.create({
-      data: { applicationId, userId, authorName, content: content.trim() },
+      data: { applicationId, userId, authorName, content: cleanContent },
     });
   }
 }

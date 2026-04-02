@@ -132,6 +132,14 @@ export default function ProfileResumePage() {
                 공유하기
               </button>
               <a
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2.5 sm:px-3 py-2 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+              >
+                LinkedIn
+              </a>
+              <a
                 href={`${API_URL}/api/resumes/${resume.id}/export/pdf`}
                 target="_blank"
                 rel="noopener noreferrer"

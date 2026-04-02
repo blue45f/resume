@@ -165,6 +165,38 @@ JD 매칭 분석
 }
 ```
 
+## 알림
+
+### GET /notifications
+전체 알림 목록 (최근 50개)
+
+### GET /notifications/unread
+읽지 않은 알림 (최근 20개)
+
+### GET /notifications/count
+읽지 않은 알림 수
+
+**Response:** `{ "count": 3 }`
+
+### POST /notifications/read-all
+모든 알림을 읽음 처리
+
+### POST /notifications/:id/read
+특정 알림을 읽음 처리
+
+### DELETE /notifications/cleanup
+30일 이상 지난 읽은 알림 삭제 (관리자 전용)
+
+## 지원 댓글
+
+### GET /applications/:id/comments
+공개 지원의 댓글 목록
+
+### POST /applications/:id/comments
+지원에 댓글 작성 (로그인 필요)
+
+**Request:** `{ "content": "조언 내용 (5자 이상)" }`
+
 ## 헬스체크
 
 ### GET /health

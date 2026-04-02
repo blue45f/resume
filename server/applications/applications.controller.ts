@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { ApplicationsService } from './applications.service';
 import { Public } from '../auth/auth.guard';
 import { CreateApplicationDto, UpdateApplicationDto } from './dto/application.dto';
@@ -49,6 +50,7 @@ export class ApplicationsController {
   }
 
   @Post(':id/comments')
+  @Throttle({ short: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: '지원 내역에 댓글 작성' })
   async addComment(
     @Param('id') id: string,

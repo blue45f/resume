@@ -13,7 +13,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 | 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, TypeScript |
 | 인프라 | Vercel (프론트), Render (백엔드), Neon (DB) |
 | 보안 | JWT + OAuth2 (Google/GitHub/Kakao), Helmet + CSP, Rate Limiting (3-tier), HMAC, 요청 살균 |
-| 테스트 | Jest, Supertest (190+ 테스트, 19+ 스위트) |
+| 테스트 | Jest, Supertest (195+ 테스트, 20+ 스위트) |
 
 ## 주요 기능
 
@@ -47,6 +47,8 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **이력서 완성도**: 섹션별 점수 + 개선 팁 (원티드 스타일)
 - **커뮤니티 의견**: 공개 이력서에 의견/조언 댓글 (5-500자)
 - **이력서 북마크**: 관심 있는 공개 이력서 저장
+- **QR 코드 공유**: QR 코드 + Twitter/LinkedIn/이메일 공유
+- **소셜 공유**: LinkedIn, Twitter 원클릭 공유
 
 ### 지원 관리
 - **지원 내역 추적**: 회사별 지원 현황 CRUD, 상태별 필터(지원/서류/면접/합격/불합격)
@@ -74,6 +76,8 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **요청 추적**: X-Request-ID 헤더 자동 생성
 - **Rate Limiting**: 3-tier (short: 10/1s, medium: 100/60s, long: 1000/1h)
 - **DTO 입력 검증**: class-validator 기반 모든 입력 필드 검증
+- **알림 시스템**: 댓글 알림, 북마크 알림 (30초 폴링)
+- **댓글 스팸 방지**: Rate Limiting (5회/분)
 - **기타**: CORS, JWT, DTO 검증, Path Traversal 방지
 
 ### UI/UX
@@ -93,6 +97,8 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **ScrollToTop**: 스크롤 시 맨위 이동 버튼
 - **EmptyState**: 7가지 상황별 SVG 일러스트
 - **페이지 타이틀**: 13개 페이지 동적 document.title
+- **알림 벨**: 헤더 알림 뱃지 + 드롭다운
+- **사이트 통계**: 푸터 실시간 회원/이력서/조회수 표시
 - **MSW 목업**: 백엔드 없이 프론트엔드 개발 가능
 
 ## 시작하기
@@ -180,7 +186,7 @@ npm run start:server   # node dist-server/main.js
 npm run test:unit      # 유닛 테스트 (130개+)
 npm run test:unit:cov  # 유닛 테스트 + 커버리지
 npm run test:e2e       # E2E 테스트 (55개)
-# 전체: 190+ 테스트 (19+ 스위트)
+# 전체: 195+ 테스트 (20+ 스위트)
 ```
 
 ### 프론트엔드 목업 모드 (백엔드 없이 개발)
@@ -286,6 +292,16 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 | DELETE | /api/resumes/:id/bookmark     | 북마크 해제    |
 | GET    | /api/resumes/bookmarks/list   | 내 북마크 목록  |
 
+### 알림
+| 메서드    | 경로                              | 설명                     |
+|--------|---------------------------------|------------------------|
+| GET    | /api/notifications              | 알림 목록                  |
+| GET    | /api/notifications/unread       | 읽지 않은 알림               |
+| GET    | /api/notifications/count        | 읽지 않은 알림 수             |
+| POST   | /api/notifications/read-all     | 모든 알림 읽음               |
+| POST   | /api/notifications/:id/read     | 알림 읽음                  |
+| DELETE | /api/notifications/cleanup      | 오래된 알림 정리 (관리자)        |
+
 ### 관리자
 | 메서드  | 경로                        | 설명         |
 |------|---------------------------|------------|
@@ -313,6 +329,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   ├── share/                # 공유 링크 (bcrypt, 소유권 검증)
 │   ├── applications/         # 지원 관리 CRUD
 │   ├── comments/             # 커뮤니티 댓글 CRUD
+│   ├── notifications/        # 알림 시스템
 │   └── attachments/          # 첨부파일 (MIME + 확장자 이중 검증)
 ├── src/                       # React 프론트엔드
 │   ├── components/
@@ -327,6 +344,9 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── VoiceInput.tsx     # 음성 입력
 │   │   ├── QuickImportModal.tsx # 빠른 가져오기
 │   │   ├── BookmarkButton.tsx # 북마크 토글
+│   │   ├── NotificationBell.tsx  # 알림 벨
+│   │   ├── QrCodeModal.tsx       # QR 코드 공유
+│   │   ├── AppCommentSection.tsx  # 지원 목록 댓글
 │   │   ├── CommentSection.tsx # 댓글 섹션
 │   │   ├── Footer.tsx        # 공유 푸터
 │   │   ├── ScrollToTop.tsx   # 맨위 이동

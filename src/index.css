@@ -44,10 +44,37 @@ body {
 
 @media print {
   body {
-    background: white;
+    background: white !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
   }
-  .no-print {
+  .no-print, .no-print * {
     display: none !important;
+  }
+  .dark body, .dark .bg-white {
+    background: white !important;
+    color: #0f172a !important;
+  }
+  /* Ensure page breaks work well */
+  section {
+    break-inside: avoid;
+  }
+  h1, h2, h3 {
+    break-after: avoid;
+  }
+  /* Remove shadows and borders for clean print */
+  .shadow-lg, .shadow-md, .shadow-sm {
+    box-shadow: none !important;
+  }
+  a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+  /* Ensure full width for print */
+  .max-w-\[210mm\] {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 15mm !important;
   }
 }
 

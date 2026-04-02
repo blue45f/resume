@@ -47,4 +47,13 @@ export class NotificationsService {
       where: { userId, read: false },
     });
   }
+
+  async cleanupOld() {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const { count } = await this.prisma.notification.deleteMany({
+      where: { read: true, createdAt: { lt: thirtyDaysAgo } },
+    });
+    return { deleted: count };
+  }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Req } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Req, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 
@@ -41,5 +41,15 @@ export class NotificationsController {
   markRead(@Param('id') id: string, @Req() req: any) {
     if (!req.user?.id) return { success: false };
     return this.service.markAsRead(req.user.id, id);
+  }
+
+  @Delete('cleanup')
+  @ApiOperation({ summary: '오래된 읽은 알림 정리 (관리자 전용)' })
+  cleanup(@Req() req: any) {
+    if (!req.user?.id) return { success: false };
+    if (req.user.role !== 'admin') {
+      throw new ForbiddenException('관리자만 사용할 수 있습니다');
+    }
+    return this.service.cleanupOld();
   }
 }

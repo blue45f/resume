@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Delete, Param, Body, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from '../auth/auth.guard';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/comment.dto';
@@ -17,6 +18,7 @@ export class CommentsController {
   }
 
   @Post()
+  @Throttle({ short: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: '의견 작성' })
   create(
     @Param('resumeId') resumeId: string,

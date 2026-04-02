@@ -33,6 +33,8 @@ export class CommentsService {
       throw new ForbiddenException('의견은 500자 이내로 입력해주세요');
     }
 
+    const cleanContent = content.trim().replace(/<[^>]*>/g, '');
+
     let name = authorName || '익명';
     if (userId) {
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -40,7 +42,7 @@ export class CommentsService {
     }
 
     const comment = await this.prisma.comment.create({
-      data: { resumeId, userId, authorName: name, content: content.trim() },
+      data: { resumeId, userId, authorName: name, content: cleanContent },
     });
 
     // Notify resume owner

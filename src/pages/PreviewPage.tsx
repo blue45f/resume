@@ -15,6 +15,7 @@ import { toast } from '@/components/Toast';
 import type { Resume } from '@/types/resume';
 import { fetchResume } from '@/lib/api';
 import BookmarkButton from '@/components/BookmarkButton';
+import QrCodeModal from '@/components/QrCodeModal';
 
 export default function PreviewPage() {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +27,7 @@ export default function PreviewPage() {
   const [showAttachments, setShowAttachments] = useState(false);
   const [showAiAnalysis, setShowAiAnalysis] = useState(false);
   const [themeId, setThemeId] = useState('classic');
+  const [showQr, setShowQr] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
@@ -137,6 +139,13 @@ export default function PreviewPage() {
                 🔗 공유
               </button>
               <button
+                onClick={() => setShowQr(true)}
+                className="px-2.5 sm:px-3 py-2 text-slate-600 bg-slate-100 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                title="QR 코드로 공유"
+              >
+                QR 공유
+              </button>
+              <button
                 onClick={() => setShowAttachments(true)}
                 className="px-2.5 sm:px-3 py-2 text-slate-600 bg-slate-100 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               >
@@ -246,6 +255,15 @@ export default function PreviewPage() {
       {/* Attachment Panel */}
       {showAttachments && id && (
         <AttachmentPanel resumeId={id} onClose={() => setShowAttachments(false)} />
+      )}
+
+      {/* QR Code Modal */}
+      {showQr && resume && (
+        <QrCodeModal
+          url={window.location.href}
+          title={`${resume.personalInfo.name || resume.title} — 이력서`}
+          onClose={() => setShowQr(false)}
+        />
       )}
     </>
   );
