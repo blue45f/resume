@@ -56,89 +56,67 @@ export default function Header() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden sm:flex items-center gap-3" aria-label="주요 메뉴">
+          <nav className="hidden md:flex items-center gap-1.5" aria-label="주요 메뉴">
             {!isHome && (
-              <Link to="/" className="text-sm text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1">
+              <Link to="/" className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 rounded px-2 py-1">
                 {t('nav.resumes')}
               </Link>
             )}
-            <Link to="/explore" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/explore' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/explore' ? 'page' : undefined}>
+            <Link to="/explore" className={`text-sm rounded px-2 py-1 ${location.pathname === '/explore' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
               {t('nav.explore')}
             </Link>
-            <Link to="/templates" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/templates' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/templates' ? 'page' : undefined}>
-              {t('nav.templates')}
-            </Link>
-            <Link to="/tags" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/tags' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/tags' ? 'page' : undefined}>
-              {t('nav.tags')}
-            </Link>
-            <Link to="/applications" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/applications' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`} aria-current={location.pathname === '/applications' ? 'page' : undefined}>
+            <Link to="/applications" className={`text-sm rounded px-2 py-1 ${location.pathname === '/applications' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
               {t('nav.applications')}
             </Link>
-            {/* Tools dropdown */}
+            {/* More dropdown */}
             <div className="relative group">
-              <button className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                도구 ▾
+              <button className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-2 py-1 rounded">
+                더보기 ▾
               </button>
-              <div className="absolute left-0 top-full mt-1 w-36 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-1">
+              <div className="absolute left-0 top-full mt-1 w-40 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-1">
+                <Link to="/templates" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.templates')}</Link>
+                <Link to="/tags" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.tags')}</Link>
+                <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                 <Link to="/cover-letter" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
                 <Link to="/compare" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.compare')}</Link>
                 <Link to="/translate" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">번역</Link>
               </div>
             </div>
             {user?.role === 'admin' && (
-              <Link to="/admin" className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 ${location.pathname === '/admin' ? 'text-red-600 font-medium' : 'text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300'}`}>
+              <Link to="/admin" className={`text-sm rounded px-2 py-1 ${location.pathname === '/admin' ? 'text-red-600 font-medium' : 'text-red-500 hover:text-red-700 dark:text-red-400'}`}>
                 {t('nav.admin')}
               </Link>
             )}
             {showSearch ? (
               <form onSubmit={(e) => { e.preventDefault(); navigate(`/explore?q=${encodeURIComponent(searchQuery)}`); setShowSearch(false); setSearchQuery(''); }} className="flex items-center">
-                <input
-                  type="search"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="이력서 검색..."
-                  className="w-40 px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  autoFocus
-                />
-                <button type="button" onClick={() => { setShowSearch(false); setSearchQuery(''); }} className="ml-1 text-slate-400 hover:text-slate-600 text-sm">
-                  &times;
-                </button>
+                <input type="search" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="검색..." className="w-32 px-2.5 py-1 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500" autoFocus />
+                <button type="button" onClick={() => { setShowSearch(false); setSearchQuery(''); }} className="ml-1 text-slate-400 hover:text-slate-600 text-sm">&times;</button>
               </form>
             ) : (
-              <button onClick={() => setShowSearch(true)} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 p-1.5 rounded-lg transition-colors" aria-label="검색">
+              <button onClick={() => setShowSearch(true)} className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg transition-colors" aria-label="검색">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               </button>
             )}
-            <Link
-              to="/auto-generate"
-              className="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-200"
-            >
-              {t('nav.aiGenerate')}
-            </Link>
-            <Link
-              to="/resumes/new"
-              className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
-            >
+            <Link to="/resumes/new" className="px-2.5 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">
               {t('nav.newResume')}
             </Link>
             {user && <NotificationBell />}
             <button
               onClick={cycleTheme}
-              className="flex items-center gap-1 px-2 py-1.5 text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
-              aria-label={`테마 변경 (현재: ${themeLabel})`}
+              className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg transition-colors"
+              aria-label={`테마: ${themeLabel}`}
               title={`테마: ${themeLabel}`}
             >
               <span aria-hidden="true">{themeIcon}</span>
-              <span className="text-xs text-slate-400">{themeLabel}</span>
             </button>
             <select
               value={locale}
               onChange={e => { setLocale(e.target.value as any); setLocaleState(e.target.value as any); }}
-              className="text-xs px-1.5 py-1 border border-slate-200 dark:border-slate-600 rounded-lg bg-transparent text-slate-600 dark:text-slate-300 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              aria-label="언어 선택"
+              className="text-xs px-1 py-0.5 border border-slate-200 dark:border-slate-600 rounded bg-transparent text-slate-500 dark:text-slate-400 cursor-pointer"
+              aria-label="언어"
             >
               {LOCALES.map(l => (
-                <option key={l} value={l}>{getLocaleName(l)}</option>
+                <option key={l} value={l}>{l.toUpperCase()}</option>
               ))}
             </select>
             {user ? (
@@ -161,7 +139,7 @@ export default function Header() {
 
           {/* Mobile hamburger */}
           <button
-            className="sm:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+            className="md:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="메뉴 열기"
             aria-expanded={menuOpen}
@@ -178,7 +156,7 @@ export default function Header() {
 
         {/* Mobile menu */}
         {menuOpen && (
-          <nav className="sm:hidden pb-4 space-y-1 border-t border-slate-100 dark:border-slate-700 pt-3 animate-fade-in" aria-label="모바일 메뉴">
+          <nav className="md:hidden pb-4 space-y-1 border-t border-slate-100 dark:border-slate-700 pt-3 animate-fade-in" aria-label="모바일 메뉴">
             <Link to="/" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.resumes')}</Link>
             <Link to="/explore" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.explore')}</Link>
             <Link to="/templates" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.templates')}</Link>
