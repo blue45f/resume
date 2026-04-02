@@ -81,7 +81,7 @@ describe('AuthService - Admin (setUserRole / getAllUsers)', () => {
 
   describe('setUserRole', () => {
     it('admin이 다른 사용자 역할 변경 성공', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: 'admin-1', role: 'admin' });
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'admin-1', role: 'superadmin' });
       mockPrisma.user.update.mockResolvedValue({ id: 'user-1', role: 'admin' });
 
       const result = await service.setUserRole('admin-1', 'user-1', 'admin');
@@ -102,9 +102,9 @@ describe('AuthService - Admin (setUserRole / getAllUsers)', () => {
     });
 
     it('유효하지 않은 역할 → UnauthorizedException', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: 'admin-1', role: 'admin' });
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'admin-1', role: 'superadmin' });
 
-      await expect(service.setUserRole('admin-1', 'user-1', 'superadmin')).rejects.toThrow(
+      await expect(service.setUserRole('admin-1', 'user-1', 'invalid_role')).rejects.toThrow(
         '유효하지 않은 역할입니다',
       );
       expect(mockPrisma.user.update).not.toHaveBeenCalled();

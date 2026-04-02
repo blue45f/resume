@@ -105,6 +105,8 @@ export interface Resume {
   id: string;
   title: string;
   slug?: string;
+  userId?: string;
+  viewCount?: number;
   visibility?: 'public' | 'private' | 'link-only';
   createdAt: string;
   updatedAt: string;

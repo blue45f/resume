@@ -479,6 +479,7 @@ function RecentResumes() {
 function PlanConfig() {
   const [plans, setPlans] = useState(PLANS.map(p => ({ ...p })));
   const [saved, setSaved] = useState(false);
+  const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
 
   const updateFeature = (planIdx: number, feature: string, value: any) => {
     setPlans(prev => {
@@ -512,25 +513,35 @@ function PlanConfig() {
     <div className="space-y-4">
       {plans.map((plan, planIdx) => (
         <div key={plan.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-          <div className="flex items-center justify-between mb-3">
+          <button onClick={() => setExpandedPlan(expandedPlan === plan.id ? null : plan.id)} className="w-full flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <span className="text-lg">{plan.badge}</span>
               <h4 className="font-semibold text-slate-900 dark:text-slate-100">{plan.name}</h4>
             </div>
-            {plan.id !== 'free' && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500">월 가격:</span>
-                <input
-                  type="number"
-                  value={plan.price}
-                  onChange={e => updatePrice(planIdx, parseInt(e.target.value) || 0)}
-                  className="w-24 px-2 py-1 text-sm text-right border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
-                />
-                <span className="text-xs text-slate-400">원</span>
-              </div>
-            )}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="flex items-center gap-3">
+              {plan.id !== 'free' && (
+                <span className="text-xs text-slate-400">{plan.price.toLocaleString()}원/월</span>
+              )}
+              <svg className={`w-4 h-4 text-slate-400 transition-transform ${expandedPlan === plan.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+          {expandedPlan === plan.id && (
+          <>
+          {plan.id !== 'free' && (
+            <div className="flex items-center gap-2 mb-3 mt-2">
+              <span className="text-xs text-slate-500">월 가격:</span>
+              <input
+                type="number"
+                value={plan.price}
+                onChange={e => updatePrice(planIdx, parseInt(e.target.value) || 0)}
+                className="w-24 px-2 py-1 text-sm text-right border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
+              />
+              <span className="text-xs text-slate-400">원</span>
+            </div>
+          )}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
             {[
               { key: 'maxResumes', label: '이력서 수', type: 'number' },
               { key: 'aiTransformsPerMonth', label: 'AI 변환/월', type: 'number' },
@@ -562,6 +573,8 @@ function PlanConfig() {
               </div>
             ))}
           </div>
+          </>
+          )}
         </div>
       ))}
       <button onClick={handleSave} className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
