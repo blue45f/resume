@@ -6,6 +6,7 @@ module.exports = {
     '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.server.json' }],
   },
   testEnvironment: 'node',
+  testPathIgnorePatterns: ['/node_modules/', '/dist-server/'],
   collectCoverageFrom: [
     'server/**/*.service.ts',
     'server/**/*.guard.ts',
