@@ -460,6 +460,16 @@ export default function TemplatesPage() {
                     >
                       삭제
                     </button>
+                    <button
+                      onClick={async () => {
+                        const newVis = t.visibility === 'public' ? 'private' : 'public';
+                        await updateTemplate(t.id, { visibility: newVis });
+                        load();
+                      }}
+                      className="text-xs px-2 py-1 bg-slate-50 dark:bg-slate-700 text-slate-500 rounded-lg hover:bg-slate-100 transition-colors"
+                    >
+                      {t.visibility === 'public' ? '비공개로' : '공개하기'}
+                    </button>
                   </div>
                 </article>
               );

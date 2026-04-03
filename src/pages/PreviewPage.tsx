@@ -10,6 +10,7 @@ import AttachmentPanel from '@/components/AttachmentPanel';
 import AiAnalysisPanel from '@/components/AiAnalysisPanel';
 import CommentSection from '@/components/CommentSection';
 import CompletenessBar from '@/components/CompletenessBar';
+import ResumeScoreboard from '@/components/ResumeScoreboard';
 import AtsScorePanel from '@/components/AtsScorePanel';
 import SimilarityPanel from '@/components/SimilarityPanel';
 import ResumeChecklist from '@/components/ResumeChecklist';
@@ -193,8 +194,11 @@ export default function PreviewPage() {
                   <a href={`${API_URL}/api/resumes/${id}/export/text`} download={`${resume?.title || 'resume'}.txt`} className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-t-xl">
                     📄 텍스트 (.txt)
                   </a>
-                  <a href={`${API_URL}/api/resumes/${id}/export/markdown`} download={`${resume?.title || 'resume'}.md`} className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-b-xl">
+                  <a href={`${API_URL}/api/resumes/${id}/export/markdown`} download={`${resume?.title || 'resume'}.md`} className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
                     📝 마크다운 (.md)
+                  </a>
+                  <a href={`${API_URL}/api/resumes/${id}/export/json`} download={`${resume?.title || 'resume'}.json`} className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-b-xl">
+                    📋 JSON (.json)
                   </a>
                 </div>
               </div>
@@ -245,6 +249,7 @@ export default function PreviewPage() {
         <div className="py-6 sm:py-8 px-4">
           <div className="max-w-[210mm] mx-auto mb-4 no-print space-y-4">
             <CompletenessBar resume={resume} />
+            <ResumeScoreboard resume={resume} />
             <AtsScorePanel resume={resume} />
             <SimilarityPanel resume={resume} />
             <ResumeChecklist resume={resume} />

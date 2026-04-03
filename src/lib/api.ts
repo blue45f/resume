@@ -104,6 +104,10 @@ export const updateTemplate = (id: string, data: Partial<Template>) =>
   request<Template>(`${BASE}/templates/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const deleteTemplate = (id: string) =>
   request<{ success: boolean }>(`${BASE}/templates/${id}`, { method: 'DELETE' });
+export const fetchPublicTemplates = (category?: string) => {
+  const qs = category ? `?category=${encodeURIComponent(category)}` : '';
+  return request<Template[]>(`${BASE}/templates/public${qs}`);
+};
 
 // Local Transform (LLM 불필요)
 export const localTransform = (resumeId: string, data: { preset?: string; templateId?: string }) =>
@@ -174,6 +178,7 @@ export const restoreVersion = (resumeId: string, versionId: string) =>
 // Export
 export const exportResumeText = (id: string) => `${BASE}/resumes/${id}/export/text`;
 export const exportResumeMarkdown = (id: string) => `${BASE}/resumes/${id}/export/markdown`;
+export const exportResumeJson = (id: string) => `${BASE}/resumes/${id}/export/json`;
 
 // Job Applications
 export interface JobApplication {

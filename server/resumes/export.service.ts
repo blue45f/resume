@@ -122,6 +122,11 @@ export class ExportService {
     return lines.join('\n');
   }
 
+  async exportAsJson(resumeId: string): Promise<string> {
+    const resume = await this.getResumeData(resumeId);
+    return JSON.stringify(resume, null, 2);
+  }
+
   private async getResumeData(resumeId: string) {
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },

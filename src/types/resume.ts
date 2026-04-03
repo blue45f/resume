@@ -141,6 +141,9 @@ export interface Template {
   category: string;
   prompt: string;
   layout: string;
+  visibility: string;
+  usageCount: number;
+  rating: number | null;
   isDefault: boolean;
 }
 

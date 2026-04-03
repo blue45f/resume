@@ -36,6 +36,7 @@ export class TemplatesService {
       category?: string;
       prompt?: string;
       layout?: string;
+      visibility?: string;
       isDefault?: boolean;
     },
     userId?: string,
@@ -67,6 +68,20 @@ export class TemplatesService {
     }
     await this.prisma.template.delete({ where: { id } });
     return { success: true };
+  }
+
+  async findPublic(category?: string) {
+    const where: any = { visibility: 'public' };
+    if (category) where.category = category;
+    return this.prisma.template.findMany({
+      where,
+      orderBy: { usageCount: 'desc' },
+      take: 50,
+    });
+  }
+
+  async incrementUsage(id: string) {
+    this.prisma.template.update({ where: { id }, data: { usageCount: { increment: 1 } } }).catch(() => {});
   }
 
   async seed() {

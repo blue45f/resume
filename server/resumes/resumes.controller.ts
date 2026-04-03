@@ -179,4 +179,14 @@ export class ResumesController {
     res.setHeader('Content-Disposition', `attachment; filename="resume.md"`);
     res.send(text);
   }
+
+  @Get(':id/export/json')
+  @ApiOperation({ summary: '이력서 JSON 내보내기' })
+  async exportJson(@Param('id') id: string, @Res() res: Response) {
+    const json = await this.exportService.exportAsJson(id);
+    this.resumesService.incrementViewCount(id);
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="resume.json"`);
+    res.send(json);
+  }
 }

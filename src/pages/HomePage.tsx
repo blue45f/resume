@@ -10,6 +10,7 @@ import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchResumes, deleteResume, duplicateResume, fetchTags, fetchBookmarks } from '@/lib/api';
 import DashboardStats from '@/components/DashboardStats';
 import RecentActivity from '@/components/RecentActivity';
+import HiringTrends from '@/components/HiringTrends';
 import OnboardingBanner from '@/components/OnboardingBanner';
 import { t } from '@/lib/i18n';
 import { getUser } from '@/lib/auth';
@@ -279,6 +280,8 @@ export default function HomePage() {
             )}
 
             <RecentActivity />
+
+            <HiringTrends />
 
             {/* Tag filter */}
             {tags.length > 0 && (

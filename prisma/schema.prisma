@@ -295,6 +295,9 @@ model Template {
   userId      String?  @map("user_id") // 생성자 (null = 시스템 기본 템플릿)
   prompt      String   @default("") // LLM prompt template content
   layout      String   @default("{}") // JSON: section order, visibility, style config for local transform
+  visibility  String   @default("private") // private, public
+  usageCount  Int      @default(0) @map("usage_count")
+  rating      Float?   @default(0)
   isDefault   Boolean  @default(false) @map("is_default")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")

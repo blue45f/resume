@@ -7,12 +7,14 @@ import {
   Body,
   Param,
   Req,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { TemplatesService } from './templates.service';
 import { LocalTransformService } from './local-transform.service';
 import { ResumesService } from '../resumes/resumes.service';
 import { CreateTemplateDto, UpdateTemplateDto, LocalTransformDto } from './dto/template.dto';
+import { Public } from '../auth/auth.guard';
 import { CacheTTL } from '../common/interceptors/cache.interceptor';
 
 @ApiTags('templates')
@@ -29,6 +31,13 @@ export class TemplatesController {
   @ApiOperation({ summary: '템플릿 목록 조회' })
   findAll() {
     return this.templatesService.findAll();
+  }
+
+  @Get('public')
+  @Public()
+  @ApiOperation({ summary: '공개 템플릿 목록' })
+  findPublicTemplates(@Query('category') category?: string) {
+    return this.templatesService.findPublic(category);
   }
 
   @Get(':id')

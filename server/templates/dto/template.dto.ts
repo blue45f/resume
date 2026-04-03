@@ -16,6 +16,7 @@ export class UpdateTemplateDto {
   @ApiPropertyOptional() @IsOptional() @IsString() category?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() prompt?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() layout?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() visibility?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isDefault?: boolean;
 }
 
