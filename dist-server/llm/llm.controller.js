@@ -19,6 +19,7 @@ const throttler_1 = require("@nestjs/throttler");
 const rxjs_1 = require("rxjs");
 const llm_service_1 = require("./llm.service");
 const transform_resume_dto_1 = require("./dto/transform-resume.dto");
+const analysis_dto_1 = require("./dto/analysis.dto");
 const usage_service_1 = require("../health/usage.service");
 let LlmController = class LlmController {
     llmService;
@@ -88,17 +89,17 @@ let LlmController = class LlmController {
     getUsage() {
         return this.llmService.getUsageStats();
     }
-    analyzeFeedback(resumeId, provider) {
-        return this.llmService.analyzeFeedback(resumeId, provider);
+    analyzeFeedback(resumeId, dto) {
+        return this.llmService.analyzeFeedback(resumeId, dto.provider);
     }
-    analyzeJobMatch(resumeId, jobDescription, provider) {
-        return this.llmService.analyzeJobMatch(resumeId, jobDescription, provider);
+    analyzeJobMatch(resumeId, dto) {
+        return this.llmService.analyzeJobMatch(resumeId, dto.jobDescription, dto.provider);
     }
-    generateInterview(resumeId, jobRole, provider) {
-        return this.llmService.generateInterviewQuestions(resumeId, jobRole, provider);
+    generateInterview(resumeId, dto) {
+        return this.llmService.generateInterviewQuestions(resumeId, dto.jobRole, dto.provider);
     }
-    inlineAssist(text, type, provider) {
-        return this.llmService.inlineAssist(text, type, provider);
+    inlineAssist(dto) {
+        return this.llmService.inlineAssist(dto.text, dto.type, dto.provider);
     }
 };
 exports.LlmController = LlmController;
@@ -151,9 +152,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'AI 이력서 피드백 (점수 + 강점 + 개선점)' }),
     (0, throttler_1.Throttle)({ default: { limit: 3, ttl: 60000 } }),
     __param(0, (0, common_1.Param)('resumeId')),
-    __param(1, (0, common_1.Body)('provider')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, analysis_dto_1.FeedbackDto]),
     __metadata("design:returntype", void 0)
 ], LlmController.prototype, "analyzeFeedback", null);
 __decorate([
@@ -161,10 +162,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'AI JD 매칭 분석' }),
     (0, throttler_1.Throttle)({ default: { limit: 3, ttl: 60000 } }),
     __param(0, (0, common_1.Param)('resumeId')),
-    __param(1, (0, common_1.Body)('jobDescription')),
-    __param(2, (0, common_1.Body)('provider')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:paramtypes", [String, analysis_dto_1.JobMatchDto]),
     __metadata("design:returntype", void 0)
 ], LlmController.prototype, "analyzeJobMatch", null);
 __decorate([
@@ -172,21 +172,18 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'AI 면접 질문 생성' }),
     (0, throttler_1.Throttle)({ default: { limit: 3, ttl: 60000 } }),
     __param(0, (0, common_1.Param)('resumeId')),
-    __param(1, (0, common_1.Body)('jobRole')),
-    __param(2, (0, common_1.Body)('provider')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:paramtypes", [String, analysis_dto_1.InterviewDto]),
     __metadata("design:returntype", void 0)
 ], LlmController.prototype, "generateInterview", null);
 __decorate([
     (0, common_1.Post)('inline-assist'),
     (0, swagger_1.ApiOperation)({ summary: 'AI 인라인 문장 개선' }),
     (0, throttler_1.Throttle)({ default: { limit: 10, ttl: 60000 } }),
-    __param(0, (0, common_1.Body)('text')),
-    __param(1, (0, common_1.Body)('type')),
-    __param(2, (0, common_1.Body)('provider')),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:paramtypes", [analysis_dto_1.InlineAssistDto]),
     __metadata("design:returntype", void 0)
 ], LlmController.prototype, "inlineAssist", null);
 exports.LlmController = LlmController = __decorate([

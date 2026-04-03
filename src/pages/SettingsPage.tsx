@@ -8,18 +8,16 @@ import ProfileBadges from '@/components/ProfileBadges';
 import { getPlan } from '@/lib/plans';
 import { getTheme, setTheme } from '@/lib/theme';
 import { API_URL } from '@/lib/config';
+import { fetchDashboard, fetchUsage, changePassword as apiChangePassword, deleteAccount as apiDeleteAccount, updateProfile as apiUpdateProfile } from '@/lib/api';
 
 
 function RecentActivityList() {
   const [activities, setActivities] = useState<any[]>([]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getToken();
     if (!token) return;
-    fetch(`${API_URL}/api/resumes/dashboard/analytics`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(r => r.ok ? r.json() : null)
+    fetchDashboard()
       .then(data => {
         if (!data) return;
         const acts: any[] = [];

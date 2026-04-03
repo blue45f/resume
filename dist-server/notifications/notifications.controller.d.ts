@@ -3,20 +3,20 @@ export declare class NotificationsController {
     private readonly service;
     constructor(service: NotificationsService);
     getAll(req: any): never[] | Promise<{
-        id: string;
-        userId: string;
         type: string;
-        createdAt: Date;
         link: string | null;
+        id: string;
+        createdAt: Date;
+        userId: string;
         message: string;
         read: boolean;
     }[]>;
     getUnread(req: any): never[] | Promise<{
-        id: string;
-        userId: string;
         type: string;
-        createdAt: Date;
         link: string | null;
+        id: string;
+        createdAt: Date;
+        userId: string;
         message: string;
         read: boolean;
     }[]>;

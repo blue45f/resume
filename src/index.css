@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
 @keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@media (min-width: 640px) {
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
 }
 
 /* Tiptap Editor */
@@ -157,8 +164,15 @@ body {
 
 /* Toast exit animation */
 @keyframes slideOut {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(100%); opacity: 0; }
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(100%); opacity: 0; }
+}
+
+@media (min-width: 640px) {
+  @keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
 }
 
 /* Scroll progress bar */
@@ -303,6 +317,29 @@ html {
   .dark .bg-white { background-color: white; }
   .dark .text-slate-900 { color: #0f172a; }
 }
+
+/* Resume preview: always render in light mode regardless of dark mode */
+.dark .resume-preview,
+.dark .resume-preview * {
+  --tw-bg-opacity: 1;
+}
+.dark .resume-preview {
+  background-color: white !important;
+  color: #0f172a !important;
+}
+.dark .resume-preview .bg-white { background-color: white !important; }
+.dark .resume-preview .bg-slate-50 { background-color: #f8fafc !important; }
+.dark .resume-preview .bg-slate-100 { background-color: #f1f5f9 !important; }
+.dark .resume-preview .bg-slate-200 { background-color: #e2e8f0 !important; }
+.dark .resume-preview .text-slate-900 { color: #0f172a !important; }
+.dark .resume-preview .text-slate-800 { color: #1e293b !important; }
+.dark .resume-preview .text-slate-700 { color: #334155 !important; }
+.dark .resume-preview .text-slate-600 { color: #475569 !important; }
+.dark .resume-preview .text-slate-500 { color: #64748b !important; }
+.dark .resume-preview .text-slate-400 { color: #94a3b8 !important; }
+.dark .resume-preview .border-slate-200 { border-color: #e2e8f0 !important; }
+.dark .resume-preview .border-slate-100 { border-color: #f1f5f9 !important; }
+.dark .resume-preview .border-slate-300 { border-color: #cbd5e1 !important; }
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {

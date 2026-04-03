@@ -13,6 +13,7 @@ import { Throttle } from '@nestjs/throttler';
 import { Observable } from 'rxjs';
 import { LlmService } from './llm.service';
 import { TransformResumeDto } from './dto/transform-resume.dto';
+import { FeedbackDto, JobMatchDto, InterviewDto, InlineAssistDto } from './dto/analysis.dto';
 import { UsageService } from '../health/usage.service';
 
 @ApiTags('llm')
@@ -117,9 +118,9 @@ export class LlmController {
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   analyzeFeedback(
     @Param('resumeId') resumeId: string,
-    @Body('provider') provider?: string,
+    @Body() dto: FeedbackDto,
   ) {
-    return this.llmService.analyzeFeedback(resumeId, provider);
+    return this.llmService.analyzeFeedback(resumeId, dto.provider);
   }
 
   @Post('job-match')
@@ -127,10 +128,9 @@ export class LlmController {
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   analyzeJobMatch(
     @Param('resumeId') resumeId: string,
-    @Body('jobDescription') jobDescription: string,
-    @Body('provider') provider?: string,
+    @Body() dto: JobMatchDto,
   ) {
-    return this.llmService.analyzeJobMatch(resumeId, jobDescription, provider);
+    return this.llmService.analyzeJobMatch(resumeId, dto.jobDescription, dto.provider);
   }
 
   @Post('interview')
@@ -138,20 +138,17 @@ export class LlmController {
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   generateInterview(
     @Param('resumeId') resumeId: string,
-    @Body('jobRole') jobRole?: string,
-    @Body('provider') provider?: string,
+    @Body() dto: InterviewDto,
   ) {
-    return this.llmService.generateInterviewQuestions(resumeId, jobRole, provider);
+    return this.llmService.generateInterviewQuestions(resumeId, dto.jobRole, dto.provider);
   }
 
   @Post('inline-assist')
   @ApiOperation({ summary: 'AI 인라인 문장 개선' })
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   inlineAssist(
-    @Body('text') text: string,
-    @Body('type') type: string,
-    @Body('provider') provider?: string,
+    @Body() dto: InlineAssistDto,
   ) {
-    return this.llmService.inlineAssist(text, type, provider);
+    return this.llmService.inlineAssist(dto.text, dto.type, dto.provider);
   }
 }

@@ -33,9 +33,9 @@ export declare class SocialService {
         message: string;
     }): Promise<{
         id: string;
+        createdAt: Date;
         company: string;
         position: string;
-        createdAt: Date;
         resumeId: string | null;
         message: string;
         read: boolean;
@@ -50,9 +50,9 @@ export declare class SocialService {
         };
     } & {
         id: string;
+        createdAt: Date;
         company: string;
         position: string;
-        createdAt: Date;
         resumeId: string | null;
         message: string;
         read: boolean;

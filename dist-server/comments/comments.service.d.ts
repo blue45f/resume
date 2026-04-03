@@ -6,18 +6,18 @@ export declare class CommentsService {
     constructor(prisma: PrismaService, notificationsService: NotificationsService);
     findByResume(resumeId: string): Promise<{
         id: string;
-        userId: string | null;
         createdAt: Date;
-        resumeId: string;
+        userId: string | null;
         content: string;
+        resumeId: string;
         authorName: string;
     }[]>;
     create(resumeId: string, content: string, userId?: string, authorName?: string): Promise<{
         id: string;
-        userId: string | null;
         createdAt: Date;
-        resumeId: string;
+        userId: string | null;
         content: string;
+        resumeId: string;
         authorName: string;
     }>;
     remove(id: string, userId?: string, role?: string): Promise<{

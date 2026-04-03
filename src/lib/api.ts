@@ -350,3 +350,34 @@ export const markNotificationRead = (id: string) =>
 // Cover Letter Create
 export const createCoverLetter = (data: any) =>
   request<any>(`${BASE}/cover-letters`, { method: 'POST', body: JSON.stringify(data) });
+
+// Health / Usage
+export const fetchUsage = () => request<{ feature: string; count: number }[]>(`${BASE}/health/usage`);
+
+// Auth helpers (use request() to avoid raw fetch duplication)
+export const changePassword = (currentPassword: string, newPassword: string) =>
+  request<{ success: boolean; message: string }>(`${BASE}/auth/change-password`, {
+    method: 'POST', body: JSON.stringify({ currentPassword, newPassword }),
+  });
+export const deleteAccount = () =>
+  request<{ success: boolean }>(`${BASE}/auth/account`, { method: 'DELETE' });
+export const updateProfile = (data: { userType?: string; name?: string; companyName?: string; companyTitle?: string }) =>
+  request<any>(`${BASE}/auth/profile`, { method: 'PATCH', body: JSON.stringify(data) });
+export const fetchProfile = () => request<any>(`${BASE}/auth/me`);
+export const fetchLinkedAccounts = () => request<any>(`${BASE}/auth/linked-accounts`);
+export const fetchAdminUsers = (search?: string) => {
+  const qs = search ? `?search=${encodeURIComponent(search)}` : '';
+  return request<any[]>(`${BASE}/auth/admin/users${qs}`);
+};
+export const setUserRole = (userId: string, role: string) =>
+  request<any>(`${BASE}/auth/admin/users/${userId}/role`, {
+    method: 'POST', body: JSON.stringify({ role }),
+  });
+
+// Scout
+export const markScoutRead = (id: string) =>
+  request<any>(`${BASE}/social/scouts/${id}/read`, { method: 'POST' });
+
+// Unread message count
+export const fetchUnreadMessageCount = () =>
+  request<{ count: number }>(`${BASE}/social/messages/unread/count`);

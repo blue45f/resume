@@ -4,15 +4,15 @@ export declare class ApplicationsController {
     private readonly service;
     constructor(service: ApplicationsService);
     findAll(req: any): Promise<{
+        url: string | null;
         id: string;
         createdAt: Date;
         userId: string | null;
+        company: string;
+        position: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        company: string;
-        position: string;
-        url: string | null;
         status: string;
         appliedDate: string | null;
         notes: string | null;
@@ -24,15 +24,15 @@ export declare class ApplicationsController {
         byStatus: Record<string, number>;
     }>;
     create(dto: CreateApplicationDto, req: any): Promise<{
+        url: string | null;
         id: string;
         createdAt: Date;
         userId: string | null;
+        company: string;
+        position: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        company: string;
-        position: string;
-        url: string | null;
         status: string;
         appliedDate: string | null;
         notes: string | null;
@@ -40,15 +40,15 @@ export declare class ApplicationsController {
         location: string | null;
     }>;
     update(id: string, dto: UpdateApplicationDto, req: any): Promise<{
+        url: string | null;
         id: string;
         createdAt: Date;
         userId: string | null;
+        company: string;
+        position: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        company: string;
-        position: string;
-        url: string | null;
         status: string;
         appliedDate: string | null;
         notes: string | null;
@@ -59,20 +59,20 @@ export declare class ApplicationsController {
         success: boolean;
     }>;
     getComments(id: string): Promise<{
-        content: string;
         id: string;
         createdAt: Date;
         userId: string | null;
+        content: string;
         applicationId: string;
         authorName: string;
     }[]>;
     addComment(id: string, body: {
         content: string;
     }, req: any): Promise<{
-        content: string;
         id: string;
         createdAt: Date;
         userId: string | null;
+        content: string;
         applicationId: string;
         authorName: string;
     }>;

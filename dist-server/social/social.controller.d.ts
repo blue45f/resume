@@ -14,16 +14,16 @@ export declare class SocialController {
     };
     getFollowers(req: any): never[] | Promise<{
         followedAt: Date;
-        name: string;
         id: string;
         email: string;
+        name: string;
         avatar: string;
     }[]>;
     getFollowing(req: any): never[] | Promise<{
         followedAt: Date;
-        name: string;
         id: string;
         email: string;
+        name: string;
         avatar: string;
     }[]>;
     sendScout(body: {
@@ -35,32 +35,32 @@ export declare class SocialController {
     }, req: any): Promise<{
         id: string;
         createdAt: Date;
-        resumeId: string | null;
         company: string;
         position: string;
         message: string;
         read: boolean;
         senderId: string;
         receiverId: string;
+        resumeId: string | null;
     }> | {
         error: string;
     };
     getScouts(req: any): never[] | Promise<({
         sender: {
-            name: string;
             id: string;
             email: string;
+            name: string;
         };
     } & {
         id: string;
         createdAt: Date;
-        resumeId: string | null;
         company: string;
         position: string;
         message: string;
         read: boolean;
         senderId: string;
         receiverId: string;
+        resumeId: string | null;
     })[]>;
     markRead(id: string, req: any): Promise<{
         success: boolean;
@@ -69,9 +69,9 @@ export declare class SocialController {
     };
     getConversations(req: any): never[] | Promise<{
         partner: {
-            name: string;
             id: string;
             email: string;
+            name: string;
             avatar: string;
         };
         lastMessage: {
@@ -85,20 +85,20 @@ export declare class SocialController {
         count: number;
     }>;
     getMessages(partnerId: string, req: any): never[] | Promise<{
-        content: string;
         id: string;
         createdAt: Date;
         read: boolean;
         senderId: string;
         receiverId: string;
+        content: string;
     }[]>;
     sendMessage(receiverId: string, content: string, req: any): Promise<{
-        content: string;
         id: string;
         createdAt: Date;
         read: boolean;
         senderId: string;
         receiverId: string;
+        content: string;
     }> | {
         error: string;
     };

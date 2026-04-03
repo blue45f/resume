@@ -27,65 +27,65 @@ export declare class ShareController {
     }>;
     getShared(token: string, password?: string): Promise<{
         personalInfo: {
-            name: string;
             summary: string;
-            github: string;
-            links: string;
             id: string;
             email: string;
-            resumeId: string;
+            name: string;
+            github: string;
+            links: string;
             phone: string;
             address: string;
             website: string;
             photo: string;
             birthYear: string;
             military: string;
+            resumeId: string;
         } | null;
         experiences: {
             description: string;
+            achievements: string;
             id: string;
-            resumeId: string;
-            sortOrder: number;
             company: string;
             position: string;
             department: string;
             startDate: string;
             endDate: string;
             current: boolean;
-            achievements: string;
             techStack: string;
+            sortOrder: number;
+            resumeId: string;
         }[];
         educations: {
             description: string;
             id: string;
-            resumeId: string;
-            sortOrder: number;
             startDate: string;
             endDate: string;
+            sortOrder: number;
             school: string;
             degree: string;
             field: string;
             gpa: string;
+            resumeId: string;
         }[];
         skills: {
             id: string;
-            resumeId: string;
+            sortOrder: number;
             category: string;
             items: string;
-            sortOrder: number;
+            resumeId: string;
         }[];
         projects: {
-            name: string;
             description: string;
-            id: string;
-            role: string;
             link: string;
-            resumeId: string;
-            sortOrder: number;
+            id: string;
+            name: string;
+            role: string;
             company: string;
             startDate: string;
             endDate: string;
             techStack: string;
+            sortOrder: number;
+            resumeId: string;
         }[];
     } & {
         id: string;

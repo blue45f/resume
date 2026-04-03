@@ -433,7 +433,7 @@ let AuthService = AuthService_1 = class AuthService {
                 throw new common_1.UnauthorizedException('현재 비밀번호가 올바르지 않습니다');
         }
         const bcrypt = await Promise.resolve().then(() => __importStar(require('bcryptjs')));
-        const passwordHash = await bcrypt.hash(newPassword, 10);
+        const passwordHash = await bcrypt.hash(newPassword, 12);
         await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
     }
     async updateProfile(userId, data) {

@@ -11,7 +11,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 29개 데이터 모델 | 35개 페이지 | 73개 컴포넌트 | 15개 이력서 테마 | 718 테스트 (41 suites) | 멀티 LLM 지원
+> 29개 데이터 모델 | 36개 페이지 | 75개 컴포넌트 | 15개 이력서 테마 | 772 테스트 (41 suites) | 멀티 LLM 지원
 
 ---
 
@@ -21,7 +21,7 @@
                         이력서공방 아키텍처
   ┌──────────────────────────────────────────────────────┐
   │                    Frontend (React 19)               │
-  │  35 Pages / 73 Components / Tiptap Editor / MSW      │
+  │  36 Pages / 75 Components / Tiptap Editor / MSW      │
   │  Vite 8 + TailwindCSS 4 + React Router 7             │
   └──────────────┬───────────────────────────────────────┘
                  │ REST API (JSON)
@@ -96,6 +96,12 @@
 - 면접 후기 통합
 - 채용 트렌드 / 급여 비교
 - 기업 정보 카드
+
+### 기타
+
+- **피드백 게시판** - 사용자 의견 수집 및 개선 요청 관리 (FeedbackPage)
+- **광고 배너** - 페이지 내 광고 배너 컴포넌트 (AdBanner)
+- **숏 링크** - 이력서 공유용 단축 URL 생성 (`/r/:code`), 짧은 링크로 빠르게 공유
 
 ### 관리자
 
@@ -223,8 +229,8 @@ pnpm dev:server   # NestJS 백엔드 (포트 3000)
 ```
 resume/
 ├── src/                    # 프론트엔드 (React)
-│   ├── components/         # 공통 UI 컴포넌트 (73개)
-│   ├── pages/              # 페이지 컴포넌트 (35개)
+│   ├── components/         # 공통 UI 컴포넌트 (75개)
+│   ├── pages/              # 페이지 컴포넌트 (36개)
 │   ├── lib/                # 유틸리티, API 클라이언트, 테마, 플랜
 │   ├── types/              # TypeScript 타입 정의
 │   └── mocks/              # MSW 핸들러 (개발 모드)
@@ -351,7 +357,7 @@ vercel env add VITE_API_URL
 ## 테스트
 
 ```bash
-# 단위 테스트 (718 tests, 41 suites)
+# 단위 테스트 (772 tests, 41 suites)
 pnpm test:unit
 
 # 커버리지 포함

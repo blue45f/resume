@@ -3,14 +3,14 @@ export declare class TemplatesService {
     private prisma;
     constructor(prisma: PrismaService);
     findAll(): Promise<{
-        id: string;
-        userId: string | null;
         description: string;
-        createdAt: Date;
-        updatedAt: Date;
+        id: string;
         name: string;
-        visibility: string;
+        createdAt: Date;
+        userId: string | null;
         category: string;
+        visibility: string;
+        updatedAt: Date;
         prompt: string;
         layout: string;
         usageCount: number;
@@ -18,14 +18,14 @@ export declare class TemplatesService {
         isDefault: boolean;
     }[]>;
     findOne(id: string): Promise<{
-        id: string;
-        userId: string | null;
         description: string;
-        createdAt: Date;
-        updatedAt: Date;
+        id: string;
         name: string;
-        visibility: string;
+        createdAt: Date;
+        userId: string | null;
         category: string;
+        visibility: string;
+        updatedAt: Date;
         prompt: string;
         layout: string;
         usageCount: number;
@@ -40,14 +40,14 @@ export declare class TemplatesService {
         layout?: string;
         isDefault?: boolean;
     }, userId?: string): Promise<{
-        id: string;
-        userId: string | null;
         description: string;
-        createdAt: Date;
-        updatedAt: Date;
+        id: string;
         name: string;
-        visibility: string;
+        createdAt: Date;
+        userId: string | null;
         category: string;
+        visibility: string;
+        updatedAt: Date;
         prompt: string;
         layout: string;
         usageCount: number;
@@ -63,14 +63,14 @@ export declare class TemplatesService {
         visibility?: string;
         isDefault?: boolean;
     }, userId?: string, role?: string): Promise<{
-        id: string;
-        userId: string | null;
         description: string;
-        createdAt: Date;
-        updatedAt: Date;
+        id: string;
         name: string;
-        visibility: string;
+        createdAt: Date;
+        userId: string | null;
         category: string;
+        visibility: string;
+        updatedAt: Date;
         prompt: string;
         layout: string;
         usageCount: number;
@@ -81,14 +81,14 @@ export declare class TemplatesService {
         success: boolean;
     }>;
     findPublic(category?: string): Promise<{
-        id: string;
-        userId: string | null;
         description: string;
-        createdAt: Date;
-        updatedAt: Date;
+        id: string;
         name: string;
-        visibility: string;
+        createdAt: Date;
+        userId: string | null;
         category: string;
+        visibility: string;
+        updatedAt: Date;
         prompt: string;
         layout: string;
         usageCount: number;

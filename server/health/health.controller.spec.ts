@@ -193,4 +193,158 @@ describe('HealthController', () => {
       ).rejects.toThrow(UnauthorizedException);
     });
   });
+
+  // ──────────────────────────────────────────────────
+  // /health 반환값 상세 검증
+  // ──────────────────────────────────────────────────
+  describe('ping 반환값 상세', () => {
+    it('status 필드가 정확히 "ok" 문자열', () => {
+      const result = controller.ping();
+      expect(result.status).toStrictEqual('ok');
+    });
+
+    it('version이 semver 형식 (x.y.z)', () => {
+      const result = controller.ping();
+      expect(result.version).toMatch(/^\d+\.\d+\.\d+/);
+    });
+
+    it('반환 객체에 불필요한 필드 없음', () => {
+      const result = controller.ping();
+      const keys = Object.keys(result);
+      expect(keys).toContain('status');
+      expect(keys).toContain('timestamp');
+      expect(keys).toContain('version');
+      expect(keys).toHaveLength(3);
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // /health/stats 공개 데이터만 반환 확인
+  // ──────────────────────────────────────────────────
+  describe('publicStats 공개 데이터만 반환', () => {
+    beforeEach(() => {
+      mockPrisma.user.count.mockResolvedValue(50);
+      mockPrisma.resume.count.mockResolvedValue(120);
+      mockPrisma.resume.aggregate.mockResolvedValue({ _sum: { viewCount: 3000 } });
+      mockPrisma.template.count.mockResolvedValue(26);
+    });
+
+    it('민감 정보(이메일, 비밀번호 등)를 포함하지 않음', async () => {
+      const result = await controller.publicStats();
+      const json = JSON.stringify(result);
+      expect(json).not.toContain('email');
+      expect(json).not.toContain('password');
+      expect(json).not.toContain('token');
+      expect(json).not.toContain('secret');
+    });
+
+    it('반환 구조가 정확히 users, resumes, activity, content', async () => {
+      const result = await controller.publicStats();
+      expect(Object.keys(result)).toEqual(['users', 'resumes', 'activity', 'content']);
+    });
+
+    it('각 값이 숫자형', async () => {
+      const result = await controller.publicStats();
+      expect(typeof result.users.total).toBe('number');
+      expect(typeof result.resumes.total).toBe('number');
+      expect(typeof result.activity.totalViews).toBe('number');
+      expect(typeof result.content.templates).toBe('number');
+    });
+
+    it('음수가 아닌 값 반환', async () => {
+      const result = await controller.publicStats();
+      expect(result.users.total).toBeGreaterThanOrEqual(0);
+      expect(result.resumes.total).toBeGreaterThanOrEqual(0);
+      expect(result.activity.totalViews).toBeGreaterThanOrEqual(0);
+      expect(result.content.templates).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // /health/admin/stats 인증 요구 상세
+  // ──────────────────────────────────────────────────
+  describe('adminStats 인증 요구 상세', () => {
+    it('req 객체에 user 프로퍼티 자체가 없음 → UnauthorizedException', async () => {
+      await expect(
+        controller.adminStats({}),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('user.role이 undefined → ForbiddenException', async () => {
+      await expect(
+        controller.adminStats({ user: { id: 'u1', role: undefined } }),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('user.role이 빈 문자열 → ForbiddenException', async () => {
+      await expect(
+        controller.adminStats({ user: { id: 'u1', role: '' } }),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('admin → 서비스 호출 1번만 발생', async () => {
+      mockStatsService.getStats.mockResolvedValue({ totalUsers: 10 });
+      await controller.adminStats({ user: { id: 'a1', role: 'admin' } });
+      expect(mockStatsService.getStats).toHaveBeenCalledTimes(1);
+    });
+
+    it('서비스 에러 → 그대로 전파됨', async () => {
+      mockStatsService.getStats.mockRejectedValue(new Error('DB error'));
+      await expect(
+        controller.adminStats({ user: { id: 'a1', role: 'admin' } }),
+      ).rejects.toThrow('DB error');
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // /health/detailed 추가 검증
+  // ──────────────────────────────────────────────────
+  describe('check 추가 검증', () => {
+    it('환경 정보 포함', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([{ '?column?': 1 }]);
+      mockPrisma.resume.count.mockResolvedValue(0);
+      mockPrisma.user.count.mockResolvedValue(0);
+      mockConfig.get.mockReturnValue(undefined);
+
+      const result = await controller.check();
+      expect(result.environment).toBeDefined();
+      expect(result.uptime).toBeGreaterThanOrEqual(0);
+    });
+
+    it('storage 필드가 cloudinary 또는 database', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([{ '?column?': 1 }]);
+      mockPrisma.resume.count.mockResolvedValue(0);
+      mockPrisma.user.count.mockResolvedValue(0);
+      mockConfig.get.mockReturnValue(undefined);
+
+      const result = await controller.check();
+      expect(['cloudinary', 'database']).toContain(result.storage);
+    });
+
+    it('메모리 사용량이 MB 단위 양수', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([{ '?column?': 1 }]);
+      mockPrisma.resume.count.mockResolvedValue(0);
+      mockPrisma.user.count.mockResolvedValue(0);
+      mockConfig.get.mockReturnValue(undefined);
+
+      const result = await controller.check();
+      expect(result.memory.rss).toBeGreaterThan(0);
+      expect(result.memory.heapUsed).toBeGreaterThan(0);
+      // MB 단위이므로 정수
+      expect(Number.isInteger(result.memory.rss)).toBe(true);
+      expect(Number.isInteger(result.memory.heapUsed)).toBe(true);
+    });
+
+    it('프로바이더 미설정 시 모두 false', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([{ '?column?': 1 }]);
+      mockPrisma.resume.count.mockResolvedValue(0);
+      mockPrisma.user.count.mockResolvedValue(0);
+      mockConfig.get.mockReturnValue(undefined);
+
+      const result = await controller.check();
+      expect(result.providers.google).toBe(false);
+      expect(result.providers.github).toBe(false);
+      expect(result.providers.kakao).toBe(false);
+    });
+  });
 });

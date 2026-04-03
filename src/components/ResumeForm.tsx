@@ -10,6 +10,7 @@ import VoiceInput from '@/components/VoiceInput';
 import AiWritingAssist from '@/components/AiWritingAssist';
 import { SkillSuggestDropdown, CompanyRoleSuggest, InlineContentTip } from '@/components/SkillSuggest';
 import AiCoachPanel from '@/components/AiCoachPanel';
+import AiSummaryGenerator from '@/components/AiSummaryGenerator';
 
 type SaveStatus = 'saved' | 'saving' | 'dirty' | 'error' | 'idle';
 
@@ -468,6 +469,11 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
                 {(data.personalInfo.summary || '').replace(/<[^>]*>/g, '').length}자
               </p>
               <InlineContentTip text={data.personalInfo.summary || ''} section="summary" />
+              <AiSummaryGenerator
+                resumeId={resumeId}
+                resume={data}
+                onAccept={(text) => updatePersonalInfo('summary', text)}
+              />
             </div>
           </div>
         </CollapsibleSection>

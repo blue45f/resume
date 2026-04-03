@@ -4,15 +4,15 @@ export declare class VersionsService {
     constructor(prisma: PrismaService);
     findAll(resumeId: string): Promise<{
         createdAt: string;
-        id: string;
         description: string;
+        id: string;
         versionNumber: number;
     }[]>;
     findOne(resumeId: string, versionId: string): Promise<{
         snapshot: any;
         createdAt: string;
-        id: string;
         description: string;
+        id: string;
         resumeId: string;
         versionNumber: number;
     }>;

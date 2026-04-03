@@ -9,12 +9,53 @@ interface Props {
   themeId?: string;
 }
 
-function formatDate(date: string): string {
+const MONTH_NAMES_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const ENGLISH_THEMES = new Set(['executive', 'corporate', 'portfolio']);
+
+function formatDate(date: string, locale: 'ko' | 'en' = 'ko'): string {
   if (!date) return '';
   const parts = date.split('-');
-  if (parts.length === 3) return `${parts[0]}.${parts[1]}`;
-  if (parts.length === 2) return `${parts[0]}.${parts[1]}`;
-  return parts[0];
+  const year = parts[0];
+  const month = parts.length >= 2 ? parts[1] : '';
+
+  if (locale === 'en') {
+    if (month) {
+      const monthIdx = parseInt(month, 10) - 1;
+      const monthName = MONTH_NAMES_EN[monthIdx] || month;
+      return `${monthName} ${year}`;
+    }
+    return year;
+  }
+
+  // Korean format: 2024.03
+  if (month) return `${year}.${month}`;
+  return year;
+}
+
+/** Format a date range with proper locale-aware "현재"/"Present" handling */
+function formatDateRange(
+  startDate: string,
+  endDate: string,
+  current: boolean | undefined,
+  locale: 'ko' | 'en' = 'ko',
+): string {
+  const start = formatDate(startDate, locale);
+  if (!start) return '';
+
+  if (current) {
+    const presentLabel = locale === 'en' ? 'Present' : '현재';
+    return `${start} — ${presentLabel}`;
+  }
+
+  if (endDate) {
+    return `${start} — ${formatDate(endDate, locale)}`;
+  }
+
+  return start;
+}
+
+function getDateLocale(themeId: string): 'ko' | 'en' {
+  return ENGLISH_THEMES.has(themeId) ? 'en' : 'ko';
 }
 
 /* ------------------------------------------------------------------ */
@@ -329,7 +370,7 @@ function ExperienceBlock({ exp, themeId }: { exp: Resume['experiences'][0]; them
           {exp.department && <span className="text-slate-400 ml-1 text-xs">| {exp.department}</span>}
         </div>
         <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
-          {formatDate(exp.startDate)}{(exp.endDate || exp.current) && ` — ${exp.current ? '현재' : formatDate(exp.endDate)}`}
+          {formatDateRange(exp.startDate, exp.endDate, exp.current, getDateLocale(themeId))}
         </span>
       </div>
       {exp.description && <SafeHtml html={exp.description} className="text-sm text-slate-600 mt-1.5 leading-relaxed break-words" />}
@@ -352,17 +393,18 @@ function ExperienceBlock({ exp, themeId }: { exp: Resume['experiences'][0]; them
 /* ------------------------------------------------------------------ */
 /*  Education block (reusable)                                         */
 /* ------------------------------------------------------------------ */
-function EducationBlock({ edu }: { edu: Resume['educations'][0] }) {
+function EducationBlock({ edu, themeId }: { edu: Resume['educations'][0]; themeId: string }) {
+  const locale = getDateLocale(themeId);
   return (
     <div>
       <div className="flex flex-wrap justify-between items-baseline gap-2">
         <div>
           <span className="font-semibold text-slate-900">{edu.school}</span>
           {edu.degree && <span className="text-slate-600 ml-2 text-sm">{edu.field && `${edu.field} `}{edu.degree}</span>}
-          {edu.gpa && <span className="text-slate-400 ml-2 text-xs">학점 {edu.gpa}</span>}
+          {edu.gpa && <span className="text-slate-400 ml-2 text-xs">{locale === 'en' ? 'GPA' : '학점'} {edu.gpa}</span>}
         </div>
         <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
-          {formatDate(edu.startDate)}{edu.endDate && ` — ${formatDate(edu.endDate)}`}
+          {formatDateRange(edu.startDate, edu.endDate, undefined, locale)}
         </span>
       </div>
       {edu.description && <SafeHtml html={edu.description} className="text-sm text-slate-600 mt-1" />}
@@ -561,7 +603,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
   /* ---- MODERN: Sidebar layout ---- */
   if (theme.id === 'modern') {
     return (
-      <div ref={ref} className="bg-white max-w-[210mm] mx-auto shadow-lg print:shadow-none overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
+      <div ref={ref} className="resume-preview bg-white max-w-[210mm] mx-auto shadow-lg print:shadow-none overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
         {/* Full-width header */}
         <header className={theme.headerStyle}>
           {headerContent}
@@ -667,7 +709,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
   /* ---- MINIMAL: Extra-wide margins, lots of white space ---- */
   if (theme.id === 'minimal') {
     return (
-      <div ref={ref} className="bg-white px-12 sm:px-20 py-12 sm:py-16 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
+      <div ref={ref} className="resume-preview bg-white px-12 sm:px-20 py-12 sm:py-16 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
         <header className={theme.headerStyle}>
           <h1 className="text-3xl sm:text-4xl font-light tracking-tight text-slate-800">{pi.name || '이름'}</h1>
           <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 tracking-wide">
@@ -733,7 +775,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
   /* ---- CREATIVE: Rounded cards for each section ---- */
   if (theme.id === 'creative') {
     return (
-      <div ref={ref} className="bg-gradient-to-b from-slate-50 to-white max-w-[210mm] mx-auto shadow-lg print:shadow-none overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
+      <div ref={ref} className="resume-preview bg-gradient-to-b from-slate-50 to-white max-w-[210mm] mx-auto shadow-lg print:shadow-none overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
         <header className={theme.headerStyle}>
           <div className={hasPhoto ? 'flex gap-5 items-center' : ''}>
             {hasPhoto && (
@@ -847,7 +889,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
   /* ---- TECH: Terminal-style layout ---- */
   if (theme.id === 'tech') {
     return (
-      <div ref={ref} className="bg-[#f6f8fa] max-w-[210mm] mx-auto shadow-lg print:shadow-none overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
+      <div ref={ref} className="resume-preview bg-[#f6f8fa] max-w-[210mm] mx-auto shadow-lg print:shadow-none overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
         <header className={theme.headerStyle}>
           <div className="flex items-center gap-2 mb-3 opacity-60">
             <span className="w-3 h-3 rounded-full bg-red-500 inline-block" />
@@ -923,7 +965,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
   /* ---- ELEGANT: Centered headers, ornamental dividers ---- */
   if (theme.id === 'elegant') {
     return (
-      <div ref={ref} className="bg-white max-w-[210mm] mx-auto shadow-lg print:shadow-none overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
+      <div ref={ref} className="resume-preview bg-white max-w-[210mm] mx-auto shadow-lg print:shadow-none overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
         <header className={theme.headerStyle}>
           {hasPhoto && (
             <div className="flex justify-center mb-4">
@@ -983,7 +1025,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
   /* ---- NEWSPAPER: Two-column layout ---- */
   if (theme.id === 'newspaper') {
     return (
-      <div ref={ref} className="bg-white max-w-[210mm] mx-auto shadow-lg print:shadow-none overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
+      <div ref={ref} className="resume-preview bg-white max-w-[210mm] mx-auto shadow-lg print:shadow-none overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
         <header className={theme.headerStyle}>
           <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight" style={{ fontFamily: "'Georgia', 'Noto Serif KR', serif" }}>
             {pi.name || '이름'}
@@ -1112,7 +1154,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
   /* ---- EXECUTIVE: Large serif headings, generous spacing ---- */
   if (theme.id === 'executive') {
     return (
-      <div ref={ref} className="bg-white px-8 sm:px-14 py-10 sm:py-14 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
+      <div ref={ref} className="resume-preview bg-white px-8 sm:px-14 py-10 sm:py-14 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
         <header className={theme.headerStyle}>
           <h1 className="text-4xl sm:text-5xl font-light text-slate-900 tracking-wide" style={{ fontFamily: "'Georgia', 'Noto Serif KR', serif" }}>
             {pi.name || '이름'}
@@ -1167,7 +1209,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
   /* ---- PORTFOLIO: Large visual header, grid skills, project cards ---- */
   if (theme.id === 'portfolio') {
     return (
-      <div ref={ref} className="bg-white max-w-[210mm] mx-auto shadow-lg print:shadow-none overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
+      <div ref={ref} className="resume-preview bg-white max-w-[210mm] mx-auto shadow-lg print:shadow-none overflow-hidden" style={{ fontFamily: theme.fontFamily }}>
         <header className={theme.headerStyle}>
           <div className="text-center">
             {hasPhoto && (
@@ -1240,7 +1282,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
 
   /* ---- DEFAULT: Classic / Professional / all other themes ---- */
   return (
-    <div ref={ref} className={`bg-white p-6 sm:p-10 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 ${theme.bodyStyle} overflow-hidden`} style={{ fontFamily: theme.fontFamily }}>
+    <div ref={ref} className={`resume-preview bg-white p-6 sm:p-10 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 ${theme.bodyStyle} overflow-hidden`} style={{ fontFamily: theme.fontFamily }}>
       <header className={theme.headerStyle}>
         {headerContent}
       </header>

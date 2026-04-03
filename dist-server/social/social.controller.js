@@ -92,6 +92,7 @@ __decorate([
 ], SocialController.prototype, "follow", null);
 __decorate([
     (0, common_1.Delete)('follow/:userId'),
+    (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),
     (0, swagger_1.ApiOperation)({ summary: '언팔로우' }),
     __param(0, (0, common_1.Param)('userId')),
     __param(1, (0, common_1.Req)()),
@@ -101,6 +102,7 @@ __decorate([
 ], SocialController.prototype, "unfollow", null);
 __decorate([
     (0, common_1.Get)('followers'),
+    (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),
     (0, swagger_1.ApiOperation)({ summary: '내 팔로워 목록' }),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -109,6 +111,7 @@ __decorate([
 ], SocialController.prototype, "getFollowers", null);
 __decorate([
     (0, common_1.Get)('following'),
+    (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),
     (0, swagger_1.ApiOperation)({ summary: '내 팔로잉 목록' }),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -127,6 +130,7 @@ __decorate([
 ], SocialController.prototype, "sendScout", null);
 __decorate([
     (0, common_1.Get)('scouts'),
+    (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),
     (0, swagger_1.ApiOperation)({ summary: '받은 스카우트 목록' }),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -135,6 +139,7 @@ __decorate([
 ], SocialController.prototype, "getScouts", null);
 __decorate([
     (0, common_1.Post)('scouts/:id/read'),
+    (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),
     (0, swagger_1.ApiOperation)({ summary: '스카우트 읽음 처리' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Req)()),
@@ -144,6 +149,7 @@ __decorate([
 ], SocialController.prototype, "markRead", null);
 __decorate([
     (0, common_1.Get)('messages'),
+    (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),
     (0, swagger_1.ApiOperation)({ summary: '대화 목록' }),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -152,6 +158,7 @@ __decorate([
 ], SocialController.prototype, "getConversations", null);
 __decorate([
     (0, common_1.Get)('messages/unread/count'),
+    (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),
     (0, swagger_1.ApiOperation)({ summary: '읽지 않은 쪽지 수' }),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -160,6 +167,7 @@ __decorate([
 ], SocialController.prototype, "getUnreadCount", null);
 __decorate([
     (0, common_1.Get)('messages/:partnerId'),
+    (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),
     (0, swagger_1.ApiOperation)({ summary: '대화 내용' }),
     __param(0, (0, common_1.Param)('partnerId')),
     __param(1, (0, common_1.Req)()),

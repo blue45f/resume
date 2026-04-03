@@ -4,21 +4,21 @@ export declare class JobsController {
     constructor(service: JobsService);
     findAll(query?: string, status?: string): Promise<({
         user: {
-            name: string;
             id: string;
+            name: string;
             avatar: string;
             companyName: string | null;
         };
     } & {
+        type: string;
         description: string;
         id: string;
         createdAt: Date;
         userId: string;
-        updatedAt: Date;
-        skills: string;
         company: string;
         position: string;
-        type: string;
+        skills: string;
+        updatedAt: Date;
         status: string;
         salary: string;
         location: string;
@@ -26,15 +26,15 @@ export declare class JobsController {
         benefits: string;
     })[]>;
     findMy(req: any): never[] | Promise<{
+        type: string;
         description: string;
         id: string;
         createdAt: Date;
         userId: string;
-        updatedAt: Date;
-        skills: string;
         company: string;
         position: string;
-        type: string;
+        skills: string;
+        updatedAt: Date;
         status: string;
         salary: string;
         location: string;
@@ -43,22 +43,22 @@ export declare class JobsController {
     }[]>;
     findOne(id: string): Promise<{
         user: {
-            name: string;
             id: string;
             email: string;
+            name: string;
             avatar: string;
             companyName: string | null;
         };
     } & {
+        type: string;
         description: string;
         id: string;
         createdAt: Date;
         userId: string;
-        updatedAt: Date;
-        skills: string;
         company: string;
         position: string;
-        type: string;
+        skills: string;
+        updatedAt: Date;
         status: string;
         salary: string;
         location: string;
@@ -66,15 +66,15 @@ export declare class JobsController {
         benefits: string;
     }>;
     create(body: any, req: any): Promise<{
+        type: string;
         description: string;
         id: string;
         createdAt: Date;
         userId: string;
-        updatedAt: Date;
-        skills: string;
         company: string;
         position: string;
-        type: string;
+        skills: string;
+        updatedAt: Date;
         status: string;
         salary: string;
         location: string;
@@ -84,15 +84,15 @@ export declare class JobsController {
         error: string;
     };
     update(id: string, body: any, req: any): Promise<{
+        type: string;
         description: string;
         id: string;
         createdAt: Date;
         userId: string;
-        updatedAt: Date;
-        skills: string;
         company: string;
         position: string;
-        type: string;
+        skills: string;
+        updatedAt: Date;
         status: string;
         salary: string;
         location: string;

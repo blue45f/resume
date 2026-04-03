@@ -25,7 +25,10 @@
     "test": "jest --config jest-unit.config.js",
     "test:unit": "jest --config jest-unit.config.js",
     "test:unit:cov": "jest --config jest-unit.config.js --coverage",
-    "test:e2e": "jest --config jest-e2e.config.js"
+    "test:e2e": "jest --config jest-e2e.config.js",
+    "prisma:push": "prisma db push",
+    "prisma:reset": "prisma migrate reset",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

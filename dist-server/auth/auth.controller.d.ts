@@ -38,9 +38,9 @@ export declare class AuthController {
     }> | null;
     updateProfile(body: UpdateProfileDto, req: any, res: Response): Promise<void>;
     getAllUsers(req: any, search?: string): Promise<{
-        name: string;
         id: string;
         email: string;
+        name: string;
         provider: string;
         role: string;
         plan: string;

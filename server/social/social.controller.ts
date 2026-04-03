@@ -17,6 +17,7 @@ export class SocialController {
   }
 
   @Delete('follow/:userId')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '언팔로우' })
   unfollow(@Param('userId') userId: string, @Req() req: any) {
     if (!req.user?.id) return { error: '로그인 필요' };
@@ -24,6 +25,7 @@ export class SocialController {
   }
 
   @Get('followers')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '내 팔로워 목록' })
   getFollowers(@Req() req: any) {
     if (!req.user?.id) return [];
@@ -31,6 +33,7 @@ export class SocialController {
   }
 
   @Get('following')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '내 팔로잉 목록' })
   getFollowing(@Req() req: any) {
     if (!req.user?.id) return [];
@@ -46,6 +49,7 @@ export class SocialController {
   }
 
   @Get('scouts')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '받은 스카우트 목록' })
   getScouts(@Req() req: any) {
     if (!req.user?.id) return [];
@@ -53,6 +57,7 @@ export class SocialController {
   }
 
   @Post('scouts/:id/read')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '스카우트 읽음 처리' })
   markRead(@Param('id') id: string, @Req() req: any) {
     if (!req.user?.id) return { success: false };
@@ -60,6 +65,7 @@ export class SocialController {
   }
 
   @Get('messages')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '대화 목록' })
   getConversations(@Req() req: any) {
     if (!req.user?.id) return [];
@@ -67,6 +73,7 @@ export class SocialController {
   }
 
   @Get('messages/unread/count')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '읽지 않은 쪽지 수' })
   async getUnreadCount(@Req() req: any) {
     if (!req.user?.id) return { count: 0 };
@@ -75,6 +82,7 @@ export class SocialController {
   }
 
   @Get('messages/:partnerId')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '대화 내용' })
   getMessages(@Param('partnerId') partnerId: string, @Req() req: any) {
     if (!req.user?.id) return [];

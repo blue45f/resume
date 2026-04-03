@@ -2,6 +2,7 @@ import { MessageEvent } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { LlmService } from './llm.service';
 import { TransformResumeDto } from './dto/transform-resume.dto';
+import { FeedbackDto, JobMatchDto, InterviewDto, InlineAssistDto } from './dto/analysis.dto';
 import { UsageService } from '../health/usage.service';
 export declare class LlmController {
     private readonly llmService;
@@ -34,25 +35,25 @@ export declare class LlmController {
         totalTransformations: number;
         totalTokensUsed: number;
     }>;
-    analyzeFeedback(resumeId: string, provider?: string): Promise<{
+    analyzeFeedback(resumeId: string, dto: FeedbackDto): Promise<{
         feedback: any;
         tokensUsed: number;
         provider: string;
         model: string;
     }>;
-    analyzeJobMatch(resumeId: string, jobDescription: string, provider?: string): Promise<{
+    analyzeJobMatch(resumeId: string, dto: JobMatchDto): Promise<{
         analysis: any;
         tokensUsed: number;
         provider: string;
         model: string;
     }>;
-    generateInterview(resumeId: string, jobRole?: string, provider?: string): Promise<{
+    generateInterview(resumeId: string, dto: InterviewDto): Promise<{
         interview: any;
         tokensUsed: number;
         provider: string;
         model: string;
     }>;
-    inlineAssist(text: string, type: string, provider?: string): Promise<{
+    inlineAssist(dto: InlineAssistDto): Promise<{
         original: string;
         improved: string;
         type: string;
