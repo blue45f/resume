@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ToastContainer } from '@/components/Toast';
@@ -10,6 +10,7 @@ import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 import ScrollToTop from '@/components/ScrollToTop';
 import ScrollReset from '@/components/ScrollReset';
 import QuickActions from '@/components/QuickActions';
+import { fetchMe } from '@/lib/auth';
 
 // Lazy-loaded pages (non-critical path)
 const NewResumePage = lazy(() => import('@/pages/NewResumePage'));
@@ -52,6 +53,11 @@ function PageLoader() {
 }
 
 export default function App() {
+  // 앱 시작 시 서버에서 최신 프로필 동기화 (role/plan 등)
+  useEffect(() => {
+    fetchMe().catch(() => {});
+  }, []);
+
   return (
     <ErrorBoundary>
       <BrowserRouter>
