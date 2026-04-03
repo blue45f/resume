@@ -33,12 +33,12 @@ export declare class AuthService {
     }>;
     getAllUsers(search?: string): Promise<{
         id: string;
-        createdAt: Date;
         email: string;
         name: string;
         provider: string;
         role: string;
         plan: string;
+        createdAt: Date;
     }[]>;
     getProfile(userId: string): Promise<{
         id: string;

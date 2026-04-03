@@ -5,19 +5,19 @@ export declare class ApplicationsController {
     constructor(service: ApplicationsService);
     findAll(req: any): Promise<{
         id: string;
-        userId: string | null;
-        company: string;
-        position: string;
-        location: string | null;
-        salary: string | null;
-        status: string;
         createdAt: Date;
+        userId: string | null;
+        visibility: string;
         updatedAt: Date;
         resumeId: string | null;
+        company: string;
+        position: string;
         url: string | null;
+        status: string;
         appliedDate: string | null;
         notes: string | null;
-        visibility: string;
+        salary: string | null;
+        location: string | null;
     }[]>;
     getStats(req: any): Promise<{
         total: number;
@@ -25,55 +25,55 @@ export declare class ApplicationsController {
     }>;
     create(dto: CreateApplicationDto, req: any): Promise<{
         id: string;
-        userId: string | null;
-        company: string;
-        position: string;
-        location: string | null;
-        salary: string | null;
-        status: string;
         createdAt: Date;
+        userId: string | null;
+        visibility: string;
         updatedAt: Date;
         resumeId: string | null;
+        company: string;
+        position: string;
         url: string | null;
+        status: string;
         appliedDate: string | null;
         notes: string | null;
-        visibility: string;
+        salary: string | null;
+        location: string | null;
     }>;
     update(id: string, dto: UpdateApplicationDto, req: any): Promise<{
         id: string;
-        userId: string | null;
-        company: string;
-        position: string;
-        location: string | null;
-        salary: string | null;
-        status: string;
         createdAt: Date;
+        userId: string | null;
+        visibility: string;
         updatedAt: Date;
         resumeId: string | null;
+        company: string;
+        position: string;
         url: string | null;
+        status: string;
         appliedDate: string | null;
         notes: string | null;
-        visibility: string;
+        salary: string | null;
+        location: string | null;
     }>;
     remove(id: string, req: any): Promise<{
         success: boolean;
     }>;
     getComments(id: string): Promise<{
-        id: string;
-        userId: string | null;
-        createdAt: Date;
-        applicationId: string;
         content: string;
+        id: string;
+        createdAt: Date;
+        userId: string | null;
+        applicationId: string;
         authorName: string;
     }[]>;
     addComment(id: string, body: {
         content: string;
     }, req: any): Promise<{
-        id: string;
-        userId: string | null;
-        createdAt: Date;
-        applicationId: string;
         content: string;
+        id: string;
+        createdAt: Date;
+        userId: string | null;
+        applicationId: string;
         authorName: string;
     }>;
 }

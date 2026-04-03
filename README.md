@@ -11,7 +11,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 29개 데이터 모델 | 33개 페이지 | 67개 컴포넌트 | 15개 이력서 테마 | 599 테스트 (38 suites) | 멀티 LLM 지원
+> 29개 데이터 모델 | 35개 페이지 | 73개 컴포넌트 | 15개 이력서 테마 | 718 테스트 (41 suites) | 멀티 LLM 지원
 
 ---
 
@@ -21,7 +21,7 @@
                         이력서공방 아키텍처
   ┌──────────────────────────────────────────────────────┐
   │                    Frontend (React 19)               │
-  │  33 Pages / 67 Components / Tiptap Editor / MSW      │
+  │  35 Pages / 73 Components / Tiptap Editor / MSW      │
   │  Vite 8 + TailwindCSS 4 + React Router 7             │
   └──────────────┬───────────────────────────────────────┘
                  │ REST API (JSON)
@@ -64,20 +64,25 @@
 - **AI 피드백** - 0-100점 점수, 등급, 강점/개선점, 섹션별 분석
 - **JD 매칭 분석** - 매칭도%, 매칭/부족 스킬, 구체적 수정 제안
 - **면접 질문 생성** - 8-10개 예상 질문 + 모범 답변 (난이도/카테고리/타이머 포함)
+- **AI 면접 시뮬레이터** - 실시간 모의 면접 연습 + 답변 저장 + 타이머
+- **AI 코칭 시스템** - 이력서 개선 코칭 팁 + 인라인 AI 어시스트 (문장 개선/요약/확장)
+- **AI 커리어 어드바이저** - 커리어 경로 제안 + 시장 인사이트 + 스킬 갭 분석
 - **AI 자기소개서 생성** - 이력서 + 채용공고 + 어조 선택으로 맞춤 자소서
 - **이력서 번역** - 다국어 사이드바이사이드 번역
 - **ATS 호환성 점검** - 0-100점 ATS 통과율 분석
-- **AI 코칭 및 키워드 분석**
+- **AI 키워드 분석** - 이력서 키워드 최적화 제안
 - **멀티 LLM 자동 Fallback** - 무료 프로바이더(Gemini, Groq) 성능순 자동 선택, 유료(Claude) 대체
 
 ### 소셜 / 네트워킹
 
 - 이력서 탐색 (공개 이력서 갤러리 + 사용자 탭)
 - 댓글 및 피드백
-- 팔로우 / 팔로잉
-- 1:1 다이렉트 메시지 (읽음 상태 표시)
+- 팔로우 / 팔로잉 (팔로워/팔로잉 목록 페이지)
+- 1:1 다이렉트 메시지 (읽음 상태 표시, 실시간 대화)
+- 스카우트 메시지 발송/수신 (리크루터 전용)
 - 알림 시스템 (댓글, 북마크, 스카우트, 팔로우 등)
 - 공개 프로필 페이지 (`/@username/slug`)
+- 숏 링크 공유 (`/r/:code`)
 - 유사 이력서 추천
 - SNS 공유 메뉴
 
@@ -160,8 +165,11 @@ GOOGLE_CLIENT_SECRET=...
 GITHUB_CLIENT_ID=...
 GITHUB_CLIENT_SECRET=...
 
-# AI (LLM)
-ANTHROPIC_API_KEY=your-anthropic-api-key
+# ─── LLM 프로바이더 (하나 이상 설정) ───
+# 우선순위: Gemini(무료) > Groq(무료) > OpenAI Compatible > Anthropic(유료)
+GEMINI_API_KEY=your-gemini-api-key
+GROQ_API_KEY=your-groq-api-key
+# ANTHROPIC_API_KEY=sk-ant-...  (유료, 선택)
 
 # 파일 업로드
 CLOUDINARY_CLOUD_NAME=...
@@ -171,6 +179,19 @@ CLOUDINARY_API_SECRET=...
 # 클라이언트
 VITE_API_URL=http://localhost:3000
 ```
+
+### LLM 프로바이더 설정 가이드
+
+AI 기능을 사용하려면 최소 1개의 LLM 프로바이더 API 키가 필요합니다. 무료 프로바이더만으로 모든 AI 기능을 이용할 수 있습니다.
+
+| 프로바이더 | 무료 티어 | 모델 | 발급 URL |
+|-----------|----------|------|---------|
+| **Gemini** (추천) | 무료 (15 RPM) | `gemini-2.0-flash` | [Google AI Studio](https://aistudio.google.com/apikey) |
+| **Groq** | 무료 (30 RPM) | `llama-3.3-70b-versatile` | [Groq Console](https://console.groq.com/keys) |
+| **OpenAI Compatible** | 로컬 무료 | Ollama 등 | `OPENAI_COMPATIBLE_URL=http://localhost:11434/v1` |
+| **Anthropic** | 유료 | `claude-opus-4-6` | [Anthropic Console](https://console.anthropic.com) |
+
+**자동 Fallback:** Gemini -> Groq -> OpenAI Compatible -> Anthropic 순으로 자동 전환됩니다. 하나의 프로바이더가 rate limit에 걸리면 다음 프로바이더를 자동으로 시도합니다.
 
 ### 설치 및 실행
 
@@ -202,8 +223,8 @@ pnpm dev:server   # NestJS 백엔드 (포트 3000)
 ```
 resume/
 ├── src/                    # 프론트엔드 (React)
-│   ├── components/         # 공통 UI 컴포넌트 (67개)
-│   ├── pages/              # 페이지 컴포넌트 (33개)
+│   ├── components/         # 공통 UI 컴포넌트 (73개)
+│   ├── pages/              # 페이지 컴포넌트 (35개)
 │   ├── lib/                # 유틸리티, API 클라이언트, 테마, 플랜
 │   ├── types/              # TypeScript 타입 정의
 │   └── mocks/              # MSW 핸들러 (개발 모드)
@@ -230,6 +251,24 @@ resume/
 ├── public/                 # 정적 파일
 └── package.json
 ```
+
+---
+
+## 번들 크기 (빌드 성능)
+
+Vite 8 코드 스플리팅 적용. 각 페이지/컴포넌트는 lazy load됩니다.
+
+| 번들 | 크기 | Gzip |
+|------|------|------|
+| `react-vendor` (React + Router) | 443 KB | 135 KB |
+| `tiptap` (리치 텍스트 에디터) | 368 KB | 115 KB |
+| `index` (앱 코어) | 193 KB | 40 KB |
+| `index.css` (TailwindCSS) | 169 KB | - |
+| `ResumeForm` (편집기) | 103 KB | 21 KB |
+| `PreviewPage` (미리보기) | 105 KB | 22 KB |
+| 기타 페이지 청크 | 12-64 KB | 3-12 KB |
+
+> 총 JS 번들: ~2.2 MB (gzip ~450 KB). 초기 로드에는 `react-vendor` + `index`만 필요 (gzip ~175 KB).
 
 ---
 
@@ -312,7 +351,7 @@ vercel env add VITE_API_URL
 ## 테스트
 
 ```bash
-# 단위 테스트 (599 tests, 38 suites)
+# 단위 테스트 (718 tests, 41 suites)
 pnpm test:unit
 
 # 커버리지 포함

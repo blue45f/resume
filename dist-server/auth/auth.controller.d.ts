@@ -38,13 +38,13 @@ export declare class AuthController {
     }> | null;
     updateProfile(body: UpdateProfileDto, req: any, res: Response): Promise<void>;
     getAllUsers(req: any, search?: string): Promise<{
-        id: string;
-        createdAt: Date;
-        email: string;
         name: string;
+        id: string;
+        email: string;
         provider: string;
         role: string;
         plan: string;
+        createdAt: Date;
     }[]>;
     setUserRole(userId: string, role: string, req: any, res: Response): Promise<void>;
 }

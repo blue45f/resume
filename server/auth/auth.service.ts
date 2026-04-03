@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { randomBytes, createHmac } from 'crypto';
+import { randomBytes, createHmac, timingSafeEqual } from 'crypto';
 
 interface OAuthProfile {
   provider: string;
@@ -52,7 +52,10 @@ export class AuthService {
     const payload = `${timestamp}.${nonce}`;
     const expected = createHmac('sha256', this.stateSecret).update(payload).digest('hex').slice(0, 16);
 
-    if (hmac !== expected) {
+    // Timing-safe comparison to prevent timing attacks
+    const hmacBuf = Buffer.from(hmac, 'utf8');
+    const expectedBuf = Buffer.from(expected, 'utf8');
+    if (hmacBuf.length !== expectedBuf.length || !timingSafeEqual(hmacBuf, expectedBuf)) {
       this.logger.warn('OAuth state HMAC 불일치');
       return false;
     }
@@ -438,7 +441,7 @@ export class AuthService {
     }
 
     const bcrypt = await import('bcryptjs');
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 12);
 
     const user = await this.prisma.user.create({
       data: {

@@ -549,50 +549,158 @@ export default function NewResumePage() {
               </div>
             </div>
 
-            {/* Template Selection (from server) */}
-            {templates.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">서버 템플릿</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {templates.map((t) => {
-                    const layout = parseLayout(t.layout || '{}');
-                    const sections: string[] = layout.sections || [];
+            {/* Smart Template Recommendations */}
+            {templates.length > 0 && (() => {
+              // Infer user's field from existing resumes
+              const allSkills = existingResumes.flatMap(r => (r.skills || []).flatMap(s => s.items.toLowerCase().split(',').map(i => i.trim())));
+              const allPositions = existingResumes.flatMap(r => r.title?.toLowerCase() || '');
 
-                    return (
-                      <button
-                        key={t.id}
-                        onClick={() => handleSelectTemplate(t.id)}
-                        className="text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 group"
-                      >
-                        <div className="flex items-start justify-between mb-1">
-                          <h3 className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm truncate">{t.name}</h3>
-                          {t.isDefault && (
-                            <span className="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full shrink-0 ml-1">기본</span>
-                          )}
-                        </div>
-                        {t.description && (
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 line-clamp-2">{t.description}</p>
-                        )}
-                        {sections.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {sections.slice(0, 3).map(s => (
-                              <span key={s} className="px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded">
-                                {SECTION_LABELS[s] || s}
-                              </span>
-                            ))}
-                            {sections.length > 3 && (
-                              <span className="px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-400 rounded">
-                                +{sections.length - 3}
-                              </span>
+              const JOB_TEMPLATE_MAP: { keywords: string[]; jobLabel: string; reason: string }[] = [
+                { keywords: ['react', 'vue', 'angular', 'typescript', 'javascript', 'html', 'css', 'next.js', 'node', 'python', 'java', 'spring', 'django', 'golang', 'docker', 'kubernetes'], jobLabel: '개발자', reason: '기술 스택 중심의 레이아웃과 프로젝트 섹션이 강조됩니다' },
+                { keywords: ['figma', 'sketch', 'photoshop', 'illustrator', 'ui', 'ux', 'design', 'adobe', '디자인'], jobLabel: '디자이너', reason: '포트폴리오 링크와 시각적 요소가 돋보이는 구성입니다' },
+                { keywords: ['marketing', 'seo', 'google analytics', '마케팅', '광고', 'sns', 'cpa', 'roas', '퍼포먼스'], jobLabel: '마케터', reason: '성과 지표와 캠페인 결과를 강조하는 구성입니다' },
+                { keywords: ['pm', 'product', 'agile', 'scrum', 'jira', '기획', 'prd', 'ux리서치'], jobLabel: '기획자/PM', reason: '프로젝트 관리 경험과 성과를 중심으로 구성됩니다' },
+                { keywords: ['sales', '영업', '세일즈', 'crm', 'b2b', 'b2c', '실적'], jobLabel: '영업/세일즈', reason: '실적과 고객 관리 역량을 부각하는 구성입니다' },
+                { keywords: ['hr', '인사', '채용', '교육', '조직문화', '노무'], jobLabel: 'HR/인사', reason: '조직 관리와 채용 경험을 강조하는 구성입니다' },
+              ];
+
+              const matchedJobs = JOB_TEMPLATE_MAP.filter(job =>
+                job.keywords.some(kw => allSkills.includes(kw) || allPositions.some(p => p.includes(kw)))
+              );
+
+              // Sort templates by usageCount for popularity
+              const sortedTemplates = [...templates].sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0));
+              const maxUsage = sortedTemplates[0]?.usageCount || 0;
+              const popularThreshold = maxUsage > 0 ? maxUsage * 0.7 : Infinity;
+
+              // Recommended templates: match by category name or description
+              const recommendedTemplates = matchedJobs.length > 0
+                ? templates.filter(t =>
+                    matchedJobs.some(job =>
+                      t.name.toLowerCase().includes(job.jobLabel.replace(/\/.*/, '').toLowerCase()) ||
+                      t.category?.toLowerCase().includes(job.jobLabel.replace(/\/.*/, '').toLowerCase()) ||
+                      (t.description || '').toLowerCase().includes(job.jobLabel.replace(/\/.*/, '').toLowerCase())
+                    )
+                  )
+                : [];
+
+              return (
+                <>
+                  {/* Smart Recommendations */}
+                  {matchedJobs.length > 0 && recommendedTemplates.length > 0 && (
+                    <div className="mt-8">
+                      <div className="flex items-center gap-2 mb-3">
+                        <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                        <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300">직종별 추천</h2>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">- 보유 기술 기반 분석</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {recommendedTemplates.map(t => {
+                          const layout = parseLayout(t.layout || '{}');
+                          const sections: string[] = layout.sections || [];
+                          const matchedJob = matchedJobs.find(job =>
+                            t.name.toLowerCase().includes(job.jobLabel.replace(/\/.*/, '').toLowerCase()) ||
+                            t.category?.toLowerCase().includes(job.jobLabel.replace(/\/.*/, '').toLowerCase()) ||
+                            (t.description || '').toLowerCase().includes(job.jobLabel.replace(/\/.*/, '').toLowerCase())
+                          );
+
+                          return (
+                            <button
+                              key={`rec-${t.id}`}
+                              onClick={() => handleSelectTemplate(t.id)}
+                              className="text-left bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-xl border-2 border-amber-200 dark:border-amber-800 p-4 hover:border-amber-400 dark:hover:border-amber-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 group"
+                            >
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full uppercase">
+                                  추천
+                                </span>
+                                {(t.usageCount || 0) >= popularThreshold && maxUsage > 0 && (
+                                  <span className="px-2 py-0.5 text-[10px] font-bold bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full">
+                                    인기 템플릿
+                                  </span>
+                                )}
+                              </div>
+                              <h3 className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors text-sm mb-1">{t.name}</h3>
+                              {matchedJob && (
+                                <p className="text-xs text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-1">
+                                  <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                  이 템플릿은 {matchedJob.jobLabel}에게 적합합니다 - {matchedJob.reason}
+                                </p>
+                              )}
+                              {sections.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {sections.slice(0, 4).map(s => (
+                                    <span key={s} className="px-1.5 py-0.5 text-[10px] bg-white/60 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded">
+                                      {SECTION_LABELS[s] || s}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* All Templates (from server) */}
+                  <div className="mt-8">
+                    <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">서버 템플릿</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {sortedTemplates.map((t) => {
+                        const layout = parseLayout(t.layout || '{}');
+                        const sections: string[] = layout.sections || [];
+                        const isPopular = (t.usageCount || 0) >= popularThreshold && maxUsage > 0;
+
+                        return (
+                          <button
+                            key={t.id}
+                            onClick={() => handleSelectTemplate(t.id)}
+                            className="text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 group"
+                          >
+                            <div className="flex items-start justify-between mb-1">
+                              <h3 className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm truncate">{t.name}</h3>
+                              <div className="flex items-center gap-1 shrink-0 ml-1">
+                                {isPopular && (
+                                  <span className="px-1.5 py-0.5 text-[10px] font-bold bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full whitespace-nowrap">
+                                    인기
+                                  </span>
+                                )}
+                                {t.isDefault && (
+                                  <span className="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full">기본</span>
+                                )}
+                              </div>
+                            </div>
+                            {t.description && (
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 line-clamp-2">{t.description}</p>
                             )}
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                            {t.usageCount > 0 && (
+                              <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-1.5">{t.usageCount.toLocaleString()}회 사용됨</p>
+                            )}
+                            {sections.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {sections.slice(0, 3).map(s => (
+                                  <span key={s} className="px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded">
+                                    {SECTION_LABELS[s] || s}
+                                  </span>
+                                ))}
+                                {sections.length > 3 && (
+                                  <span className="px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-400 rounded">
+                                    +{sections.length - 3}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
 
             {/* Theme Preview Modal */}
             {previewTheme && (

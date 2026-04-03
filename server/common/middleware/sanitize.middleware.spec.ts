@@ -84,7 +84,32 @@ describe('SanitizeMiddleware', () => {
     expect(req.body.experiences[0].company).toBe('회사');
   });
 
-  // --- XSS 공격 벡터 ---
+  // --- HTML 허용 필드의 XSS 방어 (sanitize-html) ---
+
+  it('HTML 허용 필드에서 <script> 태그를 제거한다', () => {
+    const { req } = run({ summary: '<p>소개</p><script>alert("xss")</script>' });
+    expect(req.body.summary).not.toContain('<script>');
+    expect(req.body.summary).toContain('<p>소개</p>');
+  });
+
+  it('HTML 허용 필드에서 이벤트 핸들러 속성을 제거한다', () => {
+    const { req } = run({ description: '<p onmouseover="alert(1)">텍스트</p>' });
+    expect(req.body.description).not.toContain('onmouseover');
+    expect(req.body.description).toContain('텍스트');
+  });
+
+  it('HTML 허용 필드에서 javascript: URI를 제거한다', () => {
+    const { req } = run({ text: '<a href="javascript:alert(1)">링크</a>' });
+    expect(req.body.text).not.toContain('javascript:');
+  });
+
+  it('HTML 허용 필드에서 <iframe>을 제거한다', () => {
+    const { req } = run({ summary: '<iframe src="http://evil.com"></iframe><p>내용</p>' });
+    expect(req.body.summary).not.toContain('<iframe');
+    expect(req.body.summary).toContain('<p>내용</p>');
+  });
+
+  // --- XSS 공격 벡터 (일반 필드) ---
 
   it('<script> 태그를 제거한다', () => {
     const { req } = run({ name: '<script>document.cookie</script>홍길동' });

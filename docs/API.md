@@ -143,6 +143,13 @@ OAuth 페이지로 리다이렉트됩니다.
 ### GET /resumes/@:username/:slug
 슬러그로 이력서 조회. **공개** (60초 캐시)
 
+### GET /resumes/short/:code
+숏코드로 이력서 조회 (`/r/xxxxxxxx`). **공개**
+
+숏 링크를 통해 이력서 데이터를 반환합니다. 프론트엔드에서 `ShortLinkPage`가 이 엔드포인트를 호출하여 이력서 미리보기로 연결합니다.
+
+**Response:** 이력서 JSON 객체
+
 ### GET /resumes/:id
 이력서 상세 조회 (모든 섹션 포함). **인증 필요**
 
@@ -275,6 +282,29 @@ AI 면접 질문 생성. **인증 필요** | Rate: 3 req/min
 사용 가능한 LLM 프로바이더 목록. **인증 필요**
 
 **Response:** `[{ "id": "gemini", "name": "Google Gemini", "free": true }, ...]`
+
+### POST /resumes/:resumeId/transform/inline-assist
+AI 인라인 문장 개선. **인증 필요** | Rate: 10 req/min
+
+선택한 텍스트를 AI가 개선, 요약, 확장합니다.
+
+**Request:**
+```json
+{
+  "text": "개선할 문장...",
+  "type": "improve|summarize|expand|formal|casual",
+  "provider": "gemini"
+}
+```
+
+**Response:**
+```json
+{
+  "result": "개선된 문장...",
+  "provider": "gemini",
+  "model": "gemini-2.0-flash"
+}
+```
 
 ### GET /resumes/:resumeId/transform/usage
 AI 변환 사용량 통계. **인증 필요**

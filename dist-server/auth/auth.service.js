@@ -80,7 +80,9 @@ let AuthService = AuthService_1 = class AuthService {
         const [timestamp, nonce, hmac] = parts;
         const payload = `${timestamp}.${nonce}`;
         const expected = (0, crypto_1.createHmac)('sha256', this.stateSecret).update(payload).digest('hex').slice(0, 16);
-        if (hmac !== expected) {
+        const hmacBuf = Buffer.from(hmac, 'utf8');
+        const expectedBuf = Buffer.from(expected, 'utf8');
+        if (hmacBuf.length !== expectedBuf.length || !(0, crypto_1.timingSafeEqual)(hmacBuf, expectedBuf)) {
             this.logger.warn('OAuth state HMAC 불일치');
             return false;
         }
@@ -402,7 +404,7 @@ let AuthService = AuthService_1 = class AuthService {
             throw new common_1.UnauthorizedException('이미 가입된 이메일입니다');
         }
         const bcrypt = await Promise.resolve().then(() => __importStar(require('bcryptjs')));
-        const passwordHash = await bcrypt.hash(password, 10);
+        const passwordHash = await bcrypt.hash(password, 12);
         const user = await this.prisma.user.create({
             data: {
                 email,

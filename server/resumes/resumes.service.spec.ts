@@ -456,6 +456,211 @@ describe('ResumesService', () => {
   });
 
   // ──────────────────────────────────────────────────
+  // findByShortCode
+  // ──────────────────────────────────────────────────
+  describe('findByShortCode', () => {
+    const publicResume = {
+      ...mockResume,
+      id: 'abcd1234-full-uuid',
+      visibility: 'public',
+      experiences: [],
+      educations: [],
+      skills: [],
+      projects: [],
+      certifications: [],
+      languages: [],
+      awards: [],
+      activities: [],
+      tags: [],
+    };
+
+    it('숏코드로 공개 이력서 조회 성공', async () => {
+      mockPrisma.resume.findFirst.mockResolvedValue(publicResume);
+      mockPrisma.resume.update.mockResolvedValue(publicResume);
+
+      const result = await service.findByShortCode('abcd1234');
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe('abcd1234-full-uuid');
+      expect(mockPrisma.resume.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            id: { startsWith: 'abcd1234' },
+            visibility: { not: 'private' },
+          },
+        }),
+      );
+    });
+
+    it('link-only 이력서도 숏코드로 조회 가능', async () => {
+      const linkOnlyResume = { ...publicResume, visibility: 'link-only' };
+      mockPrisma.resume.findFirst.mockResolvedValue(linkOnlyResume);
+      mockPrisma.resume.update.mockResolvedValue(linkOnlyResume);
+
+      const result = await service.findByShortCode('abcd1234');
+      expect(result).not.toBeNull();
+    });
+
+    it('비공개 이력서는 숏코드로 조회 불가 (not: private 필터)', async () => {
+      mockPrisma.resume.findFirst.mockResolvedValue(null);
+
+      const result = await service.findByShortCode('private1');
+      expect(result).toBeNull();
+    });
+
+    it('존재하지 않는 숏코드 → null 반환', async () => {
+      mockPrisma.resume.findFirst.mockResolvedValue(null);
+
+      const result = await service.findByShortCode('nonexist');
+      expect(result).toBeNull();
+    });
+
+    it('조회 시 viewCount 증가 호출', async () => {
+      mockPrisma.resume.findFirst.mockResolvedValue(publicResume);
+      mockPrisma.resume.update.mockResolvedValue(publicResume);
+
+      await service.findByShortCode('abcd1234');
+      expect(mockPrisma.resume.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'abcd1234-full-uuid' },
+          data: { viewCount: { increment: 1 } },
+        }),
+      );
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // transferOwnership
+  // ──────────────────────────────────────────────────
+  describe('transferOwnership', () => {
+    it('소유권 이전 성공', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-2', name: '김철수' });
+      (mockPrisma.user as any).findUnique = jest.fn().mockResolvedValue({ id: 'user-2', name: '김철수' });
+      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, userId: 'user-2' });
+
+      const result = await service.transferOwnership('resume-1', 'user-2');
+      expect(result.success).toBe(true);
+      expect(result.message).toContain('김철수');
+      expect(mockPrisma.resume.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'resume-1' },
+          data: { userId: 'user-2' },
+        }),
+      );
+    });
+
+    it('존재하지 않는 이력서 → NotFoundException', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(null);
+
+      await expect(service.transferOwnership('fake-id', 'user-2'))
+        .rejects.toThrow(NotFoundException);
+    });
+
+    it('존재하지 않는 대상 사용자 → NotFoundException', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      (mockPrisma.user as any).findUnique = jest.fn().mockResolvedValue(null);
+
+      await expect(service.transferOwnership('resume-1', 'fake-user'))
+        .rejects.toThrow(NotFoundException);
+      await expect(service.transferOwnership('resume-1', 'fake-user'))
+        .rejects.toThrow('대상 사용자를 찾을 수 없습니다');
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // remove - visibility cascade on delete
+  // ──────────────────────────────────────────────────
+  describe('remove - cascade behavior', () => {
+    it('소유자 삭제 시 Prisma cascade로 관련 데이터 삭제', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.attachment.findMany.mockResolvedValue([]);
+      mockPrisma.resume.delete.mockResolvedValue(mockResume);
+
+      const result = await service.remove('resume-1', 'user-1');
+      expect(result).toEqual({ success: true });
+      expect(mockPrisma.resume.delete).toHaveBeenCalledWith({ where: { id: 'resume-1' } });
+    });
+
+    it('admin 권한으로 다른 사용자 이력서 삭제 가능', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.attachment.findMany.mockResolvedValue([]);
+      mockPrisma.resume.delete.mockResolvedValue(mockResume);
+
+      const result = await service.remove('resume-1', 'admin-user', 'admin');
+      expect(result).toEqual({ success: true });
+    });
+
+    it('superadmin 권한으로도 삭제 가능', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.attachment.findMany.mockResolvedValue([]);
+      mockPrisma.resume.delete.mockResolvedValue(mockResume);
+
+      const result = await service.remove('resume-1', 'superadmin-user', 'superadmin');
+      expect(result).toEqual({ success: true });
+    });
+
+    it('비소유자 + 일반 권한으로 삭제 → ForbiddenException', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      await expect(service.remove('resume-1', 'other-user', 'user'))
+        .rejects.toThrow(ForbiddenException);
+    });
+
+    it('Cloudinary 첨부파일이 있는 이력서 삭제', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.attachment.findMany.mockResolvedValue([
+        { filename: 'http://res.cloudinary.com/demo/upload/v123/resumes/file.pdf' },
+      ]);
+      mockPrisma.resume.delete.mockResolvedValue(mockResume);
+
+      // cloudinary import will fail in test env, but remove() catches it
+      const result = await service.remove('resume-1', 'user-1');
+      expect(result).toEqual({ success: true });
+      expect(mockPrisma.resume.delete).toHaveBeenCalledWith({ where: { id: 'resume-1' } });
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // findBySlug
+  // ──────────────────────────────────────────────────
+  describe('findBySlug', () => {
+    it('username + slug로 공개 이력서 조회', async () => {
+      const publicResume = {
+        ...mockResume,
+        visibility: 'public',
+        experiences: [],
+        educations: [],
+        skills: [],
+        projects: [],
+        certifications: [],
+        languages: [],
+        awards: [],
+        activities: [],
+        tags: [],
+      };
+      mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-1' });
+      mockPrisma.resume.findFirst.mockResolvedValue(publicResume);
+      mockPrisma.resume.update.mockResolvedValue(publicResume);
+
+      const result = await service.findBySlug('hong', 'test-resume');
+      expect(result.id).toBe('resume-1');
+    });
+
+    it('사용자 없음 → NotFoundException', async () => {
+      mockPrisma.user.findFirst.mockResolvedValue(null);
+      await expect(service.findBySlug('unknown', 'test'))
+        .rejects.toThrow(NotFoundException);
+    });
+
+    it('비공개 이력서 → NotFoundException', async () => {
+      mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-1' });
+      mockPrisma.resume.findFirst.mockResolvedValue({ ...mockResume, visibility: 'private' });
+
+      await expect(service.findBySlug('hong', 'private-slug'))
+        .rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // ──────────────────────────────────────────────────
   // bookmarks
   // ──────────────────────────────────────────────────
   describe('bookmarks', () => {

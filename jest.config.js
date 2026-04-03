@@ -8,6 +8,10 @@ module.exports = {
   collectCoverageFrom: ['**/*.service.ts', '**/*.controller.ts'],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
+  moduleNameMapper: {
+    '^isomorphic-dompurify$': '<rootDir>/__mocks__/dompurify.ts',
+  },
+  forceExit: true,
   globals: {
     'ts-jest': {
       tsconfig: 'tsconfig.server.json',

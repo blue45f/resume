@@ -423,4 +423,176 @@ describe('SocialService', () => {
       expect(count).toBe(0);
     });
   });
+
+  // ──────────────────────────────────────────────────
+  // mutual follow detection
+  // ──────────────────────────────────────────────────
+  describe('mutual follow detection', () => {
+    it('양방향 팔로우 시 서로 isFollowing=true', async () => {
+      // user-1 → user-2
+      mockPrisma.follow.findFirst.mockResolvedValue({ id: 'f1' });
+      expect(await service.isFollowing('user-1', 'user-2')).toBe(true);
+
+      // user-2 → user-1
+      mockPrisma.follow.findFirst.mockResolvedValue({ id: 'f2' });
+      expect(await service.isFollowing('user-2', 'user-1')).toBe(true);
+    });
+
+    it('단방향 팔로우 시 한쪽만 true', async () => {
+      // user-1 → user-2 존재
+      mockPrisma.follow.findFirst.mockResolvedValueOnce({ id: 'f1' });
+      expect(await service.isFollowing('user-1', 'user-2')).toBe(true);
+
+      // user-2 → user-1 없음
+      mockPrisma.follow.findFirst.mockResolvedValueOnce(null);
+      expect(await service.isFollowing('user-2', 'user-1')).toBe(false);
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // scout message edge cases
+  // ──────────────────────────────────────────────────
+  describe('scout message edge cases', () => {
+    it('스카우트 메시지 정확히 2000자 허용', async () => {
+      const exactMessage = 'x'.repeat(2000);
+      mockPrisma.user.findUnique.mockResolvedValue({ name: '리크루터', userType: 'recruiter' });
+      mockPrisma.scoutMessage.create.mockResolvedValue({ id: 'sc-1' });
+
+      const result = await service.sendScout('user-1', {
+        receiverId: 'user-2',
+        company: '네이버',
+        position: '개발자',
+        message: exactMessage,
+      });
+      expect(result.id).toBe('sc-1');
+    });
+
+    it('스카우트 수신 목록은 최신순 정렬 (createdAt desc)', async () => {
+      mockPrisma.scoutMessage.findMany.mockResolvedValue([]);
+      await service.getReceivedScouts('user-1');
+      expect(mockPrisma.scoutMessage.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { createdAt: 'desc' },
+        }),
+      );
+    });
+
+    it('sender가 null인 경우 이름을 "누군가"로 표시', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockPrisma.scoutMessage.create.mockResolvedValue({ id: 'sc-1' });
+
+      // userType check: null user doesn't have personal type, so no ForbiddenException
+      // but sendScout checks sender?.userType === 'personal', null?.userType is undefined, not 'personal'
+      await service.sendScout('user-1', {
+        receiverId: 'user-2',
+        company: '카카오',
+        position: '개발자',
+        message: '스카우트 제안',
+      });
+      expect(mockNotifications.create).toHaveBeenCalledWith(
+        'user-2',
+        'scout',
+        '누군가님이 스카우트 제안을 보냈습니다',
+        '/scouts',
+      );
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // direct message ordering
+  // ──────────────────────────────────────────────────
+  describe('direct message ordering', () => {
+    it('getMessages는 createdAt 오름차순으로 반환 (시간순 대화)', async () => {
+      mockPrisma.directMessage.updateMany.mockResolvedValue({ count: 0 });
+      mockPrisma.directMessage.findMany.mockResolvedValue([]);
+
+      await service.getMessages('user-1', 'user-2');
+      expect(mockPrisma.directMessage.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { createdAt: 'asc' },
+          take: 100,
+        }),
+      );
+    });
+
+    it('getMessages는 양방향 메시지를 모두 포함', async () => {
+      mockPrisma.directMessage.updateMany.mockResolvedValue({ count: 0 });
+      mockPrisma.directMessage.findMany.mockResolvedValue([]);
+
+      await service.getMessages('user-1', 'user-2');
+      expect(mockPrisma.directMessage.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            OR: [
+              { senderId: 'user-1', receiverId: 'user-2' },
+              { senderId: 'user-2', receiverId: 'user-1' },
+            ],
+          },
+        }),
+      );
+    });
+
+    it('getConversations는 파트너가 없는 대화를 제외', async () => {
+      mockPrisma.directMessage.findMany
+        .mockResolvedValueOnce([{ receiverId: 'user-deleted' }]) // sent
+        .mockResolvedValueOnce([]); // received
+
+      mockPrisma.directMessage.findFirst.mockResolvedValue({
+        content: '메시지', createdAt: new Date(), senderId: 'user-1',
+      });
+      mockPrisma.directMessage.count.mockResolvedValue(0);
+      mockPrisma.user.findUnique.mockResolvedValue(null); // deleted user
+
+      const result = await service.getConversations('user-1');
+      expect(result).toEqual([]);
+    });
+
+    it('getConversations는 lastMessage가 없는 대화를 제외', async () => {
+      mockPrisma.directMessage.findMany
+        .mockResolvedValueOnce([{ receiverId: 'user-2' }])
+        .mockResolvedValueOnce([]);
+
+      mockPrisma.directMessage.findFirst.mockResolvedValue(null); // no last message
+      mockPrisma.directMessage.count.mockResolvedValue(0);
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-2', name: '김철수', email: 'b@t.com', avatar: '' });
+
+      const result = await service.getConversations('user-1');
+      expect(result).toEqual([]);
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // message reactions (validation edge cases)
+  // ──────────────────────────────────────────────────
+  describe('message content validation', () => {
+    it('메시지 내용이 정확히 1000자면 허용', async () => {
+      const exactContent = 'x'.repeat(1000);
+      mockPrisma.directMessage.create.mockResolvedValue({ id: 'dm-1', content: exactContent });
+      mockPrisma.user.findUnique.mockResolvedValue({ name: '홍길동' });
+
+      const result = await service.sendMessage('user-1', 'user-2', exactContent);
+      expect(result.id).toBe('dm-1');
+    });
+
+    it('메시지 내용이 정확히 1자면 허용', async () => {
+      mockPrisma.directMessage.create.mockResolvedValue({ id: 'dm-1', content: '안' });
+      mockPrisma.user.findUnique.mockResolvedValue({ name: '홍길동' });
+
+      const result = await service.sendMessage('user-1', 'user-2', '안');
+      expect(result.id).toBe('dm-1');
+    });
+
+    it('sender 이름이 null일 때 "누군가"로 알림 생성', async () => {
+      mockPrisma.directMessage.create.mockResolvedValue({ id: 'dm-1', content: '안녕' });
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      await service.sendMessage('user-1', 'user-2', '안녕');
+      expect(mockNotifications.create).toHaveBeenCalledWith(
+        'user-2',
+        'message',
+        '누군가님이 쪽지를 보냈습니다',
+        '/messages',
+      );
+    });
+  });
 });

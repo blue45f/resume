@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -7,8 +7,9 @@ import EmptyState from '@/components/EmptyState';
 import AppCommentSection from '@/components/AppCommentSection';
 import ApplicationTimeline from '@/components/ApplicationTimeline';
 import InterviewReview from '@/components/InterviewReview';
-import { fetchApplications, createApplication, updateApplication, deleteApplication } from '@/lib/api';
+import { fetchApplications, createApplication, updateApplication, deleteApplication, fetchResumes } from '@/lib/api';
 import type { JobApplication } from '@/lib/api';
+import type { ResumeSummary } from '@/types/resume';
 
 const STATUSES = [
   { value: 'applied', label: '지원완료', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
@@ -38,18 +39,24 @@ export default function ApplicationsPage() {
   const [apps, setApps] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ company: '', position: '', url: '', status: 'applied', notes: '', salary: '', location: '', visibility: 'private' });
+  const [form, setForm] = useState({ company: '', position: '', url: '', status: 'applied', notes: '', salary: '', location: '', visibility: 'private', resumeId: '' });
   const [filter, setFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'company'>('recent');
   const [yearFilter, setYearFilter] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'calendar'>('list');
+  const [resumes, setResumes] = useState<ResumeSummary[]>([]);
+  const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set());
 
   const load = () => {
     fetchApplications().then(setApps).catch(() => {}).finally(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    fetchResumes().then(setResumes).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const company = params.get('company');
@@ -76,7 +83,7 @@ export default function ApplicationsPage() {
       await createApplication({ ...form, appliedDate: new Date().toISOString().slice(0, 10) });
       toast('지원 내역이 추가되었습니다', 'success');
       setShowForm(false);
-      setForm({ company: '', position: '', url: '', status: 'applied', notes: '', salary: '', location: '', visibility: 'private' });
+      setForm({ company: '', position: '', url: '', status: 'applied', notes: '', salary: '', location: '', visibility: 'private', resumeId: '' });
       load();
     } catch { toast('추가에 실패했습니다', 'error'); }
   };
@@ -120,6 +127,46 @@ export default function ApplicationsPage() {
   }
   // Also add withdrawn to rejected column display
   kanbanGroups['rejected'] = [...(kanbanGroups['rejected'] || []), ...filtered.filter(a => a.status === 'withdrawn')];
+
+  // Success rate per resume
+  const resumeSuccessRates = useMemo(() => {
+    const rates: Record<string, { total: number; offered: number; rejected: number; resumeTitle: string }> = {};
+    apps.forEach(app => {
+      const rid = app.resumeId || 'unknown';
+      if (!rates[rid]) {
+        const r = resumes.find(res => res.id === rid);
+        rates[rid] = { total: 0, offered: 0, rejected: 0, resumeTitle: r?.title || '미지정' };
+      }
+      rates[rid].total++;
+      if (app.status === 'offer') rates[rid].offered++;
+      if (app.status === 'rejected') rates[rid].rejected++;
+    });
+    return rates;
+  }, [apps, resumes]);
+
+  // Interview reminders: apps in 'interview' status
+  const interviewApps = useMemo(() =>
+    apps.filter(a => a.status === 'interview' && !dismissedReminders.has(a.id)),
+    [apps, dismissedReminders]
+  );
+
+  // Calendar data: group apps by date
+  const calendarData = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const appsByDate: Record<string, JobApplication[]> = {};
+    filtered.forEach(app => {
+      const date = (app.appliedDate || app.createdAt)?.slice(0, 10);
+      if (date) {
+        if (!appsByDate[date]) appsByDate[date] = [];
+        appsByDate[date].push(app);
+      }
+    });
+    return { year, month, firstDay, daysInMonth, appsByDate };
+  }, [filtered]);
 
   return (
     <>

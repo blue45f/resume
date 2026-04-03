@@ -287,11 +287,13 @@ export default function ExplorePage() {
           <form onSubmit={handleSearch} className="flex gap-2">
             <input
               type="search"
+              role="searchbox"
               value={searchInput}
               onChange={e => { setSearchInput(e.target.value); debouncedSearch(e.target.value); }}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
               placeholder="이름, 제목, 기술 키워드로 검색..."
+              aria-label="공개 이력서 검색"
               className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 transition-colors duration-200"
             />
             <button type="submit" className="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
@@ -351,8 +353,12 @@ export default function ExplorePage() {
         </div>
 
         {/* 탭: 이력서 | 사람 */}
-        <div className="flex items-center gap-0 mb-4 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex items-center gap-0 mb-4 border-b border-slate-200 dark:border-slate-700" role="tablist" aria-label="탐색 탭">
           <button
+            role="tab"
+            id="tab-resumes"
+            aria-selected={activeTab === 'resumes'}
+            aria-controls="tabpanel-resumes"
             onClick={() => setActiveTab('resumes')}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'resumes'
@@ -366,6 +372,10 @@ export default function ExplorePage() {
             </span>
           </button>
           <button
+            role="tab"
+            id="tab-people"
+            aria-selected={activeTab === 'people'}
+            aria-controls="tabpanel-people"
             onClick={() => setActiveTab('people')}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'people'
@@ -490,7 +500,7 @@ export default function ExplorePage() {
 
         {/* 결과 */}
         {loading ? (
-          <CardGridSkeleton count={6} />
+          <div aria-busy="true" aria-label="검색 결과 불러오는 중"><CardGridSkeleton count={6} /></div>
         ) : !result || result.data.length === 0 ? (
           (query || tag) ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -515,7 +525,7 @@ export default function ExplorePage() {
           )
         ) : activeTab === 'people' ? (
           /* ===== 사람 탭 ===== */
-          <>
+          <div role="tabpanel" id="tabpanel-people" aria-labelledby="tab-people">
             {/* 추천 연결 */}
             {recommendedUsers.length > 0 && !query && (
               <div className="mb-6">
@@ -588,7 +598,7 @@ export default function ExplorePage() {
                 <p className="text-sm text-slate-500 dark:text-slate-400">검색 조건에 맞는 사용자가 없습니다.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
                 {users.map(user => {
                   const initial = user.name.charAt(0).toUpperCase();
                   const avatarColor = getAvatarColor(user.name);
@@ -723,7 +733,7 @@ export default function ExplorePage() {
               {tag && <> · 태그: <span className="font-medium text-slate-700 dark:text-slate-300">{tag}</span></>}
             </p>
 
-            <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
+            <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5' : 'space-y-3'}>
               {result.data.map(resume => {
                 const themeIdx = getThemeIndex(resume.id);
                 const skillNames = extractSkillNames(resume.skills);

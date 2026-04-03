@@ -27,21 +27,22 @@ export declare class ShareController {
     }>;
     getShared(token: string, password?: string): Promise<{
         personalInfo: {
-            id: string;
-            resumeId: string;
             name: string;
+            summary: string;
+            github: string;
+            links: string;
+            id: string;
             email: string;
+            resumeId: string;
             phone: string;
             address: string;
             website: string;
-            github: string;
-            summary: string;
             photo: string;
             birthYear: string;
-            links: string;
             military: string;
         } | null;
         experiences: {
+            description: string;
             id: string;
             resumeId: string;
             sortOrder: number;
@@ -51,17 +52,16 @@ export declare class ShareController {
             startDate: string;
             endDate: string;
             current: boolean;
-            description: string;
             achievements: string;
             techStack: string;
         }[];
         educations: {
+            description: string;
             id: string;
             resumeId: string;
             sortOrder: number;
             startDate: string;
             endDate: string;
-            description: string;
             school: string;
             degree: string;
             field: string;
@@ -75,26 +75,26 @@ export declare class ShareController {
             sortOrder: number;
         }[];
         projects: {
-            id: string;
-            resumeId: string;
             name: string;
-            sortOrder: number;
+            description: string;
+            id: string;
             role: string;
+            link: string;
+            resumeId: string;
+            sortOrder: number;
             company: string;
             startDate: string;
             endDate: string;
-            description: string;
             techStack: string;
-            link: string;
         }[];
     } & {
         id: string;
+        createdAt: Date;
+        userId: string | null;
         title: string;
         slug: string;
         viewCount: number;
         visibility: string;
-        userId: string | null;
-        createdAt: Date;
         updatedAt: Date;
     }>;
 }

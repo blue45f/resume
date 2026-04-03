@@ -6,8 +6,8 @@ import { toast } from '@/components/Toast';
 import QuickImportModal from '@/components/QuickImportModal';
 import Footer from '@/components/Footer';
 import { timeAgo } from '@/lib/time';
-import type { ResumeSummary, Tag } from '@/types/resume';
-import { fetchResumes, deleteResume, duplicateResume, fetchTags, fetchBookmarks } from '@/lib/api';
+import type { ResumeSummary, Tag, Resume } from '@/types/resume';
+import { fetchResumes, deleteResume, duplicateResume, fetchTags, fetchBookmarks, fetchResume } from '@/lib/api';
 import ResumeThumbnail from '@/components/ResumeThumbnail';
 import DashboardStats from '@/components/DashboardStats';
 import NetworkStats from '@/components/NetworkStats';
@@ -15,6 +15,7 @@ import RecentActivity from '@/components/RecentActivity';
 import HiringTrends from '@/components/HiringTrends';
 import CareerInsights from '@/components/CareerInsights';
 import OnboardingBanner from '@/components/OnboardingBanner';
+import ProfileWizard from '@/components/ProfileWizard';
 import { t } from '@/lib/i18n';
 import { getUser } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
@@ -51,7 +52,7 @@ function AnimatedStat({ value, label }: { value: number; label: string }) {
       <strong className="text-lg font-bold text-slate-800 dark:text-slate-200 tabular-nums">
         {value > 0 ? animated.toLocaleString() : '—'}
       </strong>
-      <span className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{label}</span>
+      <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{label}</span>
     </div>
   );
 }
@@ -92,6 +93,7 @@ export default function HomePage() {
   const [selectMode, setSelectMode] = useState(false);
   const [bookmarks, setBookmarks] = useState<{ id: string; resumeId: string; title: string; name: string }[]>([]);
   const [serverError, setServerError] = useState(false);
+  const [wizardResume, setWizardResume] = useState<Resume | null>(null);
   const navigate = useNavigate();
   const user = getUser();
 
@@ -116,6 +118,13 @@ export default function HomePage() {
     load(ac.signal);
     return () => ac.abort();
   }, []);
+
+  // Load first resume for ProfileWizard
+  useEffect(() => {
+    if (resumes.length > 0 && user) {
+      fetchResume(resumes[0].id).then(setWizardResume).catch(() => {});
+    }
+  }, [resumes.length > 0]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -201,7 +210,7 @@ export default function HomePage() {
     return (
       <>
         <Header />
-        <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+        <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main" aria-busy="true">
           <div className="h-8 bg-slate-200 rounded w-48 mb-6 animate-pulse" />
           <CardGridSkeleton count={6} />
         </main>
@@ -246,26 +255,26 @@ export default function HomePage() {
                 {t('home.welcomeDesc')}
               </p>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl sm:max-w-3xl mx-auto mb-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl md:max-w-3xl mx-auto mb-10">
               <Link to="/resumes/new" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📝</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.directWrite')}</span>
-                <span className="text-xs text-slate-400 mt-1">템플릿 선택 후 작성</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">템플릿 선택 후 작성</span>
               </Link>
               <Link to="/auto-generate" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-purple-200 dark:border-purple-800 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🤖</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.aiGenerate')}</span>
-                <span className="text-xs text-slate-400 mt-1">텍스트 붙여넣기만</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">텍스트 붙여넣기만</span>
               </Link>
               <button onClick={() => setShowImport(true)} className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-green-200 dark:border-green-800 hover:border-green-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📋</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.quickImport')}</span>
-                <span className="text-xs text-slate-400 mt-1">텍스트 붙여넣기</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">텍스트 붙여넣기</span>
               </button>
               <Link to="/explore" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🔍</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.explore')}</span>
-                <span className="text-xs text-slate-400 mt-1">공개 이력서 탐색</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">공개 이력서 탐색</span>
               </Link>
             </div>
 
@@ -277,7 +286,7 @@ export default function HomePage() {
             </div>
 
             {/* Feature highlights */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-3xl mx-auto mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-3xl mx-auto mb-10">
               {[
                 {
                   icon: (<svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>),
@@ -318,7 +327,7 @@ export default function HomePage() {
             {/* Testimonials / Social proof */}
             <div className="max-w-3xl mx-auto mb-10">
               <h3 className="text-center text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-6">사용자 후기</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                   { name: '김서연', role: '프론트엔드 개발자', text: 'AI 피드백 덕분에 이력서 퀄리티가 확 올라갔어요. JD 매칭 분석으로 맞춤 이력서를 작성하니 면접 기회가 2배로 늘었습니다.', avatar: 'S', color: 'bg-blue-500' },
                   { name: '이준호', role: 'UX 디자이너', text: '직종별 템플릿이 정말 유용해요. 포트폴리오 스타일의 이력서를 5분 만에 만들 수 있어서 시간을 많이 아꼈습니다.', avatar: 'J', color: 'bg-purple-500' },
@@ -355,6 +364,13 @@ export default function HomePage() {
             </div>
 
             <OnboardingBanner />
+
+            {wizardResume && resumes.length > 0 && (
+              <ProfileWizard
+                resume={wizardResume}
+                resumeId={resumes[0].id}
+              />
+            )}
 
             <DashboardStats />
 
@@ -400,10 +416,12 @@ export default function HomePage() {
               <div className="relative flex-1">
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 <input
-                  type="text"
+                  type="search"
+                  role="searchbox"
                   placeholder="이력서 검색..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
+                  aria-label="이력서 검색"
                   className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -513,7 +531,7 @@ export default function HomePage() {
             </div>
 
             {/* Resume grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
               {sorted.map((resume, index) => (
                 <article
                   key={resume.id}
@@ -576,10 +594,10 @@ export default function HomePage() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-0.5">
                         <Link
                           to={`/resumes/${resume.id}/edit`}
-                          className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
+                          className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
                           aria-label={`${resume.title} 편집`}
                           title="편집"
                         >
@@ -587,7 +605,7 @@ export default function HomePage() {
                         </Link>
                         <Link
                           to={`/resumes/${resume.id}/preview`}
-                          className="p-1.5 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all duration-200"
+                          className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all duration-200"
                           aria-label={`${resume.title} 미리보기`}
                           title="미리보기"
                         >
@@ -595,7 +613,7 @@ export default function HomePage() {
                         </Link>
                         <button
                           onClick={() => handleDuplicate(resume.id)}
-                          className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200"
+                          className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200"
                           aria-label={`${resume.title} 복제`}
                           title="복제"
                         >
@@ -608,7 +626,7 @@ export default function HomePage() {
                         />
                         <button
                           onClick={() => handleDelete(resume.id, resume.title)}
-                          className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+                          className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
                           aria-label={`${resume.title} 삭제`}
                           title="삭제"
                         >

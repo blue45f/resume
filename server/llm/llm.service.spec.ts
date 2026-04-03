@@ -230,4 +230,295 @@ describe('LlmService', () => {
       expect(stats.totalTokensUsed).toBe(500);
     });
   });
+
+  // ──────────────────────────────────────────────────
+  // inlineAssist
+  // ──────────────────────────────────────────────────
+  describe('inlineAssist', () => {
+    it('improve 타입으로 텍스트 개선', async () => {
+      geminiProvider.generate.mockResolvedValue({
+        text: '  개선된 문장  ',
+        tokensUsed: 50,
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      });
+
+      const result = await service.inlineAssist('원래 문장입니다', 'improve');
+      expect(result.original).toBe('원래 문장입니다');
+      expect(result.improved).toBe('개선된 문장');
+      expect(result.type).toBe('improve');
+      expect(result.tokensUsed).toBe(50);
+      expect(result.provider).toBe('gemini');
+    });
+
+    it('quantify 타입 → 수치화 프롬프트 사용', async () => {
+      geminiProvider.generate.mockResolvedValue(mockLlmResponse('gemini'));
+      await service.inlineAssist('성능을 개선했다', 'quantify');
+      const systemPrompt = geminiProvider.generate.mock.calls[0][0] as string;
+      expect(systemPrompt).toContain('수치화');
+    });
+
+    it('concise 타입 → 간결화 프롬프트 사용', async () => {
+      geminiProvider.generate.mockResolvedValue(mockLlmResponse('gemini'));
+      await service.inlineAssist('불필요하게 긴 문장입니다', 'concise');
+      const systemPrompt = geminiProvider.generate.mock.calls[0][0] as string;
+      expect(systemPrompt).toContain('간결');
+    });
+
+    it('english 타입 → 영어 번역 프롬프트 사용', async () => {
+      geminiProvider.generate.mockResolvedValue(mockLlmResponse('gemini'));
+      await service.inlineAssist('한국어 문장', 'english');
+      const systemPrompt = geminiProvider.generate.mock.calls[0][0] as string;
+      expect(systemPrompt).toContain('English');
+    });
+
+    it('알 수 없는 타입 → improve 폴백', async () => {
+      geminiProvider.generate.mockResolvedValue(mockLlmResponse('gemini'));
+      await service.inlineAssist('테스트 문장', 'unknown-type');
+      const systemPrompt = geminiProvider.generate.mock.calls[0][0] as string;
+      expect(systemPrompt).toContain('전문적이고 임팩트');
+    });
+
+    it('빈 텍스트 → BadRequestException', async () => {
+      await expect(service.inlineAssist('', 'improve')).rejects.toThrow(BadRequestException);
+      await expect(service.inlineAssist(' ', 'improve')).rejects.toThrow(BadRequestException);
+    });
+
+    it('2000자 초과 텍스트 → BadRequestException', async () => {
+      const longText = 'x'.repeat(2001);
+      await expect(service.inlineAssist(longText, 'improve')).rejects.toThrow(BadRequestException);
+      await expect(service.inlineAssist(longText, 'improve')).rejects.toThrow('2000자 이내');
+    });
+
+    it('provider 지정 시 해당 프로바이더로 전달', async () => {
+      groqProvider.generate.mockResolvedValue(mockLlmResponse('groq'));
+      const result = await service.inlineAssist('테스트', 'improve', 'groq');
+      expect(result.provider).toBe('groq');
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // analyzeJobMatch
+  // ──────────────────────────────────────────────────
+  describe('analyzeJobMatch', () => {
+    const validJd = 'React, TypeScript, Node.js 경험자. 3년 이상 프론트엔드 개발 경험 필요합니다.';
+
+    it('JD 매칭 분석 성공', async () => {
+      const analysisJson = JSON.stringify({
+        matchScore: 78,
+        matchGrade: 'B+',
+        summary: '전체 매칭 평가',
+        matchedSkills: ['React'],
+        missingSkills: ['GraphQL'],
+        matchedExperience: [],
+        gaps: [],
+        recommendations: [],
+        coverLetterPoints: [],
+        interviewPrep: [],
+      });
+      geminiProvider.generate.mockResolvedValue({
+        text: analysisJson,
+        tokensUsed: 200,
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      });
+
+      const result = await service.analyzeJobMatch('resume-1', validJd);
+      expect(result.analysis.matchScore).toBe(78);
+      expect(result.analysis.matchGrade).toBe('B+');
+      expect(result.tokensUsed).toBe(200);
+      expect(mockResumesService.findOne).toHaveBeenCalledWith('resume-1');
+    });
+
+    it('JD가 20자 미만 → BadRequestException', async () => {
+      await expect(service.analyzeJobMatch('resume-1', '짧은 JD')).rejects.toThrow(BadRequestException);
+      await expect(service.analyzeJobMatch('resume-1', '짧은 JD')).rejects.toThrow('20자 이상');
+    });
+
+    it('JD가 빈 문자열 → BadRequestException', async () => {
+      await expect(service.analyzeJobMatch('resume-1', '')).rejects.toThrow(BadRequestException);
+    });
+
+    it('JD가 3000자 초과 → BadRequestException', async () => {
+      const longJd = 'x'.repeat(3001);
+      await expect(service.analyzeJobMatch('resume-1', longJd)).rejects.toThrow(BadRequestException);
+      await expect(service.analyzeJobMatch('resume-1', longJd)).rejects.toThrow('3000자 이내');
+    });
+
+    it('LLM 응답 파싱 실패 → BadRequestException', async () => {
+      geminiProvider.generate.mockResolvedValue({
+        text: 'not valid json at all',
+        tokensUsed: 100,
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      });
+
+      await expect(service.analyzeJobMatch('resume-1', validJd)).rejects.toThrow(BadRequestException);
+      await expect(service.analyzeJobMatch('resume-1', validJd)).rejects.toThrow('파싱할 수 없습니다');
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // generateInterviewQuestions
+  // ──────────────────────────────────────────────────
+  describe('generateInterviewQuestions', () => {
+    it('면접 질문 생성 성공', async () => {
+      const questionsJson = JSON.stringify({
+        questions: [
+          {
+            category: '경험/프로젝트',
+            question: '가장 어려웠던 프로젝트는?',
+            intent: '문제 해결 능력 평가',
+            sampleAnswer: '모범 답변 내용',
+            tips: '구체적 수치를 포함하세요',
+          },
+        ],
+      });
+      geminiProvider.generate.mockResolvedValue({
+        text: questionsJson,
+        tokensUsed: 300,
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      });
+
+      const result = await service.generateInterviewQuestions('resume-1');
+      expect(result.interview.questions).toHaveLength(1);
+      expect(result.interview.questions[0].category).toBe('경험/프로젝트');
+      expect(result.tokensUsed).toBe(300);
+      expect(mockResumesService.findOne).toHaveBeenCalledWith('resume-1');
+    });
+
+    it('jobRole 지정 시 프롬프트에 포함', async () => {
+      geminiProvider.generate.mockResolvedValue({
+        text: JSON.stringify({ questions: [] }),
+        tokensUsed: 100,
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      });
+
+      await service.generateInterviewQuestions('resume-1', '프론트엔드 개발자');
+      const systemPrompt = geminiProvider.generate.mock.calls[0][0] as string;
+      expect(systemPrompt).toContain('프론트엔드 개발자');
+    });
+
+    it('jobRole 미지정 시 프롬프트에 직무 컨텍스트 없음', async () => {
+      geminiProvider.generate.mockResolvedValue({
+        text: JSON.stringify({ questions: [] }),
+        tokensUsed: 100,
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      });
+
+      await service.generateInterviewQuestions('resume-1');
+      const systemPrompt = geminiProvider.generate.mock.calls[0][0] as string;
+      expect(systemPrompt).not.toContain('지원 직무:');
+    });
+
+    it('LLM 응답 파싱 실패 → BadRequestException', async () => {
+      geminiProvider.generate.mockResolvedValue({
+        text: 'invalid json response',
+        tokensUsed: 100,
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      });
+
+      await expect(service.generateInterviewQuestions('resume-1')).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // analyzeFeedback
+  // ──────────────────────────────────────────────────
+  describe('analyzeFeedback', () => {
+    it('피드백 분석 성공', async () => {
+      const feedbackJson = JSON.stringify({
+        score: 75,
+        grade: 'B+',
+        summary: '전체적인 평가',
+        strengths: ['강점1'],
+        improvements: ['개선점1'],
+        sectionScores: {},
+        keywords: [],
+        tips: [],
+      });
+      geminiProvider.generate.mockResolvedValue({
+        text: feedbackJson,
+        tokensUsed: 250,
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      });
+
+      const result = await service.analyzeFeedback('resume-1');
+      expect(result.feedback.score).toBe(75);
+      expect(result.feedback.grade).toBe('B+');
+      expect(result.tokensUsed).toBe(250);
+    });
+
+    it('LLM 응답 파싱 실패 → BadRequestException', async () => {
+      geminiProvider.generate.mockResolvedValue({
+        text: 'not json',
+        tokensUsed: 100,
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      });
+
+      await expect(service.analyzeFeedback('resume-1')).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // autoGenerate
+  // ──────────────────────────────────────────────────
+  describe('autoGenerate', () => {
+    it('비정형 텍스트 → 구조화된 이력서 JSON 생성', async () => {
+      const resumeJson = JSON.stringify({
+        title: '홍길동의 이력서',
+        personalInfo: { name: '홍길동', email: '', phone: '' },
+        experiences: [],
+        educations: [],
+        skills: [],
+        projects: [],
+        certifications: [],
+        languages: [],
+        awards: [],
+        activities: [],
+      });
+      geminiProvider.generate.mockResolvedValue({
+        text: resumeJson,
+        tokensUsed: 400,
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      });
+
+      const result = await service.autoGenerate('홍길동, 3년차 개발자, React 전문');
+      expect(result.resume.title).toBe('홍길동의 이력서');
+      expect(result.resume.personalInfo.name).toBe('홍길동');
+      expect(result.tokensUsed).toBe(400);
+    });
+
+    it('instruction 포함 시 user message에 추가', async () => {
+      geminiProvider.generate.mockResolvedValue({
+        text: JSON.stringify({ title: '이력서' }),
+        tokensUsed: 100,
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      });
+
+      await service.autoGenerate('데이터', '간결하게 작성해주세요');
+      const userMessage = geminiProvider.generate.mock.calls[0][1] as string;
+      expect(userMessage).toContain('간결하게 작성해주세요');
+    });
+
+    it('LLM 응답 파싱 실패 → BadRequestException', async () => {
+      geminiProvider.generate.mockResolvedValue({
+        text: 'completely invalid',
+        tokensUsed: 100,
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      });
+
+      await expect(service.autoGenerate('데이터')).rejects.toThrow(BadRequestException);
+      await expect(service.autoGenerate('데이터')).rejects.toThrow('파싱할 수 없습니다');
+    });
+  });
 });
