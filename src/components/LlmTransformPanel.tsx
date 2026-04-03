@@ -237,8 +237,13 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                   <label htmlFor="llm-provider" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">LLM 프로바이더</label>
                   <select id="llm-provider" value={selectedProvider} onChange={e => setSelectedProvider(e.target.value)}
                     className="w-full sm:w-auto px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-700 dark:text-slate-100">
-                    {llmProviders.map(p => (
-                      <option key={p.name} value={p.name}>{p.name}{p.isDefault ? ' (기본)' : ''}</option>
+                    {llmProviders
+                      .filter(p => !['anthropic'].includes(p.name) || p.isDefault)
+                      .map(p => (
+                      <option key={p.name} value={p.name}>
+                        {p.name === 'gemini' ? 'Gemini (무료)' : p.name === 'groq' ? 'Groq (무료)' : p.name === 'openai-compatible' ? 'OpenRouter' : p.name}
+                        {p.isDefault ? ' ★' : ''}
+                      </option>
                     ))}
                   </select>
                 </div>
