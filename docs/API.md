@@ -325,6 +325,30 @@ JD 매칭 분석
 ### DELETE /cover-letters/:id
 자소서 삭제
 
+## 채용 공고
+
+### GET /jobs
+채용 공고 목록 (공개)
+
+**Query:** `q` (검색어), `status` (active/closed)
+
+### GET /jobs/my
+내 채용 공고 (로그인 필요)
+
+### GET /jobs/:id
+채용 공고 상세 (공개)
+
+### POST /jobs
+채용 공고 등록 (리크루터/기업만)
+
+**Request:** `{ "company": "네이버", "position": "FE", "location": "성남", "salary": "5000만", "skills": "React,TS", "description": "...", "type": "fulltime" }`
+
+### PUT /jobs/:id
+채용 공고 수정 (소유자만)
+
+### DELETE /jobs/:id
+채용 공고 삭제 (소유자 또는 admin)
+
 ## 헬스체크
 
 ### GET /health

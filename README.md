@@ -13,7 +13,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 | 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, TypeScript |
 | 인프라 | Vercel (프론트), Render (백엔드), Neon (DB) |
 | 보안 | JWT + OAuth2 (Google/GitHub/Kakao), Helmet + CSP, Rate Limiting (3-tier), HMAC, 요청 살균 |
-| 테스트 | Jest, Supertest (220+ 테스트, 22+ 스위트) |
+| 테스트 | Jest, Supertest (230+ 테스트, 22+ 스위트) |
 
 ## 주요 기능
 
@@ -82,8 +82,15 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **30개 템플릿**: 26개 직종별 + 4개 기본 (개발자, 디자이너, 기획/PM, 마케터, 영업, 데이터, 연구, 의료, 교육, 회계, 법률, HR, 공무원, 물류, 건축, 외식, 무역, 크리에이터, 제조, 프리랜서, 신입 등)
 - **태그 시스템**: 이력서 분류 및 필터링, 소유권 관리
 
+### 채용
+- **채용 공고**: 등록/검색/수정/삭제 (리크루터/기업만)
+- **인재 검색**: 탐색 페이지 리크루터 모드
+- **리크루터 대시보드**: 공고 통계, 스카우트 현황, 빠른 작업
+
 ### 수익화
-- **구독 플랜**: Free/Pro/Enterprise 3단계 (월간/연간)
+- **구직자 요금제**: 무료/스탠다드(₩2,900)/프리미엄(₩5,900)
+- **채용담당 요금제**: 무료/비즈니스(₩19,900)/프리미엄(₩49,900)
+- **어드민 4탭**: 통계/사용자/콘텐츠/요금제
 - **기능 게이팅**: FeatureGate 컴포넌트로 유료 기능 접근 제어
 - **프리미엄 테마 잠금**: Pro 이상 전용 테마
 - **이력서 수 제한**: 플랜별 이력서 생성 한도
@@ -235,10 +242,10 @@ npm run start:server   # node dist-server/main.js
 ### 테스트
 
 ```bash
-npm run test:unit      # 유닛 테스트 (168개+)
+npm run test:unit      # 유닛 테스트 (175개+)
 npm run test:unit:cov  # 유닛 테스트 + 커버리지
 npm run test:e2e       # E2E 테스트 (55개+)
-# 전체: 220+ 테스트 (22+ 스위트)
+# 전체: 230+ 테스트 (22+ 스위트)
 ```
 
 ### 프론트엔드 목업 모드 (백엔드 없이 개발)
@@ -266,7 +273,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 | 프론트엔드   | https://resume-silk-three.vercel.app | Vercel (무료) |
 | DB      | Neon PostgreSQL                      | Neon (무료)   |
 
-## API 엔드포인트 (90+)
+## API 엔드포인트 (100+)
 
 ### 인증
 | 메서드    | 경로                         | 설명     |
@@ -409,6 +416,15 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 | GET    | /api/social/messages/:partnerId     | 대화 내용     |
 | GET    | /api/social/messages/unread/count   | 읽지 않은 쪽지 수 |
 
+### 채용 공고
+| 메서드    | 경로                     | 설명         |
+|--------|------------------------|------------|
+| GET    | /api/jobs              | 채용 공고 목록  |
+| GET    | /api/jobs/my           | 내 채용 공고   |
+| POST   | /api/jobs              | 채용 공고 등록  |
+| PUT    | /api/jobs/:id          | 채용 공고 수정  |
+| DELETE | /api/jobs/:id          | 채용 공고 삭제  |
+
 ### 자소서
 | 메서드    | 경로                     | 설명         |
 |--------|------------------------|------------|
@@ -450,6 +466,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   ├── comments/             # 커뮤니티 댓글 CRUD
 │   ├── notifications/        # 알림 시스템
 │   ├── social/               # 팔로우 + 스카우트 + 쪽지
+│   ├── jobs/                 # 채용 공고 CRUD
 │   ├── cover-letters/        # 자소서 CRUD
 │   ├── common/roles.ts       # 역할 계층 유틸리티
 │   └── attachments/          # 첨부파일 (MIME + 확장자 이중 검증)
@@ -518,7 +535,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── handlers.ts       # API 핸들러
 │   │   ├── data.ts           # 샘플 데이터
 │   │   └── browser.ts        # 브라우저 워커
-│   ├── pages/ (32+)
+│   ├── pages/ (37+)
 │   │   ├── HomePage.tsx         # 메인 대시보드
 │   │   ├── LoginPage.tsx        # 로그인/회원가입
 │   │   ├── AuthCallbackPage.tsx # OAuth 콜백
@@ -544,6 +561,9 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── BookmarksPage.tsx     # 북마크 관리
 │   │   ├── ScoutsPage.tsx       # 스카우트 제안
 │   │   ├── MessagesPage.tsx     # 쪽지
+│   │   ├── JobsPage.tsx           # 채용 공고
+│   │   ├── JobPostPage.tsx        # 공고 등록
+│   │   ├── RecruiterDashboardPage.tsx # 리크루터 대시보드
 │   │   ├── MyCoverLettersPage.tsx # 내 자소서
 │   │   ├── TermsPage.tsx        # 이용약관
 │   │   └── NotFoundPage.tsx     # 404 에러

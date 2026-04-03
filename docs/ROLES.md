@@ -84,6 +84,14 @@ DELETE /api/resumes/:id                      # 타인 이력서 삭제
 DELETE /api/resumes/:id/comments/:commentId  # 타인 댓글 삭제
 ```
 
+### 리크루터/기업 (recruiter/company)
+```
+POST   /api/jobs                              # 채용 공고 등록
+PUT    /api/jobs/:id                           # 채용 공고 수정 (소유자)
+DELETE /api/jobs/:id                           # 채용 공고 삭제 (소유자)
+POST   /api/social/scout                      # 스카우트 전송
+```
+
 ### 인증 사용자 (user 이상)
 ```
 POST   /api/resumes                          # 이력서 생성 (플랜 제한)
