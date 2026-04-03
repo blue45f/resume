@@ -55,6 +55,16 @@ export default function EditResumePage() {
     }
   };
 
+  const handleAutoSave = async (data: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!id) return;
+    try {
+      await updateResume(id, data);
+    } catch {
+      // auto-save failures are silent; the indicator in ResumeForm will show error
+      throw new Error('auto-save failed');
+    }
+  };
+
   if (notFound) {
     return (
       <>
@@ -159,6 +169,7 @@ export default function EditResumePage() {
               activities: resume.activities,
             }}
             onSave={handleSave}
+            onAutoSave={handleAutoSave}
             saving={saving}
           />
         </div>

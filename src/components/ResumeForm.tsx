@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import type { Experience, Education, Skill, Project, Certification, Language, Award, Activity } from '@/types/resume';
 import type { Resume } from '@/types/resume';
 import { toast } from '@/components/Toast';
@@ -7,6 +7,79 @@ import { sectionTips } from '@/lib/writingTips';
 
 const RichEditor = lazy(() => import('@/components/RichEditor'));
 import VoiceInput from '@/components/VoiceInput';
+
+type SaveStatus = 'saved' | 'saving' | 'dirty' | 'error' | 'idle';
+
+function SaveStatusPill({ status, lastSaved }: { status: SaveStatus; lastSaved: Date | null }) {
+  const config: Record<SaveStatus, { label: string; color: string; icon: string }> = {
+    idle: { label: '', color: '', icon: '' },
+    saved: {
+      label: lastSaved ? `저장됨 ${lastSaved.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}` : '저장됨',
+      color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800',
+      icon: 'M5 13l4 4L19 7',
+    },
+    saving: {
+      label: '저장 중...',
+      color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+      icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
+    },
+    dirty: {
+      label: '변경사항 있음',
+      color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+      icon: 'M12 8v4m0 4h.01',
+    },
+    error: {
+      label: '저장 실패',
+      color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
+      icon: 'M6 18L18 6M6 6l12 12',
+    },
+  };
+  if (status === 'idle') return null;
+  const c = config[status];
+  return (
+    <div className={`fixed top-16 right-4 z-40 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm transition-all duration-300 ${c.color}`}>
+      <svg className={`w-3.5 h-3.5 ${status === 'saving' ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d={c.icon} />
+      </svg>
+      {c.label}
+    </div>
+  );
+}
+
+function CollapsibleSection({ id, title, defaultExpanded = true, children }: {
+  id: string; title: string; defaultExpanded?: boolean; children: React.ReactNode;
+}) {
+  const storageKey = `resume-section-${id}`;
+  const [expanded, setExpanded] = useState(() => {
+    const stored = sessionStorage.getItem(storageKey);
+    return stored !== null ? stored === 'true' : defaultExpanded;
+  });
+  const toggle = () => {
+    const next = !expanded;
+    setExpanded(next);
+    sessionStorage.setItem(storageKey, String(next));
+  };
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={toggle}
+        className="flex items-center gap-2 w-full py-2 text-left text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
+        aria-expanded={expanded}
+        aria-controls={`collapse-${id}`}
+      >
+        <svg
+          className={`w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+        {title}
+      </button>
+      {expanded && <div id={`collapse-${id}`}>{children}</div>}
+    </div>
+  );
+}
 
 type ResumeData = Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>;
 
@@ -57,15 +130,36 @@ function ReorderButtons({ index, total, onMove }: { index: number; total: number
 interface Props {
   initialData: ResumeData;
   onSave: (data: ResumeData) => void;
+  onAutoSave?: (data: ResumeData) => Promise<void>;
   saving?: boolean;
 }
 
-export default function ResumeForm({ initialData, onSave, saving }: Props) {
+export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: Props) {
   const [data, setData] = useState(initialData);
   const [activeTab, setActiveTab] = useState('personal');
   const [dirty, setDirty] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
+  const doAutoSave = useCallback(async () => {
+    const handler = onAutoSave || onSave;
+    if (!handler) return;
+    setSaveStatus('saving');
+    try {
+      await (handler as (data: ResumeData) => Promise<void>)(dataRef.current);
+      setLastSaved(new Date());
+      setDirty(false);
+      setSaveStatus('saved');
+      // Fade back to idle after 3 seconds
+      setTimeout(() => setSaveStatus((prev) => prev === 'saved' ? 'idle' : prev), 3000);
+    } catch {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus((prev) => prev === 'error' ? 'dirty' : prev), 3000);
+    }
+  }, [onAutoSave, onSave]);
 
   // Ctrl+S / Cmd+S 키보드 저장
   useEffect(() => {
@@ -91,20 +185,18 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [dirty]);
 
-  // Auto-save after 30 seconds of inactivity
+  // Auto-save after 5 seconds of inactivity
   useEffect(() => {
     if (!dirty) return;
-    if (autoSaveTimer) clearTimeout(autoSaveTimer);
-    const timer = setTimeout(() => {
-      if (dirty && !saving) {
-        onSave(data);
-        setLastSaved(new Date());
-        setDirty(false);
+    setSaveStatus('dirty');
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      if (!saving) {
+        doAutoSave();
       }
-    }, 30000);
-    setAutoSaveTimer(timer);
-    return () => { if (timer) clearTimeout(timer); };
-  }, [data, dirty]);
+    }, 5000);
+    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+  }, [data, dirty, saving, doAutoSave]);
 
 
   const tabs = [
@@ -193,10 +285,11 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
 
   return (
     <form
-      className="space-y-6"
+      className="space-y-6 relative"
       onSubmit={e => { e.preventDefault(); handleSubmit(); }}
       aria-label="이력서 편집 폼"
     >
+      <SaveStatusPill status={saveStatus} lastSaved={lastSaved} />
       <div>
         <label htmlFor="resume-title" className={labelClass}>이력서 제목</label>
         <input
@@ -255,6 +348,7 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
       {/* Personal Info */}
       {activeTab === 'personal' && (
         <fieldset id="panel-personal" role="tabpanel" aria-label="인적사항">
+        <CollapsibleSection id="personal" title={t('resume.personal')}>
           {/* 증명사진 */}
           <div className="flex items-start gap-6 mb-6">
             <div className="shrink-0">
@@ -342,12 +436,15 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
               </Suspense>
             </div>
           </div>
+        </CollapsibleSection>
         </fieldset>
       )}
 
       {/* Experience */}
       {activeTab === 'experience' && (
-        <div id="panel-experience" role="tabpanel" aria-label="경력" className="space-y-4">
+        <div id="panel-experience" role="tabpanel" aria-label="경력">
+        <CollapsibleSection id="experience" title={t('resume.experience')}>
+        <div className="space-y-4">
           {data.experiences.map((exp, idx) => (
             <fieldset key={exp.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1 items-start">
@@ -413,11 +510,15 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
           ))}
           <button type="button" onClick={experiences.add} className={addBtn}>+ 경력 추가</button>
         </div>
+        </CollapsibleSection>
+        </div>
       )}
 
       {/* Education */}
       {activeTab === 'education' && (
-        <div id="panel-education" role="tabpanel" aria-label="학력" className="space-y-4">
+        <div id="panel-education" role="tabpanel" aria-label="학력">
+        <CollapsibleSection id="education" title={t('resume.education')}>
+        <div className="space-y-4">
           {data.educations.map((edu, idx) => (
             <fieldset key={edu.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1 items-start">
@@ -463,11 +564,15 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
           ))}
           <button type="button" onClick={educations.add} className={addBtn}>+ 학력 추가</button>
         </div>
+        </CollapsibleSection>
+        </div>
       )}
 
       {/* Skills */}
       {activeTab === 'skills' && (
-        <div id="panel-skills" role="tabpanel" aria-label="기술" className="space-y-4">
+        <div id="panel-skills" role="tabpanel" aria-label="기술">
+        <CollapsibleSection id="skills" title={t('resume.skills')}>
+        <div className="space-y-4">
           {data.skills.map((skill, idx) => (
             <fieldset key={skill.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1 items-start">
@@ -491,11 +596,15 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
           ))}
           <button type="button" onClick={skills.add} className={addBtn}>+ 기술 추가</button>
         </div>
+        </CollapsibleSection>
+        </div>
       )}
 
       {/* Projects */}
       {activeTab === 'projects' && (
-        <div id="panel-projects" role="tabpanel" aria-label="프로젝트" className="space-y-4">
+        <div id="panel-projects" role="tabpanel" aria-label="프로젝트">
+        <CollapsibleSection id="projects" title={t('resume.projects')}>
+        <div className="space-y-4">
           {data.projects.map((proj, idx) => (
             <fieldset key={proj.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1 items-start">
@@ -549,11 +658,15 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
           ))}
           <button type="button" onClick={projects.add} className={addBtn}>+ 프로젝트 추가</button>
         </div>
+        </CollapsibleSection>
+        </div>
       )}
 
       {/* Certifications */}
       {activeTab === 'certifications' && (
-        <div id="panel-certifications" role="tabpanel" aria-label="자격증" className="space-y-4">
+        <div id="panel-certifications" role="tabpanel" aria-label="자격증">
+        <CollapsibleSection id="certifications" title={t('resume.certifications')}>
+        <div className="space-y-4">
           {data.certifications.map((cert, idx) => (
             <fieldset key={cert.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1 items-start">
@@ -593,11 +706,15 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
           ))}
           <button type="button" onClick={certifications.add} className={addBtn}>+ 자격증 추가</button>
         </div>
+        </CollapsibleSection>
+        </div>
       )}
 
       {/* Languages */}
       {activeTab === 'languages' && (
-        <div id="panel-languages" role="tabpanel" aria-label="어학" className="space-y-4">
+        <div id="panel-languages" role="tabpanel" aria-label="어학">
+        <CollapsibleSection id="languages" title={t('resume.languages')}>
+        <div className="space-y-4">
           {data.languages.map((lang, idx) => (
             <fieldset key={lang.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1 items-start">
@@ -629,11 +746,15 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
           ))}
           <button type="button" onClick={languages.add} className={addBtn}>+ 어학 추가</button>
         </div>
+        </CollapsibleSection>
+        </div>
       )}
 
       {/* Awards */}
       {activeTab === 'awards' && (
-        <div id="panel-awards" role="tabpanel" aria-label="수상" className="space-y-4">
+        <div id="panel-awards" role="tabpanel" aria-label="수상">
+        <CollapsibleSection id="awards" title={t('resume.awards')}>
+        <div className="space-y-4">
           {data.awards.map((award, idx) => (
             <fieldset key={award.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1 items-start">
@@ -665,11 +786,15 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
           ))}
           <button type="button" onClick={awards.add} className={addBtn}>+ 수상 추가</button>
         </div>
+        </CollapsibleSection>
+        </div>
       )}
 
       {/* Activities */}
       {activeTab === 'activities' && (
-        <div id="panel-activities" role="tabpanel" aria-label="활동" className="space-y-4">
+        <div id="panel-activities" role="tabpanel" aria-label="활동">
+        <CollapsibleSection id="activities" title={t('resume.activities')}>
+        <div className="space-y-4">
           {data.activities.map((act, idx) => (
             <fieldset key={act.id} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1 items-start">
@@ -711,32 +836,28 @@ export default function ResumeForm({ initialData, onSave, saving }: Props) {
           ))}
           <button type="button" onClick={activities.add} className={addBtn}>+ 활동 추가</button>
         </div>
+        </CollapsibleSection>
+        </div>
       )}
 
       <div className="flex items-center justify-between pt-4 border-t border-slate-100">
         <span className="text-xs text-slate-400">
-          {dirty ? '변경사항이 있습니다' : ''}
+          {dirty ? '변경사항이 있습니다' : lastSaved ? `마지막 자동 저장: ${lastSaved.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}` : ''}
         </span>
         <div className="flex items-center gap-3">
-          {lastSaved && (
-            <span className="text-xs text-green-500 dark:text-green-400">
-              자동 저장됨 {lastSaved.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+          <div className="relative group">
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
+              aria-busy={saving}
+            >
+              {saving ? '저장 중...' : '저장'}
+            </button>
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-slate-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              {navigator.platform?.includes('Mac') ? '\u2318+S' : 'Ctrl+S'}로 저장
             </span>
-          )}
-          {dirty && !saving && (
-            <span className="text-xs text-amber-500 dark:text-amber-400 animate-pulse">
-              변경사항 있음
-            </span>
-          )}
-          <span className="hidden sm:inline text-xs text-slate-400">Ctrl+S</span>
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
-            aria-busy={saving}
-          >
-            {saving ? '저장 중...' : '저장'}
-          </button>
+          </div>
         </div>
       </div>
     </form>
