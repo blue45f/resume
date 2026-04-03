@@ -167,6 +167,12 @@ export default function HomePage() {
     <>
       <Header />
       <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+        {user && (user.userType === 'recruiter' || user.userType === 'company') && (
+          <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center justify-between">
+            <p className="text-sm text-emerald-800 dark:text-emerald-300">🏢 채용 대시보드에서 공고와 스카우트를 관리하세요</p>
+            <Link to="/recruiter" className="shrink-0 px-3 py-1 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors">대시보드</Link>
+          </div>
+        )}
         {resumes.length === 0 ? (
           <div className="py-12 sm:py-16 animate-fade-in">
             <div className="text-center mb-12">

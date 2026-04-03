@@ -174,64 +174,60 @@ export default function Header() {
 
         {/* Mobile menu */}
         {menuOpen && (
-          <nav className="md:hidden pb-4 space-y-1 border-t border-slate-100 dark:border-slate-700 pt-3 animate-fade-in" aria-label="모바일 메뉴">
-            <Link to="/" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.resumes')}</Link>
-            <Link to="/explore" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.explore')}</Link>
-            <Link to="/templates" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.templates')}</Link>
-            <Link to="/tags" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.tags')}</Link>
+          <nav className="md:hidden pb-4 space-y-0.5 border-t border-slate-100 dark:border-slate-700 pt-3 animate-fade-in max-h-[70vh] overflow-y-auto" aria-label="모바일 메뉴">
+            {/* Main */}
+            <Link to="/" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.resumes')}</Link>
+            <Link to="/explore" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.explore')}</Link>
+            <Link to="/jobs" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">채용</Link>
+            <Link to="/applications" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.applications')}</Link>
 
-            <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
+            <div className="border-t border-slate-100 dark:border-slate-700 my-1.5" />
+            <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500">도구</p>
+            <Link to="/cover-letter" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
+            <Link to="/compare" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.compare')}</Link>
+            <Link to="/translate" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">번역</Link>
+            <Link to="/templates" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.templates')}</Link>
+            <Link to="/tags" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.tags')}</Link>
 
-            <Link to="/applications" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.applications')}</Link>
-            <Link to="/jobs" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">채용</Link>
+            <div className="border-t border-slate-100 dark:border-slate-700 my-1.5" />
+            <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500">나의</p>
+            <Link to="/my-cover-letters" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">내 자소서</Link>
+            <Link to="/bookmarks" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">북마크</Link>
+            <Link to="/scouts" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">스카우트</Link>
+            <Link to="/messages" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">쪽지</Link>
+
+            <div className="border-t border-slate-100 dark:border-slate-700 my-1.5" />
+            <Link to="/resumes/new" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm font-medium text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30">{t('nav.newResume')}</Link>
+            <Link to="/auto-generate" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm font-medium text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/30">AI 자동 생성</Link>
+
             {user?.userType && user.userType !== 'personal' && (
-              <Link to="/recruiter" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/30">대시보드</Link>
+              <>
+                <div className="border-t border-slate-100 dark:border-slate-700 my-1.5" />
+                <Link to="/recruiter" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">대시보드</Link>
+                <Link to="/jobs/new" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">공고 등록</Link>
+              </>
             )}
-            <Link to="/cover-letter" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
-            <Link to="/my-cover-letters" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">내 자소서</Link>
-            <Link to="/bookmarks" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">북마크</Link>
-            <Link to="/scouts" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">스카우트</Link>
-            <Link to="/compare" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.compare')}</Link>
-            <Link to="/translate" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">번역</Link>
-            <Link to="/pricing" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">요금제</Link>
-
-            <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
-
-            <Link to="/resumes/new" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30">+ 새 이력서</Link>
-            <Link to="/auto-generate" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/30">AI 자동 생성</Link>
 
             {user && (
               <>
-                <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
-                <Link to="/settings" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('common.settings')}</Link>
-                <Link to="/messages" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">쪽지</Link>
-                {user?.role === 'admin' || user?.role === 'superadmin' && (
-                  <Link to="/admin" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-red-500 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30">관리자</Link>
+                <div className="border-t border-slate-100 dark:border-slate-700 my-1.5" />
+                <Link to="/settings" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('common.settings')}</Link>
+                {(user.role === 'admin' || user.role === 'superadmin') && (
+                  <Link to="/admin" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-red-500 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30">{t('nav.admin')}</Link>
                 )}
               </>
             )}
 
-            <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
-            <div className="px-3 py-2">
-              <select
-                value={locale}
-                onChange={e => { setLocale(e.target.value as any); }}
-                className="w-full text-sm px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-transparent dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-              >
-                {LOCALES.map(l => (
-                  <option key={l} value={l}>{getLocaleName(l)}</option>
-                ))}
+            {/* Language + Theme */}
+            <div className="border-t border-slate-100 dark:border-slate-700 my-1.5" />
+            <div className="flex items-center gap-2 px-3 py-2">
+              <select value={locale} onChange={e => { setLocale(e.target.value as any); setLocaleState(e.target.value as any); }} className="flex-1 text-sm px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-transparent dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                {LOCALES.map(l => (<option key={l} value={l}>{getLocaleName(l)}</option>))}
               </select>
+              <button onClick={cycleTheme} className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg text-slate-600 dark:text-slate-300">
+                {themeIcon} {themeLabel}
+              </button>
             </div>
-
-            <button
-              onClick={cycleTheme}
-              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-              aria-label={`테마 변경 (현재: ${themeLabel})`}
-            >
-              <span aria-hidden="true">{themeIcon}</span>
-              <span>테마: {themeLabel}</span>
-            </button>
           </nav>
         )}
       </div>
