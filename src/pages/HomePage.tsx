@@ -16,6 +16,7 @@ import OnboardingBanner from '@/components/OnboardingBanner';
 import { t } from '@/lib/i18n';
 import { getUser } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
+import ShareMenu from '@/components/ShareMenu';
 
 
 function SiteStatsBar() {
@@ -45,6 +46,8 @@ export default function HomePage() {
   const [tags, setTags] = useState<(Tag & { resumeCount: number })[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [filterVisibility, setFilterVisibility] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'updatedAt' | 'title' | 'viewCount'>('updatedAt');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [showImport, setShowImport] = useState(false);
@@ -135,9 +138,10 @@ export default function HomePage() {
     load();
   };
 
-  const filtered = filterTag
-    ? resumes.filter(r => r.tags?.some(t => t.id === filterTag))
-    : resumes;
+  const filtered = resumes
+    .filter(r => filterTag ? r.tags?.some(t => t.id === filterTag) : true)
+    .filter(r => filterVisibility === 'all' ? true : r.visibility === filterVisibility)
+    .filter(r => !searchQuery || (r.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || (r.personalInfo?.name || '').toLowerCase().includes(searchQuery.toLowerCase()));
 
   const sorted = [...filtered].sort((a, b) => {
     let cmp = 0;
@@ -336,6 +340,40 @@ export default function HomePage() {
 
             <HiringTrends />
 
+            {/* Search and filters */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              <div className="relative flex-1">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <input
+                  type="text"
+                  placeholder="이력서 검색..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex gap-1.5">
+                {[
+                  { value: 'all', label: '전체', icon: '📋' },
+                  { value: 'public', label: '공개', icon: '🌐' },
+                  { value: 'link-only', label: '링크', icon: '🔗' },
+                  { value: 'private', label: '비공개', icon: '🔒' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setFilterVisibility(opt.value)}
+                    className={`px-2.5 py-1.5 text-xs rounded-lg whitespace-nowrap transition-colors ${
+                      filterVisibility === opt.value
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200'
+                    }`}
+                  >
+                    {opt.icon} {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Tag filter */}
             {tags.length > 0 && (
               <div className="flex gap-2 mb-4 overflow-x-auto py-1 -my-1 px-1 -mx-1" role="group" aria-label="태그 필터">
@@ -506,19 +544,11 @@ export default function HomePage() {
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                         </button>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            const url = `${window.location.origin}/resumes/${resume.id}/preview`;
-                            navigator.clipboard.writeText(url);
-                            toast('링크가 복사되었습니다', 'success');
-                          }}
-                          className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200"
-                          aria-label={`${resume.title} 링크 복사`}
-                          title="공유"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                        </button>
+                        <ShareMenu
+                          url={`${window.location.origin}/resumes/${resume.id}/preview`}
+                          title={resume.title || '이력서'}
+                          description={`${resume.personalInfo.name || ''}의 이력서`}
+                        />
                         <button
                           onClick={() => handleDelete(resume.id, resume.title)}
                           className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
