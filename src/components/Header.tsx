@@ -253,15 +253,19 @@ export default function Header() {
             {user ? (
               <div className="relative">
                 <button
+                  ref={profileTriggerRef}
                   onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                   className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 transition-colors duration-200 flex items-center gap-1"
+                  aria-haspopup="true"
+                  aria-expanded={profileMenuOpen}
+                  aria-label={t('a11y.profileMenu')}
                 >
-                  <span className={`inline-block w-2 h-2 rounded-full ${isRecruiter ? 'bg-purple-500' : 'bg-green-500'}`} />
+                  <span className={`inline-block w-2 h-2 rounded-full ${isRecruiter ? 'bg-purple-500' : 'bg-green-500'}`} aria-hidden="true" />
                   {user.name || user.email}
-                  <span className="text-xs">▾</span>
+                  <span className="text-xs" aria-hidden="true">▾</span>
                 </button>
                 {profileMenuOpen && (
-                  <div className="absolute right-0 top-full mt-1 w-52 glass-dropdown rounded-xl shadow-lg z-50 py-1">
+                  <div ref={profileMenuRef} role="menu" aria-label={t('a11y.profileMenu')} className="absolute right-0 top-full mt-1 w-52 glass-dropdown rounded-xl shadow-lg z-50 py-1">
                     <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-700">
                       <p className="text-xs text-slate-400 dark:text-slate-500">현재 모드</p>
                       <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
