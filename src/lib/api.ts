@@ -7,15 +7,24 @@ import { API_URL } from './config';
 // 프로덕션: VITE_API_URL 환경변수로 백엔드 URL 지정
 const BASE = `${API_URL}/api`;
 
-async function request<T>(url: string, options?: RequestInit): Promise<T> {
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 30000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+async function request<T>(url: string, options?: RequestInit, retries = 1): Promise<T> {
   const token = localStorage.getItem('token');
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  try {
-    const res = await fetch(url, { headers, ...options });
+  const attempt = async (): Promise<T> => {
+    const res = await fetchWithTimeout(url, { headers, ...options }, 30000);
     if (res.status === 401) {
-      // Token expired - clear auth
       localStorage.removeItem('token');
       localStorage.removeItem('user');
     }
@@ -24,7 +33,19 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
       throw new Error(error.message || `Request failed: ${res.status}`);
     }
     return res.json();
+  };
+
+  try {
+    return await attempt();
   } catch (err) {
+    // Render 무료 플랜 cold start 대응: 첫 요청 실패 시 1회 재시도
+    if (retries > 0 && (err instanceof TypeError || (err instanceof DOMException && err.name === 'AbortError'))) {
+      await new Promise(r => setTimeout(r, 2000));
+      return request<T>(url, options, retries - 1);
+    }
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new Error('서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.');
+    }
     if (err instanceof TypeError && err.message === 'Failed to fetch') {
       throw new Error('서버에 연결할 수 없습니다. 네트워크를 확인해주세요.');
     }

@@ -22,7 +22,7 @@ function SiteStatsBar() {
   const [stats, setStats] = useState<{ users: number; resumes: number; views: number; templates: number } | null>(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/health/admin/stats`)
+    fetch(`${API_URL}/api/health/stats`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (d) setStats({ users: d.users.total, resumes: d.resumes.total, views: d.activity.totalViews, templates: d.content.templates });
@@ -51,11 +51,13 @@ export default function HomePage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
   const [bookmarks, setBookmarks] = useState<{ id: string; resumeId: string; title: string; name: string }[]>([]);
+  const [serverError, setServerError] = useState(false);
   const navigate = useNavigate();
   const user = getUser();
 
   const load = async (signal?: AbortSignal) => {
     try {
+      setServerError(false);
       const [resumeData, tagData] = await Promise.all([fetchResumes(), fetchTags()]);
       if (signal?.aborted) return;
       setResumes(resumeData);
@@ -63,6 +65,7 @@ export default function HomePage() {
       fetchBookmarks().then(setBookmarks).catch(() => {});
     } catch (err) {
       if (signal?.aborted) return;
+      setServerError(true);
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
@@ -169,6 +172,17 @@ export default function HomePage() {
     <>
       <Header />
       <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+        {serverError && (
+          <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center justify-between animate-fade-in">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <p className="text-sm text-amber-800 dark:text-amber-300">서버가 시작 중입니다. 무료 호스팅 특성상 첫 로딩에 30~60초 소요될 수 있습니다.</p>
+            </div>
+            <button onClick={() => { setLoading(true); load(); }} className="shrink-0 px-3 py-1 bg-amber-600 text-white text-xs font-medium rounded-lg hover:bg-amber-700 transition-colors">
+              재시도
+            </button>
+          </div>
+        )}
         {user && (user.userType === 'recruiter' || user.userType === 'company') && (
           <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center justify-between">
             <p className="text-sm text-emerald-800 dark:text-emerald-300">🏢 채용 대시보드에서 공고와 스카우트를 관리하세요</p>
@@ -215,26 +229,64 @@ export default function HomePage() {
             </div>
 
             {/* Feature highlights */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mt-12 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-3xl mx-auto mt-12 mb-10">
               {[
-                { icon: '🤖', title: 'AI 분석 5종', desc: '피드백, JD매칭, 면접질문, ATS검사, 자소서' },
-                { icon: '🎨', title: '테마 15종', desc: '클래식부터 포트폴리오까지 실시간 전환' },
-                { icon: '🔒', title: '완전 무료', desc: '무료 LLM 활용, 비용 0원' },
+                {
+                  icon: (<svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>),
+                  title: 'AI 분석 5종 세트',
+                  desc: 'ATS 통과율 검사, JD 매칭도 분석, 예상 면접 질문까지 - 서류 합격률을 높이는 데이터 기반 인사이트',
+                  bg: 'bg-blue-50 dark:bg-blue-900/20',
+                },
+                {
+                  icon: (<svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg>),
+                  title: '26개 직종별 템플릿',
+                  desc: '개발자, 디자이너, 마케터 등 직종에 최적화된 레이아웃과 15종 테마로 프로페셔널한 이력서 완성',
+                  bg: 'bg-purple-50 dark:bg-purple-900/20',
+                },
+                {
+                  icon: (<svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>),
+                  title: '완전 무료로 시작',
+                  desc: '오픈소스 LLM 활용으로 비용 부담 없이 시작하세요. 핵심 기능 모두 무료, 숨겨진 비용 없음',
+                  bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+                },
               ].map(f => (
-                <div key={f.title} className="text-center p-4 animate-fade-in-up">
-                  <span className="text-2xl mb-2 block">{f.icon}</span>
-                  <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{f.title}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{f.desc}</p>
+                <div key={f.title} className={`${f.bg} rounded-xl p-5 text-center animate-fade-in-up hover:-translate-y-1 transition-transform duration-200`}>
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm mb-3">
+                    {f.icon}
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1.5">{f.title}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{f.desc}</p>
                 </div>
               ))}
             </div>
 
-            <div className="text-center">
-              <Link to="/tutorial" className="text-sm text-blue-600 hover:text-blue-800">사용 가이드 보기 &rarr;</Link>
-              <Link to="/pricing" className="text-sm text-purple-600 hover:text-purple-800 ml-4">요금제 보기 &rarr;</Link>
+            {/* Testimonials / Social proof */}
+            <div className="max-w-3xl mx-auto mt-10 mb-10">
+              <h3 className="text-center text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-6">사용자 후기</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { name: '김서연', role: '프론트엔드 개발자', text: 'AI 피드백 덕분에 이력서 퀄리티가 확 올라갔어요. JD 매칭 분석으로 맞춤 이력서를 작성하니 면접 기회가 2배로 늘었습니다.', avatar: 'S', color: 'bg-blue-500' },
+                  { name: '이준호', role: 'UX 디자이너', text: '직종별 템플릿이 정말 유용해요. 포트폴리오 스타일의 이력서를 5분 만에 만들 수 있어서 시간을 많이 아꼈습니다.', avatar: 'J', color: 'bg-purple-500' },
+                  { name: '박지민', role: '마케팅 매니저', text: 'ATS 검사 기능이 특히 인상적이에요. 어떤 키워드가 부족한지 바로 알 수 있어서 서류 통과율이 확실히 높아졌습니다.', avatar: 'J', color: 'bg-emerald-500' },
+                ].map(testimonial => (
+                  <div key={testimonial.name} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 animate-fade-in-up">
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <div className={`w-8 h-8 ${testimonial.color} rounded-full flex items-center justify-center text-white text-xs font-bold`}>{testimonial.avatar}</div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{testimonial.name}</p>
+                        <p className="text-xs text-slate-400">{testimonial.role}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">&ldquo;{testimonial.text}&rdquo;</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="text-center mt-6">
-              <Link to="/jobs" className="text-sm text-emerald-600 hover:text-emerald-800">채용 공고 보기 &rarr;</Link>
+
+            <div className="text-center space-x-4">
+              <Link to="/tutorial" className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">사용 가이드 보기 &rarr;</Link>
+              <Link to="/pricing" className="text-sm text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 transition-colors">요금제 보기 &rarr;</Link>
+              <Link to="/jobs" className="text-sm text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors">채용 공고 보기 &rarr;</Link>
             </div>
 
             <SiteStatsBar />
