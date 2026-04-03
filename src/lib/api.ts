@@ -17,7 +17,7 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 3
   }
 }
 
-async function request<T>(url: string, options?: RequestInit, retries = 1): Promise<T> {
+async function request<T>(url: string, options?: RequestInit, retries = 2): Promise<T> {
   const token = localStorage.getItem('token');
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -27,6 +27,9 @@ async function request<T>(url: string, options?: RequestInit, retries = 1): Prom
     if (res.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+    }
+    if (res.status === 502 || res.status === 503 || res.status === 504) {
+      throw new TypeError('Server deploying');
     }
     if (!res.ok) {
       const error = await res.json().catch(() => ({ message: res.statusText }));
@@ -38,16 +41,18 @@ async function request<T>(url: string, options?: RequestInit, retries = 1): Prom
   try {
     return await attempt();
   } catch (err) {
-    // Render 무료 플랜 cold start 대응: 첫 요청 실패 시 1회 재시도
-    if (retries > 0 && (err instanceof TypeError || (err instanceof DOMException && err.name === 'AbortError'))) {
-      await new Promise(r => setTimeout(r, 2000));
+    // Render 무료 플랜 cold start / 배포 중 대응: exponential backoff 재시도
+    const isNetworkError = err instanceof TypeError || (err instanceof DOMException && err.name === 'AbortError');
+    if (retries > 0 && isNetworkError) {
+      const delay = (3 - retries) * 3000; // 3초, 6초
+      await new Promise(r => setTimeout(r, delay));
       return request<T>(url, options, retries - 1);
     }
     if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new Error('서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.');
+      throw new Error('서버가 배포 중이거나 시작 중입니다. 30초 후 다시 시도해주세요.');
     }
-    if (err instanceof TypeError && err.message === 'Failed to fetch') {
-      throw new Error('서버에 연결할 수 없습니다. 네트워크를 확인해주세요.');
+    if (err instanceof TypeError) {
+      throw new Error('서버에 연결할 수 없습니다. 배포 중일 수 있으니 잠시 후 다시 시도해주세요.');
     }
     throw err;
   }
