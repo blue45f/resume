@@ -85,6 +85,7 @@ export class ResumesService {
         { title: { contains: opts.query, mode: 'insensitive' } },
         { personalInfo: { name: { contains: opts.query, mode: 'insensitive' } } },
         { personalInfo: { summary: { contains: opts.query, mode: 'insensitive' } } },
+        { skills: { some: { items: { contains: opts.query, mode: 'insensitive' } } } },
       ];
     }
 

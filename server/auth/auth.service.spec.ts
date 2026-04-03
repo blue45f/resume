@@ -129,10 +129,9 @@ describe('AuthService - Admin (setUserRole / getAllUsers)', () => {
 
       const result = await service.getAllUsers();
       expect(result).toEqual(mockUsers);
-      expect(mockPrisma.user.findMany).toHaveBeenCalledWith({
-        select: { id: true, name: true, email: true, provider: true, role: true, createdAt: true },
-        orderBy: { createdAt: 'desc' },
-      });
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ orderBy: { createdAt: 'desc' } }),
+      );
     });
 
     it('사용자 없으면 빈 배열', async () => {

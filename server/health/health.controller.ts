@@ -44,6 +44,8 @@ export class HealthController {
       kakao: !!this.config.get('KAKAO_CLIENT_ID'),
     };
 
+    const cloudinaryConfigured = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY);
+
     return {
       status: dbStatus === 'ok' ? 'ok' : 'degraded',
       version: pkg.version as string,
@@ -51,6 +53,7 @@ export class HealthController {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       database: dbStatus,
+      storage: cloudinaryConfigured ? 'cloudinary' : 'database',
       memory: {
         rss: Math.round(process.memoryUsage().rss / 1024 / 1024),
         heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),

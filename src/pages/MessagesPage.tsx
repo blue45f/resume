@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { CardGridSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
 import { timeAgo } from '@/lib/time';
 
@@ -87,7 +88,7 @@ export default function MessagesPage() {
               <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">대화 ({conversations.length})</h2>
             </div>
             {loading ? (
-              <p className="text-sm text-slate-400 text-center py-8">불러오는 중...</p>
+              <CardGridSkeleton count={3} />
             ) : conversations.length === 0 ? (
               <p className="text-sm text-slate-400 text-center py-8">대화가 없습니다</p>
             ) : (

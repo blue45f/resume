@@ -209,9 +209,17 @@ export class AuthService {
     return { success: true, userId: targetUserId, role };
   }
 
-  async getAllUsers() {
+  async getAllUsers(search?: string) {
+    const where = search ? {
+      OR: [
+        { name: { contains: search, mode: 'insensitive' as const } },
+        { email: { contains: search, mode: 'insensitive' as const } },
+      ],
+    } : {};
+
     return this.prisma.user.findMany({
-      select: { id: true, name: true, email: true, provider: true, role: true, createdAt: true },
+      where,
+      select: { id: true, name: true, email: true, provider: true, role: true, plan: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -221,11 +229,17 @@ export class AuthService {
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
-    const resumeCount = await this.prisma.resume.count({ where: { userId } });
+    const [resumeCount, followerCount, followingCount] = await Promise.all([
+      this.prisma.resume.count({ where: { userId } }),
+      this.prisma.follow.count({ where: { followingId: userId } }),
+      this.prisma.follow.count({ where: { followerId: userId } }),
+    ]);
     return {
       id: user.id, email: user.email, name: user.name, avatar: user.avatar,
       provider: user.provider, role: user.role || 'user', plan: user.plan || 'free',
       resumeCount,
+      followerCount,
+      followingCount,
     };
   }
 

@@ -10,12 +10,25 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem('token');
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(url, { headers, ...options });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(error.message || `Request failed: ${res.status}`);
+
+  try {
+    const res = await fetch(url, { headers, ...options });
+    if (res.status === 401) {
+      // Token expired - clear auth
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ message: res.statusText }));
+      throw new Error(error.message || `Request failed: ${res.status}`);
+    }
+    return res.json();
+  } catch (err) {
+    if (err instanceof TypeError && err.message === 'Failed to fetch') {
+      throw new Error('서버에 연결할 수 없습니다. 네트워크를 확인해주세요.');
+    }
+    throw err;
   }
-  return res.json();
 }
 
 // Email Auth

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { CardGridSkeleton } from '@/components/Skeleton';
 import { fetchScouts } from '@/lib/api';
 import { timeAgo } from '@/lib/time';
 
@@ -67,7 +68,7 @@ export default function ScoutsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-slate-400">불러오는 중...</div>
+          <CardGridSkeleton count={3} />
         ) : scouts.length === 0 ? (
           <div className="text-center py-16 animate-fade-in">
             <svg className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

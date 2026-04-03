@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import EmptyState from '@/components/EmptyState';
 import { fetchBookmarks, removeBookmark } from '@/lib/api';
 import { toast } from '@/components/Toast';
+import { CardGridSkeleton } from '@/components/Skeleton';
 import { timeAgo } from '@/lib/time';
 
 interface BookmarkItem {
@@ -51,7 +52,7 @@ export default function BookmarksPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-slate-400">불러오는 중...</div>
+          <CardGridSkeleton count={3} />
         ) : bookmarks.length === 0 ? (
           <EmptyState type="resume" />
         ) : (

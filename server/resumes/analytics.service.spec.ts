@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 const mockPrisma = {
   resume: {
     findMany: jest.fn(),
+    findUnique: jest.fn(),
     aggregate: jest.fn(),
   },
   resumeVersion: {
@@ -18,6 +19,12 @@ const mockPrisma = {
     findMany: jest.fn(),
   },
   bookmark: {
+    count: jest.fn(),
+  },
+  comment: {
+    count: jest.fn(),
+  },
+  shareLink: {
     count: jest.fn(),
   },
 };
@@ -56,6 +63,20 @@ describe('AnalyticsService', () => {
     const result = await service.getPopularSkills();
     expect(result[0].name).toBe('react');
     expect(result[0].count).toBe(2);
+  });
+
+  it('이력서 분석 통계 반환', async () => {
+    mockPrisma.resume.findUnique.mockResolvedValue({ viewCount: 100, visibility: 'public', createdAt: new Date(), updatedAt: new Date() });
+    mockPrisma.comment.count.mockResolvedValue(5);
+    mockPrisma.bookmark.count.mockResolvedValue(3);
+    mockPrisma.shareLink.count.mockResolvedValue(2);
+    mockPrisma.resumeVersion.count.mockResolvedValue(8);
+
+    const result = await service.getResumeAnalytics('r1');
+    expect(result).not.toBeNull();
+    expect(result!.viewCount).toBe(100);
+    expect(result!.commentCount).toBe(5);
+    expect(result!.bookmarkCount).toBe(3);
   });
 
   it('대시보드 통계 반환', async () => {
