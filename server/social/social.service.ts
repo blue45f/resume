@@ -46,12 +46,18 @@ export class SocialService {
   // Scout messages
   async sendScout(senderId: string, data: { receiverId: string; resumeId?: string; company: string; position: string; message: string }) {
     if (data.message.length > 2000) throw new ForbiddenException('스카우트 메시지는 2000자 이내로 입력해주세요');
+
+    const sender = await this.prisma.user.findUnique({ where: { id: senderId }, select: { name: true, userType: true } });
+    if (sender?.userType === 'personal') {
+      throw new ForbiddenException('스카우트 전송은 리크루터 또는 기업 회원만 가능합니다');
+    }
+
     const scout = await this.prisma.scoutMessage.create({
       data: { senderId, ...data },
     });
     try {
-      const sender = await this.prisma.user.findUnique({ where: { id: senderId }, select: { name: true } });
       const senderName = sender?.name || '누군가';
+      // sender already fetched above
       await this.notificationsService.create(
         data.receiverId,
         'scout',

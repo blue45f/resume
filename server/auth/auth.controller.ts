@@ -148,7 +148,10 @@ export class AuthController {
     @Res() res: Response,
   ) {
     try {
-      const token = await this.authService.register(dto.email, dto.password, dto.name!);
+      const token = await this.authService.register(
+        dto.email, dto.password, dto.name!,
+        dto.userType, dto.companyName, dto.companyTitle,
+      );
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',

@@ -17,6 +17,9 @@ model User {
   providerId String   @default("") @map("provider_id")
   passwordHash  String?   @map("password_hash")
   role       String   @default("user") // user, admin
+  userType     String   @default("personal") @map("user_type") // personal, recruiter, company
+  companyName  String?  @map("company_name")
+  companyTitle String?  @map("company_title") // 직함
   plan          String   @default("free") // free, pro, enterprise
   planExpiresAt DateTime? @map("plan_expires_at")
   createdAt  DateTime @default(now()) @map("created_at")

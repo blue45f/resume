@@ -49,6 +49,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [userType, setUserType] = useState('personal');
+  const [companyName, setCompanyName] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -57,7 +59,9 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
-      const body = isRegister ? { email, password, name } : { email, password };
+      const body = isRegister
+        ? { email, password, name, userType, companyName: companyName || undefined }
+        : { email, password };
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -144,8 +148,38 @@ export default function LoginPage() {
           {mode === 'email' && (
             <form onSubmit={handleEmailAuth} className="space-y-3">
               {isRegister && (
-                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="이름" required aria-label="이름"
-                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <>
+                  <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="이름" required aria-label="이름"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {([
+                      { value: 'personal', label: '개인', icon: '👤', desc: '구직자' },
+                      { value: 'recruiter', label: '리크루터', icon: '🔍', desc: '채용 담당' },
+                      { value: 'company', label: '기업', icon: '🏢', desc: '기업 회원' },
+                    ] as const).map(t => (
+                      <button
+                        key={t.value}
+                        type="button"
+                        onClick={() => setUserType(t.value)}
+                        className={`p-2.5 rounded-xl border text-center transition-all duration-200 ${
+                          userType === t.value
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500'
+                            : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className="text-lg block">{t.icon}</span>
+                        <span className="text-xs font-medium text-slate-900 dark:text-slate-100">{t.label}</span>
+                        <span className="text-xs text-slate-400 block">{t.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {userType !== 'personal' && (
+                    <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)}
+                      placeholder={userType === 'company' ? '회사명 *' : '소속 회사'}
+                      required={userType === 'company'}
+                      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  )}
+                </>
               )}
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" required aria-label="이메일"
                 className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />

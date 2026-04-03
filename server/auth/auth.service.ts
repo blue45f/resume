@@ -237,6 +237,9 @@ export class AuthService {
     return {
       id: user.id, email: user.email, name: user.name, avatar: user.avatar,
       provider: user.provider, role: user.role || 'user', plan: user.plan || 'free',
+      userType: user.userType || 'personal',
+      companyName: user.companyName || '',
+      companyTitle: user.companyTitle || '',
       resumeCount,
       followerCount,
       followingCount,
@@ -415,12 +418,18 @@ export class AuthService {
     return this.frontendUrl;
   }
 
-  async register(email: string, password: string, name: string): Promise<string> {
+  async register(email: string, password: string, name: string, userType?: string, companyName?: string, companyTitle?: string): Promise<string> {
     if (!email || !password || !name) {
       throw new UnauthorizedException('이메일, 비밀번호, 이름은 필수입니다');
     }
     if (password.length < 8) {
       throw new UnauthorizedException('비밀번호는 8자 이상이어야 합니다');
+    }
+
+    const validTypes = ['personal', 'recruiter', 'company'];
+    const type = validTypes.includes(userType || '') ? userType : 'personal';
+    if (type === 'company' && !companyName) {
+      throw new UnauthorizedException('기업 계정은 회사명이 필수입니다');
     }
 
     const existing = await this.prisma.user.findUnique({ where: { email } });
@@ -438,6 +447,9 @@ export class AuthService {
         passwordHash,
         provider: 'local',
         providerId: email,
+        userType: type || 'personal',
+        companyName: companyName || null,
+        companyTitle: companyTitle || null,
       },
     });
 

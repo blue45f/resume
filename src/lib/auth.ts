@@ -8,6 +8,8 @@ export interface User {
   provider: string;
   role?: string;
   plan?: string;
+  userType?: string;
+  companyName?: string;
 }
 
 export function getToken(): string | null {

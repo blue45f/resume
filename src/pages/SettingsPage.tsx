@@ -191,7 +191,7 @@ export default function SettingsPage() {
                   <Link to="/scouts" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">스카우트</Link>
                 </div>
                 <div className="mt-2">
-                  <ProfileBadges resumeCount={0} isAdmin={user?.role === 'admin'} />
+                  <ProfileBadges resumeCount={0} isAdmin={user?.role === 'admin'} userType={user?.userType} />
                 </div>
               </div>
             </div>
