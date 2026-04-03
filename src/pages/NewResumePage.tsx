@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import ResumeForm from '@/components/ResumeForm';
 import ThemePreviewCard from '@/components/ThemePreviewCard';
 import ThemePreviewModal from '@/components/ThemePreviewModal';
+import ContentSuggestions, { JOB_TITLE_LIST } from '@/components/ContentSuggestions';
 import { toast } from '@/components/Toast';
 import { createEmptyResumeData } from '@/types/resume';
 import type { Resume, ResumeSummary, Template } from '@/types/resume';

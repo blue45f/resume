@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
+import ErrorRetry from '@/components/ErrorRetry';
 import EmptyState from '@/components/EmptyState';
 import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchTags } from '@/lib/api';
@@ -107,6 +108,7 @@ export default function ExplorePage() {
   const [tags, setTags] = useState<(Tag & { resumeCount: number })[]>([]);
   const [popularSkills, setPopularSkills] = useState<{ name: string; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [searchInput, setSearchInput] = useState(params.get('q') || '');
   const [sortBy, setSortBy] = useState<'recent' | 'views'>('recent');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -142,6 +144,7 @@ export default function ExplorePage() {
 
   const search = async (signal?: AbortSignal) => {
     setLoading(true);
+    setError(false);
     try {
       const qs = new URLSearchParams();
       if (query) qs.set('q', query);
@@ -152,8 +155,10 @@ export default function ExplorePage() {
 
       const res = await fetch(`${API_URL}/api/resumes/public?${qs}`, { signal });
       if (res.ok && !signal?.aborted) setResult(await res.json());
+      else if (!signal?.aborted) setError(true);
     } catch (err) {
       if (signal?.aborted) return;
+      setError(true);
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
@@ -499,7 +504,9 @@ export default function ExplorePage() {
         )}
 
         {/* 결과 */}
-        {loading ? (
+        {error ? (
+          <ErrorRetry onRetry={() => search()} />
+        ) : loading ? (
           <div aria-busy="true" aria-label="검색 결과 불러오는 중"><CardGridSkeleton count={6} /></div>
         ) : !result || result.data.length === 0 ? (
           (query || tag) ? (

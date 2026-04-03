@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ErrorRetry from '@/components/ErrorRetry';
 import { API_URL } from '@/lib/config';
 import { timeAgo } from '@/lib/time';
 
@@ -44,14 +45,21 @@ export default function CompanyPage() {
   const companyName = decodeURIComponent(name || '');
   const [allJobs, setAllJobs] = useState<JobPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    document.title = `${companyName} — 회사 정보 — 이력서공방`;
+  const loadJobs = () => {
+    setError(false);
+    setLoading(true);
     fetch(`${API_URL}/api/jobs`)
       .then(r => r.ok ? r.json() : [])
       .then(setAllJobs)
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    document.title = `${companyName} — 회사 정보 — 이력서공방`;
+    loadJobs();
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
   }, [companyName]);
 
@@ -103,6 +111,18 @@ export default function CompanyPage() {
   const industry = useMemo(() => detectIndustry(companyJobs), [companyJobs]);
 
   const estimatedSize = companyJobs.length >= 10 ? '대기업' : companyJobs.length >= 5 ? '중견기업' : companyJobs.length >= 2 ? '중소기업' : '스타트업';
+
+  if (error) {
+    return (
+      <>
+        <Header />
+        <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+          <ErrorRetry onRetry={loadJobs} />
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   if (loading) {
     return (

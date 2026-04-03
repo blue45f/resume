@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
+import ErrorRetry from '@/components/ErrorRetry';
 import EmptyState from '@/components/EmptyState';
 import { fetchScouts, followUser, markScoutRead, fetchSentScouts, respondToScout as apiRespondToScout, sendBulkScout } from '@/lib/api';
 import { getUser } from '@/lib/auth';
@@ -95,6 +96,7 @@ export default function ScoutsPage() {
   const [sentScouts, setSentScouts] = useState<Scout[]>([]);
   const [receivedScouts, setReceivedScouts] = useState<Scout[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // Bulk scout
@@ -119,21 +121,26 @@ export default function ScoutsPage() {
   const [newBookmarkEmail, setNewBookmarkEmail] = useState('');
   const [newBookmarkNote, setNewBookmarkNote] = useState('');
 
-  useEffect(() => {
-    document.title = '스카우트 제안 — 이력서공방';
-
+  const loadScouts = useCallback(() => {
+    setError(false);
+    setLoading(true);
     Promise.all([
-      fetchScouts().catch(() => []),
+      fetchScouts().catch(() => { throw new Error(); }),
       isRecruiter
-        ? fetchSentScouts().catch(() => [])
+        ? fetchSentScouts().catch(() => { throw new Error(); })
         : Promise.resolve([]),
     ])
       .then(([received, sent]) => {
         setReceivedScouts(received.map(getScoutWithExpiry));
         setSentScouts(sent.map(getScoutWithExpiry));
       })
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
+  }, [isRecruiter]);
 
+  useEffect(() => {
+    document.title = '스카우트 제안 — 이력서공방';
+    loadScouts();
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
   }, []);
 
@@ -609,6 +616,8 @@ export default function ScoutsPage() {
               </div>
             )}
           </div>
+        ) : error ? (
+          <ErrorRetry onRetry={loadScouts} />
         ) : loading ? (
           <CardGridSkeleton count={3} />
         ) : scouts.length === 0 ? (

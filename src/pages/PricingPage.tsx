@@ -124,13 +124,13 @@ export default function PricingPage() {
                 key={plan.id}
                 className={`relative bg-white dark:bg-slate-800 rounded-2xl border-2 p-6 sm:p-8 transition-all duration-200 ${
                   plan.popular
-                    ? 'border-blue-500 shadow-lg shadow-blue-500/10 sm:scale-[1.02]'
-                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                    ? 'border-blue-500 dark:border-blue-400 shadow-xl shadow-blue-500/15 sm:scale-[1.03] ring-1 ring-blue-500/20'
+                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md'
                 }`}
               >
                 {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full shadow-sm">
-                    인기
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold rounded-full shadow-md shadow-blue-600/20">
+                    가장 인기
                   </span>
                 )}
                 {isCurrentPlan && (
@@ -256,8 +256,11 @@ export default function PricingPage() {
                   <tr className="border-b border-slate-200 dark:border-slate-700">
                     <th className="text-left py-4 px-4 text-sm font-semibold text-slate-500">기능</th>
                     <th className="text-center py-4 px-2 text-sm font-semibold text-slate-500">무료</th>
-                    <th className="text-center py-4 px-2 text-sm font-semibold text-blue-600">
-                      <span className="inline-flex items-center gap-1">스탠다드 <span className="w-1.5 h-1.5 bg-blue-600 rounded-full" /></span>
+                    <th className="text-center py-4 px-2 text-sm font-bold text-blue-600 dark:text-blue-400">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 rounded-full">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                        스탠다드
+                      </span>
                     </th>
                     <th className="text-center py-4 px-2 text-sm font-semibold text-slate-500">프리미엄</th>
                   </tr>
