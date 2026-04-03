@@ -13,6 +13,7 @@ import ScrollReset from '@/components/ScrollReset';
 import QuickActions from '@/components/QuickActions';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
+import AuthGuard from '@/components/AuthGuard';
 import { fetchMe } from '@/lib/auth';
 
 // Lazy import with auto-retry on chunk load failure (배포 후 해시 변경 대응)
@@ -100,31 +101,31 @@ export default function App() {
             <Route path="/resumes/:id/preview" element={<Suspense fallback={<PageLoader />}><PreviewPage /></Suspense>} />
             <Route path="/templates" element={<Suspense fallback={<PageLoader />}><TemplatesPage /></Suspense>} />
             <Route path="/tags" element={<Suspense fallback={<PageLoader />}><TagsPage /></Suspense>} />
-            <Route path="/applications" element={<Suspense fallback={<PageLoader />}><ApplicationsPage /></Suspense>} />
+            <Route path="/applications" element={<Suspense fallback={<PageLoader />}><AuthGuard><ApplicationsPage /></AuthGuard></Suspense>} />
             <Route path="/explore" element={<Suspense fallback={<PageLoader />}><ExplorePage /></Suspense>} />
             <Route path="/about" element={<Suspense fallback={<PageLoader />}><AboutPage /></Suspense>} />
             <Route path="/tutorial" element={<Suspense fallback={<PageLoader />}><TutorialPage /></Suspense>} />
             <Route path="/terms" element={<Suspense fallback={<PageLoader />}><TermsPage /></Suspense>} />
             <Route path="/cover-letter" element={<Suspense fallback={<PageLoader />}><CoverLetterPage /></Suspense>} />
-            <Route path="/my-cover-letters" element={<Suspense fallback={<PageLoader />}><MyCoverLettersPage /></Suspense>} />
+            <Route path="/my-cover-letters" element={<Suspense fallback={<PageLoader />}><AuthGuard><MyCoverLettersPage /></AuthGuard></Suspense>} />
             <Route path="/compare" element={<Suspense fallback={<PageLoader />}><ComparePage /></Suspense>} />
             <Route path="/translate" element={<Suspense fallback={<PageLoader />}><TranslatePage /></Suspense>} />
             <Route path="/pricing" element={<Suspense fallback={<PageLoader />}><PricingPage /></Suspense>} />
             <Route path="/payment" element={<Suspense fallback={<PageLoader />}><PaymentPage /></Suspense>} />
             <Route path="/payment/success" element={<Suspense fallback={<PageLoader />}><PaymentResultPage /></Suspense>} />
             <Route path="/payment/fail" element={<Suspense fallback={<PageLoader />}><PaymentResultPage /></Suspense>} />
-            <Route path="/settings" element={<Suspense fallback={<PageLoader />}><SettingsPage /></Suspense>} />
-            <Route path="/bookmarks" element={<Suspense fallback={<PageLoader />}><BookmarksPage /></Suspense>} />
-            <Route path="/messages" element={<Suspense fallback={<PageLoader />}><MessagesPage /></Suspense>} />
-            <Route path="/scouts" element={<Suspense fallback={<PageLoader />}><ScoutsPage /></Suspense>} />
+            <Route path="/settings" element={<Suspense fallback={<PageLoader />}><AuthGuard><SettingsPage /></AuthGuard></Suspense>} />
+            <Route path="/bookmarks" element={<Suspense fallback={<PageLoader />}><AuthGuard><BookmarksPage /></AuthGuard></Suspense>} />
+            <Route path="/messages" element={<Suspense fallback={<PageLoader />}><AuthGuard><MessagesPage /></AuthGuard></Suspense>} />
+            <Route path="/scouts" element={<Suspense fallback={<PageLoader />}><AuthGuard><ScoutsPage /></AuthGuard></Suspense>} />
             <Route path="/jobs/new" element={<Suspense fallback={<PageLoader />}><JobPostPage /></Suspense>} />
             <Route path="/jobs" element={<Suspense fallback={<PageLoader />}><JobsPage /></Suspense>} />
-            <Route path="/recruiter" element={<Suspense fallback={<PageLoader />}><RecruiterDashboardPage /></Suspense>} />
+            <Route path="/recruiter" element={<Suspense fallback={<PageLoader />}><AuthGuard><RecruiterDashboardPage /></AuthGuard></Suspense>} />
             <Route path="/interview-prep" element={<Suspense fallback={<PageLoader />}><InterviewPrepPage /></Suspense>} />
-            <Route path="/social/follows" element={<Suspense fallback={<PageLoader />}><FollowListPage /></Suspense>} />
+            <Route path="/social/follows" element={<Suspense fallback={<PageLoader />}><AuthGuard><FollowListPage /></AuthGuard></Suspense>} />
             <Route path="/feedback" element={<Suspense fallback={<PageLoader />}><FeedbackPage /></Suspense>} />
-            <Route path="/notifications" element={<Suspense fallback={<PageLoader />}><NotificationsPage /></Suspense>} />
-            <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AdminPage /></Suspense>} />
+            <Route path="/notifications" element={<Suspense fallback={<PageLoader />}><AuthGuard><NotificationsPage /></AuthGuard></Suspense>} />
+            <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AuthGuard><AdminPage /></AuthGuard></Suspense>} />
             <Route path="/r/:code" element={<Suspense fallback={<PageLoader />}><ShortLinkPage /></Suspense>} />
             <Route path="/@:username/:slug" element={<Suspense fallback={<PageLoader />}><ProfileResumePage /></Suspense>} />
             <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />
