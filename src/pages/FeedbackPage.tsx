@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { FormSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
@@ -166,7 +167,7 @@ export default function FeedbackPage() {
 
         {/* 목록 */}
         {loading ? (
-          <div className="text-center py-12 text-slate-400">로딩 중...</div>
+          <div className="py-8"><FormSkeleton /></div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 animate-fade-in">
             <p className="text-4xl mb-4">📝</p>

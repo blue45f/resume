@@ -246,39 +246,78 @@ export default function HomePage() {
           </div>
         )}
         {resumes.length === 0 ? (
-          <div className="py-12 sm:py-16 animate-fade-in">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium mb-4 animate-fade-in">
-                <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                AI 기반 이력서 관리 플랫폼
+          <div className="py-12 sm:py-20 animate-fade-in">
+            {/* Hero section */}
+            <div className="relative text-center mb-16">
+              <div className="absolute inset-0 -top-20 bg-gradient-to-b from-blue-50/80 via-indigo-50/40 to-transparent dark:from-blue-950/30 dark:via-indigo-950/20 dark:to-transparent -mx-4 sm:-mx-6 lg:-mx-8 rounded-3xl" />
+              <div className="relative">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100/80 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-semibold mb-6 animate-fade-in backdrop-blur-sm border border-blue-200/50 dark:border-blue-800/50">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  AI 기반 이력서 관리 플랫폼
+                </div>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-slate-100 mb-5 tracking-tight leading-[1.15]">
+                  커리어의 시작,{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400">
+                    AI와 함께
+                  </span>
+                  <br className="hidden sm:block" />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-400 dark:to-blue-400">
+                    스마트하게
+                  </span>
+                </h1>
+                <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed mb-8">
+                  5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기까지.<br className="hidden sm:block" />
+                  서류 합격률을 높이는 데이터 기반 이력서 플랫폼
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
+                  <Link
+                    to="/resumes/new"
+                    className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all duration-200 hover:-translate-y-0.5 text-base"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    무료로 시작하기
+                  </Link>
+                  <Link
+                    to="/explore"
+                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md transition-all duration-200 text-base"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    이력서 탐색
+                  </Link>
+                </div>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
-                {t('home.welcome').split(/스마트하게|smartly|スマートに/).length > 1 ? (
-                  <>{t('home.welcome').split(/스마트하게|smartly|スマートに/)[0]}<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{t('home.welcome').match(/스마트하게|smartly|スマートに/)?.[0]}</span>{t('home.welcome').split(/스마트하게|smartly|スマートに/)[1]}</>
-                ) : t('home.welcome')}
-              </h1>
-              <p className="text-slate-500 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
-                {t('home.welcomeDesc')}
-              </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl md:max-w-3xl mx-auto mb-10">
+
+            {/* Platform stats */}
+            <SiteStatsBar />
+
+            {/* Action cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl md:max-w-3xl mx-auto mb-10 mt-12">
               <Link to="/resumes/new" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
-                <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📝</span>
+                <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform">
+                  <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                </span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.directWrite')}</span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">템플릿 선택 후 작성</span>
               </Link>
               <Link to="/auto-generate" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-purple-200 dark:border-purple-800 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
-                <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🤖</span>
+                <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/30 group-hover:scale-110 transition-transform">
+                  <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                </span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.aiGenerate')}</span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">텍스트 붙여넣기만</span>
               </Link>
               <button onClick={() => setShowImport(true)} className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-green-200 dark:border-green-800 hover:border-green-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
-                <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📋</span>
+                <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30 group-hover:scale-110 transition-transform">
+                  <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                </span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.quickImport')}</span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">텍스트 붙여넣기</span>
               </button>
               <Link to="/explore" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
-                <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🔍</span>
+                <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 group-hover:scale-110 transition-transform">
+                  <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.explore')}</span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">공개 이력서 탐색</span>
               </Link>
@@ -323,23 +362,12 @@ export default function HomePage() {
               ))}
             </div>
 
-            {/* Section divider */}
-            <div className="flex items-center gap-4 max-w-xs mx-auto mt-12 mb-10">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent to-slate-200 dark:to-slate-700" />
-              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">후기</span>
-              <div className="flex-1 h-px bg-gradient-to-l from-transparent to-slate-200 dark:to-slate-700" />
-            </div>
-
-            {/* Platform stats - real data from API */}
-            <SiteStatsBar />
-
-            <div className="text-center space-x-4">
+            {/* Bottom links */}
+            <div className="text-center space-x-4 mt-12">
               <Link to="/tutorial" className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">사용 가이드 보기 &rarr;</Link>
               <Link to="/pricing" className="text-sm text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 transition-colors">요금제 보기 &rarr;</Link>
               <Link to="/jobs" className="text-sm text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors">채용 공고 보기 &rarr;</Link>
             </div>
-
-            <SiteStatsBar />
           </div>
         ) : (
           <div>

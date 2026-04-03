@@ -139,7 +139,17 @@ export default function PricingPage() {
                   </span>
                 )}
                 <div className="text-center mb-6">
-                  <span className="text-2xl mb-2 block">{plan.badge}</span>
+                  <span className={`inline-flex items-center justify-center w-10 h-10 rounded-xl mb-2 ${
+                    plan.id === 'free' ? 'bg-slate-100 dark:bg-slate-700' : plan.popular ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gradient-to-br from-purple-500 to-indigo-600'
+                  }`}>
+                    {plan.id === 'free' ? (
+                      <svg className="w-5 h-5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    ) : plan.popular ? (
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                    )}
+                  </span>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{plan.name}</h3>
                   <div className="mt-3">
                     {yearly && plan.price > 0 && (
@@ -221,9 +231,9 @@ export default function PricingPage() {
                 ) : (
                   <Link
                     to={plan.id === 'free' ? '/resumes/new' : `/payment?plan=${plan.id}&period=${yearly ? 'yearly' : 'monthly'}`}
-                    className={`block w-full py-3 text-center text-sm font-medium rounded-xl transition-all duration-200 ${
+                    className={`block w-full py-3 text-center text-sm font-semibold rounded-xl transition-all duration-200 ${
                       plan.popular
-                        ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md'
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:-translate-y-0.5'
                         : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
                     }`}
                   >

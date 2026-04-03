@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ErrorRetry from '@/components/ErrorRetry';
 import CompanyInfoCard from '@/components/CompanyInfoCard';
 import JobAlert from '@/components/JobAlert';
 import { getUser } from '@/lib/auth';
@@ -202,6 +203,7 @@ function MatchBadge({ score }: { score: number }) {
 export default function JobsPage() {
   const [jobs, setJobs] = useState<JobPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
@@ -254,11 +256,13 @@ export default function JobsPage() {
   }, []);
 
   const loadJobs = (query?: string) => {
+    setError(false);
+    setLoading(true);
     const qs = query ? `?q=${encodeURIComponent(query)}` : '';
     fetch(`${API_URL}/api/jobs${qs}`)
       .then(r => r.ok ? r.json() : [])
       .then(setJobs)
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   };
 
@@ -380,7 +384,9 @@ export default function JobsPage() {
 
         <SalaryContributeModal open={showSalaryContribute} onClose={() => setShowSalaryContribute(false)} />
 
-        {loading ? (
+        {error ? (
+          <ErrorRetry onRetry={() => loadJobs(search)} />
+        ) : loading ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-1 space-y-2">
               {Array.from({ length: 5 }).map((_, i) => (

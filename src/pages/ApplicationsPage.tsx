@@ -3,6 +3,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ErrorRetry from '@/components/ErrorRetry';
+import { CardGridSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
 import EmptyState from '@/components/EmptyState';
 import AppCommentSection from '@/components/AppCommentSection';
@@ -39,6 +41,7 @@ export default function ApplicationsPage() {
   const [params] = useSearchParams();
   const [apps, setApps] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ company: '', position: '', url: '', status: 'applied', notes: '', salary: '', location: '', visibility: 'private', resumeId: '' });
   const [filter, setFilter] = useState<string | null>(null);
@@ -50,7 +53,9 @@ export default function ApplicationsPage() {
   const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set());
 
   const load = () => {
-    fetchApplications().then(setApps).catch(() => {}).finally(() => setLoading(false));
+    setError(false);
+    setLoading(true);
+    fetchApplications().then(setApps).catch(() => setError(true)).finally(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, []);
@@ -310,8 +315,10 @@ export default function ApplicationsPage() {
         )}
 
         {/* Application Views */}
-        {loading ? (
-          <div className="text-center py-12 text-slate-500">불러오는 중...</div>
+        {error ? (
+          <ErrorRetry onRetry={load} />
+        ) : loading ? (
+          <CardGridSkeleton count={4} />
         ) : filtered.length === 0 && viewMode === 'list' ? (
           <EmptyState type={searchQuery || filter ? 'search' : 'application'} query={searchQuery || filter || undefined} />
         ) : viewMode === 'kanban' ? (

@@ -260,9 +260,15 @@ export default function LoginPage() {
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {([
-                      { value: 'personal', label: '개인', icon: '\uD83D\uDC64', desc: '구직자' },
-                      { value: 'recruiter', label: '리크루터', icon: '\uD83D\uDD0D', desc: '채용 담당' },
-                      { value: 'company', label: '기업', icon: '\uD83C\uDFE2', desc: '기업 회원' },
+                      { value: 'personal', label: '개인', icon: (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                      ), desc: '구직자' },
+                      { value: 'recruiter', label: '리크루터', icon: (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                      ), desc: '채용 담당' },
+                      { value: 'company', label: '기업', icon: (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                      ), desc: '기업 회원' },
                     ] as const).map(tp => (
                       <button
                         key={tp.value}
@@ -274,7 +280,7 @@ export default function LoginPage() {
                             : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
                         }`}
                       >
-                        <span className="text-lg block">{tp.icon}</span>
+                        <span className={`flex justify-center mb-1 ${userType === tp.value ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`}>{tp.icon}</span>
                         <span className="text-xs font-medium text-slate-900 dark:text-slate-100">{tp.label}</span>
                         <span className="text-xs text-slate-400 block">{tp.desc}</span>
                       </button>
