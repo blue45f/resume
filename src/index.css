@@ -738,6 +738,116 @@ button:active:not(:disabled) {
   }
 }
 
+/* ===== RTL Support Preparation ===== */
+
+/* Apply RTL direction when html[dir="rtl"] or .rtl class is set */
+[dir="rtl"],
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Mirror flexbox layouts for RTL */
+[dir="rtl"] .flex-row,
+.rtl .flex-row {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .flex-row-reverse,
+.rtl .flex-row-reverse {
+  flex-direction: row;
+}
+
+/* Ensure gaps work in both directions (gap is direction-agnostic by spec) */
+
+/* Mirror specific layout utilities */
+[dir="rtl"] .ml-auto,
+.rtl .ml-auto {
+  margin-left: unset;
+  margin-right: auto;
+}
+
+[dir="rtl"] .mr-auto,
+.rtl .mr-auto {
+  margin-right: unset;
+  margin-left: auto;
+}
+
+/* Mirror padding and margin directional utilities */
+[dir="rtl"] .pl-4,
+.rtl .pl-4 {
+  padding-left: unset;
+  padding-right: 1rem;
+}
+
+[dir="rtl"] .pr-4,
+.rtl .pr-4 {
+  padding-right: unset;
+  padding-left: 1rem;
+}
+
+/* Mirror absolute positioning for dropdowns */
+[dir="rtl"] .left-0,
+.rtl .left-0 {
+  left: unset;
+  right: 0;
+}
+
+[dir="rtl"] .right-0,
+.rtl .right-0 {
+  right: unset;
+  left: 0;
+}
+
+/* Mirror text alignment */
+[dir="rtl"] .text-left,
+.rtl .text-left {
+  text-align: right;
+}
+
+[dir="rtl"] .text-right,
+.rtl .text-right {
+  text-align: left;
+}
+
+/* Mirror border radius for RTL */
+[dir="rtl"] .rounded-l-xl,
+.rtl .rounded-l-xl {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+}
+
+[dir="rtl"] .rounded-r-xl,
+.rtl .rounded-r-xl {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: 0.75rem;
+  border-bottom-left-radius: 0.75rem;
+}
+
+/* Mirror transform-based animations for RTL */
+[dir="rtl"] .animate-slide-in-right,
+.rtl .animate-slide-in-right {
+  animation-name: slideInLeft;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+/* Logical properties helpers (modern approach) */
+.rtl-logical-padding {
+  padding-inline-start: 1rem;
+  padding-inline-end: 1rem;
+}
+
+.rtl-logical-margin {
+  margin-inline-start: auto;
+}
+
 /* Mobile touch improvements */
 @media (max-width: 640px) {
   /* Increase tap targets */

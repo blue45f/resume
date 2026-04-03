@@ -136,7 +136,7 @@ export default function Header() {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg"
       >
-        본문으로 건너뛰기
+        {t('a11y.skipToContent')}
       </a>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
@@ -149,7 +149,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1.5" aria-label="주요 메뉴">
+          <nav className="hidden md:flex items-center gap-1.5" aria-label={t('a11y.mainMenu')}>
             {!isHome && (
               <Link to="/" className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 rounded px-2 py-1">
                 {t('nav.resumes')}
@@ -314,7 +314,7 @@ export default function Header() {
           <button
             className="md:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
             onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="메뉴 열기"
+            aria-label={menuOpen ? t('a11y.closeMenu') : t('a11y.openMenu')}
             aria-expanded={menuOpen}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -329,7 +329,7 @@ export default function Header() {
 
         {/* Mobile menu */}
         {menuOpen && (
-          <nav className="md:hidden pb-4 space-y-0.5 border-t border-slate-100 dark:border-slate-700 pt-3 animate-fade-in max-h-[70vh] overflow-y-auto" aria-label="모바일 메뉴">
+          <nav className="md:hidden pb-4 space-y-0.5 border-t border-slate-100 dark:border-slate-700 pt-3 animate-fade-in max-h-[70vh] overflow-y-auto" aria-label={t('a11y.mobileMenu')}>
             {/* User type toggle */}
             {user && (
               <>

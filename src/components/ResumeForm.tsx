@@ -43,8 +43,8 @@ function SaveStatusPill({ status, lastSaved }: { status: SaveStatus; lastSaved: 
   if (status === 'idle') return null;
   const c = config[status];
   return (
-    <div className={`fixed top-16 right-4 z-40 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm transition-all duration-300 ${c.color}`}>
-      <svg className={`w-3.5 h-3.5 ${status === 'saving' ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+    <div className={`fixed top-16 right-4 z-40 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm transition-all duration-300 ${c.color}`} role="status" aria-live="polite">
+      <svg className={`w-3.5 h-3.5 ${status === 'saving' ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" d={c.icon} />
       </svg>
       {c.label}
@@ -350,8 +350,9 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
           onChange={e => { setDirty(true); setValidationErrors(prev => ({ ...prev, title: '' })); setData(prev => ({ ...prev, title: e.target.value })); }}
           aria-required="true"
           aria-invalid={!!validationErrors.title}
+          aria-describedby={validationErrors.title ? 'title-error' : undefined}
         />
-        {validationErrors.title && <p className="mt-1 text-xs text-red-500">{validationErrors.title}</p>}
+        {validationErrors.title && <p id="title-error" className="mt-1 text-xs text-red-500" role="alert">{validationErrors.title}</p>}
       </div>
 
       {/* Tabs */}
@@ -448,8 +449,9 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
                   onChange={e => { setValidationErrors(prev => ({ ...prev, name: '' })); updatePersonalInfo('name', e.target.value); }}
                   aria-required="true"
                   aria-invalid={!!validationErrors.name}
+                  aria-describedby={validationErrors.name ? 'name-error' : undefined}
                 />
-                {validationErrors.name && <p className="mt-1 text-xs text-red-500">{validationErrors.name}</p>}
+                {validationErrors.name && <p id="name-error" className="mt-1 text-xs text-red-500" role="alert">{validationErrors.name}</p>}
               </div>
               <div>
                 <label htmlFor="pi-email" className={labelClass}>이메일</label>

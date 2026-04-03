@@ -41,9 +41,9 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({ isGlobal: true }),
             throttler_1.ThrottlerModule.forRoot([
-                { name: 'short', ttl: 1000, limit: 10 },
-                { name: 'medium', ttl: 60000, limit: 100 },
-                { name: 'long', ttl: 3600000, limit: 1000 },
+                { name: 'short', ttl: 1000, limit: 30 },
+                { name: 'medium', ttl: 60000, limit: 300 },
+                { name: 'long', ttl: 3600000, limit: 3000 },
             ]),
             auth_module_1.AuthModule,
             prisma_module_1.PrismaModule,
