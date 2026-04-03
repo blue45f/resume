@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { CardGridSkeleton } from '@/components/Skeleton';
+import EmptyState from '@/components/EmptyState';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
 
@@ -106,16 +108,9 @@ export default function NotificationsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-slate-400">불러오는 중...</div>
+          <CardGridSkeleton count={3} />
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 animate-fade-in">
-            <svg className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <p className="text-slate-500 dark:text-slate-400">
-              {filter === 'all' ? '알림이 없습니다' : filter === 'unread' ? '읽지 않은 알림이 없습니다' : `${FILTER_TABS.find(t => t.key === filter)?.label} 알림이 없습니다`}
-            </p>
-          </div>
+          <EmptyState type="notification" />
         ) : (
           <div className="space-y-2">
             {filtered.map(n => (

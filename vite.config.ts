@@ -18,6 +18,7 @@ export default defineConfig({
   build: {
     target: 'es2022',
     cssMinify: 'lightningcss',
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks(id: string) {
@@ -26,6 +27,15 @@ export default defineConfig({
           }
           if (id.includes('node_modules/@tiptap') || id.includes('node_modules/prosemirror')) {
             return 'tiptap';
+          }
+          if (id.includes('node_modules/dompurify') || id.includes('node_modules/sanitize')) {
+            return 'sanitize';
+          }
+          if (id.includes('node_modules/lucide') || id.includes('node_modules/@heroicons')) {
+            return 'icons';
+          }
+          if (id.includes('node_modules/date-fns') || id.includes('node_modules/dayjs') || id.includes('node_modules/lodash')) {
+            return 'utils';
           }
         },
       },

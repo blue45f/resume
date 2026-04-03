@@ -1,23 +1,25 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
 import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
-import LlmTransformPanel from '@/components/LlmTransformPanel';
 import { resumeThemes } from '@/lib/resumeThemes';
-import VersionPanel from '@/components/VersionPanel';
-import AttachmentPanel from '@/components/AttachmentPanel';
-import AiAnalysisPanel from '@/components/AiAnalysisPanel';
-import CommentSection from '@/components/CommentSection';
 import CompletenessBar from '@/components/CompletenessBar';
-import ResumeScoreboard from '@/components/ResumeScoreboard';
-import SalaryEstimate from '@/components/SalaryEstimate';
-import AtsScorePanel from '@/components/AtsScorePanel';
-import SimilarityPanel from '@/components/SimilarityPanel';
-import ResumeChecklist from '@/components/ResumeChecklist';
-import TransformHistory from '@/components/TransformHistory';
-import ResumeTrend from '@/components/ResumeTrend';
-import SkillChart from '@/components/SkillChart';
+
+// Lazy-load heavy sub-components that are not visible on initial render
+const LlmTransformPanel = lazy(() => import('@/components/LlmTransformPanel'));
+const VersionPanel = lazy(() => import('@/components/VersionPanel'));
+const AttachmentPanel = lazy(() => import('@/components/AttachmentPanel'));
+const AiAnalysisPanel = lazy(() => import('@/components/AiAnalysisPanel'));
+const CommentSection = lazy(() => import('@/components/CommentSection'));
+const ResumeScoreboard = lazy(() => import('@/components/ResumeScoreboard'));
+const SalaryEstimate = lazy(() => import('@/components/SalaryEstimate'));
+const AtsScorePanel = lazy(() => import('@/components/AtsScorePanel'));
+const SimilarityPanel = lazy(() => import('@/components/SimilarityPanel'));
+const ResumeChecklist = lazy(() => import('@/components/ResumeChecklist'));
+const TransformHistory = lazy(() => import('@/components/TransformHistory'));
+const ResumeTrend = lazy(() => import('@/components/ResumeTrend'));
+const SkillChart = lazy(() => import('@/components/SkillChart'));
 import CareerTimeline from '@/components/CareerTimeline';
 import CareerPathSuggestion from '@/components/CareerPathSuggestion';
 import SimilarResumes from '@/components/SimilarResumes';
@@ -404,14 +406,16 @@ export default function PreviewPage() {
         <div className="py-6 sm:py-8 px-4">
           <div className="max-w-[210mm] mx-auto mb-4 no-print space-y-4">
             <CompletenessBar resume={resume} />
-            <ResumeScoreboard resume={resume} />
-            <SalaryEstimate resume={resume} />
-            <AtsScorePanel resume={resume} />
-            <SimilarityPanel resume={resume} />
-            <ResumeChecklist resume={resume} />
-            <TransformHistory resumeId={id!} />
-            <ResumeTrend resumeId={id!} />
-            <SkillChart resume={resume} />
+            <Suspense fallback={<div className="h-24 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />}>
+              <ResumeScoreboard resume={resume} />
+              <SalaryEstimate resume={resume} />
+              <AtsScorePanel resume={resume} />
+              <SimilarityPanel resume={resume} />
+              <ResumeChecklist resume={resume} />
+              <TransformHistory resumeId={id!} />
+              <ResumeTrend resumeId={id!} />
+              <SkillChart resume={resume} />
+            </Suspense>
             <CareerTimeline resume={resume} />
             <CareerPathSuggestion resume={resume} />
             <SimilarResumes resume={resume} />
@@ -423,9 +427,11 @@ export default function PreviewPage() {
           <div className="max-w-[210mm] mx-auto mt-3 px-1">
             <ResumeStats resume={resume} />
           </div>
-          <div className="max-w-[210mm] mx-auto mt-6">
-            <CommentSection resumeId={id!} isPublic={resume.visibility === 'public'} />
-          </div>
+          <Suspense fallback={<div className="max-w-[210mm] mx-auto mt-6 h-32 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />}>
+            <div className="max-w-[210mm] mx-auto mt-6">
+              <CommentSection resumeId={id!} isPublic={resume.visibility === 'public'} />
+            </div>
+          </Suspense>
         </div>
 
         {/* Sticky bottom action bar — mobile only */}
@@ -491,26 +497,34 @@ export default function PreviewPage() {
 
       {/* AI Analysis Panel */}
       {showAiAnalysis && id && (
-        <AiAnalysisPanel resumeId={id} onClose={() => setShowAiAnalysis(false)} />
+        <Suspense fallback={null}>
+          <AiAnalysisPanel resumeId={id} onClose={() => setShowAiAnalysis(false)} />
+        </Suspense>
       )}
 
       {/* LLM Transform Panel */}
       {showTransform && id && (
-        <LlmTransformPanel resumeId={id} onClose={() => setShowTransform(false)} />
+        <Suspense fallback={null}>
+          <LlmTransformPanel resumeId={id} onClose={() => setShowTransform(false)} />
+        </Suspense>
       )}
 
       {/* Version Panel */}
       {showVersions && id && (
-        <VersionPanel
-          resumeId={id}
-          onClose={() => setShowVersions(false)}
-          onRestore={() => { fetchResume(id).then(setResume); }}
-        />
+        <Suspense fallback={null}>
+          <VersionPanel
+            resumeId={id}
+            onClose={() => setShowVersions(false)}
+            onRestore={() => { fetchResume(id).then(setResume); }}
+          />
+        </Suspense>
       )}
 
       {/* Attachment Panel */}
       {showAttachments && id && (
-        <AttachmentPanel resumeId={id} onClose={() => setShowAttachments(false)} />
+        <Suspense fallback={null}>
+          <AttachmentPanel resumeId={id} onClose={() => setShowAttachments(false)} />
+        </Suspense>
       )}
 
       {/* QR Code Modal */}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import EmptyState from '@/components/EmptyState';
 import { toast } from '@/components/Toast';
 import type { Tag } from '@/types/resume';
 import { fetchTags, createTag, deleteTag } from '@/lib/api';
@@ -118,7 +119,7 @@ export default function TagsPage() {
             ))}
           </div>
         ) : tags.length === 0 ? (
-          <p className="text-center text-slate-500 py-12">등록된 태그가 없습니다</p>
+          <EmptyState type="tag" />
         ) : (
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-700 animate-fade-in">
             {tags.map(tag => (

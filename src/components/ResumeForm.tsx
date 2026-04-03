@@ -140,6 +140,7 @@ export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: 
   const [dirty, setDirty] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dataRef = useRef(data);
   dataRef.current = data;
@@ -271,8 +272,16 @@ export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: 
 
   const handleSubmit = () => {
     const errors = validate();
+    const fieldErrors: Record<string, string> = {};
+    if (!data.title?.trim()) fieldErrors.title = '이력서 제목을 입력해주세요';
+    if (!data.personalInfo.name?.trim()) fieldErrors.name = '이름을 입력해주세요';
+    setValidationErrors(fieldErrors);
     if (errors.length > 0) {
       toast(errors[0], 'warning');
+      // Switch to personal tab if name error exists
+      if (fieldErrors.name && activeTab !== 'personal') {
+        setActiveTab('personal');
+      }
       return;
     }
     onSave(data);

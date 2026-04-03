@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
-import CommentSection from '@/components/CommentSection';
 import ShareMenu from '@/components/ShareMenu';
-import SimilarResumes from '@/components/SimilarResumes';
+
+// Lazy-load heavy sub-components
+const CommentSection = lazy(() => import('@/components/CommentSection'));
+const SimilarResumes = lazy(() => import('@/components/SimilarResumes'));
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 import FollowButton from '@/components/FollowButton';
@@ -224,14 +226,18 @@ export default function ProfileResumePage() {
             )}
           </div>
 
-          <div className="max-w-[210mm] mx-auto mt-6">
-            <CommentSection resumeId={resume.id} isPublic={true} />
-          </div>
+          <Suspense fallback={<div className="max-w-[210mm] mx-auto mt-6 h-32 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />}>
+            <div className="max-w-[210mm] mx-auto mt-6">
+              <CommentSection resumeId={resume.id} isPublic={true} />
+            </div>
+          </Suspense>
 
           {/* Similar Resumes */}
-          <div className="max-w-[210mm] mx-auto mt-6">
-            <SimilarResumes resume={resume} />
-          </div>
+          <Suspense fallback={<div className="max-w-[210mm] mx-auto mt-6 h-32 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />}>
+            <div className="max-w-[210mm] mx-auto mt-6">
+              <SimilarResumes resume={resume} />
+            </div>
+          </Suspense>
         </div>
       </main>
 
