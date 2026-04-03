@@ -108,6 +108,13 @@ export default function NotificationBell() {
                 ))
               )}
             </div>
+            <Link
+              to="/notifications"
+              onClick={() => setOpen(false)}
+              className="block px-3 py-2 text-center text-xs text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 border-t border-slate-100 dark:border-slate-700"
+            >
+              전체 보기
+            </Link>
           </div>
         </>
       )}
