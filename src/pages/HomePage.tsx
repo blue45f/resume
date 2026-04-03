@@ -273,7 +273,7 @@ export default function HomePage() {
 
             {/* Tag filter */}
             {tags.length > 0 && (
-              <div className="flex gap-2 mb-4 overflow-x-auto pb-2" role="group" aria-label="태그 필터">
+              <div className="flex gap-2 mb-4 overflow-x-auto py-1 -my-1 px-1 -mx-1" role="group" aria-label="태그 필터">
                 <button
                   onClick={() => setFilterTag(null)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${

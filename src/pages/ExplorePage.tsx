@@ -113,6 +113,16 @@ export default function ExplorePage() {
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">공개 이력서 탐색</h1>
         <p className="text-sm text-slate-500 mb-6">공개 설정된 이력서를 검색하고 열람할 수 있습니다.</p>
 
+        {(() => { const u = getUser(); return u && (u.userType === 'recruiter' || u.userType === 'company') ? (
+          <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center gap-3">
+            <span className="text-lg">🔍</span>
+            <div>
+              <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">인재 검색 모드</p>
+              <p className="text-xs text-emerald-600 dark:text-emerald-400">관심있는 이력서를 클릭하여 상세 확인 후 스카우트 제안을 보내세요</p>
+            </div>
+          </div>
+        ) : null; })()}
+
         {(() => { const u = getUser(); return u && (!u?.plan || u.plan === 'free') ? (
           <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2">
             <p className="text-sm text-purple-800 dark:text-purple-300">
@@ -198,7 +208,7 @@ export default function ExplorePage() {
 
         {/* 태그 필터 */}
         {tags.length > 0 && (
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2" role="group" aria-label="태그 필터">
+          <div className="flex gap-2 mb-6 overflow-x-auto py-1 -my-1 px-1 -mx-1" role="group" aria-label="태그 필터">
             {tags.map(t => (
               <button
                 key={t.id}
