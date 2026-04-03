@@ -27,8 +27,16 @@ interface Stats {
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'content' | 'plans'>('stats');
   const user = getUser();
   const navigate = useNavigate();
+
+  const tabs = [
+    { id: 'stats' as const, label: '통계', icon: '📊' },
+    { id: 'users' as const, label: '사용자', icon: '👥' },
+    { id: 'content' as const, label: '콘텐츠', icon: '📝' },
+    { id: 'plans' as const, label: '요금제', icon: '💰' },
+  ];
 
   useEffect(() => {
     if (!user || user.role !== 'admin' && user.role !== 'superadmin') {
@@ -82,192 +90,227 @@ export default function AdminPage() {
         </div>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">사이트 전체 현황을 한눈에 확인합니다</p>
 
+        {/* Tab navigation */}
+        <div className="flex gap-1 mb-6 overflow-x-auto scrollbar-none">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-4 py-2 text-sm rounded-xl whitespace-nowrap transition-all duration-200 ${
+                activeTab === tab.id
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         {loading ? (
           <div className="text-center py-16 text-slate-400">불러오는 중...</div>
         ) : !stats ? (
           <div className="text-center py-16 text-slate-400">통계를 불러올 수 없습니다</div>
         ) : (
-          <div className="space-y-6 animate-fade-in-up">
-            {/* Users */}
-            <section>
-              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-blue-500 rounded" />
-                회원
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <StatCard label="전체 회원" value={stats.users.total} color="blue" />
-                <StatCard label="오늘 가입" value={stats.users.today} color="green" />
-                <StatCard label="이번 주" value={stats.users.week} color="purple" />
-                <StatCard label="이번 달" value={stats.users.month} color="indigo" />
-              </div>
-            </section>
+          <>
+            {activeTab === 'stats' && (
+              <div className="space-y-6 animate-fade-in-up">
+                {/* Users */}
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-blue-500 rounded" />
+                    회원
+                  </h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <StatCard label="전체 회원" value={stats.users.total} color="blue" />
+                    <StatCard label="오늘 가입" value={stats.users.today} color="green" />
+                    <StatCard label="이번 주" value={stats.users.week} color="purple" />
+                    <StatCard label="이번 달" value={stats.users.month} color="indigo" />
+                  </div>
+                </section>
 
-            {/* Resumes */}
-            <section>
-              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-green-500 rounded" />
-                이력서
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <StatCard label="전체 이력서" value={stats.resumes.total} color="green" />
-                <StatCard label="오늘 생성" value={stats.resumes.today} color="blue" />
-                <StatCard label="이번 주" value={stats.resumes.week} color="purple" />
-                <StatCard label="공개 이력서" value={stats.resumes.public} color="amber" />
-              </div>
-            </section>
+                {/* Resumes */}
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-green-500 rounded" />
+                    이력서
+                  </h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <StatCard label="전체 이력서" value={stats.resumes.total} color="green" />
+                    <StatCard label="오늘 생성" value={stats.resumes.today} color="blue" />
+                    <StatCard label="이번 주" value={stats.resumes.week} color="purple" />
+                    <StatCard label="공개 이력서" value={stats.resumes.public} color="amber" />
+                  </div>
+                </section>
 
-            {/* Content */}
-            <section>
-              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-purple-500 rounded" />
-                콘텐츠
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <StatCard label="템플릿" value={stats.content.templates} color="purple" />
-                <StatCard label="태그" value={stats.content.tags} color="indigo" />
-                <StatCard label="댓글" value={stats.content.comments} color="rose" />
-                <StatCard label="버전 기록" value={stats.content.versions} color="amber" />
-              </div>
-            </section>
+                {/* Content */}
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-purple-500 rounded" />
+                    콘텐츠
+                  </h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <StatCard label="템플릿" value={stats.content.templates} color="purple" />
+                    <StatCard label="태그" value={stats.content.tags} color="indigo" />
+                    <StatCard label="댓글" value={stats.content.comments} color="rose" />
+                    <StatCard label="버전 기록" value={stats.content.versions} color="amber" />
+                  </div>
+                </section>
 
-            {/* Activity */}
-            <section>
-              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-amber-500 rounded" />
-                활동
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <StatCard label="총 조회수" value={stats.activity.totalViews} color="amber" />
-                <StatCard label="AI 변환" value={stats.activity.transforms} color="blue" />
-                <StatCard label="지원 내역" value={stats.activity.applications} color="green" />
-              </div>
-            </section>
-            {/* Recent Users */}
-            {stats.recentUsers && stats.recentUsers.length > 0 && (
-              <section>
-                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                  <span className="w-1.5 h-4 bg-indigo-500 rounded" />
-                  최근 가입 회원
-                </h2>
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
-                  <table className="w-full text-sm min-w-[500px]">
-                    <thead>
-                      <tr className="bg-slate-50 dark:bg-slate-900 text-left">
-                        <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">이름</th>
-                        <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:table-cell">이메일</th>
-                        <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">로그인</th>
-                        <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">가입일</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                      {stats.recentUsers.map(u => (
-                        <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                          <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-medium">{u.name || '—'}</td>
-                          <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 hidden sm:table-cell">{u.email}</td>
-                          <td className="px-4 py-2.5">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${
-                              u.provider === 'google' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
-                              u.provider === 'github' ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300' :
-                              u.provider === 'kakao' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
-                              'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                            }`}>
-                              {u.provider}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2.5 text-xs text-slate-400 dark:text-slate-500">{new Date(u.createdAt).toLocaleDateString('ko-KR')}</td>
-                        </tr>
+                {/* Activity */}
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-amber-500 rounded" />
+                    활동
+                  </h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <StatCard label="총 조회수" value={stats.activity.totalViews} color="amber" />
+                    <StatCard label="AI 변환" value={stats.activity.transforms} color="blue" />
+                    <StatCard label="지원 내역" value={stats.activity.applications} color="green" />
+                  </div>
+                </section>
+
+                {/* Weekly Overview */}
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-rose-500 rounded" />
+                    주간 활동
+                  </h2>
+                  <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      {[
+                        { label: '신규 회원', value: stats.users.week, max: Math.max(stats.users.week, stats.resumes.week, 1), color: 'bg-blue-500' },
+                        { label: '신규 이력서', value: stats.resumes.week, max: Math.max(stats.users.week, stats.resumes.week, 1), color: 'bg-green-500' },
+                        { label: '총 활동', value: stats.content.versions, max: Math.max(stats.content.versions, 1), color: 'bg-purple-500' },
+                      ].map(item => (
+                        <div key={item.label} className="text-center">
+                          <div className="h-24 flex items-end justify-center mb-2">
+                            <div
+                              className={`w-8 ${item.color} rounded-t transition-all duration-500`}
+                              style={{ height: `${Math.max((item.value / item.max) * 100, 8)}%` }}
+                            />
+                          </div>
+                          <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{item.value}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{item.label}</p>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
+                    </div>
+                  </div>
+                </section>
+              </div>
             )}
 
-            {/* Weekly Overview */}
-            <section>
-              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-rose-500 rounded" />
-                주간 활동
-              </h2>
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-                <div className="grid grid-cols-3 gap-4">
-                  {[
-                    { label: '신규 회원', value: stats.users.week, max: Math.max(stats.users.week, stats.resumes.week, 1), color: 'bg-blue-500' },
-                    { label: '신규 이력서', value: stats.resumes.week, max: Math.max(stats.users.week, stats.resumes.week, 1), color: 'bg-green-500' },
-                    { label: '총 활동', value: stats.content.versions, max: Math.max(stats.content.versions, 1), color: 'bg-purple-500' },
-                  ].map(item => (
-                    <div key={item.label} className="text-center">
-                      <div className="h-24 flex items-end justify-center mb-2">
-                        <div
-                          className={`w-8 ${item.color} rounded-t transition-all duration-500`}
-                          style={{ height: `${Math.max((item.value / item.max) * 100, 8)}%` }}
-                        />
-                      </div>
-                      <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{item.value}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{item.label}</p>
+            {activeTab === 'users' && (
+              <div className="space-y-6 animate-fade-in-up">
+                {/* Recent Users */}
+                {stats.recentUsers && stats.recentUsers.length > 0 && (
+                  <section>
+                    <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                      <span className="w-1.5 h-4 bg-indigo-500 rounded" />
+                      최근 가입 회원
+                    </h2>
+                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
+                      <table className="w-full text-sm min-w-[500px]">
+                        <thead>
+                          <tr className="bg-slate-50 dark:bg-slate-900 text-left">
+                            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">이름</th>
+                            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:table-cell">이메일</th>
+                            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">로그인</th>
+                            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">가입일</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                          {stats.recentUsers.map(u => (
+                            <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                              <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-medium">{u.name || '—'}</td>
+                              <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 hidden sm:table-cell">{u.email}</td>
+                              <td className="px-4 py-2.5">
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                  u.provider === 'google' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                                  u.provider === 'github' ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300' :
+                                  u.provider === 'kakao' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                                  'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                                }`}>
+                                  {u.provider}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2.5 text-xs text-slate-400 dark:text-slate-500">{new Date(u.createdAt).toLocaleDateString('ko-KR')}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  ))}
-                </div>
+                  </section>
+                )}
+
+                {/* User Management */}
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-rose-500 rounded" />
+                    사용자 관리
+                  </h2>
+                  <UserManagement />
+                </section>
               </div>
-            </section>
+            )}
 
-            {/* Content Moderation */}
-            <section className="mt-6">
-              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-red-500 rounded" />
-                콘텐츠 관리
-              </h2>
-              <ContentModeration />
-            </section>
+            {activeTab === 'content' && (
+              <div className="space-y-6 animate-fade-in-up">
+                {/* Recent Public Resumes */}
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-green-500 rounded" />
+                    공개 이력서 관리
+                  </h2>
+                  <RecentResumes />
+                </section>
 
-            {/* User Management */}
-            <section>
-              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-rose-500 rounded" />
-                사용자 관리
-              </h2>
-              <UserManagement />
-            </section>
-
-            {/* Recent Public Resumes */}
-            <section className="mt-6">
-              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-green-500 rounded" />
-                공개 이력서 관리
-              </h2>
-              <RecentResumes />
-            </section>
-
-            {/* Plan Configuration */}
-            <section className="mt-6">
-              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-blue-500 rounded" />
-                요금제 설정
-              </h2>
-              <PlanConfig />
-            </section>
-
-            {/* Quick Admin Links */}
-            <section className="mt-6">
-              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-slate-500 rounded" />
-                관리 도구
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: '템플릿 관리', to: '/templates', icon: '📄' },
-                  { label: '태그 관리', to: '/tags', icon: '🏷️' },
-                  { label: '공개 이력서', to: '/explore', icon: '🔍' },
-                  { label: '사용 가이드', to: '/tutorial', icon: '📖' },
-                ].map(link => (
-                  <Link key={link.to} to={link.to} className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200 text-sm text-slate-700 dark:text-slate-300">
-                    <span>{link.icon}</span>
-                    {link.label}
-                  </Link>
-                ))}
+                {/* Content Moderation */}
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-red-500 rounded" />
+                    콘텐츠 관리
+                  </h2>
+                  <ContentModeration />
+                </section>
               </div>
-            </section>
-          </div>
+            )}
+
+            {activeTab === 'plans' && (
+              <div className="space-y-6 animate-fade-in-up">
+                {/* Plan Configuration */}
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-blue-500 rounded" />
+                    요금제 설정
+                  </h2>
+                  <PlanConfig />
+                </section>
+
+                {/* Quick Admin Links */}
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-slate-500 rounded" />
+                    관리 도구
+                  </h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {[
+                      { label: '템플릿 관리', to: '/templates', icon: '📄' },
+                      { label: '태그 관리', to: '/tags', icon: '🏷️' },
+                      { label: '공개 이력서', to: '/explore', icon: '🔍' },
+                      { label: '사용 가이드', to: '/tutorial', icon: '📖' },
+                    ].map(link => (
+                      <Link key={link.to} to={link.to} className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200 text-sm text-slate-700 dark:text-slate-300">
+                        <span>{link.icon}</span>
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            )}
+          </>
         )}
       </main>
       <Footer />

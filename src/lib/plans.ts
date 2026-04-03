@@ -94,6 +94,81 @@ export const PLANS: PlanConfig[] = [
   },
 ];
 
+export const RECRUITER_PLANS: PlanConfig[] = [
+  {
+    id: 'free' as PlanId,
+    name: '무료',
+    price: 0,
+    yearlyPrice: 0,
+    description: '기본 채용 활동',
+    features: {
+      maxResumes: 0,
+      aiTransformsPerMonth: 0,
+      themes: 0,
+      exportFormats: [],
+      atsCheck: false,
+      aiCoaching: false,
+      coverLetter: false,
+      translation: false,
+      jobTracker: false,
+      prioritySupport: false,
+      scoutMessages: 3,
+      jobPosts: 1,
+    },
+    badge: '🆓',
+  },
+  {
+    id: 'standard' as PlanId,
+    name: '비즈니스',
+    price: 19900,
+    yearlyPrice: 199000,
+    description: '적극적인 채용 활동',
+    features: {
+      maxResumes: 0,
+      aiTransformsPerMonth: 0,
+      themes: 0,
+      exportFormats: [],
+      atsCheck: false,
+      aiCoaching: false,
+      coverLetter: false,
+      translation: false,
+      jobTracker: false,
+      prioritySupport: true,
+      scoutMessages: 30,
+      jobPosts: 10,
+    },
+    badge: '🏢',
+    popular: true,
+  },
+  {
+    id: 'premium' as PlanId,
+    name: '프리미엄',
+    price: 49900,
+    yearlyPrice: 499000,
+    description: '대규모 채용',
+    features: {
+      maxResumes: 0,
+      aiTransformsPerMonth: 0,
+      themes: 0,
+      exportFormats: [],
+      atsCheck: false,
+      aiCoaching: false,
+      coverLetter: false,
+      translation: false,
+      jobTracker: false,
+      prioritySupport: true,
+      scoutMessages: -1,
+      jobPosts: -1,
+    },
+    badge: '💎',
+  },
+];
+
+export function getPlansForUserType(userType?: string): PlanConfig[] {
+  if (userType === 'recruiter' || userType === 'company') return RECRUITER_PLANS;
+  return PLANS;
+}
+
 export function getPlan(planId: string): PlanConfig {
   return PLANS.find(p => p.id === planId) || PLANS[0];
 }
