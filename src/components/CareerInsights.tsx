@@ -57,11 +57,11 @@ function parseSalaryNumber(salary: string): number | null {
 }
 
 interface NewsItem {
-  id: number;
+  id: string;
   title: string;
   url: string;
-  score: number;
-  time: number;
+  source: string;
+  pubDate: string;
 }
 
 export default function CareerInsights() {
@@ -77,19 +77,29 @@ export default function CareerInsights() {
     Promise.all([
       fetch(`${API_URL}/api/jobs`).then(r => r.ok ? r.json() : []).catch(() => []),
       fetchResumes().catch(() => []),
-      // 취업/채용 관련 뉴스 (Hacker News hiring 키워드)
-      fetch('https://hacker-news.firebaseio.com/v0/jobstories.json')
-        .then(r => r.json())
-        .then((ids: number[]) => Promise.all(
-          (ids || []).slice(0, 6).map((id: number) =>
-            fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r => r.json())
-          )
-        ))
+      // 한국 취업/채용 뉴스 (Google News RSS)
+      fetch('https://news.google.com/rss/search?q=%EC%B1%84%EC%9A%A9+%EC%B7%A8%EC%97%85+%EC%9D%B4%EB%A0%A5%EC%84%9C&hl=ko&gl=KR&ceid=KR:ko')
+        .then(r => r.text())
+        .then(xml => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(xml, 'text/xml');
+          const items = doc.querySelectorAll('item');
+          const parsed: NewsItem[] = [];
+          items.forEach((item, i) => {
+            if (i >= 6) return;
+            const title = item.querySelector('title')?.textContent || '';
+            const link = item.querySelector('link')?.textContent || '';
+            const source = item.querySelector('source')?.textContent || '';
+            const pubDate = item.querySelector('pubDate')?.textContent || '';
+            parsed.push({ id: String(i), title, url: link, source, pubDate });
+          });
+          return parsed;
+        })
         .catch(() => []),
     ]).then(([jobData, resumeData, newsData]) => {
       setJobs(jobData);
       setResumes(resumeData);
-      setNews((newsData || []).filter((n: any) => n?.title));
+      setNews(newsData.filter((n: any) => n?.title));
     }).finally(() => setLoading(false));
   }, []);
 
@@ -471,24 +481,24 @@ export default function CareerInsights() {
             <div className="space-y-3">
               {news.length > 0 ? (
                 <>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">채용/기술 뉴스 (실시간)</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">채용/취업 뉴스</p>
                   {news.map((item) => (
                     <a
                       key={item.id}
-                      href={item.url || `https://news.ycombinator.com/item?id=${item.id}`}
+                      href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
                     >
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="px-1.5 py-0.5 text-[9px] font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded">채용</span>
-                        <span className="text-[10px] text-slate-400">{new Date(item.time * 1000).toLocaleDateString('ko-KR')}</span>
-                        <span className="text-[10px] text-slate-400 ml-auto">{item.score}점</span>
+                        <span className="px-1.5 py-0.5 text-[9px] font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded">뉴스</span>
+                        {item.source && <span className="text-[10px] text-slate-400">{item.source}</span>}
+                        {item.pubDate && <span className="text-[10px] text-slate-400 ml-auto">{new Date(item.pubDate).toLocaleDateString('ko-KR')}</span>}
                       </div>
-                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 line-clamp-2">{item.title}</p>
+                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 line-clamp-2">{item.title.replace(/ - [^-]+$/, '')}</p>
                     </a>
                   ))}
-                  <p className="text-[10px] text-slate-400 text-center">Hacker News Jobs 피드 기반</p>
+                  <p className="text-[10px] text-slate-400 text-center">Google News 기반 실시간 뉴스</p>
                 </>
               ) : (
                 <div className="text-center py-8 text-slate-400 dark:text-slate-500">
