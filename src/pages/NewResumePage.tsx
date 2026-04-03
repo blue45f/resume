@@ -216,7 +216,7 @@ export default function NewResumePage() {
   return (
     <>
       <Header />
-      <main id="main-content" className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+      <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
         {atLimit ? (
           <div className="text-center py-12 animate-fade-in">
             <span className="text-4xl mb-4 block">&#128202;</span>
@@ -340,80 +340,145 @@ export default function NewResumePage() {
               )}
             </div>
 
-            {/* Template Selection */}
+            {/* Theme Gallery */}
             <div>
-              <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">템플릿 선택</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {/* Blank / no template */}
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300">테마 선택</h2>
+                <span className="text-xs text-slate-400 dark:text-slate-500">{resumeThemes.length}개 테마</span>
+              </div>
+
+              {/* Category filter pills */}
+              <div className="flex gap-1.5 overflow-x-auto py-1 mb-4 -mx-1 px-1">
                 <button
-                  onClick={() => { setSelectedTemplate(null); proceedToForm(startMode); }}
-                  className="text-left bg-white dark:bg-slate-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 p-5 hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onClick={() => setThemeFilter('all')}
+                  className={`px-2.5 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${
+                    themeFilter === 'all'
+                      ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-medium'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                  }`}
                 >
-                  <div className="w-full h-20 bg-slate-50 dark:bg-slate-700/50 rounded-lg mb-3 flex items-center justify-center border border-slate-200 dark:border-slate-600">
-                    <svg className="w-8 h-8 text-slate-300 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">기본 양식</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">템플릿 없이 시작합니다</p>
+                  전체
                 </button>
-
-                {templates.map((t, index) => {
-                  const layout = parseLayout(t.layout || '{}');
-                  const sections: string[] = layout.sections || [];
-
+                {Object.entries(THEME_CATEGORY_LABELS).map(([key, label]) => {
+                  const count = resumeThemes.filter(t => t.preview?.category === key).length;
                   return (
                     <button
-                      key={t.id}
-                      onClick={() => handleSelectTemplate(t.id)}
-                      className={`text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)} group`}
+                      key={key}
+                      onClick={() => setThemeFilter(key)}
+                      className={`px-2.5 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${
+                        themeFilter === key
+                          ? 'bg-blue-600 text-white font-medium'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                      }`}
                     >
-                      {/* Mini thumbnail preview */}
-                      <div className="w-full h-20 bg-slate-50 dark:bg-slate-700/50 rounded-lg mb-3 border border-slate-200 dark:border-slate-600 overflow-hidden p-2">
-                        <div className="space-y-1">
-                          <div className="h-2 bg-slate-300 dark:bg-slate-500 rounded w-1/2" />
-                          <div className="h-1 bg-slate-200 dark:bg-slate-600 rounded w-full" />
-                          <div className="h-1 bg-slate-200 dark:bg-slate-600 rounded w-4/5" />
-                          <div className="h-1 bg-slate-200 dark:bg-slate-600 rounded w-3/5" />
-                          <div className="flex gap-1 mt-1">
-                            {sections.slice(0, 3).map((_, si) => (
-                              <div key={si} className="h-1 bg-blue-200 dark:bg-blue-800 rounded flex-1" />
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start justify-between mb-1">
-                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm">{t.name}</h3>
-                        {t.isDefault && (
-                          <span className="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full shrink-0">기본</span>
-                        )}
-                      </div>
-                      {t.description && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 line-clamp-2">{t.description}</p>
-                      )}
-                      {sections.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {sections.slice(0, 5).map(s => (
-                            <span key={s} className="px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded">
-                              {SECTION_LABELS[s] || s}
-                            </span>
-                          ))}
-                          {sections.length > 5 && (
-                            <span className="px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 rounded">
-                              +{sections.length - 5}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {sections.length === 0 && (
-                        <p className="text-xs text-slate-400 dark:text-slate-500 italic">섹션 정보 없음</p>
-                      )}
+                      {label} ({count})
                     </button>
                   );
                 })}
               </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {/* Blank / no theme */}
+                <div
+                  className={`group relative bg-white dark:bg-slate-800 rounded-xl border-2 border-dashed overflow-hidden transition-all duration-200 cursor-pointer hover:shadow-lg hover:-translate-y-1 ${
+                    selectedThemeId === null
+                      ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800'
+                      : 'border-slate-300 dark:border-slate-600 hover:border-blue-300'
+                  }`}
+                  onClick={() => { setSelectedThemeId(null); setSelectedTemplate(null); proceedToForm(startMode); }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedThemeId(null); setSelectedTemplate(null); proceedToForm(startMode); } }}
+                >
+                  <div className="aspect-[3/4] flex items-center justify-center bg-slate-50 dark:bg-slate-700/50">
+                    <div className="text-center">
+                      <svg className="w-10 h-10 text-slate-300 dark:text-slate-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">기본 양식</p>
+                    </div>
+                  </div>
+                  <div className="px-3 py-2.5 border-t border-slate-100 dark:border-slate-700">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">기본</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">테마 없이 시작</p>
+                  </div>
+                </div>
+
+                {resumeThemes
+                  .filter(t => themeFilter === 'all' || t.preview?.category === themeFilter)
+                  .map((theme) => (
+                    <ThemePreviewCard
+                      key={theme.id}
+                      theme={theme}
+                      selected={selectedThemeId === theme.id}
+                      onClick={() => {
+                        setSelectedThemeId(theme.id);
+                        proceedToForm(startMode);
+                      }}
+                      onPreview={() => setPreviewTheme(theme)}
+                    />
+                  ))
+                }
+              </div>
             </div>
+
+            {/* Template Selection (from server) */}
+            {templates.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">서버 템플릿</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {templates.map((t) => {
+                    const layout = parseLayout(t.layout || '{}');
+                    const sections: string[] = layout.sections || [];
+
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => handleSelectTemplate(t.id)}
+                        className="text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 group"
+                      >
+                        <div className="flex items-start justify-between mb-1">
+                          <h3 className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm truncate">{t.name}</h3>
+                          {t.isDefault && (
+                            <span className="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full shrink-0 ml-1">기본</span>
+                          )}
+                        </div>
+                        {t.description && (
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 line-clamp-2">{t.description}</p>
+                        )}
+                        {sections.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {sections.slice(0, 3).map(s => (
+                              <span key={s} className="px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded">
+                                {SECTION_LABELS[s] || s}
+                              </span>
+                            ))}
+                            {sections.length > 3 && (
+                              <span className="px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-400 rounded">
+                                +{sections.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Theme Preview Modal */}
+            {previewTheme && (
+              <ThemePreviewModal
+                theme={previewTheme}
+                onClose={() => setPreviewTheme(null)}
+                onSelect={() => {
+                  setSelectedThemeId(previewTheme.id);
+                  setPreviewTheme(null);
+                  proceedToForm(startMode);
+                }}
+              />
+            )}
           </>
         ) : (
           <>
