@@ -9,6 +9,7 @@ const RichEditor = lazy(() => import('@/components/RichEditor'));
 import VoiceInput from '@/components/VoiceInput';
 import AiWritingAssist from '@/components/AiWritingAssist';
 import { SkillSuggestDropdown, CompanyRoleSuggest, InlineContentTip } from '@/components/SkillSuggest';
+import AiCoachPanel from '@/components/AiCoachPanel';
 
 type SaveStatus = 'saved' | 'saving' | 'dirty' | 'error' | 'idle';
 
@@ -928,6 +929,12 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
           </div>
         </div>
       </div>
+
+      <AiCoachPanel
+        resumeId={resumeId}
+        data={data}
+        activeTab={activeTab}
+      />
     </form>
   );
 }
