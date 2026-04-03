@@ -38,7 +38,7 @@ export default function HiringTrends() {
   const trendingSkills = Object.entries(skillCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-4 no-print">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{'\u{1F4C8} \uCC44\uC6A9 \uD2B8\uB80C\uB4DC'}</h3>
         <Link to="/jobs" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">{'\uC804\uCCB4 \uBCF4\uAE30'}</Link>
