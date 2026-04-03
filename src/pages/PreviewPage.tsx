@@ -23,6 +23,7 @@ const ResumeTrend = lazy(() => import('@/components/ResumeTrend'));
 const SkillChart = lazy(() => import('@/components/SkillChart'));
 const ProjectShowcase = lazy(() => import('@/components/ProjectShowcase'));
 const AchievementBadges = lazy(() => import('@/components/AchievementBadges'));
+import SkillEndorsement from '@/components/SkillEndorsement';
 import CareerTimeline from '@/components/CareerTimeline';
 import CareerPathSuggestion from '@/components/CareerPathSuggestion';
 import SimilarResumes from '@/components/SimilarResumes';
@@ -560,6 +561,9 @@ export default function PreviewPage() {
               }}
             >
               <ResumePreview ref={contentRef} resume={resume} themeId={themeId} />
+              {resume.skills.length > 0 && (
+                <SkillEndorsement resumeId={id!} skills={resume.skills} />
+              )}
             </div>
             {/* Page break indicators */}
             {!fitToWidth && zoomLevel >= 100 && (

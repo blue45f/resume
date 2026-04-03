@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
 import { getTheme, setTheme } from '@/lib/theme';
@@ -59,14 +59,48 @@ export default function Header() {
   const themeIcon = theme === 'dark' ? '\u{1F319}' : theme === 'light' ? '\u{2600}\u{FE0F}' : '\u{1F4BB}';
   const themeLabel = theme === 'dark' ? '\uB2E4\uD06C' : theme === 'light' ? '\uB77C\uC774\uD2B8' : '\uC2DC\uC2A4\uD15C';
 
-  // Escape 키로 메뉴 닫기
+  // Escape 키로 메뉴 닫기 + 프로필 메뉴 키보드 내비게이션
   useEffect(() => {
     if (!menuOpen && !profileMenuOpen) return;
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setMenuOpen(false); setProfileMenuOpen(false); }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+        setProfileMenuOpen(false);
+        profileTriggerRef.current?.focus();
+        return;
+      }
+      // Arrow key navigation for profile dropdown
+      if (profileMenuOpen && profileMenuRef.current) {
+        const items = Array.from(profileMenuRef.current.querySelectorAll<HTMLElement>('a, button:not([disabled])'));
+        const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const next = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+          items[next]?.focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prev = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+          items[prev]?.focus();
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          items[0]?.focus();
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          items[items.length - 1]?.focus();
+        } else if (e.key === 'Tab') {
+          if (items.length === 0) return;
+          if (e.shiftKey && currentIndex <= 0) {
+            e.preventDefault();
+            profileTriggerRef.current?.focus();
+          } else if (!e.shiftKey && currentIndex >= items.length - 1) {
+            e.preventDefault();
+            profileTriggerRef.current?.focus();
+          }
+        }
+      }
     };
-    document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [menuOpen, profileMenuOpen]);
 
   // 외부 클릭 시 프로필 메뉴 닫기
