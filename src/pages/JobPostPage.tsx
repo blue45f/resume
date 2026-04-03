@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
-import { createJob } from '@/lib/api';
+import { createJob, fetchJob } from '@/lib/api';
 
 const JOB_TYPES = [
   { value: 'fulltime', label: '정규직' },
@@ -13,28 +13,81 @@ const JOB_TYPES = [
   { value: 'intern', label: '인턴' },
 ];
 
+const SALARY_MIN = 2000;
+const SALARY_MAX = 15000;
+const SALARY_STEP = 500;
+
+const FORMAT_HINTS = [
+  { label: '## 제목', desc: '섹션 제목' },
+  { label: '- 항목', desc: '목록' },
+  { label: '**굵게**', desc: '강조' },
+  { label: '> 인용', desc: '인용문' },
+];
+
 export default function JobPostPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const copyFromId = searchParams.get('copyFrom');
   const user = getUser();
   const [saving, setSaving] = useState(false);
+  const [preview, setPreview] = useState(false);
+  const [skillInput, setSkillInput] = useState('');
+  const skillInputRef = useRef<HTMLInputElement>(null);
+
   const [form, setForm] = useState({
     company: user?.companyName || '',
     position: '',
     location: '',
-    salary: '',
+    salaryMin: 4000,
+    salaryMax: 7000,
+    salaryText: '',
     description: '',
     requirements: '',
     benefits: '',
     type: 'fulltime',
-    skills: '',
+    skills: '' as string,
   });
 
+  const skillTags = useMemo(() =>
+    form.skills.split(',').map(s => s.trim()).filter(Boolean),
+    [form.skills]
+  );
+
   useEffect(() => {
-    document.title = '채용 공고 등록 — 이력서공방';
+    document.title = copyFromId ? '공고 복사하여 등록 — 이력서공방' : '채용 공고 등록 — 이력서공방';
     if (!user || user.userType === 'personal') {
       toast('리크루터 또는 기업 회원만 공고를 등록할 수 있습니다', 'error');
       navigate('/jobs');
+      return;
     }
+
+    if (copyFromId) {
+      fetchJob(copyFromId)
+        .then((job: any) => {
+          // Parse salary range from text if possible
+          let salaryMin = 4000, salaryMax = 7000;
+          const salaryMatch = (job.salary || '').match(/(\d[\d,]*).*?[~\-].*?(\d[\d,]*)/);
+          if (salaryMatch) {
+            salaryMin = parseInt(salaryMatch[1].replace(/,/g, ''));
+            salaryMax = parseInt(salaryMatch[2].replace(/,/g, ''));
+          }
+          setForm({
+            company: job.company || user?.companyName || '',
+            position: job.position ? `${job.position} (복사본)` : '',
+            location: job.location || '',
+            salaryMin,
+            salaryMax,
+            salaryText: job.salary || '',
+            description: job.description || '',
+            requirements: job.requirements || '',
+            benefits: job.benefits || '',
+            type: job.type || 'fulltime',
+            skills: job.skills || '',
+          });
+        })
+        .catch(() => toast('원본 공고를 불러올 수 없습니다', 'error'));
+    }
+
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
   }, []);
 
@@ -44,7 +97,8 @@ export default function JobPostPage() {
     if (!form.company) { toast('회사명을 입력해주세요', 'warning'); return; }
     setSaving(true);
     try {
-      await createJob(form);
+      const salary = form.salaryText || `${form.salaryMin.toLocaleString()}~${form.salaryMax.toLocaleString()}만원`;
+      await createJob({ ...form, salary });
       toast('채용 공고가 등록되었습니다', 'success');
       navigate('/jobs');
     } catch (e: any) {
@@ -54,70 +108,274 @@ export default function JobPostPage() {
     }
   };
 
+  const addSkill = (value: string) => {
+    const tag = value.trim();
+    if (!tag) return;
+    if (skillTags.includes(tag)) return;
+    const updated = skillTags.length > 0 ? `${form.skills}, ${tag}` : tag;
+    setForm(f => ({ ...f, skills: updated }));
+    setSkillInput('');
+  };
+
+  const removeSkill = (tag: string) => {
+    const updated = skillTags.filter(s => s !== tag).join(', ');
+    setForm(f => ({ ...f, skills: updated }));
+  };
+
+  const handleSkillKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addSkill(skillInput);
+    }
+    if (e.key === 'Backspace' && !skillInput && skillTags.length > 0) {
+      removeSkill(skillTags[skillTags.length - 1]);
+    }
+  };
+
   const inputClass = 'w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
+
+  const formatSalary = (v: number) => `${v.toLocaleString()}만원`;
+
+  // Simple markdown-like preview renderer
+  const renderDescription = (text: string) => {
+    return text.split('\n').map((line, i) => {
+      if (line.startsWith('## ')) return <h3 key={i} className="text-base font-bold text-slate-900 dark:text-slate-100 mt-4 mb-1">{line.slice(3)}</h3>;
+      if (line.startsWith('# ')) return <h2 key={i} className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-4 mb-1">{line.slice(2)}</h2>;
+      if (line.startsWith('- ')) return <li key={i} className="ml-4 text-sm text-slate-700 dark:text-slate-300">{line.slice(2)}</li>;
+      if (line.startsWith('> ')) return <blockquote key={i} className="border-l-2 border-slate-300 dark:border-slate-600 pl-3 text-sm text-slate-500 dark:text-slate-400 italic">{line.slice(2)}</blockquote>;
+      if (!line.trim()) return <br key={i} />;
+      // Bold
+      const parts = line.split(/\*\*(.*?)\*\*/g);
+      return (
+        <p key={i} className="text-sm text-slate-700 dark:text-slate-300">
+          {parts.map((part, j) => j % 2 === 1 ? <strong key={j}>{part}</strong> : part)}
+        </p>
+      );
+    });
+  };
 
   return (
     <>
       <Header />
       <main id="main-content" className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8" role="main">
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">채용 공고 등록</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+            {copyFromId ? '공고 복사하여 등록' : '채용 공고 등록'}
+          </h1>
+          <button
+            type="button"
+            onClick={() => setPreview(!preview)}
+            className={`px-3 py-2 text-xs font-medium rounded-xl border transition-colors ${
+              preview
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border-blue-200 dark:border-blue-800'
+                : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+          >
+            {preview ? '편집 모드' : '미리보기'}
+          </button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">회사명 *</label>
-              <input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} className={inputClass} placeholder="예: 네이버" required />
+        {preview ? (
+          /* Preview mode */
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-5 animate-fade-in">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{form.position || '포지션 미입력'}</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{form.company || '회사명 미입력'}</p>
+              </div>
+              <span className="px-2.5 py-1 text-xs rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium">
+                {JOB_TYPES.find(t => t.value === form.type)?.label || '정규직'}
+              </span>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">포지션 *</label>
-              <input value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))} className={inputClass} placeholder="예: 프론트엔드 개발자" required />
+
+            <div className="flex flex-wrap gap-3 text-sm text-slate-600 dark:text-slate-400">
+              {form.location && <span>📍 {form.location}</span>}
+              <span>💰 {form.salaryText || `${formatSalary(form.salaryMin)} ~ ${formatSalary(form.salaryMax)}`}</span>
+            </div>
+
+            {skillTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {skillTags.map(tag => (
+                  <span key={tag} className="px-2.5 py-1 text-xs rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {form.description && (
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">상세 설명</h3>
+                <div className="prose-sm">{renderDescription(form.description)}</div>
+              </div>
+            )}
+            {form.requirements && (
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">자격 요건</h3>
+                <div className="prose-sm">{renderDescription(form.requirements)}</div>
+              </div>
+            )}
+            {form.benefits && (
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">복리후생</h3>
+                <div className="prose-sm">{renderDescription(form.benefits)}</div>
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => setPreview(false)} className="px-5 py-2.5 text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 transition-colors">
+                편집으로 돌아가기
+              </button>
+              <button onClick={handleSubmit} disabled={saving} className="flex-1 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                {saving ? '등록 중...' : '채용 공고 등록'}
+              </button>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">근무지</label>
-              <input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} className={inputClass} placeholder="예: 서울시 강남구" />
+        ) : (
+          /* Edit mode */
+          <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">회사명 *</label>
+                <input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} className={inputClass} placeholder="예: 네이버" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">포지션 *</label>
+                <input value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))} className={inputClass} placeholder="예: 프론트엔드 개발자" required />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">연봉</label>
-              <input value={form.salary} onChange={e => setForm(f => ({ ...f, salary: e.target.value }))} className={inputClass} placeholder="예: 5,000~7,000만원" />
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">근무지</label>
+                <input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} className={inputClass} placeholder="예: 서울시 강남구" />
+              </div>
+              <div className="sm:col-span-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">고용 형태</label>
+                <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} className={inputClass}>
+                  {JOB_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">연봉 (직접입력)</label>
+                <input value={form.salaryText} onChange={e => setForm(f => ({ ...f, salaryText: e.target.value }))} className={inputClass} placeholder="비워두면 슬라이더 값 사용" />
+              </div>
             </div>
+
+            {/* Salary Range Slider */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">고용 형태</label>
-              <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} className={inputClass}>
-                {JOB_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">
+                연봉 범위: <span className="text-blue-600 dark:text-blue-400">{formatSalary(form.salaryMin)} ~ {formatSalary(form.salaryMax)}</span>
+              </label>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-400 shrink-0 w-16 text-right">{formatSalary(form.salaryMin)}</span>
+                <div className="flex-1 space-y-1">
+                  <input
+                    type="range"
+                    min={SALARY_MIN}
+                    max={SALARY_MAX}
+                    step={SALARY_STEP}
+                    value={form.salaryMin}
+                    onChange={e => {
+                      const v = Number(e.target.value);
+                      setForm(f => ({ ...f, salaryMin: Math.min(v, f.salaryMax - SALARY_STEP) }));
+                    }}
+                    className="w-full accent-blue-600"
+                  />
+                  <input
+                    type="range"
+                    min={SALARY_MIN}
+                    max={SALARY_MAX}
+                    step={SALARY_STEP}
+                    value={form.salaryMax}
+                    onChange={e => {
+                      const v = Number(e.target.value);
+                      setForm(f => ({ ...f, salaryMax: Math.max(v, f.salaryMin + SALARY_STEP) }));
+                    }}
+                    className="w-full accent-blue-600"
+                  />
+                </div>
+                <span className="text-xs text-slate-400 shrink-0 w-16">{formatSalary(form.salaryMax)}</span>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">기술 스택 (쉼표로 구분)</label>
-            <input value={form.skills} onChange={e => setForm(f => ({ ...f, skills: e.target.value }))} className={inputClass} placeholder="예: React, TypeScript, Node.js" />
-          </div>
+            {/* Skill Tags Input */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">기술 스택</label>
+              <div
+                className="flex flex-wrap gap-1.5 p-2 border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-800 min-h-[44px] cursor-text"
+                onClick={() => skillInputRef.current?.focus()}
+              >
+                {skillTags.map(tag => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={e => { e.stopPropagation(); removeSkill(tag); }}
+                      className="hover:text-red-500 transition-colors ml-0.5"
+                      aria-label={`${tag} 삭제`}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <input
+                  ref={skillInputRef}
+                  value={skillInput}
+                  onChange={e => setSkillInput(e.target.value)}
+                  onKeyDown={handleSkillKeyDown}
+                  onBlur={() => addSkill(skillInput)}
+                  className="flex-1 min-w-[100px] px-1 py-0.5 text-sm bg-transparent outline-none dark:text-slate-100"
+                  placeholder={skillTags.length === 0 ? 'Enter 또는 쉼표로 추가 (예: React, TypeScript)' : ''}
+                />
+              </div>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">상세 설명</label>
-            <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={5} className={inputClass + ' resize-none'} placeholder="업무 내용, 팀 소개 등" />
-          </div>
+            {/* Description with formatting hints */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">상세 설명</label>
+                <div className="flex gap-2">
+                  {FORMAT_HINTS.map(h => (
+                    <span key={h.label} className="text-[10px] text-slate-400" title={h.desc}>
+                      <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">{h.label}</code>
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={6} className={inputClass + ' resize-none font-mono text-xs'} placeholder="## 업무 내용\n- 주요 업무 1\n- 주요 업무 2\n\n## 팀 소개\n우리 팀은..." />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">자격 요건</label>
-            <textarea value={form.requirements} onChange={e => setForm(f => ({ ...f, requirements: e.target.value }))} rows={3} className={inputClass + ' resize-none'} placeholder="필수/우대 조건" />
-          </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">자격 요건</label>
+              </div>
+              <textarea value={form.requirements} onChange={e => setForm(f => ({ ...f, requirements: e.target.value }))} rows={4} className={inputClass + ' resize-none font-mono text-xs'} placeholder="## 필수\n- 3년 이상 경력\n\n## 우대\n- 관련 자격증" />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">복리후생</label>
-            <textarea value={form.benefits} onChange={e => setForm(f => ({ ...f, benefits: e.target.value }))} rows={3} className={inputClass + ' resize-none'} placeholder="연차, 복지, 교육 등" />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">복리후생</label>
+              <textarea value={form.benefits} onChange={e => setForm(f => ({ ...f, benefits: e.target.value }))} rows={3} className={inputClass + ' resize-none font-mono text-xs'} placeholder="- 자유로운 연차 사용\n- 교육비 지원\n- 유연근무제" />
+            </div>
 
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={() => navigate('/jobs')} className="px-5 py-2.5 text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 transition-colors">취소</button>
-            <button type="submit" disabled={saving} className="flex-1 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors">
-              {saving ? '등록 중...' : '채용 공고 등록'}
-            </button>
-          </div>
-        </form>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => navigate('/jobs')} className="px-5 py-2.5 text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 transition-colors">취소</button>
+              <button
+                type="button"
+                onClick={() => setPreview(true)}
+                className="px-5 py-2.5 text-sm text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-xl hover:bg-blue-100 transition-colors"
+              >
+                미리보기
+              </button>
+              <button type="submit" disabled={saving} className="flex-1 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                {saving ? '등록 중...' : '채용 공고 등록'}
+              </button>
+            </div>
+          </form>
+        )}
       </main>
       <Footer />
     </>

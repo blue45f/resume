@@ -333,7 +333,7 @@ function JobDetailPanel({ job, isPersonal }: { job: JobPost; isPersonal: boolean
       )}
 
       {/* Action buttons */}
-      <div className="flex gap-2 mt-6 pt-4 border-t border-slate-100 dark:border-slate-700">
+      <div className="flex flex-wrap gap-2 mt-6 pt-4 border-t border-slate-100 dark:border-slate-700">
         {isPersonal ? (
           <Link
             to={`/applications?company=${encodeURIComponent(job.company)}&position=${encodeURIComponent(job.position)}`}
@@ -342,12 +342,20 @@ function JobDetailPanel({ job, isPersonal }: { job: JobPost; isPersonal: boolean
             지원하기
           </Link>
         ) : (
-          <Link
-            to={`/applications?company=${encodeURIComponent(job.company)}&position=${encodeURIComponent(job.position)}`}
-            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-xl hover:bg-slate-200 transition-colors"
-          >
-            지원 추가
-          </Link>
+          <>
+            <Link
+              to={`/applications?company=${encodeURIComponent(job.company)}&position=${encodeURIComponent(job.position)}`}
+              className="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-xl hover:bg-slate-200 transition-colors"
+            >
+              지원 추가
+            </Link>
+            <Link
+              to={`/jobs/new?copyFrom=${job.id}`}
+              className="px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-sm rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+            >
+              복사해서 새 공고
+            </Link>
+          </>
         )}
         <Link
           to={`/cover-letter?company=${encodeURIComponent(job.company)}&position=${encodeURIComponent(job.position)}`}

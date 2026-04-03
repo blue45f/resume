@@ -401,8 +401,16 @@ export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: 
             </div>
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="pi-name" className={labelClass}>이름</label>
-                <input id="pi-name" className={inputClass} value={data.personalInfo.name} onChange={e => updatePersonalInfo('name', e.target.value)} />
+                <label htmlFor="pi-name" className={labelClass}>이름{requiredMark}</label>
+                <input
+                  id="pi-name"
+                  className={`${inputClass} ${validationErrors.name ? 'border-red-400 focus:ring-red-500' : ''}`}
+                  value={data.personalInfo.name}
+                  onChange={e => { setValidationErrors(prev => ({ ...prev, name: '' })); updatePersonalInfo('name', e.target.value); }}
+                  aria-required="true"
+                  aria-invalid={!!validationErrors.name}
+                />
+                {validationErrors.name && <p className="mt-1 text-xs text-red-500">{validationErrors.name}</p>}
               </div>
               <div>
                 <label htmlFor="pi-email" className={labelClass}>이메일</label>
@@ -447,6 +455,9 @@ export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: 
                   placeholder="자기소개를 작성하세요..."
                 />
               </Suspense>
+              <p className="mt-1 text-xs text-slate-400 text-right">
+                {(data.personalInfo.summary || '').replace(/<[^>]*>/g, '').length}자
+              </p>
             </div>
           </div>
         </CollapsibleSection>
@@ -503,6 +514,7 @@ export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: 
                       placeholder="주요 업무를 작성하세요 (볼드, 리스트 지원)"
                     />
                   </Suspense>
+                  <p className="mt-1 text-xs text-slate-400 text-right">{(exp.description || '').replace(/<[^>]*>/g, '').length}자</p>
                 </div>
                 <div className="sm:col-span-2">
                   <label className={labelClass}>주요 성과</label>
@@ -571,6 +583,7 @@ export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: 
                 <div className="sm:col-span-2">
                   <label htmlFor={`edu-desc-${edu.id}`} className={labelClass}>비고</label>
                   <textarea id={`edu-desc-${edu.id}`} className={inputClass + ' h-20 resize-none'} value={edu.description} placeholder="학점, 수상 내역 등" onChange={e => educations.update(edu.id, 'description', e.target.value)} />
+                  <p className="mt-1 text-xs text-slate-400 text-right">{(edu.description || '').length}자</p>
                 </div>
               </div>
             </fieldset>
