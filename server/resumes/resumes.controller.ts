@@ -78,6 +78,16 @@ export class ResumesController {
     return this.resumesService.findBySlug(username, slug);
   }
 
+  @Get('short/:code')
+  @Public()
+  @ApiOperation({ summary: '숏코드로 이력서 조회 (/r/xxxxxxxx)' })
+  async findByShortCode(@Param('code') code: string, @Res() res: Response) {
+    const resume = await this.resumesService.findByShortCode(code);
+    if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+    // 이력서 미리보기 페이지로 리다이렉트
+    return res.json(resume);
+  }
+
   @Get('public')
   @Public()
   @CacheTTL(60)

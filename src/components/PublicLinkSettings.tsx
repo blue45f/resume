@@ -22,6 +22,8 @@ export default function PublicLinkSettings({ resumeId, currentSlug, ownerName, o
 
   const user = getUser();
   const username = ownerName || user?.name || 'user';
+  const shortCode = resumeId.slice(0, 8);
+  const shortUrl = `${window.location.origin}/r/${shortCode}`;
   const previewUrl = slug
     ? `${window.location.origin}/@${encodeURIComponent(username)}/${encodeURIComponent(slug)}`
     : window.location.href;
@@ -92,9 +94,25 @@ export default function PublicLinkSettings({ resumeId, currentSlug, ownerName, o
         )}
       </div>
 
-      {/* Preview URL */}
+      {/* Short URL */}
+      <div className="mb-2 px-3 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[11px] text-blue-500 dark:text-blue-400 font-medium mb-0.5">숏링크</p>
+            <p className="text-sm text-blue-700 dark:text-blue-300 font-mono font-medium">{shortUrl}</p>
+          </div>
+          <button
+            onClick={() => { navigator.clipboard.writeText(shortUrl); toast('숏링크가 복사되었습니다', 'success'); }}
+            className="px-2.5 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            복사
+          </button>
+        </div>
+      </div>
+
+      {/* Full URL */}
       <div className="mb-3 px-3 py-2 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-        <p className="text-[11px] text-slate-400 mb-0.5">공개 URL 미리보기</p>
+        <p className="text-[11px] text-slate-400 mb-0.5">전체 공개 URL</p>
         <p className="text-xs text-blue-600 dark:text-blue-400 break-all font-mono">
           {previewUrl}
         </p>

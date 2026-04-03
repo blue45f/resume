@@ -165,6 +165,20 @@ export class ResumesService {
     return this.formatFull(resume);
   }
 
+  async findByShortCode(code: string) {
+    // UUID 앞 8자로 검색 (숏코드)
+    const resume = await this.prisma.resume.findFirst({
+      where: {
+        id: { startsWith: code },
+        visibility: { not: 'private' },
+      },
+      include: FULL_INCLUDE,
+    });
+    if (!resume) return null;
+    this.prisma.resume.update({ where: { id: resume.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
+    return this.formatFull(resume);
+  }
+
   async findOne(id: string, userId?: string) {
     const resume = await this.prisma.resume.findUnique({
       where: { id },
