@@ -217,7 +217,7 @@ export default function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mt-12 mb-8">
               {[
                 { icon: '🤖', title: 'AI 분석 5종', desc: '피드백, JD매칭, 면접질문, ATS검사, 자소서' },
-                { icon: '🎨', title: '테마 10종', desc: '클래식부터 테크까지 실시간 전환' },
+                { icon: '🎨', title: '테마 15종', desc: '클래식부터 포트폴리오까지 실시간 전환' },
                 { icon: '🔒', title: '완전 무료', desc: '무료 LLM 활용, 비용 0원' },
               ].map(f => (
                 <div key={f.title} className="text-center p-4 animate-fade-in-up">
@@ -241,7 +241,7 @@ export default function HomePage() {
         ) : (
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {t('home.myResumes')} ({filtered.length})
               </h1>
             </div>
@@ -371,7 +371,7 @@ export default function HomePage() {
               {sorted.map((resume, index) => (
                 <article
                   key={resume.id}
-                  className={`bg-white rounded-xl border border-slate-200 p-4 sm:p-5 hover:shadow-md transition-shadow duration-200 focus-within:ring-2 focus-within:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)} border-l-4 ${resume.visibility === 'public' ? 'border-l-emerald-400' : resume.visibility === 'link-only' ? 'border-l-blue-400' : 'border-l-slate-300'}`}
+                  className={`bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5 hover:shadow-md transition-shadow duration-200 focus-within:ring-2 focus-within:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)} border-l-4 ${resume.visibility === 'public' ? 'border-l-emerald-400' : resume.visibility === 'link-only' ? 'border-l-blue-400' : 'border-l-slate-300'}`}
                 >
                   {selectMode && (
                     <div className="mb-2">
@@ -384,10 +384,10 @@ export default function HomePage() {
                       />
                     </div>
                   )}
-                  <h2 className="font-semibold text-slate-900 truncate mb-1">
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate mb-1">
                     {resume.title || '제목 없음'}
                   </h2>
-                  <p className="text-sm text-slate-600 mb-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
                     {resume.personalInfo.name || '이름 미입력'}
                   </p>
                   <p className="text-xs text-slate-400 mb-2" title={new Date(resume.updatedAt).toLocaleString('ko-KR')}>

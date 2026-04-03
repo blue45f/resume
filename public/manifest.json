@@ -1,16 +1,20 @@
 {
-  "name": "이력서공방",
+  "name": "이력서공방 - AI 기반 이력서 관리 플랫폼",
   "short_name": "이력서공방",
-  "description": "AI 기반 이력서 관리 플랫폼",
+  "description": "AI로 이력서를 작성하고, 15종 테마로 변환하세요. ATS 호환성 검사, 자기소개서 생성, 채용 공고 관리까지.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#3b82f6",
+  "categories": ["business", "productivity"],
+  "lang": "ko",
+  "orientation": "any",
   "icons": [
     {
       "src": "/favicon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }

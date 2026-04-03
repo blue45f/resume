@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /settings
+Disallow: /auth/callback
+Disallow: /payment
+
+Sitemap: https://resume-silk-three.vercel.app/sitemap.xml
