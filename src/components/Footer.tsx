@@ -62,12 +62,13 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">이력서공방</h4>
-            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              AI 기반 이력서 관리 플랫폼.
-              무료 LLM으로 비용 걱정 없이
-              전문적인 이력서를 만드세요.
-            </p>
+            <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">채용담당자</h4>
+            <ul className="space-y-2 text-sm">
+              <li><Link to="/recruiter" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">채용 대시보드</Link></li>
+              <li><Link to="/scouts" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">스카우트</Link></li>
+              <li><Link to="/jobs/new" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">채용공고 등록</Link></li>
+              <li><Link to="/messages" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">메시지</Link></li>
+            </ul>
           </div>
         </div>
         <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 dark:text-slate-500">
