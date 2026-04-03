@@ -17,6 +17,20 @@ const STATUSES = [
   { value: 'withdrawn', label: '취소', color: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400' },
 ];
 
+const KANBAN_COLUMNS = [
+  { value: 'applied', label: '지원완료', headerColor: 'bg-blue-500', nextStatus: 'screening' },
+  { value: 'screening', label: '서류통과', headerColor: 'bg-purple-500', nextStatus: 'interview', prevStatus: 'applied' },
+  { value: 'interview', label: '면접', headerColor: 'bg-amber-500', nextStatus: 'offer', prevStatus: 'screening' },
+  { value: 'offer', label: '최종합격', headerColor: 'bg-green-500', prevStatus: 'interview' },
+  { value: 'rejected', label: '탈락', headerColor: 'bg-red-500' },
+];
+
+function daysSince(dateStr?: string): number {
+  if (!dateStr) return 0;
+  const diff = Date.now() - new Date(dateStr).getTime();
+  return Math.max(0, Math.floor(diff / 86400000));
+}
+
 export default function ApplicationsPage() {
   const [params] = useSearchParams();
   const [apps, setApps] = useState<JobApplication[]>([]);
@@ -27,6 +41,7 @@ export default function ApplicationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'company'>('recent');
   const [yearFilter, setYearFilter] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
   const load = () => {
     fetchApplications().then(setApps).catch(() => {}).finally(() => setLoading(false));
@@ -96,6 +111,14 @@ export default function ApplicationsPage() {
     });
   const stats = STATUSES.map(s => ({ ...s, count: apps.filter(a => a.status === s.value).length }));
 
+  // Kanban: group filtered apps by status
+  const kanbanGroups: Record<string, JobApplication[]> = {};
+  for (const col of KANBAN_COLUMNS) {
+    kanbanGroups[col.value] = filtered.filter(a => a.status === col.value);
+  }
+  // Also add withdrawn to rejected column display
+  kanbanGroups['rejected'] = [...(kanbanGroups['rejected'] || []), ...filtered.filter(a => a.status === 'withdrawn')];
+
   return (
     <>
       <Header />
@@ -105,15 +128,60 @@ export default function ApplicationsPage() {
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">지원 관리</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">총 {apps.length}건의 지원 내역</p>
           </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
-          >
-            + 지원 추가
-          </button>
+          <div className="flex items-center gap-2">
+            {/* View toggle */}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                aria-label="목록 보기"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+              </button>
+              <button
+                onClick={() => setViewMode('kanban')}
+                className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                aria-label="칸반 보기"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>
+              </button>
+            </div>
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+            >
+              + 지원 추가
+            </button>
+          </div>
         </div>
 
-        {/* Stats */}
+        {/* Application Statistics Bar */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 mr-2">
+              전체 <span className="text-lg text-blue-600 dark:text-blue-400">{apps.length}</span>건
+            </div>
+            <div className="h-5 w-px bg-slate-200 dark:bg-slate-600" />
+            {stats.map(s => (
+              <span key={s.value} className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${s.color}`}>
+                {s.label}
+                <span className="font-bold">{s.count}</span>
+              </span>
+            ))}
+            {apps.length > 0 && (
+              <>
+                <div className="h-5 w-px bg-slate-200 dark:bg-slate-600" />
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  합격률 {apps.filter(a => a.status === 'offer').length > 0
+                    ? Math.round((apps.filter(a => a.status === 'offer').length / apps.filter(a => ['offer', 'rejected'].includes(a.status)).length) * 100) || 0
+                    : 0}%
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Stats filter buttons */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           <button
             onClick={() => setFilter(null)}
@@ -191,12 +259,87 @@ export default function ApplicationsPage() {
           </form>
         )}
 
-        {/* Application List */}
+        {/* Application Views */}
         {loading ? (
           <div className="text-center py-12 text-slate-500">불러오는 중...</div>
-        ) : filtered.length === 0 ? (
+        ) : filtered.length === 0 && viewMode === 'list' ? (
           <EmptyState type={searchQuery || filter ? 'search' : 'application'} query={searchQuery || filter || undefined} />
+        ) : viewMode === 'kanban' ? (
+          /* Kanban Board */
+          <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {KANBAN_COLUMNS.map(col => {
+              const colApps = kanbanGroups[col.value] || [];
+              return (
+                <div key={col.value} className="flex-shrink-0 w-64 sm:w-72">
+                  {/* Column header */}
+                  <div className={`${col.headerColor} text-white rounded-t-xl px-3 py-2 flex items-center justify-between`}>
+                    <span className="text-sm font-semibold">{col.label}</span>
+                    <span className="text-xs bg-white/20 rounded-full px-2 py-0.5">{colApps.length}</span>
+                  </div>
+                  {/* Column body */}
+                  <div className="bg-slate-50 dark:bg-slate-900/50 border border-t-0 border-slate-200 dark:border-slate-700 rounded-b-xl p-2 min-h-[200px] space-y-2">
+                    {colApps.length === 0 && (
+                      <div className="text-center py-8 text-xs text-slate-400">비어 있음</div>
+                    )}
+                    {colApps.map(app => {
+                      const days = daysSince(app.appliedDate || app.createdAt);
+                      const colDef = KANBAN_COLUMNS.find(c => c.value === col.value);
+                      return (
+                        <div
+                          key={app.id}
+                          className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-3 shadow-sm hover:shadow-md transition-shadow duration-200"
+                        >
+                          <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{app.company}</h4>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{app.position}</p>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-slate-400">
+                              {days === 0 ? '오늘 지원' : `${days}일 경과`}
+                            </span>
+                            {app.url && (
+                              <a href={app.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline">공고</a>
+                            )}
+                          </div>
+                          {app.notes && <p className="text-xs text-slate-400 mt-1.5 line-clamp-2">{app.notes}</p>}
+                          {/* Status transition buttons */}
+                          <div className="flex items-center gap-1 mt-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+                            {colDef?.prevStatus && (
+                              <button
+                                onClick={() => handleStatusChange(app.id, colDef.prevStatus!)}
+                                className="flex-1 text-xs px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                title={`${KANBAN_COLUMNS.find(c => c.value === colDef.prevStatus)?.label}(으)로 이동`}
+                              >
+                                ← {KANBAN_COLUMNS.find(c => c.value === colDef.prevStatus)?.label}
+                              </button>
+                            )}
+                            {colDef?.nextStatus && (
+                              <button
+                                onClick={() => handleStatusChange(app.id, colDef.nextStatus!)}
+                                className="flex-1 text-xs px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                                title={`${KANBAN_COLUMNS.find(c => c.value === colDef.nextStatus)?.label}(으)로 이동`}
+                              >
+                                {KANBAN_COLUMNS.find(c => c.value === colDef.nextStatus)?.label} →
+                              </button>
+                            )}
+                            {col.value !== 'rejected' && col.value !== 'offer' && (
+                              <button
+                                onClick={() => handleStatusChange(app.id, 'rejected')}
+                                className="text-xs px-2 py-1 rounded bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                                title="탈락 처리"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
+          /* List View */
           <div className="space-y-3">
             {filtered.map(app => {
               const statusInfo = STATUSES.find(s => s.value === app.status) || STATUSES[0];
@@ -215,6 +358,7 @@ export default function ApplicationsPage() {
                         {app.location && <span>{app.location}</span>}
                         {app.salary && <span>· {app.salary}</span>}
                         {app.appliedDate && <span>· {app.appliedDate}</span>}
+                        <span>· {daysSince(app.appliedDate || app.createdAt) === 0 ? '오늘' : `${daysSince(app.appliedDate || app.createdAt)}일 경과`}</span>
                       </div>
                       {app.notes && <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-2">{app.notes}</p>}
                     </div>
