@@ -48,6 +48,7 @@ export default function Footer() {
               <li><Link to="/cover-letter" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">자소서 생성</Link></li>
               <li><Link to="/compare" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">이력서 비교</Link></li>
               <li><Link to="/applications" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">지원 관리</Link></li>
+              <li><Link to="/interview-prep" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">면접 준비</Link></li>
               <li><Link to="/jobs" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">채용 공고</Link></li>
             </ul>
           </div>
