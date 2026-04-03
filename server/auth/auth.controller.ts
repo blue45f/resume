@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Patch, Delete, Query, Res, Req, Body, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from './auth.guard';
@@ -143,6 +143,8 @@ export class AuthController {
   @Post('register')
   @Public()
   @ApiOperation({ summary: '이메일 회원가입' })
+  @ApiResponse({ status: 200, description: '회원가입 성공, JWT 토큰 반환' })
+  @ApiResponse({ status: 401, description: '중복 이메일 또는 유효성 검증 실패' })
   async register(
     @Body() dto: RegisterDto,
     @Res() res: Response,
@@ -168,6 +170,8 @@ export class AuthController {
   @Post('login')
   @Public()
   @ApiOperation({ summary: '이메일 로그인' })
+  @ApiResponse({ status: 200, description: '로그인 성공, JWT 토큰 반환' })
+  @ApiResponse({ status: 401, description: '이메일 또는 비밀번호 불일치' })
   async login(
     @Body() dto: LoginDto,
     @Res() res: Response,
@@ -199,6 +203,8 @@ export class AuthController {
   // ---- 비밀번호 변경 ----
   @Post('change-password')
   @ApiOperation({ summary: '비밀번호 변경' })
+  @ApiResponse({ status: 200, description: '비밀번호 변경 성공' })
+  @ApiResponse({ status: 401, description: '현재 비밀번호 불일치 또는 인증 필요' })
   async changePassword(
     @Body() dto: ChangePasswordDto,
     @Req() req: any,
@@ -219,6 +225,8 @@ export class AuthController {
   // ---- 계정 삭제 ----
   @Delete('account')
   @ApiOperation({ summary: '계정 삭제 (모든 데이터 영구 삭제)' })
+  @ApiResponse({ status: 200, description: '계정 삭제 완료' })
+  @ApiResponse({ status: 401, description: '인증 필요' })
   async deleteAccount(@Req() req: any, @Res() res: Response) {
     try {
       if (!req.user?.id) {
@@ -267,6 +275,8 @@ export class AuthController {
   // ---- 내 정보 ----
   @Get('me')
   @ApiOperation({ summary: '내 정보 조회' })
+  @ApiResponse({ status: 200, description: '프로필 정보 반환 (passwordHash 미포함)' })
+  @ApiResponse({ status: 401, description: '인증 필요' })
   getProfile(@Req() req: any) {
     if (!req.user) return null;
     return this.authService.getProfile(req.user.id);
@@ -274,6 +284,9 @@ export class AuthController {
 
   @Patch('profile')
   @ApiOperation({ summary: '프로필 수정 (userType, name 등)' })
+  @ApiResponse({ status: 200, description: '수정된 프로필 반환' })
+  @ApiResponse({ status: 400, description: '유효하지 않은 사용자 유형 등' })
+  @ApiResponse({ status: 401, description: '인증 필요' })
   async updateProfile(
     @Body() body: UpdateProfileDto,
     @Req() req: any,
