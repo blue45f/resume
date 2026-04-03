@@ -71,6 +71,11 @@ export default function Header() {
             <Link to="/jobs" className={`text-sm rounded px-2 py-1 ${location.pathname === '/jobs' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
               채용
             </Link>
+            {user?.userType && user.userType !== 'personal' && (
+              <Link to="/recruiter" className={`text-sm rounded px-2 py-1 ${location.pathname === '/recruiter' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                대시보드
+              </Link>
+            )}
             {/* More dropdown */}
             <div className="relative group">
               <button className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-2 py-1 rounded">
@@ -179,6 +184,9 @@ export default function Header() {
 
             <Link to="/applications" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.applications')}</Link>
             <Link to="/jobs" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">채용</Link>
+            {user?.userType && user.userType !== 'personal' && (
+              <Link to="/recruiter" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/30">대시보드</Link>
+            )}
             <Link to="/cover-letter" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
             <Link to="/my-cover-letters" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">내 자소서</Link>
             <Link to="/bookmarks" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">북마크</Link>
