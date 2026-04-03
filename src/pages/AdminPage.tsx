@@ -46,7 +46,10 @@ export default function AdminPage() {
 
   const loadStats = () => {
     setLoading(true);
-    fetch(`${API_URL}/api/health/admin/stats`)
+    const token = localStorage.getItem('token');
+    fetch(`${API_URL}/api/health/admin/stats`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then(r => r.ok ? r.json() : null)
       .then(setStats)
       .catch(() => {})

@@ -8,7 +8,7 @@ function SiteStats() {
   const [stats, setStats] = useState<{ users: number; resumes: number; views: number } | null>(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/health/admin/stats`)
+    fetch(`${API_URL}/api/health/stats`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (d) setStats({ users: d.users.total, resumes: d.resumes.total, views: d.activity.totalViews });

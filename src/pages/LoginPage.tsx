@@ -31,31 +31,64 @@ function KakaoIcon() {
 }
 
 const PROVIDERS = [
-  { id: 'google', name: 'Google', icon: GoogleIcon, className: 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm' },
-  { id: 'github', name: 'GitHub', icon: GitHubIcon, className: 'bg-slate-900 text-white hover:bg-slate-800 hover:shadow-sm' },
+  { id: 'google', name: 'Google', icon: GoogleIcon, className: 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 hover:border-slate-300 hover:shadow-sm' },
+  { id: 'github', name: 'GitHub', icon: GitHubIcon, className: 'bg-slate-900 dark:bg-slate-700 text-white hover:bg-slate-800 dark:hover:bg-slate-600 hover:shadow-sm' },
   { id: 'kakao', name: 'Kakao', icon: KakaoIcon, className: 'bg-[#FEE500] text-[#191919] hover:bg-[#FDD835] hover:shadow-sm' },
 ];
 
 export default function LoginPage() {
   const [params] = useSearchParams();
   const error = params.get('error');
-  const [mode, setMode] = useState<'social' | 'email'>('social');
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
 
   useEffect(() => {
     document.title = '로그인 — 이력서공방';
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
   }, []);
-  const [isRegister, setIsRegister] = useState(false);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [userType, setUserType] = useState('personal');
   const [companyName, setCompanyName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [authError, setAuthError] = useState('');
   const navigate = useNavigate();
+
+  const isRegister = activeTab === 'register';
+
+  const validateEmail = (v: string) => {
+    if (!v) return '이메일을 입력해주세요';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return '올바른 이메일 형식을 입력해주세요';
+    return '';
+  };
+
+  const validatePassword = (v: string) => {
+    if (!v) return '비밀번호를 입력해주세요';
+    if (v.length < 8) return '비밀번호는 8자 이상이어야 합니다';
+    return '';
+  };
+
+  const validateName = (v: string) => {
+    if (!v) return '이름을 입력해주세요';
+    return '';
+  };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError('');
+
+    const eErr = validateEmail(email);
+    const pErr = validatePassword(password);
+    const nErr = isRegister ? validateName(name) : '';
+    setEmailError(eErr);
+    setPasswordError(pErr);
+    setNameError(nErr);
+    if (eErr || pErr || nErr) return;
+
     setLoading(true);
     try {
       const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
@@ -80,96 +113,147 @@ export default function LoginPage() {
       navigate('/');
       window.location.reload();
     } catch (err: any) {
-      alert(err.message);
+      setAuthError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 px-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-10">
-          <Link to="/" className="inline-block group">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/20 group-hover:shadow-blue-600/30 transition-shadow duration-200">
-              <span className="text-white text-2xl font-bold">이</span>
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">이력서공방</h1>
-          </Link>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">AI 기반 이력서 관리 플랫폼</p>
+    <div className="min-h-screen flex">
+      {/* Left decorative panel - hidden on mobile */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
+        {/* Decorative circles */}
+        <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/3 w-40 h-40 bg-purple-400/15 rounded-full blur-2xl" />
+
+        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16">
+          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-8">
+            <span className="text-white text-3xl font-bold">&#xC774;</span>
+          </div>
+          <h2 className="text-3xl xl:text-4xl font-extrabold text-white mb-4 leading-tight">
+            AI로 완성하는<br />나만의 이력서
+          </h2>
+          <p className="text-blue-100 text-lg leading-relaxed mb-8 max-w-md">
+            5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기까지. 경력 관리의 새로운 기준을 경험하세요.
+          </p>
+          <div className="space-y-4">
+            {[
+              { icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              ), text: 'ATS 최적화 검사로 합격률 UP' },
+              { icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              ), text: 'JD 매칭 분석으로 맞춤 이력서 작성' },
+              { icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              ), text: '안전한 데이터 보호, 완전 무료 시작' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-3 text-white/90">
+                <span className="shrink-0 w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center">
+                  {item.icon}
+                </span>
+                <span className="text-sm">{item.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
 
-        {/* Card */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 text-center mb-1">{t('common.login')}</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">계정으로 간편하게 시작하세요</p>
-
-          {/* Mode Tabs */}
-          <div className="flex mb-6 bg-slate-100 dark:bg-slate-700 rounded-xl p-1">
-            <button
-              onClick={() => setMode('social')}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${mode === 'social' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
-            >
-              소셜 로그인
-            </button>
-            <button
-              onClick={() => setMode('email')}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${mode === 'email' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
-            >
-              이메일 로그인
-            </button>
+      {/* Right form panel */}
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 px-4 py-8">
+        <div className="w-full max-w-sm">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <Link to="/" className="inline-block group">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/20 group-hover:shadow-blue-600/30 transition-shadow duration-200 lg:hidden">
+                <span className="text-white text-2xl font-bold">&#xC774;</span>
+              </div>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">&#xC774;&#xB825;&#xC11C;&#xACF5;&#xBC29;</h1>
+            </Link>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">AI &#xAE30;&#xBC18; &#xC774;&#xB825;&#xC11C; &#xAD00;&#xB9AC; &#xD50C;&#xB7AB;&#xD3FC;</p>
           </div>
 
-          {error && (
-            <div role="alert" className="mb-6 p-3.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-400 text-center animate-fade-in">
-              로그인에 실패했습니다. 다시 시도해주세요.
+          {/* Card */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
+            {/* Login / Register tab toggle */}
+            <div className="flex mb-6 bg-slate-100 dark:bg-slate-700 rounded-xl p-1">
+              <button
+                onClick={() => { setActiveTab('login'); setAuthError(''); }}
+                className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === 'login' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+              >
+                &#xB85C;&#xADF8;&#xC778;
+              </button>
+              <button
+                onClick={() => { setActiveTab('register'); setAuthError(''); }}
+                className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === 'register' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+              >
+                &#xD68C;&#xC6D0;&#xAC00;&#xC785;
+              </button>
             </div>
-          )}
 
-          {mode === 'social' && (
-          <div className="space-y-3">
-            {PROVIDERS.map(p => {
-              const Icon = p.icon;
-              return (
-                <a
-                  key={p.id}
-                  href={getSocialLoginUrl(p.id)}
-                  className={`flex items-center justify-center gap-3 w-full py-3 px-4 rounded-xl font-medium text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${p.className}`}
-                >
-                  <Icon />
-                  {p.name}로 계속하기
-                </a>
-              );
-            })}
-          </div>
-          )}
+            {(error || authError) && (
+              <div role="alert" className="mb-5 p-3.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-400 text-center animate-fade-in">
+                {authError || '로그인에 실패했습니다. 다시 시도해주세요.'}
+              </div>
+            )}
 
-          {mode === 'email' && (
-            <form onSubmit={handleEmailAuth} className="space-y-3">
+            {/* Social login buttons */}
+            <div className="space-y-2.5 mb-6">
+              {PROVIDERS.map(p => {
+                const Icon = p.icon;
+                return (
+                  <a
+                    key={p.id}
+                    href={getSocialLoginUrl(p.id)}
+                    className={`flex items-center justify-center gap-3 w-full py-3 px-4 rounded-xl font-medium text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800 ${p.className}`}
+                  >
+                    <Icon />
+                    {p.name}&#xC73C;&#xB85C; {isRegister ? '가입하기' : '계속하기'}
+                  </a>
+                );
+              })}
+            </div>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200 dark:border-slate-700" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-white dark:bg-slate-800 px-3 text-xs text-slate-400 dark:text-slate-500">&#xB610;&#xB294; &#xC774;&#xBA54;&#xC77C;&#xB85C;</span>
+              </div>
+            </div>
+
+            {/* Email form */}
+            <form onSubmit={handleEmailAuth} className="space-y-3" noValidate>
               {isRegister && (
                 <>
-                  <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="이름" required aria-label="이름"
-                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                  <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div>
+                    <input type="text" value={name} onChange={e => { setName(e.target.value); setNameError(''); }} placeholder="이름" required aria-label="이름"
+                      className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${nameError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`} />
+                    {nameError && <p className="mt-1 text-xs text-red-500">{nameError}</p>}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
                     {([
-                      { value: 'personal', label: '개인', icon: '👤', desc: '구직자' },
-                      { value: 'recruiter', label: '리크루터', icon: '🔍', desc: '채용 담당' },
-                      { value: 'company', label: '기업', icon: '🏢', desc: '기업 회원' },
-                    ] as const).map(t => (
+                      { value: 'personal', label: '개인', icon: '\uD83D\uDC64', desc: '구직자' },
+                      { value: 'recruiter', label: '리크루터', icon: '\uD83D\uDD0D', desc: '채용 담당' },
+                      { value: 'company', label: '기업', icon: '\uD83C\uDFE2', desc: '기업 회원' },
+                    ] as const).map(tp => (
                       <button
-                        key={t.value}
+                        key={tp.value}
                         type="button"
-                        onClick={() => setUserType(t.value)}
+                        onClick={() => setUserType(tp.value)}
                         className={`p-2.5 rounded-xl border text-center transition-all duration-200 ${
-                          userType === t.value
+                          userType === tp.value
                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500'
                             : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
                         }`}
                       >
-                        <span className="text-lg block">{t.icon}</span>
-                        <span className="text-xs font-medium text-slate-900 dark:text-slate-100">{t.label}</span>
-                        <span className="text-xs text-slate-400 block">{t.desc}</span>
+                        <span className="text-lg block">{tp.icon}</span>
+                        <span className="text-xs font-medium text-slate-900 dark:text-slate-100">{tp.label}</span>
+                        <span className="text-xs text-slate-400 block">{tp.desc}</span>
                       </button>
                     ))}
                   </div>
@@ -181,45 +265,56 @@ export default function LoginPage() {
                   )}
                 </>
               )}
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" required aria-label="이메일"
-                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호 (8자 이상)" required minLength={8} aria-label="비밀번호"
-                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <div>
+                <input type="email" value={email} onChange={e => { setEmail(e.target.value); setEmailError(''); }} placeholder="이메일" required aria-label="이메일"
+                  className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${emailError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`} />
+                {emailError && <p className="mt-1 text-xs text-red-500">{emailError}</p>}
+              </div>
+              <div>
+                <input type="password" value={password} onChange={e => { setPassword(e.target.value); setPasswordError(''); }} placeholder="비밀번호 (8자 이상)" required minLength={8} aria-label="비밀번호"
+                  className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${passwordError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`} />
+                {passwordError && <p className="mt-1 text-xs text-red-500">{passwordError}</p>}
+              </div>
+
+              {!isRegister && (
+                <div className="flex justify-end">
+                  <Link to="/forgot-password" className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors">
+                    비밀번호 찾기
+                  </Link>
+                </div>
+              )}
+
               <button type="submit" disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all duration-200 shadow-sm">
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all duration-200 shadow-sm hover:shadow-md">
                 {loading ? '처리 중...' : isRegister ? '회원가입' : '로그인'}
               </button>
-              <button type="button" onClick={() => setIsRegister(!isRegister)}
-                className="w-full text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
-                {isRegister ? '이미 계정이 있으신가요? 로그인' : '계정이 없으신가요? 회원가입'}
-              </button>
             </form>
-          )}
 
-          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
-            <p className="text-xs text-slate-400 dark:text-slate-500 text-center leading-relaxed">
-              로그인하면 <Link to="/terms" className="text-slate-500 dark:text-slate-400 underline underline-offset-2 hover:text-slate-700 dark:hover:text-slate-300 transition-colors duration-200">이용약관</Link>에 동의하는 것으로 간주합니다.
-            </p>
+            <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
+              <p className="text-xs text-slate-400 dark:text-slate-500 text-center leading-relaxed">
+                {isRegister ? '가입' : '로그인'}하면 <Link to="/terms" className="text-slate-500 dark:text-slate-400 underline underline-offset-2 hover:text-slate-700 dark:hover:text-slate-300 transition-colors duration-200">이용약관</Link> 및 <Link to="/privacy" className="text-slate-500 dark:text-slate-400 underline underline-offset-2 hover:text-slate-700 dark:hover:text-slate-300 transition-colors duration-200">개인정보처리방침</Link>에 동의하는 것으로 간주합니다.
+              </p>
+            </div>
           </div>
-        </div>
 
-        <p className="text-center text-sm text-slate-400 dark:text-slate-500 mt-6">
-          <Link to="/" className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200">비로그인으로 사용하기 &rarr;</Link>
-        </p>
+          <p className="text-center text-sm text-slate-400 dark:text-slate-500 mt-6">
+            <Link to="/" className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200">비로그인으로 사용하기 &rarr;</Link>
+          </p>
 
-        <div className="flex flex-wrap justify-center gap-4 mt-8 text-xs text-slate-400 dark:text-slate-500">
-          <span className="flex items-center gap-1">
-            <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-            무료 사용
-          </span>
-          <span className="flex items-center gap-1">
-            <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-            데이터 안전
-          </span>
-          <span className="flex items-center gap-1">
-            <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-            오픈소스
-          </span>
+          <div className="flex flex-wrap justify-center gap-4 mt-6 text-xs text-slate-400 dark:text-slate-500">
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+              무료 사용
+            </span>
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+              데이터 안전
+            </span>
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+              오픈소스
+            </span>
+          </div>
         </div>
       </div>
     </div>
