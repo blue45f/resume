@@ -40,6 +40,7 @@ export declare class AutoGenerateController {
             id: any;
             title: any;
             slug: any;
+            userId: any;
             viewCount: any;
             visibility: any;
             personalInfo: {

@@ -443,7 +443,7 @@ let ResumesService = class ResumesService {
     formatSummary(resume) {
         const pi = resume.personalInfo;
         return {
-            id: resume.id, title: resume.title, slug: resume.slug || '', viewCount: resume.viewCount || 0, visibility: resume.visibility || 'private',
+            id: resume.id, title: resume.title, slug: resume.slug || '', userId: resume.userId || '', viewCount: resume.viewCount || 0, visibility: resume.visibility || 'private',
             personalInfo: pi
                 ? {
                     name: pi.name, email: pi.email, phone: pi.phone, address: pi.address,

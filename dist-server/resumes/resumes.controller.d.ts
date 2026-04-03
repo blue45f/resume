@@ -14,6 +14,7 @@ export declare class ResumesController {
             id: any;
             title: any;
             slug: any;
+            userId: any;
             viewCount: any;
             visibility: any;
             personalInfo: {
@@ -115,6 +116,7 @@ export declare class ResumesController {
         id: any;
         title: any;
         slug: any;
+        userId: any;
         viewCount: any;
         visibility: any;
         personalInfo: {
@@ -139,6 +141,7 @@ export declare class ResumesController {
             id: any;
             title: any;
             slug: any;
+            userId: any;
             viewCount: any;
             visibility: any;
             personalInfo: {
@@ -196,6 +199,7 @@ export declare class ResumesController {
         id: any;
         title: any;
         slug: any;
+        userId: any;
         viewCount: any;
         visibility: any;
         personalInfo: {
@@ -243,6 +247,7 @@ export declare class ResumesController {
         id: any;
         title: any;
         slug: any;
+        userId: any;
         viewCount: any;
         visibility: any;
         personalInfo: {
@@ -291,6 +296,7 @@ export declare class ResumesController {
         id: any;
         title: any;
         slug: any;
+        userId: any;
         viewCount: any;
         visibility: any;
         personalInfo: {
@@ -351,6 +357,7 @@ export declare class ResumesController {
         id: any;
         title: any;
         slug: any;
+        userId: any;
         viewCount: any;
         visibility: any;
         personalInfo: {

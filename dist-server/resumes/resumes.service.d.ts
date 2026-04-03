@@ -9,6 +9,7 @@ export declare class ResumesService {
             id: any;
             title: any;
             slug: any;
+            userId: any;
             viewCount: any;
             visibility: any;
             personalInfo: {
@@ -39,6 +40,7 @@ export declare class ResumesService {
             id: any;
             title: any;
             slug: any;
+            userId: any;
             viewCount: any;
             visibility: any;
             personalInfo: {
@@ -75,6 +77,7 @@ export declare class ResumesService {
             id: any;
             title: any;
             slug: any;
+            userId: any;
             viewCount: any;
             visibility: any;
             personalInfo: {
@@ -128,6 +131,7 @@ export declare class ResumesService {
         id: any;
         title: any;
         slug: any;
+        userId: any;
         viewCount: any;
         visibility: any;
         personalInfo: {
@@ -176,6 +180,7 @@ export declare class ResumesService {
         id: any;
         title: any;
         slug: any;
+        userId: any;
         viewCount: any;
         visibility: any;
         personalInfo: {
@@ -229,6 +234,7 @@ export declare class ResumesService {
         id: any;
         title: any;
         slug: any;
+        userId: any;
         viewCount: any;
         visibility: any;
         personalInfo: {
@@ -277,6 +283,7 @@ export declare class ResumesService {
         id: any;
         title: any;
         slug: any;
+        userId: any;
         viewCount: any;
         visibility: any;
         personalInfo: {
@@ -327,6 +334,7 @@ export declare class ResumesService {
         id: any;
         title: any;
         slug: any;
+        userId: any;
         viewCount: any;
         visibility: any;
         personalInfo: {

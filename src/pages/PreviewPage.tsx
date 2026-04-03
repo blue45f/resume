@@ -30,6 +30,8 @@ import type { Resume } from '@/types/resume';
 import { fetchResume } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import BookmarkButton from '@/components/BookmarkButton';
+import FollowButton from '@/components/FollowButton';
+import SendMessageButton from '@/components/SendMessageButton';
 import QrCodeModal from '@/components/QrCodeModal';
 import { API_URL } from '@/lib/config';
 
@@ -285,6 +287,18 @@ export default function PreviewPage() {
               {resume.visibility === 'public' && (
                 <BookmarkButton resumeId={id!} />
               )}
+              {/* Social: Follow & Message buttons (only for other users' resumes) */}
+              {(() => {
+                const currentUser = getUser();
+                const isOtherUser = currentUser && resume.userId && currentUser.id !== resume.userId;
+                if (!isOtherUser) return null;
+                return (
+                  <>
+                    <FollowButton userId={resume.userId!} />
+                    <SendMessageButton userId={resume.userId!} userName={resume.personalInfo.name || '사용자'} />
+                  </>
+                );
+              })()}
               <button
                 onClick={() => setShowAiAnalysis(true)}
                 className="px-2.5 sm:px-3 py-2 bg-emerald-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-colors"
