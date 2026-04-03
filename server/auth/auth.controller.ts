@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Patch, Delete, Query, Res, Req, Body, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from './auth.guard';
@@ -142,6 +143,7 @@ export class AuthController {
   // ---- 이메일 회원가입/로그인 ----
   @Post('register')
   @Public()
+  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 registrations/min per IP
   @ApiOperation({ summary: '이메일 회원가입' })
   @ApiResponse({ status: 200, description: '회원가입 성공, JWT 토큰 반환' })
   @ApiResponse({ status: 401, description: '중복 이메일 또는 유효성 검증 실패' })
@@ -169,6 +171,7 @@ export class AuthController {
 
   @Post('login')
   @Public()
+  @Throttle({ short: { limit: 5, ttl: 60000 } }) // 5 login attempts/min per IP
   @ApiOperation({ summary: '이메일 로그인' })
   @ApiResponse({ status: 200, description: '로그인 성공, JWT 토큰 반환' })
   @ApiResponse({ status: 401, description: '이메일 또는 비밀번호 불일치' })
