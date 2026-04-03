@@ -294,9 +294,15 @@ export class LlmService {
    */
   async generateWithFallback(systemPrompt: string, userMessage: string, preferredProvider?: string): Promise<import('./llm-provider.interface').LlmResponse> {
     const tried = new Set<string>();
+    const errors: string[] = [];
     const order = preferredProvider
       ? [preferredProvider, ...this.FREE_PROVIDER_PRIORITY.filter(p => p !== preferredProvider)]
       : this.FREE_PROVIDER_PRIORITY;
+
+    // 등록된 프로바이더가 없으면 즉시 에러
+    if (this.providers.size === 0) {
+      throw new BadRequestException('LLM 프로바이더가 설정되지 않았습니다. 관리자에게 API 키 설정을 요청해주세요.');
+    }
 
     for (const name of order) {
       if (tried.has(name)) continue;
@@ -305,18 +311,21 @@ export class LlmService {
       tried.add(name);
 
       try {
-        this.logger.log(`LLM fallback: trying ${name}`);
+        this.logger.log(`LLM: trying ${name} (${tried.size}/${this.providers.size})`);
         return await provider.generate(systemPrompt, userMessage);
       } catch (err: any) {
-        const msg = err?.message || '';
-        const isRateLimit = msg.includes('429') || msg.includes('rate') || msg.includes('quota') || msg.includes('limit');
-        this.logger.warn(`LLM ${name} failed: ${msg.substring(0, 100)}`);
-        if (!isRateLimit) throw err; // 비 rate-limit 에러는 그대로 throw
-        // rate limit이면 다음 프로바이더로 계속
+        const msg = err?.message || String(err);
+        errors.push(`${name}: ${msg.substring(0, 150)}`);
+        this.logger.warn(`LLM ${name} failed: ${msg.substring(0, 200)}`);
+        // 모든 에러에서 다음 프로바이더로 fallback (rate limit 뿐 아니라 일시적 장애도 대응)
       }
     }
 
-    throw new BadRequestException('모든 무료 LLM 프로바이더의 할당량이 소진되었습니다. 잠시 후 다시 시도해주세요.');
+    // 모든 프로바이더 실패
+    this.logger.error(`All LLM providers failed: ${errors.join(' | ')}`);
+    throw new BadRequestException(
+      `AI 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요. (${tried.size}개 프로바이더 시도)`,
+    );
   }
 
   private buildSystemPrompt(dto: TransformResumeDto): string {
