@@ -101,6 +101,13 @@ export interface Tag {
   color: string;
 }
 
+export type SectionId = 'experience' | 'education' | 'skills' | 'projects' | 'certifications' | 'languages' | 'awards' | 'activities';
+
+export const DEFAULT_SECTION_ORDER: SectionId[] = [
+  'experience', 'education', 'skills', 'projects',
+  'certifications', 'languages', 'awards', 'activities',
+];
+
 export interface Resume {
   id: string;
   title: string;
@@ -120,6 +127,8 @@ export interface Resume {
   awards: Award[];
   activities: Activity[];
   tags?: Tag[];
+  sectionOrder?: SectionId[];
+  hiddenSections?: SectionId[];
 }
 
 export interface ResumeSummary {
@@ -134,6 +143,8 @@ export interface ResumeSummary {
   skills?: Skill[];
   createdAt: string;
   updatedAt: string;
+  sectionOrder?: SectionId[];
+  hiddenSections?: SectionId[];
 }
 
 export interface Template {
@@ -176,5 +187,7 @@ export function createEmptyResumeData() {
     languages: [] as Language[],
     awards: [] as Award[],
     activities: [] as Activity[],
+    sectionOrder: [...DEFAULT_SECTION_ORDER],
+    hiddenSections: [] as SectionId[],
   };
 }

@@ -21,6 +21,8 @@ const ResumeChecklist = lazy(() => import('@/components/ResumeChecklist'));
 const TransformHistory = lazy(() => import('@/components/TransformHistory'));
 const ResumeTrend = lazy(() => import('@/components/ResumeTrend'));
 const SkillChart = lazy(() => import('@/components/SkillChart'));
+const ProjectShowcase = lazy(() => import('@/components/ProjectShowcase'));
+const AchievementBadges = lazy(() => import('@/components/AchievementBadges'));
 import CareerTimeline from '@/components/CareerTimeline';
 import CareerPathSuggestion from '@/components/CareerPathSuggestion';
 import SimilarResumes from '@/components/SimilarResumes';
@@ -89,6 +91,12 @@ export default function PreviewPage() {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [printPreparing, setPrintPreparing] = useState(false);
+  // Zoom controls
+  const ZOOM_LEVELS = [75, 100, 125, 150] as const;
+  const [zoomLevel, setZoomLevel] = useState(100);
+  const [fitToWidth, setFitToWidth] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const previewWrapperRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const shareMenuRef = useRef<HTMLDivElement>(null);
 
@@ -140,6 +148,47 @@ export default function PreviewPage() {
   }, [shareUrl]);
 
   const readingMinutes = useMemo(() => resume ? estimateReadingMinutes(resume) : 0, [resume]);
+
+  // Zoom handlers
+  const handleZoomIn = useCallback(() => {
+    setFitToWidth(false);
+    setZoomLevel(prev => {
+      const idx = ZOOM_LEVELS.indexOf(prev as (typeof ZOOM_LEVELS)[number]);
+      if (idx >= 0 && idx < ZOOM_LEVELS.length - 1) return ZOOM_LEVELS[idx + 1];
+      return prev;
+    });
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setFitToWidth(false);
+    setZoomLevel(prev => {
+      const idx = ZOOM_LEVELS.indexOf(prev as (typeof ZOOM_LEVELS)[number]);
+      if (idx > 0) return ZOOM_LEVELS[idx - 1];
+      return prev;
+    });
+  }, []);
+
+  const handleFitToWidth = useCallback(() => {
+    setFitToWidth(prev => !prev);
+  }, []);
+
+  const handleFullscreen = useCallback(() => {
+    if (!previewWrapperRef.current) return;
+    if (!document.fullscreenElement) {
+      previewWrapperRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+    }
+  }, []);
+
+  // Listen for fullscreen exit
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
 
   // Close share menu when clicking outside
   useEffect(() => {
@@ -410,6 +459,8 @@ export default function PreviewPage() {
               <TransformHistory resumeId={id!} />
               <ResumeTrend resumeId={id!} />
               <SkillChart resume={resume} />
+              <AchievementBadges resume={resume} />
+              <ProjectShowcase resume={resume} />
             </Suspense>
             <CareerTimeline resume={resume} />
             <CareerPathSuggestion resume={resume} />
@@ -418,7 +469,117 @@ export default function PreviewPage() {
             <AttachmentList resumeId={id!} />
             <ResumeAnalytics resumeId={id!} />
           </div>
-          <ResumePreview ref={contentRef} resume={resume} themeId={themeId} />
+          {/* Zoom Controls */}
+          <div className="no-print max-w-[210mm] mx-auto mb-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm px-1.5 py-1">
+              <button
+                onClick={handleZoomOut}
+                disabled={zoomLevel <= ZOOM_LEVELS[0]}
+                className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 transition-colors"
+                aria-label="축소"
+                title="축소"
+              >
+                <svg className="w-4 h-4 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                </svg>
+              </button>
+              <select
+                value={fitToWidth ? 'fit' : zoomLevel}
+                onChange={e => {
+                  if (e.target.value === 'fit') {
+                    setFitToWidth(true);
+                  } else {
+                    setFitToWidth(false);
+                    setZoomLevel(Number(e.target.value));
+                  }
+                }}
+                className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-transparent border-none focus:ring-0 cursor-pointer px-1 py-0.5 text-center"
+                aria-label="확대 비율"
+              >
+                {ZOOM_LEVELS.map(z => (
+                  <option key={z} value={z}>{z}%</option>
+                ))}
+                <option value="fit">맞춤</option>
+              </select>
+              <button
+                onClick={handleZoomIn}
+                disabled={zoomLevel >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1]}
+                className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 transition-colors"
+                aria-label="확대"
+                title="확대"
+              >
+                <svg className="w-4 h-4 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleFitToWidth}
+                className={`p-1.5 rounded-lg border transition-colors text-xs font-medium ${
+                  fitToWidth
+                    ? 'bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-400'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'
+                }`}
+                aria-label="너비 맞춤"
+                title="너비에 맞추기"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+              </button>
+              <button
+                onClick={handleFullscreen}
+                className="p-1.5 rounded-lg border bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 transition-colors"
+                aria-label={isFullscreen ? '전체화면 종료' : '전체화면'}
+                title={isFullscreen ? '전체화면 종료' : '전체화면'}
+              >
+                {isFullscreen ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Preview with zoom */}
+          <div
+            ref={previewWrapperRef}
+            className={`relative overflow-auto ${isFullscreen ? 'bg-slate-100 dark:bg-slate-900 p-8' : ''}`}
+          >
+            <div
+              className="origin-top-left transition-transform duration-200"
+              style={{
+                transform: fitToWidth ? undefined : `scale(${zoomLevel / 100})`,
+                width: fitToWidth ? '100%' : `${10000 / zoomLevel}%`,
+              }}
+            >
+              <ResumePreview ref={contentRef} resume={resume} themeId={themeId} />
+            </div>
+            {/* Page break indicators */}
+            {!fitToWidth && zoomLevel >= 100 && (
+              <div className="no-print absolute inset-0 pointer-events-none" aria-hidden="true">
+                {/* A4 page height ~297mm, show indicator every 297mm * (zoomLevel/100) */}
+                {[1, 2, 3].map(page => (
+                  <div
+                    key={page}
+                    className="absolute left-0 right-0 border-t-2 border-dashed border-red-300/60"
+                    style={{ top: `${page * 297 * (zoomLevel / 100) * (96 / 25.4)}px` }}
+                  >
+                    <span className="absolute right-2 -top-4 text-[10px] text-red-400 bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded-full border border-red-200 shadow-sm">
+                      {page}쪽 끝
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="max-w-[210mm] mx-auto mt-3 px-1">
             <ResumeStats resume={resume} />
           </div>

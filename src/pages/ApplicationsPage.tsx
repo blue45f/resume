@@ -1,3 +1,4 @@
+import { getUser } from '@/lib/auth';
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';

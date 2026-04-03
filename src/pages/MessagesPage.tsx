@@ -1,3 +1,4 @@
+import { getUser } from '@/lib/auth';
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';

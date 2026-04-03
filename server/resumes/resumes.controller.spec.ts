@@ -78,11 +78,11 @@ describe('ResumesController', () => {
       expect(mockResumesService.findAll).toHaveBeenCalledWith('u1', 1, 20);
     });
 
-    it('비로그인 → userId undefined으로 findAll 호출', async () => {
-      mockResumesService.findAll.mockResolvedValue({ data: [], total: 0 });
+    it('비로그인 → findPublic 호출 (공개 이력서만)', async () => {
+      mockResumesService.findPublic.mockResolvedValue({ data: [], total: 0 });
 
       await controller.findAll({ user: null });
-      expect(mockResumesService.findAll).toHaveBeenCalledWith(undefined, 1, 20);
+      expect(mockResumesService.findPublic).toHaveBeenCalledWith(1, 20);
     });
 
     it('public=true → findPublic 호출 (공개 이력서 목록)', async () => {

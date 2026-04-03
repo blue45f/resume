@@ -1,13 +1,146 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CompanyInfoCard from '@/components/CompanyInfoCard';
+import JobAlert from '@/components/JobAlert';
 import { getUser } from '@/lib/auth';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
-import { fetchResumes } from '@/lib/api';
+import { fetchResumes, createApplication } from '@/lib/api';
+import { toast } from '@/components/Toast';
 import type { ResumeSummary } from '@/types/resume';
+
+/* ------------------------------------------------------------------ */
+/*  One-Click Apply: localStorage tracking for applied jobs            */
+/* ------------------------------------------------------------------ */
+const APPLIED_STORAGE_KEY = 'applied-jobs';
+
+function getAppliedJobs(): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(APPLIED_STORAGE_KEY) || '[]'));
+  } catch {
+    return new Set();
+  }
+}
+
+function addAppliedJob(jobId: string) {
+  const applied = getAppliedJobs();
+  applied.add(jobId);
+  localStorage.setItem(APPLIED_STORAGE_KEY, JSON.stringify(Array.from(applied)));
+}
+
+/* ------------------------------------------------------------------ */
+/*  Salary utilities                                                    */
+/* ------------------------------------------------------------------ */
+const MARKET_AVG_SALARY: Record<string, number> = {
+  fulltime: 5000, contract: 4200, parttime: 2500, intern: 2400,
+};
+
+function parseSalaryRange(salary: string): { min: number; max: number } | null {
+  if (!salary) return null;
+  const nums = salary.match(/\d[\d,]*/g);
+  if (!nums || nums.length === 0) return null;
+  const values = nums.map(n => parseInt(n.replace(/,/g, ''), 10));
+  // Normalize: if values are < 100 they are in 만원 units already, otherwise convert
+  const normalized = values.map(v => (v > 10000 ? Math.round(v / 10000) : v > 100 ? Math.round(v / 100) : v));
+  if (normalized.length === 1) return { min: normalized[0], max: normalized[0] };
+  return { min: Math.min(...normalized), max: Math.max(...normalized) };
+}
+
+function getSalaryComparisonBadge(salary: string, jobType: string): { text: string; color: string } | null {
+  const range = parseSalaryRange(salary);
+  if (!range) return null;
+  const avg = MARKET_AVG_SALARY[jobType] || 4500;
+  const midSalary = (range.min + range.max) / 2;
+  // Treat midSalary in 만원 units; avg is also in 만원
+  const diffPct = Math.round(((midSalary - avg) / avg) * 100);
+  if (Math.abs(diffPct) < 3) return null;
+  if (diffPct > 0) {
+    return {
+      text: `시장 평균 대비 +${diffPct}%`,
+      color: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+    };
+  }
+  return {
+    text: `시장 평균 대비 ${diffPct}%`,
+    color: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+  };
+}
+
+/* Salary contribution modal */
+function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [form, setForm] = useState({ company: '', position: '', salary: '', experience: '3', anonymous: true });
+  const [submitted, setSubmitted] = useState(false);
+
+  if (!open) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    fetch(`${API_URL}/api/salary-data`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(form),
+    }).catch(() => {});
+    setSubmitted(true);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl w-full max-w-md mx-4 p-6 animate-fade-in" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">급여 정보 제공하기</h3>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {submitted ? (
+          <div className="text-center py-8">
+            <span className="text-4xl">🙏</span>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mt-3">감사합니다!</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">익명으로 안전하게 반영됩니다.</p>
+            <button onClick={onClose} className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700">닫기</button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">모든 정보는 익명으로 처리되며, 급여 통계에만 활용됩니다.</p>
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">회사명</label>
+              <input required value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="예: 네이버" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">포지션</label>
+              <input required value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="예: 프론트엔드 개발자" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">연봉 (만원)</label>
+                <input required type="number" value={form.salary} onChange={e => setForm(f => ({ ...f, salary: e.target.value }))} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="5000" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">경력 (년)</label>
+                <input type="number" min={0} max={30} value={form.experience} onChange={e => setForm(f => ({ ...f, experience: e.target.value }))} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+            <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 cursor-pointer">
+              <input type="checkbox" checked={form.anonymous} onChange={e => setForm(f => ({ ...f, anonymous: e.target.checked }))} className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+              익명으로 제출
+            </label>
+            <button type="submit" className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
+              제출하기
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
 
 
 interface JobPost {
@@ -74,9 +207,25 @@ export default function JobsPage() {
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [userResumes, setUserResumes] = useState<ResumeSummary[]>([]);
+  const [salaryMin, setSalaryMin] = useState(0);
+  const [salaryMax, setSalaryMax] = useState(20000);
+  const [salaryFilterEnabled, setSalaryFilterEnabled] = useState(false);
+  const [showSalaryContribute, setShowSalaryContribute] = useState(false);
+  const [appliedJobs, setAppliedJobs] = useState<Set<string>>(getAppliedJobs);
+  const [applyModalJob, setApplyModalJob] = useState<JobPost | null>(null);
   const user = getUser();
   const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company';
   const isPersonal = user?.userType === 'personal';
+
+  const handleQuickApply = useCallback((job: JobPost) => {
+    setApplyModalJob(job);
+  }, []);
+
+  const handleApplySuccess = useCallback((jobId: string) => {
+    addAppliedJob(jobId);
+    setAppliedJobs(prev => new Set(prev).add(jobId));
+    setApplyModalJob(null);
+  }, []);
 
   // Load user's resume skills for match scoring
   useEffect(() => {
@@ -123,7 +272,17 @@ export default function JobsPage() {
     setMobileDetailOpen(true);
   };
 
-  const filteredJobs = typeFilter === 'all' ? jobs : jobs.filter(j => j.type === typeFilter);
+  const filteredJobs = useMemo(() => {
+    let result = typeFilter === 'all' ? jobs : jobs.filter(j => j.type === typeFilter);
+    if (salaryFilterEnabled) {
+      result = result.filter(j => {
+        const range = parseSalaryRange(j.salary);
+        if (!range) return true; // Keep jobs without salary info
+        return range.max >= salaryMin && range.min <= salaryMax;
+      });
+    }
+    return result;
+  }, [jobs, typeFilter, salaryFilterEnabled, salaryMin, salaryMax]);
   const selected = filteredJobs.find(j => j.id === selectedId);
 
   return (
@@ -135,11 +294,14 @@ export default function JobsPage() {
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">채용 공고</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{filteredJobs.length}개의 공고</p>
           </div>
-          {isRecruiter && (
-            <Link to="/jobs/new" className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
-              + 공고 등록
-            </Link>
-          )}
+          <div className="flex items-center gap-2">
+            <JobAlert jobs={jobs} />
+            {isRecruiter && (
+              <Link to="/jobs/new" className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
+                + 공고 등록
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Search */}
@@ -149,7 +311,7 @@ export default function JobsPage() {
         </form>
 
         {/* Job type filter */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
           {[{ key: 'all', label: '전체' }, { key: 'fulltime', label: '정규직' }, { key: 'contract', label: '계약직' }, { key: 'parttime', label: '파트타임' }, { key: 'intern', label: '인턴' }].map(opt => (
             <button
               key={opt.key}
@@ -164,6 +326,59 @@ export default function JobsPage() {
             </button>
           ))}
         </div>
+
+
+        {/* Salary filter & contribute */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="flex-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+            <div className="flex items-center justify-between mb-2">
+              <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={salaryFilterEnabled}
+                  onChange={e => setSalaryFilterEnabled(e.target.checked)}
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                급여 필터
+              </label>
+              {salaryFilterEnabled && (
+                <span className="text-[10px] text-slate-400">{salaryMin.toLocaleString()} ~ {salaryMax.toLocaleString()}만원</span>
+              )}
+            </div>
+            {salaryFilterEnabled && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-slate-400 w-8">최소</span>
+                  <input
+                    type="range" min={0} max={15000} step={500} value={salaryMin}
+                    onChange={e => { const v = Number(e.target.value); setSalaryMin(Math.min(v, salaryMax)); }}
+                    className="flex-1 accent-blue-500"
+                  />
+                  <span className="text-xs text-slate-600 dark:text-slate-400 w-16 text-right">{salaryMin.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-slate-400 w-8">최대</span>
+                  <input
+                    type="range" min={1000} max={20000} step={500} value={salaryMax}
+                    onChange={e => { const v = Number(e.target.value); setSalaryMax(Math.max(v, salaryMin)); }}
+                    className="flex-1 accent-blue-500"
+                  />
+                  <span className="text-xs text-slate-600 dark:text-slate-400 w-16 text-right">{salaryMax.toLocaleString()}</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => setShowSalaryContribute(true)}
+            className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium rounded-xl border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            급여 정보 제공하기
+          </button>
+        </div>
+
+        <SalaryContributeModal open={showSalaryContribute} onClose={() => setShowSalaryContribute(false)} />
 
         {loading ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -226,7 +441,7 @@ export default function JobsPage() {
                   <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{selected.position}</h2>
                 </div>
                 <div className="p-4">
-                  <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} />
+                  <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} appliedJobs={appliedJobs} onQuickApply={handleQuickApply} userResumes={userResumes} />
                 </div>
               </div>
             )}
@@ -247,13 +462,27 @@ export default function JobsPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{j.position}</h3>
+                        {appliedJobs.has(j.id) && (
+                          <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-md border border-green-200 dark:border-green-800">
+                            지원 완료
+                          </span>
+                        )}
                         {user && userSkills.size > 0 && j.skills && (
                           <MatchBadge score={calculateMatchScore(userSkills, j.skills)} />
                         )}
                       </div>
                       <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{timeAgo(j.createdAt)}</span>
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{j.company}</p>
+                    <div className="flex items-center justify-between mt-0.5">
+                      <p className="text-xs text-slate-600 dark:text-slate-400">{j.company}</p>
+                      <Link
+                        to={`/company/${encodeURIComponent(j.company)}`}
+                        onClick={e => e.stopPropagation()}
+                        className="text-[10px] text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 hover:underline shrink-0"
+                      >
+                        회사 정보
+                      </Link>
+                    </div>
                     <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-400">
                       {j.location && (
                         <span className="flex items-center gap-0.5">
@@ -263,6 +492,10 @@ export default function JobsPage() {
                       )}
                       <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded">{JOB_TYPES[j.type] || j.type}</span>
                       {j.salary && <span className="text-emerald-600 dark:text-emerald-400 font-medium">{j.salary}</span>}
+                      {j.salary && (() => {
+                        const badge = getSalaryComparisonBadge(j.salary, j.type);
+                        return badge ? <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded border ${badge.color}`}>{badge.text}</span> : null;
+                      })()}
                     </div>
                     {j.skills && (
                       <div className="flex flex-wrap gap-1 mt-2">
@@ -285,7 +518,7 @@ export default function JobsPage() {
               <div className="lg:col-span-2 hidden lg:block">
                 {selected ? (
                   <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 sticky top-20">
-                    <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} />
+                    <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} appliedJobs={appliedJobs} onQuickApply={handleQuickApply} userResumes={userResumes} />
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-64 text-slate-400 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -299,14 +532,161 @@ export default function JobsPage() {
             </div>
           </>
         )}
+        {/* Quick Apply Modal */}
+        {applyModalJob && (
+          <QuickApplyModal
+            job={applyModalJob}
+            resumes={userResumes}
+            onClose={() => setApplyModalJob(null)}
+            onSuccess={handleApplySuccess}
+          />
+        )}
       </main>
       <Footer />
     </>
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  Quick Apply Modal                                                   */
+/* ------------------------------------------------------------------ */
+function QuickApplyModal({ job, resumes, onClose, onSuccess }: {
+  job: JobPost;
+  resumes: ResumeSummary[];
+  onClose: () => void;
+  onSuccess: (jobId: string) => void;
+}) {
+  const [selectedResumeId, setSelectedResumeId] = useState(resumes.length > 0 ? resumes[0].id : '');
+  const [coverLetter, setCoverLetter] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const user = getUser();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedResumeId) {
+      toast('지원할 이력서를 선택해주세요.', 'error');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await createApplication({
+        company: job.company,
+        position: job.position,
+        status: 'applied',
+        resumeId: selectedResumeId,
+        notes: coverLetter || undefined,
+        location: job.location,
+        salary: job.salary,
+      });
+      toast('지원이 완료되었습니다!', 'success');
+      onSuccess(job.id);
+    } catch (err: any) {
+      toast(err?.message || '지원 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={onClose}>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">이력서로 즉시 지원</h2>
+            <p className="text-xs text-slate-500 mt-0.5">{job.company} - {job.position}</p>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        {!user ? (
+          <div className="p-6 text-center">
+            <svg className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">로그인 후 즉시 지원할 수 있습니다.</p>
+            <Link to="/login" className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors">
+              로그인하기
+            </Link>
+          </div>
+        ) : resumes.length === 0 ? (
+          <div className="p-6 text-center">
+            <svg className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">먼저 이력서를 작성해주세요.</p>
+            <Link to="/resumes/new" className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors">
+              이력서 작성하기
+            </Link>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-5 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">지원할 이력서 선택</label>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {resumes.map(r => (
+                  <label
+                    key={r.id}
+                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                      selectedResumeId === r.id
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="resume"
+                      value={r.id}
+                      checked={selectedResumeId === r.id}
+                      onChange={() => setSelectedResumeId(r.id)}
+                      className="text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{r.title || '제목 없음'}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{r.personalInfo?.name || ''}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                커버레터 <span className="text-xs font-normal text-slate-400">(선택사항)</span>
+              </label>
+              <textarea
+                value={coverLetter}
+                onChange={e => setCoverLetter(e.target.value)}
+                rows={4}
+                placeholder="간단한 자기소개나 지원 동기를 적어주세요..."
+                className="w-full px-3 py-2.5 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting || !selectedResumeId}
+              className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  지원 중...
+                </>
+              ) : (
+                '지원하기'
+              )}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* Extracted detail panel for reuse in desktop and mobile */
-function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob }: { job: JobPost; isPersonal: boolean; userSkills: Set<string>; allJobs: JobPost[]; onSelectJob: (id: string) => void }) {
+function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, appliedJobs, onQuickApply, userResumes }: { job: JobPost; isPersonal: boolean; userSkills: Set<string>; allJobs: JobPost[]; onSelectJob: (id: string) => void; appliedJobs: Set<string>; onQuickApply: (job: JobPost) => void; userResumes: ResumeSummary[] }) {
   const matchScore = userSkills.size > 0 && job.skills ? calculateMatchScore(userSkills, job.skills) : 0;
   const jobSkillsList = job.skills ? job.skills.split(',').map(s => s.trim()) : [];
   const matchedSkills = jobSkillsList.filter(s => userSkills.has(s.toLowerCase()));
@@ -344,6 +724,10 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob }: {
               {job.salary}
             </span>
           )}
+          {job.salary && (() => {
+            const badge = getSalaryComparisonBadge(job.salary, job.type);
+            return badge ? <span className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border ${badge.color}`}>{badge.text}</span> : null;
+          })()}
           <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-lg font-medium">{JOB_TYPES[job.type] || job.type}</span>
           <span>{timeAgo(job.createdAt)}</span>
         </div>

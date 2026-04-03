@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
-import type { Experience, Education, Skill, Project, Certification, Language, Award, Activity } from '@/types/resume';
+import type { Experience, Education, Skill, Project, Certification, Language, Award, Activity, SectionId } from '@/types/resume';
 import type { Resume } from '@/types/resume';
+import { DEFAULT_SECTION_ORDER } from '@/types/resume';
 import { toast } from '@/components/Toast';
 import { t } from '@/lib/i18n';
 import { sectionTips } from '@/lib/writingTips';
@@ -11,6 +12,7 @@ import AiWritingAssist from '@/components/AiWritingAssist';
 import { SkillSuggestDropdown, CompanyRoleSuggest, InlineContentTip } from '@/components/SkillSuggest';
 import AiCoachPanel from '@/components/AiCoachPanel';
 import AiSummaryGenerator from '@/components/AiSummaryGenerator';
+import SectionOrderPanel from '@/components/SectionOrderPanel';
 
 type SaveStatus = 'saved' | 'saving' | 'dirty' | 'error' | 'idle';
 
@@ -205,17 +207,40 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
   }, [data, dirty, saving, doAutoSave]);
 
 
+  const sectionOrder = data.sectionOrder?.length ? data.sectionOrder : [...DEFAULT_SECTION_ORDER];
+  const hiddenSections = data.hiddenSections || [];
+
+  const sectionTabMap: Record<string, { id: string; label: string }> = {
+    experience: { id: 'experience', label: t('resume.experience') },
+    education: { id: 'education', label: t('resume.education') },
+    skills: { id: 'skills', label: t('resume.skills') },
+    projects: { id: 'projects', label: t('resume.projects') },
+    certifications: { id: 'certifications', label: t('resume.certifications') },
+    languages: { id: 'languages', label: t('resume.languages') },
+    awards: { id: 'awards', label: t('resume.awards') },
+    activities: { id: 'activities', label: t('resume.activities') },
+  };
+
   const tabs = [
     { id: 'personal', label: t('resume.personal') },
-    { id: 'experience', label: t('resume.experience') },
-    { id: 'education', label: t('resume.education') },
-    { id: 'skills', label: t('resume.skills') },
-    { id: 'projects', label: t('resume.projects') },
-    { id: 'certifications', label: t('resume.certifications') },
-    { id: 'languages', label: t('resume.languages') },
-    { id: 'awards', label: t('resume.awards') },
-    { id: 'activities', label: t('resume.activities') },
+    ...sectionOrder
+      .filter(s => !hiddenSections.includes(s))
+      .map(s => sectionTabMap[s]),
   ];
+
+  const handleSectionOrderChange = (newOrder: SectionId[]) => {
+    setDirty(true);
+    setData(prev => ({ ...prev, sectionOrder: newOrder }));
+  };
+
+  const handleHiddenSectionsChange = (newHidden: SectionId[]) => {
+    setDirty(true);
+    // If current tab is being hidden, switch to personal
+    if (newHidden.includes(activeTab as SectionId)) {
+      setActiveTab('personal');
+    }
+    setData(prev => ({ ...prev, hiddenSections: newHidden }));
+  };
 
   const updatePersonalInfo = (field: string, value: string) => {
     setDirty(true);
@@ -305,6 +330,15 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
       aria-label="이력서 편집 폼"
     >
       <SaveStatusPill status={saveStatus} lastSaved={lastSaved} />
+
+      {/* Section Order Panel */}
+      <SectionOrderPanel
+        sectionOrder={sectionOrder}
+        hiddenSections={hiddenSections}
+        onOrderChange={handleSectionOrderChange}
+        onHiddenChange={handleHiddenSectionsChange}
+      />
+
       <div>
         <label htmlFor="resume-title" className={labelClass}>이력서 제목{requiredMark}</label>
         <input

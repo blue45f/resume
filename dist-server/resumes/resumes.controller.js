@@ -34,10 +34,10 @@ let ResumesController = class ResumesController {
     findAll(req, isPublic, page, limit) {
         const parsedPage = parseInt(page || '1');
         const parsedLimit = Math.min(parseInt(limit || '20'), 50);
-        if (isPublic === 'true') {
+        if (isPublic === 'true' || !req.user?.id) {
             return this.resumesService.findPublic(parsedPage, parsedLimit);
         }
-        return this.resumesService.findAll(req.user?.id, parsedPage, parsedLimit);
+        return this.resumesService.findAll(req.user.id, parsedPage, parsedLimit);
     }
     analytics(req) {
         if (!req.user?.id)

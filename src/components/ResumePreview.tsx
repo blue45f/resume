@@ -1,5 +1,6 @@
-import { forwardRef, memo } from 'react';
-import type { Resume, Skill as SkillType } from '@/types/resume';
+import { forwardRef, memo, useMemo } from 'react';
+import type { Resume, Skill as SkillType, SectionId } from '@/types/resume';
+import { DEFAULT_SECTION_ORDER } from '@/types/resume';
 import SafeHtml from '@/components/SafeHtml';
 import { resumeThemes, type ResumeTheme } from '@/lib/resumeThemes';
 import { t } from '@/lib/i18n';
