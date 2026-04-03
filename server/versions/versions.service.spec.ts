@@ -122,5 +122,112 @@ describe('VersionsService', () => {
       expect(result).toEqual({ success: true, restoredVersion: 3 });
       expect(mockPrisma.$transaction).toHaveBeenCalled();
     });
+
+    it('복원 시 resume title 업데이트', async () => {
+      mockPrisma.resumeVersion.findFirst.mockResolvedValue({
+        id: 'v1', resumeId: 'r1', versionNumber: 1,
+        snapshot: mockSnapshot,
+        resume: { userId: null },
+      });
+      await service.restore('r1', 'v1');
+
+      expect(mockPrisma.resume.update).toHaveBeenCalledWith({
+        where: { id: 'r1' },
+        data: { title: '테스트 이력서' },
+      });
+    });
+
+    it('복원 시 personalInfo upsert 호출', async () => {
+      mockPrisma.resumeVersion.findFirst.mockResolvedValue({
+        id: 'v1', resumeId: 'r1', versionNumber: 1,
+        snapshot: mockSnapshot,
+        resume: { userId: null },
+      });
+      await service.restore('r1', 'v1');
+
+      expect(mockPrisma.personalInfo.upsert).toHaveBeenCalled();
+      const upsertCall = mockPrisma.personalInfo.upsert.mock.calls[0][0];
+      expect(upsertCall.where).toEqual({ resumeId: 'r1' });
+      expect(upsertCall.update.name).toBe('홍길동');
+    });
+
+    it('복원 시 기존 experiences/skills 삭제 후 재생성', async () => {
+      mockPrisma.resumeVersion.findFirst.mockResolvedValue({
+        id: 'v1', resumeId: 'r1', versionNumber: 1,
+        snapshot: mockSnapshot,
+        resume: { userId: null },
+      });
+      await service.restore('r1', 'v1');
+
+      expect(mockPrisma.experience.deleteMany).toHaveBeenCalledWith({ where: { resumeId: 'r1' } });
+      expect(mockPrisma.experience.createMany).toHaveBeenCalled();
+      expect(mockPrisma.skill.deleteMany).toHaveBeenCalledWith({ where: { resumeId: 'r1' } });
+      expect(mockPrisma.skill.createMany).toHaveBeenCalled();
+    });
+
+    it('빈 컬렉션은 deleteMany만 호출하고 createMany 호출하지 않음', async () => {
+      const emptySnapshot = JSON.stringify({
+        title: '빈 이력서',
+        personalInfo: { name: '테스트' },
+        experiences: [],
+        educations: [],
+        skills: [],
+        projects: [],
+      });
+      mockPrisma.resumeVersion.findFirst.mockResolvedValue({
+        id: 'v1', resumeId: 'r1', versionNumber: 1,
+        snapshot: emptySnapshot,
+        resume: { userId: null },
+      });
+      await service.restore('r1', 'v1');
+
+      expect(mockPrisma.experience.deleteMany).toHaveBeenCalled();
+      expect(mockPrisma.experience.createMany).not.toHaveBeenCalled();
+      expect(mockPrisma.education.deleteMany).toHaveBeenCalled();
+      expect(mockPrisma.education.createMany).not.toHaveBeenCalled();
+    });
+
+    it('personalInfo의 links 배열은 JSON 문자열로 변환', async () => {
+      const snapshotWithLinks = JSON.stringify({
+        title: '링크 이력서',
+        personalInfo: { name: '테스트', links: [{ label: 'GitHub', url: 'https://github.com' }] },
+        experiences: [],
+        educations: [],
+        skills: [],
+        projects: [],
+      });
+      mockPrisma.resumeVersion.findFirst.mockResolvedValue({
+        id: 'v1', resumeId: 'r1', versionNumber: 1,
+        snapshot: snapshotWithLinks,
+        resume: { userId: null },
+      });
+      await service.restore('r1', 'v1');
+
+      const upsertCall = mockPrisma.personalInfo.upsert.mock.calls[0][0];
+      expect(typeof upsertCall.update.links).toBe('string');
+      expect(JSON.parse(upsertCall.update.links)).toEqual([{ label: 'GitHub', url: 'https://github.com' }]);
+    });
+  });
+
+  describe('findAll 정렬', () => {
+    it('versionNumber 내림차순 정렬 호출', async () => {
+      mockPrisma.resumeVersion.findMany.mockResolvedValue([]);
+      await service.findAll('r1');
+
+      expect(mockPrisma.resumeVersion.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { versionNumber: 'desc' },
+        }),
+      );
+    });
+
+    it('createdAt을 ISO 문자열로 변환', async () => {
+      const date = new Date('2024-06-15T10:30:00Z');
+      mockPrisma.resumeVersion.findMany.mockResolvedValue([
+        { id: 'v1', versionNumber: 1, description: '첫 버전', createdAt: date },
+      ]);
+      const result = await service.findAll('r1');
+      expect(result[0].createdAt).toBe(date.toISOString());
+    });
   });
 });

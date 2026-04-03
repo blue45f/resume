@@ -206,4 +206,117 @@ describe('AttachmentsService', () => {
       await expect(service.remove('fake')).rejects.toThrow(NotFoundException);
     });
   });
+
+  describe('upload - Cloudinary 모드', () => {
+    let cloudinaryService: AttachmentsService;
+
+    beforeEach(async () => {
+      const { v2: cloudinary } = require('cloudinary');
+      cloudinary.uploader.upload_stream.mockImplementation(
+        (_opts: any, callback: Function) => {
+          const stream = {
+            end: () => callback(null, { secure_url: 'https://res.cloudinary.com/test/upload/v1/resume-attachments/resume-1/uuid.pdf' }),
+          };
+          return stream;
+        },
+      );
+
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          AttachmentsService,
+          { provide: PrismaService, useValue: mockPrisma },
+          {
+            provide: ConfigService,
+            useValue: { get: (key: string) => key.startsWith('CLOUDINARY') ? 'test-value' : null },
+          },
+        ],
+      }).compile();
+      cloudinaryService = module.get(AttachmentsService);
+      jest.clearAllMocks();
+    });
+
+    it('Cloudinary 사용 가능 시 URL 저장', async () => {
+      const { v2: cloudinary } = require('cloudinary');
+      cloudinary.uploader.upload_stream.mockImplementation(
+        (_opts: any, callback: Function) => ({
+          end: () => callback(null, { secure_url: 'https://res.cloudinary.com/test/file.pdf' }),
+        }),
+      );
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.attachment.create.mockResolvedValue({
+        ...mockAttachment,
+        filename: 'https://res.cloudinary.com/test/file.pdf',
+      });
+
+      const file = createMockFile();
+      const result = await cloudinaryService.upload('resume-1', file, 'document', '');
+
+      expect(result.downloadUrl).toContain('https://res.cloudinary.com');
+    });
+  });
+
+  describe('upload - DB base64 폴백', () => {
+    it('Cloudinary 미설정 시 base64로 DB 저장', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.attachment.create.mockResolvedValue(mockAttachment);
+
+      const file = createMockFile();
+      await service.upload('resume-1', file, 'document', '첨부');
+
+      const createCall = mockPrisma.attachment.create.mock.calls[0][0];
+      expect(createCall.data.data).toBe(Buffer.from('test').toString('base64'));
+    });
+  });
+
+  describe('getFileData - 콘텐츠 타입 반환', () => {
+    it('DB base64 데이터 반환 시 올바른 mimeType', async () => {
+      mockPrisma.attachment.findUnique.mockResolvedValue({
+        ...mockAttachment,
+        data: Buffer.from('test').toString('base64'),
+        resume: { userId: 'user-1', visibility: 'public' },
+      });
+
+      const result = await service.getFileData('att-1', 'user-1');
+      expect(result.mimeType).toBe('application/pdf');
+      expect(result.data).toBeInstanceOf(Buffer);
+    });
+
+    it('Cloudinary URL → redirectUrl 반환', async () => {
+      mockPrisma.attachment.findUnique.mockResolvedValue({
+        ...mockAttachment,
+        filename: 'https://res.cloudinary.com/test/file.pdf',
+        resume: { userId: 'user-1', visibility: 'public' },
+      });
+
+      const result = await service.getFileData('att-1', 'user-1');
+      expect(result.redirectUrl).toBe('https://res.cloudinary.com/test/file.pdf');
+    });
+
+    it('공개 이력서 첨부파일은 누구나 접근 가능', async () => {
+      mockPrisma.attachment.findUnique.mockResolvedValue({
+        ...mockAttachment,
+        resume: { userId: 'user-1', visibility: 'public' },
+      });
+
+      const result = await service.getFileData('att-1', 'other-user');
+      expect(result.originalName).toBe('이력서.pdf');
+    });
+  });
+
+  describe('한글 파일명 인코딩', () => {
+    it('Latin1 인코딩된 한글 파일명을 UTF-8로 복원', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.attachment.create.mockImplementation(({ data }: any) => ({
+        ...mockAttachment,
+        originalName: data.originalName,
+      }));
+
+      const koreanName = '이력서_최종.pdf';
+      const latin1Encoded = Buffer.from(koreanName, 'utf8').toString('latin1');
+      const file = createMockFile({ originalname: latin1Encoded });
+      const result = await service.upload('resume-1', file, 'document', '');
+
+      expect(result.originalName).toBe(koreanName);
+    });
+  });
 });
