@@ -381,3 +381,14 @@ export const markScoutRead = (id: string) =>
 // Unread message count
 export const fetchUnreadMessageCount = () =>
   request<{ count: number }>(`${BASE}/social/messages/unread/count`);
+
+// Scout management
+export const fetchSentScouts = () => request<any[]>(`${BASE}/social/scouts/sent`);
+export const respondToScout = (id: string, status: string) =>
+  request<any>(`${BASE}/social/scouts/${id}/respond`, {
+    method: 'POST', body: JSON.stringify({ status }),
+  });
+export const sendBulkScout = (data: { targetIds: string[]; message: string; company: string }) =>
+  request<any>(`${BASE}/social/scouts/bulk`, {
+    method: 'POST', body: JSON.stringify(data),
+  });

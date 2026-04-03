@@ -78,12 +78,8 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetch(`${API_URL}/api/health/usage`, { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.ok ? r.json() : [])
-        .then(setUsage)
-        .catch(() => {});
+    if (getToken()) {
+      fetchUsage().then(setUsage).catch(() => {});
     }
   }, []);
 
@@ -99,14 +95,7 @@ export default function SettingsPage() {
     }
     setChangingPw(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/api/auth/change-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      await apiChangePassword(currentPassword, newPassword);
       toast('비밀번호가 변경되었습니다', 'success');
       setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
     } catch (err: any) {
@@ -118,15 +107,7 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/api/auth/account`, {
-        method: 'DELETE',
-        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message);
-      }
+      await apiDeleteAccount();
       clearAuth();
       toast('계정이 삭제되었습니다', 'info');
       navigate('/');
@@ -140,13 +121,8 @@ export default function SettingsPage() {
     const updated = { ...notifications, [key]: !notifications[key] };
     setNotifications(updated);
     localStorage.setItem('notification-prefs', JSON.stringify(updated));
-    const token = getToken();
-    if (token) {
-      fetch(`${API_URL}/api/auth/profile`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ notifications: updated }),
-      }).catch(() => {});
+    if (getToken()) {
+      apiUpdateProfile({ ...updated } as any).catch(() => {});
     }
     toast('알림 설정이 저장되었습니다', 'success');
   };
@@ -159,22 +135,16 @@ export default function SettingsPage() {
 
   const handleExportData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      const [resumesRes, appsRes] = await Promise.all([
-        fetch(`${API_URL}/api/resumes`, { headers }),
-        fetch(`${API_URL}/api/applications`, { headers }),
+      const { fetchResumes, fetchApplications } = await import('@/lib/api');
+      const [resumes, apps] = await Promise.all([
+        fetchResumes(),
+        fetchApplications(),
       ]);
-
-      const resumes = await resumesRes.json();
-      const apps = await appsRes.json();
 
       const data = {
         exportDate: new Date().toISOString(),
         user: { name: user?.name, email: user?.email },
-        resumes: resumes.data || resumes,
+        resumes: resumes,
         applications: apps,
         notificationPreferences: notifications,
       };

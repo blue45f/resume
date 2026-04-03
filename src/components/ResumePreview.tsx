@@ -433,7 +433,7 @@ function RemainingContent({ resume, theme, sectionIndex }: { resume: Resume; the
                     {cert.credentialId && <span className="text-slate-400 ml-2 text-xs">({cert.credentialId})</span>}
                   </div>
                   <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
-                    {formatDate(cert.issueDate)}{cert.expiryDate && ` — ${formatDate(cert.expiryDate)}`}
+                    {formatDateRange(cert.issueDate, cert.expiryDate, undefined, getDateLocale(theme.id))}
                   </span>
                 </div>
                 {cert.description && <SafeHtml html={cert.description} className="text-sm text-slate-600 mt-1" />}
@@ -452,7 +452,7 @@ function RemainingContent({ resume, theme, sectionIndex }: { resume: Resume; the
                   {lang.testName && <span className="text-slate-600 ml-2 text-sm">{lang.testName}</span>}
                   {lang.score && <span className="text-blue-600 ml-2 text-sm font-medium">{lang.score}</span>}
                 </div>
-                {lang.testDate && <span className="text-xs text-slate-400 tabular-nums">{formatDate(lang.testDate)}</span>}
+                {lang.testDate && <span className="text-xs text-slate-400 tabular-nums">{formatDate(lang.testDate, getDateLocale(theme.id))}</span>}
               </div>
             ))}
           </div>
@@ -468,7 +468,7 @@ function RemainingContent({ resume, theme, sectionIndex }: { resume: Resume; the
                     <span className="font-semibold text-slate-900">{award.name}</span>
                     {award.issuer && <span className="text-slate-600 ml-2 text-sm">{award.issuer}</span>}
                   </div>
-                  {award.awardDate && <span className="text-xs text-slate-400 tabular-nums">{formatDate(award.awardDate)}</span>}
+                  {award.awardDate && <span className="text-xs text-slate-400 tabular-nums">{formatDate(award.awardDate, getDateLocale(theme.id))}</span>}
                 </div>
                 {award.description && <SafeHtml html={award.description} className="text-sm text-slate-600 mt-1" />}
               </div>
@@ -488,7 +488,7 @@ function RemainingContent({ resume, theme, sectionIndex }: { resume: Resume; the
                     {act.role && <span className="text-slate-400 ml-1 text-xs">| {act.role}</span>}
                   </div>
                   <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
-                    {formatDate(act.startDate)}{act.endDate && ` — ${formatDate(act.endDate)}`}
+                    {formatDateRange(act.startDate, act.endDate, undefined, getDateLocale(theme.id))}
                   </span>
                 </div>
                 {act.description && <SafeHtml html={act.description} className="text-sm text-slate-600 mt-1" />}
@@ -514,7 +514,7 @@ function ProjectBlock({ proj, themeId }: { proj: Resume['projects'][0]; themeId:
           {proj.role && <span className="text-slate-600 ml-2 text-sm">| {proj.role}</span>}
         </div>
         <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
-          {formatDate(proj.startDate)}{proj.endDate && ` — ${formatDate(proj.endDate)}`}
+          {formatDateRange(proj.startDate, proj.endDate, undefined, getDateLocale(themeId))}
         </span>
       </div>
       {proj.description && <SafeHtml html={proj.description} className="text-sm text-slate-600 mt-1.5 leading-relaxed break-words" />}
@@ -576,7 +576,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
       {educations.length > 0 && (
         <Section title={t('resume.education')} theme={theme}>
           <div className="space-y-3">
-            {educations.map(edu => <EducationBlock key={edu.id} edu={edu} />)}
+            {educations.map(edu => <EducationBlock key={edu.id} edu={edu} themeId={theme.id} />)}
           </div>
         </Section>
       )}
@@ -662,7 +662,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
             {educations.length > 0 && (
               <Section title={t('resume.education')} theme={theme}>
                 <div className="space-y-3">
-                  {educations.map(edu => <EducationBlock key={edu.id} edu={edu} />)}
+                  {educations.map(edu => <EducationBlock key={edu.id} edu={edu} themeId={theme.id} />)}
                 </div>
               </Section>
             )}
@@ -735,7 +735,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
                     <div className="flex flex-wrap justify-between items-baseline gap-2">
                       <span className="font-medium text-slate-700">{exp.company}{exp.position && ` — ${exp.position}`}</span>
                       <span className="text-[10px] text-slate-400 tabular-nums">
-                        {formatDate(exp.startDate)}{(exp.endDate || exp.current) && ` — ${exp.current ? '현재' : formatDate(exp.endDate)}`}
+                        {formatDateRange(exp.startDate, exp.endDate, exp.current, getDateLocale(theme.id))}
                       </span>
                     </div>
                     {exp.description && <SafeHtml html={exp.description} className="text-sm text-slate-500 mt-2 leading-loose break-words" />}
@@ -750,7 +750,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
           {educations.length > 0 && (
             <Section title={t('resume.education')} theme={theme}>
               <div className="space-y-6">
-                {educations.map(edu => <EducationBlock key={edu.id} edu={edu} />)}
+                {educations.map(edu => <EducationBlock key={edu.id} edu={edu} themeId={theme.id} />)}
               </div>
             </Section>
           )}
@@ -806,7 +806,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
               <h2 className={theme.sectionTitleStyle}>{t('resume.education')}</h2>
               <div className="space-y-3">
-                {educations.map(edu => <EducationBlock key={edu.id} edu={edu} />)}
+                {educations.map(edu => <EducationBlock key={edu.id} edu={edu} themeId={theme.id} />)}
               </div>
             </div>
           )}
@@ -932,7 +932,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
               <div className="space-y-3">
                 {educations.map(edu => (
                   <div key={edu.id} className="border border-[#30363d] rounded-lg bg-white p-4">
-                    <EducationBlock edu={edu} />
+                    <EducationBlock edu={edu} themeId={theme.id} />
                   </div>
                 ))}
               </div>
@@ -1000,7 +1000,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
           {educations.length > 0 && (
             <Section title={t('resume.education')} theme={theme}>
               <div className="space-y-3">
-                {educations.map(edu => <EducationBlock key={edu.id} edu={edu} />)}
+                {educations.map(edu => <EducationBlock key={edu.id} edu={edu} themeId={theme.id} />)}
               </div>
             </Section>
           )}
@@ -1074,7 +1074,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
                 <section className="mb-4">
                   <h2 className={theme.sectionTitleStyle}>{t('resume.education')}</h2>
                   <div className="space-y-3">
-                    {educations.map(edu => <EducationBlock key={edu.id} edu={edu} />)}
+                    {educations.map(edu => <EducationBlock key={edu.id} edu={edu} themeId={theme.id} />)}
                   </div>
                 </section>
               )}
@@ -1184,7 +1184,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
           {educations.length > 0 && (
             <Section title={t('resume.education')} theme={theme}>
               <div className="space-y-4">
-                {educations.map(edu => <EducationBlock key={edu.id} edu={edu} />)}
+                {educations.map(edu => <EducationBlock key={edu.id} edu={edu} themeId={theme.id} />)}
               </div>
             </Section>
           )}
@@ -1270,7 +1270,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
           {educations.length > 0 && (
             <Section title={t('resume.education')} theme={theme}>
               <div className="space-y-3">
-                {educations.map(edu => <EducationBlock key={edu.id} edu={edu} />)}
+                {educations.map(edu => <EducationBlock key={edu.id} edu={edu} themeId={theme.id} />)}
               </div>
             </Section>
           )}

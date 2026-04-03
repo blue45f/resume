@@ -4,11 +4,10 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import EmptyState from '@/components/EmptyState';
-import { fetchScouts, followUser } from '@/lib/api';
+import { fetchScouts, followUser, markScoutRead, fetchSentScouts, respondToScout as apiRespondToScout, sendBulkScout } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { timeAgo } from '@/lib/time';
 import { toast } from '@/components/Toast';
-import { API_URL } from '@/lib/config';
 
 
 interface Scout {
@@ -122,13 +121,11 @@ export default function ScoutsPage() {
 
   useEffect(() => {
     document.title = '스카우트 제안 — 이력서공방';
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = { Authorization: `Bearer ${token}` as string };
 
     Promise.all([
       fetchScouts().catch(() => []),
       isRecruiter
-        ? fetch(`${API_URL}/api/social/scouts/sent`, { headers }).then(r => r.ok ? r.json() : []).catch(() => [])
+        ? fetchSentScouts().catch(() => [])
         : Promise.resolve([]),
     ])
       .then(([received, sent]) => {
@@ -164,23 +161,14 @@ export default function ScoutsPage() {
   const scouts = tab === 'sent' ? sentScouts : tab === 'received' ? receivedScouts : [];
   const unreadCount = receivedScouts.filter(s => !s.read).length;
 
-  const markRead = async (id: string) => {
-    const token = localStorage.getItem('token');
-    await fetch(`${API_URL}/api/social/scouts/${id}/read`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  const handleMarkRead = async (id: string) => {
+    await markScoutRead(id);
     setReceivedScouts(prev => prev.map(s => s.id === id ? { ...s, read: true } : s));
   };
 
   const respondToScout = async (id: string, response: 'accepted' | 'rejected') => {
-    const token = localStorage.getItem('token');
     try {
-      await fetch(`${API_URL}/api/social/scouts/${id}/respond`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: response }),
-      });
+      await apiRespondToScout(id, response);
       setReceivedScouts(prev => prev.map(s => s.id === id ? { ...s, status: response } : s));
 
       // Auto-follow on accept
@@ -210,7 +198,7 @@ export default function ScoutsPage() {
     setSelectedId(id);
     if (tab === 'received') {
       const scout = receivedScouts.find(s => s.id === id);
-      if (scout && !scout.read) markRead(id);
+      if (scout && !scout.read) handleMarkRead(id);
     }
   };
 
@@ -219,16 +207,11 @@ export default function ScoutsPage() {
   const handleBulkSend = async () => {
     if (!bulkMessage.trim() || selectedIds.size === 0) return;
     setSendingBulk(true);
-    const token = localStorage.getItem('token');
     try {
-      await fetch(`${API_URL}/api/social/scouts/bulk`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          targetIds: Array.from(selectedIds),
-          message: bulkMessage,
-          company: user?.companyName || '',
-        }),
+      await sendBulkScout({
+        targetIds: Array.from(selectedIds),
+        message: bulkMessage,
+        company: user?.companyName || '',
       });
       setBulkMode(false);
       setSelectedIds(new Set());

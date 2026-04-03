@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { timeAgo } from '@/lib/time';
+import { fetchNotifications as apiFetchNotifications, markAllNotificationsRead } from '@/lib/api';
+import { getToken } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
 
 

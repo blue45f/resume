@@ -5,7 +5,8 @@ import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import EmptyState from '@/components/EmptyState';
 import { timeAgo } from '@/lib/time';
-import { API_URL } from '@/lib/config';
+import { fetchNotifications as apiFetchNotifications, markAllNotificationsRead } from '@/lib/api';
+import { getToken } from '@/lib/auth';
 
 
 interface Notification {
@@ -36,10 +37,8 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     document.title = '알림 — 이력서공방';
-    const token = localStorage.getItem('token');
-    if (!token) { setLoading(false); return; }
-    fetch(`${API_URL}/api/notifications`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : [])
+    if (!getToken()) { setLoading(false); return; }
+    apiFetchNotifications()
       .then(setNotifications)
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -47,8 +46,7 @@ export default function NotificationsPage() {
   }, []);
 
   const markAllRead = async () => {
-    const token = localStorage.getItem('token');
-    await fetch(`${API_URL}/api/notifications/read-all`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    await markAllNotificationsRead();
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
