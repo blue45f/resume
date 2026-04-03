@@ -889,7 +889,18 @@ function ReportedContentQueue() {
 // ═══════════════════════════════════════════════════════════
 function SystemSettings() {
   const [maintenance, setMaintenance] = useState(() => localStorage.getItem('admin-maintenance') === 'true');
-  const [announcement, setAnnouncement] = useState(() => localStorage.getItem('admin-announcement') || '');
+  const [announcement, setAnnouncement] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('admin-announcement') || '{}').message || ''; } catch { return ''; }
+  });
+  const [bannerType, setBannerType] = useState<'info' | 'warning' | 'success' | 'promo'>(() => {
+    try { return JSON.parse(localStorage.getItem('admin-announcement') || '{}').type || 'info'; } catch { return 'info'; }
+  });
+  const [bannerLink, setBannerLink] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('admin-announcement') || '{}').link || ''; } catch { return ''; }
+  });
+  const [bannerLinkText, setBannerLinkText] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('admin-announcement') || '{}').linkText || ''; } catch { return ''; }
+  });
   const [saved, setSaved] = useState(true);
 
   const rateLimits = [
@@ -902,7 +913,8 @@ function SystemSettings() {
 
   const handleSave = async () => {
     localStorage.setItem('admin-maintenance', String(maintenance));
-    localStorage.setItem('admin-announcement', announcement);
+    const bannerData = announcement ? JSON.stringify({ id: Date.now().toString(), message: announcement, type: bannerType, link: bannerLink || undefined, linkText: bannerLinkText || undefined }) : '';
+    localStorage.setItem('admin-announcement', bannerData);
 
     // Try to persist to backend
     const token = localStorage.getItem('token');
@@ -958,17 +970,49 @@ function SystemSettings() {
         </h2>
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">사이트 상단에 표시될 공지 메시지 (비워두면 표시하지 않음)</p>
+          <div className="flex gap-2 mb-2">
+            {(['info', 'warning', 'success', 'promo'] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => { setBannerType(t); setSaved(false); }}
+                className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${bannerType === t ? {
+                  info: 'bg-blue-600 text-white',
+                  warning: 'bg-amber-500 text-white',
+                  success: 'bg-emerald-600 text-white',
+                  promo: 'bg-purple-600 text-white',
+                }[t] : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}
+              >
+                {{ info: '정보', warning: '경고', success: '성공', promo: '프로모션' }[t]}
+              </button>
+            ))}
+          </div>
           <textarea
             value={announcement}
             onChange={e => { setAnnouncement(e.target.value); setSaved(false); }}
             placeholder="예: 4월 5일 02:00~06:00 서버 점검이 예정되어 있습니다."
-            rows={3}
+            rows={2}
             className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 resize-none"
           />
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <input
+              value={bannerLink}
+              onChange={e => { setBannerLink(e.target.value); setSaved(false); }}
+              placeholder="링크 URL (선택)"
+              className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
+            />
+            <input
+              value={bannerLinkText}
+              onChange={e => { setBannerLinkText(e.target.value); setSaved(false); }}
+              placeholder="링크 텍스트 (선택)"
+              className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
+            />
+          </div>
           {announcement && (
-            <div className="mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-              <p className="text-xs text-amber-700 dark:text-amber-400">미리보기:</p>
-              <p className="text-sm text-amber-800 dark:text-amber-300 mt-1">{announcement}</p>
+            <div className={`mt-3 p-2.5 rounded-lg text-sm text-center text-white ${{
+              info: 'bg-blue-600', warning: 'bg-amber-500', success: 'bg-emerald-600', promo: 'bg-gradient-to-r from-purple-600 to-indigo-600'
+            }[bannerType]}`}>
+              {announcement}
+              {bannerLink && <span className="ml-2 underline text-xs">{bannerLinkText || '자세히 보기'}</span>}
             </div>
           )}
         </div>

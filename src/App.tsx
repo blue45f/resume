@@ -11,6 +11,7 @@ import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 import ScrollToTop from '@/components/ScrollToTop';
 import ScrollReset from '@/components/ScrollReset';
 import QuickActions from '@/components/QuickActions';
+import AnnouncementBanner from '@/components/AnnouncementBanner';
 import { fetchMe } from '@/lib/auth';
 
 // Lazy import with auto-retry on chunk load failure (배포 후 해시 변경 대응)
@@ -80,6 +81,7 @@ export default function App() {
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium">
           본문으로 건너뛰기
         </a>
+        <AnnouncementBanner />
         <div className="min-h-screen flex flex-col bg-slate-50 overflow-x-hidden">
           <Routes>
             {/* Critical path - eager loaded */}
