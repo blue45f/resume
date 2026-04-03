@@ -9,6 +9,7 @@ import { toast } from '@/components/Toast';
 import { createEmptyResumeData } from '@/types/resume';
 import type { Resume, ResumeSummary, Template } from '@/types/resume';
 import { createResume, fetchTemplates, fetchResumes, fetchResume, duplicateResume } from '@/lib/api';
+import { API_URL } from '@/lib/config';
 import { getUser } from '@/lib/auth';
 import { getPlan } from '@/lib/plans';
 import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes';
@@ -114,10 +115,14 @@ export default function NewResumePage() {
   const [resumeCount, setResumeCount] = useState(0);
   const [existingTitles, setExistingTitles] = useState<string[]>([]);
   const [existingResumes, setExistingResumes] = useState<ResumeSummary[]>([]);
-  const [startMode, setStartMode] = useState<'empty' | 'sample' | 'copy'>('empty');
+  const [startMode, setStartMode] = useState<'empty' | 'sample' | 'copy' | 'ai-upload'>('empty');
   const [copySourceId, setCopySourceId] = useState('');
   const [initialData, setInitialData] = useState<any>(null);
   const [loadingCopy, setLoadingCopy] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadText, setUploadText] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiProgress, setAiProgress] = useState('');
   const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
   const [previewTheme, setPreviewTheme] = useState<ResumeTheme | null>(null);
   const [themeFilter, setThemeFilter] = useState<string>('all');
@@ -157,6 +162,56 @@ export default function NewResumePage() {
       toast('이력서 생성에 실패했습니다', 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAiUpload = async () => {
+    const text = uploadText.trim();
+    if (!text && !uploadFile) {
+      toast('텍스트를 입력하거나 파일을 업로드해주세요', 'error');
+      return;
+    }
+    setAiLoading(true);
+    setAiProgress('문서를 분석하고 있습니다...');
+    try {
+      const token = localStorage.getItem('token');
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      let bodyText = text;
+      if (uploadFile && !text) {
+        // 파일에서 텍스트 읽기 (txt 파일만 클라이언트에서 처리)
+        if (uploadFile.name.endsWith('.txt')) {
+          bodyText = await uploadFile.text();
+        } else {
+          // PDF/DOCX는 서버에서 처리 (현재는 파일명만 전달)
+          bodyText = `[업로드된 파일: ${uploadFile.name}] 파일 내용을 분석하여 이력서를 생성해주세요.`;
+        }
+      }
+
+      setAiProgress('AI가 이력서 항목을 추출하고 있습니다...');
+      headers['Content-Type'] = 'application/json';
+      const res = await fetch(`${API_URL}/api/auto-generate/preview`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ rawText: bodyText }),
+      });
+      if (!res.ok) throw new Error('AI 분석에 실패했습니다');
+      const data = await res.json();
+
+      setAiProgress('이력서를 구성하고 있습니다...');
+      if (data.resume) {
+        setInitialData(data.resume);
+        toast('AI가 이력서를 자동으로 채웠습니다! 내용을 확인하고 수정해주세요.', 'success');
+        setStep('form');
+      } else {
+        throw new Error('이력서 데이터를 생성할 수 없습니다');
+      }
+    } catch (err: any) {
+      toast(err.message || 'AI 분석에 실패했습니다', 'error');
+    } finally {
+      setAiLoading(false);
+      setAiProgress('');
     }
   };
 
@@ -246,7 +301,7 @@ export default function NewResumePage() {
             {/* Start Mode Selection */}
             <div className="mb-8">
               <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">시작 방법</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {/* Empty */}
                 <button
                   onClick={() => setStartMode('empty')}
@@ -305,6 +360,24 @@ export default function NewResumePage() {
                     {existingResumes.length > 0 ? `${existingResumes.length}개의 이력서에서 선택` : '기존 이력서가 없습니다'}
                   </p>
                 </button>
+
+                {/* AI Upload */}
+                <button
+                  onClick={() => setStartMode('ai-upload')}
+                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
+                    startMode === 'ai-upload'
+                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 ring-1 ring-purple-500'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                  }`}
+                >
+                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-2">
+                    <svg className="w-5 h-5 text-purple-500 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">AI 문서 분석</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">파일/텍스트로 자동 채우기</p>
+                </button>
               </div>
 
               {/* Copy source selector */}
@@ -336,6 +409,60 @@ export default function NewResumePage() {
                   >
                     {loadingCopy ? '복사 중...' : '선택한 이력서 복사하여 시작'}
                   </button>
+                </div>
+              )}
+
+              {/* AI Upload mode */}
+              {startMode === 'ai-upload' && (
+                <div className="mt-3 p-4 bg-purple-50 dark:bg-purple-900/10 rounded-xl border border-purple-200 dark:border-purple-800">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    경력증명서, 기존 이력서, 자기소개 텍스트 등을 붙여넣거나 파일을 업로드하세요
+                  </label>
+                  <textarea
+                    value={uploadText}
+                    onChange={e => setUploadText(e.target.value)}
+                    placeholder={"경력 메모, LinkedIn 프로필, 이전 이력서 내용 등을 자유롭게 붙여넣기...\n\n예시:\n이름: 홍길동\n경력: 네이버 프론트엔드 개발자 3년\n기술: React, TypeScript, Node.js"}
+                    rows={6}
+                    className="w-full px-3 py-2 text-sm border border-purple-200 dark:border-purple-700 rounded-xl dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-purple-500 resize-none mb-3"
+                  />
+                  <div className="flex items-center gap-3 mb-3">
+                    <label className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-700 rounded-lg cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-sm">
+                      <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                      파일 첨부
+                      <input
+                        type="file"
+                        accept=".pdf,.docx,.doc,.txt,.rtf"
+                        className="hidden"
+                        onChange={e => setUploadFile(e.target.files?.[0] || null)}
+                      />
+                    </label>
+                    {uploadFile && (
+                      <div className="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400">
+                        <span>{uploadFile.name}</span>
+                        <button onClick={() => setUploadFile(null)} className="text-slate-400 hover:text-red-500">&times;</button>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleAiUpload}
+                    disabled={aiLoading || (!uploadText.trim() && !uploadFile)}
+                    className="w-full py-2.5 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    {aiLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        {aiProgress}
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        AI로 이력서 자동 채우기
+                      </>
+                    )}
+                  </button>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    AI가 텍스트를 분석하여 인적사항, 경력, 학력, 기술 등을 자동으로 채워줍니다.
+                  </p>
                 </div>
               )}
             </div>
