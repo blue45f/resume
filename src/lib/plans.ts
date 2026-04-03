@@ -1,4 +1,4 @@
-export type PlanId = 'free' | 'pro' | 'enterprise';
+export type PlanId = 'free' | 'standard' | 'premium';
 
 export interface PlanConfig {
   id: PlanId;
@@ -16,11 +16,12 @@ export interface PlanConfig {
     translation: boolean;
     jobTracker: boolean;
     prioritySupport: boolean;
-    customDomain: boolean;
-    teamMembers: number;
+    scoutMessages: number; // 리크루터 스카우트 월 발송 수
+    jobPosts: number; // 채용 공고 등록 수
   };
   badge: string;
   popular?: boolean;
+  description: string;
 }
 
 export const PLANS: PlanConfig[] = [
@@ -29,6 +30,7 @@ export const PLANS: PlanConfig[] = [
     name: '무료',
     price: 0,
     yearlyPrice: 0,
+    description: '취업 준비의 첫 걸음',
     features: {
       maxResumes: 3,
       aiTransformsPerMonth: 5,
@@ -40,42 +42,44 @@ export const PLANS: PlanConfig[] = [
       translation: false,
       jobTracker: true,
       prioritySupport: false,
-      customDomain: false,
-      teamMembers: 1,
+      scoutMessages: 0,
+      jobPosts: 0,
     },
     badge: '🆓',
   },
   {
-    id: 'pro',
-    name: '프로',
-    price: 9900,
-    yearlyPrice: 99000,
+    id: 'standard',
+    name: '스탠다드',
+    price: 2900,
+    yearlyPrice: 29000,
+    description: '본격적인 취업 활동에',
     features: {
-      maxResumes: -1, // unlimited
-      aiTransformsPerMonth: -1,
+      maxResumes: 10,
+      aiTransformsPerMonth: 30,
       themes: 10,
-      exportFormats: ['txt', 'md', 'pdf'],
+      exportFormats: ['txt', 'md'],
       atsCheck: true,
       aiCoaching: true,
       coverLetter: true,
-      translation: true,
+      translation: false,
       jobTracker: true,
-      prioritySupport: true,
-      customDomain: false,
-      teamMembers: 1,
+      prioritySupport: false,
+      scoutMessages: 5,
+      jobPosts: 3,
     },
     badge: '⭐',
     popular: true,
   },
   {
-    id: 'enterprise',
-    name: '엔터프라이즈',
-    price: 29900,
-    yearlyPrice: 299000,
+    id: 'premium',
+    name: '프리미엄',
+    price: 5900,
+    yearlyPrice: 59000,
+    description: '모든 기능 무제한',
     features: {
       maxResumes: -1,
       aiTransformsPerMonth: -1,
-      themes: 10,
+      themes: 15,
       exportFormats: ['txt', 'md', 'pdf'],
       atsCheck: true,
       aiCoaching: true,
@@ -83,8 +87,8 @@ export const PLANS: PlanConfig[] = [
       translation: true,
       jobTracker: true,
       prioritySupport: true,
-      customDomain: true,
-      teamMembers: 10,
+      scoutMessages: -1,
+      jobPosts: -1,
     },
     badge: '💎',
   },

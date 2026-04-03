@@ -17,7 +17,7 @@ export default function PricingPage() {
   const FeatureRow = ({ label, free, pro, ent }: { label: string; free: string | boolean; pro: string | boolean; ent: string | boolean }) => (
     <tr className="border-b border-slate-100 dark:border-slate-700">
       <td className="py-3 text-sm text-slate-600 dark:text-slate-400">{label}</td>
-      {[free, pro, ent].map((val, i) => (
+      {[free, pro, ent].map((val: string | boolean, i: number) => (
         <td key={i} className="py-3 text-center text-sm">
           {typeof val === 'boolean' ? (
             val ? <span className="text-green-500">✓</span> : <span className="text-slate-300 dark:text-slate-600">—</span>
@@ -139,22 +139,23 @@ export default function PricingPage() {
                 <tr className="border-b border-slate-200 dark:border-slate-700">
                   <th className="text-left py-3 text-sm font-medium text-slate-500">기능</th>
                   <th className="text-center py-3 text-sm font-medium text-slate-500">무료</th>
-                  <th className="text-center py-3 text-sm font-medium text-blue-600">프로</th>
-                  <th className="text-center py-3 text-sm font-medium text-slate-500">엔터프라이즈</th>
+                  <th className="text-center py-3 text-sm font-medium text-blue-600">스탠다드</th>
+                  <th className="text-center py-3 text-sm font-medium text-slate-500">프리미엄</th>
                 </tr>
               </thead>
               <tbody>
-                <FeatureRow label="이력서 수" free="3개" pro="무제한" ent="무제한" />
-                <FeatureRow label="AI 변환" free="월 5회" pro="무제한" ent="무제한" />
-                <FeatureRow label="테마" free="3종" pro="10종" ent="10종" />
-                <FeatureRow label="내보내기" free="TXT" pro="TXT, MD" ent="TXT, MD" />
+                <FeatureRow label="이력서 수" free="3개" pro="10개" ent="무제한" />
+                <FeatureRow label="AI 변환" free="월 5회" pro="월 30회" ent="무제한" />
+                <FeatureRow label="테마" free="3종" pro="10종" ent="15종" />
+                <FeatureRow label="내보내기" free="TXT" pro="TXT, MD" ent="TXT, MD, PDF" />
                 <FeatureRow label="ATS 검사" free={true} pro={true} ent={true} />
                 <FeatureRow label="AI 코칭" free={false} pro={true} ent={true} />
                 <FeatureRow label="자소서 생성" free={false} pro={true} ent={true} />
-                <FeatureRow label="다국어 번역" free={false} pro={true} ent={true} />
+                <FeatureRow label="다국어 번역" free={false} pro={false} ent={true} />
                 <FeatureRow label="지원 관리" free={true} pro={true} ent={true} />
-                <FeatureRow label="우선 지원" free={false} pro={true} ent={true} />
-                <FeatureRow label="팀 멤버" free="1명" pro="1명" ent="10명" />
+                <FeatureRow label="스카우트" free="—" pro="월 5회" ent="무제한" />
+                <FeatureRow label="채용 공고" free="—" pro="3개" ent="무제한" />
+                <FeatureRow label="우선 지원" free={false} pro={false} ent={true} />
               </tbody>
             </table>
           </div>
