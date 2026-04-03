@@ -146,6 +146,20 @@ export class ResumesController {
     return this.resumesService.updateSlug(id, slug, req.user.id, req.user.role);
   }
 
+  @Patch(':id/transfer')
+  @ApiOperation({ summary: '이력서 소유권 이전 (관리자)' })
+  transferOwnership(
+    @Param('id') id: string,
+    @Body('newUserId') newUserId: string,
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+      throw new UnauthorizedException('관리자 권한이 필요합니다');
+    }
+    return this.resumesService.transferOwnership(id, newUserId);
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: '이력서 삭제' })
   remove(@Param('id') id: string, @Req() req: any) {

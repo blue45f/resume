@@ -124,6 +124,22 @@ async function main() {
     console.log(`  ✓ 샘플 지원 내역 ${sampleApplications.length}개 생성`);
   }
 
+  // Seed sample users for resume ownership
+  const sampleUserEmails = [
+    { email: 'minsu.kim@example.com', name: '김민수', provider: 'local', providerId: 'minsu.kim@example.com' },
+    { email: 'seoyeon@example.com', name: '이서연', provider: 'local', providerId: 'seoyeon@example.com' },
+    { email: 'jihyun.park@example.com', name: '박지현', provider: 'local', providerId: 'jihyun.park@example.com' },
+    { email: 'youngho@example.com', name: '최영호', provider: 'local', providerId: 'youngho@example.com' },
+    { email: 'sumin.jung@example.com', name: '정수민', provider: 'local', providerId: 'sumin.jung@example.com' },
+  ];
+  const sampleUsers: { id: string }[] = [];
+  for (const u of sampleUserEmails) {
+    let user = await prisma.user.findFirst({ where: { email: u.email } });
+    if (!user) user = await prisma.user.create({ data: u });
+    sampleUsers.push({ id: user.id });
+  }
+  console.log(`  ✓ 샘플 사용자 ${sampleUsers.length}명 확인/생성`);
+
   // Seed sample resumes
   const resumeCount = await prisma.resume.count();
   if (resumeCount === 0) {
@@ -386,10 +402,11 @@ async function main() {
       },
     ];
 
-    for (const data of sampleResumes) {
-      await prisma.resume.create({ data });
+    for (let i = 0; i < sampleResumes.length; i++) {
+      const owner = sampleUsers[i % sampleUsers.length];
+      await prisma.resume.create({ data: { ...sampleResumes[i], userId: owner.id } });
     }
-    console.log(`  ✓ 샘플 이력서 ${sampleResumes.length}개 생성`);
+    console.log(`  ✓ 샘플 이력서 ${sampleResumes.length}개 생성 (${sampleUsers.length}명에게 분산)`);
   }
 
   // Seed sample comments on public resumes

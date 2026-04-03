@@ -378,6 +378,15 @@ export class ResumesService {
     return this.findOne(id);
   }
 
+  async transferOwnership(id: string, newUserId: string) {
+    const resume = await this.prisma.resume.findUnique({ where: { id } });
+    if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+    const user = await this.prisma.user.findUnique({ where: { id: newUserId } });
+    if (!user) throw new NotFoundException('대상 사용자를 찾을 수 없습니다');
+    await this.prisma.resume.update({ where: { id }, data: { userId: newUserId } });
+    return { success: true, message: `이력서가 ${user.name}에게 이전되었습니다` };
+  }
+
   async remove(id: string, userId?: string, role?: string) {
     await this.verifyOwnership(id, userId, role);
     // Cloudinary 첨부파일 정리 (cascade 전에 URL 수집)
