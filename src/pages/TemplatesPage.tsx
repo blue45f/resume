@@ -81,6 +81,8 @@ export default function TemplatesPage() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Form state
   const [formName, setFormName] = useState('');
@@ -392,6 +394,40 @@ export default function TemplatesPage() {
           </div>
         )}
 
+        {/* Filter & Search */}
+        {!isEditing && templates.length > 0 && (
+          <div className="mb-4 space-y-3">
+            <input
+              type="text"
+              placeholder="템플릿 검색..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full sm:w-64 px-3 py-2 border border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="flex gap-1.5 overflow-x-auto py-1 -my-1 px-1 -mx-1">
+              <button
+                onClick={() => setFilterCategory('all')}
+                className={`px-2.5 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${filterCategory === 'all' ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-medium' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'}`}
+              >
+                전체 ({templates.length})
+              </button>
+              {[...new Set(templates.map(t => t.category))].map(cat => {
+                const label = CATEGORY_OPTIONS.find(c => c.value === cat)?.label || cat;
+                const count = templates.filter(t => t.category === cat).length;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setFilterCategory(cat)}
+                    className={`px-2.5 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${filterCategory === cat ? 'bg-blue-600 text-white font-medium' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'}`}
+                  >
+                    {label} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Template list */}
         {loading ? (
           <p className="text-center text-slate-500 py-12" aria-live="polite">불러오는 중...</p>
@@ -402,7 +438,10 @@ export default function TemplatesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {templates.map(t => {
+            {templates
+              .filter(t => filterCategory === 'all' || t.category === filterCategory)
+              .filter(t => !searchQuery || t.name.toLowerCase().includes(searchQuery.toLowerCase()) || t.description?.toLowerCase().includes(searchQuery.toLowerCase()))
+              .map(t => {
               const layout = parseLayout(t.layout || '{}');
               const categoryLabel = CATEGORY_OPTIONS.find(c => c.value === t.category)?.label || t.category;
 
