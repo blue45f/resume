@@ -1,5 +1,6 @@
 import {
   Controller, Get, Post, Put, Patch, Delete, Body, Param, Req, Query, Res,
+  UnauthorizedException, NotFoundException, InternalServerErrorException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
@@ -28,20 +29,19 @@ export class ResumesController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
+    const parsedPage = parseInt(page || '1');
+    const parsedLimit = Math.min(parseInt(limit || '20'), 50);
     if (isPublic === 'true') {
-      return this.resumesService.findPublic();
+      return this.resumesService.findPublic(parsedPage, parsedLimit);
     }
-    return this.resumesService.findAll(
-      req.user?.id,
-      parseInt(page || '1'),
-      Math.min(parseInt(limit || '20'), 50),
-    );
+    return this.resumesService.findAll(req.user?.id, parsedPage, parsedLimit);
   }
 
   @Get('dashboard/analytics')
   @ApiOperation({ summary: '사용자 대시보드 분석' })
   analytics(@Req() req: any) {
-    return this.analyticsService.getUserDashboard(req.user?.id);
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.analyticsService.getUserDashboard(req.user.id);
   }
 
   @Get('trend/:resumeId')
@@ -66,7 +66,7 @@ export class ResumesController {
   @Get('bookmarks/list')
   @ApiOperation({ summary: '내 북마크 목록' })
   getBookmarks(@Req() req: any) {
-    if (!req.user?.id) return [];
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.getBookmarks(req.user.id);
   }
 
@@ -113,13 +113,15 @@ export class ResumesController {
   @Post()
   @ApiOperation({ summary: '이력서 생성' })
   create(@Body() dto: CreateResumeDto, @Req() req: any) {
-    return this.resumesService.create(dto, req.user?.id);
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.resumesService.create(dto, req.user.id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: '이력서 수정' })
   update(@Param('id') id: string, @Body() dto: UpdateResumeDto, @Req() req: any) {
-    return this.resumesService.update(id, dto, req.user?.id);
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.resumesService.update(id, dto, req.user.id);
   }
 
   @Patch(':id/visibility')
@@ -129,64 +131,80 @@ export class ResumesController {
     @Body('visibility') visibility: string,
     @Req() req: any,
   ) {
-    return this.resumesService.setVisibility(id, visibility, req.user?.id, req.user?.role);
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.resumesService.setVisibility(id, visibility, req.user.id, req.user.role);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '이력서 삭제' })
   remove(@Param('id') id: string, @Req() req: any) {
-    return this.resumesService.remove(id, req.user?.id, req.user?.role);
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.resumesService.remove(id, req.user.id, req.user.role);
   }
 
   @Post(':id/bookmark')
   @ApiOperation({ summary: '이력서 북마크 추가' })
   addBookmark(@Param('id') id: string, @Req() req: any) {
-    if (!req.user?.id) return { error: '로그인이 필요합니다' };
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.addBookmark(id, req.user.id);
   }
 
   @Delete(':id/bookmark')
   @ApiOperation({ summary: '이력서 북마크 해제' })
   removeBookmark(@Param('id') id: string, @Req() req: any) {
-    if (!req.user?.id) return { error: '로그인이 필요합니다' };
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.removeBookmark(id, req.user.id);
   }
 
   @Post(':id/duplicate')
   @ApiOperation({ summary: '이력서 복제' })
   duplicate(@Param('id') id: string, @Req() req: any) {
-    return this.resumesService.duplicate(id, req.user?.id);
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.resumesService.duplicate(id, req.user.id);
   }
 
   @Get(':id/export/text')
   @ApiOperation({ summary: '이력서 텍스트 내보내기' })
   async exportText(@Param('id') id: string, @Res() res: Response) {
-    const text = await this.exportService.exportAsText(id);
-    // Track download
-    this.resumesService.incrementViewCount(id);
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="resume.txt"`);
-    res.send(text);
+    try {
+      const text = await this.exportService.exportAsText(id);
+      this.resumesService.incrementViewCount(id);
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="resume.txt"`);
+      res.send(text);
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
+      throw new InternalServerErrorException('이력서 내보내기에 실패했습니다');
+    }
   }
 
   @Get(':id/export/markdown')
   @ApiOperation({ summary: '이력서 마크다운 내보내기' })
   async exportMarkdown(@Param('id') id: string, @Res() res: Response) {
-    const text = await this.exportService.exportAsMarkdown(id);
-    // Track download
-    this.resumesService.incrementViewCount(id);
-    res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="resume.md"`);
-    res.send(text);
+    try {
+      const text = await this.exportService.exportAsMarkdown(id);
+      this.resumesService.incrementViewCount(id);
+      res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="resume.md"`);
+      res.send(text);
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
+      throw new InternalServerErrorException('이력서 내보내기에 실패했습니다');
+    }
   }
 
   @Get(':id/export/json')
   @ApiOperation({ summary: '이력서 JSON 내보내기' })
   async exportJson(@Param('id') id: string, @Res() res: Response) {
-    const json = await this.exportService.exportAsJson(id);
-    this.resumesService.incrementViewCount(id);
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="resume.json"`);
-    res.send(json);
+    try {
+      const json = await this.exportService.exportAsJson(id);
+      this.resumesService.incrementViewCount(id);
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="resume.json"`);
+      res.send(json);
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
+      throw new InternalServerErrorException('이력서 내보내기에 실패했습니다');
+    }
   }
 }
