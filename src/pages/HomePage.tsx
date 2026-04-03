@@ -62,7 +62,7 @@ export default function HomePage() {
       if (signal?.aborted) return;
       setResumes(resumeData);
       setTags(tagData);
-      fetchBookmarks().then(setBookmarks).catch(() => {});
+      if (user) fetchBookmarks().then(setBookmarks).catch(() => {});
     } catch (err) {
       if (signal?.aborted) return;
       setServerError(true);

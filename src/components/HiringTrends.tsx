@@ -40,8 +40,8 @@ export default function HiringTrends() {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-4 no-print">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{'\u{1F4C8} \uCC44\uC6A9 \uD2B8\uB80C\uB4DC'}</h3>
-        <Link to="/jobs" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">{'\uC804\uCCB4 \uBCF4\uAE30'}</Link>
+        <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{'\u{1F4C8} \uCC44\uC6A9 \uD2B8\uB80C\uB4DC'}</h2>
+        <Link to="/jobs" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">채용 공고 전체 보기</Link>
       </div>
 
       {/* Trending skills */}
@@ -63,7 +63,7 @@ export default function HiringTrends() {
           {jobs.slice(0, 3).map((j, i) => (
             <div key={i} className="flex items-center justify-between text-xs">
               <span className="text-slate-700 dark:text-slate-300 truncate">{j.company} · {j.position}</span>
-              {j.salary && <span className="text-slate-400 shrink-0 ml-2">{j.salary}</span>}
+              {j.salary && <span className="text-slate-500 shrink-0 ml-2">{j.salary}</span>}
             </div>
           ))}
         </div>
