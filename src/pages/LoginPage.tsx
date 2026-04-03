@@ -144,12 +144,12 @@ export default function LoginPage() {
           {mode === 'email' && (
             <form onSubmit={handleEmailAuth} className="space-y-3">
               {isRegister && (
-                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="이름" required
+                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="이름" required aria-label="이름"
                   className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               )}
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" required
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" required aria-label="이메일"
                 className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호 (8자 이상)" required minLength={8}
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호 (8자 이상)" required minLength={8} aria-label="비밀번호"
                 className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <button type="submit" disabled={loading}
                 className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all duration-200 shadow-sm">

@@ -6,8 +6,11 @@ export function getLocale(): Locale {
   return (localStorage.getItem(LOCALE_KEY) as Locale) || 'ko';
 }
 
+const langMap: Record<Locale, string> = { ko: 'ko', en: 'en', ja: 'ja' };
+
 export function setLocale(locale: Locale) {
   localStorage.setItem(LOCALE_KEY, locale);
+  document.documentElement.lang = langMap[locale] || 'ko';
   window.location.reload();
 }
 
@@ -246,3 +249,6 @@ export function getLocaleName(locale: Locale): string {
 }
 
 export const LOCALES: Locale[] = ['ko', 'en', 'ja'];
+
+// Initialize HTML lang attribute
+document.documentElement.lang = langMap[getLocale()] || 'ko';

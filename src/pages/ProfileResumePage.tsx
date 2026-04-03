@@ -27,6 +27,24 @@ export default function ProfileResumePage() {
   }, [resume]);
 
   useEffect(() => {
+    if (!resume) return;
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'resume-jsonld';
+    script.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: resume.personalInfo?.name || '',
+      jobTitle: resume.experiences?.[0]?.position || '',
+    });
+    document.head.appendChild(script);
+    return () => {
+      const el = document.getElementById('resume-jsonld');
+      if (el) el.remove();
+    };
+  }, [resume]);
+
+  useEffect(() => {
     if (!username || !slug) return;
     let cancelled = false;
     fetch(`${API_URL}/api/resumes/@${username}/${slug}`)
