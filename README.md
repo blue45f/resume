@@ -13,7 +13,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 | 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, TypeScript |
 | 인프라 | Vercel (프론트), Render (백엔드), Neon (DB) |
 | 보안 | JWT + OAuth2 (Google/GitHub/Kakao), Helmet + CSP, Rate Limiting (3-tier), HMAC, 요청 살균 |
-| 테스트 | Jest, Supertest (230+ 테스트, 22+ 스위트) |
+| 테스트 | Jest, Supertest (230+ 테스트, 23 스위트) |
 
 ## 주요 기능
 
@@ -52,11 +52,14 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **AI 변환 이력**: 변환 결과 목록 + 원클릭 복사
 
 ### 소셜
-- **스카우트 제안**: 기업 관계자가 공개 이력서에 직접 제안 (/scouts)
-- **스카우트 알림 자동 생성**: 스카우트 수신 시 알림 자동 발송
-- **1:1 쪽지**: 회원 간 다이렉트 메시지 (/messages)
-- **쪽지 알림 자동 생성**: 쪽지 수신 시 알림 자동 발송
 - **팔로우/팔로잉**: 관심 사용자 팔로우
+- **스카우트 제안**: 리크루터/기업이 구직자에게 직접 제안 (/scouts)
+- **스카우트 알림 자동 생성**: 스카우트 수신 시 알림 자동 발송
+- **1:1 쪽지**: 채팅 스타일 다이렉트 메시지 (/messages)
+- **쪽지 알림 자동 생성**: 쪽지 수신 시 알림 자동 발송
+- **댓글**: 공개 이력서/지원에 의견 작성
+- **북마크**: 관심 이력서 저장 및 관리
+- **알림**: 댓글/북마크/스카우트/쪽지 실시간 알림 (30초 폴링)
 
 ### 공유 & 프로필
 - **슬러그 URL**: `/@username/이력서-제목` 형태의 깔끔한 URL
@@ -83,9 +86,10 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **태그 시스템**: 이력서 분류 및 필터링, 소유권 관리
 
 ### 채용
-- **채용 공고**: 등록/검색/수정/삭제 (리크루터/기업만)
-- **인재 검색**: 탐색 페이지 리크루터 모드
-- **리크루터 대시보드**: 공고 통계, 스카우트 현황, 빠른 작업
+- **채용 공고 등록/검색/수정/삭제**: 리크루터/기업 전용 (/jobs)
+- **인재 검색 모드**: 탐색 페이지 리크루터 전용 뷰
+- **리크루터 대시보드**: 공고 통계, 스카우트 현황, 빠른 작업 (/recruiter)
+- **채용 공고 ↔ 자소서 연동**: 채용 공고 기반 맞춤 자소서 생성
 
 ### 수익화
 - **구직자 요금제**: 무료/스탠다드(₩2,900)/프리미엄(₩5,900)
@@ -96,7 +100,8 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **이력서 수 제한**: 플랜별 이력서 생성 한도
 - **AI 크레딧**: 플랜별 월간 AI 사용 크레딧
 - **사용량 추적**: 기능별 사용량 모니터링
-- **Toss Payments 결제 연동**: 카카오페이/네이버페이/토스페이/카드 결제
+- **Toss Payments 6종 결제**: 카카오페이/네이버페이/토스페이/카드/계좌이체/휴대폰 결제
+- **AI 크레딧 구매**: 추가 AI 사용량 크레딧 결제
 - **관리자 설정**: 플랜별 가격/기능 ON/OFF 실시간 조정
 - **요금제 페이지**: /pricing 기능 비교표
 
@@ -110,24 +115,22 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **주간 활동 차트**: 7일간 회원가입/이력서 생성 추이
 
 ### 보안 & 권한
+- **superadmin/admin/user 3단계 역할**: 역할 계층 기반 권한 관리
+- **personal/recruiter/company 회원 유형**: 용도별 기능 분리
+- **httpOnly 쿠키 + Bearer 토큰 이중 인증**: JWT를 쿠키/헤더 양방향 지원 (XSS 방어)
 - **소셜 로그인**: Google, GitHub, Kakao (OAuth2 + HMAC state)
+- **Rate Limiting (3-tier + 소셜 + 댓글)**: short 10/1s, medium 100/60s, long 1000/1h, 소셜 10/분, 댓글 5/분
+- **DTO 입력 검증 + 요청 살균**: class-validator 검증, HTML 태그 제거, NoSQL 인젝션 방지
+- **Cloudinary 파일 저장**: 첨부파일 클라우드 스토리지 (MIME + 확장자 이중 검증)
 - **소유권 검증**: 이력서/태그/템플릿 CRUD 전체
-- **관리자 권한**: admin 역할 (전체 리소스 관리 가능)
 - **보안 헤더**: Helmet + CSP (프로덕션), X-Content-Type-Options, Referrer-Policy
-- **요청 살균**: HTML 태그 자동 제거, NoSQL 인젝션 방지 (`$` 접두사 차단)
 - **이메일 회원가입/로그인**: bcrypt 비밀번호 해싱, 8자 최소
 - **비밀번호 변경**: 로그인 후 설정 페이지에서 변경
 - **계정 삭제**: GDPR 준수, 모든 데이터 cascade 삭제
-- **httpOnly 쿠키**: JWT를 httpOnly 쿠키로 저장 (XSS 방어)
 - **요청 추적**: X-Request-ID 헤더 자동 생성
-- **Rate Limiting**: 3-tier (short: 10/1s, medium: 100/60s, long: 1000/1h)
-- **DTO 입력 검증**: class-validator 기반 모든 입력 필드 검증
 - **메시지 길이 제한**: 쪽지 1000자, 스카우트 2000자 제한
-- **소셜 Rate Limiting**: 10회/분 (팔로우/스카우트/쪽지)
-- **superadmin/admin/user 3단계 역할**: 역할 계층 기반 권한 관리
 - **알림 시스템**: 댓글 알림, 북마크 알림, 스카우트 알림, 쪽지 알림 (30초 폴링)
-- **댓글 스팸 방지**: Rate Limiting (5회/분)
-- **기타**: CORS, JWT, DTO 검증, Path Traversal 방지
+- **기타**: CORS, JWT, Path Traversal 방지
 
 ### 다국어
 - **다국어 지원**: 한국어, English, 日本語 (헤더 언어 스위처)
@@ -245,7 +248,7 @@ npm run start:server   # node dist-server/main.js
 npm run test:unit      # 유닛 테스트 (175개+)
 npm run test:unit:cov  # 유닛 테스트 + 커버리지
 npm run test:e2e       # E2E 테스트 (55개+)
-# 전체: 230+ 테스트 (22+ 스위트)
+# 전체: 230+ 테스트 (23 스위트)
 ```
 
 ### 프론트엔드 목업 모드 (백엔드 없이 개발)
@@ -304,14 +307,16 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 | GET    | /api/resumes/@:username/:slug | 슬러그 URL 조회 |
 | GET    | /api/resumes/:id/bookmark/status | 북마크 상태 |
 
-### LLM 변환 (유료/무료 LLM)
+### AI 변환 (유료/무료 LLM)
 | 메서드  | 경로                                   | 설명           |
 |------|--------------------------------------|--------------|
-| POST | /api/resumes/:id/transform           | LLM 양식 변환 / AI 이력서 번역 (targetLanguage 파라미터) |
+| POST | /api/resumes/:id/transform           | LLM 양식 변환 / AI 번역 |
 | POST | /api/resumes/:id/transform/stream    | LLM 스트리밍 변환  |
+| POST | /api/resumes/:id/transform/feedback  | AI 이력서 피드백   |
+| POST | /api/resumes/:id/transform/job-match | AI JD 매칭 분석  |
+| POST | /api/resumes/:id/transform/interview | AI 면접 질문 생성  |
 | GET  | /api/resumes/:id/transform/history   | 변환 이력        |
 | GET  | /api/resumes/:id/transform/providers | LLM 프로바이더 목록 |
-| GET  | /api/resumes/:id/transform/usage     | 사용량 통계       |
 
 ### AI 자동 생성
 | 메서드  | 경로                                   | 설명           |
@@ -371,9 +376,10 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 | GET  | /payment/success | 결제 성공   |
 | GET  | /payment/fail    | 결제 실패   |
 
-### 사용량
-| 메서드  | 경로               | 설명         |
-|------|------------------|------------|
+### 헬스체크 + 사용량
+| 메서드  | 경로                | 설명         |
+|------|-------------------|------------|
+| GET  | /api/health       | 서버 상태 확인  |
 | GET  | /api/health/usage | 내 사용량 조회  |
 
 ### 댓글
@@ -411,6 +417,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 | GET    | /api/social/following               | 내 팔로잉     |
 | POST   | /api/social/scout                   | 스카우트 전송   |
 | GET    | /api/social/scouts                  | 받은 스카우트   |
+| POST   | /api/social/scouts/:id/read         | 스카우트 읽음  |
 | POST   | /api/social/messages/:receiverId    | 쪽지 전송     |
 | GET    | /api/social/messages                | 대화 목록     |
 | GET    | /api/social/messages/:partnerId     | 대화 내용     |
@@ -421,6 +428,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 |--------|------------------------|------------|
 | GET    | /api/jobs              | 채용 공고 목록  |
 | GET    | /api/jobs/my           | 내 채용 공고   |
+| GET    | /api/jobs/:id          | 채용 공고 상세  |
 | POST   | /api/jobs              | 채용 공고 등록  |
 | PUT    | /api/jobs/:id          | 채용 공고 수정  |
 | DELETE | /api/jobs/:id          | 채용 공고 삭제  |
@@ -447,31 +455,27 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 ├── server/                    # NestJS 백엔드
 │   ├── main.ts               # 앱 진입점 (Helmet, CORS, Swagger, Graceful Shutdown)
 │   ├── app.module.ts          # 루트 모듈 (Rate Limiting)
-│   ├── common/
-│   │   ├── filters/          # 글로벌 예외 필터
-│   │   ├── middleware/       # 요청 살균 + Request ID 미들웨어
-│   │   └── interceptors/    # 요청 로깅 + 응답 인터셉터
-│   ├── health/               # 헬스체크 + 사용량 추적 + 관리자 통계
-│   ├── auth/                 # JWT + OAuth2 (Google/GitHub/Kakao) + CSRF State
-│   ├── prisma/               # Prisma 서비스
-│   ├── resumes/              # 이력서 CRUD + 소유권 검증 + 자동 버전 관리 + 분석
-│   ├── llm/                  # LLM 변환 (다중 프로바이더) + AI 자동 생성
+│   ├── auth/                 # JWT + OAuth2 + 이메일 인증
+│   ├── resumes/              # 이력서 CRUD + 분석 + 내보내기
+│   ├── llm/                  # LLM 변환 (다중 프로바이더)
 │   │   ├── providers/        # Gemini, Groq, Anthropic, n8n, OpenAI Compatible
 │   │   └── dto/              # 변환/자동생성 DTO
-│   ├── templates/            # 템플릿 CRUD + 로컬 변환
-│   ├── versions/             # 버전 조회/복원
-│   ├── tags/                 # 태그 CRUD + 이력서 매핑
-│   ├── share/                # 공유 링크 (bcrypt, 소유권 검증)
-│   ├── applications/         # 지원 관리 CRUD
-│   ├── comments/             # 커뮤니티 댓글 CRUD
+│   ├── templates/            # 템플릿 + 로컬 변환
+│   ├── versions/             # 버전 관리
+│   ├── tags/                 # 태그 CRUD
+│   ├── share/                # 공유 링크
+│   ├── attachments/          # 첨부파일 (Cloudinary)
+│   ├── applications/         # 지원 관리
+│   ├── comments/             # 커뮤니티 댓글
 │   ├── notifications/        # 알림 시스템
 │   ├── social/               # 팔로우 + 스카우트 + 쪽지
-│   ├── jobs/                 # 채용 공고 CRUD
 │   ├── cover-letters/        # 자소서 CRUD
-│   ├── common/roles.ts       # 역할 계층 유틸리티
-│   └── attachments/          # 첨부파일 (MIME + 확장자 이중 검증)
+│   ├── jobs/                 # 채용 공고
+│   ├── health/               # 헬스체크 + 통계 + 사용량
+│   ├── prisma/               # DB 연결
+│   └── common/               # 미들웨어 + 인터셉터 + 역할
 ├── src/                       # React 프론트엔드
-│   ├── components/ (60+)
+│   ├── components/ (65+)
 │   │   ├── ErrorBoundary.tsx # 전역 에러 바운더리
 │   │   ├── Header.tsx        # 반응형 헤더 (모바일 메뉴)
 │   │   ├── ResumeForm.tsx    # 9탭 이력서 편집 폼
@@ -535,7 +539,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── handlers.ts       # API 핸들러
 │   │   ├── data.ts           # 샘플 데이터
 │   │   └── browser.ts        # 브라우저 워커
-│   ├── pages/ (37+)
+│   ├── pages/ (37+)                 # 31 페이지 + 6 서브 라우트
 │   │   ├── HomePage.tsx         # 메인 대시보드
 │   │   ├── LoginPage.tsx        # 로그인/회원가입
 │   │   ├── AuthCallbackPage.tsx # OAuth 콜백
@@ -569,7 +573,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   └── NotFoundPage.tsx     # 404 에러
 │   └── types/resume.ts       # TypeScript 타입
 ├── prisma/
-│   ├── schema.prisma         # DB 스키마 (16개 테이블)
+│   ├── schema.prisma         # DB 스키마 (27 모델)
 │   ├── seed.ts               # 시드 데이터
 │   └── migrations/           # 마이그레이션 이력
 ├── test/app.e2e-spec.ts       # E2E 테스트 (55개+)

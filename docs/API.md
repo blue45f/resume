@@ -119,6 +119,17 @@ JD 매칭 분석
 ### POST /resumes/:id/transform/create
 텍스트 → 이력서 생성 (AI 자동 생성)
 
+### GET /resumes/:id/transform/history
+변환 이력 목록
+
+### GET /resumes/:id/transform/providers
+사용 가능한 LLM 프로바이더 목록
+
+**Response:** `["gemini", "groq", "anthropic", "n8n"]`
+
+### GET /resumes/:id/transform/usage
+AI 변환 사용량 통계
+
 ## 지원 관리
 
 ### GET /applications
@@ -292,6 +303,9 @@ JD 매칭 분석
 ### GET /social/scouts
 받은 스카우트 목록
 
+### POST /social/scouts/:id/read
+스카우트 읽음 처리
+
 ### POST /social/messages/:receiverId
 쪽지 전송
 
@@ -336,7 +350,7 @@ JD 매칭 분석
 내 채용 공고 (로그인 필요)
 
 ### GET /jobs/:id
-채용 공고 상세 (공개)
+채용 공고 상세 (공개, 상세 정보 포함)
 
 ### POST /jobs
 채용 공고 등록 (리크루터/기업만)
