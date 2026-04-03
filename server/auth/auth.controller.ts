@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Query, Res, Req, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Query, Res, Req, Body, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -270,6 +270,25 @@ export class AuthController {
   getProfile(@Req() req: any) {
     if (!req.user) return null;
     return this.authService.getProfile(req.user.id);
+  }
+
+  @Patch('profile')
+  @ApiOperation({ summary: '프로필 수정 (userType, name 등)' })
+  async updateProfile(
+    @Body() body: { userType?: string; name?: string; companyName?: string; companyTitle?: string },
+    @Req() req: any,
+    @Res() res: Response,
+  ) {
+    try {
+      if (!req.user?.id) {
+        res.status(401).json({ message: '로그인이 필요합니다' });
+        return;
+      }
+      const updated = await this.authService.updateProfile(req.user.id, body);
+      res.json(updated);
+    } catch (e: any) {
+      res.status(400).json({ message: e.message || '프로필 수정에 실패했습니다' });
+    }
   }
 
   // ---- 관리자 기능 ----

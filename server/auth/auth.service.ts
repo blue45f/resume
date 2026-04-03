@@ -474,6 +474,32 @@ export class AuthService {
     await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
   }
 
+  async updateProfile(userId: string, data: { userType?: string; name?: string; companyName?: string; companyTitle?: string }) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+
+    const updateData: any = {};
+    if (data.userType) {
+      const validTypes = ['personal', 'recruiter', 'company'];
+      if (!validTypes.includes(data.userType)) {
+        throw new UnauthorizedException('유효하지 않은 사용자 유형입니다');
+      }
+      updateData.userType = data.userType;
+    }
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.companyName !== undefined) updateData.companyName = data.companyName;
+    if (data.companyTitle !== undefined) updateData.companyTitle = data.companyTitle;
+
+    const updated = await this.prisma.user.update({ where: { id: userId }, data: updateData });
+    return {
+      id: updated.id, email: updated.email, name: updated.name, avatar: updated.avatar,
+      provider: updated.provider, role: updated.role || 'user', plan: updated.plan || 'free',
+      userType: updated.userType || 'personal',
+      companyName: updated.companyName || '',
+      companyTitle: updated.companyTitle || '',
+    };
+  }
+
   async deleteAccount(userId: string): Promise<void> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
