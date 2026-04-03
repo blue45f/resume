@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FeatureGate from '@/components/FeatureGate';
@@ -14,7 +14,7 @@ export default function CoverLetterPage() {
   const [jobDescription, setJobDescription] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [position, setPosition] = useState('');
-  const [tone, setTone] = useState<'formal' | 'friendly' | 'passionate'>('formal');
+  const [tone, setTone] = useState<'formal' | 'friendly' | 'confident'>('formal');
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -31,10 +31,12 @@ export default function CoverLetterPage() {
   const tones = [
     { value: 'formal', label: '격식체', desc: '공식적이고 전문적인 어조' },
     { value: 'friendly', label: '친근체', desc: '따뜻하고 열정적인 어조' },
-    { value: 'passionate', label: '열정체', desc: '강한 동기와 포부를 강조' },
-  ];
+    { value: 'confident', label: '자신감체', desc: '당당하고 확신에 찬 어조' },
+  ] as const;
 
-  const handleGenerate = async () => {
+  const toneKorean: Record<string, string> = { formal: '격식체', friendly: '친근체', confident: '자신감체' };
+
+  const handleGenerate = useCallback(async () => {
     if (!selectedResumeId) { toast('이력서를 선택해주세요', 'error'); return; }
     if (!jobDescription.trim()) { toast('채용 공고를 입력해주세요', 'error'); return; }
 
@@ -51,7 +53,7 @@ export default function CoverLetterPage() {
         headers,
         body: JSON.stringify({
           templateType: 'cover-letter',
-          jobDescription: `[회사: ${companyName}] [포지션: ${position}] [어조: ${tone === 'formal' ? '격식체' : tone === 'friendly' ? '친근체' : '열정체'}]\n\n${jobDescription}`,
+          jobDescription: `[회사: ${companyName}] [포지션: ${position}] [어조: ${toneKorean[tone]}]\n\n${jobDescription}`,
         }),
       });
 
@@ -89,12 +91,33 @@ export default function CoverLetterPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedResumeId, jobDescription, companyName, position, tone]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(result);
     toast('클립보드에 복사되었습니다', 'success');
   };
+
+  const handleDownloadPdf = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { toast('팝업이 차단되었습니다. 팝업을 허용해주세요.', 'error'); return; }
+    printWindow.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>자기소개서 - ${companyName || '미지정'}</title><style>
+      body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; padding: 40px; line-height: 1.8; color: #1e293b; max-width: 800px; margin: 0 auto; font-size: 14px; }
+      h1 { font-size: 18px; margin-bottom: 8px; }
+      .meta { font-size: 12px; color: #64748b; margin-bottom: 24px; }
+      .content { white-space: pre-wrap; }
+      @media print { body { padding: 20px; } }
+    </style></head><body>
+      <h1>${companyName ? companyName + ' - ' : ''}${position || '자기소개서'}</h1>
+      <div class="meta">${toneKorean[tone]} | ${new Date().toLocaleDateString('ko-KR')}</div>
+      <div class="content">${result.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+    </body></html>`);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 300);
+  };
+
+  const wordCount = result ? result.replace(/\s+/g, ' ').trim().length : 0;
+  const charCountNoSpace = result ? result.replace(/\s/g, '').length : 0;
 
   return (
     <>
@@ -135,23 +158,30 @@ export default function CoverLetterPage() {
               </div>
             </div>
 
-            {/* Tone */}
+            {/* Tone - radio buttons */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">어조</label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {tones.map(t => (
-                  <button
+                  <label
                     key={t.value}
-                    onClick={() => setTone(t.value as any)}
-                    className={`p-3 rounded-xl border text-left transition-all duration-200 ${
+                    className={`p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
                       tone === t.value
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500'
-                        : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
+                        : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
                     }`}
                   >
+                    <input
+                      type="radio"
+                      name="tone"
+                      value={t.value}
+                      checked={tone === t.value}
+                      onChange={() => setTone(t.value)}
+                      className="sr-only"
+                    />
                     <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{t.label}</span>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{t.desc}</p>
-                  </button>
+                  </label>
                 ))}
               </div>
             </div>
@@ -184,9 +214,9 @@ export default function CoverLetterPage() {
             <div className="flex items-center justify-between mb-1">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-200">생성 결과</label>
               {result && (
-                <button onClick={handleCopy} className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400">
-                  복사
-                </button>
+                <span className="text-xs text-slate-400 dark:text-slate-500">
+                  {charCountNoSpace.toLocaleString()}자 (공백 포함 {wordCount.toLocaleString()}자)
+                </span>
               )}
             </div>
             {error && (
@@ -213,6 +243,40 @@ export default function CoverLetterPage() {
                 </div>
               )}
             </div>
+
+            {/* Action buttons */}
+            {result && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  복사하기
+                </button>
+                <button
+                  onClick={handleDownloadPdf}
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  PDF 다운로드
+                </button>
+                <button
+                  onClick={handleGenerate}
+                  disabled={loading}
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  다시 생성
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </main>
