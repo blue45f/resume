@@ -355,22 +355,27 @@ export default function TranslatePage() {
                           const token = localStorage.getItem('token');
                           const headers: Record<string, string> = { 'Content-Type': 'application/json' };
                           if (token) headers['Authorization'] = `Bearer ${token}`;
+                          const langLabel = LANGUAGE_PAIRS[selectedPairIndex]?.label || '';
                           const res = await fetch(`${API_URL}/api/auto-generate/create`, {
                             method: 'POST', headers,
-                            body: JSON.stringify({ text: result }),
+                            body: JSON.stringify({
+                              rawText: result,
+                              instruction: `이 텍스트는 이미 번역된 이력서입니다 (${langLabel}). 이 내용을 그대로 구조화된 이력서 JSON으로 변환해주세요. 번역을 다시 하지 말고 원문을 유지하세요.`,
+                            }),
                           });
                           if (res.ok) {
                             const data = await res.json();
                             toast('번역된 이력서가 저장되었습니다', 'success');
-                            window.location.href = `/resumes/${data.id}/edit`;
+                            window.location.href = `/resumes/${data.resume?.id || data.id}/edit`;
                           } else {
-                            toast('저장에 실패했습니다', 'error');
+                            const err = await res.json().catch(() => ({}));
+                            toast(err.message || '저장에 실패했습니다', 'error');
                           }
-                        } catch {
-                          toast('저장에 실패했습니다', 'error');
+                        } catch (e: any) {
+                          toast(e.message || '저장에 실패했습니다', 'error');
                         }
                       }}
-                      className="text-xs text-green-600 dark:text-green-400 hover:underline"
+                      className="text-xs text-green-600 dark:text-green-400 hover:underline font-medium"
                     >
                       새 이력서로 저장
                     </button>
