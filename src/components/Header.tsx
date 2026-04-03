@@ -4,6 +4,7 @@ import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
 import { getTheme, setTheme } from '@/lib/theme';
 import { t, getLocale, setLocale, LOCALES, getLocaleName } from '@/lib/i18n';
 import NotificationBell from '@/components/NotificationBell';
+import { fetchFollowers, fetchFollowing } from '@/lib/api';
 import { API_URL } from '@/lib/config';
 
 
@@ -16,6 +17,8 @@ export default function Header() {
   const [switching, setSwitching] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(getUser());
   const user = currentUser;
@@ -75,6 +78,13 @@ export default function Header() {
 
   // 페이지 이동 시 메뉴 닫기
   useEffect(() => { setMenuOpen(false); setProfileMenuOpen(false); }, [location.pathname]);
+
+  // 팔로워/팔로잉 수 로드
+  useEffect(() => {
+    if (!user) return;
+    fetchFollowers().then(f => setFollowerCount(Array.isArray(f) ? f.length : 0)).catch(() => {});
+    fetchFollowing().then(f => setFollowingCount(Array.isArray(f) ? f.length : 0)).catch(() => {});
+  }, [user?.id]);
 
   // 스크롤 시 header glassmorphism 전환
   useEffect(() => {
@@ -231,6 +241,12 @@ export default function Header() {
                       {switching ? '전환 중...' : isRecruiter ? '개인 모드로 전환' : '채용담당자 모드로 전환'}
                     </button>
                     <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
+                    <Link to="/social/follows" onClick={() => setProfileMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
+                      <div className="flex items-center justify-between">
+                        <span>팔로워 / 팔로잉</span>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">{followerCount} / {followingCount}</span>
+                      </div>
+                    </Link>
                     <Link to="/settings" onClick={() => setProfileMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
                       {t('common.settings')}
                     </Link>

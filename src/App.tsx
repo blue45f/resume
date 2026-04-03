@@ -59,6 +59,7 @@ const RecruiterDashboardPage = lazyRetry(() => import('@/pages/RecruiterDashboar
 const InterviewPrepPage = lazyRetry(() => import('@/pages/InterviewPrepPage'));
 const NotificationsPage = lazyRetry(() => import('@/pages/NotificationsPage'));
 const ShortLinkPage = lazyRetry(() => import('@/pages/ShortLinkPage'));
+const FollowListPage = lazyRetry(() => import('@/pages/FollowListPage'));
 const NotFoundPage = lazyRetry(() => import('@/pages/NotFoundPage'));
 
 function PageLoader() {
@@ -119,6 +120,7 @@ export default function App() {
             <Route path="/jobs" element={<Suspense fallback={<PageLoader />}><JobsPage /></Suspense>} />
             <Route path="/recruiter" element={<Suspense fallback={<PageLoader />}><RecruiterDashboardPage /></Suspense>} />
             <Route path="/interview-prep" element={<Suspense fallback={<PageLoader />}><InterviewPrepPage /></Suspense>} />
+            <Route path="/social/follows" element={<Suspense fallback={<PageLoader />}><FollowListPage /></Suspense>} />
             <Route path="/notifications" element={<Suspense fallback={<PageLoader />}><NotificationsPage /></Suspense>} />
             <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AdminPage /></Suspense>} />
             <Route path="/r/:code" element={<Suspense fallback={<PageLoader />}><ShortLinkPage /></Suspense>} />

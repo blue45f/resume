@@ -28,6 +28,7 @@ import KeywordAnalysis from '@/components/KeywordAnalysis';
 import AttachmentList from '@/components/AttachmentList';
 import ResumeAnalytics from '@/components/ResumeAnalytics';
 import ResumeStats from '@/components/ResumeStats';
+import AICareerAdvisor from '@/components/AICareerAdvisor';
 import { toast } from '@/components/Toast';
 import type { Resume } from '@/types/resume';
 import { fetchResume } from '@/lib/api';
@@ -463,6 +464,7 @@ export default function PreviewPage() {
               <CommentSection resumeId={id!} isPublic={resume.visibility === 'public'} />
             </div>
           </Suspense>
+          <AICareerAdvisor resume={resume} />
         </div>
 
         {/* Sticky bottom action bar — mobile only */}

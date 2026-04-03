@@ -121,14 +121,14 @@ describe('LlmService', () => {
         .rejects.toThrow(BadRequestException);
     });
 
-    it('비 rate-limit 에러는 즉시 re-throw', async () => {
+    it('비 rate-limit 에러도 다음 프로바이더로 fallback', async () => {
       const authError = new Error('Invalid API key');
       geminiProvider.generate.mockRejectedValue(authError);
 
-      await expect(service.generateWithFallback('system', 'user'))
-        .rejects.toThrow('Invalid API key');
-      // Should not try next provider
-      expect(groqProvider.generate).not.toHaveBeenCalled();
+      // gemini 실패해도 groq로 fallback
+      const result = await service.generateWithFallback('system', 'user');
+      expect(groqProvider.generate).toHaveBeenCalled();
+      expect(result.provider).toBe('groq');
     });
 
     it('preferredProvider 지정 시 해당 프로바이더 우선 시도', async () => {
