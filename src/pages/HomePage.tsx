@@ -344,6 +344,8 @@ export default function HomePage() {
 
             <HiringTrends />
 
+            <CareerInsights />
+
             {/* Search and filters */}
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
               <div className="relative flex-1">
