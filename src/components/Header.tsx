@@ -15,6 +15,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [switching, setSwitching] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(getUser());
   const user = currentUser;
@@ -75,8 +76,16 @@ export default function Header() {
   // 페이지 이동 시 메뉴 닫기
   useEffect(() => { setMenuOpen(false); setProfileMenuOpen(false); }, [location.pathname]);
 
+  // 스크롤 시 header glassmorphism 전환
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    onScroll(); // check initial state
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
-    <header className="no-print bg-white/80 backdrop-blur-lg border-b border-slate-200/80 sticky top-0 z-50 dark:bg-slate-900/80 dark:border-slate-700/80">
+    <header className={`no-print sticky top-0 z-50 border-b header-glass ${scrolled ? 'header-scrolled' : ''}`}>
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg"
@@ -139,7 +148,7 @@ export default function Header() {
               <button className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-2 py-1 rounded">
                 더보기 ▾
               </button>
-              <div className="absolute left-0 top-full mt-1 w-44 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-1">
+              <div className="absolute left-0 top-full mt-1 w-44 glass-dropdown rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-1">
                 <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500">도구</p>
                 <Link to="/cover-letter" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
                 <Link to="/compare" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.compare')}</Link>
@@ -173,7 +182,7 @@ export default function Header() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               </button>
             )}
-            <Link to="/resumes/new" className="px-2.5 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            <Link to="/resumes/new" className="px-2.5 py-1.5 btn-gradient text-xs font-medium rounded-lg">
               {t('nav.newResume')}
             </Link>
             {user && <NotificationBell />}
@@ -206,7 +215,7 @@ export default function Header() {
                   <span className="text-xs">▾</span>
                 </button>
                 {profileMenuOpen && (
-                  <div className="absolute right-0 top-full mt-1 w-52 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg z-50 py-1">
+                  <div className="absolute right-0 top-full mt-1 w-52 glass-dropdown rounded-xl shadow-lg z-50 py-1">
                     <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-700">
                       <p className="text-xs text-slate-400 dark:text-slate-500">현재 모드</p>
                       <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
