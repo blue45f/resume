@@ -155,35 +155,9 @@ export default function SettingsPage() {
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                   {user.provider === 'local' ? '이메일 계정' : `${user.provider} 계정`}
                 </p>
-                <p className="text-xs mt-1">
-                  <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
-                    {user.plan === 'premium' ? '💎 프리미엄' : user.plan === 'standard' ? '⭐ 스탠다드' : '🆓 무료'}
-                  </span>
-                  {user.plan !== 'premium' && (
-                    <Link to="/pricing" className="ml-2 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-medium rounded-full hover:from-blue-700 hover:to-indigo-700 transition-all duration-200">
-                      업그레이드
-                    </Link>
-                  )}
+                <p className="text-xs text-slate-400 mt-1">
+                  {user.plan === 'premium' ? '💎 프리미엄' : user.plan === 'standard' ? '⭐ 스탠다드' : '🆓 무료'}
                 </p>
-                {usage.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">이번 달 사용량</p>
-                    <div className="flex flex-wrap gap-2">
-                      {usage.map(u => {
-                        const planConfig = getPlan(user?.plan || 'free');
-                        const featureKey = u.feature === 'ai_transform' ? 'aiTransformsPerMonth' as const : null;
-                        const limit = featureKey ? planConfig.features[featureKey] : 0;
-                        const remaining = limit === -1 ? '∞' : limit > 0 ? Math.max(0, limit - u.count) : '-';
-                        const label = u.feature === 'ai_transform' ? 'AI 변환' : u.feature === 'cover_letter' ? '자소서' : u.feature === 'translation' ? '번역' : u.feature;
-                        return (
-                          <span key={u.feature} className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg">
-                            {label}: {u.count}회 {limit === -1 ? '(무제한)' : limit > 0 ? `/ ${limit}회 (잔여 ${remaining})` : ''}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
                 <div className="flex gap-3 mt-3">
                   <Link to="/bookmarks" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">내 북마크</Link>
                   <Link to="/my-cover-letters" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">내 자소서</Link>
@@ -191,11 +165,60 @@ export default function SettingsPage() {
                   <Link to="/scouts" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">스카우트</Link>
                 </div>
                 <div className="mt-2">
-                  <ProfileBadges resumeCount={0} isAdmin={user?.role === 'admin'} userType={user?.userType} />
+                  <ProfileBadges resumeCount={0} isAdmin={user?.role === 'admin' || user?.role === 'superadmin'} userType={user?.userType} />
                 </div>
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Subscription Details */}
+        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">구독 관리</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                {user.plan === 'premium' ? '💎 프리미엄' : user.plan === 'standard' ? '⭐ 스탠다드' : '🆓 무료'} 플랜
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                {user.plan === 'free' || !user.plan ? '무료로 사용 중' : '구독 중'}
+              </p>
+            </div>
+            <Link to="/pricing" className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200">
+              {user.plan === 'free' || !user.plan ? '업그레이드' : '플랜 변경'}
+            </Link>
+          </div>
+
+          {/* Usage bars */}
+          {usage.length > 0 && (
+            <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+              <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400">이번 달 사용량</h3>
+              {usage.map(u => {
+                const featureLabels: Record<string, string> = {
+                  ai_transform: 'AI 변환',
+                  cover_letter: '자소서',
+                  translation: '번역',
+                  ai_coaching: 'AI 코칭',
+                };
+                const plan = getPlan(user?.plan || 'free');
+                const limit = u.feature === 'ai_transform' ? plan.features.aiTransformsPerMonth : -1;
+                const pct = limit > 0 ? Math.min(100, (u.count / limit) * 100) : 0;
+                return (
+                  <div key={u.feature}>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-slate-600 dark:text-slate-400">{featureLabels[u.feature] || u.feature}</span>
+                      <span className="text-slate-400">{u.count}{limit > 0 ? ` / ${limit}` : ' (무제한)'}</span>
+                    </div>
+                    {limit > 0 && (
+                      <div className="bg-slate-100 dark:bg-slate-700 rounded-full h-1.5">
+                        <div className={`h-1.5 rounded-full transition-all ${pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-500' : 'bg-blue-500'}`} style={{ width: `${pct}%` }} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         {/* Recent Activity */}

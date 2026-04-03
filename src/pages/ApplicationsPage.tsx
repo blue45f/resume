@@ -26,6 +26,7 @@ export default function ApplicationsPage() {
   const [filter, setFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'company'>('recent');
+  const [yearFilter, setYearFilter] = useState<string | null>(null);
 
   const load = () => {
     fetchApplications().then(setApps).catch(() => {}).finally(() => setLoading(false));
@@ -79,8 +80,12 @@ export default function ApplicationsPage() {
     } catch { toast('삭제에 실패했습니다', 'error'); }
   };
 
+  // 연도 목록 추출
+  const years = [...new Set(apps.map(a => (a.appliedDate || a.createdAt)?.slice(0, 4)).filter(Boolean))].sort().reverse();
+
   const filtered = apps
     .filter(a => !filter || a.status === filter)
+    .filter(a => !yearFilter || (a.appliedDate || a.createdAt)?.startsWith(yearFilter))
     .filter(a => !searchQuery ||
       a.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.position.toLowerCase().includes(searchQuery.toLowerCase())
@@ -126,6 +131,20 @@ export default function ApplicationsPage() {
             </button>
           ))}
         </div>
+
+        {/* Year filter */}
+        {years.length > 1 && (
+          <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-none">
+            <button onClick={() => setYearFilter(null)} className={`px-2.5 py-1 text-xs rounded-lg whitespace-nowrap transition-colors ${!yearFilter ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+              전체 연도
+            </button>
+            {years.map(y => (
+              <button key={y} onClick={() => setYearFilter(yearFilter === y ? null : y)} className={`px-2.5 py-1 text-xs rounded-lg whitespace-nowrap transition-colors ${yearFilter === y ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                {y}년
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Search & Sort */}
         <div className="flex items-center gap-2 mb-4">
