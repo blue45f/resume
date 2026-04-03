@@ -57,4 +57,22 @@ export declare class LlmService {
     private getProvider;
     private buildSystemPrompt;
     private buildUserMessage;
+    analyzeFeedback(resumeId: string, provider?: string): Promise<{
+        feedback: any;
+        tokensUsed: number;
+        provider: string;
+        model: string;
+    }>;
+    analyzeJobMatch(resumeId: string, jobDescription: string, provider?: string): Promise<{
+        analysis: any;
+        tokensUsed: number;
+        provider: string;
+        model: string;
+    }>;
+    generateInterviewQuestions(resumeId: string, jobRole?: string, provider?: string): Promise<{
+        interview: any;
+        tokensUsed: number;
+        provider: string;
+        model: string;
+    }>;
 }

@@ -1,0 +1,83 @@
+import { PrismaService } from '../prisma/prisma.service';
+export declare class CoverLettersService {
+    private prisma;
+    constructor(prisma: PrismaService);
+    findAll(userId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        company: string;
+        updatedAt: Date;
+        resumeId: string | null;
+        position: string;
+        applicationId: string | null;
+        content: string;
+        tone: string;
+    }[]>;
+    findOne(id: string, userId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        userId: string;
+        company: string;
+        updatedAt: Date;
+        resumeId: string | null;
+        position: string;
+        jobDescription: string;
+        applicationId: string | null;
+        content: string;
+        tone: string;
+    }>;
+    create(userId: string, data: {
+        resumeId?: string;
+        applicationId?: string;
+        company: string;
+        position: string;
+        tone: string;
+        jobDescription: string;
+        content: string;
+    }): Promise<{
+        id: string;
+        createdAt: Date;
+        userId: string;
+        company: string;
+        updatedAt: Date;
+        resumeId: string | null;
+        position: string;
+        jobDescription: string;
+        applicationId: string | null;
+        content: string;
+        tone: string;
+    }>;
+    update(id: string, userId: string, data: {
+        content?: string;
+        company?: string;
+        position?: string;
+    }): Promise<{
+        id: string;
+        createdAt: Date;
+        userId: string;
+        company: string;
+        updatedAt: Date;
+        resumeId: string | null;
+        position: string;
+        jobDescription: string;
+        applicationId: string | null;
+        content: string;
+        tone: string;
+    }>;
+    remove(id: string, userId: string): Promise<{
+        success: boolean;
+    }>;
+    getByResume(resumeId: string, userId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        userId: string;
+        company: string;
+        updatedAt: Date;
+        resumeId: string | null;
+        position: string;
+        jobDescription: string;
+        applicationId: string | null;
+        content: string;
+        tone: string;
+    }[]>;
+}

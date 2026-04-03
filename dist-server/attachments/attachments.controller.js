@@ -16,7 +16,6 @@ exports.AttachmentsController = void 0;
 const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
-const fs_1 = require("fs");
 const attachments_service_1 = require("./attachments.service");
 let AttachmentsController = class AttachmentsController {
     attachmentsService;
@@ -31,15 +30,20 @@ let AttachmentsController = class AttachmentsController {
     findAll(resumeId) {
         return this.attachmentsService.findAll(resumeId);
     }
-    async download(id, res) {
-        const { path, originalName, mimeType } = await this.attachmentsService.getFilePath(id);
-        if (!(0, fs_1.existsSync)(path)) {
+    async download(id, req, res) {
+        const result = await this.attachmentsService.getFileData(id, req.user?.id);
+        if ('redirectUrl' in result && result.redirectUrl) {
+            res.redirect(result.redirectUrl);
+            return;
+        }
+        const { data, originalName, mimeType } = result;
+        if (!data) {
             res.status(404).json({ message: '파일을 찾을 수 없습니다' });
             return;
         }
         res.setHeader('Content-Type', mimeType);
         res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(originalName)}`);
-        (0, fs_1.createReadStream)(path).pipe(res);
+        res.send(data);
     }
     remove(id) {
         return this.attachmentsService.remove(id);
@@ -71,9 +75,10 @@ __decorate([
     (0, common_1.Get)('attachments/:id/download'),
     (0, swagger_1.ApiOperation)({ summary: '파일 다운로드' }),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Res)()),
+    __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], AttachmentsController.prototype, "download", null);
 __decorate([

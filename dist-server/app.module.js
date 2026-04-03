@@ -11,6 +11,8 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const throttler_1 = require("@nestjs/throttler");
 const core_1 = require("@nestjs/core");
+const sanitize_middleware_1 = require("./common/middleware/sanitize.middleware");
+const request_id_middleware_1 = require("./common/middleware/request-id.middleware");
 const prisma_module_1 = require("./prisma/prisma.module");
 const auth_module_1 = require("./auth/auth.module");
 const auth_guard_1 = require("./auth/auth.guard");
@@ -21,7 +23,17 @@ const versions_module_1 = require("./versions/versions.module");
 const tags_module_1 = require("./tags/tags.module");
 const share_module_1 = require("./share/share.module");
 const attachments_module_1 = require("./attachments/attachments.module");
+const health_module_1 = require("./health/health.module");
+const applications_module_1 = require("./applications/applications.module");
+const comments_module_1 = require("./comments/comments.module");
+const notifications_module_1 = require("./notifications/notifications.module");
+const social_module_1 = require("./social/social.module");
+const cover_letters_module_1 = require("./cover-letters/cover-letters.module");
+const jobs_module_1 = require("./jobs/jobs.module");
 let AppModule = class AppModule {
+    configure(consumer) {
+        consumer.apply(request_id_middleware_1.RequestIdMiddleware, sanitize_middleware_1.SanitizeMiddleware).forRoutes('*');
+    }
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
@@ -31,9 +43,11 @@ exports.AppModule = AppModule = __decorate([
             throttler_1.ThrottlerModule.forRoot([
                 { name: 'short', ttl: 1000, limit: 10 },
                 { name: 'medium', ttl: 60000, limit: 100 },
+                { name: 'long', ttl: 3600000, limit: 1000 },
             ]),
             auth_module_1.AuthModule,
             prisma_module_1.PrismaModule,
+            health_module_1.HealthModule,
             resumes_module_1.ResumesModule,
             llm_module_1.LlmModule,
             templates_module_1.TemplatesModule,
@@ -41,6 +55,12 @@ exports.AppModule = AppModule = __decorate([
             tags_module_1.TagsModule,
             share_module_1.ShareModule,
             attachments_module_1.AttachmentsModule,
+            applications_module_1.ApplicationsModule,
+            comments_module_1.CommentsModule,
+            notifications_module_1.NotificationsModule,
+            social_module_1.SocialModule,
+            cover_letters_module_1.CoverLettersModule,
+            jobs_module_1.JobsModule,
         ],
         providers: [
             { provide: core_1.APP_GUARD, useClass: throttler_1.ThrottlerGuard },

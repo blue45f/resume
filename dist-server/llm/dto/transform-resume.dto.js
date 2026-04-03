@@ -48,15 +48,17 @@ __decorate([
     __metadata("design:type", String)
 ], TransformResumeDto.prototype, "targetLanguage", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ description: 'Job Description (JD 맞춤 최적화용)' }),
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Job Description (JD 맞춤 최적화용, 3000자 이내)' }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(3000, { message: 'JD는 3000자 이내여야 합니다' }),
     __metadata("design:type", String)
 ], TransformResumeDto.prototype, "jobDescription", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ description: '커스텀 프롬프트 (custom 유형일 때)' }),
+    (0, swagger_1.ApiPropertyOptional)({ description: '커스텀 프롬프트 (custom 유형일 때, 2000자 이내)' }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(2000, { message: '커스텀 프롬프트는 2000자 이내여야 합니다' }),
     __metadata("design:type", String)
 ], TransformResumeDto.prototype, "customPrompt", void 0);
 __decorate([

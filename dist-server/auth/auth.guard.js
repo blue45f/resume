@@ -39,7 +39,7 @@ let AuthGuard = class AuthGuard {
         }
         try {
             const payload = this.jwt.verify(token);
-            request.user = { id: payload.sub };
+            request.user = { id: payload.sub, role: payload.role || 'user' };
         }
         catch {
             request.user = null;
@@ -48,10 +48,12 @@ let AuthGuard = class AuthGuard {
     }
     extractToken(request) {
         const auth = request.headers.authorization;
-        if (!auth)
-            return null;
-        const [type, token] = auth.split(' ');
-        return type === 'Bearer' ? token : null;
+        if (auth && typeof auth === 'string') {
+            const parts = auth.split(/\s+/);
+            if (parts.length === 2 && parts[0] === 'Bearer' && parts[1])
+                return parts[1];
+        }
+        return request.cookies?.token || null;
     }
 };
 exports.AuthGuard = AuthGuard;

@@ -29,18 +29,21 @@ let TagsService = class TagsService {
             resumeCount: t._count.resumes,
         }));
     }
-    async create(data) {
+    async create(data, userId) {
         const existing = await this.prisma.tag.findUnique({
             where: { name: data.name },
         });
         if (existing)
             throw new common_1.ConflictException('이미 존재하는 태그입니다');
-        return this.prisma.tag.create({ data });
+        return this.prisma.tag.create({ data: { ...data, userId: userId || null } });
     }
-    async remove(id) {
+    async remove(id, userId, role) {
         const existing = await this.prisma.tag.findUnique({ where: { id } });
         if (!existing)
             throw new common_1.NotFoundException('태그를 찾을 수 없습니다');
+        if (role !== 'admin' && role !== 'superadmin' && existing.userId && existing.userId !== userId) {
+            throw new common_1.ForbiddenException('이 태그를 삭제할 권한이 없습니다');
+        }
         await this.prisma.tag.delete({ where: { id } });
         return { success: true };
     }

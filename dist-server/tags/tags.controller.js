@@ -15,26 +15,31 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TagsController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const resumes_service_1 = require("../resumes/resumes.service");
 const tags_service_1 = require("./tags.service");
 const tag_dto_1 = require("./dto/tag.dto");
 let TagsController = class TagsController {
     tagsService;
-    constructor(tagsService) {
+    resumesService;
+    constructor(tagsService, resumesService) {
         this.tagsService = tagsService;
+        this.resumesService = resumesService;
     }
     findAll() {
         return this.tagsService.findAll();
     }
-    create(dto) {
-        return this.tagsService.create(dto);
+    create(dto, req) {
+        return this.tagsService.create(dto, req.user?.id);
     }
-    remove(id) {
-        return this.tagsService.remove(id);
+    remove(id, req) {
+        return this.tagsService.remove(id, req.user?.id, req.user?.role);
     }
-    addToResume(tagId, resumeId) {
+    async addToResume(tagId, resumeId, req) {
+        await this.resumesService.findOne(resumeId, req.user?.id);
         return this.tagsService.addTagToResume(resumeId, tagId);
     }
-    removeFromResume(tagId, resumeId) {
+    async removeFromResume(tagId, resumeId, req) {
+        await this.resumesService.findOne(resumeId, req.user?.id);
         return this.tagsService.removeTagFromResume(resumeId, tagId);
     }
 };
@@ -50,16 +55,18 @@ __decorate([
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: '태그 생성' }),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [tag_dto_1.CreateTagDto]),
+    __metadata("design:paramtypes", [tag_dto_1.CreateTagDto, Object]),
     __metadata("design:returntype", void 0)
 ], TagsController.prototype, "create", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiOperation)({ summary: '태그 삭제' }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], TagsController.prototype, "remove", null);
 __decorate([
@@ -67,21 +74,24 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: '이력서에 태그 추가' }),
     __param(0, (0, common_1.Param)('tagId')),
     __param(1, (0, common_1.Param)('resumeId')),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
 ], TagsController.prototype, "addToResume", null);
 __decorate([
     (0, common_1.Delete)(':tagId/resumes/:resumeId'),
     (0, swagger_1.ApiOperation)({ summary: '이력서에서 태그 제거' }),
     __param(0, (0, common_1.Param)('tagId')),
     __param(1, (0, common_1.Param)('resumeId')),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
 ], TagsController.prototype, "removeFromResume", null);
 exports.TagsController = TagsController = __decorate([
     (0, swagger_1.ApiTags)('tags'),
     (0, common_1.Controller)('tags'),
-    __metadata("design:paramtypes", [tags_service_1.TagsService])
+    __metadata("design:paramtypes", [tags_service_1.TagsService,
+        resumes_service_1.ResumesService])
 ], TagsController);

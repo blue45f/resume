@@ -11,7 +11,9 @@ const common_1 = require("@nestjs/common");
 const llm_controller_1 = require("./llm.controller");
 const auto_generate_controller_1 = require("./auto-generate.controller");
 const llm_service_1 = require("./llm.service");
+const usage_service_1 = require("../health/usage.service");
 const resumes_module_1 = require("../resumes/resumes.module");
+const prisma_module_1 = require("../prisma/prisma.module");
 const anthropic_provider_1 = require("./providers/anthropic.provider");
 const gemini_provider_1 = require("./providers/gemini.provider");
 const groq_provider_1 = require("./providers/groq.provider");
@@ -22,10 +24,11 @@ let LlmModule = class LlmModule {
 exports.LlmModule = LlmModule;
 exports.LlmModule = LlmModule = __decorate([
     (0, common_1.Module)({
-        imports: [resumes_module_1.ResumesModule],
+        imports: [resumes_module_1.ResumesModule, prisma_module_1.PrismaModule],
         controllers: [llm_controller_1.LlmController, auto_generate_controller_1.AutoGenerateController],
         providers: [
             llm_service_1.LlmService,
+            usage_service_1.UsageService,
             anthropic_provider_1.AnthropicProvider,
             gemini_provider_1.GeminiProvider,
             groq_provider_1.GroqProvider,

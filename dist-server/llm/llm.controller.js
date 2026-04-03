@@ -19,38 +19,64 @@ const throttler_1 = require("@nestjs/throttler");
 const rxjs_1 = require("rxjs");
 const llm_service_1 = require("./llm.service");
 const transform_resume_dto_1 = require("./dto/transform-resume.dto");
+const usage_service_1 = require("../health/usage.service");
 let LlmController = class LlmController {
     llmService;
-    constructor(llmService) {
+    usageService;
+    constructor(llmService, usageService) {
         this.llmService = llmService;
+        this.usageService = usageService;
     }
-    transform(resumeId, dto) {
+    async transform(resumeId, dto, req) {
+        if (req.user?.id) {
+            await this.usageService.checkAndLog(req.user.id, 'ai_transform');
+        }
         return this.llmService.transform(resumeId, dto);
     }
     transformStream(resumeId, dto) {
         return new rxjs_1.Observable((subscriber) => {
+            let isAlive = true;
+            let generator = null;
+            const cleanup = () => {
+                isAlive = false;
+                if (generator?.return)
+                    generator.return(undefined).catch(() => { });
+            };
             const timeout = setTimeout(() => {
-                subscriber.next({
-                    data: JSON.stringify({ type: 'error', message: '스트리밍 타임아웃 (60초)' }),
-                });
-                subscriber.complete();
+                if (isAlive) {
+                    subscriber.next({
+                        data: JSON.stringify({ type: 'error', message: '스트리밍 타임아웃 (60초)' }),
+                    });
+                    cleanup();
+                    subscriber.complete();
+                }
             }, 60000);
             (async () => {
                 try {
-                    for await (const chunk of this.llmService.transformStream(resumeId, dto)) {
+                    generator = this.llmService.transformStream(resumeId, dto);
+                    for await (const chunk of generator) {
+                        if (!isAlive)
+                            break;
                         subscriber.next({ data: JSON.stringify(chunk) });
                     }
                 }
                 catch (error) {
-                    subscriber.next({
-                        data: JSON.stringify({ type: 'error', message: error.message }),
-                    });
+                    if (isAlive) {
+                        subscriber.next({
+                            data: JSON.stringify({ type: 'error', message: error.message }),
+                        });
+                    }
                 }
                 finally {
                     clearTimeout(timeout);
+                    cleanup();
                     subscriber.complete();
                 }
             })();
+            return () => {
+                clearTimeout(timeout);
+                cleanup();
+            };
         });
     }
     getHistory(resumeId) {
@@ -62,6 +88,15 @@ let LlmController = class LlmController {
     getUsage() {
         return this.llmService.getUsageStats();
     }
+    analyzeFeedback(resumeId, provider) {
+        return this.llmService.analyzeFeedback(resumeId, provider);
+    }
+    analyzeJobMatch(resumeId, jobDescription, provider) {
+        return this.llmService.analyzeJobMatch(resumeId, jobDescription, provider);
+    }
+    generateInterview(resumeId, jobRole, provider) {
+        return this.llmService.generateInterviewQuestions(resumeId, jobRole, provider);
+    }
 };
 exports.LlmController = LlmController;
 __decorate([
@@ -70,9 +105,10 @@ __decorate([
     (0, throttler_1.Throttle)({ default: { limit: 5, ttl: 60000 } }),
     __param(0, (0, common_1.Param)('resumeId')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, transform_resume_dto_1.TransformResumeDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, transform_resume_dto_1.TransformResumeDto, Object]),
+    __metadata("design:returntype", Promise)
 ], LlmController.prototype, "transform", null);
 __decorate([
     (0, common_1.Post)('stream'),
@@ -107,8 +143,41 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], LlmController.prototype, "getUsage", null);
+__decorate([
+    (0, common_1.Post)('feedback'),
+    (0, swagger_1.ApiOperation)({ summary: 'AI 이력서 피드백 (점수 + 강점 + 개선점)' }),
+    (0, throttler_1.Throttle)({ default: { limit: 3, ttl: 60000 } }),
+    __param(0, (0, common_1.Param)('resumeId')),
+    __param(1, (0, common_1.Body)('provider')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], LlmController.prototype, "analyzeFeedback", null);
+__decorate([
+    (0, common_1.Post)('job-match'),
+    (0, swagger_1.ApiOperation)({ summary: 'AI JD 매칭 분석' }),
+    (0, throttler_1.Throttle)({ default: { limit: 3, ttl: 60000 } }),
+    __param(0, (0, common_1.Param)('resumeId')),
+    __param(1, (0, common_1.Body)('jobDescription')),
+    __param(2, (0, common_1.Body)('provider')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", void 0)
+], LlmController.prototype, "analyzeJobMatch", null);
+__decorate([
+    (0, common_1.Post)('interview'),
+    (0, swagger_1.ApiOperation)({ summary: 'AI 면접 질문 생성' }),
+    (0, throttler_1.Throttle)({ default: { limit: 3, ttl: 60000 } }),
+    __param(0, (0, common_1.Param)('resumeId')),
+    __param(1, (0, common_1.Body)('jobRole')),
+    __param(2, (0, common_1.Body)('provider')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", void 0)
+], LlmController.prototype, "generateInterview", null);
 exports.LlmController = LlmController = __decorate([
     (0, swagger_1.ApiTags)('llm'),
     (0, common_1.Controller)('resumes/:resumeId/transform'),
-    __metadata("design:paramtypes", [llm_service_1.LlmService])
+    __metadata("design:paramtypes", [llm_service_1.LlmService,
+        usage_service_1.UsageService])
 ], LlmController);

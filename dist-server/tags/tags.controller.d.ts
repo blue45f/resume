@@ -1,26 +1,29 @@
+import { ResumesService } from '../resumes/resumes.service';
 import { TagsService } from './tags.service';
 import { CreateTagDto } from './dto/tag.dto';
 export declare class TagsController {
     private readonly tagsService;
-    constructor(tagsService: TagsService);
+    private readonly resumesService;
+    constructor(tagsService: TagsService, resumesService: ResumesService);
     findAll(): Promise<{
         id: string;
         name: string;
         color: string;
         resumeCount: number;
     }[]>;
-    create(dto: CreateTagDto): Promise<{
+    create(dto: CreateTagDto, req: any): Promise<{
         id: string;
+        userId: string | null;
         name: string;
         color: string;
     }>;
-    remove(id: string): Promise<{
+    remove(id: string, req: any): Promise<{
         success: boolean;
     }>;
-    addToResume(tagId: string, resumeId: string): Promise<{
+    addToResume(tagId: string, resumeId: string, req: any): Promise<{
         success: boolean;
     }>;
-    removeFromResume(tagId: string, resumeId: string): Promise<{
+    removeFromResume(tagId: string, resumeId: string, req: any): Promise<{
         success: boolean;
     }>;
 }

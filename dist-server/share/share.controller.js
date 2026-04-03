@@ -15,17 +15,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ShareController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const auth_guard_1 = require("../auth/auth.guard");
+const resumes_service_1 = require("../resumes/resumes.service");
 const share_service_1 = require("./share.service");
 const share_dto_1 = require("./dto/share.dto");
 let ShareController = class ShareController {
     shareService;
-    constructor(shareService) {
+    resumesService;
+    constructor(shareService, resumesService) {
         this.shareService = shareService;
+        this.resumesService = resumesService;
     }
-    createLink(resumeId, dto) {
+    async createLink(resumeId, dto, req) {
+        await this.resumesService.findOne(resumeId, req.user?.id);
         return this.shareService.createLink(resumeId, dto);
     }
-    getLinks(resumeId) {
+    async getLinks(resumeId, req) {
+        await this.resumesService.findOne(resumeId, req.user?.id);
         return this.shareService.getLinksForResume(resumeId);
     }
     removeLink(id) {
@@ -41,17 +47,19 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: '공유 링크 생성' }),
     __param(0, (0, common_1.Param)('resumeId')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, share_dto_1.CreateShareLinkDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, share_dto_1.CreateShareLinkDto, Object]),
+    __metadata("design:returntype", Promise)
 ], ShareController.prototype, "createLink", null);
 __decorate([
     (0, common_1.Get)('resumes/:resumeId/share'),
     (0, swagger_1.ApiOperation)({ summary: '이력서의 공유 링크 목록' }),
     __param(0, (0, common_1.Param)('resumeId')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
 ], ShareController.prototype, "getLinks", null);
 __decorate([
     (0, common_1.Delete)('share/:id'),
@@ -63,6 +71,7 @@ __decorate([
 ], ShareController.prototype, "removeLink", null);
 __decorate([
     (0, common_1.Get)('shared/:token'),
+    (0, auth_guard_1.Public)(),
     (0, swagger_1.ApiOperation)({ summary: '공유된 이력서 조회 (공개 접근)' }),
     __param(0, (0, common_1.Param)('token')),
     __param(1, (0, common_1.Query)('password')),
@@ -73,5 +82,6 @@ __decorate([
 exports.ShareController = ShareController = __decorate([
     (0, swagger_1.ApiTags)('share'),
     (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [share_service_1.ShareService])
+    __metadata("design:paramtypes", [share_service_1.ShareService,
+        resumes_service_1.ResumesService])
 ], ShareController);

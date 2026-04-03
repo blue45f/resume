@@ -4,47 +4,12 @@ import { UpdateResumeDto } from './dto/update-resume.dto';
 export declare class ResumesService {
     private prisma;
     constructor(prisma: PrismaService);
-    findAll(userId?: string): Promise<{
-        id: any;
-        title: any;
-        visibility: any;
-        personalInfo: {
-            name: any;
-            email: any;
-            phone: any;
-            address: any;
-            website: any;
-            summary: any;
-        };
-        tags: any;
-        createdAt: any;
-        updatedAt: any;
-    }[]>;
-    findPublic(): Promise<{
-        id: any;
-        title: any;
-        visibility: any;
-        personalInfo: {
-            name: any;
-            email: any;
-            phone: any;
-            address: any;
-            website: any;
-            summary: any;
-        };
-        tags: any;
-        createdAt: any;
-        updatedAt: any;
-    }[]>;
-    searchPublic(opts: {
-        query?: string;
-        tag?: string;
-        page: number;
-        limit: number;
-    }): Promise<{
+    findAll(userId?: string, page?: number, limit?: number): Promise<{
         data: {
             id: any;
             title: any;
+            slug: any;
+            viewCount: any;
             visibility: any;
             personalInfo: {
                 name: any;
@@ -52,7 +17,12 @@ export declare class ResumesService {
                 phone: any;
                 address: any;
                 website: any;
+                github: any;
                 summary: any;
+                photo: any;
+                birthYear: any;
+                links: any;
+                military: any;
             };
             tags: any;
             createdAt: any;
@@ -62,7 +32,64 @@ export declare class ResumesService {
         page: number;
         totalPages: number;
     }>;
-    findOne(id: string, _userId?: string): Promise<{
+    findPublic(): Promise<{
+        id: any;
+        title: any;
+        slug: any;
+        viewCount: any;
+        visibility: any;
+        personalInfo: {
+            name: any;
+            email: any;
+            phone: any;
+            address: any;
+            website: any;
+            github: any;
+            summary: any;
+            photo: any;
+            birthYear: any;
+            links: any;
+            military: any;
+        };
+        tags: any;
+        createdAt: any;
+        updatedAt: any;
+    }[]>;
+    searchPublic(opts: {
+        query?: string;
+        tag?: string;
+        sort?: string;
+        page: number;
+        limit: number;
+    }): Promise<{
+        data: {
+            id: any;
+            title: any;
+            slug: any;
+            viewCount: any;
+            visibility: any;
+            personalInfo: {
+                name: any;
+                email: any;
+                phone: any;
+                address: any;
+                website: any;
+                github: any;
+                summary: any;
+                photo: any;
+                birthYear: any;
+                links: any;
+                military: any;
+            };
+            tags: any;
+            createdAt: any;
+            updatedAt: any;
+        }[];
+        total: number;
+        page: number;
+        totalPages: number;
+    }>;
+    findBySlug(username: string, slug: string): Promise<{
         experiences: {
             [k: string]: any;
         }[];
@@ -89,6 +116,8 @@ export declare class ResumesService {
         }[];
         id: any;
         title: any;
+        slug: any;
+        viewCount: any;
         visibility: any;
         personalInfo: {
             name: any;
@@ -96,16 +125,71 @@ export declare class ResumesService {
             phone: any;
             address: any;
             website: any;
+            github: any;
             summary: any;
+            photo: any;
+            birthYear: any;
+            links: any;
+            military: any;
         };
         tags: any;
         createdAt: any;
         updatedAt: any;
     }>;
-    setVisibility(id: string, visibility: string): Promise<{
+    findOne(id: string, userId?: string): Promise<{
+        bookmarkCount: number;
+        experiences: {
+            [k: string]: any;
+        }[];
+        educations: {
+            [k: string]: any;
+        }[];
+        skills: {
+            [k: string]: any;
+        }[];
+        projects: {
+            [k: string]: any;
+        }[];
+        certifications: {
+            [k: string]: any;
+        }[];
+        languages: {
+            [k: string]: any;
+        }[];
+        awards: {
+            [k: string]: any;
+        }[];
+        activities: {
+            [k: string]: any;
+        }[];
+        id: any;
+        title: any;
+        slug: any;
+        viewCount: any;
+        visibility: any;
+        personalInfo: {
+            name: any;
+            email: any;
+            phone: any;
+            address: any;
+            website: any;
+            github: any;
+            summary: any;
+            photo: any;
+            birthYear: any;
+            links: any;
+            military: any;
+        };
+        tags: any;
+        createdAt: any;
+        updatedAt: any;
+    }>;
+    private verifyOwnership;
+    setVisibility(id: string, visibility: string, userId?: string, role?: string): Promise<{
         id: string;
         visibility: string;
     }>;
+    private generateSlug;
     create(dto: CreateResumeDto, userId?: string): Promise<{
         experiences: {
             [k: string]: any;
@@ -133,6 +217,8 @@ export declare class ResumesService {
         }[];
         id: any;
         title: any;
+        slug: any;
+        viewCount: any;
         visibility: any;
         personalInfo: {
             name: any;
@@ -140,13 +226,19 @@ export declare class ResumesService {
             phone: any;
             address: any;
             website: any;
+            github: any;
             summary: any;
+            photo: any;
+            birthYear: any;
+            links: any;
+            military: any;
         };
         tags: any;
         createdAt: any;
         updatedAt: any;
     }>;
-    update(id: string, dto: UpdateResumeDto): Promise<{
+    update(id: string, dto: UpdateResumeDto, userId?: string): Promise<{
+        bookmarkCount: number;
         experiences: {
             [k: string]: any;
         }[];
@@ -173,6 +265,8 @@ export declare class ResumesService {
         }[];
         id: any;
         title: any;
+        slug: any;
+        viewCount: any;
         visibility: any;
         personalInfo: {
             name: any;
@@ -180,13 +274,18 @@ export declare class ResumesService {
             phone: any;
             address: any;
             website: any;
+            github: any;
             summary: any;
+            photo: any;
+            birthYear: any;
+            links: any;
+            military: any;
         };
         tags: any;
         createdAt: any;
         updatedAt: any;
     }>;
-    remove(id: string): Promise<{
+    remove(id: string, userId?: string, role?: string): Promise<{
         success: boolean;
     }>;
     duplicate(id: string, userId?: string): Promise<{
@@ -216,6 +315,8 @@ export declare class ResumesService {
         }[];
         id: any;
         title: any;
+        slug: any;
+        viewCount: any;
         visibility: any;
         personalInfo: {
             name: any;
@@ -223,13 +324,33 @@ export declare class ResumesService {
             phone: any;
             address: any;
             website: any;
+            github: any;
             summary: any;
+            photo: any;
+            birthYear: any;
+            links: any;
+            military: any;
         };
         tags: any;
         createdAt: any;
         updatedAt: any;
     }>;
     private saveVersionSnapshot;
+    incrementViewCount(id: string): void;
+    addBookmark(resumeId: string, userId: string): Promise<{
+        bookmarked: boolean;
+    }>;
+    removeBookmark(resumeId: string, userId: string): Promise<{
+        bookmarked: boolean;
+    }>;
+    getBookmarks(userId: string): Promise<{
+        id: string;
+        resumeId: string;
+        title: string;
+        name: any;
+        createdAt: string;
+    }[]>;
+    isBookmarked(resumeId: string, userId: string): Promise<boolean>;
     private formatSummary;
     private formatFull;
 }

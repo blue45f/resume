@@ -9,49 +9,80 @@ export declare class TemplatesController {
     constructor(templatesService: TemplatesService, localTransformService: LocalTransformService, resumesService: ResumesService);
     findAll(): Promise<{
         id: string;
-        name: string;
+        visibility: string;
+        userId: string | null;
         createdAt: Date;
+        updatedAt: Date;
+        name: string;
         description: string;
         category: string;
-        updatedAt: Date;
         prompt: string;
         layout: string;
+        usageCount: number;
+        rating: number | null;
+        isDefault: boolean;
+    }[]>;
+    findPublicTemplates(category?: string): Promise<{
+        id: string;
+        visibility: string;
+        userId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        description: string;
+        category: string;
+        prompt: string;
+        layout: string;
+        usageCount: number;
+        rating: number | null;
         isDefault: boolean;
     }[]>;
     findOne(id: string): Promise<{
         id: string;
-        name: string;
+        visibility: string;
+        userId: string | null;
         createdAt: Date;
+        updatedAt: Date;
+        name: string;
         description: string;
         category: string;
-        updatedAt: Date;
         prompt: string;
         layout: string;
+        usageCount: number;
+        rating: number | null;
         isDefault: boolean;
     }>;
-    create(dto: CreateTemplateDto): Promise<{
+    create(dto: CreateTemplateDto, req: any): Promise<{
         id: string;
-        name: string;
+        visibility: string;
+        userId: string | null;
         createdAt: Date;
+        updatedAt: Date;
+        name: string;
         description: string;
         category: string;
-        updatedAt: Date;
         prompt: string;
         layout: string;
+        usageCount: number;
+        rating: number | null;
         isDefault: boolean;
     }>;
-    update(id: string, dto: UpdateTemplateDto): Promise<{
+    update(id: string, dto: UpdateTemplateDto, req: any): Promise<{
         id: string;
-        name: string;
+        visibility: string;
+        userId: string | null;
         createdAt: Date;
+        updatedAt: Date;
+        name: string;
         description: string;
         category: string;
-        updatedAt: Date;
         prompt: string;
         layout: string;
+        usageCount: number;
+        rating: number | null;
         isDefault: boolean;
     }>;
-    remove(id: string): Promise<{
+    remove(id: string, req: any): Promise<{
         success: boolean;
     }>;
     seed(): Promise<{

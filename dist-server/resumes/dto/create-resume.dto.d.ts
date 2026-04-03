@@ -4,16 +4,27 @@ export declare class PersonalInfoDto {
     phone?: string;
     address?: string;
     website?: string;
+    github?: string;
     summary?: string;
+    photo?: string;
+    birthYear?: string;
+    links?: {
+        label: string;
+        url: string;
+    }[];
+    military?: string;
 }
 export declare class ExperienceDto {
     id?: string;
     company?: string;
     position?: string;
+    department?: string;
     startDate?: string;
     endDate?: string;
     current?: boolean;
     description?: string;
+    achievements?: string;
+    techStack?: string;
     sortOrder?: number;
 }
 export declare class EducationDto {
@@ -21,6 +32,7 @@ export declare class EducationDto {
     school?: string;
     degree?: string;
     field?: string;
+    gpa?: string;
     startDate?: string;
     endDate?: string;
     description?: string;
@@ -35,10 +47,12 @@ export declare class SkillDto {
 export declare class ProjectDto {
     id?: string;
     name?: string;
+    company?: string;
     role?: string;
     startDate?: string;
     endDate?: string;
     description?: string;
+    techStack?: string;
     link?: string;
     sortOrder?: number;
 }

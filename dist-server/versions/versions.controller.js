@@ -27,8 +27,8 @@ let VersionsController = class VersionsController {
     findOne(resumeId, versionId) {
         return this.versionsService.findOne(resumeId, versionId);
     }
-    restore(resumeId, versionId) {
-        return this.versionsService.restore(resumeId, versionId);
+    restore(resumeId, versionId, req) {
+        return this.versionsService.restore(resumeId, versionId, req.user?.id);
     }
 };
 exports.VersionsController = VersionsController;
@@ -54,8 +54,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: '특정 버전으로 복원' }),
     __param(0, (0, common_1.Param)('resumeId')),
     __param(1, (0, common_1.Param)('versionId')),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], VersionsController.prototype, "restore", null);
 exports.VersionsController = VersionsController = __decorate([

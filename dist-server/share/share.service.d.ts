@@ -15,61 +15,74 @@ export declare class ShareService {
     }>;
     getByToken(token: string, password?: string): Promise<{
         personalInfo: {
+            github: string;
             id: string;
             email: string;
             name: string;
             summary: string;
+            resumeId: string;
             phone: string;
             address: string;
             website: string;
-            resumeId: string;
+            photo: string;
+            birthYear: string;
+            links: string;
+            military: string;
         } | null;
         experiences: {
             id: string;
-            description: string;
             company: string;
+            description: string;
+            resumeId: string;
             position: string;
+            department: string;
             startDate: string;
             endDate: string;
             current: boolean;
+            achievements: string;
+            techStack: string;
             sortOrder: number;
-            resumeId: string;
         }[];
         educations: {
             id: string;
             description: string;
+            resumeId: string;
             startDate: string;
             endDate: string;
-            sortOrder: number;
             school: string;
             degree: string;
             field: string;
-            resumeId: string;
+            gpa: string;
+            sortOrder: number;
         }[];
         skills: {
             id: string;
-            sortOrder: number;
+            resumeId: string;
             category: string;
             items: string;
-            resumeId: string;
+            sortOrder: number;
         }[];
         projects: {
+            link: string;
             id: string;
             name: string;
-            link: string;
+            role: string;
+            company: string;
             description: string;
+            resumeId: string;
             startDate: string;
             endDate: string;
+            techStack: string;
             sortOrder: number;
-            role: string;
-            resumeId: string;
         }[];
     } & {
         id: string;
         createdAt: Date;
-        title: string;
-        visibility: string;
         userId: string | null;
+        title: string;
+        slug: string;
+        viewCount: number;
+        visibility: string;
         updatedAt: Date;
     }>;
     getLinksForResume(resumeId: string): Promise<{

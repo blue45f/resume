@@ -24,4 +24,23 @@ export declare class AnalyticsService {
             createdAt: string;
         }[];
     }>;
+    getResumeTrend(resumeId: string): Promise<{
+        version: number;
+        sections: number;
+        createdAt: string;
+    }[]>;
+    getResumeAnalytics(resumeId: string): Promise<{
+        viewCount: number;
+        commentCount: number;
+        bookmarkCount: number;
+        shareCount: number;
+        versionCount: number;
+        visibility: string;
+        createdAt: string;
+        updatedAt: string;
+    } | null>;
+    getPopularSkills(limit?: number): Promise<{
+        name: string;
+        count: number;
+    }[]>;
 }

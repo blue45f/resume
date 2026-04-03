@@ -54,6 +54,34 @@ let ApplicationsService = class ApplicationsService {
         await this.prisma.jobApplication.delete({ where: { id } });
         return { success: true };
     }
+    async findOne(id) {
+        return this.prisma.jobApplication.findUnique({ where: { id } });
+    }
+    async getComments(applicationId) {
+        return this.prisma.applicationComment.findMany({
+            where: { applicationId },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+    async addComment(applicationId, content, userId) {
+        const app = await this.prisma.jobApplication.findUnique({ where: { id: applicationId } });
+        if (!app || app.visibility !== 'public') {
+            throw new common_1.NotFoundException('공개된 지원 내역만 댓글을 작성할 수 있습니다');
+        }
+        if (!content || content.trim().length < 5) {
+            throw new common_1.ForbiddenException('5자 이상 입력해주세요');
+        }
+        const cleanContent = content.trim().replace(/<[^>]*>/g, '');
+        let authorName = '익명';
+        if (userId) {
+            const user = await this.prisma.user.findUnique({ where: { id: userId } });
+            if (user)
+                authorName = user.name || user.email;
+        }
+        return this.prisma.applicationComment.create({
+            data: { applicationId, userId, authorName, content: cleanContent },
+        });
+    }
 };
 exports.ApplicationsService = ApplicationsService;
 exports.ApplicationsService = ApplicationsService = __decorate([

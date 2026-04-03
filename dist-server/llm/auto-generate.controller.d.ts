@@ -39,6 +39,8 @@ export declare class AutoGenerateController {
             }[];
             id: any;
             title: any;
+            slug: any;
+            viewCount: any;
             visibility: any;
             personalInfo: {
                 name: any;
@@ -46,7 +48,12 @@ export declare class AutoGenerateController {
                 phone: any;
                 address: any;
                 website: any;
+                github: any;
                 summary: any;
+                photo: any;
+                birthYear: any;
+                links: any;
+                military: any;
             };
             tags: any;
             createdAt: any;

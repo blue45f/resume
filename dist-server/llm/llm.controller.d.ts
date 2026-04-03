@@ -2,10 +2,12 @@ import { MessageEvent } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { LlmService } from './llm.service';
 import { TransformResumeDto } from './dto/transform-resume.dto';
+import { UsageService } from '../health/usage.service';
 export declare class LlmController {
     private readonly llmService;
-    constructor(llmService: LlmService);
-    transform(resumeId: string, dto: TransformResumeDto): Promise<{
+    private readonly usageService;
+    constructor(llmService: LlmService, usageService: UsageService);
+    transform(resumeId: string, dto: TransformResumeDto, req: any): Promise<{
         id: string;
         text: string;
         tokensUsed: number;
@@ -31,5 +33,23 @@ export declare class LlmController {
     getUsage(): Promise<{
         totalTransformations: number;
         totalTokensUsed: number;
+    }>;
+    analyzeFeedback(resumeId: string, provider?: string): Promise<{
+        feedback: any;
+        tokensUsed: number;
+        provider: string;
+        model: string;
+    }>;
+    analyzeJobMatch(resumeId: string, jobDescription: string, provider?: string): Promise<{
+        analysis: any;
+        tokensUsed: number;
+        provider: string;
+        model: string;
+    }>;
+    generateInterview(resumeId: string, jobRole?: string, provider?: string): Promise<{
+        interview: any;
+        tokensUsed: number;
+        provider: string;
+        model: string;
     }>;
 }

@@ -11,7 +11,7 @@ export declare class AttachmentsController {
         size: any;
         category: any;
         description: any;
-        downloadUrl: string;
+        downloadUrl: any;
         createdAt: any;
     }>;
     findAll(resumeId: string): Promise<{
@@ -22,10 +22,10 @@ export declare class AttachmentsController {
         size: any;
         category: any;
         description: any;
-        downloadUrl: string;
+        downloadUrl: any;
         createdAt: any;
     }[]>;
-    download(id: string, res: Response): Promise<void>;
+    download(id: string, req: any, res: Response): Promise<void>;
     remove(id: string): Promise<{
         success: boolean;
     }>;

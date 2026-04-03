@@ -16,7 +16,7 @@ export declare class VersionsController {
         resumeId: string;
         versionNumber: number;
     }>;
-    restore(resumeId: string, versionId: string): Promise<{
+    restore(resumeId: string, versionId: string, req: any): Promise<{
         success: boolean;
         restoredVersion: number;
     }>;

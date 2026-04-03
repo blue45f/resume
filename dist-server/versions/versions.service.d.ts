@@ -16,7 +16,7 @@ export declare class VersionsService {
         resumeId: string;
         versionNumber: number;
     }>;
-    restore(resumeId: string, versionId: string): Promise<{
+    restore(resumeId: string, versionId: string, userId?: string): Promise<{
         success: boolean;
         restoredVersion: number;
     }>;

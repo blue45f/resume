@@ -19,6 +19,8 @@ const templates_service_1 = require("./templates.service");
 const local_transform_service_1 = require("./local-transform.service");
 const resumes_service_1 = require("../resumes/resumes.service");
 const template_dto_1 = require("./dto/template.dto");
+const auth_guard_1 = require("../auth/auth.guard");
+const cache_interceptor_1 = require("../common/interceptors/cache.interceptor");
 let TemplatesController = class TemplatesController {
     templatesService;
     localTransformService;
@@ -31,17 +33,20 @@ let TemplatesController = class TemplatesController {
     findAll() {
         return this.templatesService.findAll();
     }
+    findPublicTemplates(category) {
+        return this.templatesService.findPublic(category);
+    }
     findOne(id) {
         return this.templatesService.findOne(id);
     }
-    create(dto) {
-        return this.templatesService.create(dto);
+    create(dto, req) {
+        return this.templatesService.create(dto, req.user?.id);
     }
-    update(id, dto) {
-        return this.templatesService.update(id, dto);
+    update(id, dto, req) {
+        return this.templatesService.update(id, dto, req.user?.id, req.user?.role);
     }
-    remove(id) {
-        return this.templatesService.remove(id);
+    remove(id, req) {
+        return this.templatesService.remove(id, req.user?.id, req.user?.role);
     }
     seed() {
         return this.templatesService.seed();
@@ -70,11 +75,21 @@ let TemplatesController = class TemplatesController {
 exports.TemplatesController = TemplatesController;
 __decorate([
     (0, common_1.Get)(),
+    (0, cache_interceptor_1.CacheTTL)(300),
     (0, swagger_1.ApiOperation)({ summary: '템플릿 목록 조회' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], TemplatesController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('public'),
+    (0, auth_guard_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: '공개 템플릿 목록' }),
+    __param(0, (0, common_1.Query)('category')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], TemplatesController.prototype, "findPublicTemplates", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: '템플릿 상세 조회' }),
@@ -87,8 +102,9 @@ __decorate([
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: '템플릿 생성' }),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [template_dto_1.CreateTemplateDto]),
+    __metadata("design:paramtypes", [template_dto_1.CreateTemplateDto, Object]),
     __metadata("design:returntype", void 0)
 ], TemplatesController.prototype, "create", null);
 __decorate([
@@ -96,16 +112,18 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: '템플릿 수정' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, template_dto_1.UpdateTemplateDto]),
+    __metadata("design:paramtypes", [String, template_dto_1.UpdateTemplateDto, Object]),
     __metadata("design:returntype", void 0)
 ], TemplatesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiOperation)({ summary: '템플릿 삭제' }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], TemplatesController.prototype, "remove", null);
 __decorate([

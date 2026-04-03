@@ -45,23 +45,37 @@ let VersionsService = class VersionsService {
             createdAt: version.createdAt.toISOString(),
         };
     }
-    async restore(resumeId, versionId) {
+    async restore(resumeId, versionId, userId) {
         const version = await this.prisma.resumeVersion.findFirst({
             where: { id: versionId, resumeId },
+            include: { resume: { select: { userId: true } } },
         });
         if (!version)
             throw new common_1.NotFoundException('버전을 찾을 수 없습니다');
-        const snapshot = JSON.parse(version.snapshot);
+        if (version.resume.userId && version.resume.userId !== userId) {
+            throw new common_1.ForbiddenException('이 이력서의 버전을 복원할 권한이 없습니다');
+        }
+        let snapshot;
+        try {
+            snapshot = JSON.parse(version.snapshot);
+        }
+        catch {
+            throw new common_1.BadRequestException('버전 데이터가 손상되었습니다');
+        }
         await this.prisma.$transaction(async (tx) => {
             await tx.resume.update({
                 where: { id: resumeId },
                 data: { title: snapshot.title },
             });
             if (snapshot.personalInfo) {
+                const piData = { ...snapshot.personalInfo };
+                if (Array.isArray(piData.links))
+                    piData.links = JSON.stringify(piData.links);
+                delete piData.id;
                 await tx.personalInfo.upsert({
                     where: { resumeId },
-                    create: { resumeId, ...snapshot.personalInfo },
-                    update: snapshot.personalInfo,
+                    create: { resumeId, ...piData },
+                    update: piData,
                 });
             }
             await tx.experience.deleteMany({ where: { resumeId } });
@@ -71,10 +85,13 @@ let VersionsService = class VersionsService {
                         resumeId,
                         company: e.company || '',
                         position: e.position || '',
+                        department: e.department || '',
                         startDate: e.startDate || '',
                         endDate: e.endDate || '',
                         current: e.current || false,
                         description: e.description || '',
+                        achievements: e.achievements || '',
+                        techStack: e.techStack || '',
                         sortOrder: i,
                     })),
                 });
@@ -87,6 +104,7 @@ let VersionsService = class VersionsService {
                         school: e.school || '',
                         degree: e.degree || '',
                         field: e.field || '',
+                        gpa: e.gpa || '',
                         startDate: e.startDate || '',
                         endDate: e.endDate || '',
                         description: e.description || '',
@@ -111,10 +129,12 @@ let VersionsService = class VersionsService {
                     data: snapshot.projects.map((p, i) => ({
                         resumeId,
                         name: p.name || '',
+                        company: p.company || '',
                         role: p.role || '',
                         startDate: p.startDate || '',
                         endDate: p.endDate || '',
                         description: p.description || '',
+                        techStack: p.techStack || '',
                         link: p.link || '',
                         sortOrder: i,
                     })),

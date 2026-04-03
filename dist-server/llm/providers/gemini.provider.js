@@ -34,25 +34,45 @@ let GeminiProvider = GeminiProvider_1 = class GeminiProvider {
         if (!this.apiKey)
             throw new Error('GEMINI_API_KEY not configured');
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                system_instruction: { parts: [{ text: systemPrompt }] },
-                contents: [{ parts: [{ text: userMessage }] }],
-                generationConfig: { maxOutputTokens: 4096 },
-            }),
-            signal: AbortSignal.timeout(60000),
+        const body = JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ parts: [{ text: userMessage }] }],
+            generationConfig: { maxOutputTokens: 4096 },
         });
-        if (!res.ok) {
-            const err = await res.text();
-            throw new Error(`Gemini API error: ${res.status} ${err.slice(0, 200)}`);
+        let lastError = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body,
+                    signal: AbortSignal.timeout(60000),
+                });
+                if (!res.ok) {
+                    const err = await res.text().catch(() => '');
+                    if ((res.status === 429 || res.status >= 500) && attempt < 2) {
+                        this.logger.warn(`Gemini ${res.status}, retry ${attempt + 1}/2`);
+                        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+                        continue;
+                    }
+                    throw new Error(`Gemini API error: ${res.status} ${err.slice(0, 200)}`);
+                }
+                const data = await res.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                const usage = data.usageMetadata || {};
+                const tokensUsed = (usage.promptTokenCount || 0) + (usage.candidatesTokenCount || 0);
+                return { text, tokensUsed, model: this.model, provider: this.name };
+            }
+            catch (error) {
+                lastError = error instanceof Error ? error : new Error(String(error));
+                if (attempt < 2 && lastError.name !== 'AbortError') {
+                    this.logger.warn(`Gemini error, retry ${attempt + 1}/2: ${lastError.message}`);
+                    await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+                    continue;
+                }
+            }
         }
-        const data = await res.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        const usage = data.usageMetadata || {};
-        const tokensUsed = (usage.promptTokenCount || 0) + (usage.candidatesTokenCount || 0);
-        return { text, tokensUsed, model: this.model, provider: this.name };
+        throw lastError || new Error('Gemini: max retries exceeded');
     }
     async *generateStream(systemPrompt, userMessage) {
         if (!this.apiKey)

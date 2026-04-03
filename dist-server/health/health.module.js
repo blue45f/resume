@@ -10,6 +10,8 @@ exports.HealthModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const health_controller_1 = require("./health.controller");
+const admin_stats_service_1 = require("./admin-stats.service");
+const usage_service_1 = require("./usage.service");
 const prisma_module_1 = require("../prisma/prisma.module");
 let HealthModule = class HealthModule {
 };
@@ -18,5 +20,7 @@ exports.HealthModule = HealthModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule, config_1.ConfigModule],
         controllers: [health_controller_1.HealthController],
+        providers: [admin_stats_service_1.AdminStatsService, usage_service_1.UsageService],
+        exports: [usage_service_1.UsageService],
     })
 ], HealthModule);

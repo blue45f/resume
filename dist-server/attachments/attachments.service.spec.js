@@ -1,17 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const testing_1 = require("@nestjs/testing");
+const config_1 = require("@nestjs/config");
 const attachments_service_1 = require("./attachments.service");
 const prisma_service_1 = require("../prisma/prisma.service");
 const common_1 = require("@nestjs/common");
-jest.mock('fs/promises', () => ({
-    writeFile: jest.fn().mockResolvedValue(undefined),
-    unlink: jest.fn().mockResolvedValue(undefined),
-    mkdir: jest.fn().mockResolvedValue(undefined),
-}));
-jest.mock('fs', () => ({
-    existsSync: jest.fn().mockReturnValue(true),
-}));
+jest.mock('cloudinary', () => ({ v2: { config: jest.fn(), uploader: { upload_stream: jest.fn(), destroy: jest.fn() } } }));
 const mockAttachment = {
     id: 'att-1',
     resumeId: 'resume-1',
@@ -59,12 +53,11 @@ describe('AttachmentsService', () => {
             providers: [
                 attachments_service_1.AttachmentsService,
                 { provide: prisma_service_1.PrismaService, useValue: mockPrisma },
+                { provide: config_1.ConfigService, useValue: { get: () => null } },
             ],
         }).compile();
         service = module.get(attachments_service_1.AttachmentsService);
         jest.clearAllMocks();
-        const fs = require('fs');
-        fs.existsSync.mockReturnValue(true);
     });
     describe('upload', () => {
         it('정상 파일 업로드 성공', async () => {
@@ -143,27 +136,27 @@ describe('AttachmentsService', () => {
             expect(result).toEqual([]);
         });
     });
-    describe('getFilePath', () => {
+    describe('getFileData', () => {
         it('파일 경로 반환', async () => {
             mockPrisma.attachment.findUnique.mockResolvedValue({
                 ...mockAttachment,
                 resume: { userId: 'user-1', visibility: 'public' },
             });
-            const result = await service.getFilePath('att-1', 'user-1');
+            const result = await service.getFileData('att-1', 'user-1');
             expect(result.originalName).toBe('이력서.pdf');
             expect(result.mimeType).toBe('application/pdf');
-            expect(result.path).toContain('abc-uuid.pdf');
+            expect(result.originalName).toBeDefined();
         });
         it('존재하지 않는 파일 → NotFoundException', async () => {
             mockPrisma.attachment.findUnique.mockResolvedValue(null);
-            await expect(service.getFilePath('fake')).rejects.toThrow(common_1.NotFoundException);
+            await expect(service.getFileData('fake')).rejects.toThrow(common_1.NotFoundException);
         });
         it('비공개 이력서의 첨부파일 - 다른 사용자 → NotFoundException', async () => {
             mockPrisma.attachment.findUnique.mockResolvedValue({
                 ...mockAttachment,
                 resume: { userId: 'user-1', visibility: 'private' },
             });
-            await expect(service.getFilePath('att-1', 'other-user')).rejects.toThrow(common_1.NotFoundException);
+            await expect(service.getFileData('att-1', 'other-user')).rejects.toThrow(common_1.NotFoundException);
         });
     });
     describe('remove', () => {

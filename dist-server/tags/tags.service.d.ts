@@ -11,12 +11,13 @@ export declare class TagsService {
     create(data: {
         name: string;
         color?: string;
-    }): Promise<{
+    }, userId?: string): Promise<{
         id: string;
         name: string;
+        userId: string | null;
         color: string;
     }>;
-    remove(id: string): Promise<{
+    remove(id: string, userId?: string, role?: string): Promise<{
         success: boolean;
     }>;
     addTagToResume(resumeId: string, tagId: string): Promise<{

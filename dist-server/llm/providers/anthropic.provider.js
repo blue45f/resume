@@ -26,7 +26,7 @@ let AnthropicProvider = AnthropicProvider_1 = class AnthropicProvider {
     constructor(config) {
         this.config = config;
         const apiKey = this.config.get('ANTHROPIC_API_KEY');
-        this.model = this.config.get('ANTHROPIC_MODEL') || 'claude-sonnet-4-20250514';
+        this.model = this.config.get('ANTHROPIC_MODEL') || 'claude-opus-4-6';
         if (apiKey) {
             this.client = new sdk_1.default({ apiKey });
             this.logger.log('Anthropic provider initialized');

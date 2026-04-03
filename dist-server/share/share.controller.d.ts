@@ -1,9 +1,11 @@
+import { ResumesService } from '../resumes/resumes.service';
 import { ShareService } from './share.service';
 import { CreateShareLinkDto } from './dto/share.dto';
 export declare class ShareController {
     private readonly shareService;
-    constructor(shareService: ShareService);
-    createLink(resumeId: string, dto: CreateShareLinkDto): Promise<{
+    private readonly resumesService;
+    constructor(shareService: ShareService, resumesService: ResumesService);
+    createLink(resumeId: string, dto: CreateShareLinkDto, req: any): Promise<{
         id: string;
         token: string;
         url: string;
@@ -11,7 +13,7 @@ export declare class ShareController {
         hasPassword: boolean;
         createdAt: string;
     }>;
-    getLinks(resumeId: string): Promise<{
+    getLinks(resumeId: string, req: any): Promise<{
         id: string;
         token: string;
         url: string;
@@ -26,60 +28,73 @@ export declare class ShareController {
     getShared(token: string, password?: string): Promise<{
         personalInfo: {
             id: string;
-            email: string;
+            resumeId: string;
             name: string;
-            summary: string;
+            email: string;
             phone: string;
             address: string;
             website: string;
-            resumeId: string;
+            github: string;
+            summary: string;
+            photo: string;
+            birthYear: string;
+            links: string;
+            military: string;
         } | null;
         experiences: {
             id: string;
-            description: string;
+            resumeId: string;
             company: string;
             position: string;
+            department: string;
             startDate: string;
             endDate: string;
             current: boolean;
+            description: string;
+            achievements: string;
+            techStack: string;
             sortOrder: number;
-            resumeId: string;
         }[];
         educations: {
             id: string;
-            description: string;
+            resumeId: string;
             startDate: string;
             endDate: string;
-            sortOrder: number;
+            description: string;
             school: string;
             degree: string;
             field: string;
-            resumeId: string;
+            gpa: string;
+            sortOrder: number;
         }[];
         skills: {
             id: string;
-            sortOrder: number;
+            resumeId: string;
             category: string;
             items: string;
-            resumeId: string;
+            sortOrder: number;
         }[];
         projects: {
             id: string;
+            resumeId: string;
             name: string;
-            link: string;
-            description: string;
+            role: string;
+            company: string;
             startDate: string;
             endDate: string;
+            description: string;
+            techStack: string;
+            link: string;
             sortOrder: number;
-            role: string;
-            resumeId: string;
         }[];
     } & {
         id: string;
-        createdAt: Date;
         title: string;
+        slug: string;
+        viewCount: number;
         visibility: string;
         userId: string | null;
+        createdAt: Date;
         updatedAt: Date;
     }>;
 }

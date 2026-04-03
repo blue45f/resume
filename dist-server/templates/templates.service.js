@@ -28,21 +28,50 @@ let TemplatesService = class TemplatesService {
             throw new common_1.NotFoundException('템플릿을 찾을 수 없습니다');
         return template;
     }
-    async create(data) {
-        return this.prisma.template.create({ data });
+    async create(data, userId) {
+        return this.prisma.template.create({ data: { ...data, userId: userId || null } });
     }
-    async update(id, data) {
+    async update(id, data, userId, role) {
         const existing = await this.prisma.template.findUnique({ where: { id } });
         if (!existing)
             throw new common_1.NotFoundException('템플릿을 찾을 수 없습니다');
+        if (role !== 'admin' && role !== 'superadmin') {
+            if (existing.isDefault) {
+                throw new common_1.ForbiddenException('기본 템플릿은 수정할 수 없습니다');
+            }
+            if (existing.userId && existing.userId !== userId) {
+                throw new common_1.ForbiddenException('이 템플릿을 수정할 권한이 없습니다');
+            }
+        }
         return this.prisma.template.update({ where: { id }, data });
     }
-    async remove(id) {
+    async remove(id, userId, role) {
         const existing = await this.prisma.template.findUnique({ where: { id } });
         if (!existing)
             throw new common_1.NotFoundException('템플릿을 찾을 수 없습니다');
+        if (role !== 'admin' && role !== 'superadmin') {
+            if (existing.isDefault) {
+                throw new common_1.ForbiddenException('기본 템플릿은 삭제할 수 없습니다');
+            }
+            if (existing.userId && existing.userId !== userId) {
+                throw new common_1.ForbiddenException('이 템플릿을 삭제할 권한이 없습니다');
+            }
+        }
         await this.prisma.template.delete({ where: { id } });
         return { success: true };
+    }
+    async findPublic(category) {
+        const where = { visibility: 'public' };
+        if (category)
+            where.category = category;
+        return this.prisma.template.findMany({
+            where,
+            orderBy: { usageCount: 'desc' },
+            take: 50,
+        });
+    }
+    async incrementUsage(id) {
+        this.prisma.template.update({ where: { id }, data: { usageCount: { increment: 1 } } }).catch(() => { });
     }
     async seed() {
         const count = await this.prisma.template.count();

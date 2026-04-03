@@ -12,6 +12,7 @@ export declare class UpdateTemplateDto {
     category?: string;
     prompt?: string;
     layout?: string;
+    visibility?: string;
     isDefault?: boolean;
 }
 export declare class LocalTransformDto {

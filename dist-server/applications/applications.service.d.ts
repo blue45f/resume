@@ -6,9 +6,10 @@ export declare class ApplicationsService {
         id: string;
         createdAt: Date;
         userId: string | null;
+        company: string;
+        visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        company: string;
         position: string;
         url: string | null;
         status: string;
@@ -35,9 +36,10 @@ export declare class ApplicationsService {
         id: string;
         createdAt: Date;
         userId: string | null;
+        company: string;
+        visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        company: string;
         position: string;
         url: string | null;
         status: string;
@@ -59,9 +61,10 @@ export declare class ApplicationsService {
         id: string;
         createdAt: Date;
         userId: string | null;
+        company: string;
+        visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        company: string;
         position: string;
         url: string | null;
         status: string;
@@ -72,5 +75,37 @@ export declare class ApplicationsService {
     }>;
     remove(id: string, userId: string): Promise<{
         success: boolean;
+    }>;
+    findOne(id: string): Promise<{
+        id: string;
+        createdAt: Date;
+        userId: string | null;
+        company: string;
+        visibility: string;
+        updatedAt: Date;
+        resumeId: string | null;
+        position: string;
+        url: string | null;
+        status: string;
+        appliedDate: string | null;
+        notes: string | null;
+        salary: string | null;
+        location: string | null;
+    } | null>;
+    getComments(applicationId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        userId: string | null;
+        applicationId: string;
+        authorName: string;
+        content: string;
+    }[]>;
+    addComment(applicationId: string, content: string, userId?: string): Promise<{
+        id: string;
+        createdAt: Date;
+        userId: string | null;
+        applicationId: string;
+        authorName: string;
+        content: string;
     }>;
 }
