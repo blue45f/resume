@@ -20,12 +20,12 @@ export declare class ShareService {
             email: string;
             name: string;
             github: string;
+            links: string;
             phone: string;
             address: string;
             website: string;
             photo: string;
             birthYear: string;
-            links: string;
             military: string;
             resumeId: string;
         } | null;

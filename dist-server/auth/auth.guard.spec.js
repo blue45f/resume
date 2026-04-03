@@ -10,8 +10,8 @@ describe('AuthGuard', () => {
         reflector = { getAllAndOverride: jest.fn() };
         guard = new auth_guard_1.AuthGuard(jwtService, reflector);
     });
-    function createContext(headers = {}) {
-        const request = { headers, user: undefined };
+    function createContext(headers = {}, cookies = {}) {
+        const request = { headers, cookies, user: undefined };
         return {
             switchToHttp: () => ({ getRequest: () => request }),
             getHandler: () => ({}),
@@ -22,6 +22,12 @@ describe('AuthGuard', () => {
         reflector.getAllAndOverride.mockReturnValue(true);
         const ctx = createContext();
         expect(guard.canActivate(ctx)).toBe(true);
+    });
+    it('@Public() 데코레이터 → user 설정하지 않음', () => {
+        reflector.getAllAndOverride.mockReturnValue(true);
+        const ctx = createContext({ authorization: 'Bearer some-token' });
+        expect(guard.canActivate(ctx)).toBe(true);
+        expect(jwtService.verify).not.toHaveBeenCalled();
     });
     it('토큰 없음 → user = null, 통과', () => {
         reflector.getAllAndOverride.mockReturnValue(false);
@@ -36,10 +42,37 @@ describe('AuthGuard', () => {
         expect(guard.canActivate(ctx)).toBe(true);
         expect(ctx.switchToHttp().getRequest().user).toEqual({ id: 'user-123', role: 'admin' });
     });
+    it('role이 없는 JWT → 기본 role "user" 설정', () => {
+        reflector.getAllAndOverride.mockReturnValue(false);
+        jwtService.verify.mockReturnValue({ sub: 'user-456' });
+        const ctx = createContext({ authorization: 'Bearer valid-token' });
+        expect(guard.canActivate(ctx)).toBe(true);
+        expect(ctx.switchToHttp().getRequest().user).toEqual({ id: 'user-456', role: 'user' });
+    });
+    it('만료된 JWT → user = null, 통과 (soft auth)', () => {
+        reflector.getAllAndOverride.mockReturnValue(false);
+        jwtService.verify.mockImplementation(() => {
+            throw new Error('jwt expired');
+        });
+        const ctx = createContext({ authorization: 'Bearer expired-token' });
+        expect(guard.canActivate(ctx)).toBe(true);
+        expect(ctx.switchToHttp().getRequest().user).toBeNull();
+    });
     it('잘못된 JWT → user = null, 통과 (soft auth)', () => {
         reflector.getAllAndOverride.mockReturnValue(false);
-        jwtService.verify.mockImplementation(() => { throw new Error('invalid'); });
+        jwtService.verify.mockImplementation(() => {
+            throw new Error('invalid signature');
+        });
         const ctx = createContext({ authorization: 'Bearer bad-token' });
+        expect(guard.canActivate(ctx)).toBe(true);
+        expect(ctx.switchToHttp().getRequest().user).toBeNull();
+    });
+    it('malformed JWT (jwt malformed) → user = null', () => {
+        reflector.getAllAndOverride.mockReturnValue(false);
+        jwtService.verify.mockImplementation(() => {
+            throw new Error('jwt malformed');
+        });
+        const ctx = createContext({ authorization: 'Bearer not.a.jwt' });
         expect(guard.canActivate(ctx)).toBe(true);
         expect(ctx.switchToHttp().getRequest().user).toBeNull();
     });
@@ -48,5 +81,39 @@ describe('AuthGuard', () => {
         const ctx = createContext({ authorization: 'Basic abc123' });
         expect(guard.canActivate(ctx)).toBe(true);
         expect(ctx.switchToHttp().getRequest().user).toBeNull();
+    });
+    it('Bearer만 있고 토큰이 없는 경우 → 토큰 없음 처리', () => {
+        reflector.getAllAndOverride.mockReturnValue(false);
+        const ctx = createContext({ authorization: 'Bearer ' });
+        expect(guard.canActivate(ctx)).toBe(true);
+        expect(ctx.switchToHttp().getRequest().user).toBeNull();
+    });
+    it('authorization 헤더가 빈 문자열 → 토큰 없음 처리', () => {
+        reflector.getAllAndOverride.mockReturnValue(false);
+        const ctx = createContext({ authorization: '' });
+        expect(guard.canActivate(ctx)).toBe(true);
+        expect(ctx.switchToHttp().getRequest().user).toBeNull();
+    });
+    it('토큰에 공백이 여러 개 → split(/\\s+/)로 정상 파싱', () => {
+        reflector.getAllAndOverride.mockReturnValue(false);
+        jwtService.verify.mockReturnValue({ sub: 'user-789', role: 'user' });
+        const ctx = createContext({ authorization: 'Bearer   valid-token' });
+        expect(guard.canActivate(ctx)).toBe(true);
+        expect(ctx.switchToHttp().getRequest().user).toEqual({ id: 'user-789', role: 'user' });
+    });
+    it('Cookie에서 토큰 추출', () => {
+        reflector.getAllAndOverride.mockReturnValue(false);
+        jwtService.verify.mockReturnValue({ sub: 'cookie-user', role: 'user' });
+        const ctx = createContext({}, { token: 'cookie-jwt-token' });
+        expect(guard.canActivate(ctx)).toBe(true);
+        expect(ctx.switchToHttp().getRequest().user).toEqual({ id: 'cookie-user', role: 'user' });
+    });
+    it('Authorization 헤더가 우선, Cookie는 fallback', () => {
+        reflector.getAllAndOverride.mockReturnValue(false);
+        jwtService.verify.mockReturnValue({ sub: 'header-user', role: 'admin' });
+        const ctx = createContext({ authorization: 'Bearer header-token' }, { token: 'cookie-token' });
+        expect(guard.canActivate(ctx)).toBe(true);
+        expect(jwtService.verify).toHaveBeenCalledWith('header-token');
+        expect(ctx.switchToHttp().getRequest().user).toEqual({ id: 'header-user', role: 'admin' });
     });
 });
