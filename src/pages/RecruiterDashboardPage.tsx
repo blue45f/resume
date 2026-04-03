@@ -44,12 +44,12 @@ export default function RecruiterDashboardPage() {
     <>
       <Header />
       <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">리크루터 대시보드</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{user.companyName || user.name}</p>
           </div>
-          <Link to="/jobs/new" className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
+          <Link to="/jobs/new" className="px-4 py-2.5 min-h-[44px] flex items-center bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
             + 공고 등록
           </Link>
         </div>
@@ -88,7 +88,7 @@ export default function RecruiterDashboardPage() {
               ) : (
                 <div className="space-y-2">
                   {jobs.slice(0, 5).map((j: any) => (
-                    <div key={j.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div key={j.id} className="flex items-center justify-between p-3 min-h-[56px] bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                       <div className="min-w-0">
                         <Link to="/jobs" className="text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-blue-600 truncate block">{j.position}</Link>
                         <span className="text-xs text-slate-400">{j.company} · {timeAgo(j.createdAt)}</span>
@@ -112,7 +112,7 @@ export default function RecruiterDashboardPage() {
                   { label: '스카우트 현황', to: '/scouts', icon: '📨' },
                   { label: '쪽지함', to: '/messages', icon: '💬' },
                 ].map(a => (
-                  <Link key={a.to} to={a.to} className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200 text-sm text-slate-700 dark:text-slate-300">
+                  <Link key={a.to} to={a.to} className="flex items-center gap-2 p-3 min-h-[44px] bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200 text-sm text-slate-700 dark:text-slate-300">
                     <span>{a.icon}</span>
                     {a.label}
                   </Link>

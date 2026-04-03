@@ -42,7 +42,7 @@ export default function ComparePage() {
   ];
 
   const Selector = ({ value, onChange, exclude }: { value: string; onChange: (v: string) => void; exclude: string }) => (
-    <select value={value} onChange={e => onChange(e.target.value)} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <select value={value} onChange={e => onChange(e.target.value)} className="w-full px-3 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
       <option value="">이력서 선택</option>
       {resumes.filter(r => r.id !== exclude).map(r => (
         <option key={r.id} value={r.id}>{r.title || '제목 없음'}</option>
@@ -53,14 +53,14 @@ export default function ComparePage() {
   const CompareBar = ({ label, leftVal, rightVal }: { label: string; leftVal: number; rightVal: number }) => {
     const max = Math.max(leftVal, rightVal, 1);
     return (
-      <div className="py-2">
-        <div className="flex items-center justify-between mb-1 sm:hidden">
+      <div className="py-2.5 sm:py-2">
+        <div className="flex items-center justify-between mb-1.5 sm:hidden">
           <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">{label}</span>
           <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">{leftVal} vs {rightVal}</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <span className="text-xs text-slate-500 dark:text-slate-400 w-16 text-right tabular-nums hidden sm:block">{leftVal}</span>
-          <div className="flex-1 flex gap-1 h-5">
+          <div className="flex-1 flex gap-1 h-6 sm:h-5">
             <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-l-full overflow-hidden flex justify-end">
               <div className="bg-blue-500 rounded-l-full transition-all duration-300" style={{ width: `${(leftVal / max) * 100}%` }} />
             </div>
@@ -98,14 +98,14 @@ export default function ComparePage() {
             {/* Completeness comparison */}
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
               <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">완성도 비교</h3>
-              <div className="grid grid-cols-2 gap-4 text-center">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 text-center">
                 <div>
-                  <span className="text-3xl font-bold text-blue-600">{calculateCompleteness(left).percentage}%</span>
-                  <p className="text-xs text-slate-500 mt-1">{left.title || '제목 없음'}</p>
+                  <span className="text-2xl sm:text-3xl font-bold text-blue-600">{calculateCompleteness(left).percentage}%</span>
+                  <p className="text-xs text-slate-500 mt-1 truncate">{left.title || '제목 없음'}</p>
                 </div>
                 <div>
-                  <span className="text-3xl font-bold text-emerald-600">{calculateCompleteness(right).percentage}%</span>
-                  <p className="text-xs text-slate-500 mt-1">{right.title || '제목 없음'}</p>
+                  <span className="text-2xl sm:text-3xl font-bold text-emerald-600">{calculateCompleteness(right).percentage}%</span>
+                  <p className="text-xs text-slate-500 mt-1 truncate">{right.title || '제목 없음'}</p>
                 </div>
               </div>
             </div>
@@ -131,15 +131,15 @@ export default function ComparePage() {
 
             {/* Summary comparison */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-blue-200 dark:border-blue-800 p-4">
-                <h4 className="text-sm font-semibold text-blue-600 mb-2">{left.personalInfo.name || '이름 없음'}</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-4">
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-blue-200 dark:border-blue-800 p-3 sm:p-4">
+                <h4 className="text-sm font-semibold text-blue-600 mb-2 truncate">{left.personalInfo.name || '이름 없음'}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-4 break-words">
                   {left.personalInfo.summary?.replace(/<[^>]*>/g, '') || '자기소개 없음'}
                 </p>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-emerald-200 dark:border-emerald-800 p-4">
-                <h4 className="text-sm font-semibold text-emerald-600 mb-2">{right.personalInfo.name || '이름 없음'}</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-4">
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-emerald-200 dark:border-emerald-800 p-3 sm:p-4">
+                <h4 className="text-sm font-semibold text-emerald-600 mb-2 truncate">{right.personalInfo.name || '이름 없음'}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-4 break-words">
                   {right.personalInfo.summary?.replace(/<[^>]*>/g, '') || '자기소개 없음'}
                 </p>
               </div>

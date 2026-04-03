@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
-import { getUser, clearAuth } from '@/lib/auth';
+import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
 import ProfileBadges from '@/components/ProfileBadges';
 import { getPlan } from '@/lib/plans';
 
@@ -59,6 +59,8 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPw, setChangingPw] = useState(false);
   const [usage, setUsage] = useState<{ feature: string; count: number }[]>([]);
+  const [userType, setUserType] = useState(user?.userType || 'personal');
+  const [switchingType, setSwitchingType] = useState(false);
 
   useEffect(() => {
     if (!user) navigate('/login');
@@ -169,6 +171,69 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* User Type Switch */}
+        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">사용자 유형</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+            개인(구직자)과 채용담당자 모드를 전환할 수 있습니다. 모드에 따라 메뉴와 기능이 달라집니다.
+          </p>
+          <div className="flex gap-3">
+            {([
+              { value: 'personal', label: '개인 (구직자)', desc: '이력서 관리, 지원, 자소서 작성',
+                activeClass: 'border-green-500 bg-green-50 dark:bg-green-900/20 ring-1 ring-green-500',
+                dotActive: 'bg-green-500' },
+              { value: 'recruiter', label: '채용담당자', desc: '채용 대시보드, 스카우트, 채용공고',
+                activeClass: 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 ring-1 ring-purple-500',
+                dotActive: 'bg-purple-500' },
+            ] as const).map(opt => {
+              const isActive = userType === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={async () => {
+                    if (isActive || switchingType) return;
+                    setSwitchingType(true);
+                    try {
+                      const token = getToken();
+                      const res = await fetch(`${API_URL}/api/auth/profile`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                        body: JSON.stringify({ userType: opt.value }),
+                      });
+                      if (!res.ok) throw new Error();
+                      const updated = await res.json();
+                      if (token) setAuth(token, updated);
+                      setUserType(opt.value);
+                      toast(`${opt.label} 모드로 전환되었습니다`, 'success');
+                    } catch {
+                      toast('모드 전환에 실패했습니다', 'error');
+                    } finally {
+                      setSwitchingType(false);
+                    }
+                  }}
+                  disabled={switchingType}
+                  className={`flex-1 p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                    isActive
+                      ? opt.activeClass
+                      : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`inline-block w-2.5 h-2.5 rounded-full ${isActive ? opt.dotActive : 'bg-slate-300 dark:bg-slate-600'}`} />
+                    <span className={`text-sm font-medium ${isActive ? 'text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-400'}`}>
+                      {opt.label}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 pl-5">{opt.desc}</p>
+                  {isActive && (
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-2 pl-5 font-medium">현재 모드</p>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </section>
 

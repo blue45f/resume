@@ -78,7 +78,7 @@ export default function InterviewPrepPage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">이력서 선택 *</label>
               <select value={selectedResumeId} onChange={e => setSelectedResumeId(e.target.value)}
-                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500">
+                className="w-full px-3 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500">
                 <option value="">이력서를 선택하세요</option>
                 {resumes.map(r => <option key={r.id} value={r.id}>{r.title || '제목 없음'}</option>)}
               </select>
@@ -86,11 +86,11 @@ export default function InterviewPrepPage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">지원 직무 (선택)</label>
               <input value={jobRole} onChange={e => setJobRole(e.target.value)} placeholder="예: 프론트엔드 개발자"
-                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500" />
+                className="w-full px-3 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
           <button onClick={handleGenerate} disabled={loading || !selectedResumeId}
-            className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all duration-200 shadow-sm">
+            className="w-full py-3 min-h-[48px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all duration-200 shadow-sm">
             {loading ? 'AI 생성 중...' : '면접 질문 생성'}
           </button>
         </div>
@@ -107,7 +107,7 @@ export default function InterviewPrepPage() {
                     <p className="text-sm font-medium text-slate-900 dark:text-slate-100 leading-relaxed">{q.question}</p>
                     {q.answer && (
                       <div className="mt-2">
-                        <button onClick={() => toggleReveal(i)} className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                        <button onClick={() => toggleReveal(i)} className="text-xs text-blue-600 dark:text-blue-400 hover:underline py-2 min-h-[44px]">
                           {revealedIdx.has(i) ? '답변 숨기기' : '모범 답변 보기'}
                         </button>
                         {revealedIdx.has(i) && (
