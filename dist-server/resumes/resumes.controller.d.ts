@@ -324,6 +324,10 @@ export declare class ResumesController {
         id: string;
         slug: string;
     }>;
+    transferOwnership(id: string, newUserId: string, req: any): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     remove(id: string, req: any): Promise<{
         success: boolean;
     }>;

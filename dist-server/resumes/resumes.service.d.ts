@@ -307,6 +307,10 @@ export declare class ResumesService {
         createdAt: any;
         updatedAt: any;
     }>;
+    transferOwnership(id: string, newUserId: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     remove(id: string, userId?: string, role?: string): Promise<{
         success: boolean;
     }>;

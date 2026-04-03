@@ -97,6 +97,14 @@ let ResumesController = class ResumesController {
             throw new common_1.UnauthorizedException('로그인이 필요합니다');
         return this.resumesService.updateSlug(id, slug, req.user.id, req.user.role);
     }
+    transferOwnership(id, newUserId, req) {
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+            throw new common_1.UnauthorizedException('관리자 권한이 필요합니다');
+        }
+        return this.resumesService.transferOwnership(id, newUserId);
+    }
     remove(id, req) {
         if (!req.user?.id)
             throw new common_1.UnauthorizedException('로그인이 필요합니다');
@@ -294,6 +302,16 @@ __decorate([
     __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], ResumesController.prototype, "updateSlug", null);
+__decorate([
+    (0, common_1.Patch)(':id/transfer'),
+    (0, swagger_1.ApiOperation)({ summary: '이력서 소유권 이전 (관리자)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('newUserId')),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", void 0)
+], ResumesController.prototype, "transferOwnership", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiOperation)({ summary: '이력서 삭제' }),

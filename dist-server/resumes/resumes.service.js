@@ -382,6 +382,16 @@ let ResumesService = class ResumesService {
         });
         return this.findOne(id);
     }
+    async transferOwnership(id, newUserId) {
+        const resume = await this.prisma.resume.findUnique({ where: { id } });
+        if (!resume)
+            throw new common_1.NotFoundException('이력서를 찾을 수 없습니다');
+        const user = await this.prisma.user.findUnique({ where: { id: newUserId } });
+        if (!user)
+            throw new common_1.NotFoundException('대상 사용자를 찾을 수 없습니다');
+        await this.prisma.resume.update({ where: { id }, data: { userId: newUserId } });
+        return { success: true, message: `이력서가 ${user.name}에게 이전되었습니다` };
+    }
     async remove(id, userId, role) {
         await this.verifyOwnership(id, userId, role);
         try {
