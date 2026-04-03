@@ -368,6 +368,11 @@ export class ResumesService {
     });
   }
 
+  /** 조회수 증가 (다운로드/내보내기 시 사용) */
+  incrementViewCount(id: string) {
+    this.prisma.resume.update({ where: { id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
+  }
+
   // --- Bookmark ---
   async addBookmark(resumeId: string, userId: string) {
     try {

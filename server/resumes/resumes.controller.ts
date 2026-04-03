@@ -162,6 +162,8 @@ export class ResumesController {
   @ApiOperation({ summary: '이력서 텍스트 내보내기' })
   async exportText(@Param('id') id: string, @Res() res: Response) {
     const text = await this.exportService.exportAsText(id);
+    // Track download
+    this.resumesService.incrementViewCount(id);
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="resume.txt"`);
     res.send(text);
@@ -171,6 +173,8 @@ export class ResumesController {
   @ApiOperation({ summary: '이력서 마크다운 내보내기' })
   async exportMarkdown(@Param('id') id: string, @Res() res: Response) {
     const text = await this.exportService.exportAsMarkdown(id);
+    // Track download
+    this.resumesService.incrementViewCount(id);
     res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="resume.md"`);
     res.send(text);

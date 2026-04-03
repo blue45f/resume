@@ -287,6 +287,29 @@ export default function ExplorePage() {
           <EmptyState type={query || tag ? 'search' : 'resume'} query={query || undefined} />
         ) : (
           <>
+            {/* 인기 이력서 */}
+            {!query && !tag && page === 1 && result.data.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">인기 이력서</h3>
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                  {[...result.data].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)).slice(0, 5).map(r => (
+                    <Link
+                      key={`trending-${r.id}`}
+                      to={`/resumes/${r.id}/preview`}
+                      className="shrink-0 w-48 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200"
+                    >
+                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{r.title || '제목 없음'}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{r.personalInfo?.name}</p>
+                      <div className="flex items-center gap-1 mt-1.5 text-xs text-slate-400">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        {r.viewCount || 0}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <p className="text-sm text-slate-500 mb-4">
               총 {result.total}개의 공개 이력서
               {query && <> · "<span className="font-medium text-slate-700">{query}</span>" 검색 결과</>}
