@@ -10,7 +10,7 @@ export default function PaymentPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const user = getUser();
-  const planId = params.get('plan') || 'pro';
+  const planId = params.get('plan') || 'standard';
   const period = (params.get('period') as 'monthly' | 'yearly') || 'monthly';
   const plan = PLANS.find(p => p.id === planId) || PLANS[1];
   const amount = period === 'yearly' ? plan.yearlyPrice : plan.price;

@@ -39,7 +39,7 @@ export default function AdminPage() {
   ];
 
   useEffect(() => {
-    if (!user || user.role !== 'admin' && user.role !== 'superadmin') {
+    if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
       navigate('/');
     }
   }, [user]);
@@ -73,7 +73,7 @@ export default function AdminPage() {
     );
   };
 
-  if (!user || user.role !== 'admin' && user.role !== 'superadmin') return null;
+  if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return null;
 
   return (
     <>
@@ -83,7 +83,7 @@ export default function AdminPage() {
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">관리자 통계</h1>
           <button
             onClick={() => loadStats()}
-            className="text-xs px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg hover:bg-slate-200 transition-colors"
+            className="text-xs px-3 py-2 min-h-[44px] min-w-[44px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg hover:bg-slate-200 transition-colors"
           >
             새로고침
           </button>
@@ -96,7 +96,7 @@ export default function AdminPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-4 py-2 text-sm rounded-xl whitespace-nowrap transition-all duration-200 ${
+              className={`flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] text-sm rounded-xl whitespace-nowrap transition-all duration-200 ${
                 activeTab === tab.id
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
@@ -178,7 +178,7 @@ export default function AdminPage() {
                     주간 활동
                   </h2>
                   <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4">
                       {[
                         { label: '신규 회원', value: stats.users.week, max: Math.max(stats.users.week, stats.resumes.week, 1), color: 'bg-blue-500' },
                         { label: '신규 이력서', value: stats.resumes.week, max: Math.max(stats.users.week, stats.resumes.week, 1), color: 'bg-green-500' },
@@ -210,12 +210,31 @@ export default function AdminPage() {
                       <span className="w-1.5 h-4 bg-indigo-500 rounded" />
                       최근 가입 회원
                     </h2>
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
-                      <table className="w-full text-sm min-w-[500px]">
+                    {/* Mobile card layout */}
+                    <div className="space-y-2 sm:hidden">
+                      {stats.recentUsers.map(u => (
+                        <div key={u.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{u.name || '—'}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              u.provider === 'google' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                              u.provider === 'github' ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300' :
+                              u.provider === 'kakao' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                              'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            }`}>{u.provider}</span>
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{u.email}</p>
+                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{new Date(u.createdAt).toLocaleDateString('ko-KR')}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Desktop table layout */}
+                    <div className="hidden sm:block bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
+                      <table className="w-full text-sm">
                         <thead>
                           <tr className="bg-slate-50 dark:bg-slate-900 text-left">
                             <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">이름</th>
-                            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:table-cell">이메일</th>
+                            <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">이메일</th>
                             <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">로그인</th>
                             <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">가입일</th>
                           </tr>
@@ -224,7 +243,7 @@ export default function AdminPage() {
                           {stats.recentUsers.map(u => (
                             <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                               <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-medium">{u.name || '—'}</td>
-                              <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 hidden sm:table-cell">{u.email}</td>
+                              <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400">{u.email}</td>
                               <td className="px-4 py-2.5">
                                 <span className={`text-xs px-2 py-0.5 rounded-full ${
                                   u.provider === 'google' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
@@ -375,12 +394,45 @@ function UserManagement() {
         />
         <span className="text-xs text-slate-400 shrink-0">{filtered.length}명</span>
       </div>
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
-        <table className="w-full text-sm min-w-[500px]">
+      {/* Mobile card layout */}
+      <div className="space-y-2 sm:hidden">
+        {paginated.map(u => (
+          <div key={u.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{u.name || '—'}</span>
+              <div className="flex items-center gap-1.5">
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  u.provider === 'google' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                  u.provider === 'github' ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300' :
+                  u.provider === 'local' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                  'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                }`}>{u.provider}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  u.role === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                }`}>{u.role || 'user'}</span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-2">{u.email}</p>
+            <button
+              onClick={() => toggleRole(u.id, u.role || 'user')}
+              className={`text-xs px-3 py-2 min-h-[44px] w-full rounded-lg transition-colors ${
+                u.role === 'admin'
+                  ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                  : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100'
+              }`}
+            >
+              {u.role === 'admin' ? '관리자 해제' : '관리자 지정'}
+            </button>
+          </div>
+        ))}
+      </div>
+      {/* Desktop table layout */}
+      <div className="hidden sm:block bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
+        <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-900 text-left">
               <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">이름</th>
-              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:table-cell">이메일</th>
+              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">이메일</th>
               <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">로그인</th>
               <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">역할</th>
               <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">관리</th>
@@ -390,7 +442,7 @@ function UserManagement() {
             {paginated.map(u => (
               <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                 <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-medium">{u.name || '—'}</td>
-                <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 hidden sm:table-cell truncate max-w-[200px]">{u.email}</td>
+                <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 truncate max-w-[200px]">{u.email}</td>
                 <td className="px-4 py-2.5">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
                     u.provider === 'google' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
@@ -425,8 +477,8 @@ function UserManagement() {
         <div className="flex items-center justify-between mt-3">
           <span className="text-xs text-slate-400">{page} / {totalPages} 페이지</span>
           <div className="flex gap-1">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30">이전</button>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30">다음</button>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="px-3 py-2 min-h-[44px] min-w-[44px] text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30">이전</button>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="px-3 py-2 min-h-[44px] min-w-[44px] text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30">다음</button>
           </div>
         </div>
       )}
@@ -441,8 +493,8 @@ function RecentResumes() {
   const perPage = 10;
 
   useEffect(() => {
-    const API = import.meta.env.VITE_API_URL || '';
-    fetch(`${API}/api/resumes/public?limit=50`)
+
+    fetch(`${API_URL}/api/resumes/public?limit=50`)
       .then(r => r.ok ? r.json() : { data: [] })
       .then(d => setResumes(d.data || []))
       .catch(() => {})
@@ -452,8 +504,8 @@ function RecentResumes() {
   const handleHide = async (id: string) => {
     if (!confirm('이 이력서를 비공개로 변경하시겠습니까?')) return;
     const token = localStorage.getItem('token');
-    const API = import.meta.env.VITE_API_URL || '';
-    const res = await fetch(`${API}/api/resumes/${id}/visibility`, {
+
+    const res = await fetch(`${API_URL}/api/resumes/${id}/visibility`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ visibility: 'private' }),
@@ -467,8 +519,8 @@ function RecentResumes() {
   const handleDelete = async (id: string) => {
     if (!confirm('이 이력서를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
     const token = localStorage.getItem('token');
-    const API = import.meta.env.VITE_API_URL || '';
-    const res = await fetch(`${API}/api/resumes/${id}`, {
+
+    const res = await fetch(`${API_URL}/api/resumes/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -488,18 +540,18 @@ function RecentResumes() {
     <div>
       <div className="space-y-2">
         {paginated.map(r => (
-          <div key={r.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div key={r.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 gap-2">
             <div className="min-w-0 flex-1">
               <Link to={`/resumes/${r.id}/preview`} className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 truncate block">
                 {r.title || '제목 없음'}
               </Link>
               <span className="text-xs text-slate-400">{r.personalInfo?.name || '이름 없음'}</span>
             </div>
-            <div className="flex gap-1.5 shrink-0 ml-2">
-              <button onClick={() => handleHide(r.id)} className="text-xs px-2 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-lg hover:bg-amber-100 transition-colors">
+            <div className="flex gap-1.5 shrink-0">
+              <button onClick={() => handleHide(r.id)} className="text-xs px-3 py-2 min-h-[44px] flex-1 sm:flex-initial bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-lg hover:bg-amber-100 transition-colors">
                 숨기기
               </button>
-              <button onClick={() => handleDelete(r.id)} className="text-xs px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 transition-colors">
+              <button onClick={() => handleDelete(r.id)} className="text-xs px-3 py-2 min-h-[44px] flex-1 sm:flex-initial bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 transition-colors">
                 삭제
               </button>
             </div>
@@ -510,8 +562,8 @@ function RecentResumes() {
         <div className="flex items-center justify-between mt-3">
           <span className="text-xs text-slate-400">{page} / {totalPages} 페이지</span>
           <div className="flex gap-1">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30">이전</button>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30">다음</button>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="px-3 py-2 min-h-[44px] min-w-[44px] text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30">이전</button>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="px-3 py-2 min-h-[44px] min-w-[44px] text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30">다음</button>
           </div>
         </div>
       )}
@@ -601,9 +653,9 @@ function PlanConfig() {
                 {feat.type === 'boolean' ? (
                   <button
                     onClick={() => updateFeature(planIdx, feat.key, !(plan.features as any)[feat.key])}
-                    className={`w-8 h-4 rounded-full transition-colors ${(plan.features as any)[feat.key] ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+                    className={`w-10 h-6 min-w-[44px] rounded-full transition-colors ${(plan.features as any)[feat.key] ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'}`}
                   >
-                    <span className={`block w-3 h-3 bg-white rounded-full transition-transform ${(plan.features as any)[feat.key] ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                    <span className={`block w-4 h-4 bg-white rounded-full transition-transform ${(plan.features as any)[feat.key] ? 'translate-x-5' : 'translate-x-1'}`} />
                   </button>
                 ) : (
                   <input
@@ -620,7 +672,7 @@ function PlanConfig() {
           )}
         </div>
       ))}
-      <button onClick={handleSave} className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
+      <button onClick={handleSave} className="px-5 py-3 min-h-[44px] bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
         {saved ? '\u2713 저장됨' : '설정 저장'}
       </button>
       <p className="text-xs text-slate-400">-1 = 무제한, 0 = 사용 불가</p>
