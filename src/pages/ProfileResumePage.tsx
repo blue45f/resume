@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
 import CommentSection from '@/components/CommentSection';
+import ShareMenu from '@/components/ShareMenu';
+import SimilarResumes from '@/components/SimilarResumes';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 import { followUser, unfollowUser } from '@/lib/api';
@@ -17,6 +19,9 @@ export default function ProfileResumePage() {
   const [loading, setLoading] = useState(true);
   const [viewCount, setViewCount] = useState<number | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [scoutModalOpen, setScoutModalOpen] = useState(false);
+  const [scoutForm, setScoutForm] = useState({ company: '', position: '', message: '' });
+  const [sendingScout, setSendingScout] = useState(false);
   const user = getUser();
 
   useEffect(() => {
@@ -63,13 +68,33 @@ export default function ProfileResumePage() {
     return () => { cancelled = true; };
   }, [username, slug]);
 
-  const handleShare = async () => {
-    const url = window.location.href;
+  const handleScoutSubmit = async () => {
+    if (!scoutForm.message.trim()) {
+      toast('메시지를 입력해주세요', 'error');
+      return;
+    }
+    setSendingScout(true);
     try {
-      await navigator.clipboard.writeText(url);
-      toast('링크가 복사되었습니다', 'success');
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/social/scout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          receiverId: resume?.userId,
+          resumeId: resume?.id,
+          company: scoutForm.company,
+          position: scoutForm.position,
+          message: scoutForm.message,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      toast('스카우트 제안이 전송되었습니다', 'success');
+      setScoutModalOpen(false);
+      setScoutForm({ company: '', position: '', message: '' });
     } catch {
-      toast('링크 복사에 실패했습니다', 'error');
+      toast('전송에 실패했습니다', 'error');
+    } finally {
+      setSendingScout(false);
     }
   };
 
@@ -141,57 +166,39 @@ export default function ProfileResumePage() {
             {/* Right: stats + actions */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {viewCount != null && viewCount > 0 && (
-                <span className="hidden sm:flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500" title="조회수">
+                <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 px-2.5 py-1 rounded-lg" title="조회수">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                   {viewCount.toLocaleString()}
                 </span>
               )}
-              <button
-                onClick={handleShare}
-                className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                title="URL 복사"
-              >
-                공유하기
-              </button>
-              <a
-                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-2.5 sm:px-3 py-2 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-              >
-                LinkedIn
-              </a>
+              <ShareMenu
+                url={window.location.href}
+                title={`${personalInfo.name || username} 이력서`}
+                description={`${personalInfo.name || username}님의 이력서 — 이력서공방`}
+              />
               <a
                 href={`${API_URL}/api/resumes/${resume.id}/export/pdf`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-3 py-1.5 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                다운로드
+                PDF
               </a>
               <button
                 onClick={() => window.print()}
                 className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                title="인쇄"
               >
-                인쇄
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
               </button>
               {user && resume.userId && user.id !== resume.userId && (
                 <button
-                  onClick={() => {
-                    const msg = prompt('스카우트 메시지를 입력하세요:');
-                    if (msg && msg.trim()) {
-                      const token = localStorage.getItem('token');
-                      fetch(`${API_URL}/api/social/scout`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                        body: JSON.stringify({ receiverId: resume.userId, resumeId: resume.id, company: '', position: '', message: msg }),
-                      }).then(() => toast('스카우트 메시지가 전송되었습니다', 'success'))
-                        .catch(() => toast('전송에 실패했습니다', 'error'));
-                    }
-                  }}
-                  className="px-2.5 sm:px-3 py-2 bg-emerald-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-emerald-700 transition-all duration-200"
+                  onClick={() => setScoutModalOpen(true)}
+                  className="px-2.5 sm:px-3 py-2 bg-emerald-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-emerald-700 transition-all duration-200 flex items-center gap-1.5"
                 >
-                  스카우트
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  <span className="hidden sm:inline">스카우트 제안</span>
+                  <span className="sm:hidden">스카우트</span>
                 </button>
               )}
               {user && resume?.userId && user.id !== resume.userId && (
@@ -224,11 +231,91 @@ export default function ProfileResumePage() {
 
         <div className="py-6 sm:py-8 px-4">
           <ResumePreview ref={null} resume={resume} />
+
+          {/* View count (mobile) + actions row */}
+          <div className="max-w-[210mm] mx-auto mt-4 sm:hidden no-print">
+            {viewCount != null && viewCount > 0 && (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 mb-3">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                조회 {viewCount.toLocaleString()}회
+              </div>
+            )}
+          </div>
+
           <div className="max-w-[210mm] mx-auto mt-6">
             <CommentSection resumeId={resume.id} isPublic={true} />
           </div>
+
+          {/* Similar Resumes */}
+          <div className="max-w-[210mm] mx-auto mt-6">
+            <SimilarResumes resume={resume} />
+          </div>
         </div>
       </main>
+
+      {/* Scout Proposal Modal */}
+      {scoutModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 no-print">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">이 이력서로 스카우트 제안</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{personalInfo.name || `@${username}`}님에게 스카우트 제안</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">회사명</label>
+                <input
+                  type="text"
+                  value={scoutForm.company}
+                  onChange={e => setScoutForm(prev => ({ ...prev, company: e.target.value }))}
+                  placeholder="예: 네이버, 카카오"
+                  className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">포지션</label>
+                <input
+                  type="text"
+                  value={scoutForm.position}
+                  onChange={e => setScoutForm(prev => ({ ...prev, position: e.target.value }))}
+                  placeholder="예: 프론트엔드 개발자"
+                  className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">메시지 <span className="text-red-500">*</span></label>
+                <textarea
+                  value={scoutForm.message}
+                  onChange={e => setScoutForm(prev => ({ ...prev, message: e.target.value }))}
+                  placeholder="이력서를 인상 깊게 봤습니다. 저희 팀에서 함께할 분을 찾고 있는데..."
+                  rows={4}
+                  className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={() => { setScoutModalOpen(false); setScoutForm({ company: '', position: '', message: '' }); }}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleScoutSubmit}
+                disabled={sendingScout || !scoutForm.message.trim()}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                {sendingScout ? '전송 중...' : '스카우트 제안 보내기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
