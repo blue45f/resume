@@ -335,17 +335,7 @@ export default function ScoutsPage() {
         {loading ? (
           <CardGridSkeleton count={3} />
         ) : scouts.length === 0 ? (
-          <div className="text-center py-16 animate-fade-in">
-            <svg className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            <p className="text-slate-500 dark:text-slate-400 mb-2">
-              {tab === 'sent' ? '보낸 스카우트가 없습니다' : '아직 스카우트 제안이 없습니다'}
-            </p>
-            <p className="text-xs text-slate-400">
-              {tab === 'sent' ? '인재 검색에서 스카우트를 보내보세요' : '이력서를 공개하면 기업 관계자가 제안을 보낼 수 있습니다'}
-            </p>
-          </div>
+          <EmptyState type="scout" />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* List */}

@@ -288,7 +288,8 @@ export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: 
   };
 
   const inputClass = 'w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors';
-  const labelClass = 'block text-sm font-medium text-slate-700 mb-1';
+  const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1';
+  const requiredMark = <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>;
   const deleteBtn = 'text-red-600 text-sm hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 rounded px-2 py-1 transition-colors';
   const addBtn = 'w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl text-sm text-slate-500 dark:text-slate-400 hover:border-blue-400 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200';
 
@@ -300,15 +301,18 @@ export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: 
     >
       <SaveStatusPill status={saveStatus} lastSaved={lastSaved} />
       <div>
-        <label htmlFor="resume-title" className={labelClass}>이력서 제목</label>
+        <label htmlFor="resume-title" className={labelClass}>이력서 제목{requiredMark}</label>
         <input
           id="resume-title"
           type="text"
-          className={inputClass}
+          className={`${inputClass} ${validationErrors.title ? 'border-red-400 focus:ring-red-500' : ''}`}
           placeholder="예: 2026 상반기 이력서"
           value={data.title}
-          onChange={e => { setDirty(true); setData(prev => ({ ...prev, title: e.target.value })); }}
+          onChange={e => { setDirty(true); setValidationErrors(prev => ({ ...prev, title: '' })); setData(prev => ({ ...prev, title: e.target.value })); }}
+          aria-required="true"
+          aria-invalid={!!validationErrors.title}
         />
+        {validationErrors.title && <p className="mt-1 text-xs text-red-500">{validationErrors.title}</p>}
       </div>
 
       {/* Tabs */}
