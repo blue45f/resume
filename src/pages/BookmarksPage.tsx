@@ -54,7 +54,14 @@ export default function BookmarksPage() {
         {loading ? (
           <CardGridSkeleton count={3} />
         ) : bookmarks.length === 0 ? (
-          <EmptyState type="resume" />
+          <div className="text-center py-16 animate-fade-in">
+            <svg className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+            <p className="text-slate-500 dark:text-slate-400 mb-2">저장한 북마크가 없습니다</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">탐색 페이지에서 관심 있는 이력서를 북마크하세요</p>
+            <Link to="/explore" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">이력서 탐색하기 →</Link>
+          </div>
         ) : (
           <div className="space-y-3">
             {bookmarks.map(b => (
