@@ -313,6 +313,37 @@ export default function ExplorePage() {
           )}
         </div>
 
+        {/* 탭: 이력서 | 사람 */}
+        <div className="flex items-center gap-0 mb-4 border-b border-slate-200 dark:border-slate-700">
+          <button
+            onClick={() => setActiveTab('resumes')}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'resumes'
+                ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+            }`}
+          >
+            <span className="flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              이력서
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab('people')}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'people'
+                ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+            }`}
+          >
+            <span className="flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              사람
+              {users.length > 0 && <span className="ml-1 px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 rounded-full">{users.length}</span>}
+            </span>
+          </button>
+        </div>
+
         {/* 정렬 + 보기 모드 */}
         <div className="flex items-center gap-2 mb-4 overflow-x-auto scrollbar-none">
           <span className="text-xs text-slate-500 dark:text-slate-400">정렬:</span>
