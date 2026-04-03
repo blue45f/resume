@@ -260,6 +260,13 @@ export const generateInterviewQuestions = (resumeId: string, jobRole?: string, p
 export const fetchTransformUsage = (resumeId: string) =>
   request<{ totalTransformations: number; totalTokensUsed: number }>(`${BASE}/resumes/${resumeId}/transform/usage`);
 
+// AI Inline Assist
+export const aiInlineAssist = (resumeId: string, text: string, type: string) =>
+  request<{ original: string; improved: string; type: string; tokensUsed: number }>(
+    `${BASE}/resumes/${resumeId}/transform/inline-assist`,
+    { method: 'POST', body: JSON.stringify({ text, type }) },
+  );
+
 // Translation
 export const translateResume = (resumeId: string, targetLanguage: string) =>
   request<{ text: string }>(`${BASE}/resumes/${resumeId}/transform`, {

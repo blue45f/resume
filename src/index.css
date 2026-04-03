@@ -63,7 +63,7 @@ body {
     break-after: avoid;
   }
   /* Remove shadows and borders for clean print */
-  .shadow-lg, .shadow-md, .shadow-sm {
+  .shadow-lg, .shadow-md, .shadow-sm, .shadow {
     box-shadow: none !important;
   }
   a {
@@ -75,6 +75,38 @@ body {
     max-width: none !important;
     margin: 0 !important;
     padding: 15mm !important;
+  }
+  /* Hide all decorative / non-content elements */
+  header, footer, nav,
+  .mobile-bottom-nav,
+  .scroll-progress,
+  .animate-pulse,
+  [role="banner"],
+  [role="navigation"],
+  [role="contentinfo"],
+  .backdrop-blur-lg {
+    display: none !important;
+  }
+  /* Remove decorative backgrounds and gradients */
+  .bg-gradient-to-r, .bg-gradient-to-br, .bg-gradient-to-bl {
+    background: transparent !important;
+  }
+  /* Reset border radii for clean print */
+  .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-full {
+    border-radius: 0 !important;
+  }
+  /* Ensure content takes full width */
+  .max-w-6xl, .max-w-4xl, .max-w-3xl, .max-w-2xl {
+    max-width: 100% !important;
+  }
+  /* Remove fixed positioning */
+  .fixed, .sticky {
+    position: static !important;
+  }
+  /* Disable all animations */
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }
 
@@ -196,6 +228,10 @@ body {
   border-radius: 4px;
 }
 
+.dark :focus-visible {
+  outline-color: #60a5fa;
+}
+
 /* Prevent focus ring overflow */
 .overflow-hidden :focus-visible,
 .overflow-x-auto :focus-visible {
@@ -207,15 +243,28 @@ input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
   border-color: #3b82f6;
 }
 
 .dark input:focus-visible,
 .dark textarea:focus-visible,
 .dark select:focus-visible {
-  box-shadow: 0 0 0 2px #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
   border-color: #60a5fa;
+}
+
+/* Interactive element focus - buttons, links */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.dark a:focus-visible,
+.dark button:focus-visible {
+  outline-color: #60a5fa;
 }
 
 /* Smooth scroll */
@@ -351,6 +400,51 @@ button:active:not(:disabled) {
 
 .dark .glass {
   background: rgba(15, 23, 42, 0.8);
+}
+
+/* Smooth page route transitions */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.page-transition-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+/* Mobile bottom navigation bar */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: none;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid #e2e8f0;
+  padding: 4px 0;
+  padding-bottom: max(4px, env(safe-area-inset-bottom));
+}
+
+.dark .mobile-bottom-nav {
+  background: rgba(15, 23, 42, 0.95);
+  border-top-color: #334155;
+}
+
+@media (max-width: 767px) {
+  .mobile-bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  /* Add bottom padding to main content so it doesn't hide behind the nav */
+  main {
+    padding-bottom: 72px !important;
+  }
 }
 
 /* Mobile touch improvements */

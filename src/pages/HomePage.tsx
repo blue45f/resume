@@ -21,6 +21,41 @@ import { API_URL } from '@/lib/config';
 import ShareMenu from '@/components/ShareMenu';
 
 
+function useCountUp(target: number, duration = 1200) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (target <= 0) return;
+    let start = 0;
+    const startTime = performance.now();
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(eased * target);
+      if (current !== start) {
+        start = current;
+        setValue(current);
+      }
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [target, duration]);
+  return value;
+}
+
+function AnimatedStat({ value, label }: { value: number; label: string }) {
+  const animated = useCountUp(value);
+  return (
+    <div className="flex flex-col items-center px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm min-w-[100px]">
+      <strong className="text-lg font-bold text-slate-800 dark:text-slate-200 tabular-nums">
+        {value > 0 ? animated.toLocaleString() : '—'}
+      </strong>
+      <span className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{label}</span>
+    </div>
+  );
+}
+
 function SiteStatsBar() {
   const [stats, setStats] = useState<{ users: number; resumes: number; views: number; templates: number } | null>(null);
 
@@ -34,11 +69,11 @@ function SiteStatsBar() {
   }, []);
 
   return (
-    <div className="flex flex-wrap justify-center gap-6 text-center text-xs text-slate-400 dark:text-slate-500 mt-6">
-      <span><strong className="text-slate-700 dark:text-slate-300 text-sm">{stats?.users || '—'}</strong> 회원</span>
-      <span><strong className="text-slate-700 dark:text-slate-300 text-sm">{stats?.resumes || '—'}</strong> 이력서</span>
-      <span><strong className="text-slate-700 dark:text-slate-300 text-sm">{stats?.views?.toLocaleString() || '—'}</strong> 조회</span>
-      <span><strong className="text-slate-700 dark:text-slate-300 text-sm">{stats?.templates || 26}</strong> 템플릿</span>
+    <div className="flex flex-wrap justify-center gap-3 mt-8">
+      <AnimatedStat value={stats?.users || 0} label="회원" />
+      <AnimatedStat value={stats?.resumes || 0} label="이력서" />
+      <AnimatedStat value={stats?.views || 0} label="조회" />
+      <AnimatedStat value={stats?.templates || 26} label="템플릿" />
     </div>
   );
 }
@@ -234,8 +269,15 @@ export default function HomePage() {
               </Link>
             </div>
 
+            {/* Section divider */}
+            <div className="flex items-center gap-4 max-w-xs mx-auto mt-14 mb-10">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent to-slate-200 dark:to-slate-700" />
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">주요 기능</span>
+              <div className="flex-1 h-px bg-gradient-to-l from-transparent to-slate-200 dark:to-slate-700" />
+            </div>
+
             {/* Feature highlights */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-3xl mx-auto mt-12 mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-3xl mx-auto mb-10">
               {[
                 {
                   icon: (<svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>),
@@ -266,8 +308,15 @@ export default function HomePage() {
               ))}
             </div>
 
+            {/* Section divider */}
+            <div className="flex items-center gap-4 max-w-xs mx-auto mt-12 mb-10">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent to-slate-200 dark:to-slate-700" />
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">후기</span>
+              <div className="flex-1 h-px bg-gradient-to-l from-transparent to-slate-200 dark:to-slate-700" />
+            </div>
+
             {/* Testimonials / Social proof */}
-            <div className="max-w-3xl mx-auto mt-10 mb-10">
+            <div className="max-w-3xl mx-auto mb-10">
               <h3 className="text-center text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-6">사용자 후기</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
