@@ -320,7 +320,7 @@ export default function AdminPage() {
                       { label: '공개 이력서', to: '/explore', icon: '🔍' },
                       { label: '사용 가이드', to: '/tutorial', icon: '📖' },
                     ].map(link => (
-                      <Link key={link.to} to={link.to} className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200 text-sm text-slate-700 dark:text-slate-300">
+                      <Link key={link.to} to={link.to} className="flex items-center gap-2 p-3 min-h-[44px] bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200 text-sm text-slate-700 dark:text-slate-300">
                         <span>{link.icon}</span>
                         {link.label}
                       </Link>
