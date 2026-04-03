@@ -462,22 +462,26 @@ export default function CareerInsights() {
           {/* Industry News Tab (placeholder) */}
           {activeTab === 'news' && (
             <div className="space-y-3">
-              {[
-                { title: '2026년 상반기 IT 채용 트렌드', date: '2026.03.28', tag: '채용 동향', summary: 'AI/ML 엔지니어 수요가 전년 대비 45% 증가했으며, 클라우드 네이티브 기술 수요도 꾸준히 상승 중입니다.' },
-                { title: '개발자 연봉 보고서 발표', date: '2026.03.25', tag: '급여 정보', summary: '시니어 개발자 평균 연봉이 8,500만원으로 집계되었으며, DevOps/SRE 직군이 가장 높은 상승률을 보였습니다.' },
-                { title: '원격근무 채용 30% 증가', date: '2026.03.20', tag: '근무 환경', summary: '코로나 이후 원격근무 채용이 지속적으로 증가하며, 특히 해외 기업의 한국 개발자 채용이 눈에 띕니다.' },
-                { title: 'AI 자동화와 개발자 역할 변화', date: '2026.03.15', tag: 'AI 트렌드', summary: 'AI 코딩 도구 도입이 가속화되면서 개발자의 역할이 코드 작성에서 아키텍처 설계와 검증으로 이동하고 있습니다.' },
-              ].map((article, i) => (
-                <div key={i} className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors cursor-pointer">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="px-1.5 py-0.5 text-[9px] font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded">{article.tag}</span>
-                    <span className="text-[10px] text-slate-400">{article.date}</span>
-                  </div>
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{article.title}</p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{article.summary}</p>
+              {jobs.length > 0 ? (
+                <>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">최근 등록된 채용 공고</p>
+                  {jobs.slice(0, 5).map((job, i) => (
+                    <a key={i} href="/jobs" className="block p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="px-1.5 py-0.5 text-[9px] font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded">{job.company}</span>
+                        {job.salary && <span className="text-[10px] text-slate-400">{job.salary}</span>}
+                      </div>
+                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{job.position}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{job.skills}</p>
+                    </a>
+                  ))}
+                </>
+              ) : (
+                <div className="text-center py-8 text-slate-400 dark:text-slate-500">
+                  <p className="text-sm">등록된 채용 공고가 없습니다</p>
+                  <a href="/jobs" className="text-xs text-blue-600 hover:underline mt-1 inline-block">채용 공고 보기 →</a>
                 </div>
-              ))}
-              <p className="text-[10px] text-slate-400 text-center italic">* 샘플 뉴스입니다. 실제 뉴스 API 연동 예정</p>
+              )}
             </div>
           )}
 

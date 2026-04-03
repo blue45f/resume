@@ -324,28 +324,8 @@ export default function HomePage() {
               <div className="flex-1 h-px bg-gradient-to-l from-transparent to-slate-200 dark:to-slate-700" />
             </div>
 
-            {/* Testimonials / Social proof */}
-            <div className="max-w-3xl mx-auto mb-10">
-              <h3 className="text-center text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-6">사용자 후기</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  { name: '김서연', role: '프론트엔드 개발자', text: 'AI 피드백 덕분에 이력서 퀄리티가 확 올라갔어요. JD 매칭 분석으로 맞춤 이력서를 작성하니 면접 기회가 2배로 늘었습니다.', avatar: 'S', color: 'bg-blue-500' },
-                  { name: '이준호', role: 'UX 디자이너', text: '직종별 템플릿이 정말 유용해요. 포트폴리오 스타일의 이력서를 5분 만에 만들 수 있어서 시간을 많이 아꼈습니다.', avatar: 'J', color: 'bg-purple-500' },
-                  { name: '박지민', role: '마케팅 매니저', text: 'ATS 검사 기능이 특히 인상적이에요. 어떤 키워드가 부족한지 바로 알 수 있어서 서류 통과율이 확실히 높아졌습니다.', avatar: 'J', color: 'bg-emerald-500' },
-                ].map(testimonial => (
-                  <div key={testimonial.name} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 animate-fade-in-up">
-                    <div className="flex items-center gap-2.5 mb-3">
-                      <div className={`w-8 h-8 ${testimonial.color} rounded-full flex items-center justify-center text-white text-xs font-bold`}>{testimonial.avatar}</div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{testimonial.name}</p>
-                        <p className="text-xs text-slate-400">{testimonial.role}</p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">&ldquo;{testimonial.text}&rdquo;</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Platform stats - real data from API */}
+            <SiteStatsBar />
 
             <div className="text-center space-x-4">
               <Link to="/tutorial" className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">사용 가이드 보기 &rarr;</Link>

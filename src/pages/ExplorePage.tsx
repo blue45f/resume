@@ -695,7 +695,7 @@ export default function ExplorePage() {
                 })}
               </div>
             )}
-          </>
+          </div>
         ) : (
           /* ===== 이력서 탭 ===== */
           <>
