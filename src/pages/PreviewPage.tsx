@@ -11,6 +11,7 @@ import AiAnalysisPanel from '@/components/AiAnalysisPanel';
 import CommentSection from '@/components/CommentSection';
 import CompletenessBar from '@/components/CompletenessBar';
 import ResumeScoreboard from '@/components/ResumeScoreboard';
+import SalaryEstimate from '@/components/SalaryEstimate';
 import AtsScorePanel from '@/components/AtsScorePanel';
 import SimilarityPanel from '@/components/SimilarityPanel';
 import ResumeChecklist from '@/components/ResumeChecklist';
@@ -252,6 +253,7 @@ export default function PreviewPage() {
           <div className="max-w-[210mm] mx-auto mb-4 no-print space-y-4">
             <CompletenessBar resume={resume} />
             <ResumeScoreboard resume={resume} />
+            <SalaryEstimate resume={resume} />
             <AtsScorePanel resume={resume} />
             <SimilarityPanel resume={resume} />
             <ResumeChecklist resume={resume} />

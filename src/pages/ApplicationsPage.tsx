@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
@@ -17,6 +18,7 @@ const STATUSES = [
 ];
 
 export default function ApplicationsPage() {
+  const [params] = useSearchParams();
   const [apps, setApps] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -30,6 +32,19 @@ export default function ApplicationsPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    const company = params.get('company');
+    const position = params.get('position');
+    if (company || position) {
+      setForm(f => ({
+        ...f,
+        company: company || f.company,
+        position: position || f.position,
+      }));
+      setShowForm(true);
+    }
+  }, []);
 
   useEffect(() => {
     document.title = '지원 관리 — 이력서공방';
