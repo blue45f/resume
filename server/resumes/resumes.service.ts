@@ -342,6 +342,24 @@ export class ResumesService {
 
   async remove(id: string, userId?: string, role?: string) {
     await this.verifyOwnership(id, userId, role);
+    // Cloudinary 첨부파일 정리 (cascade 전에 URL 수집)
+    try {
+      const { v2: cloudinary } = await import('cloudinary');
+      const attachments = await this.prisma.attachment.findMany({
+        where: { resumeId: id },
+        select: { filename: true },
+      });
+      for (const att of attachments) {
+        if (att.filename?.startsWith('http')) {
+          const parts = att.filename.split('/upload/');
+          if (parts[1]) {
+            const publicId = parts[1].replace(/^v\d+\//, '').replace(/\.[^.]+$/, '');
+            cloudinary.uploader.destroy(publicId, { resource_type: 'raw' }).catch(() => {});
+          }
+        }
+      }
+    } catch { /* Cloudinary 미설정 시 무시 */ }
+
     await this.prisma.resume.delete({ where: { id } });
     return { success: true };
   }

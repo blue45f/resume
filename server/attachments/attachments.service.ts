@@ -165,20 +165,37 @@ export class AttachmentsService {
     const attachment = await this.prisma.attachment.findUnique({ where: { id } });
     if (!attachment) throw new NotFoundException('파일을 찾을 수 없습니다');
 
-    // Cloudinary에서 삭제
-    if (this.useCloudinary && attachment.filename.startsWith('http')) {
-      try {
-        // URL에서 public_id 추출
-        const parts = attachment.filename.split('/upload/');
-        if (parts[1]) {
-          const publicId = parts[1].replace(/^v\d+\//, '').replace(/\.[^.]+$/, '');
-          await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
-        }
-      } catch { /* 삭제 실패해도 DB 레코드는 삭제 */ }
-    }
-
+    await this.deleteFromCloudinary(attachment.filename);
     await this.prisma.attachment.delete({ where: { id } });
     return { success: true };
+  }
+
+  /** 이력서 삭제 시 모든 첨부파일을 Cloudinary에서도 삭제 */
+  async removeAllByResume(resumeId: string) {
+    if (!this.useCloudinary) return;
+    const attachments = await this.prisma.attachment.findMany({
+      where: { resumeId },
+      select: { filename: true },
+    });
+    for (const att of attachments) {
+      await this.deleteFromCloudinary(att.filename);
+    }
+  }
+
+  private async deleteFromCloudinary(filename: string) {
+    if (!this.useCloudinary || !filename.startsWith('http')) return;
+    try {
+      const parts = filename.split('/upload/');
+      if (parts[1]) {
+        const publicId = parts[1].replace(/^v\d+\//, '').replace(/\.[^.]+$/, '');
+        const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+        if (result.result !== 'ok') {
+          // 확장자 포함해서 재시도
+          const publicIdWithExt = parts[1].replace(/^v\d+\//, '');
+          await cloudinary.uploader.destroy(publicIdWithExt, { resource_type: 'raw' });
+        }
+      }
+    } catch { /* 로깅만 하고 계속 진행 */ }
   }
 
   private format(a: any) {
