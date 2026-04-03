@@ -8,14 +8,14 @@ export declare class TemplatesController {
     private readonly resumesService;
     constructor(templatesService: TemplatesService, localTransformService: LocalTransformService, resumesService: ResumesService);
     findAll(): Promise<{
-        description: string;
         id: string;
-        name: string;
-        createdAt: Date;
         userId: string | null;
-        category: string;
-        visibility: string;
+        description: string;
+        createdAt: Date;
         updatedAt: Date;
+        name: string;
+        visibility: string;
+        category: string;
         prompt: string;
         layout: string;
         usageCount: number;
@@ -23,14 +23,14 @@ export declare class TemplatesController {
         isDefault: boolean;
     }[]>;
     findPublicTemplates(category?: string): Promise<{
-        description: string;
         id: string;
-        name: string;
-        createdAt: Date;
         userId: string | null;
-        category: string;
-        visibility: string;
+        description: string;
+        createdAt: Date;
         updatedAt: Date;
+        name: string;
+        visibility: string;
+        category: string;
         prompt: string;
         layout: string;
         usageCount: number;
@@ -38,14 +38,14 @@ export declare class TemplatesController {
         isDefault: boolean;
     }[]>;
     findOne(id: string): Promise<{
-        description: string;
         id: string;
-        name: string;
-        createdAt: Date;
         userId: string | null;
-        category: string;
-        visibility: string;
+        description: string;
+        createdAt: Date;
         updatedAt: Date;
+        name: string;
+        visibility: string;
+        category: string;
         prompt: string;
         layout: string;
         usageCount: number;
@@ -53,14 +53,14 @@ export declare class TemplatesController {
         isDefault: boolean;
     }>;
     create(dto: CreateTemplateDto, req: any): Promise<{
-        description: string;
         id: string;
-        name: string;
-        createdAt: Date;
         userId: string | null;
-        category: string;
-        visibility: string;
+        description: string;
+        createdAt: Date;
         updatedAt: Date;
+        name: string;
+        visibility: string;
+        category: string;
         prompt: string;
         layout: string;
         usageCount: number;
@@ -68,14 +68,14 @@ export declare class TemplatesController {
         isDefault: boolean;
     }>;
     update(id: string, dto: UpdateTemplateDto, req: any): Promise<{
-        description: string;
         id: string;
-        name: string;
-        createdAt: Date;
         userId: string | null;
-        category: string;
-        visibility: string;
+        description: string;
+        createdAt: Date;
         updatedAt: Date;
+        name: string;
+        visibility: string;
+        category: string;
         prompt: string;
         layout: string;
         usageCount: number;

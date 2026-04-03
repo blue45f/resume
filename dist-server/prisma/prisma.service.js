@@ -15,11 +15,17 @@ const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
 let PrismaService = PrismaService_1 = class PrismaService extends client_1.PrismaClient {
     logger = new common_1.Logger(PrismaService_1.name);
+    isConnected = false;
     constructor() {
         super({
             log: process.env.NODE_ENV !== 'production'
                 ? [{ emit: 'event', level: 'query' }]
-                : [],
+                : [{ emit: 'event', level: 'warn' }, { emit: 'event', level: 'error' }],
+            datasources: {
+                db: {
+                    url: process.env.DATABASE_URL,
+                },
+            },
         });
         if (process.env.NODE_ENV !== 'production') {
             this.$on('query', (e) => {
@@ -28,12 +34,37 @@ let PrismaService = PrismaService_1 = class PrismaService extends client_1.Prism
                 }
             });
         }
+        this.$on('warn', (e) => {
+            this.logger.warn(`Prisma warning: ${e.message}`);
+        });
+        this.$on('error', (e) => {
+            this.logger.error(`Prisma error: ${e.message}`);
+        });
     }
     async onModuleInit() {
-        await this.$connect();
+        try {
+            await this.$connect();
+            this.isConnected = true;
+            this.logger.log('Database connection established');
+        }
+        catch (error) {
+            this.logger.error('Failed to connect to database', error);
+            throw error;
+        }
+    }
+    async beforeApplicationShutdown(signal) {
+        this.logger.log(`Application shutting down (signal: ${signal}), closing database connections...`);
+        if (this.isConnected) {
+            await this.$disconnect();
+            this.isConnected = false;
+            this.logger.log('Database connections closed');
+        }
     }
     async onModuleDestroy() {
-        await this.$disconnect();
+        if (this.isConnected) {
+            await this.$disconnect();
+            this.isConnected = false;
+        }
     }
 };
 exports.PrismaService = PrismaService;

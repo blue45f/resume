@@ -14,6 +14,7 @@ const core_2 = require("@nestjs/core");
 const compression_1 = __importDefault(require("compression"));
 const helmet_1 = __importDefault(require("helmet"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const express_1 = require("express");
 const app_module_1 = require("./app.module");
 const http_exception_filter_1 = require("./common/filters/http-exception.filter");
 async function bootstrap() {
@@ -22,6 +23,8 @@ async function bootstrap() {
     });
     const isProd = process.env.NODE_ENV === 'production';
     app.enableShutdownHooks();
+    app.use((0, express_1.json)({ limit: '10mb' }));
+    app.use((0, express_1.urlencoded)({ extended: true, limit: '50mb' }));
     app.use((0, compression_1.default)());
     app.use((0, helmet_1.default)({
         contentSecurityPolicy: isProd
@@ -33,11 +36,17 @@ async function bootstrap() {
                     fontSrc: ["'self'", 'https://fonts.gstatic.com'],
                     imgSrc: ["'self'", 'data:', 'https:'],
                     connectSrc: ["'self'"],
+                    frameAncestors: ["'none'"],
                 },
             }
             : false,
         xContentTypeOptions: true,
         referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+        frameguard: { action: 'deny' },
+        hsts: isProd ? { maxAge: 63072000, includeSubDomains: true, preload: true } : false,
+        hidePoweredBy: true,
+        crossOriginOpenerPolicy: { policy: 'same-origin' },
+        crossOriginResourcePolicy: { policy: 'same-origin' },
     }));
     app.use((0, cookie_parser_1.default)());
     const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
@@ -47,7 +56,7 @@ async function bootstrap() {
     app.enableCors({
         origin: allowedOrigins,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
         credentials: true,
         maxAge: 3600,
     });

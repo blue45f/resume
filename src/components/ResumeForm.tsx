@@ -7,6 +7,7 @@ import { sectionTips } from '@/lib/writingTips';
 
 const RichEditor = lazy(() => import('@/components/RichEditor'));
 import VoiceInput from '@/components/VoiceInput';
+import AiWritingAssist from '@/components/AiWritingAssist';
 
 type SaveStatus = 'saved' | 'saving' | 'dirty' | 'error' | 'idle';
 
@@ -128,13 +129,14 @@ function ReorderButtons({ index, total, onMove }: { index: number; total: number
 }
 
 interface Props {
+  resumeId?: string;
   initialData: ResumeData;
   onSave: (data: ResumeData) => void;
   onAutoSave?: (data: ResumeData) => Promise<void>;
   saving?: boolean;
 }
 
-export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: Props) {
+export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, saving }: Props) {
   const [data, setData] = useState(initialData);
   const [activeTab, setActiveTab] = useState('personal');
   const [dirty, setDirty] = useState(false);
@@ -447,6 +449,11 @@ export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: 
               <div className="flex items-center gap-2">
                 <label className={labelClass}>자기소개</label>
                 <VoiceInput onResult={(text) => updatePersonalInfo('summary', (data.personalInfo.summary || '') + ' ' + text)} />
+                <AiWritingAssist
+                  resumeId={resumeId}
+                  value={data.personalInfo.summary || ''}
+                  onAccept={(text) => updatePersonalInfo('summary', text)}
+                />
               </div>
               <Suspense fallback={<textarea className={inputClass + ' h-28 resize-none'} value={data.personalInfo.summary} readOnly />}>
                 <RichEditor
@@ -506,7 +513,14 @@ export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: 
                   </div>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className={labelClass}>업무 내용</label>
+                  <div className="flex items-center gap-2">
+                    <label className={labelClass}>업무 내용</label>
+                    <AiWritingAssist
+                      resumeId={resumeId}
+                      value={exp.description || ''}
+                      onAccept={(text) => experiences.update(exp.id, 'description', text)}
+                    />
+                  </div>
                   <Suspense fallback={<textarea className={inputClass + ' h-24 resize-none'} readOnly />}>
                     <RichEditor
                       value={exp.description}
@@ -517,7 +531,14 @@ export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: 
                   <p className="mt-1 text-xs text-slate-400 text-right">{(exp.description || '').replace(/<[^>]*>/g, '').length}자</p>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className={labelClass}>주요 성과</label>
+                  <div className="flex items-center gap-2">
+                    <label className={labelClass}>주요 성과</label>
+                    <AiWritingAssist
+                      resumeId={resumeId}
+                      value={exp.achievements || ''}
+                      onAccept={(text) => experiences.update(exp.id, 'achievements', text)}
+                    />
+                  </div>
                   <Suspense fallback={<textarea className={inputClass + ' h-20 resize-none'} readOnly />}>
                     <RichEditor
                       value={exp.achievements || ''}
@@ -666,7 +687,14 @@ export default function ResumeForm({ initialData, onSave, onAutoSave, saving }: 
                   <input id={`proj-link-${proj.id}`} type="url" className={inputClass} value={proj.link} placeholder="https://..." onChange={e => projects.update(proj.id, 'link', e.target.value)} />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className={labelClass}>설명</label>
+                  <div className="flex items-center gap-2">
+                    <label className={labelClass}>설명</label>
+                    <AiWritingAssist
+                      resumeId={resumeId}
+                      value={proj.description || ''}
+                      onAccept={(text) => projects.update(proj.id, 'description', text)}
+                    />
+                  </div>
                   <Suspense fallback={<textarea className={inputClass + ' h-24 resize-none'} readOnly />}>
                     <RichEditor
                       value={proj.description}

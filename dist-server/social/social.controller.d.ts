@@ -34,9 +34,9 @@ export declare class SocialController {
         message: string;
     }, req: any): Promise<{
         id: string;
-        createdAt: Date;
         company: string;
         position: string;
+        createdAt: Date;
         resumeId: string | null;
         message: string;
         read: boolean;
@@ -53,9 +53,9 @@ export declare class SocialController {
         };
     } & {
         id: string;
-        createdAt: Date;
         company: string;
         position: string;
+        createdAt: Date;
         resumeId: string | null;
         message: string;
         read: boolean;

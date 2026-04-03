@@ -73,56 +73,68 @@ let ResumesService = class ResumesService {
         this.prisma = prisma;
     }
     async findAll(userId, page = 1, limit = 20) {
+        const safePage = Math.max(1, page);
+        const safeLimit = Math.min(Math.max(1, limit), 100);
         const where = userId ? { userId } : {};
         const [resumes, total] = await Promise.all([
             this.prisma.resume.findMany({
                 where,
-                include: {
+                select: {
+                    id: true, title: true, slug: true, userId: true,
+                    viewCount: true, visibility: true, createdAt: true, updatedAt: true,
                     personalInfo: {
-                        select: { name: true, email: true, phone: true, summary: true, photo: true },
+                        select: { name: true, email: true, phone: true, address: true, website: true, github: true, summary: true, photo: true, birthYear: true, links: true, military: true },
                     },
                     tags: { include: { tag: true } },
+                    skills: { select: { id: true, category: true, items: true } },
                 },
                 orderBy: { updatedAt: 'desc' },
-                skip: (page - 1) * limit,
-                take: limit,
+                skip: (safePage - 1) * safeLimit,
+                take: safeLimit,
             }),
             this.prisma.resume.count({ where }),
         ]);
         return {
             data: resumes.map((r) => this.formatSummary(r)),
             total,
-            page,
-            totalPages: Math.ceil(total / limit),
-            limit,
+            page: safePage,
+            totalPages: Math.ceil(total / safeLimit),
+            limit: safeLimit,
         };
     }
     async findPublic(page = 1, limit = 20) {
+        const safePage = Math.max(1, page);
+        const safeLimit = Math.min(Math.max(1, limit), 100);
         const where = { visibility: 'public' };
         const [resumes, total] = await Promise.all([
             this.prisma.resume.findMany({
                 where,
-                include: {
+                select: {
+                    id: true, title: true, slug: true, userId: true,
+                    viewCount: true, visibility: true, createdAt: true, updatedAt: true,
                     personalInfo: {
-                        select: { name: true, email: true, phone: true, summary: true, photo: true },
+                        select: { name: true, email: true, phone: true, address: true, website: true, github: true, summary: true, photo: true, birthYear: true, links: true, military: true },
                     },
                     tags: { include: { tag: true } },
+                    skills: { select: { id: true, category: true, items: true } },
                 },
                 orderBy: { updatedAt: 'desc' },
-                skip: (page - 1) * limit,
-                take: limit,
+                skip: (safePage - 1) * safeLimit,
+                take: safeLimit,
             }),
             this.prisma.resume.count({ where }),
         ]);
         return {
             data: resumes.map((r) => this.formatSummary(r)),
             total,
-            page,
-            totalPages: Math.ceil(total / limit),
-            limit,
+            page: safePage,
+            totalPages: Math.ceil(total / safeLimit),
+            limit: safeLimit,
         };
     }
     async searchPublic(opts) {
+        opts.page = Math.max(1, opts.page);
+        opts.limit = Math.min(Math.max(1, opts.limit), 100);
         const where = { visibility: 'public' };
         if (opts.query) {
             where.OR = [

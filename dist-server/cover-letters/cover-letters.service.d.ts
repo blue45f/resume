@@ -4,27 +4,27 @@ export declare class CoverLettersService {
     constructor(prisma: PrismaService);
     findAll(userId: string): Promise<{
         id: string;
-        createdAt: Date;
         company: string;
-        content: string;
         position: string;
+        createdAt: Date;
         updatedAt: Date;
         resumeId: string | null;
         applicationId: string | null;
         tone: string;
+        content: string;
     }[]>;
     findOne(id: string, userId: string): Promise<{
         id: string;
-        createdAt: Date;
         userId: string;
         company: string;
-        content: string;
         position: string;
+        createdAt: Date;
         updatedAt: Date;
         resumeId: string | null;
-        jobDescription: string;
         applicationId: string | null;
         tone: string;
+        jobDescription: string;
+        content: string;
     }>;
     create(userId: string, data: {
         resumeId?: string;
@@ -36,16 +36,16 @@ export declare class CoverLettersService {
         content: string;
     }): Promise<{
         id: string;
-        createdAt: Date;
         userId: string;
         company: string;
-        content: string;
         position: string;
+        createdAt: Date;
         updatedAt: Date;
         resumeId: string | null;
-        jobDescription: string;
         applicationId: string | null;
         tone: string;
+        jobDescription: string;
+        content: string;
     }>;
     update(id: string, userId: string, data: {
         content?: string;
@@ -53,31 +53,31 @@ export declare class CoverLettersService {
         position?: string;
     }): Promise<{
         id: string;
-        createdAt: Date;
         userId: string;
         company: string;
-        content: string;
         position: string;
+        createdAt: Date;
         updatedAt: Date;
         resumeId: string | null;
-        jobDescription: string;
         applicationId: string | null;
         tone: string;
+        jobDescription: string;
+        content: string;
     }>;
     remove(id: string, userId: string): Promise<{
         success: boolean;
     }>;
     getByResume(resumeId: string, userId: string): Promise<{
         id: string;
-        createdAt: Date;
         userId: string;
         company: string;
-        content: string;
         position: string;
+        createdAt: Date;
         updatedAt: Date;
         resumeId: string | null;
-        jobDescription: string;
         applicationId: string | null;
         tone: string;
+        jobDescription: string;
+        content: string;
     }[]>;
 }

@@ -13,8 +13,8 @@ export declare class TagsService {
         color?: string;
     }, userId?: string): Promise<{
         id: string;
-        name: string;
         userId: string | null;
+        name: string;
         color: string;
     }>;
     remove(id: string, userId?: string, role?: string): Promise<{

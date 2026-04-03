@@ -5,18 +5,18 @@ export declare class CommentsController {
     constructor(service: CommentsService);
     findAll(resumeId: string): Promise<{
         id: string;
-        createdAt: Date;
         userId: string | null;
-        content: string;
+        createdAt: Date;
         resumeId: string;
+        content: string;
         authorName: string;
     }[]>;
     create(resumeId: string, dto: CreateCommentDto, req: any): Promise<{
         id: string;
-        createdAt: Date;
         userId: string | null;
-        content: string;
+        createdAt: Date;
         resumeId: string;
+        content: string;
         authorName: string;
     }>;
     remove(commentId: string, req: any): Promise<{

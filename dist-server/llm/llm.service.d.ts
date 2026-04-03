@@ -44,7 +44,7 @@ export declare class LlmService {
         createdAt: string;
         result: any;
     }[]>;
-    autoGenerate(rawText: string, instruction?: string, provider?: string): Promise<{
+    autoGenerate(rawText: string, instruction?: string, _provider?: string): Promise<{
         resume: any;
         tokensUsed: number;
         provider: string;
@@ -54,7 +54,9 @@ export declare class LlmService {
         totalTransformations: number;
         totalTokensUsed: number;
     }>;
+    private readonly FREE_PROVIDER_PRIORITY;
     private getProvider;
+    generateWithFallback(systemPrompt: string, userMessage: string, preferredProvider?: string): Promise<import('./llm-provider.interface').LlmResponse>;
     private buildSystemPrompt;
     private buildUserMessage;
     analyzeFeedback(resumeId: string, provider?: string): Promise<{
@@ -71,6 +73,14 @@ export declare class LlmService {
     }>;
     generateInterviewQuestions(resumeId: string, jobRole?: string, provider?: string): Promise<{
         interview: any;
+        tokensUsed: number;
+        provider: string;
+        model: string;
+    }>;
+    inlineAssist(text: string, type: string, provider?: string): Promise<{
+        original: string;
+        improved: string;
+        type: string;
         tokensUsed: number;
         provider: string;
         model: string;

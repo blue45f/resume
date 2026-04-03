@@ -4,19 +4,19 @@ export declare class ApplicationsService {
     constructor(prisma: PrismaService);
     findAll(userId: string): Promise<{
         id: string;
-        createdAt: Date;
         userId: string | null;
         company: string;
         position: string;
-        visibility: string;
+        location: string | null;
+        salary: string | null;
+        status: string;
+        createdAt: Date;
         updatedAt: Date;
         resumeId: string | null;
         url: string | null;
-        status: string;
         appliedDate: string | null;
         notes: string | null;
-        salary: string | null;
-        location: string | null;
+        visibility: string;
     }[]>;
     getStats(userId: string): Promise<{
         total: number;
@@ -34,19 +34,19 @@ export declare class ApplicationsService {
         resumeId?: string;
     }, userId: string): Promise<{
         id: string;
-        createdAt: Date;
         userId: string | null;
         company: string;
         position: string;
-        visibility: string;
+        location: string | null;
+        salary: string | null;
+        status: string;
+        createdAt: Date;
         updatedAt: Date;
         resumeId: string | null;
         url: string | null;
-        status: string;
         appliedDate: string | null;
         notes: string | null;
-        salary: string | null;
-        location: string | null;
+        visibility: string;
     }>;
     update(id: string, data: Partial<{
         company: string;
@@ -59,53 +59,53 @@ export declare class ApplicationsService {
         resumeId?: string;
     }>, userId: string): Promise<{
         id: string;
-        createdAt: Date;
         userId: string | null;
         company: string;
         position: string;
-        visibility: string;
+        location: string | null;
+        salary: string | null;
+        status: string;
+        createdAt: Date;
         updatedAt: Date;
         resumeId: string | null;
         url: string | null;
-        status: string;
         appliedDate: string | null;
         notes: string | null;
-        salary: string | null;
-        location: string | null;
+        visibility: string;
     }>;
     remove(id: string, userId: string): Promise<{
         success: boolean;
     }>;
     findOne(id: string): Promise<{
         id: string;
-        createdAt: Date;
         userId: string | null;
         company: string;
         position: string;
-        visibility: string;
+        location: string | null;
+        salary: string | null;
+        status: string;
+        createdAt: Date;
         updatedAt: Date;
         resumeId: string | null;
         url: string | null;
-        status: string;
         appliedDate: string | null;
         notes: string | null;
-        salary: string | null;
-        location: string | null;
+        visibility: string;
     } | null>;
     getComments(applicationId: string): Promise<{
         id: string;
-        createdAt: Date;
         userId: string | null;
-        content: string;
+        createdAt: Date;
         applicationId: string;
+        content: string;
         authorName: string;
     }[]>;
     addComment(applicationId: string, content: string, userId?: string): Promise<{
         id: string;
-        createdAt: Date;
         userId: string | null;
-        content: string;
+        createdAt: Date;
         applicationId: string;
+        content: string;
         authorName: string;
     }>;
 }

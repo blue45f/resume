@@ -11,6 +11,7 @@ import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 import ScrollToTop from '@/components/ScrollToTop';
 import ScrollReset from '@/components/ScrollReset';
 import QuickActions from '@/components/QuickActions';
+import MobileBottomNav from '@/components/MobileBottomNav';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
 import { fetchMe } from '@/lib/auth';
 
@@ -123,6 +124,7 @@ export default function App() {
             <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />
           </Routes>
         </div>
+        <MobileBottomNav />
         <QuickActions />
         <ScrollToTop />
         <KeyboardShortcuts />

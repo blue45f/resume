@@ -4,15 +4,15 @@ export declare class VersionsController {
     constructor(versionsService: VersionsService);
     findAll(resumeId: string): Promise<{
         createdAt: string;
-        description: string;
         id: string;
+        description: string;
         versionNumber: number;
     }[]>;
     findOne(resumeId: string, versionId: string): Promise<{
         snapshot: any;
         createdAt: string;
-        description: string;
         id: string;
+        description: string;
         resumeId: string;
         versionNumber: number;
     }>;

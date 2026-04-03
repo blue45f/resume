@@ -156,6 +156,7 @@ export default function EditResumePage() {
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6">
           <ResumeForm
+            resumeId={id}
             initialData={{
               title: resume.title,
               personalInfo: resume.personalInfo,

@@ -52,4 +52,12 @@ export declare class LlmController {
         provider: string;
         model: string;
     }>;
+    inlineAssist(text: string, type: string, provider?: string): Promise<{
+        original: string;
+        improved: string;
+        type: string;
+        tokensUsed: number;
+        provider: string;
+        model: string;
+    }>;
 }

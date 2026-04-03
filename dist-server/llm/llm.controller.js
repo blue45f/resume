@@ -97,6 +97,9 @@ let LlmController = class LlmController {
     generateInterview(resumeId, jobRole, provider) {
         return this.llmService.generateInterviewQuestions(resumeId, jobRole, provider);
     }
+    inlineAssist(text, type, provider) {
+        return this.llmService.inlineAssist(text, type, provider);
+    }
 };
 exports.LlmController = LlmController;
 __decorate([
@@ -175,6 +178,17 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
 ], LlmController.prototype, "generateInterview", null);
+__decorate([
+    (0, common_1.Post)('inline-assist'),
+    (0, swagger_1.ApiOperation)({ summary: 'AI 인라인 문장 개선' }),
+    (0, throttler_1.Throttle)({ default: { limit: 10, ttl: 60000 } }),
+    __param(0, (0, common_1.Body)('text')),
+    __param(1, (0, common_1.Body)('type')),
+    __param(2, (0, common_1.Body)('provider')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", void 0)
+], LlmController.prototype, "inlineAssist", null);
 exports.LlmController = LlmController = __decorate([
     (0, swagger_1.ApiTags)('llm'),
     (0, common_1.Controller)('resumes/:resumeId/transform'),
