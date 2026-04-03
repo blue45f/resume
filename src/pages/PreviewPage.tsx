@@ -18,6 +18,8 @@ import TransformHistory from '@/components/TransformHistory';
 import ResumeTrend from '@/components/ResumeTrend';
 import SkillChart from '@/components/SkillChart';
 import CareerTimeline from '@/components/CareerTimeline';
+import CareerPathSuggestion from '@/components/CareerPathSuggestion';
+import SimilarResumes from '@/components/SimilarResumes';
 import KeywordAnalysis from '@/components/KeywordAnalysis';
 import AttachmentList from '@/components/AttachmentList';
 import ResumeAnalytics from '@/components/ResumeAnalytics';
@@ -257,6 +259,8 @@ export default function PreviewPage() {
             <ResumeTrend resumeId={id!} />
             <SkillChart resume={resume} />
             <CareerTimeline resume={resume} />
+            <CareerPathSuggestion resume={resume} />
+            <SimilarResumes resume={resume} />
             <KeywordAnalysis resume={resume} />
             <AttachmentList resumeId={id!} />
             <ResumeAnalytics resumeId={id!} />

@@ -81,6 +81,8 @@ export class AttachmentsService {
       throw new BadRequestException('허용되지 않는 파일 확장자입니다');
     }
 
+    // Multer는 파일명을 Latin1로 인코딩 → UTF-8로 복원
+    const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
     const filename = `${randomUUID()}${ext}`;
     let data: string | null = null;
     let cloudinaryUrl: string | null = null;
@@ -111,7 +113,7 @@ export class AttachmentsService {
       data: {
         resumeId,
         filename: cloudinaryUrl || filename,
-        originalName: file.originalname,
+        originalName,
         mimeType: file.mimetype,
         size: file.size,
         data,
