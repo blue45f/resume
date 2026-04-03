@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -35,6 +35,26 @@ export default function ExplorePage() {
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('recent-searches') || '[]'); } catch { return []; }
   });
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const debouncedSearch = useCallback((value: string) => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      const next = new URLSearchParams(params);
+      if (value) {
+        next.set('q', value);
+      } else {
+        next.delete('q');
+      }
+      next.delete('page');
+      setParams(next);
+    }, 300);
+  }, [params, setParams]);
+
+  useEffect(() => {
+    return () => clearTimeout(debounceRef.current);
+  }, []);
 
   const query = params.get('q') || '';
   const tag = params.get('tag') || '';
@@ -139,7 +159,7 @@ export default function ExplorePage() {
           <input
             type="search"
             value={searchInput}
-            onChange={e => setSearchInput(e.target.value)}
+            onChange={e => { setSearchInput(e.target.value); debouncedSearch(e.target.value); }}
             placeholder="이름, 제목, 기술 키워드로 검색..."
             className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 transition-colors duration-200"
           />
@@ -284,7 +304,27 @@ export default function ExplorePage() {
         {loading ? (
           <CardGridSkeleton count={6} />
         ) : !result || result.data.length === 0 ? (
-          <EmptyState type={query || tag ? 'search' : 'resume'} query={query || undefined} />
+          (query || tag) ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <svg className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">검색 결과 없음</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md">
+                {query && <>"<span className="font-medium">{query}</span>"에 대한 검색 결과가 없습니다.<br /></>}
+                {tag && <>태그 "<span className="font-medium">{tag}</span>"에 해당하는 이력서가 없습니다.<br /></>}
+                다른 키워드나 필터로 다시 검색해 보세요.
+              </p>
+              <button
+                onClick={() => { setSearchInput(''); const next = new URLSearchParams(); setParams(next); }}
+                className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                필터 초기화
+              </button>
+            </div>
+          ) : (
+            <EmptyState type="resume" />
+          )
         ) : (
           <>
             {/* 인기 이력서 */}
@@ -310,9 +350,15 @@ export default function ExplorePage() {
               </div>
             )}
 
-            <p className="text-sm text-slate-500 mb-4">
-              총 {result.total}개의 공개 이력서
-              {query && <> · "<span className="font-medium text-slate-700">{query}</span>" 검색 결과</>}
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              {(() => {
+                const limit = parseInt(params.get('limit') || '12');
+                const start = (result.page - 1) * limit + 1;
+                const end = Math.min(result.page * limit, result.total);
+                return <><span className="font-medium text-slate-700 dark:text-slate-300">{result.total}개</span> 중 {start}-{end}</>;
+              })()}
+              {query && <> · "<span className="font-medium text-slate-700 dark:text-slate-300">{query}</span>" 검색 결과</>}
+              {tag && <> · 태그: <span className="font-medium text-slate-700 dark:text-slate-300">{tag}</span></>}
             </p>
 
             <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>

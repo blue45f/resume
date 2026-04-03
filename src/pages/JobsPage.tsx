@@ -31,6 +31,7 @@ export default function JobsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string>('all');
   const user = getUser();
   const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company';
 
@@ -54,7 +55,8 @@ export default function JobsPage() {
     loadJobs(search);
   };
 
-  const selected = jobs.find(j => j.id === selectedId);
+  const filteredJobs = typeFilter === 'all' ? jobs : jobs.filter(j => j.type === typeFilter);
+  const selected = filteredJobs.find(j => j.id === selectedId);
 
   return (
     <>
@@ -63,7 +65,7 @@ export default function JobsPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">채용 공고</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{jobs.length}개의 공고</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{filteredJobs.length}개의 공고</p>
           </div>
           {isRecruiter && (
             <Link to="/jobs/new" className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
@@ -73,15 +75,72 @@ export default function JobsPage() {
         </div>
 
         {/* Search */}
-        <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+        <form onSubmit={handleSearch} className="flex gap-2 mb-4">
           <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="포지션, 회사, 기술로 검색..." className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500" />
           <button type="submit" className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">검색</button>
         </form>
 
+        {/* Job type filter */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+          {[{ key: 'all', label: '전체' }, { key: 'fulltime', label: '정규직' }, { key: 'contract', label: '계약직' }, { key: 'parttime', label: '파트타임' }, { key: 'intern', label: '인턴' }].map(opt => (
+            <button
+              key={opt.key}
+              onClick={() => { setTypeFilter(opt.key); setSelectedId(null); }}
+              className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
+                typeFilter === opt.key
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
         {loading ? (
-          <div className="text-center py-12 text-slate-400">불러오는 중...</div>
-        ) : jobs.length === 0 ? (
-          <EmptyState type="search" query={search || undefined} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-1 space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 animate-pulse">
+                  <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-3" />
+                  <div className="flex gap-2">
+                    <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-16" />
+                    <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-12" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="lg:col-span-2 hidden lg:block">
+              <div className="p-6 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 animate-pulse">
+                <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mb-3" />
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-4" />
+                <div className="space-y-2">
+                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-full" />
+                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-5/6" />
+                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-4/6" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : filteredJobs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <svg className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.193 23.193 0 0112 15c-3.183 0-6.22-.64-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">채용공고가 없습니다</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md">
+              {search ? `"${search}"에 대한 검색 결과가 없습니다.` : typeFilter !== 'all' ? `${JOB_TYPES[typeFilter]} 공고가 아직 없습니다.` : '등록된 채용 공고가 없습니다.'}
+            </p>
+            {(search || typeFilter !== 'all') && (
+              <button
+                onClick={() => { setSearch(''); setTypeFilter('all'); loadJobs(); }}
+                className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                필터 초기화
+              </button>
+            )}
+          </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* List */}
