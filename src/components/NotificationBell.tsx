@@ -21,10 +21,9 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
 
   const fetchCount = () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!getToken()) return;
     fetch(`${API_URL}/api/notifications/count`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${getToken()}` },
     })
       .then(r => r.ok ? r.json() : { count: 0 })
       .then(d => setCount(d.count))
@@ -32,13 +31,9 @@ export default function NotificationBell() {
   };
 
   const fetchAll = () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    fetch(`${API_URL}/api/notifications/unread`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(r => r.ok ? r.json() : [])
-      .then(setNotifications)
+    if (!getToken()) return;
+    apiFetchNotifications()
+      .then(all => setNotifications(all.filter((n: Notification) => !n.read)))
       .catch(() => {});
   };
 
@@ -54,12 +49,8 @@ export default function NotificationBell() {
   };
 
   const markAllRead = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    await fetch(`${API_URL}/api/notifications/read-all`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    if (!getToken()) return;
+    await markAllNotificationsRead();
     setCount(0);
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
