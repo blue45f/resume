@@ -286,4 +286,6 @@ export const fetchJobs = (query?: string) => {
 };
 export const fetchJob = (id: string) => request<any>(`${BASE}/jobs/${id}`);
 export const createJob = (data: any) => request<any>(`${BASE}/jobs`, { method: 'POST', body: JSON.stringify(data) });
+export const updateJob = (id: string, data: any) =>
+  request<any>(`${BASE}/jobs/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const deleteJob = (id: string) => request<{ success: boolean }>(`${BASE}/jobs/${id}`, { method: 'DELETE' });

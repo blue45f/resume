@@ -490,6 +490,32 @@ async function main() {
     }
   }
 
+  // Seed sample job posts
+  const jobCount = await prisma.jobPost.count();
+  if (jobCount === 0) {
+    // Find or create a recruiter user
+    let recruiter = await prisma.user.findFirst({ where: { userType: 'recruiter' } });
+    if (!recruiter) {
+      recruiter = await prisma.user.create({
+        data: { email: 'recruiter@example.com', name: '김채용', provider: 'local', providerId: 'recruiter@example.com', userType: 'recruiter', companyName: '이력서공방 HR' },
+      });
+    }
+
+    const sampleJobs = [
+      { company: '네이버', position: '프론트엔드 개발자', location: '성남시 분당구', salary: '5,000~8,000만원', type: 'fulltime', skills: 'React, TypeScript, Next.js, GraphQL', description: '네이버 메인 서비스의 프론트엔드를 개발합니다.\n\n주요 업무:\n- 대규모 트래픽 웹 서비스 개발\n- 디자인 시스템 구축 및 운영\n- 성능 최적화 및 접근성 개선', requirements: '필수:\n- React/TypeScript 3년 이상\n- 대규모 서비스 경험\n\n우대:\n- Next.js, GraphQL 경험\n- 오픈소스 기여', benefits: '- 유연근무제\n- 교육비 지원\n- 건강검진\n- 스톡옵션' },
+      { company: '카카오', position: 'React 개발자', location: '성남시 판교', salary: '4,500~7,000만원', type: 'fulltime', skills: 'React, JavaScript, CSS, Redux', description: '카카오톡 웹 클라이언트를 개발합니다.', requirements: 'React 2년 이상', benefits: '자유로운 근무 환경' },
+      { company: '토스', position: '웹 프론트엔드', location: '서울시 강남구', salary: '6,000~9,000만원', type: 'fulltime', skills: 'React, TypeScript, Recoil, Emotion', description: '금융 서비스의 웹 프론트엔드를 개발합니다.\n결제, 송금, 투자 등 핵심 서비스 담당.', requirements: 'TypeScript 필수, 금융 서비스 경험 우대', benefits: '스톡옵션, 교육비, 자기계발비' },
+      { company: '쿠팡', position: 'Software Engineer', location: '서울시 송파구', salary: '5,500~10,000만원', type: 'fulltime', skills: 'Java, Spring, React, AWS', description: '이커머스 플랫폼 개발', requirements: 'CS 기초, 3년 이상 경력', benefits: '로켓배송 할인' },
+      { company: '당근마켓', position: 'Frontend Developer (인턴)', location: '서울시 서초구', salary: '월 250만원', type: 'intern', skills: 'React, TypeScript', description: '당근마켓 웹 서비스 개발 인턴\n3개월, 정규직 전환 가능', requirements: 'React 기초, CS 전공', benefits: '멘토링, 장비 지원' },
+      { company: '배달의민족', position: 'UI Developer', location: '서울시 송파구', salary: '5,000~7,500만원', type: 'fulltime', skills: 'React, Vue.js, TypeScript, Storybook', description: '배민 디자인 시스템 구축', requirements: 'UI 컴포넌트 개발 경험', benefits: '배민 쿠폰, 유연근무' },
+    ];
+
+    for (const job of sampleJobs) {
+      await prisma.jobPost.create({ data: { ...job, userId: recruiter.id } });
+    }
+    console.log(`  ✓ 샘플 채용 공고 ${sampleJobs.length}개 생성`);
+  }
+
   console.log('시드 완료!');
 }
 
