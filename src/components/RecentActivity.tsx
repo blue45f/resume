@@ -6,11 +6,13 @@ import { API_URL } from '@/lib/config';
 
 interface Activity {
   id: string;
-  type: 'version' | 'transform' | 'share' | 'view' | 'edit' | 'comment';
+  type: 'version' | 'transform' | 'share' | 'view' | 'edit' | 'comment' | 'follow' | 'social_comment' | 'scout';
   resumeId: string;
   resumeTitle?: string;
   description: string;
   createdAt: string;
+  actorName?: string;
+  isSocial?: boolean;
 }
 
 const ACTIVITY_ICONS: Record<string, JSX.Element> = {

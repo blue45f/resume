@@ -10,6 +10,7 @@ import { getUser } from '@/lib/auth';
 import BookmarkButton from '@/components/BookmarkButton';
 import { API_URL } from '@/lib/config';
 import { timeAgo } from '@/lib/time';
+import { fetchResumes } from '@/lib/api';
 
 const THEME_COLORS = [
   'from-blue-500 to-indigo-500',
@@ -206,6 +207,42 @@ export default function ExplorePage() {
   };
 
   const users = useMemo(() => result ? aggregateUsers(result.data) : [], [result]);
+
+  // Recommended connections: compare current user's skills against public users
+  const [mySkills, setMySkills] = useState<string[]>([]);
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    fetchResumes()
+      .then(myResumes => {
+        const skills: string[] = [];
+        for (const r of myResumes) {
+          const names = extractSkillNames(r.skills);
+          for (const s of names) {
+            if (!skills.includes(s)) skills.push(s);
+          }
+        }
+        setMySkills(skills);
+      })
+      .catch(() => {});
+  }, []);
+
+  const currentUserId = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('user') || '{}').id; } catch { return null; }
+  }, []);
+
+  const recommendedUsers = useMemo(() => {
+    if (mySkills.length === 0 || users.length === 0) return [];
+    return users
+      .filter(u => u.userId !== currentUserId)
+      .map(u => {
+        const overlap = u.skills.filter(s => mySkills.some(ms => ms.toLowerCase() === s.toLowerCase()));
+        return { ...u, matchCount: overlap.length, matchedSkills: overlap };
+      })
+      .filter(u => u.matchCount > 0)
+      .sort((a, b) => b.matchCount - a.matchCount)
+      .slice(0, 6);
+  }, [users, mySkills, currentUserId]);
 
   const toggleFollow = (userId: string) => {
     setFollowedUsers(prev => {
@@ -479,6 +516,64 @@ export default function ExplorePage() {
         ) : activeTab === 'people' ? (
           /* ===== 사람 탭 ===== */
           <>
+            {/* 추천 연결 */}
+            {recommendedUsers.length > 0 && !query && (
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">추천 연결</h3>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">나와 비슷한 기술 스택을 가진 사용자</span>
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                  {recommendedUsers.map(user => {
+                    const initial = user.name.charAt(0).toUpperCase();
+                    const avatarColor = getAvatarColor(user.name);
+                    const isFollowed = followedUsers.has(user.userId);
+                    return (
+                      <div
+                        key={`rec-${user.userId}`}
+                        className="shrink-0 w-56 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-800/80 rounded-2xl border border-amber-200 dark:border-amber-800/50 p-4 hover:shadow-md hover:border-amber-300 dark:hover:border-amber-700 transition-all duration-200"
+                      >
+                        <div className="flex items-center gap-2.5 mb-2.5">
+                          <div className={`w-9 h-9 rounded-full ${avatarColor} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
+                            {initial}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{user.name}</h4>
+                            <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                              {user.matchCount}개 기술 일치
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {user.matchedSkills.slice(0, 3).map(s => (
+                            <span key={s} className="px-1.5 py-0.5 text-[10px] bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded font-medium">
+                              {s}
+                            </span>
+                          ))}
+                          {user.matchedSkills.length > 3 && (
+                            <span className="px-1.5 py-0.5 text-[10px] text-slate-400">+{user.matchedSkills.length - 3}</span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => toggleFollow(user.userId)}
+                          className={`w-full px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                            isFollowed
+                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                              : 'bg-amber-500 text-white hover:bg-amber-600'
+                          }`}
+                        >
+                          {isFollowed ? '팔로잉' : '+ 연결하기'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
               <span className="font-medium text-slate-700 dark:text-slate-300">{users.length}명</span>의 사용자
               {query && <> · "<span className="font-medium text-slate-700 dark:text-slate-300">{query}</span>" 검색 결과</>}

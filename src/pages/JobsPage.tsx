@@ -40,6 +40,31 @@ function getSkillColor(index: number) {
   return SKILL_COLORS[index % SKILL_COLORS.length];
 }
 
+/** Calculate match score between user skills and job required skills */
+function calculateMatchScore(userSkills: Set<string>, jobSkills: string): number {
+  if (!jobSkills || userSkills.size === 0) return 0;
+  const required = jobSkills.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  if (required.length === 0) return 0;
+  const matched = required.filter(s => userSkills.has(s));
+  return Math.round((matched.length / required.length) * 100);
+}
+
+function MatchBadge({ score }: { score: number }) {
+  if (score <= 0) return null;
+  let colorClass = '';
+  if (score >= 80) colorClass = 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800';
+  else if (score >= 60) colorClass = 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
+  else if (score >= 30) colorClass = 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800';
+  else colorClass = 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800';
+
+  return (
+    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold rounded-md border ${colorClass}`} title="매칭률">
+      <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+      {score}%
+    </span>
+  );
+}
+
 export default function JobsPage() {
   const [jobs, setJobs] = useState<JobPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,9 +72,30 @@ export default function JobsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [userResumes, setUserResumes] = useState<ResumeSummary[]>([]);
   const user = getUser();
   const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company';
   const isPersonal = user?.userType === 'personal';
+
+  // Load user's resume skills for match scoring
+  useEffect(() => {
+    if (user) {
+      fetchResumes().then(setUserResumes).catch(() => {});
+    }
+  }, []);
+
+  const userSkills = useMemo((): Set<string> => {
+    const skills = new Set<string>();
+    userResumes.forEach(r => {
+      r.skills?.forEach(sk => {
+        sk.items.split(',').forEach(item => {
+          const trimmed = item.trim().toLowerCase();
+          if (trimmed) skills.add(trimmed);
+        });
+      });
+    });
+    return skills;
+  }, [userResumes]);
 
   useEffect(() => {
     document.title = '채용 공고 — 이력서공방';
@@ -179,7 +225,7 @@ export default function JobsPage() {
                   <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{selected.position}</h2>
                 </div>
                 <div className="p-4">
-                  <JobDetailPanel job={selected} isPersonal={isPersonal} />
+                  <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} />
                 </div>
               </div>
             )}
@@ -198,7 +244,12 @@ export default function JobsPage() {
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{j.position}</h3>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{j.position}</h3>
+                        {user && userSkills.size > 0 && j.skills && (
+                          <MatchBadge score={calculateMatchScore(userSkills, j.skills)} />
+                        )}
+                      </div>
                       <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{timeAgo(j.createdAt)}</span>
                     </div>
                     <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{j.company}</p>
@@ -233,7 +284,7 @@ export default function JobsPage() {
               <div className="lg:col-span-2 hidden lg:block">
                 {selected ? (
                   <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 sticky top-20">
-                    <JobDetailPanel job={selected} isPersonal={isPersonal} />
+                    <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} />
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-64 text-slate-400 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">

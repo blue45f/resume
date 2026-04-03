@@ -99,6 +99,7 @@ export const resumeThemes: ResumeTheme[] = [
     accentColor: 'indigo',
     fontFamily: "'Inter', -apple-system, sans-serif",
     premium: true,
+    preview: { headerBg: 'linear-gradient(to bottom right, #4f46e5, #3b82f6, #06b6d4)', headerText: '#ffffff', accentBar: '#6366f1', bodyBg: '#ffffff', category: 'creative', bestFor: '스타트업, IT' },
   },
   {
     id: 'academic',
@@ -110,6 +111,7 @@ export const resumeThemes: ResumeTheme[] = [
     accentColor: 'slate',
     fontFamily: "'Times New Roman', 'Noto Serif KR', serif",
     premium: true,
+    preview: { headerBg: '#ffffff', headerText: '#0f172a', accentBar: '#1e293b', bodyBg: '#ffffff', category: 'academic', bestFor: '연구원, 교수' },
   },
   {
     id: 'tech',
@@ -121,6 +123,7 @@ export const resumeThemes: ResumeTheme[] = [
     accentColor: 'green',
     fontFamily: "'JetBrains Mono', 'D2Coding', monospace",
     premium: true,
+    preview: { headerBg: '#0d1117', headerText: '#58a6ff', accentBar: '#238636', bodyBg: '#ffffff', category: 'tech', bestFor: '개발자, 엔지니어' },
   },
   {
     id: 'elegant',
@@ -132,6 +135,7 @@ export const resumeThemes: ResumeTheme[] = [
     accentColor: 'amber',
     fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
     premium: true,
+    preview: { headerBg: 'linear-gradient(to bottom, #fffbeb, #ffffff)', headerText: '#92400e', accentBar: '#f59e0b', bodyBg: '#ffffff', category: 'creative', bestFor: '럭셔리, 패션' },
   },
   {
     id: 'newspaper',
@@ -143,6 +147,7 @@ export const resumeThemes: ResumeTheme[] = [
     accentColor: 'slate',
     fontFamily: "'Georgia', 'Noto Serif KR', serif",
     premium: true,
+    preview: { headerBg: '#ffffff', headerText: '#0f172a', accentBar: '#0f172a', bodyBg: '#ffffff', category: 'professional', bestFor: '언론, 작가' },
   },
   {
     id: 'pastel',
@@ -154,6 +159,7 @@ export const resumeThemes: ResumeTheme[] = [
     accentColor: 'purple',
     fontFamily: "'Pretendard', -apple-system, sans-serif",
     premium: true,
+    preview: { headerBg: 'linear-gradient(to right, #fce7f3, #e9d5ff, #dbeafe)', headerText: '#7e22ce', accentBar: '#a855f7', bodyBg: '#ffffff', category: 'creative', bestFor: '신입, 인턴' },
   },
   {
     id: 'dark',
