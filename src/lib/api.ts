@@ -278,3 +278,12 @@ export const fetchCoverLetters = () => request<any[]>(`${BASE}/cover-letters`);
 export const fetchCoverLetter = (id: string) => request<any>(`${BASE}/cover-letters/${id}`);
 export const deleteCoverLetter = (id: string) =>
   request<{ success: boolean }>(`${BASE}/cover-letters/${id}`, { method: 'DELETE' });
+
+// Jobs
+export const fetchJobs = (query?: string) => {
+  const qs = query ? `?q=${encodeURIComponent(query)}` : '';
+  return request<any[]>(`${BASE}/jobs${qs}`);
+};
+export const fetchJob = (id: string) => request<any>(`${BASE}/jobs/${id}`);
+export const createJob = (data: any) => request<any>(`${BASE}/jobs`, { method: 'POST', body: JSON.stringify(data) });
+export const deleteJob = (id: string) => request<{ success: boolean }>(`${BASE}/jobs/${id}`, { method: 'DELETE' });

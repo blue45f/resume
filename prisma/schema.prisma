@@ -37,6 +37,7 @@ model User {
   sentMessages     DirectMessage[] @relation("SentMessages")
   receivedMessages DirectMessage[] @relation("ReceivedMessages")
   coverLetters   CoverLetter[]
+  jobPosts       JobPost[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -498,4 +499,27 @@ model DirectMessage {
   @@index([senderId, receiverId])
   @@index([receiverId, read])
   @@map("direct_messages")
+}
+
+model JobPost {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  company     String
+  position    String
+  location    String   @default("")
+  salary      String   @default("")
+  description String   @default("")
+  requirements String  @default("")
+  benefits    String   @default("")
+  type        String   @default("fulltime") // fulltime, contract, parttime, intern
+  status      String   @default("active") // active, closed, draft
+  skills      String   @default("") // comma-separated
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("job_posts")
 }

@@ -36,6 +36,7 @@ const AdminPage = lazy(() => import('@/pages/AdminPage'));
 const BookmarksPage = lazy(() => import('@/pages/BookmarksPage'));
 const MessagesPage = lazy(() => import('@/pages/MessagesPage'));
 const ScoutsPage = lazy(() => import('@/pages/ScoutsPage'));
+const JobsPage = lazy(() => import('@/pages/JobsPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
 function PageLoader() {
@@ -82,6 +83,7 @@ export default function App() {
             <Route path="/bookmarks" element={<Suspense fallback={<PageLoader />}><BookmarksPage /></Suspense>} />
             <Route path="/messages" element={<Suspense fallback={<PageLoader />}><MessagesPage /></Suspense>} />
             <Route path="/scouts" element={<Suspense fallback={<PageLoader />}><ScoutsPage /></Suspense>} />
+            <Route path="/jobs" element={<Suspense fallback={<PageLoader />}><JobsPage /></Suspense>} />
             <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AdminPage /></Suspense>} />
             <Route path="/@:username/:slug" element={<Suspense fallback={<PageLoader />}><ProfileResumePage /></Suspense>} />
             <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />

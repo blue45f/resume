@@ -20,6 +20,7 @@ import { CommentsModule } from './comments/comments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { SocialModule } from './social/social.module';
 import { CoverLettersModule } from './cover-letters/cover-letters.module';
+import { JobsModule } from './jobs/jobs.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { CoverLettersModule } from './cover-letters/cover-letters.module';
     NotificationsModule,
     SocialModule,
     CoverLettersModule,
+    JobsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
