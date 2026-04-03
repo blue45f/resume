@@ -77,7 +77,6 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
       for await (const chunk of transformResumeStream(resumeId, {
         templateType, targetLanguage,
         jobDescription: jobDescription || undefined,
-        provider: selectedProvider || undefined,
       })) {
         if (chunk.type === 'delta' && chunk.text) {
           accumulated += chunk.text;
@@ -231,26 +230,15 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                 </select>
               </div>
 
-              {/* LLM Provider selection */}
-              {llmProviders.length > 0 && (
-                <div>
-                  <label htmlFor="llm-provider" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">LLM 프로바이더</label>
-                  <select id="llm-provider" value={selectedProvider} onChange={e => setSelectedProvider(e.target.value)}
-                    className="w-full sm:w-auto px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-700 dark:text-slate-100">
-                    {llmProviders
-                      .filter(p => !['anthropic'].includes(p.name) || p.isDefault)
-                      .map(p => (
-                      <option key={p.name} value={p.name}>
-                        {p.name === 'gemini' ? 'Gemini (무료)' : p.name === 'groq' ? 'Groq (무료)' : p.name === 'openai-compatible' ? 'OpenRouter' : p.name}
-                        {p.isDefault ? ' ★' : ''}
-                      </option>
-                    ))}
-                  </select>
+              {/* LLM Provider info */}
+              {llmProviders.length > 0 ? (
+                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full" />
+                  AI 엔진 {llmProviders.filter(p => p.available).length}개 활성 (자동 선택)
                 </div>
-              )}
-              {llmProviders.length === 0 && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
-                  설정된 LLM 프로바이더가 없습니다. .env 파일에서 API 키를 설정해주세요.
+              ) : (
+                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-300">
+                  AI 엔진이 설정되지 않았습니다. 관리자에게 문의해주세요.
                 </div>
               )}
 

@@ -96,12 +96,12 @@ export class LlmService {
   }
 
   async transform(resumeId: string, dto: TransformResumeDto) {
-    const provider = this.getProvider(dto.provider);
     const resume = await this.resumesService.findOne(resumeId);
     const systemPrompt = this.buildSystemPrompt(dto);
     const userMessage = this.buildUserMessage(resume);
 
-    const result = await provider.generate(systemPrompt, userMessage);
+    // 성능 순 자동 fallback (유저 선택 불필요)
+    const result = await this.generateWithFallback(systemPrompt, userMessage);
 
     const transformation = await this.prisma.llmTransformation.create({
       data: {
@@ -188,8 +188,7 @@ export class LlmService {
   /**
    * 비정형 텍스트로부터 이력서 자동 생성
    */
-  async autoGenerate(rawText: string, instruction?: string, provider?: string) {
-    const llm = this.getProvider(provider);
+  async autoGenerate(rawText: string, instruction?: string, _provider?: string) {
 
     const systemPrompt = `당신은 이력서 데이터 파싱 전문가입니다. 사용자가 제공하는 비정형 텍스트(경력 메모, LinkedIn 복사, 이전 이력서, 자유 형식 등)를 분석하여 구조화된 이력서 JSON 데이터를 생성해주세요.
 
@@ -239,7 +238,7 @@ export class LlmService {
       userMessage += `\n\n추가 지시사항: ${instruction}`;
     }
 
-    const result = await llm.generate(systemPrompt, userMessage);
+    const result = await this.generateWithFallback(systemPrompt, userMessage);
 
     // JSON 파싱 시도
     let parsed;
@@ -272,6 +271,10 @@ export class LlmService {
     };
   }
 
+  // 무료 프로바이더 성능 순 우선순위 (품질 > 속도)
+  // Gemini 2.0 Flash(높은 품질+무료) > Groq Llama 70B(빠른 속도) > OpenRouter > n8n
+  private readonly FREE_PROVIDER_PRIORITY = ['gemini', 'groq', 'openai-compatible', 'n8n'];
+
   private getProvider(providerName?: string): LlmProvider {
     const name = providerName || this.defaultProvider;
     const provider = this.providers.get(name);
@@ -284,6 +287,36 @@ export class LlmService {
     }
 
     return provider;
+  }
+
+  /**
+   * Rate limit/에러 시 다음 무료 프로바이더로 자동 fallback
+   */
+  async generateWithFallback(systemPrompt: string, userMessage: string, preferredProvider?: string): Promise<import('./llm-provider.interface').LlmResponse> {
+    const tried = new Set<string>();
+    const order = preferredProvider
+      ? [preferredProvider, ...this.FREE_PROVIDER_PRIORITY.filter(p => p !== preferredProvider)]
+      : this.FREE_PROVIDER_PRIORITY;
+
+    for (const name of order) {
+      if (tried.has(name)) continue;
+      const provider = this.providers.get(name);
+      if (!provider) continue;
+      tried.add(name);
+
+      try {
+        this.logger.log(`LLM fallback: trying ${name}`);
+        return await provider.generate(systemPrompt, userMessage);
+      } catch (err: any) {
+        const msg = err?.message || '';
+        const isRateLimit = msg.includes('429') || msg.includes('rate') || msg.includes('quota') || msg.includes('limit');
+        this.logger.warn(`LLM ${name} failed: ${msg.substring(0, 100)}`);
+        if (!isRateLimit) throw err; // 비 rate-limit 에러는 그대로 throw
+        // rate limit이면 다음 프로바이더로 계속
+      }
+    }
+
+    throw new BadRequestException('모든 무료 LLM 프로바이더의 할당량이 소진되었습니다. 잠시 후 다시 시도해주세요.');
   }
 
   private buildSystemPrompt(dto: TransformResumeDto): string {
@@ -326,7 +359,7 @@ export class LlmService {
 
   /** AI 이력서 피드백 (점수 + 강점 + 개선점) */
   async analyzeFeedback(resumeId: string, provider?: string) {
-    const llm = this.getProvider(provider);
+    // 자동 fallback 사용 (provider 무시)
     const resume = await this.resumesService.findOne(resumeId);
 
     const systemPrompt = `당신은 채용 전문가이자 이력서 컨설턴트입니다. 주어진 이력서를 분석하여 JSON으로 응답해주세요.
@@ -358,7 +391,7 @@ export class LlmService {
 
 한국어로 작성하세요.`;
 
-    const result = await llm.generate(systemPrompt, JSON.stringify(resume, null, 2));
+    const result = await this.generateWithFallback(systemPrompt, JSON.stringify(resume, null, 2));
 
     let parsed;
     try {
@@ -380,7 +413,7 @@ export class LlmService {
       throw new BadRequestException(`채용공고는 ${MAX_JD_LENGTH}자 이내여야 합니다.`);
     }
 
-    const llm = this.getProvider(provider);
+    // 자동 fallback 사용 (provider 무시)
     const resume = await this.resumesService.findOne(resumeId);
 
     const systemPrompt = `당신은 채용 전문가입니다. 이력서와 채용공고(JD)를 비교 분석하여 JSON으로 응답해주세요.
@@ -402,7 +435,7 @@ export class LlmService {
 한국어로 작성하세요.`;
 
     const userMessage = `[이력서]\n${JSON.stringify(resume, null, 2)}\n\n[채용공고(JD)]\n${jobDescription}`;
-    const result = await llm.generate(systemPrompt, userMessage);
+    const result = await this.generateWithFallback(systemPrompt, userMessage);
 
     let parsed;
     try {
@@ -417,7 +450,7 @@ export class LlmService {
 
   /** AI 면접 질문 생성 */
   async generateInterviewQuestions(resumeId: string, jobRole?: string, provider?: string) {
-    const llm = this.getProvider(provider);
+    // 자동 fallback 사용 (provider 무시)
     const resume = await this.resumesService.findOne(resumeId);
 
     const roleContext = jobRole ? `지원 직무: ${jobRole}\n` : '';
@@ -441,7 +474,7 @@ ${roleContext}
 총 8-10개 질문을 생성하세요.
 한국어로 작성하세요.`;
 
-    const result = await llm.generate(systemPrompt, JSON.stringify(resume, null, 2));
+    const result = await this.generateWithFallback(systemPrompt, JSON.stringify(resume, null, 2));
 
     let parsed;
     try {
