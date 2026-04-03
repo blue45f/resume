@@ -317,6 +317,12 @@ export default function PreviewPage() {
                 );
               })()}
               <button
+                onClick={() => setShowJdMatch(true)}
+                className="px-2.5 sm:px-3 py-2 bg-teal-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors"
+              >
+                JD 매칭
+              </button>
+              <button
                 onClick={() => setShowAiAnalysis(true)}
                 className="px-2.5 sm:px-3 py-2 bg-emerald-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-colors"
               >
@@ -488,6 +494,13 @@ export default function PreviewPage() {
               )}
             </div>
             <button
+              onClick={() => setShowJdMatch(true)}
+              className="flex flex-col items-center gap-0.5 px-2 py-1 text-teal-600 rounded-lg active:bg-teal-50 transition-colors"
+            >
+              <span className="text-base">🎯</span>
+              <span className="text-[10px] font-medium">JD매칭</span>
+            </button>
+            <button
               onClick={() => setShowAiAnalysis(true)}
               className="flex flex-col items-center gap-0.5 px-2 py-1 text-emerald-600 rounded-lg active:bg-emerald-50 transition-colors"
             >
@@ -519,6 +532,13 @@ export default function PreviewPage() {
           </div>
         </div>
       </main>
+
+      {/* JD Match Analyzer */}
+      {showJdMatch && id && resume && (
+        <Suspense fallback={null}>
+          <JdMatchAnalyzer resumeId={id} resume={resume} onClose={() => setShowJdMatch(false)} />
+        </Suspense>
+      )}
 
       {/* AI Analysis Panel */}
       {showAiAnalysis && id && (

@@ -8,6 +8,7 @@ import { sectionTips } from '@/lib/writingTips';
 const RichEditor = lazy(() => import('@/components/RichEditor'));
 import VoiceInput from '@/components/VoiceInput';
 import AiWritingAssist from '@/components/AiWritingAssist';
+import { SkillSuggestDropdown, CompanyRoleSuggest, InlineContentTip } from '@/components/SkillSuggest';
 
 type SaveStatus = 'saved' | 'saving' | 'dirty' | 'error' | 'idle';
 
@@ -465,6 +466,7 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
               <p className="mt-1 text-xs text-slate-400 text-right">
                 {(data.personalInfo.summary || '').replace(/<[^>]*>/g, '').length}자
               </p>
+              <InlineContentTip text={data.personalInfo.summary || ''} section="summary" />
             </div>
           </div>
         </CollapsibleSection>
@@ -489,6 +491,7 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
                 <div>
                   <label htmlFor={`exp-company-${exp.id}`} className={labelClass}>회사명</label>
                   <input id={`exp-company-${exp.id}`} className={inputClass} value={exp.company} onChange={e => experiences.update(exp.id, 'company', e.target.value)} />
+                  <CompanyRoleSuggest company={exp.company} onSelect={(role) => experiences.update(exp.id, 'position', role)} />
                 </div>
                 <div>
                   <label htmlFor={`exp-position-${exp.id}`} className={labelClass}>직위</label>
@@ -529,6 +532,7 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
                     />
                   </Suspense>
                   <p className="mt-1 text-xs text-slate-400 text-right">{(exp.description || '').replace(/<[^>]*>/g, '').length}자</p>
+                  <InlineContentTip text={exp.description || ''} section="experience" />
                 </div>
                 <div className="sm:col-span-2">
                   <div className="flex items-center gap-2">
@@ -637,6 +641,15 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
                 <div>
                   <label htmlFor={`skill-items-${skill.id}`} className={labelClass}>기술 목록</label>
                   <input id={`skill-items-${skill.id}`} className={inputClass} value={skill.items} placeholder="예: TypeScript, React" onChange={e => skills.update(skill.id, 'items', e.target.value)} />
+                  <SkillSuggestDropdown
+                    currentItems={skill.items}
+                    onAdd={(newSkill) => {
+                      const current = skill.items.trim();
+                      const updated = current ? `${current}, ${newSkill}` : newSkill;
+                      skills.update(skill.id, 'items', updated);
+                      setDirty(true);
+                    }}
+                  />
                 </div>
               </div>
             </fieldset>
@@ -702,6 +715,7 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
                       placeholder="프로젝트 설명 및 기여한 내용"
                     />
                   </Suspense>
+                  <InlineContentTip text={proj.description || ''} section="project" />
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor={`proj-tech-${proj.id}`} className={labelClass}>기술 스택</label>
