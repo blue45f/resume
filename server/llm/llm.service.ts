@@ -486,4 +486,49 @@ ${roleContext}
 
     return { interview: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
   }
+
+  /** AI 인라인 문장 개선 */
+  async inlineAssist(text: string, type: string, provider?: string) {
+    if (!text || text.trim().length < 2) {
+      throw new BadRequestException('개선할 텍스트를 입력해주세요.');
+    }
+    if (text.length > 2000) {
+      throw new BadRequestException('텍스트는 2000자 이내여야 합니다.');
+    }
+
+    const prompts: Record<string, string> = {
+      improve: `당신은 이력서 작성 전문가입니다. 주어진 문장을 더 전문적이고 임팩트 있게 개선해주세요.
+- 능동적인 표현 사용
+- 구체적이고 명확한 문장
+- 한국어 이력서에 적합한 톤
+개선된 문장만 출력하세요. 설명이나 부가 텍스트 없이 결과만 출력하세요.`,
+      quantify: `당신은 이력서 컨설턴트입니다. 주어진 문장에서 성과를 수치화하여 개선해주세요.
+- 가능한 부분에 숫자/비율/기간 등 정량적 지표 추가
+- 예: "성능을 개선했다" → "API 응답 속도를 40% 개선하여 평균 200ms → 120ms로 단축"
+- 원래 내용의 의미를 유지하면서 수치를 자연스럽게 추가
+개선된 문장만 출력하세요. 설명 없이 결과만 출력하세요.`,
+      concise: `당신은 이력서 편집 전문가입니다. 주어진 문장을 간결하게 줄여주세요.
+- 불필요한 수식어 제거
+- 핵심 내용만 남기기
+- 의미는 유지하면서 분량 30-50% 축소
+간결하게 개선된 문장만 출력하세요. 설명 없이 결과만 출력하세요.`,
+      english: `You are a professional resume translator. Translate the given Korean text into polished, professional English suitable for an international resume.
+- Use strong action verbs
+- Keep it concise and impactful
+- ATS-friendly language
+Output only the translated text. No explanations.`,
+    };
+
+    const systemPrompt = prompts[type] || prompts.improve;
+    const result = await this.generateWithFallback(systemPrompt, text, provider);
+
+    return {
+      original: text,
+      improved: result.text.trim(),
+      type,
+      tokensUsed: result.tokensUsed,
+      provider: result.provider,
+      model: result.model,
+    };
+  }
 }

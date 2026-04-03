@@ -143,4 +143,15 @@ export class LlmController {
   ) {
     return this.llmService.generateInterviewQuestions(resumeId, jobRole, provider);
   }
+
+  @Post('inline-assist')
+  @ApiOperation({ summary: 'AI 인라인 문장 개선' })
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  inlineAssist(
+    @Body('text') text: string,
+    @Body('type') type: string,
+    @Body('provider') provider?: string,
+  ) {
+    return this.llmService.inlineAssist(text, type, provider);
+  }
 }
