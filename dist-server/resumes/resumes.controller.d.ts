@@ -136,6 +136,7 @@ export declare class ResumesController {
         createdAt: any;
         updatedAt: any;
     }>;
+    findByShortCode(code: string, res: Response): Promise<Response<any, Record<string, any>>>;
     findPublicResumes(query?: string, tag?: string, sort?: string, page?: string, limit?: string): Promise<{
         data: {
             id: any;

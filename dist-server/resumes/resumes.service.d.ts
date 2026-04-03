@@ -151,6 +151,54 @@ export declare class ResumesService {
         createdAt: any;
         updatedAt: any;
     }>;
+    findByShortCode(code: string): Promise<{
+        experiences: {
+            [k: string]: any;
+        }[];
+        educations: {
+            [k: string]: any;
+        }[];
+        skills: {
+            [k: string]: any;
+        }[];
+        projects: {
+            [k: string]: any;
+        }[];
+        certifications: {
+            [k: string]: any;
+        }[];
+        languages: {
+            [k: string]: any;
+        }[];
+        awards: {
+            [k: string]: any;
+        }[];
+        activities: {
+            [k: string]: any;
+        }[];
+        id: any;
+        title: any;
+        slug: any;
+        userId: any;
+        viewCount: any;
+        visibility: any;
+        personalInfo: {
+            name: any;
+            email: any;
+            phone: any;
+            address: any;
+            website: any;
+            github: any;
+            summary: any;
+            photo: any;
+            birthYear: any;
+            links: any;
+            military: any;
+        };
+        tags: any;
+        createdAt: any;
+        updatedAt: any;
+    } | null>;
     findOne(id: string, userId?: string): Promise<{
         bookmarkCount: number;
         experiences: {

@@ -190,6 +190,19 @@ let ResumesService = class ResumesService {
         this.prisma.resume.update({ where: { id: resume.id }, data: { viewCount: { increment: 1 } } }).catch(() => { });
         return this.formatFull(resume);
     }
+    async findByShortCode(code) {
+        const resume = await this.prisma.resume.findFirst({
+            where: {
+                id: { startsWith: code },
+                visibility: { not: 'private' },
+            },
+            include: FULL_INCLUDE,
+        });
+        if (!resume)
+            return null;
+        this.prisma.resume.update({ where: { id: resume.id }, data: { viewCount: { increment: 1 } } }).catch(() => { });
+        return this.formatFull(resume);
+    }
     async findOne(id, userId) {
         const resume = await this.prisma.resume.findUnique({
             where: { id },

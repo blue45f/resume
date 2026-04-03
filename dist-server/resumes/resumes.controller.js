@@ -61,6 +61,12 @@ let ResumesController = class ResumesController {
     findBySlug(username, slug) {
         return this.resumesService.findBySlug(username, slug);
     }
+    async findByShortCode(code, res) {
+        const resume = await this.resumesService.findByShortCode(code);
+        if (!resume)
+            throw new common_1.NotFoundException('이력서를 찾을 수 없습니다');
+        return res.json(resume);
+    }
     findPublicResumes(query, tag, sort, page, limit) {
         return this.resumesService.searchPublic({
             query, tag, sort,
@@ -231,6 +237,16 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], ResumesController.prototype, "findBySlug", null);
+__decorate([
+    (0, common_1.Get)('short/:code'),
+    (0, auth_guard_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: '숏코드로 이력서 조회 (/r/xxxxxxxx)' }),
+    __param(0, (0, common_1.Param)('code')),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ResumesController.prototype, "findByShortCode", null);
 __decorate([
     (0, common_1.Get)('public'),
     (0, auth_guard_1.Public)(),

@@ -262,9 +262,13 @@ let LlmService = LlmService_1 = class LlmService {
     }
     async generateWithFallback(systemPrompt, userMessage, preferredProvider) {
         const tried = new Set();
+        const errors = [];
         const order = preferredProvider
             ? [preferredProvider, ...this.FREE_PROVIDER_PRIORITY.filter(p => p !== preferredProvider)]
             : this.FREE_PROVIDER_PRIORITY;
+        if (this.providers.size === 0) {
+            throw new common_1.BadRequestException('LLM 프로바이더가 설정되지 않았습니다. 관리자에게 API 키 설정을 요청해주세요.');
+        }
         for (const name of order) {
             if (tried.has(name))
                 continue;
@@ -273,18 +277,17 @@ let LlmService = LlmService_1 = class LlmService {
                 continue;
             tried.add(name);
             try {
-                this.logger.log(`LLM fallback: trying ${name}`);
+                this.logger.log(`LLM: trying ${name} (${tried.size}/${this.providers.size})`);
                 return await provider.generate(systemPrompt, userMessage);
             }
             catch (err) {
-                const msg = err?.message || '';
-                const isRateLimit = msg.includes('429') || msg.includes('rate') || msg.includes('quota') || msg.includes('limit');
-                this.logger.warn(`LLM ${name} failed: ${msg.substring(0, 100)}`);
-                if (!isRateLimit)
-                    throw err;
+                const msg = err?.message || String(err);
+                errors.push(`${name}: ${msg.substring(0, 150)}`);
+                this.logger.warn(`LLM ${name} failed: ${msg.substring(0, 200)}`);
             }
         }
-        throw new common_1.BadRequestException('모든 무료 LLM 프로바이더의 할당량이 소진되었습니다. 잠시 후 다시 시도해주세요.');
+        this.logger.error(`All LLM providers failed: ${errors.join(' | ')}`);
+        throw new common_1.BadRequestException(`AI 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요. (${tried.size}개 프로바이더 시도)`);
     }
     buildSystemPrompt(dto) {
         let base;
