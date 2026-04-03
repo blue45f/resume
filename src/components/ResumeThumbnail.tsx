@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import type { ResumeSummary } from '@/types/resume';
 import { resumeThemes, type ResumeTheme } from '@/lib/resumeThemes';
 
@@ -50,7 +50,7 @@ function countSections(resume: ResumeSummary): number {
   return Math.max(count, 1);
 }
 
-export default function ResumeThumbnail({ resume, themeId, onClick }: Props) {
+const ResumeThumbnail = memo(function ResumeThumbnail({ resume, themeId, onClick }: Props) {
   const theme = useMemo(
     () => resumeThemes.find(t => t.id === (themeId || 'classic')) || resumeThemes[0],
     [themeId],
@@ -137,4 +137,6 @@ export default function ResumeThumbnail({ resume, themeId, onClick }: Props) {
       <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/5 transition-colors duration-200" />
     </button>
   );
-}
+});
+
+export default ResumeThumbnail;
