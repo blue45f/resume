@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchVersions, restoreVersion } from '@/lib/api';
+import { timeAgo } from '@/lib/time';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface Version {
   id: string;
@@ -20,6 +23,9 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
   const [restoring, setRestoring] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [selectedVersion, setSelectedVersion] = useState<Record<string, unknown> | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [activeVersionId, setActiveVersionId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -35,14 +41,42 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
 
   useEffect(() => { load(); }, [load]);
 
+  const handlePreview = async (versionId: string) => {
+    if (activeVersionId === versionId) {
+      setSelectedVersion(null);
+      setActiveVersionId(null);
+      return;
+    }
+    setPreviewLoading(true);
+    setActiveVersionId(versionId);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/versions/${versionId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedVersion(data);
+      } else {
+        setSelectedVersion(null);
+      }
+    } catch {
+      setSelectedVersion(null);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   const handleRestore = async (versionId: string, versionNumber: number) => {
-    if (!confirm(`버전 ${versionNumber}으로 복원하시겠습니까? 현재 내용은 새 버전으로 자동 저장됩니다.`)) return;
+    if (!confirm(`버전 ${versionNumber}으로 복원하시겠습니까? 현재 내용이 덮어씌워집니다.`)) return;
     setRestoring(versionId);
     setError('');
     setSuccess('');
     try {
       const result = await restoreVersion(resumeId, versionId);
       setSuccess(`버전 ${result.restoredVersion}으로 복원되었습니다`);
+      setSelectedVersion(null);
+      setActiveVersionId(null);
       onRestore();
       await load();
     } catch {
@@ -52,12 +86,44 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
     }
   };
 
-  const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleDateString('ko-KR', {
-      year: 'numeric', month: 'short', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    });
+  const renderPreview = () => {
+    if (!selectedVersion) return null;
+    if (previewLoading) {
+      return (
+        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg mt-2">
+          <p className="text-xs text-slate-500">불러오는 중...</p>
+        </div>
+      );
+    }
+    try {
+      const snapshot = typeof selectedVersion.snapshot === 'string'
+        ? JSON.parse(selectedVersion.snapshot as string)
+        : selectedVersion.snapshot;
+      if (!snapshot) return <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg mt-2"><p className="text-xs text-slate-400">데이터 없음</p></div>;
+      const s = snapshot as Record<string, unknown>;
+      const experiences = Array.isArray(s.experiences) ? s.experiences : [];
+      const educations = Array.isArray(s.educations) ? s.educations : [];
+      const skills = Array.isArray(s.skills) ? s.skills : [];
+      const projects = Array.isArray(s.projects) ? s.projects : [];
+      const personalInfo = (s.personalInfo || {}) as Record<string, unknown>;
+      return (
+        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg mt-2">
+          <h4 className="text-xs font-medium text-blue-700 dark:text-blue-400 mb-2">버전 미리보기</h4>
+          <div className="space-y-1 text-xs text-slate-600 dark:text-slate-400">
+            <p>제목: <strong>{(s.title as string) || '—'}</strong></p>
+            <p>이름: {(personalInfo.name as string) || '—'}</p>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {experiences.length > 0 && <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 rounded text-blue-700 dark:text-blue-300">경력 {experiences.length}</span>}
+              {educations.length > 0 && <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 rounded text-green-700 dark:text-green-300">학력 {educations.length}</span>}
+              {skills.length > 0 && <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/30 rounded text-purple-700 dark:text-purple-300">기술 {skills.length}</span>}
+              {projects.length > 0 && <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 rounded text-amber-700 dark:text-amber-300">프로젝트 {projects.length}</span>}
+            </div>
+          </div>
+        </div>
+      );
+    } catch {
+      return <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg mt-2"><p className="text-xs text-slate-400">미리보기 불가</p></div>;
+    }
   };
 
   return (
@@ -95,33 +161,47 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">이력서 수정 시 자동으로 이전 상태가 저장됩니다.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">이력서 수정 시 자동으로 이전 상태가 저장됩니다. 항목을 클릭하면 미리보기를 확인할 수 있습니다.</p>
               {versions.map((v, idx) => (
-                <div
-                  key={v.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-bold shrink-0">
-                        v{v.versionNumber}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                          {idx === 0 ? '최신 버전' : `버전 ${v.versionNumber}`}
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(v.createdAt)}</p>
+                <div key={v.id}>
+                  <div
+                    className={`flex items-center justify-between p-3 rounded-lg border transition-colors cursor-pointer ${
+                      activeVersionId === v.id
+                        ? 'border-blue-400 dark:border-blue-500 bg-blue-50/50 dark:bg-blue-900/10'
+                        : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                    }`}
+                    onClick={() => handlePreview(v.id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handlePreview(v.id); } }}
+                    aria-expanded={activeVersionId === v.id}
+                    aria-label={`버전 ${v.versionNumber} 미리보기`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-bold shrink-0">
+                          v{v.versionNumber}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                            {idx === 0 ? '최신 버전' : `버전 ${v.versionNumber}`}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400" title={new Date(v.createdAt).toLocaleString('ko-KR')}>
+                            {timeAgo(v.createdAt)}
+                          </p>
+                        </div>
                       </div>
                     </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleRestore(v.id, v.versionNumber); }}
+                      disabled={restoring === v.id}
+                      className="ml-3 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors shrink-0"
+                      aria-label={`버전 ${v.versionNumber}으로 복원`}
+                    >
+                      {restoring === v.id ? '복원 중...' : '복원'}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleRestore(v.id, v.versionNumber)}
-                    disabled={restoring === v.id}
-                    className="ml-3 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors shrink-0"
-                    aria-label={`버전 ${v.versionNumber}으로 복원`}
-                  >
-                    {restoring === v.id ? '복원 중...' : '복원'}
-                  </button>
+                  {activeVersionId === v.id && renderPreview()}
                 </div>
               ))}
             </div>

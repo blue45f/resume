@@ -7,6 +7,7 @@ import { FormSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
 import TagSelector from '@/components/TagSelector';
 import AttachmentPanel from '@/components/AttachmentPanel';
+import VersionPanel from '@/components/VersionPanel';
 import type { Resume } from '@/types/resume';
 import { fetchResume, updateResume, setResumeVisibility } from '@/lib/api';
 
@@ -17,6 +18,7 @@ export default function EditResumePage() {
   const [notFound, setNotFound] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
+  const [showVersions, setShowVersions] = useState(false);
 
   const loadResume = () => {
     if (!id) return;
@@ -127,6 +129,12 @@ export default function EditResumePage() {
             >
               첨부파일
             </button>
+            <button
+              onClick={() => setShowVersions(true)}
+              className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-300"
+            >
+              버전 이력
+            </button>
             {id && (
               <TagSelector
                 resumeId={id}
@@ -157,6 +165,13 @@ export default function EditResumePage() {
       </main>
       {showAttachments && id && (
         <AttachmentPanel resumeId={id} onClose={() => setShowAttachments(false)} />
+      )}
+      {showVersions && id && (
+        <VersionPanel
+          resumeId={id}
+          onClose={() => setShowVersions(false)}
+          onRestore={() => { loadResume(); }}
+        />
       )}
     </>
   );
