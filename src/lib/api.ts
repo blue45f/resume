@@ -115,7 +115,9 @@ async function request<T>(url: string, options?: RequestInit, retries = 2): Prom
   };
 
   try {
-    return await attempt();
+    const result = await attempt();
+    if (isTopLevel) trackRequestEnd();
+    return result;
   } catch (err) {
     // Render 무료 플랜 cold start / 배포 중 대응: exponential backoff 재시도
     const isNetworkError = err instanceof TypeError || (err instanceof DOMException && err.name === 'AbortError');
@@ -124,6 +126,7 @@ async function request<T>(url: string, options?: RequestInit, retries = 2): Prom
       await new Promise(r => setTimeout(r, delay));
       return request<T>(url, options, retries - 1);
     }
+    if (isTopLevel) trackRequestEnd();
     if (err instanceof DOMException && err.name === 'AbortError') {
       const msg = '서버가 배포 중이거나 시작 중입니다. 30초 후 다시 시도해주세요.';
       toast(msg, 'error');

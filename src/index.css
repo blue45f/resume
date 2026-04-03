@@ -183,7 +183,7 @@ body {
   height: 3px;
   background: linear-gradient(90deg, #3b82f6, #6366f1);
   z-index: 9999;
-  transition: width 0.1s linear;
+  transition: width 0.1s linear, opacity 0.2s ease;
   pointer-events: none;
 }
 .dark .scroll-progress {
