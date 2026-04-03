@@ -191,11 +191,15 @@ export default function Header() {
             </Link>
             {/* More dropdown */}
             <div className="relative group">
-              <button className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-2 py-1 rounded">
-                더보기 ▾
+              <button
+                className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-2 py-1 rounded"
+                aria-haspopup="true"
+                aria-label={t('common.more')}
+              >
+                {t('common.more')} <span aria-hidden="true">▾</span>
               </button>
-              <div className="absolute left-0 top-full mt-1 w-44 glass-dropdown rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-1">
-                <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500">도구</p>
+              <div role="menu" aria-label={t('common.more')} className="absolute left-0 top-full mt-1 w-44 glass-dropdown rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 py-1">
+                <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500" role="presentation">도구</p>
                 <Link to="/cover-letter" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
                 <Link to="/compare" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.compare')}</Link>
                 <Link to="/translate" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">번역</Link>
@@ -275,24 +279,26 @@ export default function Header() {
                     <button
                       onClick={toggleUserType}
                       disabled={switching}
-                      className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                      role="menuitem"
+                      className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-600 focus:outline-none flex items-center gap-2"
                     >
-                      <span className={`inline-block w-2 h-2 rounded-full ${isRecruiter ? 'bg-green-500' : 'bg-purple-500'}`} />
+                      <span className={`inline-block w-2 h-2 rounded-full ${isRecruiter ? 'bg-green-500' : 'bg-purple-500'}`} aria-hidden="true" />
                       {switching ? '전환 중...' : isRecruiter ? '개인 모드로 전환' : '채용담당자 모드로 전환'}
                     </button>
-                    <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
-                    <Link to="/social/follows" onClick={() => setProfileMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
+                    <div className="border-t border-slate-100 dark:border-slate-700 my-1" role="separator" />
+                    <Link to="/social/follows" onClick={() => setProfileMenuOpen(false)} role="menuitem" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-600 focus:outline-none">
                       <div className="flex items-center justify-between">
                         <span>팔로워 / 팔로잉</span>
                         <span className="text-xs text-slate-400 dark:text-slate-500">{followerCount} / {followingCount}</span>
                       </div>
                     </Link>
-                    <Link to="/settings" onClick={() => setProfileMenuOpen(false)} className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
+                    <Link to="/settings" onClick={() => setProfileMenuOpen(false)} role="menuitem" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-600 focus:outline-none">
                       {t('common.settings')}
                     </Link>
                     <button
                       onClick={() => { clearAuth(); navigate('/'); window.location.reload(); }}
-                      className="w-full text-left px-3 py-2 text-sm text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      role="menuitem"
+                      className="w-full text-left px-3 py-2 text-sm text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-600 focus:outline-none"
                     >
                       {t('common.logout')}
                     </button>
