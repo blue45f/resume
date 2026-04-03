@@ -12,37 +12,50 @@ import ScrollReset from '@/components/ScrollReset';
 import QuickActions from '@/components/QuickActions';
 import { fetchMe } from '@/lib/auth';
 
+// Lazy import with auto-retry on chunk load failure (배포 후 해시 변경 대응)
+function lazyRetry(fn: () => Promise<any>) {
+  return lazy(() => fn().catch(() => {
+    // 청크 로드 실패 시 새로고침 (배포로 인한 해시 변경)
+    if (!sessionStorage.getItem('chunk-retry')) {
+      sessionStorage.setItem('chunk-retry', '1');
+      window.location.reload();
+    }
+    sessionStorage.removeItem('chunk-retry');
+    return fn();
+  }));
+}
+
 // Lazy-loaded pages (non-critical path)
-const NewResumePage = lazy(() => import('@/pages/NewResumePage'));
-const EditResumePage = lazy(() => import('@/pages/EditResumePage'));
-const PreviewPage = lazy(() => import('@/pages/PreviewPage'));
-const TemplatesPage = lazy(() => import('@/pages/TemplatesPage'));
-const TagsPage = lazy(() => import('@/pages/TagsPage'));
-const AutoGeneratePage = lazy(() => import('@/pages/AutoGeneratePage'));
-const ExplorePage = lazy(() => import('@/pages/ExplorePage'));
-const AboutPage = lazy(() => import('@/pages/AboutPage'));
-const TutorialPage = lazy(() => import('@/pages/TutorialPage'));
-const TermsPage = lazy(() => import('@/pages/TermsPage'));
-const ProfileResumePage = lazy(() => import('@/pages/ProfileResumePage'));
-const ApplicationsPage = lazy(() => import('@/pages/ApplicationsPage'));
-const CoverLetterPage = lazy(() => import('@/pages/CoverLetterPage'));
-const MyCoverLettersPage = lazy(() => import('@/pages/MyCoverLettersPage'));
-const ComparePage = lazy(() => import('@/pages/ComparePage'));
-const TranslatePage = lazy(() => import('@/pages/TranslatePage'));
-const PricingPage = lazy(() => import('@/pages/PricingPage'));
-const PaymentPage = lazy(() => import('@/pages/PaymentPage'));
-const PaymentResultPage = lazy(() => import('@/pages/PaymentResultPage'));
-const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
-const AdminPage = lazy(() => import('@/pages/AdminPage'));
-const BookmarksPage = lazy(() => import('@/pages/BookmarksPage'));
-const MessagesPage = lazy(() => import('@/pages/MessagesPage'));
-const ScoutsPage = lazy(() => import('@/pages/ScoutsPage'));
-const JobsPage = lazy(() => import('@/pages/JobsPage'));
-const JobPostPage = lazy(() => import('@/pages/JobPostPage'));
-const RecruiterDashboardPage = lazy(() => import('@/pages/RecruiterDashboardPage'));
-const InterviewPrepPage = lazy(() => import('@/pages/InterviewPrepPage'));
-const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
-const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+const NewResumePage = lazyRetry(() => import('@/pages/NewResumePage'));
+const EditResumePage = lazyRetry(() => import('@/pages/EditResumePage'));
+const PreviewPage = lazyRetry(() => import('@/pages/PreviewPage'));
+const TemplatesPage = lazyRetry(() => import('@/pages/TemplatesPage'));
+const TagsPage = lazyRetry(() => import('@/pages/TagsPage'));
+const AutoGeneratePage = lazyRetry(() => import('@/pages/AutoGeneratePage'));
+const ExplorePage = lazyRetry(() => import('@/pages/ExplorePage'));
+const AboutPage = lazyRetry(() => import('@/pages/AboutPage'));
+const TutorialPage = lazyRetry(() => import('@/pages/TutorialPage'));
+const TermsPage = lazyRetry(() => import('@/pages/TermsPage'));
+const ProfileResumePage = lazyRetry(() => import('@/pages/ProfileResumePage'));
+const ApplicationsPage = lazyRetry(() => import('@/pages/ApplicationsPage'));
+const CoverLetterPage = lazyRetry(() => import('@/pages/CoverLetterPage'));
+const MyCoverLettersPage = lazyRetry(() => import('@/pages/MyCoverLettersPage'));
+const ComparePage = lazyRetry(() => import('@/pages/ComparePage'));
+const TranslatePage = lazyRetry(() => import('@/pages/TranslatePage'));
+const PricingPage = lazyRetry(() => import('@/pages/PricingPage'));
+const PaymentPage = lazyRetry(() => import('@/pages/PaymentPage'));
+const PaymentResultPage = lazyRetry(() => import('@/pages/PaymentResultPage'));
+const SettingsPage = lazyRetry(() => import('@/pages/SettingsPage'));
+const AdminPage = lazyRetry(() => import('@/pages/AdminPage'));
+const BookmarksPage = lazyRetry(() => import('@/pages/BookmarksPage'));
+const MessagesPage = lazyRetry(() => import('@/pages/MessagesPage'));
+const ScoutsPage = lazyRetry(() => import('@/pages/ScoutsPage'));
+const JobsPage = lazyRetry(() => import('@/pages/JobsPage'));
+const JobPostPage = lazyRetry(() => import('@/pages/JobPostPage'));
+const RecruiterDashboardPage = lazyRetry(() => import('@/pages/RecruiterDashboardPage'));
+const InterviewPrepPage = lazyRetry(() => import('@/pages/InterviewPrepPage'));
+const NotificationsPage = lazyRetry(() => import('@/pages/NotificationsPage'));
+const NotFoundPage = lazyRetry(() => import('@/pages/NotFoundPage'));
 
 function PageLoader() {
   return (

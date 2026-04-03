@@ -16,6 +16,13 @@ export default class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
+  componentDidCatch() {
+    // 2초 후 자동 복구 시도 (라우트 변경 시 에러 리셋)
+    setTimeout(() => {
+      this.setState({ hasError: false, error: null });
+    }, 100);
+  }
+
   render() {
     if (this.state.hasError) {
       return (
@@ -36,7 +43,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
-                onClick={() => window.location.reload()}
+                onClick={() => this.setState({ hasError: false, error: null })}
                 className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-colors font-medium"
               >
                 다시 시도
