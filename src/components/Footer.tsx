@@ -78,7 +78,7 @@ export default function Footer() {
           <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">사이트맵</h4>
           <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs">
             <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">홈</Link>
-            <Link to="/dashboard" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">대시보드</Link>
+            <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">대시보드</Link>
             <Link to="/explore" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">탐색</Link>
             <Link to="/templates" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">템플릿</Link>
             <Link to="/jobs" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">채용공고</Link>
