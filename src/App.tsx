@@ -75,6 +75,9 @@ export default function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <ScrollReset />
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium">
+          본문으로 건너뛰기
+        </a>
         <div className="min-h-screen flex flex-col bg-slate-50 overflow-x-hidden">
           <Routes>
             {/* Critical path - eager loaded */}
