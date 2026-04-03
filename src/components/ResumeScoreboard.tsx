@@ -1,10 +1,116 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Resume } from '@/types/resume';
 import { calculateCompleteness } from '@/lib/completeness';
 import { analyzeAtsCompatibility } from '@/lib/ats';
 
 interface Props {
   resume: Resume;
+}
+
+/** Animated number counter hook */
+function useAnimatedCounter(target: number, duration = 800): number {
+  const [value, setValue] = useState(0);
+  const startTimeRef = useRef<number | null>(null);
+  const rafRef = useRef<number>();
+
+  useEffect(() => {
+    startTimeRef.current = null;
+
+    const animate = (timestamp: number) => {
+      if (startTimeRef.current === null) startTimeRef.current = timestamp;
+      const elapsed = timestamp - startTimeRef.current;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(eased * target));
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [target, duration]);
+
+  return value;
+}
+
+/** Large SVG score circle for the overall score */
+function ScoreCircle({ score, size = 140, strokeWidth = 12 }: { score: number; size?: number; strokeWidth?: number }) {
+  const animatedScore = useAnimatedCounter(score, 1000);
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const [offset, setOffset] = useState(circumference);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setOffset(circumference - (score / 100) * circumference);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [score, circumference]);
+
+  const getScoreColor = (s: number) => {
+    if (s >= 80) return '#3b82f6';
+    if (s >= 60) return '#22c55e';
+    if (s >= 40) return '#f97316';
+    return '#ef4444';
+  };
+
+  const color = getScoreColor(score);
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2} cy={size / 2} r={radius}
+          fill="none" stroke="currentColor" strokeWidth={strokeWidth}
+          className="text-slate-100 dark:text-slate-700"
+        />
+        <circle
+          cx={size / 2} cy={size / 2} r={radius}
+          fill="none" stroke={color} strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{ transition: 'stroke-dashoffset 1s ease-out' }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-4xl font-extrabold text-slate-900 dark:text-slate-100">{animatedScore}</span>
+        <span className="text-xs text-slate-400 dark:text-slate-500 -mt-1">/ 100</span>
+      </div>
+    </div>
+  );
+}
+
+/** Category mini bar */
+function CategoryBar({ label, score, color }: { label: string; score: number; color: string }) {
+  const animatedScore = useAnimatedCounter(score, 900);
+  const [barWidth, setBarWidth] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setBarWidth(score), 100);
+    return () => clearTimeout(timer);
+  }, [score]);
+
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-xs text-slate-500 dark:text-slate-400 w-20 shrink-0">{label}</span>
+      <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-2.5">
+        <div
+          className="rounded-full h-2.5"
+          style={{
+            width: `${barWidth}%`,
+            backgroundColor: color,
+            transition: 'width 0.9s ease-out',
+          }}
+        />
+      </div>
+      <span className="text-xs font-bold w-8 text-right" style={{ color }}>{animatedScore}</span>
+    </div>
+  );
 }
 
 export default function ResumeScoreboard({ resume }: Props) {
@@ -21,36 +127,55 @@ export default function ResumeScoreboard({ resume }: Props) {
   const hasPhoto = !!resume.personalInfo.photo;
   const hasSummary = !!(resume.personalInfo.summary && resume.personalInfo.summary.replace(/<[^>]*>/g, '').length > 30);
 
-  // Composite score (0-100)
+  // Category scores (0-100 each)
   const scores = {
     completeness: completeness.percentage,
-    ats: ats.score,
-    detail: Math.min(100, (expYears * 15) + (skillCount * 5) + (projectCount * 10) + (certCount * 10) + (hasPhoto ? 5 : 0) + (hasSummary ? 10 : 0)),
+    keyword: Math.min(100, skillCount * 8 + (resume.experiences.some(e => e.techStack) ? 20 : 0) + (resume.experiences.some(e => e.achievements) ? 15 : 0)),
+    readability: Math.min(100,
+      (hasSummary ? 25 : 0) +
+      (resume.experiences.some(e => e.description && e.description.replace(/<[^>]*>/g, '').length > 50) ? 25 : 0) +
+      (resume.educations.length > 0 ? 15 : 0) +
+      (projectCount > 0 ? 15 : 0) +
+      (hasPhoto ? 10 : 0) +
+      Math.min(10, expYears * 3)
+    ),
+    atsCompat: ats.score,
   };
-  const overallScore = Math.round((scores.completeness + scores.ats + scores.detail) / 3);
 
-  // Percentile estimation (simplified - based on score ranges)
+  const overallScore = Math.round(
+    scores.completeness * 0.3 +
+    scores.keyword * 0.25 +
+    scores.readability * 0.2 +
+    scores.atsCompat * 0.25
+  );
+
+  // Percentile estimation
   const getPercentile = (score: number): number => {
-    if (score >= 90) return 95;
-    if (score >= 80) return 85;
-    if (score >= 70) return 70;
-    if (score >= 60) return 55;
-    if (score >= 50) return 40;
-    if (score >= 40) return 25;
-    return 15;
+    if (score >= 90) return 5;
+    if (score >= 80) return 12;
+    if (score >= 70) return 25;
+    if (score >= 60) return 40;
+    if (score >= 50) return 55;
+    if (score >= 40) return 70;
+    return 85;
   };
 
   const percentile = getPercentile(overallScore);
-  const gradeEmoji = overallScore >= 90 ? '\u{1F3C6}' : overallScore >= 75 ? '\u2B50' : overallScore >= 60 ? '\u{1F44D}' : overallScore >= 40 ? '\u{1F4AA}' : '\u{1F4DD}';
+
+  const categories = [
+    { label: '완성도', score: scores.completeness, color: '#22c55e' },
+    { label: '키워드', score: scores.keyword, color: '#8b5cf6' },
+    { label: '가독성', score: scores.readability, color: '#f59e0b' },
+    { label: 'ATS호환성', score: scores.atsCompat, color: '#3b82f6' },
+  ];
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
       <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{'\uC774\uB825\uC11C \uACBD\uC7C1\uB825'}</h3>
+        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">이력서 경쟁력</h3>
         <div className="flex items-center gap-2">
-          <span className="text-lg">{gradeEmoji}</span>
-          <span className="text-sm font-bold text-blue-600">{overallScore}{'\uC810'}</span>
-          <span className="text-xs text-slate-400">{'\uC0C1\uC704'} {100 - percentile}%</span>
+          <span className="text-sm font-bold text-blue-600">{overallScore}점</span>
+          <span className="text-xs text-slate-400">상위 {percentile}%</span>
           <svg className={`w-4 h-4 text-slate-400 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
@@ -58,47 +183,38 @@ export default function ResumeScoreboard({ resume }: Props) {
       </button>
 
       {expanded && (
-        <div className="mt-4 space-y-4 animate-fade-in">
-          {/* Overall gauge */}
-          <div className="text-center">
-            <div className="relative w-24 h-24 mx-auto">
-              <svg className="w-24 h-24 -rotate-90" viewBox="0 0 36 36">
-                <path d="M18 2.0845a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e2e8f0" strokeWidth="3" />
-                <path d="M18 2.0845a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#3b82f6" strokeWidth="3" strokeDasharray={`${overallScore}, 100`} strokeLinecap="round" />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">{overallScore}</span>
-              </div>
+        <div className="mt-4 space-y-5 animate-fade-in">
+          {/* Overall score circle */}
+          <div className="flex flex-col items-center">
+            <ScoreCircle score={overallScore} />
+            <div className="mt-3 px-4 py-1.5 rounded-full text-xs font-medium"
+              style={{
+                backgroundColor: overallScore >= 70 ? '#dbeafe' : overallScore >= 50 ? '#fef9c3' : '#fee2e2',
+                color: overallScore >= 70 ? '#1d4ed8' : overallScore >= 50 ? '#a16207' : '#dc2626',
+              }}
+            >
+              같은 분야 구직자 중 <strong>상위 {percentile}%</strong>에 해당합니다
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{'\uAC19\uC740 \uBD84\uC57C \uAD6C\uC9C1\uC790 \uC911'} <strong className="text-blue-600">{'\uC0C1\uC704'} {100 - percentile}%</strong></p>
           </div>
 
-          {/* Score breakdown */}
-          <div className="space-y-2">
-            {[
-              { label: '\uC644\uC131\uB3C4', score: scores.completeness, color: 'bg-green-500' },
-              { label: 'ATS \uD638\uD658', score: scores.ats, color: 'bg-blue-500' },
-              { label: '\uC0C1\uC138\uB3C4', score: scores.detail, color: 'bg-purple-500' },
-            ].map(s => (
-              <div key={s.label} className="flex items-center gap-3">
-                <span className="text-xs text-slate-500 dark:text-slate-400 w-16 shrink-0">{s.label}</span>
-                <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-2">
-                  <div className={`${s.color} rounded-full h-2 transition-all duration-500`} style={{ width: `${s.score}%` }} />
-                </div>
-                <span className="text-xs font-medium text-slate-700 dark:text-slate-300 w-8 text-right">{s.score}</span>
-              </div>
+          {/* Category breakdown */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">카테고리별 점수</h4>
+            {categories.map(c => (
+              <CategoryBar key={c.label} label={c.label} score={c.score} color={c.color} />
             ))}
           </div>
 
           {/* Tips */}
           <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-blue-700 dark:text-blue-300">
-            <p className="font-medium mb-1">{'\u{1F4A1} \uACBD\uC7C1\uB825 \uB192\uC774\uAE30'}</p>
-            {overallScore < 60 && <p>{'\u2022 \uACBD\uB825\uACFC \uD504\uB85C\uC81D\uD2B8 \uC139\uC158\uC744 \uB354 \uC0C1\uC138\uD558\uAC8C \uC791\uC131\uD558\uC138\uC694'}</p>}
-            {!hasPhoto && <p>{'\u2022 \uC99D\uBA85\uC0AC\uC9C4\uC744 \uCD94\uAC00\uD558\uBA74 +5\uC810'}</p>}
-            {!hasSummary && <p>{'\u2022 \uC790\uAE30\uC18C\uAC1C\uB97C 30\uC790 \uC774\uC0C1 \uC791\uC131\uD558\uC138\uC694'}</p>}
-            {skillCount < 5 && <p>{'\u2022 \uAE30\uC220 \uC2A4\uD0DD\uC744 5\uAC1C \uC774\uC0C1 \uCD94\uAC00\uD558\uC138\uC694'}</p>}
-            {certCount === 0 && <p>{'\u2022 \uC790\uACA9\uC99D\uC744 \uCD94\uAC00\uD558\uBA74 \uACBD\uC7C1\uB825\uC774 \uB192\uC544\uC9D1\uB2C8\uB2E4'}</p>}
-            {overallScore >= 80 && <p>{'\u2022 \uD6CC\uB96D\uD569\uB2C8\uB2E4! AI \uCF54\uCE6D\uC73C\uB85C \uB354 \uB2E4\uB4EC\uC5B4\uBCF4\uC138\uC694'}</p>}
+            <p className="font-medium mb-1.5">경쟁력 높이기</p>
+            {scores.keyword < 50 && <p>- 기술 키워드를 더 추가하면 ATS 매칭률이 높아집니다</p>}
+            {scores.readability < 60 && <p>- 경력과 프로젝트 설명을 더 상세하게 작성하세요</p>}
+            {!hasPhoto && <p>- 프로필 사진을 추가하면 신뢰도가 높아집니다</p>}
+            {!hasSummary && <p>- 자기소개를 30자 이상 작성하세요</p>}
+            {skillCount < 5 && <p>- 기술 스택을 5개 이상 추가하세요</p>}
+            {certCount === 0 && <p>- 자격증을 추가하면 경쟁력이 높아집니다</p>}
+            {overallScore >= 80 && <p>- 훌륭합니다! AI 코칭으로 더 다듬어보세요</p>}
           </div>
         </div>
       )}
