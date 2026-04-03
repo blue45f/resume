@@ -294,3 +294,14 @@ export const createJob = (data: any) => request<any>(`${BASE}/jobs`, { method: '
 export const updateJob = (id: string, data: any) =>
   request<any>(`${BASE}/jobs/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const deleteJob = (id: string) => request<{ success: boolean }>(`${BASE}/jobs/${id}`, { method: 'DELETE' });
+
+// Notifications
+export const fetchNotifications = () => request<any[]>(`${BASE}/notifications`);
+export const markAllNotificationsRead = () =>
+  request<{ success: boolean }>(`${BASE}/notifications/read-all`, { method: 'POST' });
+export const markNotificationRead = (id: string) =>
+  request<any>(`${BASE}/notifications/${id}/read`, { method: 'PATCH' });
+
+// Cover Letter Create
+export const createCoverLetter = (data: any) =>
+  request<any>(`${BASE}/cover-letters`, { method: 'POST', body: JSON.stringify(data) });
