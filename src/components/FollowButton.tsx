@@ -21,22 +21,29 @@ export default function FollowButton({ userId, initialFollowing = false, isMutua
     e.stopPropagation();
     const token = localStorage.getItem('token');
     if (!token) return;
+
+    // Optimistic update
+    const prevFollowing = following;
+    const prevMutual = mutual;
+    const newFollowing = !following;
+    setFollowing(newFollowing);
+    if (!newFollowing) setMutual(false);
+    onFollowChange?.(newFollowing);
     setLoading(true);
+
     try {
-      if (following) {
+      if (prevFollowing) {
         await unfollowUser(userId);
-        setFollowing(false);
-        setMutual(false);
-        onFollowChange?.(false);
       } else {
         const result = await followUser(userId);
-        setFollowing(true);
-        // Check if mutual from API response
         if ((result as any)?.mutual) setMutual(true);
-        onFollowChange?.(true);
         toast('팔로우했습니다', 'success');
       }
     } catch {
+      // Revert on error
+      setFollowing(prevFollowing);
+      setMutual(prevMutual);
+      onFollowChange?.(prevFollowing);
       toast('팔로우 처리에 실패했습니다', 'error');
     } finally {
       setLoading(false);

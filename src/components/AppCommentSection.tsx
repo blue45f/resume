@@ -39,19 +39,37 @@ export default function AppCommentSection({ applicationId, isPublic }: Props) {
       toast('5자 이상 입력해주세요', 'warning');
       return;
     }
+
+    // Optimistic update: show comment immediately
+    const optimisticId = `optimistic-${Date.now()}`;
+    const userName = (() => {
+      try { return JSON.parse(localStorage.getItem('user') || '{}').name || '나'; } catch { return '나'; }
+    })();
+    const optimisticComment: AppComment = {
+      id: optimisticId,
+      authorName: userName,
+      content: content.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    setComments(prev => [...prev, optimisticComment]);
+    const savedContent = content;
+    setContent('');
     setLoading(true);
+
     try {
       const token = localStorage.getItem('token');
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const res = await fetch(`${API_URL}/api/applications/${applicationId}/comments`, {
-        method: 'POST', headers, body: JSON.stringify({ content }),
+        method: 'POST', headers, body: JSON.stringify({ content: savedContent }),
       });
       if (!res.ok) throw new Error('작성에 실패했습니다');
-      setContent('');
       toast('의견이 등록되었습니다', 'success');
-      load();
+      load(); // Reload to get server-assigned id
     } catch (e: any) {
+      // Revert: remove optimistic comment and restore input
+      setComments(prev => prev.filter(c => c.id !== optimisticId));
+      setContent(savedContent);
       toast(e.message, 'error');
     } finally {
       setLoading(false);

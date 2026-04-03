@@ -8,6 +8,78 @@ import { API_URL } from './config';
 // 프로덕션: VITE_API_URL 환경변수로 백엔드 URL 지정
 const BASE = `${API_URL}/api`;
 
+// ── Global loading progress bar ──────────────────────────────────
+let activeRequests = 0;
+let progressBarEl: HTMLDivElement | null = null;
+let progressTimer: ReturnType<typeof setTimeout> | null = null;
+let animationFrame: number | null = null;
+let progressValue = 0;
+
+function getProgressBar(): HTMLDivElement {
+  if (!progressBarEl) {
+    progressBarEl = document.createElement('div');
+    progressBarEl.className = 'scroll-progress no-print';
+    progressBarEl.style.width = '0%';
+    progressBarEl.style.display = 'none';
+    document.body.appendChild(progressBarEl);
+  }
+  return progressBarEl;
+}
+
+function animateProgress() {
+  if (progressValue < 90) {
+    progressValue += (90 - progressValue) * 0.03;
+    getProgressBar().style.width = `${progressValue}%`;
+    animationFrame = requestAnimationFrame(animateProgress);
+  }
+}
+
+function showProgress() {
+  const bar = getProgressBar();
+  progressValue = 10;
+  bar.style.display = '';
+  bar.style.opacity = '1';
+  bar.style.width = '10%';
+  if (animationFrame) cancelAnimationFrame(animationFrame);
+  animationFrame = requestAnimationFrame(animateProgress);
+}
+
+function hideProgress() {
+  const bar = getProgressBar();
+  if (animationFrame) cancelAnimationFrame(animationFrame);
+  progressValue = 100;
+  bar.style.width = '100%';
+  setTimeout(() => {
+    bar.style.opacity = '0';
+    setTimeout(() => {
+      bar.style.display = 'none';
+      bar.style.width = '0%';
+      progressValue = 0;
+    }, 200);
+  }, 150);
+}
+
+function trackRequestStart() {
+  activeRequests++;
+  if (activeRequests === 1) {
+    // Only show bar if request takes >500ms
+    progressTimer = setTimeout(showProgress, 500);
+  }
+}
+
+function trackRequestEnd() {
+  activeRequests = Math.max(0, activeRequests - 1);
+  if (activeRequests === 0) {
+    if (progressTimer) {
+      clearTimeout(progressTimer);
+      progressTimer = null;
+    }
+    if (getProgressBar().style.display !== 'none') {
+      hideProgress();
+    }
+  }
+}
+
 async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 30000): Promise<Response> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
@@ -22,6 +94,9 @@ async function request<T>(url: string, options?: RequestInit, retries = 2): Prom
   const token = localStorage.getItem('token');
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const isTopLevel = retries === 2;
+  if (isTopLevel) trackRequestStart();
 
   const attempt = async (): Promise<T> => {
     const res = await fetchWithTimeout(url, { headers, ...options }, 30000);

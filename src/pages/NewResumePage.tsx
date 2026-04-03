@@ -112,11 +112,15 @@ export default function NewResumePage() {
   const [saving, setSaving] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [step, setStep] = useState<'template' | 'form'>('template');
+  const [step, setStep] = useState<'template' | 'form' | 'wizard'>('template');
   const [resumeCount, setResumeCount] = useState(0);
   const [existingTitles, setExistingTitles] = useState<string[]>([]);
   const [existingResumes, setExistingResumes] = useState<ResumeSummary[]>([]);
-  const [startMode, setStartMode] = useState<'empty' | 'sample' | 'copy' | 'ai-upload'>('empty');
+  const [startMode, setStartMode] = useState<'empty' | 'sample' | 'copy' | 'ai-upload' | 'wizard'>('empty');
+  // Wizard state
+  const [wizardStep, setWizardStep] = useState(0);
+  const [wizardData, setWizardData] = useState(createEmptyResumeData());
+  const [wizardJobTitle, setWizardJobTitle] = useState('');
   const [copySourceId, setCopySourceId] = useState('');
   const [initialData, setInitialData] = useState<any>(null);
   const [loadingCopy, setLoadingCopy] = useState(false);
@@ -379,7 +383,52 @@ export default function NewResumePage() {
                   <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">AI 문서 분석</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">파일/텍스트로 자동 채우기</p>
                 </button>
+
+                {/* Step-by-step Wizard */}
+                <button
+                  onClick={() => setStartMode('wizard')}
+                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
+                    startMode === 'wizard'
+                      ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 ring-1 ring-teal-500'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                  }`}
+                >
+                  <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center mb-2">
+                    <svg className="w-5 h-5 text-teal-500 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">단계별 작성</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">6단계 가이드로 쉽게 작성</p>
+                </button>
               </div>
+
+              {/* Wizard start button */}
+              {startMode === 'wizard' && (
+                <div className="mt-3 p-4 bg-teal-50 dark:bg-teal-900/10 rounded-xl border border-teal-200 dark:border-teal-800">
+                  <p className="text-sm text-slate-700 dark:text-slate-300 mb-3">
+                    6단계로 나누어 이력서를 쉽게 작성합니다. 각 단계에서 팁과 예시를 확인하며 작성할 수 있습니다.
+                  </p>
+                  <div className="flex gap-1.5 mb-3">
+                    {['직종 선택', '인적사항', '경력', '학력', '기술', '미리보기'].map((label, i) => (
+                      <span key={i} className="px-2 py-1 text-[10px] bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 rounded-full">
+                        {i + 1}. {label}
+                      </span>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setWizardData(createEmptyResumeData());
+                      setWizardStep(0);
+                      setWizardJobTitle('');
+                      setStep('wizard');
+                    }}
+                    className="w-full py-2.5 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors"
+                  >
+                    단계별 작성 시작하기
+                  </button>
+                </div>
+              )}
 
               {/* Copy source selector */}
               {startMode === 'copy' && existingResumes.length > 0 && (
@@ -716,6 +765,18 @@ export default function NewResumePage() {
               />
             )}
           </>
+        ) : step === 'wizard' ? (
+          <WizardMode
+            wizardStep={wizardStep}
+            setWizardStep={setWizardStep}
+            wizardData={wizardData}
+            setWizardData={setWizardData}
+            wizardJobTitle={wizardJobTitle}
+            setWizardJobTitle={setWizardJobTitle}
+            saving={saving}
+            onSave={handleSave}
+            onBack={() => setStep('template')}
+          />
         ) : (
           <>
             <div className="flex items-center gap-3 mb-6">

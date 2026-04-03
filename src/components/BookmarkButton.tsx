@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from '@/components/Toast';
 import { API_URL } from '@/lib/config';
 
 
@@ -17,15 +18,24 @@ export default function BookmarkButton({ resumeId, initialBookmarked = false, si
     e.stopPropagation();
     const token = localStorage.getItem('token');
     if (!token) return;
+
+    // Optimistic update
+    const prev = bookmarked;
+    setBookmarked(!prev);
     setLoading(true);
+
     try {
-      const method = bookmarked ? 'DELETE' : 'POST';
-      await fetch(`${API_URL}/api/resumes/${resumeId}/bookmark`, {
+      const method = prev ? 'DELETE' : 'POST';
+      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/bookmark`, {
         method,
         headers: { Authorization: `Bearer ${token}` },
       });
-      setBookmarked(!bookmarked);
-    } catch {} finally {
+      if (!res.ok) throw new Error();
+    } catch {
+      // Revert on error
+      setBookmarked(prev);
+      toast('북마크 처리에 실패했습니다', 'error');
+    } finally {
       setLoading(false);
     }
   };
