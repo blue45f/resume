@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import type { Resume } from '@/types/resume';
 import { calculateCompleteness } from '@/lib/completeness';
 
@@ -120,7 +120,7 @@ function ProgressRing({ percentage, size = 100, strokeWidth = 8 }: { percentage:
   );
 }
 
-export default function CompletenessBar({ resume, compact }: Props) {
+function CompletenessBar({ resume, compact }: Props) {
   const result = calculateCompleteness(resume);
 
   if (compact) {
@@ -193,3 +193,5 @@ export default function CompletenessBar({ resume, compact }: Props) {
     </div>
   );
 }
+
+export default memo(CompletenessBar);

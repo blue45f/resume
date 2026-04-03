@@ -476,7 +476,123 @@ export default function ExplorePage() {
           ) : (
             <EmptyState type="resume" />
           )
+        ) : activeTab === 'people' ? (
+          /* ===== 사람 탭 ===== */
+          <>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              <span className="font-medium text-slate-700 dark:text-slate-300">{users.length}명</span>의 사용자
+              {query && <> · "<span className="font-medium text-slate-700 dark:text-slate-300">{query}</span>" 검색 결과</>}
+            </p>
+
+            {users.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <svg className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">사용자 없음</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">검색 조건에 맞는 사용자가 없습니다.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {users.map(user => {
+                  const initial = user.name.charAt(0).toUpperCase();
+                  const avatarColor = getAvatarColor(user.name);
+                  const isFollowed = followedUsers.has(user.userId);
+
+                  return (
+                    <div
+                      key={user.userId}
+                      className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 animate-fade-in-up"
+                    >
+                      {/* User header */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`w-11 h-11 rounded-full ${avatarColor} flex items-center justify-center text-white font-bold text-lg shrink-0`}>
+                          {initial}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{user.name}</h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            이력서 {user.resumeCount}개
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Skills summary */}
+                      {user.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {user.skills.slice(0, 5).map(s => (
+                            <span key={s} className="px-1.5 py-0.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded">
+                              {s}
+                            </span>
+                          ))}
+                          {user.skills.length > 5 && (
+                            <span className="px-1.5 py-0.5 text-xs text-slate-400">+{user.skills.length - 5}</span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Recent resumes */}
+                      <div className="mb-3 space-y-1">
+                        {user.resumes.slice(0, 3).map(r => (
+                          <Link
+                            key={r.id}
+                            to={`/resumes/${r.id}/preview`}
+                            className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
+                          >
+                            <svg className="w-3 h-3 shrink-0 text-slate-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span className="truncate">{r.title}</span>
+                          </Link>
+                        ))}
+                        {user.resumes.length > 3 && (
+                          <p className="text-xs text-slate-400 pl-5">외 {user.resumes.length - 3}개</p>
+                        )}
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+                        <button
+                          onClick={() => toggleFollow(user.userId)}
+                          className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                            isFollowed
+                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50'
+                              : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+                          }`}
+                        >
+                          {isFollowed ? (
+                            <span className="flex items-center justify-center gap-1">
+                              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" /></svg>
+                              팔로잉
+                            </span>
+                          ) : (
+                            <span className="flex items-center justify-center gap-1">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                              팔로우
+                            </span>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => navigate(`/messages?to=${user.userId}`)}
+                          className="px-3 py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                          title="쪽지 보내기"
+                        >
+                          <span className="flex items-center justify-center gap-1">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            쪽지
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         ) : (
+          /* ===== 이력서 탭 ===== */
           <>
             {/* 인기 이력서 */}
             {!query && !tag && page === 1 && result.data.length > 0 && (

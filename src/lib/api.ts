@@ -1,5 +1,6 @@
 import type { Resume, ResumeSummary, Template, TransformResult, LlmProvider, Tag } from '@/types/resume';
 import { getCached, setCache } from './cache';
+import { toast } from '@/components/Toast';
 
 import { API_URL } from './config';
 
@@ -49,10 +50,18 @@ async function request<T>(url: string, options?: RequestInit, retries = 2): Prom
       return request<T>(url, options, retries - 1);
     }
     if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new Error('서버가 배포 중이거나 시작 중입니다. 30초 후 다시 시도해주세요.');
+      const msg = '서버가 배포 중이거나 시작 중입니다. 30초 후 다시 시도해주세요.';
+      toast(msg, 'error');
+      throw new Error(msg);
     }
     if (err instanceof TypeError) {
-      throw new Error('서버에 연결할 수 없습니다. 배포 중일 수 있으니 잠시 후 다시 시도해주세요.');
+      const msg = '서버에 연결할 수 없습니다. 배포 중일 수 있으니 잠시 후 다시 시도해주세요.';
+      toast(msg, 'error');
+      throw new Error(msg);
+    }
+    // Show user-facing error messages via toast
+    if (err instanceof Error && err.message) {
+      toast(err.message, 'error');
     }
     throw err;
   }

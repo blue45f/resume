@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
+import EmptyState from '@/components/EmptyState';
 import { toast } from '@/components/Toast';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
@@ -136,9 +137,11 @@ export default function MessagesPage() {
               {loading ? (
                 <CardGridSkeleton count={3} />
               ) : filteredConversations.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-8">
-                  {search.trim() ? '검색 결과가 없습니다' : '대화가 없습니다'}
-                </p>
+                search.trim() ? (
+                  <p className="text-sm text-slate-400 text-center py-8">검색 결과가 없습니다</p>
+                ) : (
+                  <EmptyState type="message" />
+                )
               ) : (
                 <div className="divide-y divide-slate-100 dark:divide-slate-700">
                   {filteredConversations.map(conv => (

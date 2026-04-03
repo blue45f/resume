@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, memo } from 'react';
 import type { Resume } from '@/types/resume';
 import SafeHtml from '@/components/SafeHtml';
 import { resumeThemes, type ResumeTheme } from '@/lib/resumeThemes';
@@ -303,4 +303,4 @@ function Section({ title, children, theme }: { title: string; children: React.Re
 
 ResumePreview.displayName = 'ResumePreview';
 
-export default ResumePreview;
+export default memo(ResumePreview);

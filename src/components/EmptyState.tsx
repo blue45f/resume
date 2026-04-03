@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 interface Props {
-  type: 'search' | 'resume' | 'application' | 'template' | 'tag' | 'version' | 'attachment';
+  type: 'search' | 'resume' | 'application' | 'template' | 'tag' | 'version' | 'attachment' | 'scout' | 'cover-letter' | 'message' | 'notification';
   query?: string;
 }
 
@@ -80,6 +80,48 @@ const configs = {
     ),
     title: '첨부 파일이 없습니다',
     description: '포트폴리오, 자격증 등을 첨부하여 이력서를 보완하세요.',
+    actions: [],
+  },
+  scout: {
+    icon: (
+      <svg className="w-20 h-20 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+    title: '스카우트 제안이 없습니다',
+    description: '이력서를 공개하면 기업 관계자가 제안을 보낼 수 있습니다.',
+    actions: [],
+  },
+  'cover-letter': {
+    icon: (
+      <svg className="w-20 h-20 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    ),
+    title: '생성한 자소서가 없습니다',
+    description: 'AI로 자기소개서를 생성해보세요.',
+    actions: [
+      { label: 'AI 자소서 생성하기', to: '/cover-letter', variant: 'primary' as const },
+    ],
+  },
+  message: {
+    icon: (
+      <svg className="w-20 h-20 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+      </svg>
+    ),
+    title: '대화가 없습니다',
+    description: '다른 사용자에게 쪽지를 보내 대화를 시작하세요.',
+    actions: [],
+  },
+  notification: {
+    icon: (
+      <svg className="w-20 h-20 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      </svg>
+    ),
+    title: '알림이 없습니다',
+    description: '새로운 소식이 있으면 여기에 표시됩니다.',
     actions: [],
   },
 };
