@@ -76,18 +76,25 @@ export default function Footer() {
         {/* Sitemap links */}
         <div className="pb-6 mb-6 border-b border-slate-100 dark:border-slate-800">
           <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">사이트맵</h4>
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs">
-            <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">홈</Link>
-            <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">대시보드</Link>
-            <Link to="/explore" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">탐색</Link>
-            <Link to="/templates" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">템플릿</Link>
-            <Link to="/jobs" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">채용공고</Link>
-            <Link to="/cover-letter" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">자소서</Link>
-            <Link to="/interview-prep" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">면접준비</Link>
-            <Link to="/applications" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">지원관리</Link>
-            <Link to="/pricing" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">요금제</Link>
-            <Link to="/about" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">소개</Link>
-            <Link to="/terms" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">이용약관</Link>
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
+            {[
+              { to: '/', label: '홈' },
+              { to: '/explore', label: '탐색' },
+              { to: '/templates', label: '템플릿' },
+              { to: '/jobs', label: '채용공고' },
+              { to: '/cover-letter', label: '자소서' },
+              { to: '/interview-prep', label: '면접준비' },
+              { to: '/applications', label: '지원관리' },
+              { to: '/pricing', label: '요금제' },
+              { to: '/feedback', label: '피드백' },
+              { to: '/about', label: '소개' },
+              { to: '/tutorial', label: '가이드' },
+              { to: '/terms', label: '이용약관' },
+            ].map(link => (
+              <Link key={link.to + link.label} to={link.to} className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors">
+                {link.label}
+              </Link>
+            ))}
           </div>
         </div>
         <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 dark:text-slate-500">
