@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto, ChangePasswordDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, ChangePasswordDto, UpdateProfileDto } from './dto/auth.dto';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -36,12 +36,7 @@ export declare class AuthController {
         followerCount: number;
         followingCount: number;
     }> | null;
-    updateProfile(body: {
-        userType?: string;
-        name?: string;
-        companyName?: string;
-        companyTitle?: string;
-    }, req: any, res: Response): Promise<void>;
+    updateProfile(body: UpdateProfileDto, req: any, res: Response): Promise<void>;
     getAllUsers(req: any, search?: string): Promise<{
         id: string;
         email: string;

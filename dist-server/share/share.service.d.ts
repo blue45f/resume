@@ -15,12 +15,11 @@ export declare class ShareService {
     }>;
     getByToken(token: string, password?: string): Promise<{
         personalInfo: {
-            github: string;
+            summary: string;
             id: string;
             email: string;
             name: string;
-            summary: string;
-            resumeId: string;
+            github: string;
             phone: string;
             address: string;
             website: string;
@@ -28,52 +27,53 @@ export declare class ShareService {
             birthYear: string;
             links: string;
             military: string;
+            resumeId: string;
         } | null;
         experiences: {
+            description: string;
+            achievements: string;
             id: string;
             company: string;
-            description: string;
-            resumeId: string;
             position: string;
             department: string;
             startDate: string;
             endDate: string;
             current: boolean;
-            achievements: string;
             techStack: string;
             sortOrder: number;
+            resumeId: string;
         }[];
         educations: {
-            id: string;
             description: string;
-            resumeId: string;
+            id: string;
             startDate: string;
             endDate: string;
+            sortOrder: number;
             school: string;
             degree: string;
             field: string;
             gpa: string;
-            sortOrder: number;
+            resumeId: string;
         }[];
         skills: {
             id: string;
-            resumeId: string;
+            sortOrder: number;
             category: string;
             items: string;
-            sortOrder: number;
+            resumeId: string;
         }[];
         projects: {
+            description: string;
             link: string;
             id: string;
             name: string;
             role: string;
             company: string;
-            description: string;
-            resumeId: string;
             startDate: string;
             endDate: string;
             techStack: string;
             sortOrder: number;
+            resumeId: string;
         }[];
     } & {
         id: string;

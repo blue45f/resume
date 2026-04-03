@@ -9,16 +9,16 @@ export declare class CommentsService {
         createdAt: Date;
         userId: string | null;
         resumeId: string;
-        authorName: string;
         content: string;
+        authorName: string;
     }[]>;
     create(resumeId: string, content: string, userId?: string, authorName?: string): Promise<{
         id: string;
         createdAt: Date;
         userId: string | null;
         resumeId: string;
-        authorName: string;
         content: string;
+        authorName: string;
     }>;
     remove(id: string, userId?: string, role?: string): Promise<{
         success: boolean;

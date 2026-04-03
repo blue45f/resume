@@ -27,74 +27,74 @@ export declare class ShareController {
     }>;
     getShared(token: string, password?: string): Promise<{
         personalInfo: {
+            summary: string;
             id: string;
-            resumeId: string;
-            name: string;
             email: string;
+            name: string;
+            github: string;
             phone: string;
             address: string;
             website: string;
-            github: string;
-            summary: string;
             photo: string;
             birthYear: string;
             links: string;
             military: string;
+            resumeId: string;
         } | null;
         experiences: {
+            description: string;
+            achievements: string;
             id: string;
-            resumeId: string;
             company: string;
             position: string;
             department: string;
             startDate: string;
             endDate: string;
             current: boolean;
-            description: string;
-            achievements: string;
             techStack: string;
             sortOrder: number;
+            resumeId: string;
         }[];
         educations: {
+            description: string;
             id: string;
-            resumeId: string;
             startDate: string;
             endDate: string;
-            description: string;
+            sortOrder: number;
             school: string;
             degree: string;
             field: string;
             gpa: string;
-            sortOrder: number;
+            resumeId: string;
         }[];
         skills: {
             id: string;
-            resumeId: string;
+            sortOrder: number;
             category: string;
             items: string;
-            sortOrder: number;
+            resumeId: string;
         }[];
         projects: {
+            description: string;
+            link: string;
             id: string;
-            resumeId: string;
             name: string;
             role: string;
             company: string;
             startDate: string;
             endDate: string;
-            description: string;
             techStack: string;
-            link: string;
             sortOrder: number;
+            resumeId: string;
         }[];
     } & {
         id: string;
+        createdAt: Date;
+        userId: string | null;
         title: string;
         slug: string;
         viewCount: number;
         visibility: string;
-        userId: string | null;
-        createdAt: Date;
         updatedAt: Date;
     }>;
 }

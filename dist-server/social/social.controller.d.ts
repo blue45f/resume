@@ -36,8 +36,8 @@ export declare class SocialController {
         id: string;
         createdAt: Date;
         company: string;
-        resumeId: string | null;
         position: string;
+        resumeId: string | null;
         message: string;
         read: boolean;
         senderId: string;
@@ -55,8 +55,8 @@ export declare class SocialController {
         id: string;
         createdAt: Date;
         company: string;
-        resumeId: string | null;
         position: string;
+        resumeId: string | null;
         message: string;
         read: boolean;
         senderId: string;

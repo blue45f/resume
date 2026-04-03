@@ -14,3 +14,9 @@ export declare class ChangePasswordDto {
     currentPassword: string;
     newPassword: string;
 }
+export declare class UpdateProfileDto {
+    userType?: string;
+    name?: string;
+    companyName?: string;
+    companyTitle?: string;
+}

@@ -6,11 +6,11 @@ export declare class CoverLettersService {
         id: string;
         createdAt: Date;
         company: string;
+        position: string;
         updatedAt: Date;
         resumeId: string | null;
-        position: string;
-        applicationId: string | null;
         content: string;
+        applicationId: string | null;
         tone: string;
     }[]>;
     findOne(id: string, userId: string): Promise<{
@@ -18,12 +18,12 @@ export declare class CoverLettersService {
         createdAt: Date;
         userId: string;
         company: string;
+        position: string;
         updatedAt: Date;
         resumeId: string | null;
-        position: string;
+        content: string;
         jobDescription: string;
         applicationId: string | null;
-        content: string;
         tone: string;
     }>;
     create(userId: string, data: {
@@ -39,12 +39,12 @@ export declare class CoverLettersService {
         createdAt: Date;
         userId: string;
         company: string;
+        position: string;
         updatedAt: Date;
         resumeId: string | null;
-        position: string;
+        content: string;
         jobDescription: string;
         applicationId: string | null;
-        content: string;
         tone: string;
     }>;
     update(id: string, userId: string, data: {
@@ -56,12 +56,12 @@ export declare class CoverLettersService {
         createdAt: Date;
         userId: string;
         company: string;
+        position: string;
         updatedAt: Date;
         resumeId: string | null;
-        position: string;
+        content: string;
         jobDescription: string;
         applicationId: string | null;
-        content: string;
         tone: string;
     }>;
     remove(id: string, userId: string): Promise<{
@@ -72,12 +72,12 @@ export declare class CoverLettersService {
         createdAt: Date;
         userId: string;
         company: string;
+        position: string;
         updatedAt: Date;
         resumeId: string | null;
-        position: string;
+        content: string;
         jobDescription: string;
         applicationId: string | null;
-        content: string;
         tone: string;
     }[]>;
 }

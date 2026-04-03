@@ -8,10 +8,10 @@ export declare class ApplicationsController {
         createdAt: Date;
         userId: string | null;
         company: string;
+        position: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        position: string;
         url: string | null;
         status: string;
         appliedDate: string | null;
@@ -28,10 +28,10 @@ export declare class ApplicationsController {
         createdAt: Date;
         userId: string | null;
         company: string;
+        position: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        position: string;
         url: string | null;
         status: string;
         appliedDate: string | null;
@@ -44,10 +44,10 @@ export declare class ApplicationsController {
         createdAt: Date;
         userId: string | null;
         company: string;
+        position: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        position: string;
         url: string | null;
         status: string;
         appliedDate: string | null;
@@ -62,9 +62,9 @@ export declare class ApplicationsController {
         id: string;
         createdAt: Date;
         userId: string | null;
+        content: string;
         applicationId: string;
         authorName: string;
-        content: string;
     }[]>;
     addComment(id: string, body: {
         content: string;
@@ -72,8 +72,8 @@ export declare class ApplicationsController {
         id: string;
         createdAt: Date;
         userId: string | null;
+        content: string;
         applicationId: string;
         authorName: string;
-        content: string;
     }>;
 }

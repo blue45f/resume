@@ -7,10 +7,10 @@ export declare class ApplicationsService {
         createdAt: Date;
         userId: string | null;
         company: string;
+        position: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        position: string;
         url: string | null;
         status: string;
         appliedDate: string | null;
@@ -37,10 +37,10 @@ export declare class ApplicationsService {
         createdAt: Date;
         userId: string | null;
         company: string;
+        position: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        position: string;
         url: string | null;
         status: string;
         appliedDate: string | null;
@@ -62,10 +62,10 @@ export declare class ApplicationsService {
         createdAt: Date;
         userId: string | null;
         company: string;
+        position: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        position: string;
         url: string | null;
         status: string;
         appliedDate: string | null;
@@ -81,10 +81,10 @@ export declare class ApplicationsService {
         createdAt: Date;
         userId: string | null;
         company: string;
+        position: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
-        position: string;
         url: string | null;
         status: string;
         appliedDate: string | null;
@@ -96,16 +96,16 @@ export declare class ApplicationsService {
         id: string;
         createdAt: Date;
         userId: string | null;
+        content: string;
         applicationId: string;
         authorName: string;
-        content: string;
     }[]>;
     addComment(applicationId: string, content: string, userId?: string): Promise<{
         id: string;
         createdAt: Date;
         userId: string | null;
+        content: string;
         applicationId: string;
         authorName: string;
-        content: string;
     }>;
 }

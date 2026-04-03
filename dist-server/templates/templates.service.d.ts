@@ -3,34 +3,34 @@ export declare class TemplatesService {
     private prisma;
     constructor(prisma: PrismaService);
     findAll(): Promise<{
+        description: string;
         id: string;
         name: string;
-        description: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        category: string;
+        visibility: string;
+        updatedAt: Date;
         prompt: string;
         layout: string;
-        visibility: string;
         usageCount: number;
         rating: number | null;
         isDefault: boolean;
-        createdAt: Date;
-        updatedAt: Date;
     }[]>;
     findOne(id: string): Promise<{
+        description: string;
         id: string;
         name: string;
-        description: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        category: string;
+        visibility: string;
+        updatedAt: Date;
         prompt: string;
         layout: string;
-        visibility: string;
         usageCount: number;
         rating: number | null;
         isDefault: boolean;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     create(data: {
         name: string;
@@ -40,19 +40,19 @@ export declare class TemplatesService {
         layout?: string;
         isDefault?: boolean;
     }, userId?: string): Promise<{
+        description: string;
         id: string;
         name: string;
-        description: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        category: string;
+        visibility: string;
+        updatedAt: Date;
         prompt: string;
         layout: string;
-        visibility: string;
         usageCount: number;
         rating: number | null;
         isDefault: boolean;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     update(id: string, data: {
         name?: string;
@@ -63,37 +63,37 @@ export declare class TemplatesService {
         visibility?: string;
         isDefault?: boolean;
     }, userId?: string, role?: string): Promise<{
+        description: string;
         id: string;
         name: string;
-        description: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        category: string;
+        visibility: string;
+        updatedAt: Date;
         prompt: string;
         layout: string;
-        visibility: string;
         usageCount: number;
         rating: number | null;
         isDefault: boolean;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     remove(id: string, userId?: string, role?: string): Promise<{
         success: boolean;
     }>;
     findPublic(category?: string): Promise<{
+        description: string;
         id: string;
         name: string;
-        description: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        category: string;
+        visibility: string;
+        updatedAt: Date;
         prompt: string;
         layout: string;
-        visibility: string;
         usageCount: number;
         rating: number | null;
         isDefault: boolean;
-        createdAt: Date;
-        updatedAt: Date;
     }[]>;
     incrementUsage(id: string): Promise<void>;
     seed(): Promise<{
