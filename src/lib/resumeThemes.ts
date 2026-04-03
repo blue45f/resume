@@ -171,6 +171,7 @@ export const resumeThemes: ResumeTheme[] = [
     accentColor: 'slate',
     fontFamily: "'Inter', -apple-system, sans-serif",
     premium: true,
+    preview: { headerBg: '#1a1a2e', headerText: '#eaeaea', accentBar: '#6c63ff', bodyBg: '#ffffff', category: 'tech', bestFor: '개발자, 데이터' },
   },
   {
     id: 'corporate',
@@ -182,6 +183,7 @@ export const resumeThemes: ResumeTheme[] = [
     accentColor: 'slate',
     fontFamily: "'Noto Sans KR', sans-serif",
     premium: true,
+    preview: { headerBg: '#ffffff', headerText: '#0f172a', accentBar: '#0f172a', bodyBg: '#ffffff', category: 'professional', bestFor: '대기업, 공채' },
   },
   {
     id: 'portfolio',
@@ -193,5 +195,15 @@ export const resumeThemes: ResumeTheme[] = [
     accentColor: 'indigo',
     fontFamily: "'Pretendard', sans-serif",
     premium: true,
+    preview: { headerBg: 'linear-gradient(to bottom right, #4338ca, #9333ea, #ec4899)', headerText: '#ffffff', accentBar: '#6366f1', bodyBg: '#ffffff', category: 'creative', bestFor: '크리에이터, 포트폴리오' },
   },
 ];
+
+/** Category labels for theme gallery grouping */
+export const THEME_CATEGORY_LABELS: Record<string, string> = {
+  basic: '기본',
+  professional: '프로페셔널',
+  creative: '크리에이티브',
+  academic: '학술/연구',
+  tech: '테크/개발',
+};

@@ -47,7 +47,33 @@ const ACTIVITY_ICONS: Record<string, JSX.Element> = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
     </svg>
   ),
+  follow: (
+    <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+    </svg>
+  ),
+  social_comment: (
+    <svg className="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+    </svg>
+  ),
+  scout: (
+    <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+  ),
 };
+
+const AVATAR_COLORS = [
+  'bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-orange-500',
+  'bg-cyan-500', 'bg-rose-500', 'bg-amber-500', 'bg-teal-500',
+];
+
+function getAvatarBg(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
 
 function getDateGroup(dateStr: string): string {
   const now = new Date();
@@ -113,6 +139,72 @@ export default function RecentActivity() {
         // Sort by date desc
         acts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         setActivities(acts);
+      })
+      .catch(() => {});
+
+    // Fetch social activities (followers, comments, scouts)
+    const socialEndpoints = [
+      { url: `${API_URL}/api/social/followers`, type: 'follow' as const, msgFn: (item: any) => `${item.name || '사용자'}님이 당신을 팔로우했습니다` },
+      { url: `${API_URL}/api/social/scouts`, type: 'scout' as const, msgFn: (item: any) => `${item.senderName || item.companyName || '기업'}님이 스카우트를 보냈습니다` },
+    ];
+
+    for (const ep of socialEndpoints) {
+      fetch(ep.url, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : [])
+        .then((items: any[]) => {
+          if (!Array.isArray(items) || items.length === 0) return;
+          const socialActs: Activity[] = items.slice(0, 5).map((item, i) => ({
+            id: `${ep.type}-${item.id || i}`,
+            type: ep.type,
+            resumeId: item.resumeId || '',
+            description: ep.msgFn(item),
+            createdAt: item.createdAt || new Date().toISOString(),
+            actorName: item.name || item.senderName || item.companyName || '사용자',
+            isSocial: true,
+          }));
+          setActivities(prev => {
+            const merged = [...prev, ...socialActs];
+            merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            return merged;
+          });
+        })
+        .catch(() => {});
+    }
+
+    // Fetch recent comments on user's resumes
+    fetch(`${API_URL}/api/resumes`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : [])
+      .then((resumes: any[]) => {
+        if (!Array.isArray(resumes)) return;
+        const commentPromises = resumes.slice(0, 5).map(resume =>
+          fetch(`${API_URL}/api/resumes/${resume.id}/comments`, { headers: { Authorization: `Bearer ${token}` } })
+            .then(r => r.ok ? r.json() : [])
+            .then((comments: any[]) =>
+              (Array.isArray(comments) ? comments : [])
+                .filter((c: any) => c.userId !== JSON.parse(localStorage.getItem('user') || '{}').id)
+                .slice(0, 3)
+                .map((c: any) => ({
+                  id: `social_comment-${c.id}`,
+                  type: 'social_comment' as const,
+                  resumeId: resume.id,
+                  resumeTitle: resume.title,
+                  description: `${c.userName || c.name || '사용자'}님이 이력서에 댓글을 남겼습니다`,
+                  createdAt: c.createdAt || new Date().toISOString(),
+                  actorName: c.userName || c.name || '사용자',
+                  isSocial: true,
+                }))
+            )
+            .catch(() => [] as Activity[])
+        );
+        Promise.all(commentPromises).then(results => {
+          const allComments = results.flat();
+          if (allComments.length === 0) return;
+          setActivities(prev => {
+            const merged = [...prev, ...allComments];
+            merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            return merged;
+          });
+        });
       })
       .catch(() => {});
   }, []);

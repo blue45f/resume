@@ -35,6 +35,9 @@ import BookmarkButton from '@/components/BookmarkButton';
 import FollowButton from '@/components/FollowButton';
 import SendMessageButton from '@/components/SendMessageButton';
 import QrCodeModal from '@/components/QrCodeModal';
+import ExportPanel from '@/components/ExportPanel';
+import PublicLinkSettings from '@/components/PublicLinkSettings';
+import ShareStats from '@/components/ShareStats';
 import { API_URL } from '@/lib/config';
 
 /** Map theme accentColor to Tailwind classes */

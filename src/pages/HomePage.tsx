@@ -13,6 +13,7 @@ import DashboardStats from '@/components/DashboardStats';
 import NetworkStats from '@/components/NetworkStats';
 import RecentActivity from '@/components/RecentActivity';
 import HiringTrends from '@/components/HiringTrends';
+import CareerInsights from '@/components/CareerInsights';
 import OnboardingBanner from '@/components/OnboardingBanner';
 import { t } from '@/lib/i18n';
 import { getUser } from '@/lib/auth';

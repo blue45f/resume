@@ -305,12 +305,30 @@ export default function JobsPage() {
 }
 
 /* Extracted detail panel for reuse in desktop and mobile */
-function JobDetailPanel({ job, isPersonal }: { job: JobPost; isPersonal: boolean }) {
+function JobDetailPanel({ job, isPersonal, userSkills }: { job: JobPost; isPersonal: boolean; userSkills: Set<string> }) {
+  const matchScore = userSkills.size > 0 && job.skills ? calculateMatchScore(userSkills, job.skills) : 0;
+  const jobSkillsList = job.skills ? job.skills.split(',').map(s => s.trim()) : [];
+  const matchedSkills = jobSkillsList.filter(s => userSkills.has(s.toLowerCase()));
+  const missingSkills = jobSkillsList.filter(s => !userSkills.has(s.toLowerCase()));
+
   return (
     <>
       {/* Header */}
       <div className="mb-5">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{job.position}</h2>
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{job.position}</h2>
+          {matchScore > 0 && (
+            <div className={`shrink-0 px-3 py-1.5 rounded-xl text-center ${
+              matchScore >= 80 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+              matchScore >= 60 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' :
+              matchScore >= 30 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
+              'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+            }`}>
+              <div className="text-lg font-bold">{matchScore}%</div>
+              <div className="text-[10px] font-medium">매칭률</div>
+            </div>
+          )}
+        </div>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{job.company}</p>
         <div className="flex flex-wrap gap-3 mt-3 text-xs text-slate-500 dark:text-slate-400">
           {job.location && (
@@ -362,18 +380,45 @@ function JobDetailPanel({ job, isPersonal }: { job: JobPost; isPersonal: boolean
         </div>
       </div>
 
-      {/* Required skills */}
+      {/* Required skills with match highlighting */}
       {job.skills && (
         <div className="mb-5">
-          <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">요구 기술</h4>
+          <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            요구 기술
+            {userSkills.size > 0 && matchedSkills.length > 0 && (
+              <span className="ml-2 text-xs font-normal text-slate-400">({matchedSkills.length}/{jobSkillsList.length} 보유)</span>
+            )}
+          </h4>
           <div className="flex flex-wrap gap-1.5">
-            {job.skills.split(',').map((s, i) => {
+            {jobSkillsList.map((s, i) => {
+              const isMatched = userSkills.has(s.trim().toLowerCase());
+              if (userSkills.size > 0) {
+                return (
+                  <span key={i} className={`px-2.5 py-1 text-xs font-medium rounded-lg flex items-center gap-1 ${
+                    isMatched
+                      ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-700'
+                      : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800'
+                  }`}>
+                    {isMatched ? (
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                    ) : (
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                    )}
+                    {s.trim()}
+                  </span>
+                );
+              }
               const c = getSkillColor(i);
               return (
                 <span key={i} className={`px-2.5 py-1 text-xs font-medium ${c.bg} ${c.text} rounded-lg`}>{s.trim()}</span>
               );
             })}
           </div>
+          {userSkills.size > 0 && missingSkills.length > 0 && (
+            <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
+              {missingSkills.map(s => s.trim()).join(', ')} 기술을 이력서에 추가하면 매칭률이 올라갑니다
+            </p>
+          )}
         </div>
       )}
 
