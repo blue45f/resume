@@ -90,6 +90,8 @@ export const duplicateResume = (id: string) =>
 export const setResumeVisibility = (id: string, visibility: string) =>
   request<{ id: string; visibility: string }>(`${BASE}/resumes/${id}/visibility`, { method: 'PATCH', body: JSON.stringify({ visibility }) });
 export const fetchPublicResumes = () => request<ResumeSummary[]>(`${BASE}/resumes/public`);
+export const updateResumeSlug = (id: string, slug: string) =>
+  request<{ id: string; slug: string }>(`${BASE}/resumes/${id}/slug`, { method: 'PATCH', body: JSON.stringify({ slug }) });
 
 // Bookmarks
 export const addBookmark = (resumeId: string) =>

@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getUser } from '@/lib/auth';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
+import { fetchResumes } from '@/lib/api';
+import type { ResumeSummary } from '@/types/resume';
 
 
 interface JobPost {

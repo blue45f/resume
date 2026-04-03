@@ -10,6 +10,7 @@ import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchResumes, deleteResume, duplicateResume, fetchTags, fetchBookmarks } from '@/lib/api';
 import ResumeThumbnail from '@/components/ResumeThumbnail';
 import DashboardStats from '@/components/DashboardStats';
+import NetworkStats from '@/components/NetworkStats';
 import RecentActivity from '@/components/RecentActivity';
 import HiringTrends from '@/components/HiringTrends';
 import OnboardingBanner from '@/components/OnboardingBanner';
@@ -306,6 +307,8 @@ export default function HomePage() {
             <OnboardingBanner />
 
             <DashboardStats />
+
+            <NetworkStats />
 
             {user && (!user.plan || user.plan === 'free') && resumes.length >= 2 && (
               <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center justify-between animate-fade-in">

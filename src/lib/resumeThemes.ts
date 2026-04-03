@@ -8,6 +8,15 @@ export interface ResumeTheme {
   accentColor: string;
   fontFamily: string;
   premium?: boolean;
+  /** Preview metadata for gallery cards */
+  preview?: {
+    headerBg: string;
+    headerText: string;
+    accentBar: string;
+    bodyBg: string;
+    category: 'basic' | 'professional' | 'creative' | 'academic' | 'tech';
+    bestFor: string;
+  };
 }
 
 export const resumeThemes: ResumeTheme[] = [
@@ -20,6 +29,7 @@ export const resumeThemes: ResumeTheme[] = [
     bodyStyle: 'text-slate-800',
     accentColor: 'slate',
     fontFamily: "-apple-system, 'Pretendard', sans-serif",
+    preview: { headerBg: '#1e293b', headerText: '#ffffff', accentBar: '#334155', bodyBg: '#ffffff', category: 'basic', bestFor: '모든 직군, 범용' },
   },
   {
     id: 'modern',
@@ -30,6 +40,7 @@ export const resumeThemes: ResumeTheme[] = [
     bodyStyle: 'text-slate-700',
     accentColor: 'blue',
     fontFamily: "'Inter', -apple-system, sans-serif",
+    preview: { headerBg: '#eff6ff', headerText: '#1e40af', accentBar: '#3b82f6', bodyBg: '#ffffff', category: 'basic', bestFor: 'IT, 스타트업' },
   },
   {
     id: 'minimal',
@@ -40,6 +51,7 @@ export const resumeThemes: ResumeTheme[] = [
     bodyStyle: 'text-slate-500 leading-loose',
     accentColor: 'slate',
     fontFamily: "'Helvetica Neue', Arial, sans-serif",
+    preview: { headerBg: '#f8fafc', headerText: '#475569', accentBar: '#94a3b8', bodyBg: '#ffffff', category: 'basic', bestFor: '디자이너, 마케팅' },
   },
   {
     id: 'professional',
@@ -51,6 +63,7 @@ export const resumeThemes: ResumeTheme[] = [
     accentColor: 'slate',
     fontFamily: "'Noto Sans KR', sans-serif",
     premium: true,
+    preview: { headerBg: '#0f172a', headerText: '#ffffff', accentBar: '#1e293b', bodyBg: '#ffffff', category: 'professional', bestFor: '경력직, 대기업' },
   },
   {
     id: 'creative',
@@ -62,6 +75,7 @@ export const resumeThemes: ResumeTheme[] = [
     accentColor: 'purple',
     fontFamily: "'Pretendard', sans-serif",
     premium: true,
+    preview: { headerBg: 'linear-gradient(to right, #9333ea, #ec4899, #f97316)', headerText: '#ffffff', accentBar: '#a855f7', bodyBg: '#ffffff', category: 'creative', bestFor: '크리에이터, 디자이너' },
   },
   {
     id: 'executive',
@@ -73,6 +87,7 @@ export const resumeThemes: ResumeTheme[] = [
     accentColor: 'slate',
     fontFamily: "'Georgia', 'Noto Serif KR', serif",
     premium: true,
+    preview: { headerBg: '#ffffff', headerText: '#1e293b', accentBar: '#94a3b8', bodyBg: '#ffffff', category: 'professional', bestFor: '임원, C-Level' },
   },
   {
     id: 'startup',
