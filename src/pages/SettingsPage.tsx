@@ -6,6 +6,7 @@ import { toast } from '@/components/Toast';
 import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
 import ProfileBadges from '@/components/ProfileBadges';
 import { getPlan } from '@/lib/plans';
+import { getTheme, setTheme } from '@/lib/theme';
 import { API_URL } from '@/lib/config';
 
 
@@ -61,6 +62,13 @@ export default function SettingsPage() {
   const [usage, setUsage] = useState<{ feature: string; count: number }[]>([]);
   const [userType, setUserType] = useState(user?.userType || 'personal');
   const [switchingType, setSwitchingType] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState(getTheme());
+  const [notifications, setNotifications] = useState(() => {
+    const saved = localStorage.getItem('notification-prefs');
+    return saved ? JSON.parse(saved) : { email: true, scout: true, comment: true };
+  });
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   useEffect(() => {
     if (!user) navigate('/login');
@@ -111,9 +119,6 @@ export default function SettingsPage() {
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirm('정말로 계정을 삭제하시겠습니까?\n모든 이력서, 지원 내역, 데이터가 영구 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.')) return;
-    if (!confirm('마지막 확인: 계정을 영구 삭제하시겠습니까?')) return;
-
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_URL}/api/auth/account`, {
@@ -130,6 +135,61 @@ export default function SettingsPage() {
       window.location.reload();
     } catch (err: any) {
       toast(err.message || '계정 삭제에 실패했습니다', 'error');
+    }
+  };
+
+  const handleNotificationToggle = (key: 'email' | 'scout' | 'comment') => {
+    const updated = { ...notifications, [key]: !notifications[key] };
+    setNotifications(updated);
+    localStorage.setItem('notification-prefs', JSON.stringify(updated));
+    const token = getToken();
+    if (token) {
+      fetch(`${API_URL}/api/auth/profile`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ notifications: updated }),
+      }).catch(() => {});
+    }
+    toast('알림 설정이 저장되었습니다', 'success');
+  };
+
+  const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
+    setTheme(theme);
+    setCurrentTheme(theme);
+    toast(`${theme === 'light' ? '라이트' : theme === 'dark' ? '다크' : '시스템'} 테마가 적용되었습니다`, 'success');
+  };
+
+  const handleExportData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const [resumesRes, appsRes] = await Promise.all([
+        fetch(`${API_URL}/api/resumes`, { headers }),
+        fetch(`${API_URL}/api/applications`, { headers }),
+      ]);
+
+      const resumes = await resumesRes.json();
+      const apps = await appsRes.json();
+
+      const data = {
+        exportDate: new Date().toISOString(),
+        user: { name: user?.name, email: user?.email },
+        resumes: resumes.data || resumes,
+        applications: apps,
+        notificationPreferences: notifications,
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `이력서공방_데이터_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('데이터가 다운로드되었습니다', 'success');
+    } catch {
+      toast('다운로드에 실패했습니다', 'error');
     }
   };
 
@@ -370,52 +430,115 @@ export default function SettingsPage() {
           </section>
         )}
 
+        {/* Notification Preferences */}
+        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">알림 설정</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">받고 싶은 알림 유형을 선택하세요.</p>
+          <div className="space-y-3">
+            {([
+              { key: 'email' as const, label: '이메일 알림', desc: '이력서 변환 완료, 지원 현황 등의 이메일 알림' },
+              { key: 'scout' as const, label: '스카우트 알림', desc: '채용담당자의 스카우트 제안 알림' },
+              { key: 'comment' as const, label: '댓글 알림', desc: '내 이력서에 달린 댓글 및 피드백 알림' },
+            ]).map(item => (
+              <div key={item.key} className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-600">
+                <div>
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{item.label}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{item.desc}</p>
+                </div>
+                <button
+                  onClick={() => handleNotificationToggle(item.key)}
+                  className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                    notifications[item.key]
+                      ? 'bg-blue-600'
+                      : 'bg-slate-300 dark:bg-slate-600'
+                  }`}
+                  role="switch"
+                  aria-checked={notifications[item.key]}
+                  aria-label={item.label}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
+                      notifications[item.key] ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Theme Preview */}
+        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">테마 설정</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">인터페이스 테마를 선택하세요.</p>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            {([
+              { value: 'light' as const, label: '라이트', icon: '☀️' },
+              { value: 'dark' as const, label: '다크', icon: '🌙' },
+              { value: 'system' as const, label: '시스템', icon: '💻' },
+            ]).map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => handleThemeChange(opt.value)}
+                className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
+                  currentTheme === opt.value
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500'
+                    : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
+                }`}
+              >
+                <span className="text-2xl block mb-1">{opt.icon}</span>
+                <span className={`text-sm font-medium ${
+                  currentTheme === opt.value ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'
+                }`}>{opt.label}</span>
+              </button>
+            ))}
+          </div>
+          {/* Mini theme preview */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-600 overflow-hidden">
+            <div className="text-xs text-slate-400 dark:text-slate-500 px-3 py-1.5 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-600">
+              미리보기 — {currentTheme === 'light' ? '라이트' : currentTheme === 'dark' ? '다크' : '시스템'} 모드
+            </div>
+            <div className={`p-4 ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-900' : 'bg-white'}`}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-8 h-8 rounded-full ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                <div className="flex-1 space-y-1.5">
+                  <div className={`h-2.5 rounded-full w-24 ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                  <div className={`h-2 rounded-full w-16 ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <div className={`h-2 rounded-full w-full ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                <div className={`h-2 rounded-full w-3/4 ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                <div className={`h-2 rounded-full w-1/2 ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-800' : 'bg-slate-100'}`} />
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Data Export */}
         <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">데이터 내보내기</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">모든 이력서와 지원 내역을 JSON 파일로 다운로드합니다.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">모든 이력서, 지원 내역, 설정을 JSON 파일로 다운로드합니다.</p>
           <button
-            onClick={async () => {
-              try {
-                const token = localStorage.getItem('token');
-                const headers: Record<string, string> = {};
-                if (token) headers['Authorization'] = `Bearer ${token}`;
-
-                const [resumesRes, appsRes] = await Promise.all([
-                  fetch(`${API_URL}/api/resumes`, { headers }),
-                  fetch(`${API_URL}/api/applications`, { headers }),
-                ]);
-
-                const resumes = await resumesRes.json();
-                const apps = await appsRes.json();
-
-                const data = { exportDate: new Date().toISOString(), resumes: resumes.data || resumes, applications: apps };
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `이력서공방_데이터_${new Date().toISOString().slice(0, 10)}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-                toast('데이터가 다운로드되었습니다', 'success');
-              } catch {
-                toast('다운로드에 실패했습니다', 'error');
-              }
-            }}
-            className="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all duration-200"
+            onClick={handleExportData}
+            className="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all duration-200 flex items-center gap-2"
           >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             JSON으로 내보내기
           </button>
         </section>
 
-        {/* Danger Zone */}
-        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-red-200 dark:border-red-900 p-6">
-          <h2 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">위험 영역</h2>
+        {/* Danger Zone — Account Deletion */}
+        <section className="bg-white dark:bg-slate-800 rounded-2xl border-2 border-red-200 dark:border-red-900/60 p-6">
+          <div className="flex items-center gap-2 mb-2">
+            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+            <h2 className="text-lg font-semibold text-red-600 dark:text-red-400">위험 영역</h2>
+          </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
             계정을 삭제하면 모든 이력서, 지원 내역, 버전 기록이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
           </p>
           <button
-            onClick={handleDeleteAccount}
+            onClick={() => setDeleteConfirmOpen(true)}
             className="px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-all duration-200"
           >
             계정 영구 삭제
@@ -423,6 +546,65 @@ export default function SettingsPage() {
         </section>
       </main>
       <Footer />
+
+      {/* Account Deletion Confirmation Modal */}
+      {deleteConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-red-200 dark:border-red-900 shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">계정 삭제</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">이 작업은 되돌릴 수 없습니다</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+              계정을 삭제하면 다음 데이터가 모두 영구 삭제됩니다:
+            </p>
+            <ul className="text-sm text-slate-500 dark:text-slate-400 mb-4 space-y-1 list-disc list-inside">
+              <li>모든 이력서 및 버전 기록</li>
+              <li>지원 내역 및 자기소개서</li>
+              <li>스카우트 메시지 및 알림</li>
+              <li>프로필 및 계정 정보</li>
+            </ul>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">
+              확인을 위해 <span className="font-mono font-bold text-red-600 dark:text-red-400">삭제</span>를 입력하세요:
+            </p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value)}
+              placeholder="삭제"
+              className="w-full px-4 py-2.5 border border-red-200 dark:border-red-800 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setDeleteConfirmOpen(false); setDeleteConfirmText(''); }}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => {
+                  if (deleteConfirmText === '삭제') {
+                    setDeleteConfirmOpen(false);
+                    setDeleteConfirmText('');
+                    handleDeleteAccount();
+                  } else {
+                    toast('"삭제"를 정확히 입력해주세요', 'error');
+                  }
+                }}
+                disabled={deleteConfirmText !== '삭제'}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                영구 삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
