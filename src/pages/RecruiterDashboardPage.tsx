@@ -4,8 +4,8 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getUser } from '@/lib/auth';
 import { timeAgo } from '@/lib/time';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function RecruiterDashboardPage() {
   const navigate = useNavigate();

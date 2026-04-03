@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface Props {
   resumeId: string;

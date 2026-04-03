@@ -5,8 +5,8 @@ import FeatureGate from '@/components/FeatureGate';
 import { toast } from '@/components/Toast';
 import { fetchResumes } from '@/lib/api';
 import type { ResumeSummary } from '@/types/resume';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 const TARGET_LANGUAGES = [
   { code: 'en', name: 'English', flag: '\u{1F1FA}\u{1F1F8}', desc: '영문 이력서 (미국/글로벌)' },

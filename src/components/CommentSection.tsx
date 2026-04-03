@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { toast } from '@/components/Toast';
 import { timeAgo } from '@/lib/time';
 import { getUser } from '@/lib/auth';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface Comment {
   id: string;

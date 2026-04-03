@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from './auth.guard';
-import { RegisterDto, LoginDto, ChangePasswordDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, ChangePasswordDto, UpdateProfileDto } from './dto/auth.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -275,7 +275,7 @@ export class AuthController {
   @Patch('profile')
   @ApiOperation({ summary: '프로필 수정 (userType, name 등)' })
   async updateProfile(
-    @Body() body: { userType?: string; name?: string; companyName?: string; companyTitle?: string },
+    @Body() body: UpdateProfileDto,
     @Req() req: any,
     @Res() res: Response,
   ) {

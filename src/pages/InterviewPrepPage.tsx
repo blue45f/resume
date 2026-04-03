@@ -4,8 +4,8 @@ import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { fetchResumes } from '@/lib/api';
 import type { ResumeSummary } from '@/types/resume';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function InterviewPrepPage() {
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);

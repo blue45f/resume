@@ -8,8 +8,8 @@ import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchTags } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import BookmarkButton from '@/components/BookmarkButton';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface SearchResult {
   data: ResumeSummary[];
@@ -336,7 +336,7 @@ export default function ExplorePage() {
                     <Link
                       key={`trending-${r.id}`}
                       to={`/resumes/${r.id}/preview`}
-                      className="shrink-0 w-48 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200"
+                      className="card-hover shrink-0 w-48 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700"
                     >
                       <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{r.title || '제목 없음'}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{r.personalInfo?.name}</p>

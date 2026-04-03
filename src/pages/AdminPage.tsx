@@ -5,8 +5,8 @@ import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 import { PLANS } from '@/lib/plans';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface RecentUser {
   id: string;

@@ -5,8 +5,8 @@ import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import { fetchScouts } from '@/lib/api';
 import { timeAgo } from '@/lib/time';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface Scout {
   id: string;

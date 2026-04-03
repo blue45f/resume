@@ -5,8 +5,8 @@ import FeatureGate from '@/components/FeatureGate';
 import { toast } from '@/components/Toast';
 import { fetchResumes } from '@/lib/api';
 import type { ResumeSummary } from '@/types/resume';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function CoverLetterPage() {
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);

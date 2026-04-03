@@ -4,8 +4,8 @@ import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
 import { getTheme, setTheme } from '@/lib/theme';
 import { t, getLocale, setLocale, LOCALES, getLocaleName } from '@/lib/i18n';
 import NotificationBell from '@/components/NotificationBell';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);

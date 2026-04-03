@@ -7,8 +7,8 @@ import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 import { followUser, unfollowUser } from '@/lib/api';
 import type { Resume } from '@/types/resume';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function ProfileResumePage() {
   const { username, slug } = useParams<{ username: string; slug: string }>();

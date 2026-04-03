@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/i18n';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 function SiteStats() {
   const [stats, setStats] = useState<{ users: number; resumes: number; views: number } | null>(null);

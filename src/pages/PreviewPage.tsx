@@ -31,8 +31,8 @@ import { fetchResume } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import BookmarkButton from '@/components/BookmarkButton';
 import QrCodeModal from '@/components/QrCodeModal';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function PreviewPage() {
   const { id } = useParams<{ id: string }>();

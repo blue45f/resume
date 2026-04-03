@@ -1,9 +1,10 @@
 import type { Resume, ResumeSummary, Template, TransformResult, LlmProvider, Tag } from '@/types/resume';
 import { getCached, setCache } from './cache';
 
+import { API_URL } from './config';
+
 // 개발: Vite proxy로 /api → localhost:3001
 // 프로덕션: VITE_API_URL 환경변수로 백엔드 URL 지정
-const API_URL = import.meta.env.VITE_API_URL || '';
 const BASE = `${API_URL}/api`;
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {

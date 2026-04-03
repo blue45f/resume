@@ -6,8 +6,8 @@ import { toast } from '@/components/Toast';
 import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
 import ProfileBadges from '@/components/ProfileBadges';
 import { getPlan } from '@/lib/plans';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 function RecentActivityList() {
   const [activities, setActivities] = useState<any[]>([]);

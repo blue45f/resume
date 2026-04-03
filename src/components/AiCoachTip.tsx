@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import FeatureGate from '@/components/FeatureGate';
 import { toast } from '@/components/Toast';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface Props {
   resumeId: string;

@@ -8,14 +8,15 @@ import Footer from '@/components/Footer';
 import { timeAgo } from '@/lib/time';
 import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchResumes, deleteResume, duplicateResume, fetchTags, fetchBookmarks } from '@/lib/api';
+import ResumeThumbnail from '@/components/ResumeThumbnail';
 import DashboardStats from '@/components/DashboardStats';
 import RecentActivity from '@/components/RecentActivity';
 import HiringTrends from '@/components/HiringTrends';
 import OnboardingBanner from '@/components/OnboardingBanner';
 import { t } from '@/lib/i18n';
 import { getUser } from '@/lib/auth';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 function SiteStatsBar() {
   const [stats, setStats] = useState<{ users: number; resumes: number; views: number; templates: number } | null>(null);
@@ -371,100 +372,111 @@ export default function HomePage() {
               {sorted.map((resume, index) => (
                 <article
                   key={resume.id}
-                  className={`bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5 hover:shadow-md transition-shadow duration-200 focus-within:ring-2 focus-within:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)} border-l-4 ${resume.visibility === 'public' ? 'border-l-emerald-400' : resume.visibility === 'link-only' ? 'border-l-blue-400' : 'border-l-slate-300'}`}
+                  className={`card-hover bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5 focus-within:ring-2 focus-within:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)} border-l-4 ${resume.visibility === 'public' ? 'border-l-emerald-400' : resume.visibility === 'link-only' ? 'border-l-blue-400' : 'border-l-slate-300'}`}
                 >
-                  {selectMode && (
-                    <div className="mb-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(resume.id)}
-                        onChange={() => toggleSelect(resume.id)}
-                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                        aria-label={`${resume.title} 선택`}
+                  <div className="flex gap-3">
+                    {/* Thumbnail preview */}
+                    <div className="hidden sm:block w-20 shrink-0">
+                      <ResumeThumbnail
+                        resume={resume}
+                        onClick={() => navigate(`/resumes/${resume.id}/preview`)}
                       />
                     </div>
-                  )}
-                  <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate mb-1">
-                    {resume.title || '제목 없음'}
-                  </h2>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-                    {resume.personalInfo.name || '이름 미입력'}
-                  </p>
-                  <p className="text-xs text-slate-400 mb-2" title={new Date(resume.updatedAt).toLocaleString('ko-KR')}>
-                    {timeAgo(resume.updatedAt)}
-                  </p>
+                    <div className="flex-1 min-w-0">
+                      {selectMode && (
+                        <div className="mb-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(resume.id)}
+                            onChange={() => toggleSelect(resume.id)}
+                            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            aria-label={`${resume.title} 선택`}
+                          />
+                        </div>
+                      )}
+                      <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate mb-1">
+                        {resume.title || '제목 없음'}
+                      </h2>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+                        {resume.personalInfo.name || '이름 미입력'}
+                      </p>
+                      <p className="text-xs text-slate-400 mb-2" title={new Date(resume.updatedAt).toLocaleString('ko-KR')}>
+                        {timeAgo(resume.updatedAt)}
+                      </p>
 
-                  {/* Tags */}
-                  {resume.tags?.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {resume.tags.map(tag => (
-                        <span
-                          key={tag.id}
-                          className="px-2 py-0.5 text-xs rounded-full"
-                          style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
-                        >
-                          {tag.name}
+                      {/* Tags */}
+                      {resume.tags?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {resume.tags.map(tag => (
+                            <span
+                              key={tag.id}
+                              className="px-2 py-0.5 text-xs rounded-full"
+                              style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
+                            >
+                              {tag.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Stats row */}
+                      <div className="flex items-center gap-3 mb-3 text-xs text-slate-400">
+                        {resume.viewCount != null && resume.viewCount > 0 && (
+                          <span className="flex items-center gap-1" title="조회수">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            {resume.viewCount}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1" title={`공개: ${resume.visibility || 'private'}`}>
+                          {resume.visibility === 'public' ? '🌐 공개' : resume.visibility === 'link-only' ? '🔗 링크' : '🔒 비공개'}
                         </span>
-                      ))}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          to={`/resumes/${resume.id}/edit`}
+                          className="btn-press flex-1 text-center px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200"
+                        >
+                          편집
+                        </Link>
+                        <Link
+                          to={`/resumes/${resume.id}/preview`}
+                          className="flex-1 text-center px-3 py-1.5 text-sm bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-all duration-200"
+                        >
+                          미리보기
+                        </Link>
+                        <button
+                          onClick={() => handleDuplicate(resume.id)}
+                          className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200"
+                          aria-label={`${resume.title} 복제`}
+                          title="복제"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const url = `${window.location.origin}/resumes/${resume.id}/preview`;
+                            navigator.clipboard.writeText(url);
+                            toast('링크가 복사되었습니다', 'success');
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200"
+                          aria-label={`${resume.title} 링크 복사`}
+                          title="공유"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(resume.id, resume.title)}
+                          className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+                          aria-label={`${resume.title} 삭제`}
+                          title="삭제"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      </div>
                     </div>
-                  )}
-
-                  {/* Stats row */}
-                  <div className="flex items-center gap-3 mb-3 text-xs text-slate-400">
-                    {resume.viewCount != null && resume.viewCount > 0 && (
-                      <span className="flex items-center gap-1" title="조회수">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                        {resume.viewCount}
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1" title={`공개: ${resume.visibility || 'private'}`}>
-                      {resume.visibility === 'public' ? '🌐 공개' : resume.visibility === 'link-only' ? '🔗 링크' : '🔒 비공개'}
-                    </span>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-1.5">
-                    <Link
-                      to={`/resumes/${resume.id}/edit`}
-                      className="flex-1 text-center px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200"
-                    >
-                      편집
-                    </Link>
-                    <Link
-                      to={`/resumes/${resume.id}/preview`}
-                      className="flex-1 text-center px-3 py-1.5 text-sm bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-all duration-200"
-                    >
-                      미리보기
-                    </Link>
-                    <button
-                      onClick={() => handleDuplicate(resume.id)}
-                      className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200"
-                      aria-label={`${resume.title} 복제`}
-                      title="복제"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        const url = `${window.location.origin}/resumes/${resume.id}/preview`;
-                        navigator.clipboard.writeText(url);
-                        toast('링크가 복사되었습니다', 'success');
-                      }}
-                      className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200"
-                      aria-label={`${resume.title} 링크 복사`}
-                      title="공유"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(resume.id, resume.title)}
-                      className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
-                      aria-label={`${resume.title} 삭제`}
-                      title="삭제"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
                   </div>
                 </article>
               ))}

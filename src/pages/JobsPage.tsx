@@ -5,8 +5,8 @@ import Footer from '@/components/Footer';
 import EmptyState from '@/components/EmptyState';
 import { getUser } from '@/lib/auth';
 import { timeAgo } from '@/lib/time';
+import { API_URL } from '@/lib/config';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface JobPost {
   id: string;
@@ -145,7 +145,7 @@ export default function JobsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* List */}
             <div className="lg:col-span-1 space-y-2">
-              {jobs.map(j => (
+              {filteredJobs.map(j => (
                 <button
                   key={j.id}
                   onClick={() => setSelectedId(j.id)}
