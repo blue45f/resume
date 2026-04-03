@@ -126,6 +126,7 @@ export interface ResumeSummary {
   id: string;
   title: string;
   slug?: string;
+  userId?: string;
   viewCount?: number;
   visibility?: 'public' | 'private' | 'link-only';
   personalInfo: PersonalInfo;

@@ -7,7 +7,8 @@ import ShareMenu from '@/components/ShareMenu';
 import SimilarResumes from '@/components/SimilarResumes';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
-import { followUser, unfollowUser } from '@/lib/api';
+import FollowButton from '@/components/FollowButton';
+import SendMessageButton from '@/components/SendMessageButton';
 import type { Resume } from '@/types/resume';
 import { API_URL } from '@/lib/config';
 
@@ -18,7 +19,6 @@ export default function ProfileResumePage() {
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
   const [viewCount, setViewCount] = useState<number | null>(null);
-  const [isFollowing, setIsFollowing] = useState(false);
   const [scoutModalOpen, setScoutModalOpen] = useState(false);
   const [scoutForm, setScoutForm] = useState({ company: '', position: '', message: '' });
   const [sendingScout, setSendingScout] = useState(false);
@@ -202,28 +202,10 @@ export default function ProfileResumePage() {
                 </button>
               )}
               {user && resume?.userId && user.id !== resume.userId && (
-                <button
-                  onClick={async () => {
-                    try {
-                      if (isFollowing) {
-                        await unfollowUser(resume.userId!);
-                        setIsFollowing(false);
-                      } else {
-                        await followUser(resume.userId!);
-                        setIsFollowing(true);
-                      }
-                    } catch {
-                      toast('팔로우 처리에 실패했습니다', 'error');
-                    }
-                  }}
-                  className={`px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 ${
-                    isFollowing
-                      ? 'bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                >
-                  {isFollowing ? '팔로잉' : '팔로우'}
-                </button>
+                <>
+                  <FollowButton userId={resume.userId!} />
+                  <SendMessageButton userId={resume.userId!} userName={personalInfo.name || username || '사용자'} />
+                </>
               )}
             </div>
           </div>

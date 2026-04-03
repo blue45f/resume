@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
@@ -51,9 +51,53 @@ interface SearchResult {
   totalPages: number;
 }
 
+interface UserProfile {
+  userId: string;
+  name: string;
+  resumes: { id: string; title: string; updatedAt: string }[];
+  skills: string[];
+  resumeCount: number;
+}
+
+function aggregateUsers(resumes: ResumeSummary[]): UserProfile[] {
+  const map = new Map<string, UserProfile>();
+  for (const r of resumes) {
+    const key = r.userId || r.personalInfo?.name || r.id;
+    const name = r.personalInfo?.name || '이름 미입력';
+    if (!map.has(key)) {
+      map.set(key, { userId: key, name, resumes: [], skills: [], resumeCount: 0 });
+    }
+    const user = map.get(key)!;
+    user.resumes.push({ id: r.id, title: r.title || '제목 없음', updatedAt: r.updatedAt });
+    user.resumeCount++;
+    const skillNames = extractSkillNames(r.skills);
+    for (const s of skillNames) {
+      if (!user.skills.includes(s)) user.skills.push(s);
+    }
+  }
+  return Array.from(map.values());
+}
+
+const AVATAR_COLORS = [
+  'bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-orange-500',
+  'bg-cyan-500', 'bg-rose-500', 'bg-amber-500', 'bg-teal-500',
+  'bg-indigo-500', 'bg-pink-500',
+];
+
+function getAvatarColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
 export default function ExplorePage() {
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const [result, setResult] = useState<SearchResult | null>(null);
+  const [activeTab, setActiveTab] = useState<'resumes' | 'people'>('resumes');
+  const [followedUsers, setFollowedUsers] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('followed-users') || '[]')); } catch { return new Set(); }
+  });
 
   useEffect(() => {
     document.title = '공개 이력서 탐색 — 이력서공방';
