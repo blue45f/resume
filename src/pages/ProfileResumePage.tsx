@@ -5,6 +5,7 @@ import ResumePreview from '@/components/ResumePreview';
 import CommentSection from '@/components/CommentSection';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
+import { followUser, unfollowUser } from '@/lib/api';
 import type { Resume } from '@/types/resume';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -15,6 +16,7 @@ export default function ProfileResumePage() {
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
   const [viewCount, setViewCount] = useState<number | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
   const user = getUser();
 
   useEffect(() => {
@@ -172,6 +174,30 @@ export default function ProfileResumePage() {
                   className="px-2.5 sm:px-3 py-2 bg-emerald-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-emerald-700 transition-all duration-200"
                 >
                   스카우트
+                </button>
+              )}
+              {user && resume?.userId && user.id !== resume.userId && (
+                <button
+                  onClick={async () => {
+                    try {
+                      if (isFollowing) {
+                        await unfollowUser(resume.userId!);
+                        setIsFollowing(false);
+                      } else {
+                        await followUser(resume.userId!);
+                        setIsFollowing(true);
+                      }
+                    } catch {
+                      toast('팔로우 처리에 실패했습니다', 'error');
+                    }
+                  }}
+                  className={`px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 ${
+                    isFollowing
+                      ? 'bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {isFollowing ? '팔로잉' : '팔로우'}
                 </button>
               )}
             </div>

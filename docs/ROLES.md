@@ -91,7 +91,20 @@ POST   /api/resumes/:id/transform            # AI 변환 (사용량 제한)
 POST   /api/cover-letters                    # 자소서 저장
 POST   /api/applications                     # 지원 추가
 POST   /api/social/follow/:userId            # 팔로우
+DELETE /api/social/follow/:userId            # 언팔로우
+GET    /api/social/followers                 # 내 팔로워
+GET    /api/social/following                 # 내 팔로잉
+POST   /api/social/scout                    # 스카우트 전송
+GET    /api/social/scouts                   # 받은 스카우트
 POST   /api/social/messages/:receiverId      # 쪽지 전송
+GET    /api/social/messages                  # 대화 목록
+GET    /api/social/messages/:partnerId       # 대화 내용
+GET    /api/social/messages/unread/count     # 읽지 않은 쪽지 수
+GET    /api/cover-letters                    # 자소서 목록
+POST   /api/cover-letters                    # 자소서 저장
+GET    /api/cover-letters/:id                # 자소서 상세
+PUT    /api/cover-letters/:id                # 자소서 수정
+DELETE /api/cover-letters/:id                # 자소서 삭제
 ```
 
 ### 공개 (로그인 불필요)
@@ -103,6 +116,24 @@ GET    /api/resumes/popular-skills           # 인기 기술
 GET    /api/health                           # 헬스체크
 GET    /api/auth/providers                   # 로그인 프로바이더
 ```
+
+## Rate Limiting
+
+| 대상 | 제한 |
+|------|------|
+| 일반 API (short) | 10회/1초 |
+| 일반 API (medium) | 100회/60초 |
+| 일반 API (long) | 1000회/1시간 |
+| 댓글 작성 | 5회/분 |
+| 소셜 (팔로우/스카우트/쪽지) | 10회/분 |
+
+## 입력 길이 제한
+
+| 대상 | 제한 |
+|------|------|
+| 쪽지 내용 | 1000자 |
+| 스카우트 메시지 | 2000자 |
+| 댓글 내용 | 5-500자 |
 
 ## 역할 변경 방법
 

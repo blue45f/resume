@@ -13,7 +13,7 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 | 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, TypeScript |
 | 인프라 | Vercel (프론트), Render (백엔드), Neon (DB) |
 | 보안 | JWT + OAuth2 (Google/GitHub/Kakao), Helmet + CSP, Rate Limiting (3-tier), HMAC, 요청 살균 |
-| 테스트 | Jest, Supertest (210+ 테스트, 20+ 스위트) |
+| 테스트 | Jest, Supertest (220+ 테스트, 22+ 스위트) |
 
 ## 주요 기능
 
@@ -53,7 +53,9 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 
 ### 소셜
 - **스카우트 제안**: 기업 관계자가 공개 이력서에 직접 제안 (/scouts)
+- **스카우트 알림 자동 생성**: 스카우트 수신 시 알림 자동 발송
 - **1:1 쪽지**: 회원 간 다이렉트 메시지 (/messages)
+- **쪽지 알림 자동 생성**: 쪽지 수신 시 알림 자동 발송
 - **팔로우/팔로잉**: 관심 사용자 팔로우
 
 ### 공유 & 프로필
@@ -93,10 +95,11 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 
 ### 관리자
 - **사이트 통계**: 회원/이력서/콘텐츠/활동 현황 대시보드 (/admin)
-- **사용자 관리**: 전체 회원 목록, 관리자 역할 지정/해제
-- **이력서 관리**: 공개 이력서 숨기기/삭제
+- **사용자 관리**: 전체 회원 목록, 관리자 역할 지정/해제, 검색 + 페이징
+- **이력서 관리**: 공개 이력서 숨기기/삭제, 페이징 지원
 - **댓글 관리**: 모든 댓글 삭제 가능
-- **요금제 설정**: 플랜별 가격/기능 ON/OFF
+- **요금제 설정**: 플랜별 가격/기능 ON/OFF, 접이식 UI
+- **통계 새로고침**: 실시간 통계 갱신 버튼
 - **주간 활동 차트**: 7일간 회원가입/이력서 생성 추이
 
 ### 보안 & 권한
@@ -112,7 +115,10 @@ AI 기반 이력서 관리 플랫폼. 이력서 작성, AI 분석/변환, 공유
 - **요청 추적**: X-Request-ID 헤더 자동 생성
 - **Rate Limiting**: 3-tier (short: 10/1s, medium: 100/60s, long: 1000/1h)
 - **DTO 입력 검증**: class-validator 기반 모든 입력 필드 검증
-- **알림 시스템**: 댓글 알림, 북마크 알림 (30초 폴링)
+- **메시지 길이 제한**: 쪽지 1000자, 스카우트 2000자 제한
+- **소셜 Rate Limiting**: 10회/분 (팔로우/스카우트/쪽지)
+- **superadmin/admin/user 3단계 역할**: 역할 계층 기반 권한 관리
+- **알림 시스템**: 댓글 알림, 북마크 알림, 스카우트 알림, 쪽지 알림 (30초 폴링)
 - **댓글 스팸 방지**: Rate Limiting (5회/분)
 - **기타**: CORS, JWT, DTO 검증, Path Traversal 방지
 
@@ -229,10 +235,10 @@ npm run start:server   # node dist-server/main.js
 ### 테스트
 
 ```bash
-npm run test:unit      # 유닛 테스트 (155개+)
+npm run test:unit      # 유닛 테스트 (168개+)
 npm run test:unit:cov  # 유닛 테스트 + 커버리지
 npm run test:e2e       # E2E 테스트 (55개+)
-# 전체: 210+ 테스트 (20+ 스위트)
+# 전체: 220+ 테스트 (22+ 스위트)
 ```
 
 ### 프론트엔드 목업 모드 (백엔드 없이 개발)
@@ -260,7 +266,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 | 프론트엔드   | https://resume-silk-three.vercel.app | Vercel (무료) |
 | DB      | Neon PostgreSQL                      | Neon (무료)   |
 
-## API 엔드포인트 (70+)
+## API 엔드포인트 (90+)
 
 ### 인증
 | 메서드    | 경로                         | 설명     |
@@ -394,17 +400,23 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 |--------|-------------------------------------|------------|
 | POST   | /api/social/follow/:userId          | 팔로우        |
 | DELETE | /api/social/follow/:userId          | 언팔로우       |
+| GET    | /api/social/followers               | 내 팔로워     |
+| GET    | /api/social/following               | 내 팔로잉     |
 | POST   | /api/social/scout                   | 스카우트 전송   |
 | GET    | /api/social/scouts                  | 받은 스카우트   |
 | POST   | /api/social/messages/:receiverId    | 쪽지 전송     |
 | GET    | /api/social/messages                | 대화 목록     |
 | GET    | /api/social/messages/:partnerId     | 대화 내용     |
+| GET    | /api/social/messages/unread/count   | 읽지 않은 쪽지 수 |
 
 ### 자소서
-| 메서드  | 경로                     | 설명         |
-|------|------------------------|------------|
-| GET  | /api/cover-letters     | 내 자소서 목록  |
-| POST | /api/cover-letters     | 자소서 저장    |
+| 메서드    | 경로                     | 설명         |
+|--------|------------------------|------------|
+| GET    | /api/cover-letters     | 내 자소서 목록  |
+| POST   | /api/cover-letters     | 자소서 저장    |
+| GET    | /api/cover-letters/:id | 자소서 상세    |
+| PUT    | /api/cover-letters/:id | 자소서 수정    |
+| DELETE | /api/cover-letters/:id | 자소서 삭제    |
 
 ### 관리자
 | 메서드  | 경로                                  | 설명                   |
@@ -437,9 +449,12 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   ├── applications/         # 지원 관리 CRUD
 │   ├── comments/             # 커뮤니티 댓글 CRUD
 │   ├── notifications/        # 알림 시스템
+│   ├── social/               # 팔로우 + 스카우트 + 쪽지
+│   ├── cover-letters/        # 자소서 CRUD
+│   ├── common/roles.ts       # 역할 계층 유틸리티
 │   └── attachments/          # 첨부파일 (MIME + 확장자 이중 검증)
 ├── src/                       # React 프론트엔드
-│   ├── components/ (50+)
+│   ├── components/ (60+)
 │   │   ├── ErrorBoundary.tsx # 전역 에러 바운더리
 │   │   ├── Header.tsx        # 반응형 헤더 (모바일 메뉴)
 │   │   ├── ResumeForm.tsx    # 9탭 이력서 편집 폼
@@ -503,7 +518,7 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── handlers.ts       # API 핸들러
 │   │   ├── data.ts           # 샘플 데이터
 │   │   └── browser.ts        # 브라우저 워커
-│   ├── pages/ (28+)
+│   ├── pages/ (32+)
 │   │   ├── HomePage.tsx         # 메인 대시보드
 │   │   ├── LoginPage.tsx        # 로그인/회원가입
 │   │   ├── AuthCallbackPage.tsx # OAuth 콜백
@@ -526,6 +541,10 @@ npm run dev:mock       # MSW 목업 서버로 프론트엔드만 실행
 │   │   ├── AdminPage.tsx        # 관리자 통계
 │   │   ├── AboutPage.tsx        # 소개 페이지
 │   │   ├── TutorialPage.tsx     # 튜토리얼
+│   │   ├── BookmarksPage.tsx     # 북마크 관리
+│   │   ├── ScoutsPage.tsx       # 스카우트 제안
+│   │   ├── MessagesPage.tsx     # 쪽지
+│   │   ├── MyCoverLettersPage.tsx # 내 자소서
 │   │   ├── TermsPage.tsx        # 이용약관
 │   │   └── NotFoundPage.tsx     # 404 에러
 │   └── types/resume.ts       # TypeScript 타입

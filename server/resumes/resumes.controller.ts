@@ -57,6 +57,12 @@ export class ResumesController {
     return this.analyticsService.getPopularSkills();
   }
 
+  @Get('analytics/:resumeId')
+  @ApiOperation({ summary: '이력서 분석 통계' })
+  getResumeAnalytics(@Param('resumeId') resumeId: string) {
+    return this.analyticsService.getResumeAnalytics(resumeId);
+  }
+
   @Get('bookmarks/list')
   @ApiOperation({ summary: '내 북마크 목록' })
   getBookmarks(@Req() req: any) {

@@ -270,6 +270,61 @@ JD 매칭 분석
 
 **Response:** `[{ "feature": "transform", "count": 5 }, { "feature": "feedback", "count": 2 }]`
 
+## 소셜
+
+### POST /social/follow/:userId
+팔로우
+
+### DELETE /social/follow/:userId
+언팔로우
+
+### GET /social/followers
+내 팔로워
+
+### GET /social/following
+내 팔로잉
+
+### POST /social/scout
+스카우트 메시지 전송
+
+**Request:** `{ "receiverId": "...", "company": "네이버", "position": "개발자", "message": "스카우트 내용" }`
+
+### GET /social/scouts
+받은 스카우트 목록
+
+### POST /social/messages/:receiverId
+쪽지 전송
+
+**Request:** `{ "content": "메시지 내용" }`
+
+### GET /social/messages
+대화 목록
+
+### GET /social/messages/:partnerId
+대화 내용
+
+### GET /social/messages/unread/count
+읽지 않은 쪽지 수
+
+## 자소서
+
+### GET /cover-letters
+내 자소서 목록
+
+### POST /cover-letters
+자소서 저장
+
+**Request:** `{ "resumeId": "...", "company": "네이버", "position": "개발자", "tone": "formal", "jobDescription": "...", "content": "..." }`
+
+### GET /cover-letters/:id
+자소서 상세
+
+### PUT /cover-letters/:id
+자소서 수정
+
+### DELETE /cover-letters/:id
+자소서 삭제
+
 ## 헬스체크
 
 ### GET /health

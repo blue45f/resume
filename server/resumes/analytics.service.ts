@@ -93,6 +93,32 @@ export class AnalyticsService {
     });
   }
 
+  async getResumeAnalytics(resumeId: string) {
+    const resume = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      select: { viewCount: true, visibility: true, createdAt: true, updatedAt: true },
+    });
+    if (!resume) return null;
+
+    const [commentCount, bookmarkCount, shareCount, versionCount] = await Promise.all([
+      this.prisma.comment.count({ where: { resumeId } }),
+      this.prisma.bookmark.count({ where: { resumeId } }),
+      this.prisma.shareLink.count({ where: { resumeId } }),
+      this.prisma.resumeVersion.count({ where: { resumeId } }),
+    ]);
+
+    return {
+      viewCount: resume.viewCount,
+      commentCount,
+      bookmarkCount,
+      shareCount,
+      versionCount,
+      visibility: resume.visibility,
+      createdAt: resume.createdAt.toISOString(),
+      updatedAt: resume.updatedAt.toISOString(),
+    };
+  }
+
   async getPopularSkills(limit = 20) {
     const skills = await this.prisma.skill.findMany({
       where: { resume: { visibility: 'public' } },
