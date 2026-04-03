@@ -204,13 +204,16 @@ export default function PreviewPage() {
     }
   }, [showShareMenu]);
 
-  useEffect(() => {
+  const loadResume = () => {
     if (!id) return;
-    let cancelled = false;
+    setNotFound(false);
     fetchResume(id)
-      .then(data => { if (!cancelled) setResume(data); })
-      .catch(() => { if (!cancelled) setNotFound(true); });
-    return () => { cancelled = true; };
+      .then(setResume)
+      .catch(() => setNotFound(true));
+  };
+
+  useEffect(() => {
+    loadResume();
   }, [id]);
 
   useEffect(() => {
@@ -225,14 +228,26 @@ export default function PreviewPage() {
       <>
         <Header />
         <main id="main-content" className="flex-1 flex items-center justify-center" role="main">
-          <div className="text-center px-4">
-            <p className="text-lg text-slate-700 mb-4">이력서를 찾을 수 없습니다</p>
-            <button
-              onClick={() => navigate('/')}
-              className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-            >
-              목록으로 돌아가기
-            </button>
+          <div className="text-center px-4 animate-fade-in">
+            <svg className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">이력서를 불러올 수 없습니다</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">서버가 시작 중이거나 일시적 오류일 수 있습니다</p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={loadResume}
+                className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                다시 시도
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="px-5 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                홈으로
+              </button>
+            </div>
           </div>
         </main>
       </>
