@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import EmptyState from '@/components/EmptyState';
 import { getUser } from '@/lib/auth';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
@@ -26,14 +25,29 @@ const JOB_TYPES: Record<string, string> = {
   fulltime: '정규직', contract: '계약직', parttime: '파트타임', intern: '인턴',
 };
 
+const SKILL_COLORS = [
+  { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400' },
+  { bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-600 dark:text-emerald-400' },
+  { bg: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400' },
+  { bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400' },
+  { bg: 'bg-rose-50 dark:bg-rose-900/20', text: 'text-rose-600 dark:text-rose-400' },
+  { bg: 'bg-cyan-50 dark:bg-cyan-900/20', text: 'text-cyan-600 dark:text-cyan-400' },
+];
+
+function getSkillColor(index: number) {
+  return SKILL_COLORS[index % SKILL_COLORS.length];
+}
+
 export default function JobsPage() {
   const [jobs, setJobs] = useState<JobPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const user = getUser();
   const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company';
+  const isPersonal = user?.userType === 'personal';
 
   useEffect(() => {
     document.title = '채용 공고 — 이력서공방';
@@ -53,6 +67,11 @@ export default function JobsPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     loadJobs(search);
+  };
+
+  const handleSelectJob = (id: string) => {
+    setSelectedId(id);
+    setMobileDetailOpen(true);
   };
 
   const filteredJobs = typeFilter === 'all' ? jobs : jobs.filter(j => j.type === typeFilter);
@@ -85,7 +104,7 @@ export default function JobsPage() {
           {[{ key: 'all', label: '전체' }, { key: 'fulltime', label: '정규직' }, { key: 'contract', label: '계약직' }, { key: 'parttime', label: '파트타임' }, { key: 'intern', label: '인턴' }].map(opt => (
             <button
               key={opt.key}
-              onClick={() => { setTypeFilter(opt.key); setSelectedId(null); }}
+              onClick={() => { setTypeFilter(opt.key); setSelectedId(null); setMobileDetailOpen(false); }}
               className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
                 typeFilter === opt.key
                   ? 'bg-blue-600 text-white'
@@ -142,90 +161,201 @@ export default function JobsPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* List */}
-            <div className="lg:col-span-1 space-y-2">
-              {filteredJobs.map(j => (
-                <button
-                  key={j.id}
-                  onClick={() => setSelectedId(j.id)}
-                  className={`w-full text-left p-4 rounded-xl border transition-all duration-200 ${
-                    selectedId === j.id
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-sm'
-                  }`}
-                >
-                  <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{j.position}</h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{j.company}</p>
-                  <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-400">
-                    {j.location && <span>{j.location}</span>}
-                    <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded">{JOB_TYPES[j.type] || j.type}</span>
-                  </div>
-                  {j.skills && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {j.skills.split(',').slice(0, 4).map((s, i) => (
-                        <span key={i} className="px-1.5 py-0.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded">{s.trim()}</span>
-                      ))}
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
+          <>
+            {/* Mobile: full-screen detail overlay */}
+            {mobileDetailOpen && selected && (
+              <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 overflow-y-auto lg:hidden">
+                <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                  <button
+                    onClick={() => setMobileDetailOpen(false)}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{selected.position}</h2>
+                </div>
+                <div className="p-4">
+                  <JobDetailPanel job={selected} isPersonal={isPersonal} />
+                </div>
+              </div>
+            )}
 
-            {/* Detail */}
-            <div className="lg:col-span-2">
-              {selected ? (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 sticky top-20">
-                  <div className="mb-4">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{selected.position}</h2>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{selected.company}</p>
-                    <div className="flex flex-wrap gap-3 mt-3 text-xs text-slate-500">
-                      {selected.location && <span>{selected.location}</span>}
-                      {selected.salary && <span>{selected.salary}</span>}
-                      <span>{JOB_TYPES[selected.type]}</span>
-                      <span>{timeAgo(selected.createdAt)}</span>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Job list */}
+              <div className="lg:col-span-1 space-y-2 max-h-[calc(100vh-16rem)] overflow-y-auto lg:pr-1">
+                {filteredJobs.map(j => (
+                  <button
+                    key={j.id}
+                    onClick={() => handleSelectJob(j.id)}
+                    className={`w-full text-left p-4 rounded-xl border transition-all duration-200 ${
+                      selectedId === j.id
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
+                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-sm hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{j.position}</h3>
+                      <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{timeAgo(j.createdAt)}</span>
                     </div>
-                  </div>
-
-                  {selected.skills && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">기술 스택</h4>
-                      <div className="flex flex-wrap gap-1.5">
-                        {selected.skills.split(',').map((s, i) => (
-                          <span key={i} className="px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg">{s.trim()}</span>
-                        ))}
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{j.company}</p>
+                    <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-400">
+                      {j.location && (
+                        <span className="flex items-center gap-0.5">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                          {j.location}
+                        </span>
+                      )}
+                      <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded">{JOB_TYPES[j.type] || j.type}</span>
+                      {j.salary && <span className="text-emerald-600 dark:text-emerald-400 font-medium">{j.salary}</span>}
+                    </div>
+                    {j.skills && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {j.skills.split(',').slice(0, 4).map((s, i) => {
+                          const c = getSkillColor(i);
+                          return (
+                            <span key={i} className={`px-1.5 py-0.5 text-xs ${c.bg} ${c.text} rounded`}>{s.trim()}</span>
+                          );
+                        })}
+                        {j.skills.split(',').length > 4 && (
+                          <span className="px-1.5 py-0.5 text-xs text-slate-400">+{j.skills.split(',').length - 4}</span>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </button>
+                ))}
+              </div>
 
-                  {selected.description && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">상세 설명</h4>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">{selected.description}</p>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 mt-6">
-                    <Link to={`/cover-letter?company=${encodeURIComponent(selected.company)}&position=${encodeURIComponent(selected.position)}`}
-                      className="flex-1 py-2.5 text-center bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
-                      이 공고로 자소서 작성
-                    </Link>
-                    <Link to={`/applications?company=${encodeURIComponent(selected.company)}&position=${encodeURIComponent(selected.position)}`}
-                      className="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-xl hover:bg-slate-200 transition-colors">
-                      지원 추가
-                    </Link>
+              {/* Desktop detail panel */}
+              <div className="lg:col-span-2 hidden lg:block">
+                {selected ? (
+                  <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 sticky top-20">
+                    <JobDetailPanel job={selected} isPersonal={isPersonal} />
                   </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center h-64 text-slate-400">
-                  <p className="text-sm">채용 공고를 선택하세요</p>
-                </div>
-              )}
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-64 text-slate-400 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <svg className="w-12 h-12 mb-3 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.193 23.193 0 0112 15c-3.183 0-6.22-.64-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-sm">채용 공고를 선택하세요</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </main>
       <Footer />
+    </>
+  );
+}
+
+/* Extracted detail panel for reuse in desktop and mobile */
+function JobDetailPanel({ job, isPersonal }: { job: JobPost; isPersonal: boolean }) {
+  return (
+    <>
+      {/* Header */}
+      <div className="mb-5">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{job.position}</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{job.company}</p>
+        <div className="flex flex-wrap gap-3 mt-3 text-xs text-slate-500 dark:text-slate-400">
+          {job.location && (
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              {job.location}
+            </span>
+          )}
+          {job.salary && (
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              {job.salary}
+            </span>
+          )}
+          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-lg font-medium">{JOB_TYPES[job.type] || job.type}</span>
+          <span>{timeAgo(job.createdAt)}</span>
+        </div>
+      </div>
+
+      {/* Company info */}
+      <div className="mb-5 p-3 bg-slate-50 dark:bg-slate-750 rounded-xl border border-slate-100 dark:border-slate-700">
+        <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+          회사 정보
+        </h4>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div>
+            <span className="text-xs text-slate-400 dark:text-slate-500">회사명</span>
+            <p className="text-slate-700 dark:text-slate-300 font-medium">{job.company}</p>
+          </div>
+          {job.user?.companyName && (
+            <div>
+              <span className="text-xs text-slate-400 dark:text-slate-500">등록자</span>
+              <p className="text-slate-700 dark:text-slate-300">{job.user.companyName}</p>
+            </div>
+          )}
+          {job.location && (
+            <div>
+              <span className="text-xs text-slate-400 dark:text-slate-500">근무지</span>
+              <p className="text-slate-700 dark:text-slate-300">{job.location}</p>
+            </div>
+          )}
+          {job.salary && (
+            <div>
+              <span className="text-xs text-slate-400 dark:text-slate-500">급여</span>
+              <p className="text-emerald-600 dark:text-emerald-400 font-medium">{job.salary}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Required skills */}
+      {job.skills && (
+        <div className="mb-5">
+          <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">요구 기술</h4>
+          <div className="flex flex-wrap gap-1.5">
+            {job.skills.split(',').map((s, i) => {
+              const c = getSkillColor(i);
+              return (
+                <span key={i} className={`px-2.5 py-1 text-xs font-medium ${c.bg} ${c.text} rounded-lg`}>{s.trim()}</span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Description */}
+      {job.description && (
+        <div className="mb-5">
+          <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">상세 설명</h4>
+          <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">{job.description}</p>
+        </div>
+      )}
+
+      {/* Action buttons */}
+      <div className="flex gap-2 mt-6 pt-4 border-t border-slate-100 dark:border-slate-700">
+        {isPersonal ? (
+          <Link
+            to={`/applications?company=${encodeURIComponent(job.company)}&position=${encodeURIComponent(job.position)}`}
+            className="flex-1 py-2.5 text-center bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
+          >
+            지원하기
+          </Link>
+        ) : (
+          <Link
+            to={`/applications?company=${encodeURIComponent(job.company)}&position=${encodeURIComponent(job.position)}`}
+            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-xl hover:bg-slate-200 transition-colors"
+          >
+            지원 추가
+          </Link>
+        )}
+        <Link
+          to={`/cover-letter?company=${encodeURIComponent(job.company)}&position=${encodeURIComponent(job.position)}`}
+          className={`${isPersonal ? '' : 'flex-1'} px-4 py-2.5 text-center bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors`}
+        >
+          이 공고로 자소서 작성
+        </Link>
+      </div>
     </>
   );
 }

@@ -9,6 +9,39 @@ import { fetchTags } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import BookmarkButton from '@/components/BookmarkButton';
 import { API_URL } from '@/lib/config';
+import { timeAgo } from '@/lib/time';
+
+const THEME_COLORS = [
+  'from-blue-500 to-indigo-500',
+  'from-emerald-500 to-teal-500',
+  'from-purple-500 to-pink-500',
+  'from-orange-500 to-red-500',
+  'from-cyan-500 to-blue-500',
+  'from-rose-500 to-fuchsia-500',
+  'from-amber-500 to-orange-500',
+  'from-lime-500 to-emerald-500',
+];
+
+const THEME_DOT_COLORS = [
+  'bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-orange-500',
+  'bg-cyan-500', 'bg-rose-500', 'bg-amber-500', 'bg-lime-500',
+];
+
+function getThemeIndex(id: string): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = ((hash << 5) - hash + id.charCodeAt(i)) | 0;
+  return Math.abs(hash) % THEME_COLORS.length;
+}
+
+function extractSkillNames(skills?: { category: string; items: string }[]): string[] {
+  if (!skills?.length) return [];
+  const all: string[] = [];
+  for (const s of skills) {
+    const items = s.items.split(',').map(i => i.trim()).filter(Boolean);
+    all.push(...items);
+  }
+  return all.slice(0, 6);
+}
 
 
 interface SearchResult {
@@ -36,6 +69,8 @@ export default function ExplorePage() {
     try { return JSON.parse(localStorage.getItem('recent-searches') || '[]'); } catch { return []; }
   });
 
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchWrapperRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const debouncedSearch = useCallback((value: string) => {
@@ -154,44 +189,73 @@ export default function ExplorePage() {
           </div>
         ) : null; })()}
 
-        {/* 검색바 */}
-        <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-          <input
-            type="search"
-            value={searchInput}
-            onChange={e => { setSearchInput(e.target.value); debouncedSearch(e.target.value); }}
-            placeholder="이름, 제목, 기술 키워드로 검색..."
-            className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 transition-colors duration-200"
-          />
-          <button type="submit" className="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
-            검색
-          </button>
-        </form>
+        {/* 검색바 + 최근 검색 드롭다운 */}
+        <div className="relative mb-4" ref={searchWrapperRef}>
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <input
+              type="search"
+              value={searchInput}
+              onChange={e => { setSearchInput(e.target.value); debouncedSearch(e.target.value); }}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+              placeholder="이름, 제목, 기술 키워드로 검색..."
+              className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 transition-colors duration-200"
+            />
+            <button type="submit" className="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
+              검색
+            </button>
+          </form>
 
-        {/* 최근 검색 */}
-        {!query && recentSearches.length > 0 && (
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">최근</span>
-            <div className="flex gap-1.5 overflow-x-auto">
-              {recentSearches.map(s => (
+          {/* 최근 검색어 드롭다운 */}
+          {searchFocused && !searchInput && recentSearches.length > 0 && (
+            <div className="absolute z-20 top-full left-0 right-12 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden animate-fade-in-up">
+              <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">최근 검색어</span>
                 <button
-                  key={s}
-                  onClick={() => { setSearchInput(s); const next = new URLSearchParams(params); next.set('q', s); next.delete('page'); setParams(next); }}
-                  className="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 transition-colors whitespace-nowrap"
+                  onMouseDown={e => { e.preventDefault(); setRecentSearches([]); localStorage.removeItem('recent-searches'); }}
+                  className="text-xs text-slate-400 dark:text-slate-500 hover:text-red-500 transition-colors"
                 >
-                  {s}
+                  전체 삭제
                 </button>
+              </div>
+              {recentSearches.map(s => (
+                <div key={s} className="flex items-center justify-between px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors group">
+                  <button
+                    onMouseDown={e => {
+                      e.preventDefault();
+                      setSearchInput(s);
+                      const next = new URLSearchParams(params);
+                      next.set('q', s);
+                      next.delete('page');
+                      setParams(next);
+                      setSearchFocused(false);
+                    }}
+                    className="flex items-center gap-2 flex-1 text-left"
+                  >
+                    <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm text-slate-700 dark:text-slate-300">{s}</span>
+                  </button>
+                  <button
+                    onMouseDown={e => {
+                      e.preventDefault();
+                      const updated = recentSearches.filter(r => r !== s);
+                      setRecentSearches(updated);
+                      localStorage.setItem('recent-searches', JSON.stringify(updated));
+                    }}
+                    className="p-1 text-slate-300 dark:text-slate-600 hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label={`"${s}" 삭제`}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               ))}
-              <button
-                onClick={() => { setRecentSearches([]); localStorage.removeItem('recent-searches'); }}
-                className="text-xs text-slate-300 dark:text-slate-600 hover:text-slate-500 shrink-0"
-                aria-label="검색 기록 삭제"
-              >
-                &times;
-              </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* 정렬 + 보기 모드 */}
         <div className="flex items-center gap-2 mb-4 overflow-x-auto scrollbar-none">
@@ -362,51 +426,137 @@ export default function ExplorePage() {
             </p>
 
             <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
-              {result.data.map(resume => (
-                <Link
-                  key={resume.id}
-                  to={`/resumes/${resume.id}/preview`}
-                  className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up ${viewMode === 'list' ? 'flex items-center gap-4' : ''}`}
-                >
-                  {viewMode === 'grid' && (
-                    <div className="h-1 -mx-5 -mt-5 mb-4 rounded-t-2xl bg-gradient-to-r from-blue-500 to-indigo-500" />
-                  )}
-                  <div className={viewMode === 'list' ? 'flex-1 min-w-0' : ''}>
+              {result.data.map(resume => {
+                const themeIdx = getThemeIndex(resume.id);
+                const skillNames = extractSkillNames(resume.skills);
+
+                if (viewMode === 'list') {
+                  return (
+                    <Link
+                      key={resume.id}
+                      to={`/resumes/${resume.id}/preview`}
+                      className="flex items-center gap-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
+                    >
+                      {/* Theme dot */}
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${THEME_DOT_COLORS[themeIdx]}`} />
+
+                      {/* Main info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate">
+                            {resume.title || '제목 없음'}
+                          </h2>
+                          <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">
+                            {resume.personalInfo?.name || '이름 미입력'}
+                          </span>
+                        </div>
+                        {resume.personalInfo?.summary && (
+                          <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">
+                            {resume.personalInfo.summary.replace(/<[^>]*>/g, '')}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          {resume.tags?.slice(0, 3).map(t => (
+                            <span key={t.id} className="px-1.5 py-0.5 text-xs rounded-full" style={{ backgroundColor: `${t.color}20`, color: t.color }}>
+                              {t.name}
+                            </span>
+                          ))}
+                          {skillNames.slice(0, 4).map(s => (
+                            <span key={s} className="px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Right side: meta + bookmark */}
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="text-right hidden sm:block">
+                          <span className="text-xs text-slate-400 dark:text-slate-500 block">
+                            {timeAgo(resume.updatedAt)}
+                          </span>
+                          {resume.viewCount != null && resume.viewCount > 0 && (
+                            <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-0.5 justify-end mt-0.5">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                              {resume.viewCount}
+                            </span>
+                          )}
+                        </div>
+                        <BookmarkButton resumeId={resume.id} size="sm" />
+                      </div>
+                    </Link>
+                  );
+                }
+
+                // Grid view
+                return (
+                  <Link
+                    key={resume.id}
+                    to={`/resumes/${resume.id}/preview`}
+                    className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
+                  >
+                    {/* Theme color bar */}
+                    <div className={`h-1 -mx-5 -mt-5 mb-4 rounded-t-2xl bg-gradient-to-r ${THEME_COLORS[themeIdx]}`} />
+
                     <div className="flex items-start justify-between">
-                      <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate mb-1 flex-1">
-                        {resume.title || '제목 없음'}
-                      </h2>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${THEME_DOT_COLORS[themeIdx]}`} />
+                        <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate">
+                          {resume.title || '제목 없음'}
+                        </h2>
+                      </div>
                       <BookmarkButton resumeId={resume.id} size="sm" />
                     </div>
-                    <p className="text-sm text-slate-600 mb-1">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-1 ml-4">
                       {resume.personalInfo?.name || '이름 미입력'}
                     </p>
                     {resume.personalInfo?.summary && (
-                      <p className={`text-xs text-slate-400 ${viewMode === 'list' ? 'line-clamp-1' : 'line-clamp-2'} mb-2`}>
+                      <p className="text-xs text-slate-400 line-clamp-2 mb-2">
                         {resume.personalInfo.summary.replace(/<[^>]*>/g, '')}
                       </p>
                     )}
-                  </div>
-                  {resume.tags?.length > 0 && (
-                    <div className={`flex flex-wrap gap-1 ${viewMode === 'list' ? 'shrink-0' : ''}`}>
-                      {(viewMode === 'list' ? resume.tags.slice(0, 3) : resume.tags).map(t => (
-                        <span key={t.id} className="px-1.5 py-0.5 text-xs rounded-full" style={{ backgroundColor: `${t.color}20`, color: t.color }}>
-                          {t.name}
+
+                    {/* Skill tags */}
+                    {skillNames.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {skillNames.slice(0, 4).map(s => (
+                          <span key={s} className="px-1.5 py-0.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded">
+                            {s}
+                          </span>
+                        ))}
+                        {skillNames.length > 4 && (
+                          <span className="px-1.5 py-0.5 text-xs text-slate-400">+{skillNames.length - 4}</span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Tags */}
+                    {resume.tags?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {resume.tags.map(t => (
+                          <span key={t.id} className="px-1.5 py-0.5 text-xs rounded-full" style={{ backgroundColor: `${t.color}20`, color: t.color }}>
+                            {t.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Footer: view count + relative time */}
+                    <div className="flex items-center justify-between mt-2 text-xs text-slate-400 dark:text-slate-500">
+                      <span>{timeAgo(resume.updatedAt)}</span>
+                      {resume.viewCount != null && resume.viewCount > 0 && (
+                        <span className="flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          {resume.viewCount}
                         </span>
-                      ))}
+                      )}
                     </div>
-                  )}
-                  {resume.viewCount != null && resume.viewCount > 0 && (
-                    <div className="flex items-center gap-1 mt-2 text-xs text-slate-400 dark:text-slate-500">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      {resume.viewCount}
-                    </div>
-                  )}
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
 
             {/* 페이지네이션 */}

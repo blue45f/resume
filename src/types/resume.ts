@@ -130,6 +130,7 @@ export interface ResumeSummary {
   visibility?: 'public' | 'private' | 'link-only';
   personalInfo: PersonalInfo;
   tags: Tag[];
+  skills?: Skill[];
   createdAt: string;
   updatedAt: string;
 }
