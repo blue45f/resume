@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '@/lib/config';
 import { fetchResumes } from '@/lib/api';
+import { getUser } from '@/lib/auth';
 import type { ResumeSummary } from '@/types/resume';
 
 interface JobPost {
@@ -56,6 +57,7 @@ function parseSalaryNumber(salary: string): number | null {
 }
 
 export default function CareerInsights() {
+  const user = getUser();
   const [jobs, setJobs] = useState<JobPost[]>([]);
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [collapsed, setCollapsed] = useState(false);
@@ -97,18 +99,30 @@ export default function CareerInsights() {
       });
     });
 
-    // Simulate trends based on position in list (in production, compare with historical data)
-    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 12);
-    const maxCount = sorted[0]?.[1] || 1;
+    // 최근 공고(7일 이내) vs 이전 공고 비교로 실제 트렌드 계산
+    const now = Date.now();
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    const recentCounts: Record<string, number> = {};
+    const olderCounts: Record<string, number> = {};
+    jobs.forEach(j => {
+      if (!j.skills) return;
+      const isRecent = (now - new Date(j.createdAt).getTime()) < oneWeek;
+      j.skills.split(',').forEach(s => {
+        const skill = s.trim().toLowerCase();
+        if (!skill) return;
+        if (isRecent) recentCounts[skill] = (recentCounts[skill] || 0) + 1;
+        else olderCounts[skill] = (olderCounts[skill] || 0) + 1;
+      });
+    });
 
-    return sorted.map(([name, count], i) => {
-      // Heuristic: top-growing skills tend to be newer tech
-      const growingKeywords = ['ai', 'ml', 'kubernetes', 'rust', 'go', 'terraform', 'typescript', 'next.js'];
-      const decliningKeywords = ['jquery', 'php', 'angular', 'svn'];
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 12);
+
+    return sorted.map(([name, count]) => {
+      const recent = recentCounts[name] || 0;
+      const older = olderCounts[name] || 0;
       let trend: 'up' | 'down' | 'stable' = 'stable';
-      if (growingKeywords.some(k => name.includes(k))) trend = 'up';
-      else if (decliningKeywords.some(k => name.includes(k))) trend = 'down';
-      else if (i < 3) trend = 'up';
+      if (recent > older * 1.2) trend = 'up';
+      else if (recent < older * 0.8 && older > 0) trend = 'down';
 
       return { name, count, trend, owned: userSkills.has(name) };
     });
@@ -150,42 +164,16 @@ export default function CareerInsights() {
     const recs: LearningRec[] = [];
     const trendingNotOwned = skillTrends.filter(st => st.trend === 'up' && !st.owned);
 
-    const courseMap: Record<string, { title: string; type: 'course' | 'cert' | 'project' }> = {
-      kubernetes: { title: 'Kubernetes 관리자 과정 (CKA)', type: 'cert' },
-      typescript: { title: 'Advanced TypeScript 마스터', type: 'course' },
-      'next.js': { title: 'Next.js 풀스택 프로젝트', type: 'project' },
-      python: { title: 'Python 데이터 엔지니어링', type: 'course' },
-      aws: { title: 'AWS Solutions Architect', type: 'cert' },
-      docker: { title: 'Docker & 컨테이너 실전', type: 'course' },
-      terraform: { title: 'Terraform IaC 마스터', type: 'course' },
-      react: { title: 'React 심화 패턴', type: 'course' },
-      rust: { title: 'Rust 시스템 프로그래밍', type: 'course' },
-      go: { title: 'Go 백엔드 개발', type: 'project' },
-      ai: { title: 'AI/ML 엔지니어링 부트캠프', type: 'course' },
-      ml: { title: 'MLOps 실전 파이프라인', type: 'project' },
-      graphql: { title: 'GraphQL API 설계', type: 'course' },
-      redis: { title: 'Redis 고급 활용', type: 'course' },
-    };
-
+    // 채용 시장 데이터 기반 동적 추천 (하드코딩 없음)
     trendingNotOwned.forEach(st => {
-      const courseInfo = courseMap[st.name];
-      if (courseInfo) {
-        recs.push({
-          title: courseInfo.title,
-          type: courseInfo.type,
-          skill: st.name,
-          reason: `${st.count}개 공고에서 요구`,
-          impact: st.trend === 'up' ? '수요 상승 중' : '안정적 수요',
-        });
-      } else {
-        recs.push({
-          title: `${st.name} 학습 과정`,
-          type: 'course',
-          skill: st.name,
-          reason: `${st.count}개 공고에서 요구`,
-          impact: '시장 수요 있음',
-        });
-      }
+      const type = st.count >= 5 ? 'cert' as const : st.count >= 3 ? 'course' as const : 'project' as const;
+      recs.push({
+        title: `${st.name} ${type === 'cert' ? '자격증' : type === 'course' ? '학습 과정' : '실습 프로젝트'}`,
+        type,
+        skill: st.name,
+        reason: `${st.count}개 채용 공고에서 요구`,
+        impact: st.trend === 'up' ? '수요 상승 중' : '안정적 수요',
+      });
     });
 
     return recs.slice(0, 5);
@@ -221,7 +209,7 @@ export default function CareerInsights() {
     );
   }
 
-  if (jobs.length === 0) return null;
+  if (!user || jobs.length === 0) return null;
 
   const trendIcon = (trend: 'up' | 'down' | 'stable') => {
     if (trend === 'up') return <span className="text-green-500 text-[10px] font-bold">▲</span>;
