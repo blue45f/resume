@@ -100,11 +100,16 @@ export default function HomePage() {
   const load = async (signal?: AbortSignal) => {
     try {
       setServerError(false);
+      if (!user) {
+        // 비로그인: 이력서 목록 불필요, 랜딩 페이지 표시
+        if (!signal?.aborted) setLoading(false);
+        return;
+      }
       const [resumeData, tagData] = await Promise.all([fetchResumes(), fetchTags()]);
       if (signal?.aborted) return;
       setResumes(resumeData);
       setTags(tagData);
-      if (user) fetchBookmarks().then(setBookmarks).catch(() => {});
+      fetchBookmarks().then(setBookmarks).catch(() => {});
     } catch (err) {
       if (signal?.aborted) return;
       setServerError(true);

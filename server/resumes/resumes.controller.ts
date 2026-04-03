@@ -31,10 +31,10 @@ export class ResumesController {
   ) {
     const parsedPage = parseInt(page || '1');
     const parsedLimit = Math.min(parseInt(limit || '20'), 50);
-    if (isPublic === 'true') {
+    if (isPublic === 'true' || !req.user?.id) {
       return this.resumesService.findPublic(parsedPage, parsedLimit);
     }
-    return this.resumesService.findAll(req.user?.id, parsedPage, parsedLimit);
+    return this.resumesService.findAll(req.user.id, parsedPage, parsedLimit);
   }
 
   @Get('dashboard/analytics')
