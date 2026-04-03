@@ -240,8 +240,69 @@ const steps = [
   },
 ];
 
+const recruiterSteps = [
+  {
+    id: 'signup',
+    title: '1. 채용 담당자로 가입',
+    icon: '1',
+    content: (
+      <div className="space-y-3">
+        <p>회원가입 시 <strong>"리크루터"</strong> 또는 <strong>"기업"</strong>을 선택하세요.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">채용 담당자 계정은 스카우트, 채용 공고 등 채용 전용 기능을 사용할 수 있습니다.</p>
+      </div>
+    ),
+  },
+  {
+    id: 'post-job',
+    title: '2. 채용 공고 등록',
+    icon: '2',
+    content: (
+      <div className="space-y-3">
+        <p>상단 메뉴의 <strong>"채용"</strong> → <strong>"+ 공고 등록"</strong>에서 채용 공고를 작성하세요.</p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>포지션, 회사, 기술 스택, 연봉 등을 입력합니다</li>
+          <li>구직자들이 공고를 보고 자소서를 작성할 수 있습니다</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'talent-search',
+    title: '3. 인재 검색',
+    icon: '3',
+    content: (
+      <div className="space-y-3">
+        <p><strong>"탐색"</strong> 페이지에서 공개 이력서를 검색하세요.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">기술 키워드, 이름, 직종으로 검색할 수 있습니다. 관심 있는 이력서를 북마크하세요.</p>
+      </div>
+    ),
+  },
+  {
+    id: 'scout',
+    title: '4. 스카우트 제안',
+    icon: '4',
+    content: (
+      <div className="space-y-3">
+        <p>이력서 상세 페이지에서 <strong>"스카우트"</strong> 버튼을 클릭하여 제안 메시지를 보내세요.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">구직자는 스카우트 제안을 확인하고 답장할 수 있습니다.</p>
+      </div>
+    ),
+  },
+  {
+    id: 'dashboard',
+    title: '5. 대시보드 관리',
+    icon: '5',
+    content: (
+      <div className="space-y-3">
+        <p><strong>"대시보드"</strong>에서 등록한 공고, 보낸 스카우트, 인재 검색을 한눈에 관리하세요.</p>
+      </div>
+    ),
+  },
+];
+
 export default function TutorialPage() {
   const [openStep, setOpenStep] = useState<string | null>('create');
+  const [guideType, setGuideType] = useState<'personal' | 'recruiter'>('personal');
 
   useEffect(() => {
     document.title = '사용 가이드 — 이력서공방';
@@ -257,8 +318,23 @@ export default function TutorialPage() {
           <p className="text-slate-500 dark:text-slate-400">이력서공방를 처음 사용하시나요? 아래 가이드를 따라해보세요.</p>
         </div>
 
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <button
+            onClick={() => setGuideType('personal')}
+            className={`px-4 py-2 text-sm rounded-xl transition-colors ${guideType === 'personal' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+          >
+            👤 구직자 가이드
+          </button>
+          <button
+            onClick={() => setGuideType('recruiter')}
+            className={`px-4 py-2 text-sm rounded-xl transition-colors ${guideType === 'recruiter' ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+          >
+            🏢 채용 담당자 가이드
+          </button>
+        </div>
+
         <div className="space-y-3">
-          {steps.map(step => (
+          {(guideType === 'personal' ? steps : recruiterSteps).map(step => (
             <div key={step.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
               <button
                 onClick={() => setOpenStep(openStep === step.id ? null : step.id)}
@@ -287,17 +363,24 @@ export default function TutorialPage() {
           ))}
         </div>
 
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link to="/resumes/new" className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm">
-            이력서 만들기
-          </Link>
-          <Link to="/auto-generate" className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-medium rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 shadow-sm">
-            AI 자동 생성
-          </Link>
-          <Link to="/explore" className="inline-flex items-center px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200">
-            이력서 둘러보기
-          </Link>
-        </div>
+        {guideType === 'recruiter' ? (
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link to="/jobs/new" className="px-6 py-3 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-all">채용 공고 등록</Link>
+            <Link to="/explore" className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-200 transition-all">인재 검색</Link>
+          </div>
+        ) : (
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link to="/resumes/new" className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm">
+              이력서 만들기
+            </Link>
+            <Link to="/auto-generate" className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-medium rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 shadow-sm">
+              AI 자동 생성
+            </Link>
+            <Link to="/explore" className="inline-flex items-center px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200">
+              이력서 둘러보기
+            </Link>
+          </div>
+        )}
       </main>
       <Footer />
     </>

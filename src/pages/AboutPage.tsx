@@ -126,6 +126,35 @@ export default function AboutPage() {
           </div>
         </div>
 
+        {/* For Recruiters */}
+        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 py-12 sm:py-16">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-10">
+              <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 rounded-full">채용 담당자용</span>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-4">인재를 찾고 계신가요?</h2>
+              <p className="text-slate-500 dark:text-slate-400 mt-2">이력서공방에서 우수 인재를 직접 스카우트하세요</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { icon: '🔍', title: '인재 검색', desc: '기술 스택, 경력으로 인재를 검색하고 이력서를 상세히 확인하세요.' },
+                { icon: '📨', title: '스카우트 제안', desc: '관심 있는 인재에게 직접 스카우트 메시지를 보낼 수 있습니다.' },
+                { icon: '📋', title: '채용 공고', desc: '채용 공고를 등록하면 구직자들이 지원하고 자소서를 작성합니다.' },
+              ].map(f => (
+                <div key={f.title} className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm">
+                  <span className="text-2xl mb-3 block">{f.icon}</span>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-1">{f.title}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+            <div className="text-center mt-8">
+              <Link to="/pricing" className="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors shadow-sm">
+                채용 요금제 보기
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* Tech Stack */}
         <div className="bg-slate-50 dark:bg-slate-900 py-12">
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
