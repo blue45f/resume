@@ -205,6 +205,18 @@ export default function ExplorePage() {
     setParams(next);
   };
 
+  const users = useMemo(() => result ? aggregateUsers(result.data) : [], [result]);
+
+  const toggleFollow = (userId: string) => {
+    setFollowedUsers(prev => {
+      const next = new Set(prev);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      localStorage.setItem('followed-users', JSON.stringify(Array.from(next)));
+      return next;
+    });
+  };
+
   return (
     <>
       <Header />
