@@ -107,8 +107,23 @@ export default function ComparePage() {
     </select>
   );
 
+  const leftAnalysis = useMemo(() => left && right ? analyzeResume(left, right) : null, [left, right]);
+  const rightAnalysis = useMemo(() => left && right ? analyzeResume(right, left) : null, [left, right]);
+
+  // Compute skill diff between resumes
+  const skillDiff = useMemo(() => {
+    if (!left || !right) return { onlyLeft: [] as string[], onlyRight: [] as string[], shared: [] as string[] };
+    const leftSkills = new Set(left.skills.flatMap(sk => sk.items.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)));
+    const rightSkills = new Set(right.skills.flatMap(sk => sk.items.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)));
+    const shared = [...leftSkills].filter(s => rightSkills.has(s));
+    const onlyLeft = [...leftSkills].filter(s => !rightSkills.has(s));
+    const onlyRight = [...rightSkills].filter(s => !leftSkills.has(s));
+    return { shared, onlyLeft, onlyRight };
+  }, [left, right]);
+
   const CompareBar = ({ label, leftVal, rightVal }: { label: string; leftVal: number; rightVal: number }) => {
     const max = Math.max(leftVal, rightVal, 1);
+    const pct = sectionMatchPercent(leftVal, rightVal);
     return (
       <div className="py-2.5 sm:py-2">
         <div className="flex items-center justify-between mb-1.5 sm:hidden">
@@ -127,6 +142,12 @@ export default function ComparePage() {
           </div>
           <span className="text-xs text-slate-500 dark:text-slate-400 w-16 tabular-nums hidden sm:block">{rightVal}</span>
           <span className="text-xs text-slate-600 dark:text-slate-300 w-16 font-medium hidden sm:block">{label}</span>
+          {/* Section match percentage */}
+          <span className={`text-[10px] font-bold w-10 text-right hidden sm:block ${
+            leftVal === rightVal ? 'text-slate-400' : leftVal > rightVal ? 'text-blue-500' : 'text-emerald-500'
+          }`}>
+            {leftVal === rightVal ? '=' : leftVal > rightVal ? `A +${leftVal - rightVal}` : `B +${rightVal - leftVal}`}
+          </span>
         </div>
       </div>
     );
@@ -201,6 +222,227 @@ export default function ComparePage() {
                 </p>
               </div>
             </div>
+
+            {/* Visual diff: Skill comparison */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-4">기술 스택 비교</h3>
+              {skillDiff.shared.length > 0 && (
+                <div className="mb-3">
+                  <h4 className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">공통 보유 기술</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {skillDiff.shared.map(s => (
+                      <span key={s} className="px-2 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg capitalize">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800/50">
+                  <h4 className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1.5">A에만 있는 기술</h4>
+                  {skillDiff.onlyLeft.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {skillDiff.onlyLeft.map(s => (
+                        <span key={s} className="px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded capitalize ring-1 ring-blue-200 dark:ring-blue-700">{s}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-blue-400 dark:text-blue-500">없음</p>
+                  )}
+                </div>
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-100 dark:border-emerald-800/50">
+                  <h4 className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1.5">B에만 있는 기술</h4>
+                  {skillDiff.onlyRight.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {skillDiff.onlyRight.map(s => (
+                        <span key={s} className="px-2 py-0.5 text-xs bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded capitalize ring-1 ring-emerald-200 dark:ring-emerald-700">{s}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-emerald-400 dark:text-emerald-500">없음</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Side-by-side section detail comparison */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-4">섹션별 상세 비교</h3>
+
+              {/* Experience comparison */}
+              <details className="mb-3 group">
+                <summary className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">경력</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-blue-600 font-medium">{left.experiences.length}개</span>
+                    <span className="text-xs text-slate-400">vs</span>
+                    <span className="text-xs text-emerald-600 font-medium">{right.experiences.length}개</span>
+                  </div>
+                </summary>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                  <div className="space-y-2">
+                    {left.experiences.length > 0 ? left.experiences.map(exp => (
+                      <div key={exp.id} className={`p-2.5 rounded-lg text-xs border-l-3 ${
+                        right.experiences.some(re => re.company.toLowerCase() === exp.company.toLowerCase())
+                          ? 'bg-slate-50 dark:bg-slate-900 border-l-slate-300'
+                          : 'bg-blue-50 dark:bg-blue-900/20 border-l-blue-400'
+                      }`}>
+                        <p className="font-medium text-slate-700 dark:text-slate-300">{exp.company}</p>
+                        <p className="text-slate-500 dark:text-slate-400">{exp.position}</p>
+                        <p className="text-slate-400 dark:text-slate-500 mt-0.5">{exp.startDate} ~ {exp.current ? '현재' : exp.endDate}</p>
+                      </div>
+                    )) : <p className="text-xs text-slate-400 p-2">경력 없음</p>}
+                  </div>
+                  <div className="space-y-2">
+                    {right.experiences.length > 0 ? right.experiences.map(exp => (
+                      <div key={exp.id} className={`p-2.5 rounded-lg text-xs border-l-3 ${
+                        left.experiences.some(le => le.company.toLowerCase() === exp.company.toLowerCase())
+                          ? 'bg-slate-50 dark:bg-slate-900 border-l-slate-300'
+                          : 'bg-emerald-50 dark:bg-emerald-900/20 border-l-emerald-400'
+                      }`}>
+                        <p className="font-medium text-slate-700 dark:text-slate-300">{exp.company}</p>
+                        <p className="text-slate-500 dark:text-slate-400">{exp.position}</p>
+                        <p className="text-slate-400 dark:text-slate-500 mt-0.5">{exp.startDate} ~ {exp.current ? '현재' : exp.endDate}</p>
+                      </div>
+                    )) : <p className="text-xs text-slate-400 p-2">경력 없음</p>}
+                  </div>
+                </div>
+              </details>
+
+              {/* Education comparison */}
+              <details className="mb-3 group">
+                <summary className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">학력</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-blue-600 font-medium">{left.educations.length}개</span>
+                    <span className="text-xs text-slate-400">vs</span>
+                    <span className="text-xs text-emerald-600 font-medium">{right.educations.length}개</span>
+                  </div>
+                </summary>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                  <div className="space-y-2">
+                    {left.educations.length > 0 ? left.educations.map(edu => (
+                      <div key={edu.id} className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs border-l-3 border-l-blue-400">
+                        <p className="font-medium text-slate-700 dark:text-slate-300">{edu.school}</p>
+                        <p className="text-slate-500 dark:text-slate-400">{edu.degree} {edu.field}</p>
+                      </div>
+                    )) : <p className="text-xs text-slate-400 p-2">학력 없음</p>}
+                  </div>
+                  <div className="space-y-2">
+                    {right.educations.length > 0 ? right.educations.map(edu => (
+                      <div key={edu.id} className="p-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg text-xs border-l-3 border-l-emerald-400">
+                        <p className="font-medium text-slate-700 dark:text-slate-300">{edu.school}</p>
+                        <p className="text-slate-500 dark:text-slate-400">{edu.degree} {edu.field}</p>
+                      </div>
+                    )) : <p className="text-xs text-slate-400 p-2">학력 없음</p>}
+                  </div>
+                </div>
+              </details>
+
+              {/* Projects comparison */}
+              <details className="mb-3 group">
+                <summary className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">프로젝트</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-blue-600 font-medium">{left.projects.length}개</span>
+                    <span className="text-xs text-slate-400">vs</span>
+                    <span className="text-xs text-emerald-600 font-medium">{right.projects.length}개</span>
+                  </div>
+                </summary>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                  <div className="space-y-2">
+                    {left.projects.length > 0 ? left.projects.map(proj => (
+                      <div key={proj.id} className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs border-l-3 border-l-blue-400">
+                        <p className="font-medium text-slate-700 dark:text-slate-300">{proj.name}</p>
+                        <p className="text-slate-500 dark:text-slate-400">{proj.role}</p>
+                        {proj.techStack && <p className="text-slate-400 dark:text-slate-500 mt-0.5">{proj.techStack}</p>}
+                      </div>
+                    )) : <p className="text-xs text-slate-400 p-2">프로젝트 없음</p>}
+                  </div>
+                  <div className="space-y-2">
+                    {right.projects.length > 0 ? right.projects.map(proj => (
+                      <div key={proj.id} className="p-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg text-xs border-l-3 border-l-emerald-400">
+                        <p className="font-medium text-slate-700 dark:text-slate-300">{proj.name}</p>
+                        <p className="text-slate-500 dark:text-slate-400">{proj.role}</p>
+                        {proj.techStack && <p className="text-slate-400 dark:text-slate-500 mt-0.5">{proj.techStack}</p>}
+                      </div>
+                    )) : <p className="text-xs text-slate-400 p-2">프로젝트 없음</p>}
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            {/* Strengths and Weaknesses */}
+            {leftAnalysis && rightAnalysis && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Resume A analysis */}
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-blue-200 dark:border-blue-800 p-4">
+                  <h3 className="text-sm font-bold text-blue-600 mb-3 flex items-center gap-1.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    이력서 A 분석
+                  </h3>
+                  {leftAnalysis.strengths.length > 0 && (
+                    <div className="mb-3">
+                      <h4 className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1.5">강점</h4>
+                      <ul className="space-y-1">
+                        {leftAnalysis.strengths.map((s, i) => (
+                          <li key={i} className="text-xs text-slate-600 dark:text-slate-400 flex gap-1.5">
+                            <span className="text-emerald-500 shrink-0">+</span>
+                            <span>{s}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {leftAnalysis.weaknesses.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1.5">약점</h4>
+                      <ul className="space-y-1">
+                        {leftAnalysis.weaknesses.map((w, i) => (
+                          <li key={i} className="text-xs text-slate-600 dark:text-slate-400 flex gap-1.5">
+                            <span className="text-red-500 shrink-0">-</span>
+                            <span>{w}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {/* Resume B analysis */}
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-emerald-200 dark:border-emerald-800 p-4">
+                  <h3 className="text-sm font-bold text-emerald-600 mb-3 flex items-center gap-1.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    이력서 B 분석
+                  </h3>
+                  {rightAnalysis.strengths.length > 0 && (
+                    <div className="mb-3">
+                      <h4 className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1.5">강점</h4>
+                      <ul className="space-y-1">
+                        {rightAnalysis.strengths.map((s, i) => (
+                          <li key={i} className="text-xs text-slate-600 dark:text-slate-400 flex gap-1.5">
+                            <span className="text-emerald-500 shrink-0">+</span>
+                            <span>{s}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {rightAnalysis.weaknesses.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1.5">약점</h4>
+                      <ul className="space-y-1">
+                        {rightAnalysis.weaknesses.map((w, i) => (
+                          <li key={i} className="text-xs text-slate-600 dark:text-slate-400 flex gap-1.5">
+                            <span className="text-red-500 shrink-0">-</span>
+                            <span>{w}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
