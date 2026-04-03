@@ -38,7 +38,6 @@ import QrCodeModal from '@/components/QrCodeModal';
 import ExportPanel from '@/components/ExportPanel';
 import PublicLinkSettings from '@/components/PublicLinkSettings';
 import ShareStats from '@/components/ShareStats';
-import { API_URL } from '@/lib/config';
 
 /** Map theme accentColor to Tailwind classes */
 const accentColorMap: Record<string, { dot: string; ring: string; bgLight: string; border: string }> = {
@@ -242,6 +241,11 @@ export default function PreviewPage() {
                 읽는 시간: ~{readingMinutes}분
               </span>
             </div>
+            {/* Share analytics stat pills */}
+            <div className="hidden sm:block">
+              <ShareStats viewCount={resume.viewCount} />
+            </div>
+
             {/* Desktop action buttons */}
             <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 flex-wrap overflow-x-auto scrollbar-none">
               {/* Share dropdown */}
@@ -256,16 +260,20 @@ export default function PreviewPage() {
                 {showShareMenu && (
                   <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg z-50 animate-in fade-in slide-in-from-top-1 duration-150">
                     <button onClick={handleCopyLink} className="flex items-center gap-2.5 w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-t-xl">
-                      <span className="w-5 text-center">🔗</span> 링크 복사
+                      <span className="w-5 text-center">
+                        <svg className="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                      </span> 링크 복사
                     </button>
                     <button onClick={handleShareKakao} className="flex items-center gap-2.5 w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
-                      <span className="w-5 text-center">💬</span> KakaoTalk
+                      <span className="w-5 text-center text-yellow-600 font-bold text-xs">K</span> KakaoTalk
                     </button>
                     <button onClick={handleShareLinkedIn} className="flex items-center gap-2.5 w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
-                      <span className="w-5 text-center">💼</span> LinkedIn
+                      <span className="w-5 text-center text-blue-700 font-bold text-xs">in</span> LinkedIn
                     </button>
                     <button onClick={handleShareEmail} className="flex items-center gap-2.5 w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-b-xl">
-                      <span className="w-5 text-center">📧</span> Email
+                      <span className="w-5 text-center">
+                        <svg className="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                      </span> Email
                     </button>
                   </div>
                 )}
@@ -316,22 +324,12 @@ export default function PreviewPage() {
               >
                 변환
               </button>
-              <div className="relative group">
-                <button className="px-2.5 sm:px-3 py-2 text-slate-600 bg-slate-100 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-                  내보내기
-                </button>
-                <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-                  <a href={`${API_URL}/api/resumes/${id}/export/text`} download={`${resume?.title || 'resume'}.txt`} className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-t-xl">
-                    텍스트 (.txt)
-                  </a>
-                  <a href={`${API_URL}/api/resumes/${id}/export/markdown`} download={`${resume?.title || 'resume'}.md`} className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
-                    마크다운 (.md)
-                  </a>
-                  <a href={`${API_URL}/api/resumes/${id}/export/json`} download={`${resume?.title || 'resume'}.json`} className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-b-xl">
-                    JSON (.json)
-                  </a>
-                </div>
-              </div>
+              {/* Export options panel */}
+              <ExportPanel
+                resumeId={id!}
+                resumeTitle={resume.title}
+                onPrint={handlePrint}
+              />
               <button
                 onClick={handlePrint}
                 disabled={printPreparing}
@@ -408,6 +406,26 @@ export default function PreviewPage() {
 
         <div className="py-6 sm:py-8 px-4">
           <div className="max-w-[210mm] mx-auto mb-4 no-print space-y-4">
+            {/* Mobile share stats */}
+            <div className="sm:hidden">
+              <ShareStats viewCount={resume.viewCount} />
+            </div>
+
+            {/* Public link customization */}
+            {(() => {
+              const currentUser = getUser();
+              const isOwner = currentUser && resume.userId && currentUser.id === resume.userId;
+              if (!isOwner && resume.userId) return null;
+              return (
+                <PublicLinkSettings
+                  resumeId={id!}
+                  currentSlug={resume.slug}
+                  ownerName={resume.personalInfo.name}
+                  onSlugUpdated={(newSlug) => setResume(prev => prev ? { ...prev, slug: newSlug } : prev)}
+                />
+              );
+            })()}
+
             <CompletenessBar resume={resume} />
             <Suspense fallback={<div className="h-24 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />}>
               <ResumeScoreboard resume={resume} />

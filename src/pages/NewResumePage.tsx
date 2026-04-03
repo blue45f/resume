@@ -3,12 +3,15 @@ import { useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ResumeForm from '@/components/ResumeForm';
+import ThemePreviewCard from '@/components/ThemePreviewCard';
+import ThemePreviewModal from '@/components/ThemePreviewModal';
 import { toast } from '@/components/Toast';
 import { createEmptyResumeData } from '@/types/resume';
 import type { Resume, ResumeSummary, Template } from '@/types/resume';
 import { createResume, fetchTemplates, fetchResumes, fetchResume, duplicateResume } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { getPlan } from '@/lib/plans';
+import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes';
 
 const SECTION_LABELS: Record<string, string> = {
   personalInfo: '인적사항', summary: '자기소개', experiences: '경력',
@@ -115,6 +118,9 @@ export default function NewResumePage() {
   const [copySourceId, setCopySourceId] = useState('');
   const [initialData, setInitialData] = useState<any>(null);
   const [loadingCopy, setLoadingCopy] = useState(false);
+  const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
+  const [previewTheme, setPreviewTheme] = useState<ResumeTheme | null>(null);
+  const [themeFilter, setThemeFilter] = useState<string>('all');
   const user = getUser();
   const plan = getPlan(user?.plan || 'free');
   const isAdminUser = user?.role === 'admin' || user?.role === 'superadmin';

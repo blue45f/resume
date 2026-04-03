@@ -1,9 +1,66 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { fetchResumes, fetchResume } from '@/lib/api';
 import { calculateCompleteness } from '@/lib/completeness';
 import type { Resume, ResumeSummary } from '@/types/resume';
+
+/** Analyze strengths and weaknesses of a resume compared to another */
+function analyzeResume(resume: Resume, other: Resume): { strengths: string[]; weaknesses: string[] } {
+  const strengths: string[] = [];
+  const weaknesses: string[] = [];
+  const comp = calculateCompleteness(resume);
+  const otherComp = calculateCompleteness(other);
+
+  // Personal info
+  const pi = resume.personalInfo;
+  if (pi.summary && pi.summary.replace(/<[^>]*>/g, '').length > 100) strengths.push('상세한 자기소개');
+  else if (!pi.summary || pi.summary.replace(/<[^>]*>/g, '').length < 30) weaknesses.push('자기소개가 부족합니다');
+  if (pi.github || pi.website) strengths.push('포트폴리오/깃허브 링크 포함');
+  if (pi.photo) strengths.push('프로필 사진 포함');
+
+  // Experiences
+  if (resume.experiences.length > other.experiences.length) strengths.push(`경력 사항이 더 풍부 (${resume.experiences.length}개)`);
+  else if (resume.experiences.length < other.experiences.length) weaknesses.push(`경력 사항이 상대적으로 적음 (${resume.experiences.length}개 vs ${other.experiences.length}개)`);
+  const hasDetailedExp = resume.experiences.some(e => e.description && e.description.length > 80);
+  if (hasDetailedExp) strengths.push('경력 업무 내용 상세 기술');
+  else if (resume.experiences.length > 0) weaknesses.push('경력 업무 내용을 더 상세히 작성하세요');
+  const hasTechInExp = resume.experiences.some(e => e.techStack);
+  if (hasTechInExp) strengths.push('경력에 기술 스택 명시');
+
+  // Skills
+  const mySkillCount = resume.skills.reduce((s, sk) => s + sk.items.split(',').filter(Boolean).length, 0);
+  const otherSkillCount = other.skills.reduce((s, sk) => s + sk.items.split(',').filter(Boolean).length, 0);
+  if (mySkillCount > otherSkillCount) strengths.push(`기술 스택이 더 다양 (${mySkillCount}개)`);
+  else if (mySkillCount < otherSkillCount) weaknesses.push(`기술 스택이 상대적으로 적음 (${mySkillCount}개 vs ${otherSkillCount}개)`);
+
+  // Projects
+  if (resume.projects.length > 0 && other.projects.length === 0) strengths.push('프로젝트 경험 포함');
+  else if (resume.projects.length === 0 && other.projects.length > 0) weaknesses.push('프로젝트 경험이 없음');
+
+  // Certifications
+  if (resume.certifications.length > 0) strengths.push(`자격증 보유 (${resume.certifications.length}개)`);
+  else if (other.certifications.length > 0) weaknesses.push('자격증이 없음');
+
+  // Languages
+  if (resume.languages.length > other.languages.length) strengths.push('어학 능력 우수');
+  else if (resume.languages.length < other.languages.length) weaknesses.push('어학 점수 추가 권장');
+
+  // Overall completeness
+  if (comp.percentage > otherComp.percentage) strengths.push(`전체 완성도가 더 높음 (${comp.percentage}%)`);
+  else if (comp.percentage < otherComp.percentage) weaknesses.push(`완성도를 높이세요 (${comp.percentage}% vs ${otherComp.percentage}%)`);
+
+  return { strengths: strengths.slice(0, 6), weaknesses: weaknesses.slice(0, 6) };
+}
+
+/** Calculate section-level match percentage */
+function sectionMatchPercent(leftVal: number, rightVal: number): { left: number; right: number } {
+  const max = Math.max(leftVal, rightVal, 1);
+  return {
+    left: Math.round((leftVal / max) * 100),
+    right: Math.round((rightVal / max) * 100),
+  };
+}
 
 export default function ComparePage() {
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);

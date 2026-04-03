@@ -320,6 +320,10 @@ export declare class ResumesController {
         id: string;
         visibility: string;
     }>;
+    updateSlug(id: string, slug: string, req: any): Promise<{
+        id: string;
+        slug: string;
+    }>;
     remove(id: string, req: any): Promise<{
         success: boolean;
     }>;

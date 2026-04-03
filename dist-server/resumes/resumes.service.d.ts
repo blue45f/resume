@@ -205,6 +205,10 @@ export declare class ResumesService {
         id: string;
         visibility: string;
     }>;
+    updateSlug(id: string, slug: string, userId?: string, role?: string): Promise<{
+        id: string;
+        slug: string;
+    }>;
     private generateSlug;
     create(dto: CreateResumeDto, userId?: string): Promise<{
         experiences: {

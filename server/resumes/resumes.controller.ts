@@ -135,6 +135,17 @@ export class ResumesController {
     return this.resumesService.setVisibility(id, visibility, req.user.id, req.user.role);
   }
 
+  @Patch(':id/slug')
+  @ApiOperation({ summary: '이력서 공개 URL 슬러그 변경' })
+  updateSlug(
+    @Param('id') id: string,
+    @Body('slug') slug: string,
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.resumesService.updateSlug(id, slug, req.user.id, req.user.role);
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: '이력서 삭제' })
   remove(@Param('id') id: string, @Req() req: any) {

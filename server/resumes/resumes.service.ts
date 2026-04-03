@@ -195,6 +195,24 @@ export class ResumesService {
     return { id, visibility };
   }
 
+  async updateSlug(id: string, slug: string, userId?: string, role?: string) {
+    await this.verifyOwnership(id, userId, role);
+    const sanitized = slug
+      .toLowerCase()
+      .replace(/[^\w가-힣-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 60);
+    if (!sanitized) throw new BadRequestException('유효한 슬러그를 입력해 주세요');
+    // Check uniqueness
+    const existing = await this.prisma.resume.findFirst({
+      where: { slug: sanitized, id: { not: id } },
+    });
+    if (existing) throw new BadRequestException('이미 사용 중인 슬러그입니다');
+    await this.prisma.resume.update({ where: { id }, data: { slug: sanitized } });
+    return { id, slug: sanitized };
+  }
+
   private generateSlug(title: string): string {
     return (title || 'untitled')
       .replace(/[^\w가-힣\s-]/g, '')

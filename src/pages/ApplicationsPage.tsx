@@ -5,6 +5,8 @@ import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import EmptyState from '@/components/EmptyState';
 import AppCommentSection from '@/components/AppCommentSection';
+import ApplicationTimeline from '@/components/ApplicationTimeline';
+import InterviewReview from '@/components/InterviewReview';
 import { fetchApplications, createApplication, updateApplication, deleteApplication } from '@/lib/api';
 import type { JobApplication } from '@/lib/api';
 

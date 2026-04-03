@@ -254,19 +254,40 @@ export default function RecentActivity() {
                 {group.label}
               </div>
               <div className="space-y-1.5">
-                {group.items.map(act => (
-                  <Link
-                    key={act.id}
-                    to={`/resumes/${act.resumeId}/preview`}
-                    className="flex items-center gap-3 p-2.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200 text-sm"
-                  >
-                    <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-slate-50 dark:bg-slate-700/50">
-                      {ACTIVITY_ICONS[act.type] || ACTIVITY_ICONS.edit}
-                    </span>
-                    <span className="flex-1 text-slate-700 dark:text-slate-300 truncate">{act.description}</span>
-                    <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">{timeAgo(act.createdAt)}</span>
-                  </Link>
-                ))}
+                {group.items.map(act => {
+                  const isSocial = act.isSocial || ['follow', 'social_comment', 'scout'].includes(act.type);
+                  const linkTo = act.resumeId ? `/resumes/${act.resumeId}/preview` : '/explore';
+
+                  return (
+                    <Link
+                      key={act.id}
+                      to={linkTo}
+                      className="flex items-center gap-3 p-2.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200 text-sm"
+                    >
+                      {isSocial && act.actorName ? (
+                        <span className={`flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-white text-xs font-bold ${getAvatarBg(act.actorName)}`}>
+                          {act.actorName.charAt(0).toUpperCase()}
+                        </span>
+                      ) : (
+                        <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-slate-50 dark:bg-slate-700/50">
+                          {ACTIVITY_ICONS[act.type] || ACTIVITY_ICONS.edit}
+                        </span>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <span className="text-slate-700 dark:text-slate-300 truncate block">{act.description}</span>
+                        {isSocial && act.resumeTitle && (
+                          <span className="text-xs text-slate-400 dark:text-slate-500 truncate block">"{act.resumeTitle}"</span>
+                        )}
+                      </div>
+                      {isSocial && (
+                        <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                          {ACTIVITY_ICONS[act.type]}
+                        </span>
+                      )}
+                      <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">{timeAgo(act.createdAt)}</span>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}

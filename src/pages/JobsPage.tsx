@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import CompanyInfoCard from '@/components/CompanyInfoCard';
 import { getUser } from '@/lib/auth';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
@@ -225,7 +226,7 @@ export default function JobsPage() {
                   <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{selected.position}</h2>
                 </div>
                 <div className="p-4">
-                  <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} />
+                  <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} />
                 </div>
               </div>
             )}
@@ -284,7 +285,7 @@ export default function JobsPage() {
               <div className="lg:col-span-2 hidden lg:block">
                 {selected ? (
                   <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 sticky top-20">
-                    <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} />
+                    <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} />
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-64 text-slate-400 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -305,7 +306,7 @@ export default function JobsPage() {
 }
 
 /* Extracted detail panel for reuse in desktop and mobile */
-function JobDetailPanel({ job, isPersonal, userSkills }: { job: JobPost; isPersonal: boolean; userSkills: Set<string> }) {
+function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob }: { job: JobPost; isPersonal: boolean; userSkills: Set<string>; allJobs: JobPost[]; onSelectJob: (id: string) => void }) {
   const matchScore = userSkills.size > 0 && job.skills ? calculateMatchScore(userSkills, job.skills) : 0;
   const jobSkillsList = job.skills ? job.skills.split(',').map(s => s.trim()) : [];
   const matchedSkills = jobSkillsList.filter(s => userSkills.has(s.toLowerCase()));
@@ -348,37 +349,8 @@ function JobDetailPanel({ job, isPersonal, userSkills }: { job: JobPost; isPerso
         </div>
       </div>
 
-      {/* Company info */}
-      <div className="mb-5 p-3 bg-slate-50 dark:bg-slate-750 rounded-xl border border-slate-100 dark:border-slate-700">
-        <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-          회사 정보
-        </h4>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <span className="text-xs text-slate-400 dark:text-slate-500">회사명</span>
-            <p className="text-slate-700 dark:text-slate-300 font-medium">{job.company}</p>
-          </div>
-          {job.user?.companyName && (
-            <div>
-              <span className="text-xs text-slate-400 dark:text-slate-500">등록자</span>
-              <p className="text-slate-700 dark:text-slate-300">{job.user.companyName}</p>
-            </div>
-          )}
-          {job.location && (
-            <div>
-              <span className="text-xs text-slate-400 dark:text-slate-500">근무지</span>
-              <p className="text-slate-700 dark:text-slate-300">{job.location}</p>
-            </div>
-          )}
-          {job.salary && (
-            <div>
-              <span className="text-xs text-slate-400 dark:text-slate-500">급여</span>
-              <p className="text-emerald-600 dark:text-emerald-400 font-medium">{job.salary}</p>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Company info card */}
+      <CompanyInfoCard job={job} allJobs={allJobs} onSelectJob={onSelectJob} />
 
       {/* Required skills with match highlighting */}
       {job.skills && (

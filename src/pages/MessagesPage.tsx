@@ -9,9 +9,26 @@ import { API_URL } from '@/lib/config';
 
 
 interface Conversation {
-  partner: { id: string; name: string; email: string; avatar?: string };
+  partner: { id: string; name: string; email: string; avatar?: string; lastSeen?: string };
   lastMessage: { content: string; createdAt: string; isMine: boolean };
   unreadCount: number;
+}
+
+function isOnline(lastSeen?: string): boolean {
+  if (!lastSeen) return false;
+  return Date.now() - new Date(lastSeen).getTime() < 5 * 60 * 1000; // 5 minutes
+}
+
+function lastSeenText(lastSeen?: string): string {
+  if (!lastSeen) return '오프라인';
+  const diffMs = Date.now() - new Date(lastSeen).getTime();
+  if (diffMs < 5 * 60 * 1000) return '온라인';
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 60) return `마지막 접속: ${minutes}분 전`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `마지막 접속: ${hours}시간 전`;
+  const days = Math.floor(hours / 24);
+  return `마지막 접속: ${days}일 전`;
 }
 
 interface Message {
@@ -157,6 +174,10 @@ export default function MessagesPage() {
                           <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
                             {conv.partner.name?.charAt(0) || '?'}
                           </div>
+                          {/* Online/offline status dot */}
+                          <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-800 ${
+                            isOnline(conv.partner.lastSeen) ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'
+                          }`} />
                           {conv.unreadCount > 0 && (
                             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center leading-none">
                               {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
@@ -172,6 +193,9 @@ export default function MessagesPage() {
                             }`}>{conv.partner.name}</span>
                             <span className="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 ml-1">{timeAgo(conv.lastMessage.createdAt)}</span>
                           </div>
+                          <p className={`text-[10px] ${
+                            isOnline(conv.partner.lastSeen) ? 'text-green-500 dark:text-green-400' : 'text-slate-400 dark:text-slate-500'
+                          }`}>{lastSeenText(conv.partner.lastSeen)}</p>
                           <p className={`text-xs truncate ${
                             conv.unreadCount > 0
                               ? 'text-slate-700 dark:text-slate-300 font-medium'
@@ -203,10 +227,20 @@ export default function MessagesPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
-                  <div className="w-7 h-7 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
-                    {selectedConv?.partner.name?.charAt(0) || '?'}
+                  <div className="relative shrink-0">
+                    <div className="w-7 h-7 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                      {selectedConv?.partner.name?.charAt(0) || '?'}
+                    </div>
+                    <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-[1.5px] border-white dark:border-slate-800 ${
+                      isOnline(selectedConv?.partner.lastSeen) ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'
+                    }`} />
                   </div>
-                  <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{selectedConv?.partner.name}</span>
+                  <div className="min-w-0">
+                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 block">{selectedConv?.partner.name}</span>
+                    <span className={`text-[10px] ${
+                      isOnline(selectedConv?.partner.lastSeen) ? 'text-green-500' : 'text-slate-400 dark:text-slate-500'
+                    }`}>{lastSeenText(selectedConv?.partner.lastSeen)}</span>
+                  </div>
                 </div>
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[400px]">

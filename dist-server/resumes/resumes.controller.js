@@ -92,6 +92,11 @@ let ResumesController = class ResumesController {
             throw new common_1.UnauthorizedException('로그인이 필요합니다');
         return this.resumesService.setVisibility(id, visibility, req.user.id, req.user.role);
     }
+    updateSlug(id, slug, req) {
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        return this.resumesService.updateSlug(id, slug, req.user.id, req.user.role);
+    }
     remove(id, req) {
         if (!req.user?.id)
             throw new common_1.UnauthorizedException('로그인이 필요합니다');
@@ -279,6 +284,16 @@ __decorate([
     __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], ResumesController.prototype, "setVisibility", null);
+__decorate([
+    (0, common_1.Patch)(':id/slug'),
+    (0, swagger_1.ApiOperation)({ summary: '이력서 공개 URL 슬러그 변경' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('slug')),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", void 0)
+], ResumesController.prototype, "updateSlug", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiOperation)({ summary: '이력서 삭제' }),
