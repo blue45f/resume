@@ -15,6 +15,7 @@ const CommentSection = lazy(() => import('@/components/CommentSection'));
 const ResumeScoreboard = lazy(() => import('@/components/ResumeScoreboard'));
 const SalaryEstimate = lazy(() => import('@/components/SalaryEstimate'));
 const AtsScorePanel = lazy(() => import('@/components/AtsScorePanel'));
+const JdMatchAnalyzer = lazy(() => import('@/components/JdMatchAnalyzer'));
 const SimilarityPanel = lazy(() => import('@/components/SimilarityPanel'));
 const ResumeChecklist = lazy(() => import('@/components/ResumeChecklist'));
 const TransformHistory = lazy(() => import('@/components/TransformHistory'));
@@ -81,6 +82,7 @@ export default function PreviewPage() {
   const [showVersions, setShowVersions] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
   const [showAiAnalysis, setShowAiAnalysis] = useState(false);
+  const [showJdMatch, setShowJdMatch] = useState(false);
   const [themeId, setThemeId] = useState('classic');
   const [showQr, setShowQr] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
