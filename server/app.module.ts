@@ -26,9 +26,9 @@ import { JobsModule } from './jobs/jobs.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([
-      { name: 'short', ttl: 1000, limit: 10 },
-      { name: 'medium', ttl: 60000, limit: 100 },
-      { name: 'long', ttl: 3600000, limit: 1000 },
+      { name: 'short', ttl: 1000, limit: 30 },
+      { name: 'medium', ttl: 60000, limit: 300 },
+      { name: 'long', ttl: 3600000, limit: 3000 },
     ]),
     AuthModule,
     PrismaModule,
