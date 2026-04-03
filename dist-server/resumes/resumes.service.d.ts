@@ -25,36 +25,45 @@ export declare class ResumesService {
                 military: any;
             };
             tags: any;
+            skills: any;
             createdAt: any;
             updatedAt: any;
         }[];
         total: number;
         page: number;
         totalPages: number;
+        limit: number;
     }>;
-    findPublic(): Promise<{
-        id: any;
-        title: any;
-        slug: any;
-        viewCount: any;
-        visibility: any;
-        personalInfo: {
-            name: any;
-            email: any;
-            phone: any;
-            address: any;
-            website: any;
-            github: any;
-            summary: any;
-            photo: any;
-            birthYear: any;
-            links: any;
-            military: any;
-        };
-        tags: any;
-        createdAt: any;
-        updatedAt: any;
-    }[]>;
+    findPublic(page?: number, limit?: number): Promise<{
+        data: {
+            id: any;
+            title: any;
+            slug: any;
+            viewCount: any;
+            visibility: any;
+            personalInfo: {
+                name: any;
+                email: any;
+                phone: any;
+                address: any;
+                website: any;
+                github: any;
+                summary: any;
+                photo: any;
+                birthYear: any;
+                links: any;
+                military: any;
+            };
+            tags: any;
+            skills: any;
+            createdAt: any;
+            updatedAt: any;
+        }[];
+        total: number;
+        page: number;
+        totalPages: number;
+        limit: number;
+    }>;
     searchPublic(opts: {
         query?: string;
         tag?: string;
@@ -82,12 +91,14 @@ export declare class ResumesService {
                 military: any;
             };
             tags: any;
+            skills: any;
             createdAt: any;
             updatedAt: any;
         }[];
         total: number;
         page: number;
         totalPages: number;
+        limit: number;
     }>;
     findBySlug(username: string, slug: string): Promise<{
         experiences: {

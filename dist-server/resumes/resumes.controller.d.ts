@@ -10,28 +10,6 @@ export declare class ResumesController {
     private readonly analyticsService;
     constructor(resumesService: ResumesService, exportService: ExportService, analyticsService: AnalyticsService);
     findAll(req: any, isPublic?: string, page?: string, limit?: string): Promise<{
-        id: any;
-        title: any;
-        slug: any;
-        viewCount: any;
-        visibility: any;
-        personalInfo: {
-            name: any;
-            email: any;
-            phone: any;
-            address: any;
-            website: any;
-            github: any;
-            summary: any;
-            photo: any;
-            birthYear: any;
-            links: any;
-            military: any;
-        };
-        tags: any;
-        createdAt: any;
-        updatedAt: any;
-    }[]> | Promise<{
         data: {
             id: any;
             title: any;
@@ -52,12 +30,14 @@ export declare class ResumesController {
                 military: any;
             };
             tags: any;
+            skills: any;
             createdAt: any;
             updatedAt: any;
         }[];
         total: number;
         page: number;
         totalPages: number;
+        limit: number;
     }>;
     analytics(req: any): Promise<{
         summary: {
@@ -100,7 +80,7 @@ export declare class ResumesController {
         createdAt: string;
         updatedAt: string;
     } | null>;
-    getBookmarks(req: any): never[] | Promise<{
+    getBookmarks(req: any): Promise<{
         id: string;
         resumeId: string;
         title: string;
@@ -175,12 +155,14 @@ export declare class ResumesController {
                 military: any;
             };
             tags: any;
+            skills: any;
             createdAt: any;
             updatedAt: any;
         }[];
         total: number;
         page: number;
         totalPages: number;
+        limit: number;
     }>;
     isBookmarked(id: string, req: any): Promise<{
         bookmarked: boolean;
@@ -337,14 +319,10 @@ export declare class ResumesController {
     }>;
     addBookmark(id: string, req: any): Promise<{
         bookmarked: boolean;
-    }> | {
-        error: string;
-    };
+    }>;
     removeBookmark(id: string, req: any): Promise<{
         bookmarked: boolean;
-    }> | {
-        error: string;
-    };
+    }>;
     duplicate(id: string, req: any): Promise<{
         experiences: {
             [k: string]: any;

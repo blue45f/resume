@@ -8,6 +8,11 @@ export declare class HealthController {
     private readonly statsService;
     private readonly usageService;
     constructor(prisma: PrismaService, config: ConfigService, statsService: AdminStatsService, usageService: UsageService);
+    ping(): {
+        status: string;
+        timestamp: string;
+        version: string;
+    };
     check(): Promise<{
         status: string;
         version: string;
@@ -34,7 +39,21 @@ export declare class HealthController {
         feature: string;
         count: number;
     }[]>;
-    adminStats(): Promise<{
+    publicStats(): Promise<{
+        users: {
+            total: number;
+        };
+        resumes: {
+            total: number;
+        };
+        activity: {
+            totalViews: number;
+        };
+        content: {
+            templates: number;
+        };
+    }>;
+    adminStats(req: any): Promise<{
         users: {
             total: number;
             today: number;

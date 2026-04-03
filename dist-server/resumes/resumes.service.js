@@ -94,20 +94,33 @@ let ResumesService = class ResumesService {
             total,
             page,
             totalPages: Math.ceil(total / limit),
+            limit,
         };
     }
-    async findPublic() {
-        const resumes = await this.prisma.resume.findMany({
-            where: { visibility: 'public' },
-            include: {
-                personalInfo: {
-                    select: { name: true, email: true, phone: true, summary: true, photo: true },
+    async findPublic(page = 1, limit = 20) {
+        const where = { visibility: 'public' };
+        const [resumes, total] = await Promise.all([
+            this.prisma.resume.findMany({
+                where,
+                include: {
+                    personalInfo: {
+                        select: { name: true, email: true, phone: true, summary: true, photo: true },
+                    },
+                    tags: { include: { tag: true } },
                 },
-                tags: { include: { tag: true } },
-            },
-            orderBy: { updatedAt: 'desc' },
-        });
-        return resumes.map((r) => this.formatSummary(r));
+                orderBy: { updatedAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            this.prisma.resume.count({ where }),
+        ]);
+        return {
+            data: resumes.map((r) => this.formatSummary(r)),
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+            limit,
+        };
     }
     async searchPublic(opts) {
         const where = { visibility: 'public' };
@@ -133,6 +146,7 @@ let ResumesService = class ResumesService {
                         select: { name: true, email: true, phone: true, summary: true, photo: true },
                     },
                     tags: { include: { tag: true } },
+                    skills: { select: { id: true, category: true, items: true }, take: 5 },
                 },
                 orderBy,
                 skip: (opts.page - 1) * opts.limit,
@@ -145,6 +159,7 @@ let ResumesService = class ResumesService {
             total,
             page: opts.page,
             totalPages: Math.ceil(total / opts.limit),
+            limit: opts.limit,
         };
     }
     async findBySlug(username, slug) {
@@ -173,6 +188,9 @@ let ResumesService = class ResumesService {
         if (resume.visibility === 'private' && resume.userId && resume.userId !== userId) {
             throw new common_1.ForbiddenException('이 이력서에 접근할 권한이 없습니다');
         }
+        if (!userId || resume.userId !== userId) {
+            this.prisma.resume.update({ where: { id }, data: { viewCount: { increment: 1 } } }).catch(() => { });
+        }
         const result = this.formatFull(resume);
         const bookmarkCount = await this.prisma.bookmark.count({ where: { resumeId: id } });
         return { ...result, bookmarkCount };
@@ -190,7 +208,7 @@ let ResumesService = class ResumesService {
     }
     async setVisibility(id, visibility, userId, role) {
         if (!['public', 'private', 'link-only'].includes(visibility)) {
-            throw new common_1.NotFoundException('유효하지 않은 공개 설정입니다');
+            throw new common_1.BadRequestException('유효하지 않은 공개 설정입니다. public, private, link-only 중 하나를 선택하세요');
         }
         await this.verifyOwnership(id, userId, role);
         await this.prisma.resume.update({ where: { id }, data: { visibility } });
@@ -436,6 +454,7 @@ let ResumesService = class ResumesService {
                 }
                 : { name: '', email: '', phone: '', address: '', website: '', github: '', summary: '', photo: '', birthYear: '', links: [], military: '' },
             tags: resume.tags?.map((t) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })) ?? [],
+            skills: resume.skills?.map((s) => ({ id: s.id, category: s.category, items: s.items })) ?? [],
             createdAt: resume.createdAt.toISOString(),
             updatedAt: resume.updatedAt.toISOString(),
         };

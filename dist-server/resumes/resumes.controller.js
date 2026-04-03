@@ -32,13 +32,17 @@ let ResumesController = class ResumesController {
         this.analyticsService = analyticsService;
     }
     findAll(req, isPublic, page, limit) {
+        const parsedPage = parseInt(page || '1');
+        const parsedLimit = Math.min(parseInt(limit || '20'), 50);
         if (isPublic === 'true') {
-            return this.resumesService.findPublic();
+            return this.resumesService.findPublic(parsedPage, parsedLimit);
         }
-        return this.resumesService.findAll(req.user?.id, parseInt(page || '1'), Math.min(parseInt(limit || '20'), 50));
+        return this.resumesService.findAll(req.user?.id, parsedPage, parsedLimit);
     }
     analytics(req) {
-        return this.analyticsService.getUserDashboard(req.user?.id);
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        return this.analyticsService.getUserDashboard(req.user.id);
     }
     getResumeTrend(resumeId) {
         return this.analyticsService.getResumeTrend(resumeId);
@@ -51,7 +55,7 @@ let ResumesController = class ResumesController {
     }
     getBookmarks(req) {
         if (!req.user?.id)
-            return [];
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
         return this.resumesService.getBookmarks(req.user.id);
     }
     findBySlug(username, slug) {
@@ -74,50 +78,81 @@ let ResumesController = class ResumesController {
         return this.resumesService.findOne(id, req.user?.id);
     }
     create(dto, req) {
-        return this.resumesService.create(dto, req.user?.id);
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        return this.resumesService.create(dto, req.user.id);
     }
     update(id, dto, req) {
-        return this.resumesService.update(id, dto, req.user?.id);
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        return this.resumesService.update(id, dto, req.user.id);
     }
     setVisibility(id, visibility, req) {
-        return this.resumesService.setVisibility(id, visibility, req.user?.id, req.user?.role);
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        return this.resumesService.setVisibility(id, visibility, req.user.id, req.user.role);
     }
     remove(id, req) {
-        return this.resumesService.remove(id, req.user?.id, req.user?.role);
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        return this.resumesService.remove(id, req.user.id, req.user.role);
     }
     addBookmark(id, req) {
         if (!req.user?.id)
-            return { error: '로그인이 필요합니다' };
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
         return this.resumesService.addBookmark(id, req.user.id);
     }
     removeBookmark(id, req) {
         if (!req.user?.id)
-            return { error: '로그인이 필요합니다' };
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
         return this.resumesService.removeBookmark(id, req.user.id);
     }
     duplicate(id, req) {
-        return this.resumesService.duplicate(id, req.user?.id);
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        return this.resumesService.duplicate(id, req.user.id);
     }
     async exportText(id, res) {
-        const text = await this.exportService.exportAsText(id);
-        this.resumesService.incrementViewCount(id);
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="resume.txt"`);
-        res.send(text);
+        try {
+            const text = await this.exportService.exportAsText(id);
+            this.resumesService.incrementViewCount(id);
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            res.setHeader('Content-Disposition', `attachment; filename="resume.txt"`);
+            res.send(text);
+        }
+        catch (e) {
+            if (e instanceof common_1.NotFoundException)
+                throw e;
+            throw new common_1.InternalServerErrorException('이력서 내보내기에 실패했습니다');
+        }
     }
     async exportMarkdown(id, res) {
-        const text = await this.exportService.exportAsMarkdown(id);
-        this.resumesService.incrementViewCount(id);
-        res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="resume.md"`);
-        res.send(text);
+        try {
+            const text = await this.exportService.exportAsMarkdown(id);
+            this.resumesService.incrementViewCount(id);
+            res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+            res.setHeader('Content-Disposition', `attachment; filename="resume.md"`);
+            res.send(text);
+        }
+        catch (e) {
+            if (e instanceof common_1.NotFoundException)
+                throw e;
+            throw new common_1.InternalServerErrorException('이력서 내보내기에 실패했습니다');
+        }
     }
     async exportJson(id, res) {
-        const json = await this.exportService.exportAsJson(id);
-        this.resumesService.incrementViewCount(id);
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="resume.json"`);
-        res.send(json);
+        try {
+            const json = await this.exportService.exportAsJson(id);
+            this.resumesService.incrementViewCount(id);
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.setHeader('Content-Disposition', `attachment; filename="resume.json"`);
+            res.send(json);
+        }
+        catch (e) {
+            if (e instanceof common_1.NotFoundException)
+                throw e;
+            throw new common_1.InternalServerErrorException('이력서 내보내기에 실패했습니다');
+        }
     }
 };
 exports.ResumesController = ResumesController;

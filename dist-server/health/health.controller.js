@@ -33,6 +33,13 @@ let HealthController = class HealthController {
         this.statsService = statsService;
         this.usageService = usageService;
     }
+    ping() {
+        return {
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            version: pkg.version,
+        };
+    }
     async check() {
         let dbStatus = 'ok';
         let resumeCount = 0;
@@ -71,10 +78,29 @@ let HealthController = class HealthController {
     }
     async getUsage(req) {
         if (!req.user?.id)
-            return [];
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
         return this.usageService.getUsage(req.user.id);
     }
-    async adminStats() {
+    async publicStats() {
+        const [users, resumes, views, templates] = await Promise.all([
+            this.prisma.user.count(),
+            this.prisma.resume.count(),
+            this.prisma.resume.aggregate({ _sum: { viewCount: true } }),
+            this.prisma.template.count(),
+        ]);
+        return {
+            users: { total: users },
+            resumes: { total: resumes },
+            activity: { totalViews: views._sum.viewCount || 0 },
+            content: { templates },
+        };
+    }
+    async adminStats(req) {
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+            throw new common_1.ForbiddenException('관리자 권한이 필요합니다');
+        }
         return this.statsService.getStats();
     }
 };
@@ -83,7 +109,16 @@ __decorate([
     (0, common_1.Get)(),
     (0, auth_guard_1.Public)(),
     (0, cache_interceptor_1.CacheTTL)(10),
-    (0, swagger_1.ApiOperation)({ summary: '서버 상태 확인' }),
+    (0, swagger_1.ApiOperation)({ summary: '서버 상태 확인 (간단)' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], HealthController.prototype, "ping", null);
+__decorate([
+    (0, common_1.Get)('detailed'),
+    (0, auth_guard_1.Public)(),
+    (0, cache_interceptor_1.CacheTTL)(10),
+    (0, swagger_1.ApiOperation)({ summary: '서버 상태 상세 확인' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
@@ -97,12 +132,21 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], HealthController.prototype, "getUsage", null);
 __decorate([
-    (0, common_1.Get)('admin/stats'),
+    (0, common_1.Get)('stats'),
     (0, auth_guard_1.Public)(),
-    (0, cache_interceptor_1.CacheTTL)(30),
-    (0, swagger_1.ApiOperation)({ summary: '관리자 통계 (사이트 전체)' }),
+    (0, cache_interceptor_1.CacheTTL)(60),
+    (0, swagger_1.ApiOperation)({ summary: '공개 사이트 통계 (사용자수, 이력서수, 조회수)' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "publicStats", null);
+__decorate([
+    (0, common_1.Get)('admin/stats'),
+    (0, cache_interceptor_1.CacheTTL)(30),
+    (0, swagger_1.ApiOperation)({ summary: '관리자 통계 (사이트 전체)' }),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], HealthController.prototype, "adminStats", null);
 exports.HealthController = HealthController = __decorate([
