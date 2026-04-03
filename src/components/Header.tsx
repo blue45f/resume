@@ -19,6 +19,8 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const profileTriggerRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(getUser());
   const user = currentUser;

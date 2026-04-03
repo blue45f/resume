@@ -789,12 +789,21 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
       {/* Action buttons */}
       <div className="flex flex-wrap gap-2 mt-6 pt-4 border-t border-slate-100 dark:border-slate-700">
         {isPersonal ? (
-          <Link
-            to={`/applications?company=${encodeURIComponent(job.company)}&position=${encodeURIComponent(job.position)}`}
-            className="flex-1 py-2.5 text-center bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
-          >
-            지원하기
-          </Link>
+          <>
+            {appliedJobs.has(job.id) ? (
+              <div className="flex-1 py-2.5 text-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium rounded-xl flex items-center justify-center gap-1.5">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                지원 완료
+              </div>
+            ) : (
+              <button
+                onClick={() => onQuickApply(job)}
+                className="flex-1 py-2.5 text-center bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                이력서로 즉시 지원
+              </button>
+            )}
+          </>
         ) : (
           <>
             <Link
@@ -816,6 +825,13 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
           className={`${isPersonal ? '' : 'flex-1'} px-4 py-2.5 text-center bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors`}
         >
           이 공고로 자소서 작성
+        </Link>
+        <Link
+          to={`/company/${encodeURIComponent(job.company)}`}
+          className="px-4 py-2.5 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm rounded-xl hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors flex items-center gap-1"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+          회사 정보 보기
         </Link>
       </div>
     </>

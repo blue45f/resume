@@ -10,6 +10,7 @@ import type { ResumeSummary, Tag, Resume } from '@/types/resume';
 import { fetchResumes, deleteResume, duplicateResume, fetchTags, fetchBookmarks, fetchResume } from '@/lib/api';
 import ResumeThumbnail from '@/components/ResumeThumbnail';
 import DashboardStats from '@/components/DashboardStats';
+import ProfileViewers from '@/components/ProfileViewers';
 import NetworkStats from '@/components/NetworkStats';
 import RecentActivity from '@/components/RecentActivity';
 import HiringTrends from '@/components/HiringTrends';
@@ -358,6 +359,8 @@ export default function HomePage() {
             )}
 
             <DashboardStats />
+
+            <ProfileViewers />
 
             <NetworkStats />
 

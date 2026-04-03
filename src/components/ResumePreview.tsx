@@ -559,7 +559,130 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
     </div>
   );
 
-  /* ---- Standard sections content ---- */
+  /* ---- Section order & visibility ---- */
+  const sectionOrder = resume.sectionOrder?.length ? resume.sectionOrder : [...DEFAULT_SECTION_ORDER];
+  const hiddenSections = new Set(resume.hiddenSections || []);
+
+  /** Render a single section by ID */
+  function renderSection(sectionId: SectionId, isFirst: boolean) {
+    if (hiddenSections.has(sectionId)) return null;
+    switch (sectionId) {
+      case 'experience':
+        return experiences.length > 0 ? (
+          <Section key="experience" title={t('resume.experience')} theme={theme} isFirst={isFirst}>
+            <div className="space-y-5">
+              {experiences.map(exp => <ExperienceBlock key={exp.id} exp={exp} themeId={theme.id} />)}
+            </div>
+          </Section>
+        ) : null;
+      case 'education':
+        return educations.length > 0 ? (
+          <Section key="education" title={t('resume.education')} theme={theme} isFirst={isFirst}>
+            <div className="space-y-3">
+              {educations.map(edu => <EducationBlock key={edu.id} edu={edu} themeId={theme.id} />)}
+            </div>
+          </Section>
+        ) : null;
+      case 'skills':
+        return skills.length > 0 ? (
+          <Section key="skills" title={t('resume.skills')} theme={theme} isFirst={isFirst}>
+            <SkillsDisplay skills={skills} themeId={theme.id} accentColor={theme.accentColor} />
+          </Section>
+        ) : null;
+      case 'projects':
+        return projects.length > 0 ? (
+          <Section key="projects" title={t('resume.projects')} theme={theme} isFirst={isFirst}>
+            <div className="space-y-5">
+              {projects.map(proj => <ProjectBlock key={proj.id} proj={proj} themeId={theme.id} />)}
+            </div>
+          </Section>
+        ) : null;
+      case 'certifications':
+        return resume.certifications.length > 0 ? (
+          <Section key="certifications" title={t('resume.certifications')} theme={theme} isFirst={isFirst}>
+            <div className="space-y-2">
+              {resume.certifications.map(cert => (
+                <div key={cert.id}>
+                  <div className="flex flex-wrap justify-between items-baseline gap-2">
+                    <div>
+                      <span className="font-semibold text-slate-900">{cert.name}</span>
+                      {cert.issuer && <span className="text-slate-600 ml-2 text-sm">{cert.issuer}</span>}
+                      {cert.credentialId && <span className="text-slate-400 ml-2 text-xs">({cert.credentialId})</span>}
+                    </div>
+                    <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
+                      {formatDateRange(cert.issueDate, cert.expiryDate, undefined, getDateLocale(theme.id))}
+                    </span>
+                  </div>
+                  {cert.description && <SafeHtml html={cert.description} className="text-sm text-slate-600 mt-1" />}
+                </div>
+              ))}
+            </div>
+          </Section>
+        ) : null;
+      case 'languages':
+        return resume.languages.length > 0 ? (
+          <Section key="languages" title={t('resume.languages')} theme={theme} isFirst={isFirst}>
+            <div className="space-y-1">
+              {resume.languages.map(lang => (
+                <div key={lang.id} className="flex justify-between items-baseline">
+                  <div>
+                    <span className="font-semibold text-slate-900">{lang.name}</span>
+                    {lang.testName && <span className="text-slate-600 ml-2 text-sm">{lang.testName}</span>}
+                    {lang.score && <span className="text-blue-600 ml-2 text-sm font-medium">{lang.score}</span>}
+                  </div>
+                  {lang.testDate && <span className="text-xs text-slate-400 tabular-nums">{formatDate(lang.testDate, getDateLocale(theme.id))}</span>}
+                </div>
+              ))}
+            </div>
+          </Section>
+        ) : null;
+      case 'awards':
+        return resume.awards.length > 0 ? (
+          <Section key="awards" title={t('resume.awards')} theme={theme} isFirst={isFirst}>
+            <div className="space-y-2">
+              {resume.awards.map(award => (
+                <div key={award.id}>
+                  <div className="flex flex-wrap justify-between items-baseline gap-2">
+                    <div>
+                      <span className="font-semibold text-slate-900">{award.name}</span>
+                      {award.issuer && <span className="text-slate-600 ml-2 text-sm">{award.issuer}</span>}
+                    </div>
+                    {award.awardDate && <span className="text-xs text-slate-400 tabular-nums">{formatDate(award.awardDate, getDateLocale(theme.id))}</span>}
+                  </div>
+                  {award.description && <SafeHtml html={award.description} className="text-sm text-slate-600 mt-1" />}
+                </div>
+              ))}
+            </div>
+          </Section>
+        ) : null;
+      case 'activities':
+        return resume.activities.length > 0 ? (
+          <Section key="activities" title={t('resume.activities')} theme={theme} isFirst={isFirst}>
+            <div className="space-y-3">
+              {resume.activities.map(act => (
+                <div key={act.id}>
+                  <div className="flex flex-wrap justify-between items-baseline gap-2">
+                    <div>
+                      <span className="font-semibold text-slate-900">{act.name}</span>
+                      {act.organization && <span className="text-slate-600 ml-2 text-sm">{act.organization}</span>}
+                      {act.role && <span className="text-slate-500 ml-2 text-xs">({act.role})</span>}
+                    </div>
+                    <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
+                      {formatDateRange(act.startDate, act.endDate, undefined, getDateLocale(theme.id))}
+                    </span>
+                  </div>
+                  {act.description && <SafeHtml html={act.description} className="text-sm text-slate-600 mt-1" />}
+                </div>
+              ))}
+            </div>
+          </Section>
+        ) : null;
+      default:
+        return null;
+    }
+  }
+
+  /* ---- Standard sections content (respects sectionOrder & hiddenSections) ---- */
   const standardContent = (
     <>
       {pi.summary && (
@@ -567,33 +690,10 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
           <SafeHtml html={pi.summary} className="text-sm text-slate-700 leading-relaxed break-words" />
         </Section>
       )}
-      {experiences.length > 0 && (
-        <Section title={t('resume.experience')} theme={theme} isFirst={!pi.summary}>
-          <div className="space-y-5">
-            {experiences.map(exp => <ExperienceBlock key={exp.id} exp={exp} themeId={theme.id} />)}
-          </div>
-        </Section>
-      )}
-      {educations.length > 0 && (
-        <Section title={t('resume.education')} theme={theme}>
-          <div className="space-y-3">
-            {educations.map(edu => <EducationBlock key={edu.id} edu={edu} themeId={theme.id} />)}
-          </div>
-        </Section>
-      )}
-      {skills.length > 0 && (
-        <Section title={t('resume.skills')} theme={theme}>
-          <SkillsDisplay skills={skills} themeId={theme.id} accentColor={theme.accentColor} />
-        </Section>
-      )}
-      {projects.length > 0 && (
-        <Section title={t('resume.projects')} theme={theme}>
-          <div className="space-y-5">
-            {projects.map(proj => <ProjectBlock key={proj.id} proj={proj} themeId={theme.id} />)}
-          </div>
-        </Section>
-      )}
-      <RemainingContent resume={resume} theme={theme} sectionIndex={sectionCount} />
+      {sectionOrder.map((sectionId, idx) => {
+        const isFirst = !pi.summary && idx === 0;
+        return renderSection(sectionId, isFirst);
+      })}
     </>
   );
 

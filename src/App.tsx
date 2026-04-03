@@ -63,6 +63,7 @@ const ShortLinkPage = lazyRetry(() => import('@/pages/ShortLinkPage'));
 const FollowListPage = lazyRetry(() => import('@/pages/FollowListPage'));
 const FeedbackPage = lazyRetry(() => import('@/pages/FeedbackPage'));
 const SitemapPage = lazyRetry(() => import('@/pages/SitemapPage'));
+const CompanyPage = lazyRetry(() => import('@/pages/CompanyPage'));
 const NotFoundPage = lazyRetry(() => import('@/pages/NotFoundPage'));
 
 function PageLoader() {
@@ -130,6 +131,7 @@ export default function App() {
             <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AuthGuard><AdminPage /></AuthGuard></Suspense>} />
             <Route path="/r/:code" element={<Suspense fallback={<PageLoader />}><ShortLinkPage /></Suspense>} />
             <Route path="/@:username/:slug" element={<Suspense fallback={<PageLoader />}><ProfileResumePage /></Suspense>} />
+            <Route path="/company/:name" element={<Suspense fallback={<PageLoader />}><CompanyPage /></Suspense>} />
             <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />
           </Routes>
         </div>
