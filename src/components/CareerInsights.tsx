@@ -56,9 +56,18 @@ function parseSalaryNumber(salary: string): number | null {
   return null;
 }
 
+interface NewsItem {
+  id: number;
+  title: string;
+  url: string;
+  score: number;
+  time: number;
+}
+
 export default function CareerInsights() {
   const user = getUser();
   const [jobs, setJobs] = useState<JobPost[]>([]);
+  const [news, setNews] = useState<NewsItem[]>([]);
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [collapsed, setCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<'market' | 'skills' | 'learning' | 'news'>('market');
@@ -68,9 +77,19 @@ export default function CareerInsights() {
     Promise.all([
       fetch(`${API_URL}/api/jobs`).then(r => r.ok ? r.json() : []).catch(() => []),
       fetchResumes().catch(() => []),
-    ]).then(([jobData, resumeData]) => {
+      // 취업/채용 관련 뉴스 (Hacker News hiring 키워드)
+      fetch('https://hacker-news.firebaseio.com/v0/jobstories.json')
+        .then(r => r.json())
+        .then((ids: number[]) => Promise.all(
+          (ids || []).slice(0, 6).map((id: number) =>
+            fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r => r.json())
+          )
+        ))
+        .catch(() => []),
+    ]).then(([jobData, resumeData, newsData]) => {
       setJobs(jobData);
       setResumes(resumeData);
+      setNews((newsData || []).filter((n: any) => n?.title));
     }).finally(() => setLoading(false));
   }, []);
 
@@ -450,24 +469,30 @@ export default function CareerInsights() {
           {/* Industry News Tab (placeholder) */}
           {activeTab === 'news' && (
             <div className="space-y-3">
-              {jobs.length > 0 ? (
+              {news.length > 0 ? (
                 <>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">최근 등록된 채용 공고</p>
-                  {jobs.slice(0, 5).map((job, i) => (
-                    <a key={i} href="/jobs" className="block p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">채용/기술 뉴스 (실시간)</p>
+                  {news.map((item) => (
+                    <a
+                      key={item.id}
+                      href={item.url || `https://news.ycombinator.com/item?id=${item.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
+                    >
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="px-1.5 py-0.5 text-[9px] font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded">{job.company}</span>
-                        {job.salary && <span className="text-[10px] text-slate-400">{job.salary}</span>}
+                        <span className="px-1.5 py-0.5 text-[9px] font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded">채용</span>
+                        <span className="text-[10px] text-slate-400">{new Date(item.time * 1000).toLocaleDateString('ko-KR')}</span>
+                        <span className="text-[10px] text-slate-400 ml-auto">{item.score}점</span>
                       </div>
-                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{job.position}</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{job.skills}</p>
+                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 line-clamp-2">{item.title}</p>
                     </a>
                   ))}
+                  <p className="text-[10px] text-slate-400 text-center">Hacker News Jobs 피드 기반</p>
                 </>
               ) : (
                 <div className="text-center py-8 text-slate-400 dark:text-slate-500">
-                  <p className="text-sm">등록된 채용 공고가 없습니다</p>
-                  <a href="/jobs" className="text-xs text-blue-600 hover:underline mt-1 inline-block">채용 공고 보기 →</a>
+                  <p className="text-sm">뉴스를 불러오는 중...</p>
                 </div>
               )}
             </div>
