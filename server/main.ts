@@ -9,6 +9,7 @@ import { Reflector } from '@nestjs/core';
 import compression from 'compression';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
@@ -21,6 +22,10 @@ async function bootstrap() {
 
   // Graceful shutdown
   app.enableShutdownHooks();
+
+  // --- Request size limits (DoS prevention) ---
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '50mb' }));
 
   app.use(compression());
 
@@ -35,11 +40,18 @@ async function bootstrap() {
               fontSrc: ["'self'", 'https://fonts.gstatic.com'],
               imgSrc: ["'self'", 'data:', 'https:'],
               connectSrc: ["'self'"],
+              frameAncestors: ["'none'"],
             },
           }
         : false,
+      // Security headers (applied in all environments)
       xContentTypeOptions: true,
       referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      frameguard: { action: 'deny' },                    // X-Frame-Options: DENY
+      hsts: isProd ? { maxAge: 63072000, includeSubDomains: true, preload: true } : false,
+      hidePoweredBy: true,
+      crossOriginOpenerPolicy: { policy: 'same-origin' },
+      crossOriginResourcePolicy: { policy: 'same-origin' },
     }),
   );
 
@@ -53,7 +65,7 @@ async function bootstrap() {
   app.enableCors({
     origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
     credentials: true,
     maxAge: 3600,
   });

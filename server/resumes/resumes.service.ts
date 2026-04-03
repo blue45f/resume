@@ -38,58 +38,70 @@ export class ResumesService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(userId?: string, page = 1, limit = 20) {
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(Math.max(1, limit), 100); // Cap at 100 to prevent abuse
     const where = userId ? { userId } : {};
     const [resumes, total] = await Promise.all([
       this.prisma.resume.findMany({
         where,
-        include: {
+        select: {
+          id: true, title: true, slug: true, userId: true,
+          viewCount: true, visibility: true, createdAt: true, updatedAt: true,
           personalInfo: {
-            select: { name: true, email: true, phone: true, summary: true, photo: true },
+            select: { name: true, email: true, phone: true, address: true, website: true, github: true, summary: true, photo: true, birthYear: true, links: true, military: true },
           },
           tags: { include: { tag: true } },
+          skills: { select: { id: true, category: true, items: true } },
         },
         orderBy: { updatedAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (safePage - 1) * safeLimit,
+        take: safeLimit,
       }),
       this.prisma.resume.count({ where }),
     ]);
     return {
       data: resumes.map((r) => this.formatSummary(r)),
       total,
-      page,
-      totalPages: Math.ceil(total / limit),
-      limit,
+      page: safePage,
+      totalPages: Math.ceil(total / safeLimit),
+      limit: safeLimit,
     };
   }
 
   async findPublic(page = 1, limit = 20) {
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(Math.max(1, limit), 100);
     const where = { visibility: 'public' as const };
     const [resumes, total] = await Promise.all([
       this.prisma.resume.findMany({
         where,
-        include: {
+        select: {
+          id: true, title: true, slug: true, userId: true,
+          viewCount: true, visibility: true, createdAt: true, updatedAt: true,
           personalInfo: {
-            select: { name: true, email: true, phone: true, summary: true, photo: true },
+            select: { name: true, email: true, phone: true, address: true, website: true, github: true, summary: true, photo: true, birthYear: true, links: true, military: true },
           },
           tags: { include: { tag: true } },
+          skills: { select: { id: true, category: true, items: true } },
         },
         orderBy: { updatedAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (safePage - 1) * safeLimit,
+        take: safeLimit,
       }),
       this.prisma.resume.count({ where }),
     ]);
     return {
       data: resumes.map((r) => this.formatSummary(r)),
       total,
-      page,
-      totalPages: Math.ceil(total / limit),
-      limit,
+      page: safePage,
+      totalPages: Math.ceil(total / safeLimit),
+      limit: safeLimit,
     };
   }
 
   async searchPublic(opts: { query?: string; tag?: string; sort?: string; page: number; limit: number }) {
+    opts.page = Math.max(1, opts.page);
+    opts.limit = Math.min(Math.max(1, opts.limit), 100);
     const where: any = { visibility: 'public' };
 
     // 텍스트 검색 (이름, 제목, 요약)
