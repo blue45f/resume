@@ -4,6 +4,18 @@ import { API_URL } from '@/lib/config';
 import { fetchResumes } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import type { ResumeSummary } from '@/types/resume';
+import {
+  ResponsiveContainer,
+  RadialBarChart,
+  RadialBar,
+  BarChart,
+  Bar,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell,
+} from 'recharts';
 
 interface JobPost {
   id: string;
@@ -315,40 +327,53 @@ export default function CareerInsights() {
           {/* Market Value Tab */}
           {activeTab === 'market' && (
             <div className="space-y-4">
-              {/* Score circle */}
-              <div className="flex items-center justify-center">
-                <div className="relative w-28 h-28">
-                  <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="8" />
-                    <circle cx="50" cy="50" r="42" fill="none"
-                      stroke={marketValue.total >= 70 ? '#10b981' : marketValue.total >= 40 ? '#3b82f6' : '#f59e0b'}
-                      strokeWidth="8" strokeLinecap="round"
-                      strokeDasharray={`${(marketValue.total / 100) * 264} 264`}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+              {/* RadialBarChart 스코어 */}
+              <div className="flex items-center justify-center gap-4">
+                <div className="relative">
+                  <ResponsiveContainer width={140} height={140}>
+                    <RadialBarChart
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={42}
+                      outerRadius={62}
+                      startAngle={90}
+                      endAngle={-270}
+                      data={[{ value: marketValue.total, fill: marketValue.total >= 70 ? '#10b981' : marketValue.total >= 40 ? '#3b82f6' : '#f59e0b' }]}
+                    >
+                      <RadialBar dataKey="value" background={{ fill: '#e2e8f0' }} cornerRadius={6} />
+                    </RadialBarChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span className="text-2xl font-bold text-slate-800 dark:text-slate-200">{marketValue.total}</span>
                     <span className="text-[10px] text-slate-400">/ 100</span>
                   </div>
                 </div>
               </div>
 
-              {/* Breakdown */}
-              <div className="space-y-2">
-                {marketValue.breakdown.map(b => (
-                  <div key={b.label} className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 dark:text-slate-400 w-24 shrink-0 text-right">{b.label}</span>
-                    <div className="flex-1 h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          (b.score / b.max) >= 0.7 ? 'bg-emerald-500' : (b.score / b.max) >= 0.4 ? 'bg-blue-500' : 'bg-amber-500'
-                        }`}
-                        style={{ width: `${(b.score / b.max) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 w-10 text-right">{b.score}/{b.max}</span>
-                  </div>
-                ))}
+              {/* 항목별 BarChart */}
+              <div>
+                <ResponsiveContainer width="100%" height={100}>
+                  <BarChart
+                    data={marketValue.breakdown.map(b => ({ name: b.label, 점수: b.score, 최대: b.max }))}
+                    margin={{ top: 0, right: 5, left: -20, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                    <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: 11 }}
+                      formatter={(v: number, name: string) => [`${v}점`, name]}
+                    />
+                    <Bar dataKey="점수" radius={[3, 3, 0, 0]}>
+                      {marketValue.breakdown.map((b, i) => (
+                        <Cell
+                          key={`cell-${i}`}
+                          fill={(b.score / b.max) >= 0.7 ? '#10b981' : (b.score / b.max) >= 0.4 ? '#3b82f6' : '#f59e0b'}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
 
               {/* Summary message */}

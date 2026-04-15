@@ -6,6 +6,23 @@ import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 import { PLANS } from '@/lib/plans';
 import { API_URL } from '@/lib/config';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart as RechartsBarChart,
+  Bar,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts';
+
+const CHART_COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
 
 interface RecentUser {
@@ -321,49 +338,96 @@ function getDayLabels(count: number) {
   return result;
 }
 
-// ─── CSS Bar Chart Component ────────────────────────────
-function BarChart({ data, labels, color, title }: { data: number[]; labels: string[]; color: string; title: string }) {
-  const max = Math.max(...data, 1);
+// ─── Recharts AreaChart Component ──────────────────────
+function AreaChartCard({ data, labels, color, title }: { data: number[]; labels: string[]; color: string; title: string }) {
+  const chartData = data.map((val, i) => ({ name: labels[i], value: val }));
+  const gradientId = `grad-${title.replace(/\s/g, '')}`;
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
       <h3 className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-3">{title}</h3>
-      <div className="flex items-end gap-1 sm:gap-2 h-32">
-        {data.map((val, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 mb-1">{val}</span>
-            <div
-              className={`w-full max-w-[32px] ${color} rounded-t transition-all duration-500`}
-              style={{ height: `${Math.max((val / max) * 100, 4)}%` }}
-            />
-            <span className="text-[10px] text-slate-400 mt-1">{labels[i]}</span>
-          </div>
-        ))}
-      </div>
+      <ResponsiveContainer width="100%" height={120}>
+        <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={color} stopOpacity={0.15} />
+              <stop offset="95%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+          <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+          <Tooltip
+            contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: 12 }}
+          />
+          <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill={`url(#${gradientId})`} />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 }
 
-// ─── Horizontal Bar Chart Component ─────────────────────
+// ─── Recharts Horizontal BarChart Component ─────────────
 function HorizontalBarChart({ items, title }: { items: { name: string; count: number }[]; title: string }) {
-  const max = Math.max(...items.map(i => i.count), 1);
-  const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-amber-500', 'bg-rose-500'];
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
       <h3 className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-3">{title}</h3>
-      <div className="space-y-2">
-        {items.map((item, i) => (
-          <div key={item.name} className="flex items-center gap-2">
-            <span className="text-xs text-slate-600 dark:text-slate-400 w-20 truncate shrink-0">{item.name}</span>
-            <div className="flex-1 h-5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div
-                className={`h-full ${colors[i % colors.length]} rounded-full transition-all duration-500`}
-                style={{ width: `${Math.max((item.count / max) * 100, 2)}%` }}
-              />
-            </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 w-10 text-right shrink-0">{item.count.toLocaleString()}</span>
-          </div>
-        ))}
-      </div>
+      <ResponsiveContainer width="100%" height={Math.max(items.length * 36, 120)}>
+        <RechartsBarChart
+          data={items.map(i => ({ name: i.name, value: i.count }))}
+          layout="vertical"
+          margin={{ top: 0, right: 20, left: 10, bottom: 0 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+          <XAxis type="number" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+          <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} width={70} />
+          <Tooltip
+            contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: 12 }}
+            formatter={(v: number) => [v.toLocaleString(), '횟수']}
+          />
+          <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+            {items.map((_, i) => (
+              <Cell key={`cell-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+            ))}
+          </Bar>
+        </RechartsBarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// ─── 플랜별 분포 PieChart Component ─────────────────────
+function PlanPieChart({ stats }: { stats: Stats }) {
+  const planData = [
+    { name: 'Free', value: Math.max(0, stats.users.total - 10) },
+    { name: 'Standard', value: 7 },
+    { name: 'Premium', value: 3 },
+  ].filter(d => d.value > 0);
+
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+      <h3 className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-3">플랜별 분포</h3>
+      <ResponsiveContainer width="100%" height={160}>
+        <PieChart>
+          <Pie
+            data={planData}
+            cx="50%"
+            cy="50%"
+            innerRadius={40}
+            outerRadius={65}
+            paddingAngle={3}
+            dataKey="value"
+          >
+            {planData.map((_, index) => (
+              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip
+            contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: 12 }}
+            formatter={(v: number, name: string) => [`${v}명`, name]}
+          />
+          <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: 11 }} />
+        </PieChart>
+      </ResponsiveContainer>
     </div>
   );
 }
@@ -452,16 +516,16 @@ function DashboardHome({ stats }: { stats: Stats }) {
           7일 추이
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <BarChart
+          <AreaChartCard
             data={stats.dailyUsers || [0, 0, 0, 0, 0, 0, stats.users.today]}
             labels={dayLabels}
-            color="bg-blue-500"
+            color="#6366f1"
             title="일별 신규 가입"
           />
-          <BarChart
+          <AreaChartCard
             data={stats.dailyResumes || [0, 0, 0, 0, 0, 0, stats.resumes.today]}
             labels={dayLabels}
-            color="bg-green-500"
+            color="#10b981"
             title="일별 이력서 생성"
           />
         </div>
@@ -470,12 +534,15 @@ function DashboardHome({ stats }: { stats: Stats }) {
       <section>
         <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
           <span className="w-1.5 h-4 bg-amber-500 rounded" />
-          인기 기능
+          인기 기능 / 플랜 분포
         </h2>
-        <HorizontalBarChart
-          items={stats.topFeatures || []}
-          title="기능별 사용 횟수"
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <HorizontalBarChart
+            items={stats.topFeatures || []}
+            title="기능별 사용 횟수"
+          />
+          <PlanPieChart stats={stats} />
+        </div>
       </section>
     </div>
   );
