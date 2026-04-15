@@ -17,6 +17,8 @@ import HiringTrends from '@/components/HiringTrends';
 import CareerInsights from '@/components/CareerInsights';
 import OnboardingBanner from '@/components/OnboardingBanner';
 import ProfileWizard from '@/components/ProfileWizard';
+import BannerSlider from '@/components/BannerSlider';
+import NoticePopup from '@/components/NoticePopup';
 import { t } from '@/lib/i18n';
 import { getUser } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
@@ -75,7 +77,7 @@ function SiteStatsBar() {
       <AnimatedStat value={stats?.users || 0} label="회원" />
       <AnimatedStat value={stats?.resumes || 0} label="이력서" />
       <AnimatedStat value={stats?.views || 0} label="조회" />
-      <AnimatedStat value={stats?.templates || 26} label="템플릿" />
+      <AnimatedStat value={stats?.templates || 0} label="템플릿" />
     </div>
   );
 }
@@ -226,8 +228,10 @@ export default function HomePage() {
 
   return (
     <>
+      <NoticePopup />
       <Header />
       <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+        <BannerSlider />
         {serverError && (
           <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center justify-between animate-fade-in">
             <div className="flex items-center gap-2">

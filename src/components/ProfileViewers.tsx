@@ -40,16 +40,12 @@ export default function ProfileViewers() {
     fetch(`${API_URL}/api/resumes/dashboard/viewers`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then(r => {
-        if (r.ok) return r.json();
-        // Fallback: generate mock data from view counts
-        return null;
-      })
+      .then(r => (r.ok ? r.json() : null))
       .then(d => {
         if (d) {
           setData(d);
         } else {
-          // Generate plausible mock from analytics endpoint
+          // Fallback: display view count stats from analytics without random data
           fetch(`${API_URL}/api/resumes/dashboard/analytics`, {
             headers: { Authorization: `Bearer ${token}` },
           })
@@ -57,25 +53,9 @@ export default function ProfileViewers() {
             .then(analytics => {
               if (!analytics) return;
               const totalViews = analytics.summary?.totalViews || 0;
-              const thisWeek = Math.min(totalViews, Math.floor(Math.random() * 5) + (totalViews > 0 ? 1 : 0));
-              const lastWeek = Math.max(0, thisWeek - Math.floor(Math.random() * 3));
-              const viewerTypes: Array<'recruiter' | 'company' | 'personal' | 'anonymous'> = ['recruiter', 'company', 'personal', 'anonymous'];
-              const viewers: Viewer[] = [];
-              for (let i = 0; i < Math.min(thisWeek, 5); i++) {
-                const type = viewerTypes[Math.floor(Math.random() * viewerTypes.length)];
-                const daysAgo = Math.floor(Math.random() * 7);
-                const date = new Date();
-                date.setDate(date.getDate() - daysAgo);
-                date.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
-                viewers.push({
-                  id: `v-${i}`,
-                  label: VIEWER_LABELS[type],
-                  viewedAt: date.toISOString(),
-                  type,
-                });
-              }
-              viewers.sort((a, b) => new Date(b.viewedAt).getTime() - new Date(a.viewedAt).getTime());
-              setData({ viewers, thisWeek, lastWeek });
+              const thisWeek = analytics.summary?.thisWeekViews ?? Math.min(totalViews, 0);
+              const lastWeek = analytics.summary?.lastWeekViews ?? 0;
+              setData({ viewers: [], thisWeek, lastWeek });
             })
             .catch(() => {});
         }

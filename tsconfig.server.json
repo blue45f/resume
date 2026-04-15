@@ -19,5 +19,6 @@
     "baseUrl": "./",
     "paths": {}
   },
-  "include": ["server/**/*"]
+  "include": ["server/**/*"],
+  "exclude": ["server/**/*.spec.ts", "server/**/*.test.ts"]
 }

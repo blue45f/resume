@@ -526,3 +526,45 @@ model JobPost {
   @@index([status])
   @@map("job_posts")
 }
+
+model Banner {
+  id        String    @id @default(uuid())
+  title     String
+  subtitle  String    @default("")
+  imageUrl  String    @default("") @map("image_url")
+  linkUrl   String    @default("") @map("link_url")
+  bgColor   String    @default("#6366f1") @map("bg_color")
+  isActive  Boolean   @default(true) @map("is_active")
+  order     Int       @default(0)
+  startAt   DateTime? @map("start_at")
+  endAt     DateTime? @map("end_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("banners")
+}
+
+model Notice {
+  id        String    @id @default(uuid())
+  title     String
+  content   String
+  type      String    @default("GENERAL")
+  isPopup   Boolean   @default(false) @map("is_popup")
+  isPinned  Boolean   @default(false) @map("is_pinned")
+  startAt   DateTime? @map("start_at")
+  endAt     DateTime? @map("end_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("notices")
+}
+
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  label     String   @default("")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_configs")
+}

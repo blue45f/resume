@@ -21,6 +21,9 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { SocialModule } from './social/social.module';
 import { CoverLettersModule } from './cover-letters/cover-letters.module';
 import { JobsModule } from './jobs/jobs.module';
+import { BannersModule } from './banners/banners.module';
+import { NoticesModule } from './notices/notices.module';
+import { SystemConfigModule } from './system-config/system-config.module';
 
 @Module({
   imports: [
@@ -46,6 +49,9 @@ import { JobsModule } from './jobs/jobs.module';
     SocialModule,
     CoverLettersModule,
     JobsModule,
+    BannersModule,
+    NoticesModule,
+    SystemConfigModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
