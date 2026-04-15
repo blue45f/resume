@@ -6,6 +6,7 @@ interface Props {
   resume: ResumeSummary;
   themeId?: string;
   onClick?: () => void;
+  index?: number;
 }
 
 /** Map accent color names to Tailwind-compatible hex values for the thumbnail */
@@ -40,49 +41,107 @@ function extractHeaderBg(theme: ResumeTheme): string {
   return accentHex[theme.accentColor] || '#475569';
 }
 
-/** Count non-empty sections in a resume summary */
-function countSections(resume: ResumeSummary): number {
-  let count = 0;
-  if (resume.personalInfo.name) count++;
-  if (resume.personalInfo.email) count++;
-  if (resume.personalInfo.summary) count++;
-  // We only have personalInfo and tags in ResumeSummary, so estimate
-  return Math.max(count, 1);
+/** Estimate completion percentage from resume summary */
+function calcCompletion(resume: ResumeSummary): number {
+  let score = 0;
+  const max = 5;
+  if (resume.personalInfo.name) score++;
+  if (resume.personalInfo.email) score++;
+  if (resume.personalInfo.summary) score++;
+  if (resume.personalInfo.phone) score++;
+  if (resume.tags?.length > 0) score++;
+  return Math.round((score / max) * 100);
 }
 
-const ResumeThumbnail = memo(function ResumeThumbnail({ resume, themeId, onClick }: Props) {
+/** Format relative time in Korean */
+function formatRelativeTime(dateStr: string): string {
+  try {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}분 전`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}시간 전`;
+    const days = Math.floor(hrs / 24);
+    if (days < 30) return `${days}일 전`;
+    return `${Math.floor(days / 30)}개월 전`;
+  } catch {
+    return '';
+  }
+}
+
+/** Circular progress SVG */
+function CircularProgress({ pct, color }: { pct: number; color: string }) {
+  const r = 9;
+  const circumference = 2 * Math.PI * r;
+  const offset = circumference - (pct / 100) * circumference;
+  return (
+    <svg width="26" height="26" viewBox="0 0 26 26" className="rotate-[-90deg]" aria-hidden="true">
+      <circle cx="13" cy="13" r={r} fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2.5" />
+      <circle
+        cx="13" cy="13" r={r} fill="none"
+        stroke={color} strokeWidth="2.5"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        style={{ transition: 'stroke-dashoffset 0.6s ease' }}
+      />
+    </svg>
+  );
+}
+
+const ResumeThumbnail = memo(function ResumeThumbnail({ resume, themeId, onClick, index = 0 }: Props) {
   const theme = useMemo(
     () => resumeThemes.find(t => t.id === (themeId || 'classic')) || resumeThemes[0],
     [themeId],
   );
 
   const headerBg = useMemo(() => extractHeaderBg(theme), [theme]);
-  const sectionCount = countSections(resume);
+  const completion = calcCompletion(resume);
   const isLightHeader = headerBg.startsWith('#fff') || headerBg.startsWith('#eff') || headerBg.startsWith('#fce');
   const headerTextColor = isLightHeader ? '#1e293b' : '#ffffff';
+  const accentColor = accentHex[theme.accentColor] || '#6366f1';
+  const progressColor = isLightHeader ? accentColor : '#ffffff';
+  const relativeTime = formatRelativeTime(resume.updatedAt);
+  const staggerClass = `stagger-${Math.min(index + 1, 6)}`;
+  const isPublic = resume.visibility === 'public';
 
   return (
     <button
       onClick={onClick}
-      className="group relative w-full aspect-[3/4] rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className={`group relative w-full aspect-[3/4] rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 animate-card-enter ${staggerClass}`}
       aria-label={`${resume.title || '제목 없음'} 미리보기`}
     >
-      {/* Miniaturized header area */}
+      {/* Header area with gradient overlay */}
       <div
-        className="px-3 pt-3 pb-2"
+        className="px-3 pt-3 pb-2.5 relative"
         style={{ backgroundColor: headerBg, fontFamily: theme.fontFamily }}
       >
-        <div
-          className="text-[11px] font-bold truncate leading-tight"
-          style={{ color: headerTextColor }}
-        >
-          {resume.personalInfo.name || '이름 미입력'}
-        </div>
-        <div
-          className="text-[9px] truncate mt-0.5 opacity-80"
-          style={{ color: headerTextColor }}
-        >
-          {resume.title || '제목 없음'}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/15 pointer-events-none" />
+        <div className="relative flex items-start justify-between gap-1">
+          <div className="flex-1 min-w-0">
+            <div
+              className="text-[11px] font-bold truncate leading-tight"
+              style={{ color: headerTextColor }}
+            >
+              {resume.personalInfo.name || '이름 미입력'}
+            </div>
+            <div
+              className="text-[9px] truncate mt-0.5 opacity-80"
+              style={{ color: headerTextColor }}
+            >
+              {resume.title || '제목 없음'}
+            </div>
+          </div>
+          {/* Circular progress indicator */}
+          <div className="relative shrink-0 flex items-center justify-center" title={`완성도 ${completion}%`}>
+            <CircularProgress pct={completion} color={progressColor} />
+            <span
+              className="absolute text-[7px] font-bold"
+              style={{ color: headerTextColor, opacity: 0.9 }}
+            >
+              {completion}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -90,7 +149,7 @@ const ResumeThumbnail = memo(function ResumeThumbnail({ resume, themeId, onClick
       <div className="px-3 py-2 space-y-2" style={{ fontFamily: theme.fontFamily }}>
         {/* Section title placeholder */}
         <div className="flex items-center gap-1">
-          <div className="h-[3px] rounded-full" style={{ width: 24, backgroundColor: accentHex[theme.accentColor] || '#475569' }} />
+          <div className="h-[3px] rounded-full" style={{ width: 24, backgroundColor: accentColor }} />
           <div className="h-[3px] w-10 bg-slate-200 dark:bg-slate-600 rounded-full" />
         </div>
         {/* Content line placeholders */}
@@ -103,7 +162,7 @@ const ResumeThumbnail = memo(function ResumeThumbnail({ resume, themeId, onClick
 
         {/* Second section placeholder */}
         <div className="flex items-center gap-1 pt-1">
-          <div className="h-[3px] rounded-full" style={{ width: 24, backgroundColor: accentHex[theme.accentColor] || '#475569' }} />
+          <div className="h-[3px] rounded-full" style={{ width: 24, backgroundColor: accentColor }} />
           <div className="h-[3px] w-8 bg-slate-200 dark:bg-slate-600 rounded-full" />
         </div>
         {[...Array(2)].map((_, i) => (
@@ -114,18 +173,38 @@ const ResumeThumbnail = memo(function ResumeThumbnail({ resume, themeId, onClick
         ))}
       </div>
 
-      {/* Overlay badge with section count */}
-      <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-600 rounded text-[9px] text-slate-500 dark:text-slate-400 font-medium backdrop-blur-sm">
-        {sectionCount}개 섹션
+      {/* Hover action overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-indigo-600/85 via-indigo-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4 gap-3">
+        <span className="text-white text-xs font-semibold bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/30">
+          편집
+        </span>
+        <span className="text-white text-xs font-semibold bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/30">
+          미리보기
+        </span>
+      </div>
+
+      {/* Visibility badge */}
+      <div className={`absolute top-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-semibold backdrop-blur-sm ${isPublic ? 'bg-emerald-500/90 text-white' : 'bg-slate-800/70 text-slate-200'}`}>
+        {isPublic ? (
+          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        ) : (
+          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+          </svg>
+        )}
+        {isPublic ? '공개' : '비공개'}
       </div>
 
       {/* Tags */}
       {resume.tags?.length > 0 && (
-        <div className="absolute top-0 right-0 flex gap-0.5 p-1.5">
+        <div className="absolute top-2 right-2 flex gap-0.5">
           {resume.tags.slice(0, 2).map(tag => (
             <span
               key={tag.id}
-              className="w-2 h-2 rounded-full"
+              className="w-2 h-2 rounded-full shadow-sm"
               style={{ backgroundColor: tag.color }}
               title={tag.name}
             />
@@ -133,8 +212,13 @@ const ResumeThumbnail = memo(function ResumeThumbnail({ resume, themeId, onClick
         </div>
       )}
 
-      {/* Hover overlay */}
-      <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/5 transition-colors duration-200" />
+      {/* Bottom info bar */}
+      <div className="absolute bottom-0 left-0 right-0 px-2.5 py-1.5 flex items-center justify-between bg-gradient-to-t from-white/95 to-transparent dark:from-slate-800/95">
+        {relativeTime && (
+          <span className="text-[8px] text-slate-400 dark:text-slate-500 truncate">{relativeTime}</span>
+        )}
+        <span className="text-[8px] text-slate-400 dark:text-slate-500 font-medium ml-auto">완성도 {completion}%</span>
+      </div>
     </button>
   );
 });

@@ -88,7 +88,7 @@ export default function LoginPage() {
     if (/[^A-Za-z0-9]/.test(v)) score++;
     if (score <= 1) return { level: 1, label: '약함', color: 'bg-red-500' };
     if (score <= 2) return { level: 2, label: '보통', color: 'bg-amber-500' };
-    if (score <= 3) return { level: 3, label: '양호', color: 'bg-blue-500' };
+    if (score <= 3) return { level: 3, label: '양호', color: 'bg-indigo-500' };
     return { level: 4, label: '강함', color: 'bg-emerald-500' };
   };
 
@@ -139,22 +139,40 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left decorative panel - hidden on mobile */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700">
         {/* Decorative circles */}
         <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl" />
         <div className="absolute top-1/2 left-1/3 w-40 h-40 bg-purple-400/15 rounded-full blur-2xl" />
 
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16">
-          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-8">
-            <span className="text-white text-3xl font-bold">&#xC774;</span>
+          {/* Logo badge */}
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 shadow-lg">
+              <span className="text-white text-xl font-bold">이</span>
+            </div>
+            <span className="text-white/90 font-bold text-lg tracking-tight">이력서공방</span>
           </div>
           <h2 className="text-3xl xl:text-4xl font-extrabold text-white mb-4 leading-tight">
-            AI로 완성하는<br />나만의 이력서
+            AI로 완성하는<br />
+            <span className="text-white/80">나만의 이력서</span>
           </h2>
-          <p className="text-blue-100 text-lg leading-relaxed mb-8 max-w-md">
-            5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기까지. 경력 관리의 새로운 기준을 경험하세요.
+          <p className="text-indigo-100 text-base leading-relaxed mb-10 max-w-md">
+            5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기까지.<br />경력 관리의 새로운 기준을 경험하세요.
           </p>
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 mb-10">
+            {[
+              { num: '26+', label: '직종 템플릿' },
+              { num: '5종', label: 'AI 분석' },
+              { num: '100%', label: '무료 시작' },
+            ].map((stat, i) => (
+              <div key={i} className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                <div className="text-xl font-extrabold text-white">{stat.num}</div>
+                <div className="text-xs text-indigo-200 mt-0.5">{stat.label}</div>
+              </div>
+            ))}
+          </div>
           <div className="space-y-4">
             {[
               { icon: (
@@ -179,12 +197,12 @@ export default function LoginPage() {
       </div>
 
       {/* Right form panel */}
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 px-4 py-8">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 px-4 py-8">
         <div className="w-full max-w-sm">
           {/* Logo */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-block group">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/20 group-hover:shadow-blue-600/30 transition-shadow duration-200 lg:hidden">
+              <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-600/20 group-hover:shadow-indigo-600/30 transition-shadow duration-200 lg:hidden">
                 <span className="text-white text-2xl font-bold">&#xC774;</span>
               </div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">&#xC774;&#xB825;&#xC11C;&#xACF5;&#xBC29;</h1>
@@ -226,7 +244,7 @@ export default function LoginPage() {
                   <a
                     key={p.id}
                     href={getSocialLoginUrl(p.id)}
-                    className={`flex items-center justify-center gap-3 w-full py-3 px-4 rounded-xl font-medium text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800 ${p.className}`}
+                    className={`flex items-center justify-center gap-3 w-full py-3 px-4 rounded-xl font-medium text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800 ${p.className}`}
                   >
                     <Icon />
                     {p.name}&#xC73C;&#xB85C; {isRegister ? '가입하기' : '계속하기'}
@@ -255,7 +273,7 @@ export default function LoginPage() {
                       aria-required="true"
                       aria-invalid={!!nameError}
                       aria-describedby={nameError ? 'name-error' : undefined}
-                      className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${nameError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`} />
+                      className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${nameError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`} />
                     {nameError && <p id="name-error" className="mt-1 text-xs text-red-500" role="alert">{nameError}</p>}
                   </div>
                   <div className="grid grid-cols-3 gap-2">
@@ -276,11 +294,11 @@ export default function LoginPage() {
                         onClick={() => setUserType(tp.value)}
                         className={`p-2.5 rounded-xl border text-center transition-all duration-200 ${
                           userType === tp.value
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500'
+                            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-500'
                             : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
                         }`}
                       >
-                        <span className={`flex justify-center mb-1 ${userType === tp.value ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`}>{tp.icon}</span>
+                        <span className={`flex justify-center mb-1 ${userType === tp.value ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}>{tp.icon}</span>
                         <span className="text-xs font-medium text-slate-900 dark:text-slate-100">{tp.label}</span>
                         <span className="text-xs text-slate-400 block">{tp.desc}</span>
                       </button>
@@ -290,7 +308,7 @@ export default function LoginPage() {
                     <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)}
                       placeholder={userType === 'company' ? '회사명 *' : '소속 회사'}
                       required={userType === 'company'}
-                      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                   )}
                 </>
               )}
@@ -300,7 +318,7 @@ export default function LoginPage() {
                   aria-required="true"
                   aria-invalid={!!emailError}
                   aria-describedby={emailError ? 'email-error' : undefined}
-                  className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${emailError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`} />
+                  className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${emailError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`} />
                 {emailError && <p id="email-error" className="mt-1 text-xs text-red-500" role="alert">{emailError}</p>}
               </div>
               <div>
@@ -310,7 +328,7 @@ export default function LoginPage() {
                     aria-required="true"
                     aria-invalid={!!passwordError}
                     aria-describedby={passwordError ? 'password-error' : undefined}
-                    className={`w-full px-4 py-3 pr-11 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${passwordError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`} />
+                    className={`w-full px-4 py-3 pr-11 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${passwordError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`} />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -333,7 +351,7 @@ export default function LoginPage() {
                         <div key={i} className={`h-1 flex-1 rounded-full transition-colors duration-200 ${i <= pwStrength.level ? pwStrength.color : 'bg-slate-200 dark:bg-slate-700'}`} />
                       ))}
                     </div>
-                    <p className={`text-xs ${pwStrength.level <= 1 ? 'text-red-500' : pwStrength.level <= 2 ? 'text-amber-500' : pwStrength.level <= 3 ? 'text-blue-500' : 'text-emerald-500'}`}>
+                    <p className={`text-xs ${pwStrength.level <= 1 ? 'text-red-500' : pwStrength.level <= 2 ? 'text-amber-500' : pwStrength.level <= 3 ? 'text-indigo-500' : 'text-emerald-500'}`}>
                       {pwStrength.label}
                       {pwStrength.level <= 2 && ' - 대문자, 숫자, 특수문자를 포함하세요'}
                     </p>
@@ -343,14 +361,14 @@ export default function LoginPage() {
 
               {!isRegister && (
                 <div className="flex justify-end">
-                  <Link to="/forgot-password" className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors">
+                  <Link to="/forgot-password" className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">
                     비밀번호 찾기
                   </Link>
                 </div>
               )}
 
               <button type="submit" disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
+                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2">
                 {loading && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

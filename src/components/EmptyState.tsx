@@ -131,33 +131,45 @@ export default function EmptyState({ type, query }: Props) {
 
   return (
     <div className="flex flex-col items-center justify-center py-16 sm:py-20 animate-fade-in">
-      {/* Decorative background circle */}
-      <div className="relative mb-6">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-full scale-150 blur-2xl opacity-50" />
-        <div className="relative bg-slate-50 dark:bg-slate-800/50 rounded-full p-6 border border-slate-200/50 dark:border-slate-700/50">
+      {/* Floating icon with layered glow */}
+      <div className="relative mb-8 animate-float">
+        {/* Outer glow */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-full scale-[1.8] blur-3xl opacity-60" />
+        {/* Middle ring */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-full scale-125 blur-xl opacity-70" />
+        {/* Icon container */}
+        <div className="relative bg-white dark:bg-slate-800 rounded-2xl p-7 border border-slate-200/80 dark:border-slate-700/80 shadow-lg shadow-indigo-100/50 dark:shadow-indigo-900/20">
           {config.icon}
         </div>
       </div>
 
-      <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-2">
+      <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2 text-center">
         {query ? `"${query}"에 대한 결과가 없습니다` : config.title}
       </h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm text-center leading-relaxed">
+      <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs text-center leading-relaxed mb-1">
         {config.description}
       </p>
+      {type === 'resume' && !query && (
+        <p className="text-xs text-slate-400 dark:text-slate-500 text-center mt-1">
+          AI가 3분 안에 전문적인 이력서를 완성해드립니다.
+        </p>
+      )}
 
       {config.actions.length > 0 && (
-        <div className="flex items-center gap-3 mt-6">
+        <div className="flex items-center gap-3 mt-7">
           {config.actions.map(action => (
             <Link
               key={action.to}
               to={action.to}
-              className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
+              className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
                 action.variant === 'primary'
-                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
               }`}
             >
+              {action.variant === 'primary' && (
+                <span className="mr-1.5">✨</span>
+              )}
               {action.label}
             </Link>
           ))}
@@ -165,10 +177,10 @@ export default function EmptyState({ type, query }: Props) {
       )}
 
       {/* Decorative dots */}
-      <div className="flex items-center gap-1.5 mt-8">
-        <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
-        <span className="w-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700" />
-        <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+      <div className="flex items-center gap-2 mt-10">
+        <span className="w-1 h-1 rounded-full bg-indigo-300 dark:bg-indigo-700" />
+        <span className="w-2 h-2 rounded-full bg-indigo-200 dark:bg-indigo-800" />
+        <span className="w-1 h-1 rounded-full bg-indigo-300 dark:bg-indigo-700" />
       </div>
     </div>
   );

@@ -368,9 +368,51 @@ export default function HomePage() {
 
             {/* Bottom links */}
             <div className="text-center space-x-4 mt-12">
-              <Link to="/tutorial" className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">사용 가이드 보기 &rarr;</Link>
+              <Link to="/tutorial" className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">사용 가이드 보기 &rarr;</Link>
               <Link to="/pricing" className="text-sm text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 transition-colors">요금제 보기 &rarr;</Link>
               <Link to="/jobs" className="text-sm text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors">채용 공고 보기 &rarr;</Link>
+            </div>
+
+            {/* Features Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-12 reveal">
+              {[
+                { icon: '✨', title: 'AI 이력서 작성', desc: '직종별 최적화된 문구를 AI가 자동 생성', color: 'from-indigo-500 to-purple-600' },
+                { icon: '📊', title: 'ATS 점수 분석', desc: '채용 시스템 호환성을 실시간으로 분석', color: 'from-blue-500 to-cyan-600' },
+                { icon: '🎨', title: '전문 템플릿', desc: '디자이너가 제작한 고품질 이력서 템플릿', color: 'from-emerald-500 to-teal-600' },
+                { icon: '🔗', title: '이력서 공유', desc: '고유 URL로 이력서를 간편하게 공유', color: 'from-amber-500 to-orange-600' },
+                { icon: '📧', title: '자기소개서', desc: 'AI가 회사/포지션에 맞는 자소서 작성', color: 'from-pink-500 to-rose-600' },
+                { icon: '📈', title: '커리어 분석', desc: '업계 트렌드와 연봉 데이터 인사이트', color: 'from-violet-500 to-indigo-600' },
+              ].map((feat, i) => (
+                <div key={i} className={`reveal stagger-${i + 1} group p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-transparent hover:shadow-lg transition-all duration-300 cursor-default`}>
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${feat.color} flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                    {feat.icon}
+                  </div>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm mb-1">{feat.title}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{feat.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Social Proof */}
+            <div className="mt-14 reveal">
+              <h2 className="text-xl font-bold text-center text-slate-800 dark:text-slate-200 mb-8">이미 수천 명이 선택했습니다</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { text: 'AI가 자동으로 써준 이력서로 취업에 성공했어요!', author: '소프트웨어 개발자', stars: 5 },
+                  { text: '템플릿이 너무 예뻐서 면접관에게 칭찬받았습니다.', author: 'UX 디자이너', stars: 5 },
+                  { text: 'ATS 분석 기능 덕분에 서류 통과율이 높아졌어요.', author: '마케터', stars: 5 },
+                ].map((review, i) => (
+                  <div key={i} className={`reveal stagger-${i + 1} p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700`}>
+                    <div className="flex gap-0.5 mb-2">
+                      {Array.from({ length: review.stars }).map((_, j) => (
+                        <span key={j} className="text-amber-400 text-sm">★</span>
+                      ))}
+                    </div>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mb-3 leading-relaxed">"{review.text}"</p>
+                    <p className="text-xs text-slate-400 font-medium">— {review.author}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
