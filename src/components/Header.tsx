@@ -131,7 +131,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className={`no-print sticky top-0 z-50 border-b header-glass ${scrolled ? 'header-scrolled' : ''}`}>
+    <header className={`no-print sticky top-0 z-50 border-b header-glass ${scrolled ? 'header-scrolled header-scrolled-enhanced' : ''}`}>
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg"
@@ -142,51 +142,54 @@ export default function Header() {
         <div className="flex items-center justify-between h-14 sm:h-16">
           <Link
             to="/"
-            className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+            className="logo-hover text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded inline-flex items-center gap-2"
             aria-label="이력서공방 홈"
           >
+            <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            </div>
             이력서공방
           </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1.5" aria-label={t('a11y.mainMenu')}>
             {!isHome && (
-              <Link to="/" className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 rounded px-2 py-1">
+              <Link to="/" className="nav-link-animated text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 rounded px-2 py-1">
                 {t('nav.resumes')}
               </Link>
             )}
             {/* Common items */}
-            <Link to="/explore" className={`text-sm rounded px-2 py-1 ${location.pathname === '/explore' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+            <Link to="/explore" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/explore' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
               {t('nav.explore')}
             </Link>
             {/* Role-specific items */}
             {isRecruiter ? (
               <>
-                <Link to="/recruiter" className={`text-sm rounded px-2 py-1 ${location.pathname === '/recruiter' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/recruiter" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/recruiter' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   채용 대시보드
                 </Link>
-                <Link to="/scouts" className={`text-sm rounded px-2 py-1 ${location.pathname === '/scouts' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/scouts" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/scouts' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   스카우트
                 </Link>
-                <Link to="/jobs" className={`text-sm rounded px-2 py-1 ${location.pathname === '/jobs' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/jobs" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/jobs' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   채용공고
                 </Link>
               </>
             ) : (
               <>
-                <Link to="/applications" className={`text-sm rounded px-2 py-1 ${location.pathname === '/applications' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/applications" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/applications' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   {t('nav.applications')}
                 </Link>
-                <Link to="/my-cover-letters" className={`text-sm rounded px-2 py-1 ${location.pathname === '/my-cover-letters' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/my-cover-letters" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/my-cover-letters' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   자소서
                 </Link>
               </>
             )}
             {/* Common items */}
-            <Link to="/bookmarks" className={`text-sm rounded px-2 py-1 ${location.pathname === '/bookmarks' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+            <Link to="/bookmarks" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/bookmarks' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
               북마크
             </Link>
-            <Link to="/messages" className={`text-sm rounded px-2 py-1 ${location.pathname === '/messages' ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+            <Link to="/messages" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/messages' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
               쪽지
             </Link>
             {/* More dropdown */}
