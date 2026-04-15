@@ -1,0 +1,77 @@
+{
+  "nav": {
+    "home": "Home",
+    "resumes": "My Resumes",
+    "explore": "Explore",
+    "jobs": "Jobs",
+    "notices": "Notices",
+    "login": "Login",
+    "logout": "Logout",
+    "profile": "Profile",
+    "admin": "Admin"
+  },
+  "resume": {
+    "new": "New Resume",
+    "edit": "Edit Resume",
+    "preview": "Preview",
+    "download": "Download",
+    "share": "Share",
+    "delete": "Delete",
+    "sections": {
+      "personalInfo": "Personal Info",
+      "experience": "Experience",
+      "education": "Education",
+      "skills": "Skills",
+      "projects": "Projects",
+      "certifications": "Certifications",
+      "languages": "Languages",
+      "awards": "Awards",
+      "activities": "Activities"
+    },
+    "status": {
+      "saving": "Saving...",
+      "saved": "Saved",
+      "error": "Save failed"
+    }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "empty": "No data",
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "loginWithGoogle": "Login with Google",
+    "loginWithKakao": "Login with Kakao"
+  },
+  "notice": {
+    "types": {
+      "GENERAL": "Notice",
+      "MAINTENANCE": "Maintenance",
+      "EVENT": "Event"
+    },
+    "dismissToday": "Do not show today",
+    "close": "Close"
+  },
+  "pricing": {
+    "free": "Free",
+    "pro": "Pro",
+    "enterprise": "Enterprise",
+    "comingSoon": "Coming Soon",
+    "currentPlan": "Current Plan",
+    "upgrade": "Upgrade"
+  }
+}

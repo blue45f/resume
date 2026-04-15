@@ -1,0 +1,77 @@
+{
+  "nav": {
+    "home": "홈",
+    "resumes": "내 이력서",
+    "explore": "탐색",
+    "jobs": "채용",
+    "notices": "공지사항",
+    "login": "로그인",
+    "logout": "로그아웃",
+    "profile": "프로필",
+    "admin": "관리자"
+  },
+  "resume": {
+    "new": "새 이력서",
+    "edit": "이력서 편집",
+    "preview": "미리보기",
+    "download": "다운로드",
+    "share": "공유",
+    "delete": "삭제",
+    "sections": {
+      "personalInfo": "기본 정보",
+      "experience": "경력",
+      "education": "학력",
+      "skills": "기술",
+      "projects": "프로젝트",
+      "certifications": "자격증",
+      "languages": "어학",
+      "awards": "수상",
+      "activities": "활동"
+    },
+    "status": {
+      "saving": "저장 중...",
+      "saved": "저장됨",
+      "error": "저장 실패"
+    }
+  },
+  "common": {
+    "save": "저장",
+    "cancel": "취소",
+    "delete": "삭제",
+    "edit": "수정",
+    "add": "추가",
+    "confirm": "확인",
+    "back": "뒤로",
+    "next": "다음",
+    "loading": "로딩 중...",
+    "error": "오류가 발생했습니다",
+    "empty": "데이터가 없습니다",
+    "search": "검색",
+    "filter": "필터",
+    "all": "전체"
+  },
+  "auth": {
+    "login": "로그인",
+    "signup": "회원가입",
+    "logout": "로그아웃",
+    "loginWithGoogle": "Google로 로그인",
+    "loginWithKakao": "카카오로 로그인"
+  },
+  "notice": {
+    "types": {
+      "GENERAL": "공지",
+      "MAINTENANCE": "점검",
+      "EVENT": "이벤트"
+    },
+    "dismissToday": "오늘 하루 보지 않기",
+    "close": "닫기"
+  },
+  "pricing": {
+    "free": "무료",
+    "pro": "프로",
+    "enterprise": "엔터프라이즈",
+    "comingSoon": "곧 출시 예정",
+    "currentPlan": "현재 플랜",
+    "upgrade": "업그레이드"
+  }
+}
