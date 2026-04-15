@@ -19,17 +19,82 @@ git log --oneline -30
 
 ### STEP 2: 전체 기능 검증 (반드시 수행, 에러 발견 시 즉시 수정)
 
+#### 2-1. 빌드 및 타입 검증
 ```bash
-cd frontend && npx tsc --noEmit 2>&1 | head -40
-cd ../backend && npx tsc --noEmit 2>&1 | head -40
-cd backend && npm run build 2>&1 | tail -15
-cd ../frontend && npm run build 2>&1 | tail -15
-cd backend && npm test -- --passWithNoTests 2>&1 | tail -30
-cd ../frontend && npm test -- --watchAll=false --passWithNoTests 2>&1 | tail -30
-cd backend && npx prisma validate
+cd /repo
+npx tsc --noEmit 2>&1 | head -40          # 프론트엔드 타입 체크
+cd server && npx tsc --noEmit 2>&1 | head -40  # 백엔드 타입 체크
+npm run build 2>&1 | tail -15              # 프론트엔드 빌드
+cd server && npm run build 2>&1 | tail -15 # 백엔드 빌드
+cd server && npm test -- --passWithNoTests 2>&1 | tail -30  # 테스트
+cd server && npx prisma validate           # DB 스키마 검증
 ```
 
-발견된 모든 타입 에러, 빌드 에러, 테스트 실패를 수정한 후 다음 단계 진행.
+#### 2-2. 백엔드 API 엔드포인트 코드 존재 확인
+아래 API가 실제 파일로 존재하는지 grep/glob으로 확인. 없으면 구현:
+- `/api/banners/active` — 활성 배너 목록
+- `/api/notices` + `/api/notices/popup` — 공지사항
+- `/api/system-config/public` — 공개 시스템 설정
+- `/api/resumes` CRUD — 이력서 관리
+- `/api/resumes/:id/transform` — AI 변환
+- `/api/auth/me` — 현재 유저 정보
+- `/api/jobs`, `/api/jobs/my` — 채용공고
+- `/api/applications` — 지원 현황
+- `/api/cover-letters` — 자기소개서
+- `/api/templates` — 템플릿 목록
+- `/api/notifications` — 알림
+- `/api/social/scouts` — 스카우트 메시지
+
+#### 2-3. 어드민 기능 코드 존재 확인
+어드민 전용 기능이 코드에 구현되어 있는지 확인:
+- AdminPage.tsx — 어드민 대시보드 (유저 수, 이력서 수, DAU 등 실제 API 연동)
+- 배너 관리 CRUD (AdminPage 또는 별도 컴포넌트)
+- 공지사항 관리 CRUD
+- 유저 관리 (목록/검색/역할변경)
+- 시스템 설정 (`monetization_enabled`, `maintenance_mode` 토글)
+- API: `/api/system-config` PATCH (어드민 전용)
+
+만약 위 항목이 하드코딩된 mock 데이터를 쓰거나 미구현이면 즉시 수정.
+
+#### 2-4. 프론트엔드 핵심 페이지 컴포넌트 확인
+아래가 실제로 렌더링 가능한지 코드 구조 확인:
+- HomePage — 배너 슬라이더, 공지 팝업, 통계 (실제 API)
+- ResumeList / Dashboard — 이력서 목록 (실제 API)
+- EditResumePage — 섹션 편집, 자동저장
+- PreviewPage — 미리보기, PDF 다운로드
+- AdminPage — 어드민 대시보드 (role=admin만 접근)
+- PricingPage — monetization_enabled 설정 반영
+
+#### 2-5. 하드코딩 / mock 데이터 탐지 및 제거
+```bash
+grep -r "Math.random\|mock\|dummy\|TODO\|FIXME\|하드코딩\|\[\]\s*as\b" \
+  src/ server/ --include="*.ts" --include="*.tsx" -l 2>/dev/null | head -20
+```
+발견된 파일에서 하드코딩 제거하고 실제 API 연동으로 교체.
+
+#### 2-6. 샘플 DB 데이터 시드 (기능 검증용, 필요 시 추가)
+테이블이 비어있어 기능 확인이 어려울 때 샘플 데이터 삽입:
+```bash
+cd server && npx ts-node -e "
+const { PrismaClient } = require('@prisma/client');
+const db = new PrismaClient();
+async function seed() {
+  // 배너 샘플
+  await db.banner.upsert({ where: { id: 'seed-banner-1' }, update: {},
+    create: { id: 'seed-banner-1', title: '전문 이력서를 무료로', subtitle: '지금 바로 시작하세요', bgColor: '#6366f1', isActive: true, order: 0 }});
+  // 공지 샘플
+  await db.notice.upsert({ where: { id: 'seed-notice-1' }, update: {},
+    create: { id: 'seed-notice-1', title: '서비스 오픈 안내', content: '이력서 플랫폼이 정식 오픈했습니다!', type: 'GENERAL', isPopup: true, isPinned: true }});
+  await db.systemConfig.upsert({ where: { key: 'monetization_enabled' }, update: {}, create: { key: 'monetization_enabled', value: 'false', label: '유료화 활성화' }});
+  await db.systemConfig.upsert({ where: { key: 'maintenance_mode' }, update: {}, create: { key: 'maintenance_mode', value: 'false', label: '점검 모드' }});
+  console.log('Seed complete');
+  await db.\$disconnect();
+}
+seed().catch(e => { console.error(e); process.exit(1); });
+" 2>&1 | tail -5
+```
+
+발견된 모든 에러를 수정한 후 다음 단계 진행.
 
 ---
 
