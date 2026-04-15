@@ -74,19 +74,79 @@ grep -r "Math.random\|mock\|dummy\|TODO\|FIXME\|하드코딩\|\[\]\s*as\b" \
 
 #### 2-6. 샘플 DB 데이터 시드 (기능 검증용, 필요 시 추가)
 테이블이 비어있어 기능 확인이 어려울 때 샘플 데이터 삽입:
+**샘플 데이터 구분 규칙 (중요):**
+- 샘플 데이터(배너/공지/이력서/회원 등 모든 엔티티)는 반드시 구분 표시
+- Prisma 모델에 `isSample Boolean @default(false) @map("is_sample")` 필드 추가
+- User 모델에도 `isSample Boolean @default(false) @map("is_sample")` 추가 — 샘플 회원 식별
+- 화면 표시 규칙:
+  - 배너/공지: `[샘플]` 텍스트를 title 앞에 붙이거나 노란 배지 표시
+  - 이력서 목록: 카드 우상단에 주황색 "SAMPLE" 배지
+  - 어드민 유저 목록: 행에 연한 배경 + "샘플" 칩
+  - 어드민 전체 목록 테이블: isSample=true 행에 시각적 구분(배경색, 칩)
+- 샘플 회원 email 형식: `sample-{name}@sample.local` (실제 이메일과 구분)
+- 일괄 삭제 쿼리: `DELETE FROM table WHERE is_sample = true`
+- 어드민 시스템 설정에 "샘플 데이터 일괄 삭제" 버튼 추가
+
+**풍부한 샘플 데이터 생성 (다양한 케이스 커버):**
+샘플 시드 스크립트에 아래 케이스를 포함해야 함:
+
+회원 유형 (각 10명+):
+- 개인 구직자 (신입/경력 3년/경력 10년)
+- 리크루터/HR 담당자
+- 기업 관리자
+- 어드민
+
+이력서 케이스 (각 회원당 1~3개):
+- 완성된 이력서 (모든 섹션 채움, 공개)
+- 미완성 이력서 (일부 섹션만, 비공개)
+- 개발자 이력서 (기술 스택 풍부)
+- 디자이너 이력서
+- 마케터 이력서
+- 신입 이력서 (경력 없음, 학력/프로젝트 위주)
+- 영문 이력서
+
+채용공고 케이스 (10개+):
+- 프론트엔드 개발자, 백엔드 개발자, 풀스택
+- 디자이너 (UI/UX, 그래픽)
+- 마케터, PM
+- 신입 공고, 경력 공고, 인턴
+
+지원 현황 케이스:
+- 각 상태(applied/screening/interview/offer/rejected)별 샘플
+- 한 회원이 여러 공고에 지원한 케이스
+
+공지사항:
+- 일반 공지 3개 (고정 1개 포함)
+- 점검 공지 1개
+- 이벤트 공지 2개 (팝업 1개)
+
+배너:
+- 3개 (다른 배경색, 다른 CTA)
+
+스카우트 메시지:
+- 리크루터→구직자 메시지 5개 (읽음/안읽음 혼합)
+
+북마크/좋아요: 크로스 샘플
+
+시드 스크립트 파일: `server/prisma/seed-sample.ts`
+실행: `cd server && npx ts-node prisma/seed-sample.ts`
+
 ```bash
 cd server && npx ts-node -e "
 const { PrismaClient } = require('@prisma/client');
 const db = new PrismaClient();
 async function seed() {
-  // 배너 샘플
+  // 배너 샘플 (isSample: true로 실제 데이터와 구분)
   await db.banner.upsert({ where: { id: 'seed-banner-1' }, update: {},
-    create: { id: 'seed-banner-1', title: '전문 이력서를 무료로', subtitle: '지금 바로 시작하세요', bgColor: '#6366f1', isActive: true, order: 0 }});
+    create: { id: 'seed-banner-1', title: '[샘플] 전문 이력서를 무료로', subtitle: '지금 바로 시작하세요', bgColor: '#6366f1', isActive: true, order: 0, isSample: true }})
+    .catch(() => db.banner.upsert({ where: { id: 'seed-banner-1' }, update: {},
+      create: { id: 'seed-banner-1', title: '[샘플] 전문 이력서를 무료로', subtitle: '지금 바로 시작하세요', bgColor: '#6366f1', isActive: true, order: 0 }}));
   // 공지 샘플
   await db.notice.upsert({ where: { id: 'seed-notice-1' }, update: {},
-    create: { id: 'seed-notice-1', title: '서비스 오픈 안내', content: '이력서 플랫폼이 정식 오픈했습니다!', type: 'GENERAL', isPopup: true, isPinned: true }});
+    create: { id: 'seed-notice-1', title: '[샘플] 서비스 오픈 안내', content: '이력서 플랫폼이 정식 오픈했습니다!', type: 'GENERAL', isPopup: false, isPinned: true }});
   await db.systemConfig.upsert({ where: { key: 'monetization_enabled' }, update: {}, create: { key: 'monetization_enabled', value: 'false', label: '유료화 활성화' }});
   await db.systemConfig.upsert({ where: { key: 'maintenance_mode' }, update: {}, create: { key: 'maintenance_mode', value: 'false', label: '점검 모드' }});
+  await db.systemConfig.upsert({ where: { key: 'show_sample_badge' }, update: {}, create: { key: 'show_sample_badge', value: 'true', label: '샘플 데이터 배지 표시' }});
   console.log('Seed complete');
   await db.\$disconnect();
 }
