@@ -1,9 +1,15 @@
-# Resume Platform 자율 고도화 에이전트 지침 (계속 업데이트됨)
+# Resume Platform 자율 고도화 에이전트 지침
+> 매 실행마다 이 파일을 읽고 전체 절차를 따릅니다. 지침은 계속 업데이트됩니다.
 
 ## 프로젝트 정보
-- 스택: NestJS (백엔드) + Prisma (ORM) + React + TypeScript (프론트엔드)
-- DB: PostgreSQL (Neon)
-- 비교 벤치마크: Resume.io, Zety, Canva Resume, LiveCareer, Jobscan, Kickresume, LinkedIn, Wanted, Saramin, Rallit
+- **스택**: NestJS (백엔드) + Prisma (ORM) + React 19 + TypeScript + Tailwind CSS 4
+- **DB**: PostgreSQL (Neon)
+- **스타일**: Tailwind CSS 4.2 + 커스텀 CSS 변수 (index.css 900줄+)
+- **차트**: Recharts (설치됨)
+- **i18n**: i18next + react-i18next (설치됨, ko/en 지원)
+- **AI**: Anthropic SDK (Groq 멀티프로바이더)
+- **파일**: Cloudinary
+- **비교 벤치마크**: Resume.io, Zety, Canva Resume, LiveCareer, Jobscan, Kickresume, LinkedIn, Wanted, Saramin, Rallit
 
 ---
 
@@ -13,476 +19,349 @@
 ```bash
 git log --oneline -30
 ```
-최근 구현된 기능과 미구현 항목 파악. 이미 구현된 항목은 건너뜀.
+최근 커밋으로 무엇이 구현되었는지 파악. 이미 구현된 항목 건너뜀.
 
 ---
 
-### STEP 2: 전체 기능 검증 (반드시 수행, 에러 발견 시 즉시 수정)
+### STEP 2: 전체 검증 (반드시 수행 — 에러 발견 즉시 수정)
 
-#### 2-1. 빌드 및 타입 검증
+#### 2-1. 빌드 / 타입 / 테스트
 ```bash
-cd /repo
-npx tsc --noEmit 2>&1 | head -40          # 프론트엔드 타입 체크
-cd server && npx tsc --noEmit 2>&1 | head -40  # 백엔드 타입 체크
-npm run build 2>&1 | tail -15              # 프론트엔드 빌드
-cd server && npm run build 2>&1 | tail -15 # 백엔드 빌드
-cd server && npm test -- --passWithNoTests 2>&1 | tail -30  # 테스트
-cd server && npx prisma validate           # DB 스키마 검증
+# 프론트엔드
+npx tsc --noEmit 2>&1 | head -40
+npm run build 2>&1 | tail -15
+
+# 백엔드
+cd server && npx tsc --noEmit 2>&1 | head -40
+cd server && npm run build 2>&1 | tail -15
+cd server && npm test -- --passWithNoTests 2>&1 | tail -30
+cd server && npx prisma validate
 ```
 
-#### 2-2. 백엔드 API 엔드포인트 코드 존재 확인
-아래 API가 실제 파일로 존재하는지 grep/glob으로 확인. 없으면 구현:
-- `/api/banners/active` — 활성 배너 목록
-- `/api/notices` + `/api/notices/popup` — 공지사항
-- `/api/system-config/public` — 공개 시스템 설정
-- `/api/resumes` CRUD — 이력서 관리
-- `/api/resumes/:id/transform` — AI 변환
-- `/api/auth/me` — 현재 유저 정보
-- `/api/jobs`, `/api/jobs/my` — 채용공고
-- `/api/applications` — 지원 현황
-- `/api/cover-letters` — 자기소개서
-- `/api/templates` — 템플릿 목록
-- `/api/notifications` — 알림
-- `/api/social/scouts` — 스카우트 메시지
-
-#### 2-3. 어드민 기능 코드 존재 확인
-어드민 전용 기능이 코드에 구현되어 있는지 확인:
-- AdminPage.tsx — 어드민 대시보드 (유저 수, 이력서 수, DAU 등 실제 API 연동)
-- 배너 관리 CRUD (AdminPage 또는 별도 컴포넌트)
-- 공지사항 관리 CRUD
-- 유저 관리 (목록/검색/역할변경)
-- 시스템 설정 (`monetization_enabled`, `maintenance_mode` 토글)
-- API: `/api/system-config` PATCH (어드민 전용)
-
-만약 위 항목이 하드코딩된 mock 데이터를 쓰거나 미구현이면 즉시 수정.
-
-#### 2-4. 프론트엔드 핵심 페이지 컴포넌트 확인
-아래가 실제로 렌더링 가능한지 코드 구조 확인:
-- HomePage — 배너 슬라이더, 공지 팝업, 통계 (실제 API)
-- ResumeList / Dashboard — 이력서 목록 (실제 API)
-- EditResumePage — 섹션 편집, 자동저장
-- PreviewPage — 미리보기, PDF 다운로드
-- AdminPage — 어드민 대시보드 (role=admin만 접근)
-- PricingPage — monetization_enabled 설정 반영
-
-#### 2-5. 하드코딩 / mock 데이터 탐지 및 제거
+#### 2-2. 핵심 API 존재 확인 (없으면 구현)
 ```bash
-grep -r "Math.random\|mock\|dummy\|TODO\|FIXME\|하드코딩\|\[\]\s*as\b" \
-  src/ server/ --include="*.ts" --include="*.tsx" -l 2>/dev/null | head -20
+grep -r "@Get\|@Post\|@Patch\|@Delete" server/src --include="*.ts" -l 2>/dev/null | head -20
 ```
-발견된 파일에서 하드코딩 제거하고 실제 API 연동으로 교체.
+필수 엔드포인트:
+- `GET /api/banners/active` — 활성 배너
+- `GET /api/notices`, `GET /api/notices/popup` — 공지사항
+- `GET /api/system-config/public` — 공개 설정
+- `GET/POST/PATCH/DELETE /api/resumes` — 이력서 CRUD
+- `POST /api/resumes/:id/transform` — AI 변환
+- `GET /api/auth/me` — 현재 유저
+- `GET /api/jobs`, `GET /api/jobs/my` — 채용공고
+- `GET /api/applications` — 지원 현황
+- `GET/POST /api/cover-letters` — 자기소개서
+- `GET /api/templates` — 템플릿
+- `GET /api/notifications` — 알림
+- `GET /api/social/scouts` — 스카우트
 
-#### 2-6. 샘플 DB 데이터 시드 (기능 검증용, 필요 시 추가)
-테이블이 비어있어 기능 확인이 어려울 때 샘플 데이터 삽입:
-**샘플 데이터 구분 규칙 (중요):**
-- 샘플 데이터(배너/공지/이력서/회원 등 모든 엔티티)는 반드시 구분 표시
-- Prisma 모델에 `isSample Boolean @default(false) @map("is_sample")` 필드 추가
-- User 모델에도 `isSample Boolean @default(false) @map("is_sample")` 추가 — 샘플 회원 식별
-- 화면 표시 규칙:
-  - 배너/공지: `[샘플]` 텍스트를 title 앞에 붙이거나 노란 배지 표시
-  - 이력서 목록: 카드 우상단에 주황색 "SAMPLE" 배지
-  - 어드민 유저 목록: 행에 연한 배경 + "샘플" 칩
-  - 어드민 전체 목록 테이블: isSample=true 행에 시각적 구분(배경색, 칩)
-- 샘플 회원 email 형식: `sample-{name}@sample.local` (실제 이메일과 구분)
-- 일괄 삭제 쿼리: `DELETE FROM table WHERE is_sample = true`
-- 어드민 시스템 설정에 "샘플 데이터 일괄 삭제" 버튼 추가
+#### 2-3. 어드민 기능 확인
+- `AdminPage.tsx` — 실제 DB 통계 API 연동 여부 확인
+- 배너/공지 CRUD UI 존재 여부
+- 유저 관리 (목록/역할변경) 구현 여부
+- `monetization_enabled`, `maintenance_mode` 시스템 설정 토글 UI
 
-**풍부한 샘플 데이터 생성 (다양한 케이스 커버):**
-샘플 시드 스크립트에 아래 케이스를 포함해야 함:
+#### 2-4. 프론트엔드 핵심 페이지
+- `HomePage` — BannerSlider + NoticePopup + 실제 API 통계
+- `EditResumePage` — 섹션 편집 + 자동저장 인디케이터
+- `PreviewPage` — 미리보기 + PDF 다운로드
+- `AdminPage` — role=admin 접근 제한 + 실제 데이터
+- `PricingPage` — `monetization_enabled` 반영
 
-회원 유형 (각 10명+):
-- 개인 구직자 (신입/경력 3년/경력 10년)
-- 리크루터/HR 담당자
-- 기업 관리자
-- 어드민
-
-이력서 케이스 (각 회원당 1~3개):
-- 완성된 이력서 (모든 섹션 채움, 공개)
-- 미완성 이력서 (일부 섹션만, 비공개)
-- 개발자 이력서 (기술 스택 풍부)
-- 디자이너 이력서
-- 마케터 이력서
-- 신입 이력서 (경력 없음, 학력/프로젝트 위주)
-- 영문 이력서
-
-채용공고 케이스 (10개+):
-- 프론트엔드 개발자, 백엔드 개발자, 풀스택
-- 디자이너 (UI/UX, 그래픽)
-- 마케터, PM
-- 신입 공고, 경력 공고, 인턴
-
-지원 현황 케이스:
-- 각 상태(applied/screening/interview/offer/rejected)별 샘플
-- 한 회원이 여러 공고에 지원한 케이스
-
-공지사항:
-- 일반 공지 3개 (고정 1개 포함)
-- 점검 공지 1개
-- 이벤트 공지 2개 (팝업 1개)
-
-배너:
-- 3개 (다른 배경색, 다른 CTA)
-
-스카우트 메시지:
-- 리크루터→구직자 메시지 5개 (읽음/안읽음 혼합)
-
-북마크/좋아요: 크로스 샘플
-
-시드 스크립트 파일: `server/prisma/seed-sample.ts`
-실행: `cd server && npx ts-node prisma/seed-sample.ts`
-
+#### 2-5. 하드코딩 탐지 및 제거
 ```bash
-cd server && npx ts-node -e "
-const { PrismaClient } = require('@prisma/client');
-const db = new PrismaClient();
-async function seed() {
-  // 배너 샘플 (isSample: true로 실제 데이터와 구분)
-  await db.banner.upsert({ where: { id: 'seed-banner-1' }, update: {},
-    create: { id: 'seed-banner-1', title: '[샘플] 전문 이력서를 무료로', subtitle: '지금 바로 시작하세요', bgColor: '#6366f1', isActive: true, order: 0, isSample: true }})
-    .catch(() => db.banner.upsert({ where: { id: 'seed-banner-1' }, update: {},
-      create: { id: 'seed-banner-1', title: '[샘플] 전문 이력서를 무료로', subtitle: '지금 바로 시작하세요', bgColor: '#6366f1', isActive: true, order: 0 }}));
-  // 공지 샘플
-  await db.notice.upsert({ where: { id: 'seed-notice-1' }, update: {},
-    create: { id: 'seed-notice-1', title: '[샘플] 서비스 오픈 안내', content: '이력서 플랫폼이 정식 오픈했습니다!', type: 'GENERAL', isPopup: false, isPinned: true }});
-  await db.systemConfig.upsert({ where: { key: 'monetization_enabled' }, update: {}, create: { key: 'monetization_enabled', value: 'false', label: '유료화 활성화' }});
-  await db.systemConfig.upsert({ where: { key: 'maintenance_mode' }, update: {}, create: { key: 'maintenance_mode', value: 'false', label: '점검 모드' }});
-  await db.systemConfig.upsert({ where: { key: 'show_sample_badge' }, update: {}, create: { key: 'show_sample_badge', value: 'true', label: '샘플 데이터 배지 표시' }});
-  console.log('Seed complete');
-  await db.\$disconnect();
+grep -rn "Math\.random\(\)\|'mock\|\"mock\|TODO\|FIXME\|hardcod\|\|\| 26\|\|\| 0 \/\/" \
+  src/ server/ --include="*.ts" --include="*.tsx" | grep -v "node_modules\|\.spec\." | head -20
+```
+발견 즉시 실제 API 연동으로 교체.
+
+#### 2-6. 샘플 데이터 시드 (테이블이 비어있을 때)
+**샘플 데이터 필수 규칙:**
+- 모든 샘플 엔티티에 `isSample: true` 플래그
+- 화면 표시: 이력서 카드 → 주황 "SAMPLE" 배지, 어드민 목록 → 연한 배경 + "샘플" 칩
+- 샘플 회원 email: `sample-xxx@sample.local`
+- 어드민 설정에 "샘플 데이터 일괄 삭제" 버튼
+
+시드 스크립트: `server/prisma/seed-sample.ts` 생성 후 실행
+포함해야 할 케이스:
+- 회원 10명+ (신입/경력/리크루터/기업관리자 혼합)
+- 이력서 20개+ (개발자/디자이너/마케터/신입/영문 다양하게)
+- 채용공고 10개+ (프론트엔드/백엔드/디자이너/마케터/PM)
+- 지원 현황 (모든 status 케이스)
+- 배너 3개 (색상 다양), 공지 6개 (유형 다양)
+- 스카우트 메시지 5개 (읽음/안읽음)
+
+---
+
+### STEP 3: 하드코딩 제거 우선순위
+
+| 파일 | 문제 | 해결 |
+|------|------|------|
+| `ProfileViewers.tsx` | `Math.random()` 뷰어 생성 | `GET /api/resumes/:id/viewers` API 구현 후 연동 |
+| `RecruiterDashboardPage.tsx` | API 실패 시 빈 배열 | 에러 상태 + 재시도 버튼 |
+| `server/llm/llm.service.ts` | `TEMPLATE_PROMPTS` 상수 | Template DB의 prompt 필드에서 동적 로드 |
+| 각 controller | 비로그인 빈 배열 반환 | `401 UnauthorizedException` |
+| `src/mocks/` | MSW mock 데이터 | 개발 환경에서만 활성화 확인 |
+
+---
+
+### STEP 4: UI/UX 고도화 (매 실행마다 개선 항목 1~2개 선택)
+
+#### [U1] 애니메이션 시스템 (CSS 기반 — Framer Motion 없음)
+이미 구현된 것: `fadeInUp`, `shimmer`, `cardEnter`, `pageEnter`, `scroll-progress`
+추가/개선해야 할 것:
+- **scroll-reveal**: `.reveal` 클래스 + IntersectionObserver hook (`src/hooks/useScrollReveal.ts`)
+  ```typescript
+  // useScrollReveal.ts — 스크롤 시 .is-visible 클래스 추가
+  ```
+- **hover-lift 강화**: `translateY(-3px)` + `box-shadow` 더 세련되게
+- **button ripple**: `.btn-ripple::after` pseudo-element
+- **gradient border**: `::before` pseudo로 그라디언트 테두리 애니메이션
+- **float**: 히어로 섹션 요소에 위아래 float 애니메이션
+- **pulse-glow**: CTA 버튼에 은은한 글로우 효과
+- **skeleton wave**: 더 자연스러운 shimmer 웨이브
+- **CSS 변수**: `--ease-out-quart`, `--ease-out-expo` 추가
+
+**prefers-reduced-motion 반드시 존중**
+
+#### [U2] 컬러 시스템 현대화
+현재 primary: `#2563eb` (blue-600) → 더 세련된 `#6366f1` (indigo-500)으로 통일
+```css
+:root {
+  --color-primary: #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-primary-light: #e0e7ff;
+  --color-primary-dark: #3730a3;
 }
-seed().catch(e => { console.error(e); process.exit(1); });
-" 2>&1 | tail -5
+```
+모든 파란색 CTA 버튼을 indigo로 변경 (단 링크드인 연동 버튼 등 브랜드 컬러는 유지)
+
+#### [U3] 이력서 카드 (ResumeThumbnail) 개선
+- 카드 진입 stagger 애니메이션 (index prop 받아서 `stagger-${index}`)
+- hover 시 편집/미리보기 액션 오버레이
+- 완성도 표시 (circular SVG progress)
+- 가시성 배지 (공개/비공개 아이콘)
+- 샘플 배지 (주황색 "SAMPLE")
+- 마지막 수정 시간 표시
+
+#### [U4] 비로그인 랜딩 페이지 개선
+히어로 섹션 아래에 추가:
+- **Features Grid** (6개 기능 카드: AI 작성/ATS 분석/템플릿/공유/자소서/커리어)
+- **소셜 프루프** (후기 카드 3개 + 별점)
+- **통계 바** (회원수/이력서수/조회수 카운트업 — 실제 API)
+- **CTA 섹션** (상단 + 하단 두 군데)
+
+#### [U5] 로그인 페이지 개선
+- 좌: 브랜드 패널 (그라디언트 배경 + 핵심 가치 3개)
+- 우: 로그인 폼 (소셜 버튼 스타일 개선)
+- 모바일: 단일 컬럼
+
+#### [U6] Empty State 개선
+`EmptyState.tsx` — SVG 일러스트 + float 애니메이션 + 명확한 CTA
+
+#### [U7] Header 개선
+- 스크롤 시 backdrop-blur + shadow 강화
+- 네비 링크 active 상태 인디케이터
+- 모바일 메뉴 슬라이드 애니메이션
+
+#### [U8] Footer 개선
+- 3단 그리드 (브랜드 / 링크 / 소셜)
+- 그라디언트 divider
+- SNS 링크 hover 애니메이션
+
+#### [U9] 다크모드 완성도
+- 모든 페이지/컴포넌트 다크모드 테스트
+- 시스템 prefers-color-scheme 자동 감지
+- 헤더 토글 버튼 (☀/🌙 아이콘)
+
+#### [U10] 반응형 완성도
+- 모든 페이지 375px / 768px / 1024px 검증
+- 모바일 하단 탭 바 (`MobileBottomNav.tsx`) 모든 주요 화면 연결
+- 테이블 → 카드 변환 (모바일에서 테이블 사용 금지)
+
+---
+
+### STEP 5: 데이터 시각화 (Recharts 사용)
+
+Recharts 설치됨. 아래 컴포넌트에 적용:
+
+#### 5-1. DashboardStats
+- `AreaChart`: 이력서 조회수 7일 트렌드
+- `PieChart` 또는 `RadialBarChart`: 이력서 상태 분포
+
+#### 5-2. ResumeAnalytics
+- `BarChart`: 섹션별 완성도
+- `LineChart`: 조회수 추이
+
+#### 5-3. AdminPage
+- `AreaChart`: 사용자 가입 추이 (30일)
+- `BarChart`: 일별 이력서 생성
+- `PieChart`: 플랜별 분포
+
+#### 5-4. CareerInsights
+- `RadarChart` 또는 `BarChart`: 스킬 강도
+
+**Recharts 스타일 통일:**
+```tsx
+const CHART_COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+// ResponsiveContainer + 다크모드 stroke 대응
+// CartesianGrid: strokeDasharray="3 3", stroke 다크모드 대응
+// Tooltip: borderRadius 8, boxShadow, 다크모드 배경
 ```
 
-발견된 모든 에러를 수정한 후 다음 단계 진행.
-
 ---
 
-### STEP 3: 하드코딩 제거 (발견 즉시 수정)
+### STEP 6: 기능 고도화 (우선순위 순)
 
-아래 파일들에 하드코딩된 임시 데이터가 있음. 발견 시 실제 API/DB로 교체:
+#### [P1] 배너 시스템 ✅ 구현됨
+- 추가 개선: 터치 스와이프 지원, 배너 클릭 통계
 
-#### 3-1. ProfileViewers.tsx
-- 랜덤으로 뷰어 데이터 생성하는 코드 → 실제 `/api/resumes/dashboard/viewers` API로 교체
-- 백엔드에 해당 엔드포인트 없으면 구현
+#### [P2] 공지사항 시스템 ✅ 구현됨
+- 추가 개선: 공지 유형별 아이콘, 점검 모드 시 전체 화면 배너
 
-#### 3-2. HomePage.tsx
-- `stats?.templates || 26` 같은 하드코딩 폴백 → 0 또는 로딩 스켈레톤으로 교체
+#### [P3] SystemConfig (무료/유료 ON/OFF) ✅ 구현됨
+- 추가 개선: 어드민 UI에서 실시간 토글, 변경 즉시 반영
 
-#### 3-3. RecruiterDashboardPage.tsx
-- API 실패 시 빈 배열 반환 → 에러 상태 표시 + 재시도 버튼
+#### [P4] i18n 다국어 ✅ 구현됨 (ko/en)
+- 추가 언어: 일본어(ja), 중국어 간체(zh)
+- LanguageSwitcher 헤더에 연결
+- 날짜/숫자 형식 현지화
 
-#### 3-4. server/llm/llm.service.ts
-- `TEMPLATE_PROMPTS` 하드코딩 → Template DB 모델의 prompt 필드에서 동적 로드
+#### [P5] 어드민 대시보드 고도화 ⭐ 최우선
+- Recharts 차트 추가 (가입 추이, 이력서 생성, 플랜 분포) — AreaChart/BarChart/PieChart
+- **유저 관리** (AdminUsersTab): 검색/필터, 역할 변경(user/recruiter/company/admin), 플랜 변경, 계정 정지/복구, 이메일 발송
+- **이력서 관리** (AdminResumesTab): 공개 이력서 목록, 추천 설정, 샘플 배지 표시
+- **배너 관리** (AdminBannersTab): CRUD UI, 드래그 순서변경, 미리보기
+- **공지 관리** (AdminNoticesTab): CRUD UI, 유형/팝업/고정 설정
+- **시스템 설정** (AdminSettingsTab): monetization_enabled, maintenance_mode 실시간 토글
+- **어드민 사이드바** 네비게이션 (탭별 분리)
+- 모든 탭 실제 DB 데이터 API 연동 필수
 
-#### 3-5. server controllers (notifications, cover-letters, social, jobs, applications)
-- 비로그인 시 빈 배열 반환 → 401 UnauthorizedException 반환
+#### [P6] 기업/리크루터(스카우트) 기능 고도화 ⭐ 최우선
+- **기업 프로필 페이지**: 회사 정보, 복지/문화, 채용 중인 공고 목록, 기업 인증 배지
+- **채용공고 CRUD**: 상세 작성 폼 (포지션/요건/우대/급여/위치/마감일)
+- **리크루터 이력서 검색**: 스킬/경력년수/위치/학력 필터, 북마크 기능
+- **지원자 칸반 보드**: 상태별 컬럼 (지원/서류검토/1차면접/2차면접/최종합격/불합격), 드래그
+- **스카우트 메시지 UI** 개선: 읽음 확인 상태, 답장 기능, 발송 이력, 수신함/발신함
+- **기업 인증 배지**: 공개 이력서 카드에 스카우트 가능 여부 표시
+- **스카우트 제안 받기/거절 플로우**: 구직자 알림 연동
 
-#### 3-6. src/mocks/ 디렉토리
-- MSW mock 데이터를 개발 환경에서만 활성화되도록 확인
-- 프로덕션 빌드에서 mock 핸들러 제거 확인
+#### [P7] AI 기능 고도화
+- AI 스트리밍 응답 (타이핑 효과 — SSE/ReadableStream)
+- AI 경력 불릿 개선 버튼 (인라인)
+- AI 직종별 키워드 추천 (JD 입력 → 매칭 키워드)
+- AI 커버레터 생성 (회사/포지션 맞춤)
+- AI 이력서 종합 피드백 (강점/약점/개선 제안)
+- AI 사용량 트래킹 + 무료 한도 표시
 
----
-
-### STEP 4: 기능 고도화 (우선순위 순으로 미구현 항목 1~2개 선택)
-
-#### [P1] 배너 시스템 *(미구현 시 최우선)*
-- 메인 페이지 슬라이드 배너 (자동재생, dots, 터치 스와이프)
-- 어드민 배너 CRUD (생성/수정/삭제/순서변경/활성화/기간설정)
-- Prisma 모델:
-  ```prisma
-  model Banner {
-    id        String    @id @default(uuid())
-    title     String
-    subtitle  String    @default("")
-    imageUrl  String    @default("") @map("image_url")
-    linkUrl   String    @default("") @map("link_url")
-    bgColor   String    @default("#6366f1") @map("bg_color")
-    isActive  Boolean   @default(true) @map("is_active")
-    order     Int       @default(0)
-    startAt   DateTime? @map("start_at")
-    endAt     DateTime? @map("end_at")
-    createdAt DateTime  @default(now()) @map("created_at")
-    updatedAt DateTime  @updatedAt @map("updated_at")
-    @@map("banners")
-  }
-  ```
-- API: GET /banners/active (공개), GET/POST/PATCH/:id/DELETE/:id /admin/banners
-
-#### [P2] 공지사항 시스템 *(미구현 시)*
-- 공지사항 목록 (페이지네이션, 유형 필터), 상세, 메인 팝업 (localStorage dismiss)
-- 어드민 공지 CRUD
-- Prisma 모델:
-  ```prisma
-  model Notice {
-    id        String    @id @default(uuid())
-    title     String
-    content   String
-    type      String    @default("GENERAL")  // GENERAL, MAINTENANCE, EVENT
-    isPopup   Boolean   @default(false) @map("is_popup")
-    isPinned  Boolean   @default(false) @map("is_pinned")
-    startAt   DateTime? @map("start_at")
-    endAt     DateTime? @map("end_at")
-    createdAt DateTime  @default(now()) @map("created_at")
-    updatedAt DateTime  @updatedAt @map("updated_at")
-    @@map("notices")
-  }
-  ```
-- API: GET /notices, GET /notices/popup, GET /notices/:id, CRUD /admin/notices
-
-#### [P3] 어드민 대시보드 고도화
-- 통계 위젯 (실제 DB 집계): 총 유저, 오늘 가입, 총 이력서, 오늘 생성, DAU, 유료 플랜 수
-- 유저 관리: 목록(검색/필터/페이지네이션), 역할 변경, 플랜 변경, 계정 정지
-- 이력서 관리: 공개 이력서 목록, 추천 설정, 신고 처리
-- 시스템 설정: 기능 ON/OFF, 점검 모드 활성화
-- 어드민 사이드바 네비게이션 (대시보드/유저/이력서/배너/공지/채용/설정)
-
-#### [P4] 기업 회원/리크루터 기능
-- 기업 프로필 페이지 (회사명, 로고, 소개, 업종, 규모, 복지)
-- 채용공고 CRUD (포지션/급여범위/위치/요건/혜택/마감일/고용형태)
-- 채용공고 목록 페이지 (필터: 직군/위치/고용형태/경력)
-- 리크루터 이력서 검색 (스킬/경력/위치/학력/연봉 필터)
-- 지원자 관리 칸반 보드 (서류검토→면접→최종→합격/불합격)
-- 스카우트 메시지 발송/수신 (읽음 확인, 답장)
-- 기업 인증 배지 시스템
-- 리크루터 구독 플랜
-- 리크루터 대시보드 (공고별 지원자 통계, 스카우트 현황)
-
-#### [P5] UI/UX 고도화
-- 이력서 작성 진행률 바 (섹션별 채움 정도 계산, 상단 스티키)
-- 자동저장 인디케이터 ("방금 저장됨", "저장 중...")
-- 스켈레톤 로딩 (모든 목록/카드)
-- Empty State 컴포넌트 (일러스트 + CTA)
-- 모바일 반응형 전수 점검 (375px, 768px, 1024px)
-- 인라인 폼 유효성 검사
-- 다크모드 지원 (CSS 변수 기반, localStorage 저장)
-- 디자인 토큰 (colors/spacing/typography CSS 변수)
-- 키보드 단축키 (Ctrl+S 저장, Ctrl+P 미리보기)
-
-#### [P6] ATS 점수 / 이력서 분석
-- 이력서 완성도 점수 (0~100, 섹션 가중 합산)
+#### [P8] ATS 점수 / 이력서 분석
+- 완성도 점수 0~100 (섹션 가중합)
 - ATS 호환성 체크리스트
-- 누락 섹션 경고 + 추가 권유 버튼
-- 직무기술서 붙여넣기 → 키워드 매칭 분석
-- 개선 제안 리스트 (우선순위 표시)
+- 키워드 갭 분석 (JD 붙여넣기 → 누락 키워드)
+- 개선 제안 리스트
 
-#### [P7] 템플릿 시스템 고도화
-- 시각적 차별화 템플릿 3종+:
-  - Minimal (1단 깔끔, 모노톤)
-  - Modern (사이드바 2단, 컬러 포인트)
-  - Executive (고급 헤더, 타임라인)
-  - Creative (비대칭 레이아웃, 아이콘)
-- 실시간 템플릿 전환
+#### [P9] 템플릿 시스템 고도화
+- 템플릿 3종 추가 (Minimal/Modern/Executive/Creative)
+- 실시간 전환 미리보기
 - 컬러 테마 5종
-- 폰트 3종
-- 템플릿별 미리보기 썸네일
+- 폰트 3종 선택
 
-#### [P8] 이력서 공개 프로필 / SNS 공유
-- 공개 이력서 URL (slug 기반: /r/김개발-백엔드개발자)
-- OG 이미지 자동 생성
-- 조회수/방문자 통계
-- SNS 공유 버튼 (카카오/링크드인/트위터)
+#### [P10] 이력서 공개 프로필 / 공유
+- slug 기반 공개 URL `/r/{slug}`
+- OG 이미지 메타태그
+- SNS 공유 버튼 (카카오/링크드인)
 - QR코드 생성
-- 이력서 링크 비밀번호 보호
+- 비밀번호 보호 공유링크 개선
 
-#### [P9] PDF / 내보내기 고도화
-- 폰트 임베딩 PDF
+#### [P11] PDF / 내보내기
 - A4/Letter 사이즈 선택
 - 페이지 분할 최적화
-- Word (.docx) 내보내기
-- 인쇄 최적화 CSS
+- Word(.docx) 내보내기 기초
 
-#### [P10] AI 기능 고도화
-- AI 자기소개 초안 생성 (경력 기반)
-- AI 경력기술서 불릿 개선
-- AI 직종별 키워드 추천
-- AI 커버레터 생성 (회사/포지션 맞춤)
-- AI 이력서 리뷰 (강점/약점 분석)
-- 스트리밍 응답 (타이핑 효과)
-
-#### [P11] 알림 시스템 고도화
-- 실시간 알림 (WebSocket 또는 SSE)
-- 이메일 알림 (NodeMailer): 스카우트 수신, 지원 현황 변경
+#### [P12] 알림 시스템 고도화
+- SSE 또는 polling 기반 실시간 알림
+- 읽지 않은 뱃지 (헤더 NotificationBell)
 - 알림 설정 페이지 (유형별 ON/OFF)
-- 읽지 않은 알림 뱃지
 
-#### [P12] 소셜 기능 고도화
-- 이력서 피드 (공개 이력서 타임라인)
-- 좋아요/북마크 기능 UI 개선
-- 댓글 시스템 (이력서에 피드백)
-- 팔로우/팔로워 페이지
+#### [P13] 소셜 기능
+- 공개 이력서 피드/탐색 페이지 개선
+- 북마크/좋아요 UI 개선
 - 인기 이력서 랭킹
 
-#### [P13] 지원 현황 관리 고도화
-- 지원 현황 칸반 보드 (드래그 앤 드롭)
-- 지원 일정 캘린더
-- 면접 준비 노트
+#### [P14] 지원 현황 관리
+- 칸반 보드 (드래그)
+- 면접 일정 캘린더
 - 합격률 통계
-- 목표 회사 위시리스트
 
-#### [P14] 검색 고도화
-- 이력서 전문 검색 (ElasticSearch 또는 PostgreSQL 전문검색)
-- 자동완성 (기술스택, 회사명)
-- 검색 필터 (경력/학력/스킬/지역)
-- 인기 검색어
+#### [P15] 검색
+- PostgreSQL 전문검색 (`@@tsquery`)
+- 자동완성 (기술스택/회사명)
+- 검색 필터 강화
 
-#### [P15] 보안 / 성능
-- Rate limiting (API 엔드포인트별)
-- CSRF 보호
-- SQL injection 방지 확인
-- XSS 방지 확인
-- API 응답 캐싱 (Redis 또는 인메모리)
-- 이미지 최적화 (WebP 변환)
-- 코드 스플리팅 확인
-- Lighthouse 점수 90+ 목표
+#### [P16] 보안/성능
+- Rate limiting 검증
+- Lighthouse 90+ 목표
+- 이미지 lazy loading
+- 번들 크기 분석
 
-#### [P16] 다국어(i18n) 지원
-- i18next + react-i18next 설치 및 설정
-- 지원 언어: 한국어(ko, 기본), 영어(en), 일본어(ja), 중국어 간체(zh)
-- 번역 파일 구조: `src/locales/{lang}/translation.json`
-- 번역 대상:
-  - 모든 UI 텍스트 (버튼, 레이블, 메시지, 플레이스홀더)
-  - 에러 메시지
-  - 이메일 알림 템플릿
-  - 이력서 섹션명 (경력/학력/기술 등)
-- 언어 전환 UI (헤더 드롭다운, 국기 아이콘)
-- 언어 설정 localStorage 저장
-- URL 기반 언어 라우팅 선택적 지원 (/en/*, /ja/*)
-- 날짜 형식 자동 변환 (한국: 2024년 3월, 영어: March 2024)
-- 숫자/통화 형식 현지화
+#### [P17] 유료화 준비
+- PricingPage: monetization_enabled=false → "곧 출시" 배너
+- 플랜별 FeatureGate 컴포넌트
+- Toss Payments 연동 코드 스캐폴딩
+- 구독 관리 페이지
 
-#### [P17] UI/UX 디자인 시스템 고도화
-- **디자인 토큰 완성**: CSS 변수로 color/spacing/typography/shadow/border-radius 통일
-- **컴포넌트 라이브러리 구축**:
-  - Button (primary/secondary/ghost/danger, size: sm/md/lg, loading state)
-  - Input (text/select/textarea, error state, helper text)
-  - Card (기본/호버/선택됨)
-  - Badge (색상 변형, 크기)
-  - Modal (사이즈 변형, 애니메이션)
-  - Toast/Snackbar (success/error/warning/info)
-  - Dropdown Menu
-  - Tabs
-  - Accordion
-  - Pagination
-  - DataTable (정렬/필터/페이지네이션)
-  - Avatar (이미지/이니셜 폴백)
-  - Progress (bar/circle)
-  - Skeleton
-- **애니메이션**:
-  - 페이지 전환 애니메이션 (Framer Motion 또는 CSS transition)
-  - 카드 호버 효과
-  - 버튼 클릭 ripple 효과
-  - 스켈레톤 shimmer 효과
-  - 모달 오픈/클로즈 애니메이션
-- **다크모드**:
-  - CSS 변수 기반 완전한 다크모드
-  - 시스템 설정 자동 감지 (prefers-color-scheme)
-  - 수동 토글 (헤더 버튼)
-  - localStorage 저장
-- **반응형 개선**:
-  - 모바일 햄버거 메뉴
-  - 모바일 최적화 이력서 편집기
-  - 모바일 탭 바 네비게이션 (하단 고정)
-  - 태블릿 레이아웃 최적화
-- **접근성(a11y)**:
-  - 키보드 네비게이션
-  - ARIA 레이블
-  - 색상 대비 4.5:1 이상
-  - 스크린 리더 지원
-  - Focus visible 스타일
-- **마이크로인터랙션**:
-  - 이력서 섹션 드래그앤드롭 순서 변경
-  - 태그 추가/삭제 애니메이션
-  - 저장 성공 체크마크 애니메이션
-  - 숫자 카운트업 애니메이션 (통계)
+#### [P18] 온보딩 플로우
+- 첫 로그인 시 3단계 위저드 (직종/경력/목표)
+- 빈 이력서 Quick Start 가이드
 
-#### [P18] 온보딩 / 튜토리얼
-- 첫 로그인 시 온보딩 플로우 (3~5단계 위저드)
-- 인터랙티브 튜토리얼 (Shepherd.js 또는 커스텀)
-- 도움말 툴팁 (? 아이콘 호버)
-- 빈 상태 가이드 (처음 이력서 만들기 CTA)
-- 샘플 이력서 템플릿 미리보기
+#### [P19] PWA / 오프라인
+- manifest.json 개선
+- Service Worker 기초
+- 오프라인 이력서 편집 (IndexedDB)
 
-#### [P19] 대시보드 홈 고도화
-- 개인화 대시보드 (최근 이력서, 지원 현황, 알림)
-- 위클리 리포트 카드
-- 이력서 조회수 트렌드 차트 (Recharts)
-- 지원 현황 도넛 차트
-- 추천 채용공고 (스킬 매칭)
-- 이력서 완성도 위젯
-- 커뮤니티 인기 이력서 피드
-
-#### [P20] 이메일 / 알림 시스템
-- NodeMailer + 이메일 템플릿 (React Email 또는 HTML)
-- 이메일 종류: 회원가입 인증, 비밀번호 재설정, 스카우트 수신, 지원 현황 변경
-- 인앱 알림 실시간화 (SSE 또는 폴링)
-- 푸시 알림 (PWA Web Push)
-- 알림 설정 페이지 (채널별/유형별 ON/OFF)
-
-#### [P21] 무료/유료 운영 모드 전환 시스템 (어드민 ON/OFF)
-현재는 무료 운영, 추후 유료 전환 대비:
-
-- **어드민 시스템 설정 페이지**에 `monetization_enabled` 토글 추가
-  - OFF (현재): 모든 기능 무료, 플랜 UI 숨김
-  - ON: 플랜별 기능 제한 활성화
-
-- **Prisma SystemConfig 모델**:
-  ```prisma
-  model SystemConfig {
-    id    String @id @default(uuid())
-    key   String @unique
-    value String
-    @@map("system_configs")
-  }
-  ```
-  - key: `monetization_enabled` value: `false`
-  - key: `maintenance_mode` value: `false`
-  - key: `max_free_resumes` value: `5`
-  - key: `site_name` value: `이력서 플랫폼`
-
-- **유료화 준비 구조** (코드는 완성, ON/OFF만 어드민에서 제어):
-  - **플랜 정의** (DB 또는 상수):
-    - FREE: 이력서 3개, AI 변환 월 5회, 기본 템플릿
-    - PRO (월 9,900원): 이력서 무제한, AI 변환 무제한, 프리미엄 템플릿, PDF 고화질, 우선지원
-    - ENTERPRISE (월 29,900원): PRO 포함 + 기업 채용 기능, 팀 관리, API 접근
-  - **플랜 페이지** `/pricing`: monetization_enabled=false면 "곧 출시" 배너 표시
-  - **기능 제한 미들웨어**: monetization_enabled=false면 모든 제한 해제
-  - **결제 연동 준비** (Toss Payments / Stripe 코드 스캐폴딩, 실제 키는 미입력)
-  - **구독 관리 페이지**: 내 플랜 확인, 업그레이드/다운그레이드
-  - **사용량 대시보드**: AI 사용 횟수, 이력서 개수, 스토리지 사용량
-
-- **어드민 수익 대시보드** (유료 전환 시 활성화):
-  - MRR (월간 반복 매출)
-  - 유료 전환율
-  - 플랜별 가입자 수
-  - 이탈률
-
-#### [P22] 모노레포 / 코드 아키텍처 개선
-- 공통 타입 패키지 분리 (`packages/types/`)
-- API 클라이언트 자동 생성 (OpenAPI/Swagger → TypeScript)
-- 환경변수 타입 안전성 (Zod 스키마)
-- 에러 코드 통일 (ErrorCode enum)
-- 로깅 시스템 (Pino 또는 Winston, 요청/응답 로그)
-- Health check 엔드포인트 실제 구현 (DB, Redis, 외부 API 상태)
+#### [P20] 테스트 커버리지 강화
+- Jest 단위 테스트: 서비스 레이어 핵심 메서드
+- Supertest: 핵심 API 엔드포인트
+- React Testing Library: 주요 컴포넌트
 
 ---
 
-### STEP 5: 테스트 작성 및 검증
+### STEP 7: 테스트 작성
 
-새로운 기능 구현 후:
+새 기능 구현 후:
 ```bash
-# 새 서비스/컨트롤러 단위 테스트 (Jest)
-# 새 API 통합 테스트
-cd backend && npm test -- --passWithNoTests 2>&1 | tail -30
+cd server && npm test -- --passWithNoTests 2>&1 | tail -20
+```
+실패 테스트 수정.
+
+---
+
+### STEP 8: 커밋 전 최종 검증 (필수 — 생략 절대 금지)
+
+> **이 단계를 건너뛰고 커밋하는 것은 절대 금지입니다.**
+> 빌드/타입/테스트 중 하나라도 실패하면 먼저 수정한 후 커밋하세요.
+
+```bash
+# ① 프론트엔드 타입 검사
+npx tsc --noEmit 2>&1 | head -30
+# ② 프론트엔드 빌드
+npm run build 2>&1 | tail -20
+# ③ 백엔드 타입 검사
+cd server && npx tsc --noEmit 2>&1 | head -30
+# ④ 백엔드 빌드
+cd server && npm run build 2>&1 | tail -20
+# ⑤ 백엔드 테스트
+cd server && npm test -- --passWithNoTests 2>&1 | tail -20
+# ⑥ Prisma 스키마 유효성
+cd server && npx prisma validate
 ```
 
----
-
-### STEP 6: 커밋 및 푸시
-
+모든 명령이 에러 없이 통과된 후에만:
 ```bash
+cd /Users/hjunkim/WebstormProjects/resume
 git add -A
-git commit -m "feat: [구현 내용 요약] — 빌드+테스트 검증 완료"
+git commit -m "feat/fix/style: [작업 내용 요약] — 빌드+타입+테스트 완료"
 git push origin main
 ```
 
@@ -490,11 +369,18 @@ git push origin main
 
 ## 코드 품질 기준
 
-- TypeScript strict 모드, 타입 에러 0개 목표
-- 모든 API 에러 핸들링 (try/catch, HttpException)
-- 한국어 UI 텍스트
-- 컴포넌트 재사용성
-- 빌드 성공 필수
-- 모바일 반응형 (375px~)
-- 접근성 기본 (aria-label, alt 텍스트)
-- 하드코딩 금지: mock/dummy/임시 데이터 사용 금지, 실제 API/DB 연동
+| 항목 | 기준 |
+|------|------|
+| TypeScript | strict 모드, 타입 에러 0개 목표 |
+| 빌드 | 반드시 성공 (실패 시 원인 파악 후 수정) |
+| 하드코딩 | 금지 — mock/dummy/Math.random() 사용 금지 |
+| API 연동 | 모든 데이터는 실제 API/DB에서 |
+| 에러 처리 | try/catch + HttpException, 사용자 친화 에러 메시지 |
+| UI 텍스트 | 한국어 (i18n 키 사용 권장) |
+| 반응형 | 375px 이상 지원 |
+| 다크모드 | 모든 컴포넌트 대응 |
+| 접근성 | aria-label, alt, 키보드 네비게이션 |
+| 애니메이션 | prefers-reduced-motion 존중 |
+| 컬러 | primary = indigo (#6366f1) 계열 통일 |
+| 차트 | Recharts 사용, 다크모드 대응 |
+| 샘플 데이터 | isSample: true 필드로 구분, 화면에 배지 표시 |
