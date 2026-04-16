@@ -112,6 +112,7 @@ function CollapsibleSection({ id, icon, title, open, onToggle, children, danger 
 const NAV_ITEMS = [
   { id: 'sec-profile', label: '프로필' },
   { id: 'sec-usertype', label: '유형' },
+  { id: 'sec-opento', label: '구직' },
   { id: 'sec-subscription', label: '구독' },
   { id: 'sec-activity', label: '활동' },
   { id: 'sec-social', label: '소셜' },
@@ -144,6 +145,9 @@ export default function SettingsPage() {
   const [userType, setUserType] = useState(user?.userType || 'personal');
   const [switchingType, setSwitchingType] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(getTheme());
+  const [isOpenToWork, setIsOpenToWork] = useState(user?.isOpenToWork || false);
+  const [openToWorkRoles, setOpenToWorkRoles] = useState(user?.openToWorkRoles || '');
+  const [savingOpenToWork, setSavingOpenToWork] = useState(false);
 
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('notification-prefs');
@@ -432,6 +436,81 @@ export default function SettingsPage() {
             })}
           </div>
         </CollapsibleSection>
+
+        {/* ── 구직 중 상태 ── */}
+        {userType === 'personal' && (
+          <CollapsibleSection
+            id="sec-opento" icon="🟢" title="구직 중 상태 (Open to Work)"
+            open={openSections.has('sec-opento')} onToggle={() => toggleSection('sec-opento')}
+          >
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              구직 중 상태를 공개하면 채용 담당자가 내 이력서를 더 쉽게 발견할 수 있습니다. 이력서 탐색 페이지에서 초록색 배지로 표시됩니다.
+            </p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
+                <div>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <span className={`inline-block w-2.5 h-2.5 rounded-full ${isOpenToWork ? 'bg-green-500' : 'bg-slate-400'}`} />
+                    {isOpenToWork ? '구직 중 (공개)' : '구직 중 아님 (비공개)'}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {isOpenToWork ? '이력서 탐색에서 구직 중으로 표시됩니다' : '비공개 상태입니다'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsOpenToWork(prev => !prev)}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
+                    isOpenToWork ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'
+                  }`}
+                  aria-label="구직 중 상태 토글"
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-200 ${
+                    isOpenToWork ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </div>
+
+              {isOpenToWork && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">희망 직무 (쉼표로 구분)</label>
+                  <input
+                    type="text"
+                    value={openToWorkRoles}
+                    onChange={e => setOpenToWorkRoles(e.target.value)}
+                    placeholder="예: 프론트엔드 개발자, UI 디자이너, PM"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              )}
+
+              <button
+                onClick={async () => {
+                  setSavingOpenToWork(true);
+                  try {
+                    const token = getToken();
+                    const res = await fetch(`${API_URL}/api/auth/profile`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                      body: JSON.stringify({ isOpenToWork, openToWorkRoles }),
+                    });
+                    if (!res.ok) throw new Error();
+                    const updated = await res.json();
+                    if (token) setAuth(token, { ...user, ...updated });
+                    toast(isOpenToWork ? '구직 중 상태로 설정되었습니다' : '구직 중 상태가 해제되었습니다', 'success');
+                  } catch {
+                    toast('저장에 실패했습니다', 'error');
+                  } finally {
+                    setSavingOpenToWork(false);
+                  }
+                }}
+                disabled={savingOpenToWork}
+                className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
+                {savingOpenToWork ? '저장 중...' : '저장'}
+              </button>
+            </div>
+          </CollapsibleSection>
+        )}
 
         {/* ── 구독 관리 ── */}
         <CollapsibleSection

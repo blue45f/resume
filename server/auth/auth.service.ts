@@ -243,6 +243,8 @@ export class AuthService {
       userType: user.userType || 'personal',
       companyName: user.companyName || '',
       companyTitle: user.companyTitle || '',
+      isOpenToWork: user.isOpenToWork || false,
+      openToWorkRoles: user.openToWorkRoles || '',
       resumeCount,
       followerCount,
       followingCount,
@@ -477,7 +479,7 @@ export class AuthService {
     await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
   }
 
-  async updateProfile(userId: string, data: { userType?: string; name?: string; companyName?: string; companyTitle?: string }) {
+  async updateProfile(userId: string, data: { userType?: string; name?: string; companyName?: string; companyTitle?: string; isOpenToWork?: boolean; openToWorkRoles?: string }) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
 
@@ -492,6 +494,8 @@ export class AuthService {
     if (data.name !== undefined) updateData.name = data.name;
     if (data.companyName !== undefined) updateData.companyName = data.companyName;
     if (data.companyTitle !== undefined) updateData.companyTitle = data.companyTitle;
+    if (data.isOpenToWork !== undefined) updateData.isOpenToWork = data.isOpenToWork;
+    if (data.openToWorkRoles !== undefined) updateData.openToWorkRoles = data.openToWorkRoles;
 
     const updated = await this.prisma.user.update({ where: { id: userId }, data: updateData });
     return {
@@ -500,6 +504,8 @@ export class AuthService {
       userType: updated.userType || 'personal',
       companyName: updated.companyName || '',
       companyTitle: updated.companyTitle || '',
+      isOpenToWork: updated.isOpenToWork || false,
+      openToWorkRoles: updated.openToWorkRoles || '',
     };
   }
 

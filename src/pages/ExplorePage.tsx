@@ -59,6 +59,8 @@ interface UserProfile {
   resumes: { id: string; title: string; updatedAt: string }[];
   skills: string[];
   resumeCount: number;
+  isOpenToWork?: boolean;
+  openToWorkRoles?: string;
 }
 
 function aggregateUsers(resumes: ResumeSummary[]): UserProfile[] {
@@ -67,9 +69,13 @@ function aggregateUsers(resumes: ResumeSummary[]): UserProfile[] {
     const key = r.userId || r.personalInfo?.name || r.id;
     const name = r.personalInfo?.name || '이름 미입력';
     if (!map.has(key)) {
-      map.set(key, { userId: key, name, resumes: [], skills: [], resumeCount: 0 });
+      map.set(key, { userId: key, name, resumes: [], skills: [], resumeCount: 0, isOpenToWork: r.isOpenToWork, openToWorkRoles: r.openToWorkRoles });
     }
     const user = map.get(key)!;
+    if (r.isOpenToWork) {
+      user.isOpenToWork = true;
+      user.openToWorkRoles = r.openToWorkRoles;
+    }
     user.resumes.push({ id: r.id, title: r.title || '제목 없음', updatedAt: r.updatedAt });
     user.resumeCount++;
     const skillNames = extractSkillNames(r.skills);
@@ -698,13 +704,32 @@ export default function ExplorePage() {
                     >
                       {/* User header */}
                       <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-11 h-11 rounded-full ${avatarColor} flex items-center justify-center text-white font-bold text-lg shrink-0`}>
-                          {initial}
+                        <div className="relative shrink-0">
+                          <div className={`w-11 h-11 rounded-full ${avatarColor} flex items-center justify-center text-white font-bold text-lg`}>
+                            {initial}
+                          </div>
+                          {user.isOpenToWork && (
+                            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-slate-800 flex items-center justify-center" title="구직 중">
+                              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{user.name}</h3>
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{user.name}</h3>
+                            {user.isOpenToWork && (
+                              <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800">
+                                구직 중
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-slate-500 dark:text-slate-400">
                             이력서 {user.resumeCount}개
+                            {user.isOpenToWork && user.openToWorkRoles && (
+                              <span className="ml-1 text-green-600 dark:text-green-400">· {user.openToWorkRoles.split(',')[0].trim()}</span>
+                            )}
                           </p>
                         </div>
                       </div>

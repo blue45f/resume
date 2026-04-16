@@ -117,6 +117,7 @@ let ResumesService = class ResumesService {
                     },
                     tags: { include: { tag: true } },
                     skills: { select: { id: true, category: true, items: true } },
+                    user: { select: { isOpenToWork: true, openToWorkRoles: true } },
                 },
                 orderBy: { updatedAt: 'desc' },
                 skip: (safePage - 1) * safeLimit,
@@ -159,6 +160,7 @@ let ResumesService = class ResumesService {
                     },
                     tags: { include: { tag: true } },
                     skills: { select: { id: true, category: true, items: true }, take: 5 },
+                    user: { select: { isOpenToWork: true, openToWorkRoles: true } },
                 },
                 orderBy,
                 skip: (opts.page - 1) * opts.limit,
@@ -497,6 +499,8 @@ let ResumesService = class ResumesService {
         const pi = resume.personalInfo;
         return {
             id: resume.id, title: resume.title, slug: resume.slug || '', userId: resume.userId || '', viewCount: resume.viewCount || 0, visibility: resume.visibility || 'private',
+            isOpenToWork: resume.user?.isOpenToWork || false,
+            openToWorkRoles: resume.user?.openToWorkRoles || '',
             personalInfo: pi
                 ? {
                     name: pi.name, email: pi.email, phone: pi.phone, address: pi.address,

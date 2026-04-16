@@ -95,7 +95,7 @@ function CircularProgress({ pct, color }: { pct: number; color: string }) {
   );
 }
 
-const ResumeThumbnail = memo(function ResumeThumbnail({ resume, themeId, onClick, index = 0 }: Props) {
+const ResumeThumbnail = memo(function ResumeThumbnail({ resume, themeId, onClick, index = 0, showOpenToWork = true }: Props & { showOpenToWork?: boolean }) {
   const theme = useMemo(
     () => resumeThemes.find(t => t.id === (themeId || 'classic')) || resumeThemes[0],
     [themeId],
@@ -188,6 +188,14 @@ const ResumeThumbnail = memo(function ResumeThumbnail({ resume, themeId, onClick
           미리보기
         </span>
       </div>
+
+      {/* Open to Work badge */}
+      {showOpenToWork && resume.isOpenToWork && (
+        <div className="absolute top-8 left-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-green-500/90 text-white backdrop-blur-sm">
+          <span className="w-1.5 h-1.5 bg-white rounded-full inline-block animate-pulse" />
+          구직중
+        </div>
+      )}
 
       {/* Visibility badge */}
       <div className={`absolute top-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-semibold backdrop-blur-sm ${isPublic ? 'bg-emerald-500/90 text-white' : 'bg-slate-800/70 text-slate-200'}`}>

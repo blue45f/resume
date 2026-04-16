@@ -13,8 +13,8 @@ export declare class TagsController {
     }[]>;
     create(dto: CreateTagDto, req: any): Promise<{
         id: string;
-        name: string;
         userId: string | null;
+        name: string;
         color: string;
     }>;
     remove(id: string, req: any): Promise<{

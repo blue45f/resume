@@ -17,6 +17,8 @@ export declare class ResumesController {
             userId: any;
             viewCount: any;
             visibility: any;
+            isOpenToWork: any;
+            openToWorkRoles: any;
             personalInfo: {
                 name: any;
                 email: any;
@@ -119,6 +121,8 @@ export declare class ResumesController {
         userId: any;
         viewCount: any;
         visibility: any;
+        isOpenToWork: any;
+        openToWorkRoles: any;
         personalInfo: {
             name: any;
             email: any;
@@ -145,6 +149,8 @@ export declare class ResumesController {
             userId: any;
             viewCount: any;
             visibility: any;
+            isOpenToWork: any;
+            openToWorkRoles: any;
             personalInfo: {
                 name: any;
                 email: any;
@@ -203,6 +209,8 @@ export declare class ResumesController {
         userId: any;
         viewCount: any;
         visibility: any;
+        isOpenToWork: any;
+        openToWorkRoles: any;
         personalInfo: {
             name: any;
             email: any;
@@ -251,6 +259,8 @@ export declare class ResumesController {
         userId: any;
         viewCount: any;
         visibility: any;
+        isOpenToWork: any;
+        openToWorkRoles: any;
         personalInfo: {
             name: any;
             email: any;
@@ -300,6 +310,8 @@ export declare class ResumesController {
         userId: any;
         viewCount: any;
         visibility: any;
+        isOpenToWork: any;
+        openToWorkRoles: any;
         personalInfo: {
             name: any;
             email: any;
@@ -369,6 +381,8 @@ export declare class ResumesController {
         userId: any;
         viewCount: any;
         visibility: any;
+        isOpenToWork: any;
+        openToWorkRoles: any;
         personalInfo: {
             name: any;
             email: any;

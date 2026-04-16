@@ -233,6 +233,8 @@ let AuthService = AuthService_1 = class AuthService {
             userType: user.userType || 'personal',
             companyName: user.companyName || '',
             companyTitle: user.companyTitle || '',
+            isOpenToWork: user.isOpenToWork || false,
+            openToWorkRoles: user.openToWorkRoles || '',
             resumeCount,
             followerCount,
             followingCount,
@@ -454,6 +456,10 @@ let AuthService = AuthService_1 = class AuthService {
             updateData.companyName = data.companyName;
         if (data.companyTitle !== undefined)
             updateData.companyTitle = data.companyTitle;
+        if (data.isOpenToWork !== undefined)
+            updateData.isOpenToWork = data.isOpenToWork;
+        if (data.openToWorkRoles !== undefined)
+            updateData.openToWorkRoles = data.openToWorkRoles;
         const updated = await this.prisma.user.update({ where: { id: userId }, data: updateData });
         return {
             id: updated.id, email: updated.email, name: updated.name, avatar: updated.avatar,
@@ -461,6 +467,8 @@ let AuthService = AuthService_1 = class AuthService {
             userType: updated.userType || 'personal',
             companyName: updated.companyName || '',
             companyTitle: updated.companyTitle || '',
+            isOpenToWork: updated.isOpenToWork || false,
+            openToWorkRoles: updated.openToWorkRoles || '',
         };
     }
     async deleteAccount(userId) {

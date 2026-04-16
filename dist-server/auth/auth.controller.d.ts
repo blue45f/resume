@@ -32,6 +32,8 @@ export declare class AuthController {
         userType: string;
         companyName: string;
         companyTitle: string;
+        isOpenToWork: boolean;
+        openToWorkRoles: string;
         resumeCount: number;
         followerCount: number;
         followingCount: number;

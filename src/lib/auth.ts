@@ -10,6 +10,8 @@ export interface User {
   plan?: string;
   userType?: string;
   companyName?: string;
+  isOpenToWork?: boolean;
+  openToWorkRoles?: string;
 }
 
 export function getToken(): string | null {

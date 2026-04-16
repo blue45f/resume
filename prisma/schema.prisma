@@ -23,6 +23,8 @@ model User {
   plan          String   @default("free") // free, pro, enterprise
   planExpiresAt DateTime? @map("plan_expires_at")
   isSample      Boolean  @default(false) @map("is_sample")
+  isOpenToWork  Boolean  @default(false) @map("is_open_to_work") // 구직 중 상태 공개
+  openToWorkRoles String @default("") @map("open_to_work_roles") // 희망 직무 (콤마 구분)
   createdAt  DateTime @default(now()) @map("created_at")
   resumes      Resume[]
   applications JobApplication[]

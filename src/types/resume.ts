@@ -138,6 +138,8 @@ export interface ResumeSummary {
   userId?: string;
   viewCount?: number;
   visibility?: 'public' | 'private' | 'link-only';
+  isOpenToWork?: boolean;
+  openToWorkRoles?: string;
   personalInfo: PersonalInfo;
   tags: Tag[];
   skills?: Skill[];
