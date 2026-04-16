@@ -44,6 +44,7 @@ import ExportPanel from '@/components/ExportPanel';
 import PublicLinkSettings from '@/components/PublicLinkSettings';
 import ShareStats from '@/components/ShareStats';
 import ResumeAuditPanel from '@/components/ResumeAuditPanel';
+import ResumeScoreCard from '@/components/ResumeScoreCard';
 
 /** Map theme accentColor to Tailwind classes */
 const accentColorMap: Record<string, { dot: string; ring: string; bgLight: string; border: string }> = {
@@ -94,6 +95,7 @@ export default function PreviewPage() {
   const [showQr, setShowQr] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showScoreCard, setShowScoreCard] = useState(false);
   const [printPreparing, setPrintPreparing] = useState(false);
   // Zoom controls
   const ZOOM_LEVELS = [75, 100, 125, 150] as const;
@@ -327,6 +329,7 @@ export default function PreviewPage() {
               <button onClick={() => setShowAiAnalysis(true)} className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors">AI 분석</button>
               <button onClick={() => setShowJdMatch(true)} className="px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition-colors">JD 매칭</button>
               <button onClick={() => navigate(`/cover-letter?resumeId=${id}`)} className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors" title="이 이력서를 기반으로 자소서 작성">자소서</button>
+              <button onClick={() => setShowScoreCard(true)} className="px-3 py-1.5 bg-violet-600 text-white text-xs font-medium rounded-lg hover:bg-violet-700 transition-colors" title="점수 공유 카드">점수 공유</button>
               <button onClick={() => setShowTransform(true)} className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors">변환</button>
               <button onClick={handlePrint} disabled={printPreparing} className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-70 transition-colors">
                 {printPreparing ? '준비 중...' : 'PDF'}
@@ -813,6 +816,10 @@ export default function PreviewPage() {
           title={`${resume.personalInfo.name || resume.title} — 이력서`}
           onClose={() => setShowQr(false)}
         />
+      )}
+
+      {showScoreCard && resume && (
+        <ResumeScoreCard resume={resume} onClose={() => setShowScoreCard(false)} />
       )}
 
       {/* Print preparing overlay */}
