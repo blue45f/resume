@@ -367,6 +367,43 @@ git push origin main
 
 ---
 
+### STEP 9: Vercel 배포 확인 (필수 — 배포 성공 확인 후 종료)
+
+> **push 후 반드시 배포 성공 여부를 확인합니다. 실패 시 원인 수정 후 재배포.**
+
+```bash
+# ① 최신 배포 상태 확인 (Building → Ready 또는 Error)
+npx vercel ls 2>&1 | head -5
+
+# ② Building 중이면 완료될 때까지 대기
+until npx vercel ls 2>&1 | head -3 | grep -qv "Building"; do sleep 5; done
+
+# ③ 결과 확인
+npx vercel ls 2>&1 | head -5
+```
+
+**배포 결과 분기:**
+
+- `● Ready` → 완료. 세션 종료.
+- `● Error` → 다음 절차 수행:
+  ```bash
+  # 최신 실패 배포 URL로 에러 로그 확인
+  DEPLOY_URL=$(npx vercel ls 2>&1 | grep "● Error" | head -1 | awk '{print $3}')
+  npx vercel inspect $DEPLOY_URL --logs 2>&1 | grep -E "Error:|error during|✗|failed" | head -20
+  ```
+  에러 원인 파악 → 수정 → STEP 8로 돌아가 재빌드+커밋+푸시 → STEP 9 반복.
+
+**배포 실패 시 자주 나오는 에러와 해결책:**
+
+| 에러 | 원인 | 해결 |
+|------|------|------|
+| `Rolldown failed to resolve import "X"` | Vite8 Rolldown 호환성 | 해당 패키지를 `optimizeDeps.include`에 추가 또는 v2 다운그레이드 |
+| `Cannot find module 'X'` | package.json에 누락 | `npm install X --save` 후 커밋 |
+| `Type error: ...` | TypeScript 타입 에러 | STEP 8로 돌아가 타입 수정 |
+| `Build failed` (빌드 로그 없음) | Vercel 캐시 오염 | 코드 수정 없이 빈 커밋으로 재트리거 |
+
+---
+
 ## 코드 품질 기준
 
 | 항목 | 기준 |
