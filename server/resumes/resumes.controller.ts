@@ -242,4 +242,19 @@ export class ResumesController {
       throw new InternalServerErrorException('이력서 내보내기에 실패했습니다');
     }
   }
+
+  @Get(':id/export/docx')
+  @ApiOperation({ summary: '이력서 Word(.docx) 내보내기' })
+  async exportDocx(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const buffer = await this.exportService.exportAsDocx(id);
+      this.resumesService.incrementViewCount(id);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      res.setHeader('Content-Disposition', `attachment; filename="resume.docx"`);
+      res.send(buffer);
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
+      throw new InternalServerErrorException('Word 내보내기에 실패했습니다');
+    }
+  }
 }

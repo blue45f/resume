@@ -55,8 +55,9 @@ export default function ExportPanel({ resumeId, resumeTitle, onPrint }: Props) {
           <text x="8" y="17" fontSize="7" fontWeight="bold" fill="currentColor" stroke="none">W</text>
         </svg>
       ),
-      description: 'Microsoft Word 형식',
-      comingSoon: true,
+      description: 'Microsoft Word 형식 (.docx)',
+      href: `${API_URL}/api/resumes/${resumeId}/export/docx`,
+      download: `${safeTitle}.docx`,
     },
     {
       label: '텍스트',
