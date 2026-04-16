@@ -4,7 +4,7 @@ import type { Resume } from '@/types/resume';
 import { DEFAULT_SECTION_ORDER } from '@/types/resume';
 import { toast } from '@/components/Toast';
 import { t } from '@/lib/i18n';
-import { sectionTips } from '@/lib/writingTips';
+import { sectionTips, powerVerbs } from '@/lib/writingTips';
 
 const RichEditor = lazy(() => import('@/components/RichEditor'));
 import VoiceInput from '@/components/VoiceInput';
@@ -130,6 +130,73 @@ function ReorderButtons({ index, total, onMove }: { index: number; total: number
         className="p-1 text-slate-400 hover:text-blue-600 disabled:opacity-20 rounded transition-colors" aria-label="아래로">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
       </button>
+    </div>
+  );
+}
+
+/** Power Words helper: shows categorized action verbs that can be clicked to copy */
+function PowerWordsHelper() {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState(Object.keys(powerVerbs)[0]);
+
+  const handleCopy = (verb: string) => {
+    navigator.clipboard.writeText(verb).then(() => {
+      setCopied(verb);
+      setTimeout(() => setCopied(null), 1500);
+    });
+  };
+
+  return (
+    <div className="mt-1">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors font-medium"
+      >
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        파워 동사 {open ? '접기' : '보기'}
+      </button>
+
+      {open && (
+        <div className="mt-1.5 p-2.5 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg animate-fade-in">
+          <p className="text-[10px] text-indigo-600 dark:text-indigo-400 mb-1.5 font-medium">클릭하면 클립보드에 복사됩니다</p>
+          <div className="flex flex-wrap gap-1 mb-1.5">
+            {Object.keys(powerVerbs).map(cat => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveCategory(cat)}
+                className={`text-[10px] px-1.5 py-0.5 rounded-full transition-colors ${
+                  activeCategory === cat
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/30'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {(powerVerbs[activeCategory] || []).map(verb => (
+              <button
+                key={verb}
+                type="button"
+                onClick={() => handleCopy(verb)}
+                className={`text-xs px-2 py-0.5 rounded-md border transition-all ${
+                  copied === verb
+                    ? 'bg-green-500 text-white border-green-500'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400'
+                }`}
+              >
+                {copied === verb ? '복사됨!' : verb}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -583,6 +650,7 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
                   </Suspense>
                   <p className="mt-1 text-xs text-slate-400 text-right">{(exp.description || '').replace(/<[^>]*>/g, '').length}자</p>
                   <InlineContentTip text={exp.description || ''} section="experience" />
+                  <PowerWordsHelper />
                 </div>
                 <div className="sm:col-span-2">
                   <div className="flex items-center gap-2">
