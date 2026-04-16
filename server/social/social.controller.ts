@@ -48,6 +48,7 @@ export class SocialController {
     return this.service.sendScout(req.user.id, body);
   }
 
+  // ── 정적 경로 먼저 ──────────────────────────────────────
   @Get('scouts')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '받은 스카우트 목록' })
@@ -56,12 +57,37 @@ export class SocialController {
     return this.service.getReceivedScouts(req.user.id);
   }
 
+  @Get('scouts/sent')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: '보낸 스카우트 목록' })
+  getSentScouts(@Req() req: any) {
+    if (!req.user?.id) return [];
+    return this.service.getSentScouts(req.user.id);
+  }
+
+  @Post('bulk-scout')
+  @Throttle({ short: { limit: 5, ttl: 60000 } })
+  @ApiOperation({ summary: '일괄 스카우트 전송' })
+  sendBulkScout(@Body() body: { targetIds: string[]; message: string; company: string }, @Req() req: any) {
+    if (!req.user?.id) return { error: '로그인 필요' };
+    return this.service.sendBulkScout(req.user.id, body);
+  }
+
+  // ── 동적 :id 경로 ─────────────────────────────────────
   @Post('scouts/:id/read')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '스카우트 읽음 처리' })
   markRead(@Param('id') id: string, @Req() req: any) {
     if (!req.user?.id) return { success: false };
     return this.service.markScoutRead(id, req.user.id);
+  }
+
+  @Post('scouts/:id/respond')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: '스카우트 수락/거절' })
+  respondToScout(@Param('id') id: string, @Body() body: { status: string }, @Req() req: any) {
+    if (!req.user?.id) return { success: false };
+    return this.service.respondToScout(id, req.user.id, body.status);
   }
 
   @Get('messages')

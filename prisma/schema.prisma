@@ -467,6 +467,7 @@ model ScoutMessage {
   position   String   @default("")
   message    String
   read       Boolean  @default(false)
+  status     String   @default("pending")
   createdAt  DateTime @default(now()) @map("created_at")
 
   sender   User    @relation("SentScouts", fields: [senderId], references: [id], onDelete: Cascade)
@@ -474,6 +475,7 @@ model ScoutMessage {
   resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: SetNull)
 
   @@index([receiverId, read])
+  @@index([senderId])
   @@map("scout_messages")
 }
 

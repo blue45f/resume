@@ -52,10 +52,25 @@ let SocialController = class SocialController {
             return [];
         return this.service.getReceivedScouts(req.user.id);
     }
+    getSentScouts(req) {
+        if (!req.user?.id)
+            return [];
+        return this.service.getSentScouts(req.user.id);
+    }
+    sendBulkScout(body, req) {
+        if (!req.user?.id)
+            return { error: '로그인 필요' };
+        return this.service.sendBulkScout(req.user.id, body);
+    }
     markRead(id, req) {
         if (!req.user?.id)
             return { success: false };
         return this.service.markScoutRead(id, req.user.id);
+    }
+    respondToScout(id, body, req) {
+        if (!req.user?.id)
+            return { success: false };
+        return this.service.respondToScout(id, req.user.id, body.status);
     }
     getConversations(req) {
         if (!req.user?.id)
@@ -138,6 +153,25 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], SocialController.prototype, "getScouts", null);
 __decorate([
+    (0, common_1.Get)('scouts/sent'),
+    (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),
+    (0, swagger_1.ApiOperation)({ summary: '보낸 스카우트 목록' }),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], SocialController.prototype, "getSentScouts", null);
+__decorate([
+    (0, common_1.Post)('bulk-scout'),
+    (0, throttler_1.Throttle)({ short: { limit: 5, ttl: 60000 } }),
+    (0, swagger_1.ApiOperation)({ summary: '일괄 스카우트 전송' }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], SocialController.prototype, "sendBulkScout", null);
+__decorate([
     (0, common_1.Post)('scouts/:id/read'),
     (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),
     (0, swagger_1.ApiOperation)({ summary: '스카우트 읽음 처리' }),
@@ -147,6 +181,17 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], SocialController.prototype, "markRead", null);
+__decorate([
+    (0, common_1.Post)('scouts/:id/respond'),
+    (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),
+    (0, swagger_1.ApiOperation)({ summary: '스카우트 수락/거절' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], SocialController.prototype, "respondToScout", null);
 __decorate([
     (0, common_1.Get)('messages'),
     (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),

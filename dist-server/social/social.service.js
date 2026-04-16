@@ -82,6 +82,53 @@ let SocialService = class SocialService {
         });
         return { success: true };
     }
+    async getSentScouts(userId) {
+        return this.prisma.scoutMessage.findMany({
+            where: { senderId: userId },
+            include: {
+                receiver: { select: { id: true, name: true, email: true } },
+                sender: { select: { id: true, name: true, email: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+    async respondToScout(id, userId, status) {
+        if (!['accepted', 'rejected'].includes(status)) {
+            throw new common_1.ForbiddenException('유효하지 않은 상태입니다');
+        }
+        const scout = await this.prisma.scoutMessage.findUnique({ where: { id } });
+        if (!scout || scout.receiverId !== userId)
+            throw new common_1.ForbiddenException();
+        await this.prisma.scoutMessage.update({
+            where: { id },
+            data: { status, read: true },
+        });
+        try {
+            const receiver = await this.prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+            const label = status === 'accepted' ? '수락' : '거절';
+            await this.notificationsService.create(scout.senderId, 'scout', `${receiver?.name || '후보자'}님이 스카우트 제안을 ${label}했습니다`, '/scouts');
+        }
+        catch { }
+        return { success: true };
+    }
+    async sendBulkScout(senderId, data) {
+        const results = [];
+        for (const receiverId of data.targetIds) {
+            try {
+                const scout = await this.sendScout(senderId, {
+                    receiverId,
+                    message: data.message,
+                    company: data.company,
+                    position: '',
+                });
+                results.push({ receiverId, success: true, id: scout.id });
+            }
+            catch {
+                results.push({ receiverId, success: false });
+            }
+        }
+        return { sent: results.filter(r => r.success).length, failed: results.filter(r => !r.success).length, results };
+    }
     async sendMessage(senderId, receiverId, content) {
         if (senderId === receiverId)
             throw new common_1.ForbiddenException('자신에게 메시지를 보낼 수 없습니다');

@@ -35,13 +35,14 @@ export declare class SocialController {
     }, req: any): Promise<{
         id: string;
         createdAt: Date;
-        resumeId: string | null;
         company: string;
         position: string;
         message: string;
         read: boolean;
+        status: string;
         senderId: string;
         receiverId: string;
+        resumeId: string | null;
     }> | {
         error: string;
     };
@@ -54,15 +55,65 @@ export declare class SocialController {
     } & {
         id: string;
         createdAt: Date;
-        resumeId: string | null;
         company: string;
         position: string;
         message: string;
         read: boolean;
+        status: string;
         senderId: string;
         receiverId: string;
+        resumeId: string | null;
     })[]>;
+    getSentScouts(req: any): never[] | Promise<({
+        sender: {
+            id: string;
+            email: string;
+            name: string;
+        };
+        receiver: {
+            id: string;
+            email: string;
+            name: string;
+        };
+    } & {
+        id: string;
+        createdAt: Date;
+        company: string;
+        position: string;
+        message: string;
+        read: boolean;
+        status: string;
+        senderId: string;
+        receiverId: string;
+        resumeId: string | null;
+    })[]>;
+    sendBulkScout(body: {
+        targetIds: string[];
+        message: string;
+        company: string;
+    }, req: any): Promise<{
+        sent: number;
+        failed: number;
+        results: ({
+            receiverId: string;
+            success: boolean;
+            id: string;
+        } | {
+            receiverId: string;
+            success: boolean;
+            id?: undefined;
+        })[];
+    }> | {
+        error: string;
+    };
     markRead(id: string, req: any): Promise<{
+        success: boolean;
+    }> | {
+        success: boolean;
+    };
+    respondToScout(id: string, body: {
+        status: string;
+    }, req: any): Promise<{
         success: boolean;
     }> | {
         success: boolean;
@@ -87,18 +138,18 @@ export declare class SocialController {
     getMessages(partnerId: string, req: any): never[] | Promise<{
         id: string;
         createdAt: Date;
-        content: string;
         read: boolean;
         senderId: string;
         receiverId: string;
+        content: string;
     }[]>;
     sendMessage(receiverId: string, content: string, req: any): Promise<{
         id: string;
         createdAt: Date;
-        content: string;
         read: boolean;
         senderId: string;
         receiverId: string;
+        content: string;
     }> | {
         error: string;
     };

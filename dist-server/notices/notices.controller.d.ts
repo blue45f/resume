@@ -11,11 +11,11 @@ export declare class NoticesController {
         content: string;
         type: string;
         isPinned: boolean;
+        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
         allowComments: boolean;
-        authorId: string | null;
     }[]>;
     getAll(type?: string, page?: string, limit?: string): Promise<{
         items: ({
@@ -36,11 +36,11 @@ export declare class NoticesController {
             content: string;
             type: string;
             isPinned: boolean;
+            authorId: string | null;
             startAt: Date | null;
             endAt: Date | null;
             isPopup: boolean;
             allowComments: boolean;
-            authorId: string | null;
         })[];
         total: number;
         page: number;
@@ -79,11 +79,11 @@ export declare class NoticesController {
         content: string;
         type: string;
         isPinned: boolean;
+        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
         allowComments: boolean;
-        authorId: string | null;
     }>;
     create(req: any, body: any): Promise<{
         author: {
@@ -99,11 +99,11 @@ export declare class NoticesController {
         content: string;
         type: string;
         isPinned: boolean;
+        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
         allowComments: boolean;
-        authorId: string | null;
     }>;
     update(req: any, id: string, body: any): Promise<{
         author: {
@@ -119,11 +119,11 @@ export declare class NoticesController {
         content: string;
         type: string;
         isPinned: boolean;
+        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
         allowComments: boolean;
-        authorId: string | null;
     }>;
     remove(req: any, id: string): Promise<{
         id: string;
@@ -134,11 +134,11 @@ export declare class NoticesController {
         content: string;
         type: string;
         isPinned: boolean;
+        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
         allowComments: boolean;
-        authorId: string | null;
     }>;
     addComment(req: any, noticeId: string, body: {
         content: string;
@@ -175,11 +175,11 @@ export declare class NoticesController {
         content: string;
         type: string;
         isPinned: boolean;
+        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
         allowComments: boolean;
-        authorId: string | null;
     }>;
     getHistory(req: any, id: string): Promise<({
         editor: {

@@ -21,11 +21,11 @@ export declare class NoticesService {
             content: string;
             type: string;
             isPinned: boolean;
+            authorId: string | null;
             startAt: Date | null;
             endAt: Date | null;
             isPopup: boolean;
             allowComments: boolean;
-            authorId: string | null;
         })[];
         total: number;
         page: number;
@@ -41,11 +41,11 @@ export declare class NoticesService {
         content: string;
         type: string;
         isPinned: boolean;
+        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
         allowComments: boolean;
-        authorId: string | null;
     }[]>;
     getOne(id: string): Promise<{
         comments: ({
@@ -79,11 +79,11 @@ export declare class NoticesService {
         content: string;
         type: string;
         isPinned: boolean;
+        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
         allowComments: boolean;
-        authorId: string | null;
     }>;
     create(data: any, authorId?: string): Promise<{
         author: {
@@ -99,11 +99,11 @@ export declare class NoticesService {
         content: string;
         type: string;
         isPinned: boolean;
+        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
         allowComments: boolean;
-        authorId: string | null;
     }>;
     update(id: string, data: any, editorId?: string, reason?: string): Promise<{
         author: {
@@ -119,11 +119,11 @@ export declare class NoticesService {
         content: string;
         type: string;
         isPinned: boolean;
+        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
         allowComments: boolean;
-        authorId: string | null;
     }>;
     remove(id: string): Promise<{
         id: string;
@@ -134,11 +134,11 @@ export declare class NoticesService {
         content: string;
         type: string;
         isPinned: boolean;
+        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
         allowComments: boolean;
-        authorId: string | null;
     }>;
     addComment(noticeId: string, userId: string, content: string): Promise<{
         user: {
@@ -171,11 +171,11 @@ export declare class NoticesService {
         content: string;
         type: string;
         isPinned: boolean;
+        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
         allowComments: boolean;
-        authorId: string | null;
     }>;
     getHistory(noticeId: string): Promise<({
         editor: {
