@@ -45,6 +45,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ResumesService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const notifications_service_1 = require("../notifications/notifications.service");
 const FULL_INCLUDE = {
     personalInfo: true,
     experiences: { orderBy: { sortOrder: 'asc' } },
@@ -69,8 +70,40 @@ async function replaceCollection(tx, model, resumeId, items, mapper) {
 }
 let ResumesService = class ResumesService {
     prisma;
-    constructor(prisma) {
+    notifications;
+    constructor(prisma, notifications) {
         this.prisma = prisma;
+        this.notifications = notifications;
+    }
+    async sendViewNotification(resumeId, resumeTitle, ownerId, viewerId) {
+        if (!ownerId)
+            return;
+        try {
+            const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+            const recent = await this.prisma.notification.findFirst({
+                where: {
+                    userId: ownerId,
+                    type: 'resume_viewed',
+                    link: `/resumes/${resumeId}/preview`,
+                    createdAt: { gte: oneHourAgo },
+                },
+            });
+            if (recent)
+                return;
+            let viewerName = '누군가';
+            if (viewerId) {
+                const viewer = await this.prisma.user.findUnique({
+                    where: { id: viewerId },
+                    select: { name: true, username: true },
+                });
+                if (viewer)
+                    viewerName = viewer.name || viewer.username || '누군가';
+            }
+            const title = resumeTitle || '이력서';
+            await this.notifications.create(ownerId, 'resume_viewed', `${viewerName}가 "${title}" 이력서를 열람했습니다`, `/resumes/${resumeId}/preview`);
+        }
+        catch {
+        }
     }
     async findAll(userId, page = 1, limit = 20) {
         const safePage = Math.max(1, page);
@@ -217,6 +250,9 @@ let ResumesService = class ResumesService {
         }
         if (!userId || resume.userId !== userId) {
             this.prisma.resume.update({ where: { id }, data: { viewCount: { increment: 1 } } }).catch(() => { });
+            if (resume.userId && resume.visibility === 'public') {
+                this.sendViewNotification(id, resume.title, resume.userId, userId).catch(() => { });
+            }
         }
         const result = this.formatFull(resume);
         const bookmarkCount = await this.prisma.bookmark.count({ where: { resumeId: id } });
@@ -534,5 +570,6 @@ let ResumesService = class ResumesService {
 exports.ResumesService = ResumesService;
 exports.ResumesService = ResumesService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        notifications_service_1.NotificationsService])
 ], ResumesService);

@@ -1,9 +1,12 @@
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 export declare class ResumesService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private notifications;
+    constructor(prisma: PrismaService, notifications: NotificationsService);
+    private sendViewNotification;
     findAll(userId?: string, page?: number, limit?: number): Promise<{
         data: {
             id: any;

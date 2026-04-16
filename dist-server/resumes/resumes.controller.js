@@ -173,6 +173,20 @@ let ResumesController = class ResumesController {
             throw new common_1.InternalServerErrorException('이력서 내보내기에 실패했습니다');
         }
     }
+    async exportDocx(id, res) {
+        try {
+            const buffer = await this.exportService.exportAsDocx(id);
+            this.resumesService.incrementViewCount(id);
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            res.setHeader('Content-Disposition', `attachment; filename="resume.docx"`);
+            res.send(buffer);
+        }
+        catch (e) {
+            if (e instanceof common_1.NotFoundException)
+                throw e;
+            throw new common_1.InternalServerErrorException('Word 내보내기에 실패했습니다');
+        }
+    }
 };
 exports.ResumesController = ResumesController;
 __decorate([
@@ -391,6 +405,15 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ResumesController.prototype, "exportJson", null);
+__decorate([
+    (0, common_1.Get)(':id/export/docx'),
+    (0, swagger_1.ApiOperation)({ summary: '이력서 Word(.docx) 내보내기' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ResumesController.prototype, "exportDocx", null);
 exports.ResumesController = ResumesController = __decorate([
     (0, swagger_1.ApiTags)('resumes'),
     (0, common_1.Controller)('resumes'),

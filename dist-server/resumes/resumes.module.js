@@ -12,11 +12,13 @@ const resumes_controller_1 = require("./resumes.controller");
 const resumes_service_1 = require("./resumes.service");
 const export_service_1 = require("./export.service");
 const analytics_service_1 = require("./analytics.service");
+const notifications_module_1 = require("../notifications/notifications.module");
 let ResumesModule = class ResumesModule {
 };
 exports.ResumesModule = ResumesModule;
 exports.ResumesModule = ResumesModule = __decorate([
     (0, common_1.Module)({
+        imports: [notifications_module_1.NotificationsModule],
         controllers: [resumes_controller_1.ResumesController],
         providers: [resumes_service_1.ResumesService, export_service_1.ExportService, analytics_service_1.AnalyticsService],
         exports: [resumes_service_1.ResumesService],

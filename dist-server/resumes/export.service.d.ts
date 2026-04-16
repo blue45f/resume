@@ -5,5 +5,6 @@ export declare class ExportService {
     exportAsText(resumeId: string): Promise<string>;
     exportAsMarkdown(resumeId: string): Promise<string>;
     exportAsJson(resumeId: string): Promise<string>;
+    exportAsDocx(resumeId: string): Promise<Buffer>;
     private getResumeData;
 }

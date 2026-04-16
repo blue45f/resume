@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 
@@ -35,7 +36,48 @@ async function replaceCollection(
 
 @Injectable()
 export class ResumesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
+
+  /** 이력서 열람 알림 — 소유자가 다를 때만 1시간 쿨타임으로 알림 생성 */
+  private async sendViewNotification(resumeId: string, resumeTitle: string, ownerId: string, viewerId?: string): Promise<void> {
+    if (!ownerId) return;
+    try {
+      // 중복 알림 방지: 최근 1시간 내 같은 이력서 열람 알림이 있으면 건너뜀
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      const recent = await this.prisma.notification.findFirst({
+        where: {
+          userId: ownerId,
+          type: 'resume_viewed',
+          link: `/resumes/${resumeId}/preview`,
+          createdAt: { gte: oneHourAgo },
+        },
+      });
+      if (recent) return;
+
+      // 뷰어 이름 조회 (로그인한 경우)
+      let viewerName = '누군가';
+      if (viewerId) {
+        const viewer = await this.prisma.user.findUnique({
+          where: { id: viewerId },
+          select: { name: true, username: true },
+        });
+        if (viewer) viewerName = viewer.name || viewer.username || '누군가';
+      }
+
+      const title = resumeTitle || '이력서';
+      await this.notifications.create(
+        ownerId,
+        'resume_viewed',
+        `${viewerName}가 "${title}" 이력서를 열람했습니다`,
+        `/resumes/${resumeId}/preview`,
+      );
+    } catch {
+      // 알림 생성 실패는 무시 (주요 기능 차단 방지)
+    }
+  }
 
   async findAll(userId?: string, page = 1, limit = 20) {
     const safePage = Math.max(1, page);
@@ -193,9 +235,12 @@ export class ResumesService {
       throw new ForbiddenException('이 이력서에 접근할 권한이 없습니다');
     }
 
-    // 조회수 증가: 소유자가 아닌 경우에만
+    // 조회수 증가 + 열람 알림: 소유자가 아닌 경우에만
     if (!userId || resume.userId !== userId) {
       this.prisma.resume.update({ where: { id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
+      if (resume.userId && resume.visibility === 'public') {
+        this.sendViewNotification(id, resume.title, resume.userId, userId).catch(() => {});
+      }
     }
 
     const result = this.formatFull(resume);

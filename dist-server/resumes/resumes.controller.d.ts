@@ -403,4 +403,5 @@ export declare class ResumesController {
     exportText(id: string, res: Response): Promise<void>;
     exportMarkdown(id: string, res: Response): Promise<void>;
     exportJson(id: string, res: Response): Promise<void>;
+    exportDocx(id: string, res: Response): Promise<void>;
 }
