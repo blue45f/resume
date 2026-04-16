@@ -22,6 +22,7 @@ model User {
   companyTitle String?  @map("company_title") // 직함
   plan          String   @default("free") // free, pro, enterprise
   planExpiresAt DateTime? @map("plan_expires_at")
+  isSample      Boolean  @default(false) @map("is_sample")
   createdAt  DateTime @default(now()) @map("created_at")
   resumes      Resume[]
   applications JobApplication[]
@@ -49,6 +50,7 @@ model Resume {
   slug       String   @default("")
   viewCount  Int      @default(0) @map("view_count") // 공개 조회수
   visibility String   @default("private")
+  isSample   Boolean  @default(false) @map("is_sample")
   userId     String?  @map("user_id")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")

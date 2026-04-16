@@ -3,20 +3,20 @@ export declare class NotificationsService {
     private prisma;
     constructor(prisma: PrismaService);
     getUnread(userId: string): Promise<{
-        type: string;
         link: string | null;
         id: string;
         createdAt: Date;
         userId: string;
+        type: string;
         message: string;
         read: boolean;
     }[]>;
     getAll(userId: string): Promise<{
-        type: string;
         link: string | null;
         id: string;
         createdAt: Date;
         userId: string;
+        type: string;
         message: string;
         read: boolean;
     }[]>;
@@ -24,11 +24,11 @@ export declare class NotificationsService {
         success: boolean;
     }>;
     create(userId: string, type: string, message: string, link?: string): Promise<{
-        type: string;
         link: string | null;
         id: string;
         createdAt: Date;
         userId: string;
+        type: string;
         message: string;
         read: boolean;
     }>;

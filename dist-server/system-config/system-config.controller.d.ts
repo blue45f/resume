@@ -7,10 +7,10 @@ export declare class SystemConfigController {
     }>;
     getAll(req: any): Promise<{
         id: string;
+        updatedAt: Date;
         key: string;
         value: string;
         label: string;
-        updatedAt: Date;
     }[]>;
     setMany(req: any, body: {
         configs: {
@@ -19,9 +19,9 @@ export declare class SystemConfigController {
         }[];
     }): Promise<{
         id: string;
+        updatedAt: Date;
         key: string;
         value: string;
         label: string;
-        updatedAt: Date;
     }[]>;
 }

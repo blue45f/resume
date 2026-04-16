@@ -35,8 +35,8 @@ export declare class SocialService {
         id: string;
         createdAt: Date;
         company: string;
-        position: string;
         resumeId: string | null;
+        position: string;
         message: string;
         read: boolean;
         senderId: string;
@@ -52,8 +52,8 @@ export declare class SocialService {
         id: string;
         createdAt: Date;
         company: string;
-        position: string;
         resumeId: string | null;
+        position: string;
         message: string;
         read: boolean;
         senderId: string;

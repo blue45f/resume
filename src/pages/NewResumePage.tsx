@@ -107,6 +107,608 @@ function parseLayout(layout: string) {
   }
 }
 
+const WIZARD_STEPS = [
+  { label: '직종 선택', icon: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+  { label: '인적사항', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
+  { label: '경력', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+  { label: '학력', icon: 'M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z' },
+  { label: '기술', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+  { label: '미리보기', icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' },
+] as const;
+
+const WIZARD_TIPS: Record<number, string[]> = {
+  0: [
+    '직종에 맞는 키워드와 문구를 추천받을 수 있습니다',
+    '정확한 직종을 선택하면 ATS 통과율이 높아집니다',
+    '복수 직종 지원 시 직종별로 이력서를 별도로 만드세요',
+  ],
+  1: [
+    '이름과 이메일은 필수 항목입니다',
+    '자기소개는 2-3문장, 150자 내외로 간결하게 작성하세요',
+    '지원 직무와 관련된 핵심 역량을 자기소개에 포함하세요',
+  ],
+  2: [
+    '최신 경력부터 역순으로 작성하세요',
+    '성과를 수치로 표현하면 설득력이 높아집니다 (예: "매출 30% 증가")',
+    '직무 설명에 핵심 키워드를 포함하면 ATS 통과에 유리합니다',
+  ],
+  3: [
+    '최종 학력을 먼저 작성하세요',
+    '전공이 직무와 관련 있다면 관련 과목이나 논문을 언급하세요',
+    'GPA가 우수하다면 포함하고, 그렇지 않으면 생략해도 됩니다',
+  ],
+  4: [
+    '직무에 필요한 핵심 기술을 먼저 나열하세요',
+    '기술을 카테고리로 분류하면 가독성이 높아집니다',
+    '숙련도를 함께 표기하면 더 구체적인 인상을 줍니다',
+  ],
+  5: [
+    '전체 내용을 검토하고 오탈자를 확인하세요',
+    '모든 날짜와 기간이 정확한지 확인하세요',
+    '저장 후 미리보기에서 최종 결과를 확인하세요',
+  ],
+};
+
+type WizardResumeData = ReturnType<typeof createEmptyResumeData>;
+
+function WizardMode({
+  wizardStep, setWizardStep, wizardData, setWizardData,
+  wizardJobTitle, setWizardJobTitle,
+  saving, onSave, onBack,
+}: {
+  wizardStep: number;
+  setWizardStep: (s: number) => void;
+  wizardData: WizardResumeData;
+  setWizardData: React.Dispatch<React.SetStateAction<WizardResumeData>>;
+  wizardJobTitle: string;
+  setWizardJobTitle: (s: string) => void;
+  saving: boolean;
+  onSave: (data: WizardResumeData) => void;
+  onBack: () => void;
+}) {
+  const inputClass = 'w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 transition-colors';
+  const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1';
+
+  const updatePI = (field: string, value: string) => {
+    setWizardData(prev => ({ ...prev, personalInfo: { ...prev.personalInfo, [field]: value } }));
+  };
+
+  const addExperience = () => {
+    setWizardData(prev => ({
+      ...prev,
+      experiences: [...prev.experiences, { id: crypto.randomUUID(), company: '', position: '', department: '', startDate: '', endDate: '', current: false, description: '' }],
+    }));
+  };
+
+  const updateExperience = (id: string, field: string, value: any) => {
+    setWizardData(prev => ({
+      ...prev,
+      experiences: prev.experiences.map(e => e.id === id ? { ...e, [field]: value } : e),
+    }));
+  };
+
+  const removeExperience = (id: string) => {
+    setWizardData(prev => ({ ...prev, experiences: prev.experiences.filter(e => e.id !== id) }));
+  };
+
+  const addEducation = () => {
+    setWizardData(prev => ({
+      ...prev,
+      educations: [...prev.educations, { id: crypto.randomUUID(), school: '', degree: '', field: '', gpa: '', startDate: '', endDate: '', description: '' }],
+    }));
+  };
+
+  const updateEducation = (id: string, field: string, value: string) => {
+    setWizardData(prev => ({
+      ...prev,
+      educations: prev.educations.map(e => e.id === id ? { ...e, [field]: value } : e),
+    }));
+  };
+
+  const removeEducation = (id: string) => {
+    setWizardData(prev => ({ ...prev, educations: prev.educations.filter(e => e.id !== id) }));
+  };
+
+  const addSkill = () => {
+    setWizardData(prev => ({
+      ...prev,
+      skills: [...prev.skills, { id: crypto.randomUUID(), category: '', items: '' }],
+    }));
+  };
+
+  const updateSkill = (id: string, field: string, value: string) => {
+    setWizardData(prev => ({
+      ...prev,
+      skills: prev.skills.map(s => s.id === id ? { ...s, [field]: value } : s),
+    }));
+  };
+
+  const removeSkill = (id: string) => {
+    setWizardData(prev => ({ ...prev, skills: prev.skills.filter(s => s.id !== id) }));
+  };
+
+  const canProceed = () => {
+    switch (wizardStep) {
+      case 0: return true; // job title is optional
+      case 1: return !!wizardData.personalInfo.name?.trim();
+      default: return true;
+    }
+  };
+
+  const handleNext = () => {
+    if (wizardStep === 1 && !wizardData.title?.trim()) {
+      // Auto-set title from name + job
+      const name = wizardData.personalInfo.name || '';
+      const job = wizardJobTitle || '이력서';
+      setWizardData(prev => ({ ...prev, title: `${name} - ${job}` }));
+    }
+    if (wizardStep < WIZARD_STEPS.length - 1) {
+      setWizardStep(wizardStep + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (wizardStep > 0) setWizardStep(wizardStep - 1);
+  };
+
+  const handleComplete = () => {
+    if (!wizardData.title?.trim()) {
+      const name = wizardData.personalInfo.name || '이력서';
+      setWizardData(prev => ({ ...prev, title: name }));
+    }
+    onSave(wizardData);
+  };
+
+  return (
+    <>
+      {/* Header with back button */}
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={onBack} className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 rounded">
+          &larr; 돌아가기
+        </button>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">단계별 이력서 작성</h1>
+      </div>
+
+      {/* Progress bar */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-teal-700 dark:text-teal-400">{wizardStep + 1}/{WIZARD_STEPS.length} 단계</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400">{WIZARD_STEPS[wizardStep].label}</span>
+        </div>
+        <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-teal-500 rounded-full transition-all duration-300"
+            style={{ width: `${((wizardStep + 1) / WIZARD_STEPS.length) * 100}%` }}
+          />
+        </div>
+        {/* Step indicators */}
+        <div className="flex justify-between mt-3">
+          {WIZARD_STEPS.map((s, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => i <= wizardStep && setWizardStep(i)}
+              disabled={i > wizardStep}
+              className={`flex flex-col items-center gap-1 group ${i <= wizardStep ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'}`}
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                i === wizardStep
+                  ? 'bg-teal-600 text-white'
+                  : i < wizardStep
+                    ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'
+                    : 'bg-slate-100 dark:bg-slate-700 text-slate-400'
+              }`}>
+                {i < wizardStep ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d={s.icon} />
+                  </svg>
+                )}
+              </div>
+              <span className={`text-[10px] hidden sm:block ${i === wizardStep ? 'text-teal-700 dark:text-teal-400 font-semibold' : 'text-slate-400'}`}>
+                {s.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tips */}
+      {WIZARD_TIPS[wizardStep] && (
+        <div className="mb-6 p-3 bg-teal-50 dark:bg-teal-900/10 rounded-xl border border-teal-100 dark:border-teal-800">
+          <p className="text-xs font-semibold text-teal-700 dark:text-teal-400 mb-1.5">TIP</p>
+          <ul className="text-xs text-teal-600 dark:text-teal-300 space-y-0.5">
+            {WIZARD_TIPS[wizardStep].map((tip, i) => <li key={i}>&#8226; {tip}</li>)}
+          </ul>
+        </div>
+      )}
+
+      {/* Step content */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 mb-6">
+        {/* Step 0: Job Title Selection */}
+        {wizardStep === 0 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">직종을 선택하세요</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">직종에 맞는 추천 문구와 키워드를 제공합니다. 나중에 변경할 수 있습니다.</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+              {JOB_TITLE_LIST.map(title => (
+                <button
+                  key={title}
+                  type="button"
+                  onClick={() => setWizardJobTitle(title)}
+                  className={`text-left px-3 py-2.5 rounded-lg border-2 text-sm transition-all ${
+                    wizardJobTitle === title
+                      ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 font-medium'
+                      : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-teal-300 dark:hover:border-teal-600'
+                  }`}
+                >
+                  {title}
+                </button>
+              ))}
+            </div>
+            <div>
+              <label className={labelClass}>또는 직접 입력</label>
+              <input
+                className={inputClass}
+                placeholder="예: 소프트웨어 엔지니어"
+                value={wizardJobTitle}
+                onChange={e => setWizardJobTitle(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Step 1: Personal Info */}
+        {wizardStep === 1 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">인적사항</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>이력서 제목</label>
+                <input className={inputClass} placeholder="예: 2026 상반기 이력서" value={wizardData.title} onChange={e => setWizardData(prev => ({ ...prev, title: e.target.value }))} />
+              </div>
+              <div>
+                <label className={labelClass}>이름 <span className="text-red-500">*</span></label>
+                <input className={inputClass} value={wizardData.personalInfo.name} onChange={e => updatePI('name', e.target.value)} />
+              </div>
+              <div>
+                <label className={labelClass}>이메일</label>
+                <input type="email" className={inputClass} value={wizardData.personalInfo.email} onChange={e => updatePI('email', e.target.value)} />
+              </div>
+              <div>
+                <label className={labelClass}>전화번호</label>
+                <input type="tel" className={inputClass} value={wizardData.personalInfo.phone} onChange={e => updatePI('phone', e.target.value)} />
+              </div>
+              <div>
+                <label className={labelClass}>주소</label>
+                <input className={inputClass} value={wizardData.personalInfo.address} onChange={e => updatePI('address', e.target.value)} />
+              </div>
+              <div>
+                <label className={labelClass}>웹사이트</label>
+                <input type="url" className={inputClass} placeholder="https://example.com" value={wizardData.personalInfo.website} onChange={e => updatePI('website', e.target.value)} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelClass}>자기소개</label>
+                <textarea
+                  className={inputClass + ' h-28 resize-none'}
+                  placeholder="자기소개를 작성하세요. 핵심 역량과 경력을 2-3문장으로 요약하세요."
+                  value={wizardData.personalInfo.summary}
+                  onChange={e => updatePI('summary', e.target.value)}
+                />
+                <p className="mt-1 text-xs text-slate-400 text-right">{(wizardData.personalInfo.summary || '').length}자</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Experience */}
+        {wizardStep === 2 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">경력사항</h2>
+              <button type="button" onClick={addExperience} className="px-3 py-1.5 text-xs font-medium text-teal-600 bg-teal-50 dark:bg-teal-900/20 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors">
+                + 경력 추가
+              </button>
+            </div>
+
+            {wizardData.experiences.length === 0 && (
+              <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">아직 추가된 경력이 없습니다</p>
+                <button type="button" onClick={addExperience} className="px-4 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700 transition-colors">
+                  첫 경력 추가하기
+                </button>
+              </div>
+            )}
+
+            {wizardData.experiences.map((exp, idx) => (
+              <div key={exp.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl space-y-3 bg-slate-50 dark:bg-slate-800/50">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">경력 {idx + 1}</span>
+                  <button type="button" onClick={() => removeExperience(exp.id)} className="text-xs text-red-500 hover:text-red-700">삭제</button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>회사명</label>
+                    <input className={inputClass} value={exp.company} onChange={e => updateExperience(exp.id, 'company', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>직위</label>
+                    <input className={inputClass} value={exp.position} onChange={e => updateExperience(exp.id, 'position', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>시작일</label>
+                    <input type="month" className={inputClass} value={exp.startDate} onChange={e => updateExperience(exp.id, 'startDate', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>
+                      종료일
+                      <label className="ml-2 inline-flex items-center gap-1 text-xs text-slate-400">
+                        <input type="checkbox" checked={exp.current} onChange={e => updateExperience(exp.id, 'current', e.target.checked)} className="rounded text-teal-600" />
+                        재직중
+                      </label>
+                    </label>
+                    <input type="month" className={inputClass} value={exp.endDate} disabled={exp.current} onChange={e => updateExperience(exp.id, 'endDate', e.target.value)} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={labelClass}>업무 설명</label>
+                    <textarea className={inputClass + ' h-24 resize-none'} placeholder="담당 업무와 성과를 작성하세요" value={exp.description} onChange={e => updateExperience(exp.id, 'description', e.target.value)} />
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Content suggestions */}
+            {wizardJobTitle && (
+              <ContentSuggestions
+                jobTitle={wizardJobTitle}
+                onInsert={(text) => {
+                  if (wizardData.experiences.length === 0) addExperience();
+                  // Append to last experience description
+                  const last = wizardData.experiences[wizardData.experiences.length - 1];
+                  if (last) {
+                    const newDesc = last.description ? `${last.description}\n${text}` : text;
+                    updateExperience(last.id, 'description', newDesc);
+                  }
+                }}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Step 3: Education */}
+        {wizardStep === 3 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">학력사항</h2>
+              <button type="button" onClick={addEducation} className="px-3 py-1.5 text-xs font-medium text-teal-600 bg-teal-50 dark:bg-teal-900/20 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors">
+                + 학력 추가
+              </button>
+            </div>
+
+            {wizardData.educations.length === 0 && (
+              <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">아직 추가된 학력이 없습니다</p>
+                <button type="button" onClick={addEducation} className="px-4 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700 transition-colors">
+                  학력 추가하기
+                </button>
+              </div>
+            )}
+
+            {wizardData.educations.map((edu, idx) => (
+              <div key={edu.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl space-y-3 bg-slate-50 dark:bg-slate-800/50">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">학력 {idx + 1}</span>
+                  <button type="button" onClick={() => removeEducation(edu.id)} className="text-xs text-red-500 hover:text-red-700">삭제</button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>학교명</label>
+                    <input className={inputClass} value={edu.school} onChange={e => updateEducation(edu.id, 'school', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>학위</label>
+                    <select className={inputClass} value={edu.degree} onChange={e => updateEducation(edu.id, 'degree', e.target.value)}>
+                      <option value="">선택</option>
+                      <option value="고등학교">고등학교</option>
+                      <option value="전문학사">전문학사</option>
+                      <option value="학사">학사</option>
+                      <option value="석사">석사</option>
+                      <option value="박사">박사</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>전공</label>
+                    <input className={inputClass} value={edu.field} onChange={e => updateEducation(edu.id, 'field', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>학점 (선택)</label>
+                    <input className={inputClass} placeholder="예: 3.8/4.5" value={edu.gpa || ''} onChange={e => updateEducation(edu.id, 'gpa', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>입학일</label>
+                    <input type="month" className={inputClass} value={edu.startDate} onChange={e => updateEducation(edu.id, 'startDate', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>졸업일</label>
+                    <input type="month" className={inputClass} value={edu.endDate} onChange={e => updateEducation(edu.id, 'endDate', e.target.value)} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Step 4: Skills */}
+        {wizardStep === 4 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">기술/역량</h2>
+              <button type="button" onClick={addSkill} className="px-3 py-1.5 text-xs font-medium text-teal-600 bg-teal-50 dark:bg-teal-900/20 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors">
+                + 기술 추가
+              </button>
+            </div>
+
+            {wizardData.skills.length === 0 && (
+              <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">아직 추가된 기술이 없습니다</p>
+                <button type="button" onClick={addSkill} className="px-4 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700 transition-colors">
+                  기술 추가하기
+                </button>
+              </div>
+            )}
+
+            {wizardData.skills.map((skill, idx) => (
+              <div key={skill.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl space-y-3 bg-slate-50 dark:bg-slate-800/50">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">기술 그룹 {idx + 1}</span>
+                  <button type="button" onClick={() => removeSkill(skill.id)} className="text-xs text-red-500 hover:text-red-700">삭제</button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>카테고리</label>
+                    <input className={inputClass} placeholder="예: Frontend, Backend, Tools" value={skill.category} onChange={e => updateSkill(skill.id, 'category', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>기술 항목 (쉼표로 구분)</label>
+                    <input className={inputClass} placeholder="예: React, TypeScript, Next.js" value={skill.items} onChange={e => updateSkill(skill.id, 'items', e.target.value)} />
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Content suggestions for skills */}
+            {wizardJobTitle && (
+              <ContentSuggestions
+                jobTitle={wizardJobTitle}
+                onInsert={(text) => {
+                  if (wizardData.skills.length === 0) addSkill();
+                  const last = wizardData.skills[wizardData.skills.length - 1];
+                  if (last) {
+                    const newItems = last.items ? `${last.items}, ${text}` : text;
+                    updateSkill(last.id, 'items', newItems);
+                  }
+                }}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Step 5: Preview */}
+        {wizardStep === 5 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">최종 확인</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">아래 내용을 확인한 후 저장하세요. 저장 후 편집 페이지에서 더 세부적으로 수정할 수 있습니다.</p>
+
+            <div className="divide-y divide-slate-200 dark:divide-slate-700">
+              {/* Summary */}
+              <div className="py-3">
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">기본 정보</h3>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div><span className="text-slate-400">이름:</span> <span className="text-slate-900 dark:text-slate-100">{wizardData.personalInfo.name || '-'}</span></div>
+                  <div><span className="text-slate-400">이메일:</span> <span className="text-slate-900 dark:text-slate-100">{wizardData.personalInfo.email || '-'}</span></div>
+                  <div><span className="text-slate-400">전화:</span> <span className="text-slate-900 dark:text-slate-100">{wizardData.personalInfo.phone || '-'}</span></div>
+                  <div><span className="text-slate-400">직종:</span> <span className="text-slate-900 dark:text-slate-100">{wizardJobTitle || '-'}</span></div>
+                </div>
+                {wizardData.personalInfo.summary && (
+                  <div className="mt-2">
+                    <span className="text-slate-400 text-sm">자기소개:</span>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-1 bg-slate-50 dark:bg-slate-700/50 p-2 rounded-lg">{wizardData.personalInfo.summary}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Experiences */}
+              <div className="py-3">
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">경력 ({wizardData.experiences.length}개)</h3>
+                {wizardData.experiences.length === 0 ? (
+                  <p className="text-xs text-slate-400">추가된 경력 없음</p>
+                ) : (
+                  <div className="space-y-2">
+                    {wizardData.experiences.map(exp => (
+                      <div key={exp.id} className="text-sm bg-slate-50 dark:bg-slate-700/50 p-2 rounded-lg">
+                        <p className="font-medium text-slate-900 dark:text-slate-100">{exp.company} - {exp.position}</p>
+                        <p className="text-xs text-slate-400">{exp.startDate} ~ {exp.current ? '현재' : exp.endDate}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Educations */}
+              <div className="py-3">
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">학력 ({wizardData.educations.length}개)</h3>
+                {wizardData.educations.length === 0 ? (
+                  <p className="text-xs text-slate-400">추가된 학력 없음</p>
+                ) : (
+                  <div className="space-y-2">
+                    {wizardData.educations.map(edu => (
+                      <div key={edu.id} className="text-sm bg-slate-50 dark:bg-slate-700/50 p-2 rounded-lg">
+                        <p className="font-medium text-slate-900 dark:text-slate-100">{edu.school} - {edu.degree} {edu.field}</p>
+                        <p className="text-xs text-slate-400">{edu.startDate} ~ {edu.endDate}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Skills */}
+              <div className="py-3">
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">기술 ({wizardData.skills.length}개 그룹)</h3>
+                {wizardData.skills.length === 0 ? (
+                  <p className="text-xs text-slate-400">추가된 기술 없음</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {wizardData.skills.map(s => (
+                      <div key={s.id} className="text-xs bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 px-2 py-1 rounded-lg">
+                        <span className="font-medium">{s.category}:</span> {s.items}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Navigation buttons */}
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={handlePrev}
+          disabled={wizardStep === 0}
+          className="px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          &larr; 이전
+        </button>
+        <span className="text-xs text-slate-400">{wizardStep + 1} / {WIZARD_STEPS.length}</span>
+        {wizardStep < WIZARD_STEPS.length - 1 ? (
+          <button
+            type="button"
+            onClick={handleNext}
+            disabled={!canProceed()}
+            className="px-5 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-xl hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            다음 &rarr;
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleComplete}
+            disabled={saving || !wizardData.personalInfo.name?.trim()}
+            className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {saving ? '저장 중...' : '이력서 저장'}
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
 export default function NewResumePage() {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
@@ -306,7 +908,7 @@ export default function NewResumePage() {
             {/* Start Mode Selection */}
             <div className="mb-8">
               <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">시작 방법</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 {/* Empty */}
                 <button
                   onClick={() => setStartMode('empty')}

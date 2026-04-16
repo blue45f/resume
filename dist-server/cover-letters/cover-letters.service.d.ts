@@ -7,9 +7,9 @@ export declare class CoverLettersService {
         createdAt: Date;
         company: string;
         content: string;
-        position: string;
         updatedAt: Date;
         resumeId: string | null;
+        position: string;
         applicationId: string | null;
         tone: string;
     }[]>;
@@ -19,9 +19,9 @@ export declare class CoverLettersService {
         userId: string;
         company: string;
         content: string;
-        position: string;
         updatedAt: Date;
         resumeId: string | null;
+        position: string;
         jobDescription: string;
         applicationId: string | null;
         tone: string;
@@ -40,9 +40,9 @@ export declare class CoverLettersService {
         userId: string;
         company: string;
         content: string;
-        position: string;
         updatedAt: Date;
         resumeId: string | null;
+        position: string;
         jobDescription: string;
         applicationId: string | null;
         tone: string;
@@ -57,9 +57,9 @@ export declare class CoverLettersService {
         userId: string;
         company: string;
         content: string;
-        position: string;
         updatedAt: Date;
         resumeId: string | null;
+        position: string;
         jobDescription: string;
         applicationId: string | null;
         tone: string;
@@ -73,9 +73,9 @@ export declare class CoverLettersService {
         userId: string;
         company: string;
         content: string;
-        position: string;
         updatedAt: Date;
         resumeId: string | null;
+        position: string;
         jobDescription: string;
         applicationId: string | null;
         tone: string;

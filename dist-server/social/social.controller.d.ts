@@ -36,12 +36,12 @@ export declare class SocialController {
         id: string;
         createdAt: Date;
         company: string;
+        resumeId: string | null;
         position: string;
         message: string;
         read: boolean;
         senderId: string;
         receiverId: string;
-        resumeId: string | null;
     }> | {
         error: string;
     };
@@ -55,12 +55,12 @@ export declare class SocialController {
         id: string;
         createdAt: Date;
         company: string;
+        resumeId: string | null;
         position: string;
         message: string;
         read: boolean;
         senderId: string;
         receiverId: string;
-        resumeId: string | null;
     })[]>;
     markRead(id: string, req: any): Promise<{
         success: boolean;
@@ -87,18 +87,18 @@ export declare class SocialController {
     getMessages(partnerId: string, req: any): never[] | Promise<{
         id: string;
         createdAt: Date;
+        content: string;
         read: boolean;
         senderId: string;
         receiverId: string;
-        content: string;
     }[]>;
     sendMessage(receiverId: string, content: string, req: any): Promise<{
         id: string;
         createdAt: Date;
+        content: string;
         read: boolean;
         senderId: string;
         receiverId: string;
-        content: string;
     }> | {
         error: string;
     };

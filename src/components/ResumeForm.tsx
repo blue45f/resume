@@ -13,6 +13,7 @@ import { SkillSuggestDropdown, CompanyRoleSuggest, InlineContentTip } from '@/co
 import AiCoachPanel from '@/components/AiCoachPanel';
 import AiSummaryGenerator from '@/components/AiSummaryGenerator';
 import SectionOrderPanel from '@/components/SectionOrderPanel';
+import ContentSuggestions from '@/components/ContentSuggestions';
 
 type SaveStatus = 'saved' | 'saving' | 'dirty' | 'error' | 'idle';
 
@@ -602,6 +603,19 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
             </fieldset>
           ))}
           <button type="button" onClick={experiences.add} className={addBtn}>+ 경력 추가</button>
+
+          {/* Content Suggestions by Job Title */}
+          <ContentSuggestions
+            jobTitle={data.experiences[0]?.position || ''}
+            onInsert={(text) => {
+              // Insert into the last experience's description
+              const target = data.experiences[data.experiences.length - 1];
+              if (target) {
+                const newDesc = target.description ? `${target.description}\n${text}` : text;
+                experiences.update(target.id, 'description', newDesc);
+              }
+            }}
+          />
         </div>
         </CollapsibleSection>
         </div>
