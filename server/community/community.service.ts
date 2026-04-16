@@ -69,13 +69,14 @@ export class CommunityService {
     return { ...post, liked };
   }
 
-  async createPost(userId: string, body: { title: string; content: string; category: string }) {
+  async createPost(userId: string, body: { title: string; content: string; category: string; attachments?: any[] }) {
     return this.prisma.communityPost.create({
       data: {
         title: body.title,
         content: body.content,
         category: body.category || 'free',
         userId,
+        attachments: body.attachments || [],
       },
       include: {
         user: { select: { id: true, name: true, username: true, avatar: true } },
@@ -83,7 +84,7 @@ export class CommunityService {
     });
   }
 
-  async updatePost(id: string, userId: string, role: string, body: { title?: string; content?: string; category?: string; isPinned?: boolean }) {
+  async updatePost(id: string, userId: string, role: string, body: { title?: string; content?: string; category?: string; isPinned?: boolean; attachments?: any[] }) {
     const post = await this.prisma.communityPost.findUnique({ where: { id } });
     if (!post) throw new Error('Not found');
     if (post.userId !== userId && role !== 'admin' && role !== 'superadmin') throw new Error('Forbidden');
@@ -92,6 +93,7 @@ export class CommunityService {
     if (body.title !== undefined) data.title = body.title;
     if (body.content !== undefined) data.content = body.content;
     if (body.category !== undefined) data.category = body.category;
+    if (body.attachments !== undefined) data.attachments = body.attachments;
     if ((role === 'admin' || role === 'superadmin') && body.isPinned !== undefined) {
       data.isPinned = body.isPinned;
     }

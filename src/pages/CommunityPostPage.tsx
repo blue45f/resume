@@ -24,6 +24,13 @@ interface Comment {
   createdAt: string;
 }
 
+interface Attachment {
+  url: string;
+  name: string;
+  size: number;
+  type: string;
+}
+
 interface Post {
   id: string;
   title: string;
@@ -33,6 +40,7 @@ interface Post {
   likeCount: number;
   isPinned: boolean;
   liked?: boolean;
+  attachments?: Attachment[];
   createdAt: string;
   updatedAt: string;
   user?: { id: string; name: string; username: string; avatar: string };
@@ -58,35 +66,66 @@ function readingTime(text: string): string {
   return mins <= 1 ? '1분 이내' : `${mins}분`;
 }
 
-/** Auto-link URLs in plain text */
-function linkifyText(text: string) {
-  const parts = text.split(/(https?:\/\/[^\s]+)/g);
-  return parts.map((part, i) => {
-    if (part.match(/^https?:\/\//)) {
-      return (
-        <a key={i} href={part} target="_blank" rel="noopener noreferrer"
-          className="text-indigo-600 dark:text-indigo-400 underline underline-offset-2 break-all hover:text-indigo-800 dark:hover:text-indigo-300">
-          {part}
-        </a>
-      );
+/** Markdown → HTML renderer */
+function inlineFmt(s: string): string {
+  const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  s = esc(s);
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  s = s.replace(/`([^`]+)`/g, '<code class="bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>');
+  s = s.replace(/~~(.+?)~~/g, '<del class="opacity-60">$1</del>');
+  s = s.replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="text-indigo-600 dark:text-indigo-400 underline underline-offset-2 hover:opacity-80">$1</a>');
+  s = s.replace(/(^|[\s])(https?:\/\/[^\s<]+)/g, '$1<a href="$2" target="_blank" rel="noopener" class="text-indigo-600 dark:text-indigo-400 underline underline-offset-2 break-all hover:opacity-80">$2</a>');
+  return s;
+}
+
+function renderMarkdown(text: string): string {
+  const lines = text.split('\n');
+  const out: string[] = [];
+  let inCode = false;
+  let inList = false;
+  let inQuote = false;
+  const closeList = () => { if (inList) { out.push('</ul>'); inList = false; } };
+  const closeQuote = () => { if (inQuote) { out.push('</blockquote>'); inQuote = false; } };
+
+  for (const raw of lines) {
+    if (raw.startsWith('```')) {
+      closeList(); closeQuote();
+      if (!inCode) { out.push('<pre class="bg-slate-100 dark:bg-slate-800 rounded-lg px-4 py-3 overflow-x-auto text-sm font-mono my-3 text-slate-800 dark:text-slate-200">'); inCode = true; }
+      else { out.push('</pre>'); inCode = false; }
+      continue;
     }
-    return <span key={i}>{part}</span>;
-  });
+    if (inCode) { out.push(raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')); continue; }
+    if (raw.startsWith('### ')) { closeList(); closeQuote(); out.push(`<h3 class="text-lg font-bold mt-5 mb-2 text-slate-900 dark:text-slate-100">${inlineFmt(raw.slice(4))}</h3>`); continue; }
+    if (raw.startsWith('## ')) { closeList(); closeQuote(); out.push(`<h2 class="text-xl font-bold mt-6 mb-2 text-slate-900 dark:text-slate-100">${inlineFmt(raw.slice(3))}</h2>`); continue; }
+    if (raw.startsWith('# ')) { closeList(); closeQuote(); out.push(`<h1 class="text-2xl font-bold mt-6 mb-3 text-slate-900 dark:text-slate-100">${inlineFmt(raw.slice(2))}</h1>`); continue; }
+    if (raw.startsWith('> ')) {
+      closeList();
+      if (!inQuote) { out.push('<blockquote class="border-l-4 border-indigo-400 pl-4 my-3 text-slate-500 dark:text-slate-400 italic">'); inQuote = true; }
+      out.push(`<p class="mb-1">${inlineFmt(raw.slice(2))}</p>`); continue;
+    } else { closeQuote(); }
+    if (raw.startsWith('- ') || raw.startsWith('* ')) {
+      if (!inList) { out.push('<ul class="list-disc list-inside my-2 space-y-1 text-slate-700 dark:text-slate-300">'); inList = true; }
+      out.push(`<li>${inlineFmt(raw.slice(2))}</li>`); continue;
+    } else { closeList(); }
+    const olM = raw.match(/^(\d+)\. (.+)/);
+    if (olM) { closeList(); closeQuote(); out.push(`<p class="my-1 ml-4 text-slate-700 dark:text-slate-300">${olM[1]}. ${inlineFmt(olM[2])}</p>`); continue; }
+    if (raw === '---' || raw === '***') { closeList(); closeQuote(); out.push('<hr class="my-4 border-slate-200 dark:border-slate-700" />'); continue; }
+    if (raw.trim() === '') { closeList(); closeQuote(); out.push('<div class="h-3"></div>'); continue; }
+    out.push(`<p class="my-1.5 text-slate-700 dark:text-slate-300 leading-relaxed">${inlineFmt(raw)}</p>`);
+  }
+  closeList(); closeQuote();
+  if (inCode) out.push('</pre>');
+  return out.join('\n');
 }
 
 function ContentRenderer({ content }: { content: string }) {
-  const lines = content.split('\n');
   return (
-    <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm sm:text-base space-y-3">
-      {lines.map((line, i) => {
-        if (!line.trim()) return <div key={i} className="h-2" />;
-        return (
-          <p key={i} className="whitespace-pre-wrap">
-            {linkifyText(line)}
-          </p>
-        );
-      })}
-    </div>
+    <div
+      className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm sm:text-base prose-style"
+      dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
+    />
   );
 }
 
@@ -358,6 +397,34 @@ export default function CommunityPostPage() {
             <div className="py-6">
               <ContentRenderer content={post.content} />
             </div>
+
+            {/* Attachments */}
+            {Array.isArray(post.attachments) && post.attachments.length > 0 && (
+              <div className="pb-5 border-b border-slate-100 dark:border-slate-700">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                  첨부파일 {post.attachments.length}개
+                </p>
+                <div className="space-y-1.5">
+                  {post.attachments.map((att, idx) => (
+                    <a
+                      key={idx}
+                      href={att.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2.5 px-3 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-indigo-50/40 dark:hover:bg-indigo-900/10 transition-colors group"
+                    >
+                      <span className="text-base flex-shrink-0">
+                        {att.type?.startsWith('image/') ? '🖼️' : att.type === 'application/pdf' ? '📄' : '📎'}
+                      </span>
+                      <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 truncate">{att.name}</span>
+                      <span className="text-xs text-slate-400 flex-shrink-0">{(att.size / 1024).toFixed(0)}KB</span>
+                      <svg className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Action bar */}
             <div className="pt-5 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">

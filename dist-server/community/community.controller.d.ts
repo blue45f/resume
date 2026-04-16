@@ -1,7 +1,10 @@
 import { CommunityService } from './community.service';
+import { ConfigService } from '@nestjs/config';
 export declare class CommunityController {
     private readonly service;
-    constructor(service: CommunityService);
+    private readonly config;
+    private useCloudinary;
+    constructor(service: CommunityService, config: ConfigService);
     getPosts(category?: string, search?: string, page?: string, limit?: string, showHidden?: string, req?: any): Promise<{
         items: ({
             user: {
@@ -24,6 +27,7 @@ export declare class CommunityController {
             likeCount: number;
             isPinned: boolean;
             isHidden: boolean;
+            attachments: import("@prisma/client/runtime/library").JsonValue;
             createdAt: Date;
             updatedAt: Date;
         })[];
@@ -62,6 +66,7 @@ export declare class CommunityController {
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
         createdAt: Date;
         updatedAt: Date;
     } | null>;
@@ -69,6 +74,7 @@ export declare class CommunityController {
         title: string;
         content: string;
         category: string;
+        attachments?: any[];
     }, req: any): Promise<{
         user: {
             id: string;
@@ -86,6 +92,7 @@ export declare class CommunityController {
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
         createdAt: Date;
         updatedAt: Date;
     }> | {
@@ -101,6 +108,7 @@ export declare class CommunityController {
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
         createdAt: Date;
         updatedAt: Date;
     }> | {
@@ -116,6 +124,7 @@ export declare class CommunityController {
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
         createdAt: Date;
         updatedAt: Date;
     }> | {
@@ -158,4 +167,10 @@ export declare class CommunityController {
     }> | {
         error: string;
     };
+    uploadAttachment(file: Express.Multer.File, req: any): Promise<{
+        url: any;
+        name: string;
+        size: number;
+        type: string;
+    }>;
 }

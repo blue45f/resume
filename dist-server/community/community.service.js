@@ -82,6 +82,7 @@ let CommunityService = class CommunityService {
                 content: body.content,
                 category: body.category || 'free',
                 userId,
+                attachments: body.attachments || [],
             },
             include: {
                 user: { select: { id: true, name: true, username: true, avatar: true } },
@@ -101,6 +102,8 @@ let CommunityService = class CommunityService {
             data.content = body.content;
         if (body.category !== undefined)
             data.category = body.category;
+        if (body.attachments !== undefined)
+            data.attachments = body.attachments;
         if ((role === 'admin' || role === 'superadmin') && body.isPinned !== undefined) {
             data.isPinned = body.isPinned;
         }

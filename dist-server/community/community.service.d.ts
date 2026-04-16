@@ -26,6 +26,7 @@ export declare class CommunityService {
             likeCount: number;
             isPinned: boolean;
             isHidden: boolean;
+            attachments: import("@prisma/client/runtime/library").JsonValue;
             createdAt: Date;
             updatedAt: Date;
         })[];
@@ -64,6 +65,7 @@ export declare class CommunityService {
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
         createdAt: Date;
         updatedAt: Date;
     } | null>;
@@ -71,6 +73,7 @@ export declare class CommunityService {
         title: string;
         content: string;
         category: string;
+        attachments?: any[];
     }): Promise<{
         user: {
             id: string;
@@ -88,6 +91,7 @@ export declare class CommunityService {
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -96,6 +100,7 @@ export declare class CommunityService {
         content?: string;
         category?: string;
         isPinned?: boolean;
+        attachments?: any[];
     }): Promise<{
         id: string;
         title: string;
@@ -106,6 +111,7 @@ export declare class CommunityService {
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -119,6 +125,7 @@ export declare class CommunityService {
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
         createdAt: Date;
         updatedAt: Date;
     }>;

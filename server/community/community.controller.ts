@@ -1,13 +1,41 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Req } from '@nestjs/common';
+import {
+  Controller, Get, Post, Patch, Delete, Body, Param, Query, Req,
+  UseInterceptors, UploadedFile, BadRequestException,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '../auth/auth.guard';
 import { CommunityService } from './community.service';
+import { v2 as cloudinary } from 'cloudinary';
+import { ConfigService } from '@nestjs/config';
+
+const MAX_ATTACH_SIZE = 20 * 1024 * 1024; // 20MB
+const ALLOWED_ATTACH_TYPES = [
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/plain',
+];
 
 @ApiTags('community')
 @Controller('community')
 export class CommunityController {
-  constructor(private readonly service: CommunityService) {}
+  private useCloudinary: boolean;
+
+  constructor(
+    private readonly service: CommunityService,
+    private readonly config: ConfigService,
+  ) {
+    const cloudName = this.config.get('CLOUDINARY_CLOUD_NAME');
+    const apiKey = this.config.get('CLOUDINARY_API_KEY');
+    const apiSecret = this.config.get('CLOUDINARY_API_SECRET');
+    this.useCloudinary = !!(cloudName && apiKey && apiSecret);
+    if (this.useCloudinary) {
+      cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret, secure: true });
+    }
+  }
 
   @Get()
   @Public()
@@ -35,7 +63,7 @@ export class CommunityController {
   @Post()
   @Throttle({ short: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: '게시글 작성' })
-  create(@Body() body: { title: string; content: string; category: string }, @Req() req: any) {
+  create(@Body() body: { title: string; content: string; category: string; attachments?: any[] }, @Req() req: any) {
     if (!req.user?.id) return { error: '로그인이 필요합니다' };
     return this.service.createPost(req.user.id, body);
   }
@@ -85,5 +113,43 @@ export class CommunityController {
   deleteComment(@Param('id') id: string, @Param('commentId') commentId: string, @Req() req: any) {
     if (!req.user?.id) return { error: '로그인이 필요합니다' };
     return this.service.deleteComment(commentId, req.user.id, req.user.role || 'user');
+  }
+
+  /** 파일 첨부 업로드 */
+  @Post('upload')
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: '커뮤니티 첨부파일 업로드' })
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: MAX_ATTACH_SIZE } }))
+  async uploadAttachment(@UploadedFile() file: Express.Multer.File, @Req() req: any) {
+    if (!req.user?.id) throw new BadRequestException('로그인이 필요합니다');
+    if (!file) throw new BadRequestException('파일이 없습니다');
+    if (!ALLOWED_ATTACH_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException('허용되지 않는 파일 형식입니다');
+    }
+
+    if (this.useCloudinary) {
+      const result = await new Promise<any>((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'community_attachments', resource_type: 'auto' },
+          (err, result) => { if (err) reject(err); else resolve(result); },
+        );
+        stream.end(file.buffer);
+      });
+      return {
+        url: result.secure_url,
+        name: file.originalname,
+        size: file.size,
+        type: file.mimetype,
+      };
+    }
+
+    // Cloudinary 없을 때: base64 data URL 반환 (개발용)
+    const b64 = file.buffer.toString('base64');
+    return {
+      url: `data:${file.mimetype};base64,${b64}`,
+      name: file.originalname,
+      size: file.size,
+      type: file.mimetype,
+    };
   }
 }

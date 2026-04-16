@@ -14,14 +14,35 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommunityController = void 0;
 const common_1 = require("@nestjs/common");
+const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
 const throttler_1 = require("@nestjs/throttler");
 const auth_guard_1 = require("../auth/auth.guard");
 const community_service_1 = require("./community.service");
+const cloudinary_1 = require("cloudinary");
+const config_1 = require("@nestjs/config");
+const MAX_ATTACH_SIZE = 20 * 1024 * 1024;
+const ALLOWED_ATTACH_TYPES = [
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
+];
 let CommunityController = class CommunityController {
     service;
-    constructor(service) {
+    config;
+    useCloudinary;
+    constructor(service, config) {
         this.service = service;
+        this.config = config;
+        const cloudName = this.config.get('CLOUDINARY_CLOUD_NAME');
+        const apiKey = this.config.get('CLOUDINARY_API_KEY');
+        const apiSecret = this.config.get('CLOUDINARY_API_SECRET');
+        this.useCloudinary = !!(cloudName && apiKey && apiSecret);
+        if (this.useCloudinary) {
+            cloudinary_1.v2.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret, secure: true });
+        }
     }
     getPosts(category, search, page = '1', limit = '20', showHidden, req) {
         const isAdmin = req?.user?.role === 'admin' || req?.user?.role === 'superadmin';
@@ -61,6 +82,37 @@ let CommunityController = class CommunityController {
         if (!req.user?.id)
             return { error: '로그인이 필요합니다' };
         return this.service.deleteComment(commentId, req.user.id, req.user.role || 'user');
+    }
+    async uploadAttachment(file, req) {
+        if (!req.user?.id)
+            throw new common_1.BadRequestException('로그인이 필요합니다');
+        if (!file)
+            throw new common_1.BadRequestException('파일이 없습니다');
+        if (!ALLOWED_ATTACH_TYPES.includes(file.mimetype)) {
+            throw new common_1.BadRequestException('허용되지 않는 파일 형식입니다');
+        }
+        if (this.useCloudinary) {
+            const result = await new Promise((resolve, reject) => {
+                const stream = cloudinary_1.v2.uploader.upload_stream({ folder: 'community_attachments', resource_type: 'auto' }, (err, result) => { if (err)
+                    reject(err);
+                else
+                    resolve(result); });
+                stream.end(file.buffer);
+            });
+            return {
+                url: result.secure_url,
+                name: file.originalname,
+                size: file.size,
+                type: file.mimetype,
+            };
+        }
+        const b64 = file.buffer.toString('base64');
+        return {
+            url: `data:${file.mimetype};base64,${b64}`,
+            name: file.originalname,
+            size: file.size,
+            type: file.mimetype,
+        };
     }
 };
 exports.CommunityController = CommunityController;
@@ -157,8 +209,20 @@ __decorate([
     __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], CommunityController.prototype, "deleteComment", null);
+__decorate([
+    (0, common_1.Post)('upload'),
+    (0, throttler_1.Throttle)({ short: { limit: 10, ttl: 60000 } }),
+    (0, swagger_1.ApiOperation)({ summary: '커뮤니티 첨부파일 업로드' }),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', { limits: { fileSize: MAX_ATTACH_SIZE } })),
+    __param(0, (0, common_1.UploadedFile)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], CommunityController.prototype, "uploadAttachment", null);
 exports.CommunityController = CommunityController = __decorate([
     (0, swagger_1.ApiTags)('community'),
     (0, common_1.Controller)('community'),
-    __metadata("design:paramtypes", [community_service_1.CommunityService])
+    __metadata("design:paramtypes", [community_service_1.CommunityService,
+        config_1.ConfigService])
 ], CommunityController);

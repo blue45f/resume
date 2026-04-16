@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Banner {
   id: string;
@@ -14,6 +15,7 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 export default function BannerSlider() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [current, setCurrent] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch(`${API_URL}/api/banners/active`)
@@ -62,7 +64,11 @@ export default function BannerSlider() {
           cursor: banner.linkUrl ? 'pointer' : 'default',
           transition: 'opacity 0.3s ease',
         }}
-        onClick={() => banner.linkUrl && window.open(banner.linkUrl, '_blank')}
+        onClick={() => {
+          if (!banner.linkUrl) return;
+          if (banner.linkUrl.startsWith('http')) { window.open(banner.linkUrl, '_blank'); }
+          else { navigate(banner.linkUrl); }
+        }}
       >
         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)', lineHeight: 1.3 }}>{banner.title}</h2>
         {banner.subtitle && (
