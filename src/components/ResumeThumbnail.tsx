@@ -44,13 +44,19 @@ function extractHeaderBg(theme: ResumeTheme): string {
 /** Estimate completion percentage from resume summary */
 function calcCompletion(resume: ResumeSummary): number {
   let score = 0;
-  const max = 5;
-  if (resume.personalInfo.name) score++;
-  if (resume.personalInfo.email) score++;
-  if (resume.personalInfo.summary) score++;
-  if (resume.personalInfo.phone) score++;
-  if (resume.tags?.length > 0) score++;
-  return Math.round((score / max) * 100);
+  const checks = [
+    !!resume.title,
+    !!resume.personalInfo.name,
+    !!resume.personalInfo.email,
+    !!resume.personalInfo.phone,
+    !!resume.personalInfo.summary && resume.personalInfo.summary.length > 30,
+    !!resume.personalInfo.address,
+    !!(resume.personalInfo.website || resume.personalInfo.github),
+    !!(resume.skills && resume.skills.length > 0),
+    !!(resume.personalInfo.photo),
+  ];
+  for (const c of checks) if (c) score++;
+  return Math.round((score / checks.length) * 100);
 }
 
 /** Format relative time in Korean */
@@ -217,7 +223,13 @@ const ResumeThumbnail = memo(function ResumeThumbnail({ resume, themeId, onClick
         {relativeTime && (
           <span className="text-[8px] text-slate-400 dark:text-slate-500 truncate">{relativeTime}</span>
         )}
-        <span className="text-[8px] text-slate-400 dark:text-slate-500 font-medium ml-auto">완성도 {completion}%</span>
+        <span className={`text-[8px] font-semibold ml-auto ${
+          completion >= 80 ? 'text-emerald-600 dark:text-emerald-400' :
+          completion >= 50 ? 'text-amber-600 dark:text-amber-400' :
+          'text-red-500 dark:text-red-400'
+        }`}>
+          {completion >= 80 ? '✓ ' : ''}완성도 {completion}%
+        </span>
       </div>
     </button>
   );
