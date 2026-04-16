@@ -33,6 +33,7 @@ const jobs_module_1 = require("./jobs/jobs.module");
 const banners_module_1 = require("./banners/banners.module");
 const notices_module_1 = require("./notices/notices.module");
 const system_config_module_1 = require("./system-config/system-config.module");
+const community_module_1 = require("./community/community.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(request_id_middleware_1.RequestIdMiddleware, sanitize_middleware_1.SanitizeMiddleware).forRoutes('*');
@@ -67,6 +68,7 @@ exports.AppModule = AppModule = __decorate([
             banners_module_1.BannersModule,
             notices_module_1.NoticesModule,
             system_config_module_1.SystemConfigModule,
+            community_module_1.CommunityModule,
         ],
         providers: [
             { provide: core_1.APP_GUARD, useClass: throttler_1.ThrottlerGuard },
