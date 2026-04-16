@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumesService } from './resumes.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 
 const mockResume = {
@@ -69,11 +70,16 @@ const mockPrisma: Record<string, any> = {
 describe('ResumesService', () => {
   let service: ResumesService;
 
+  const mockNotifications = {
+    create: jest.fn().mockResolvedValue({}),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumesService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotifications },
       ],
     }).compile();
     service = module.get(ResumesService);
@@ -683,6 +689,74 @@ describe('ResumesService', () => {
       const result = await service.getBookmarks('user-1');
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe('테스트');
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // 스킬 추천(Endorsement)
+  // ──────────────────────────────────────────────────
+  describe('skill endorsements', () => {
+    beforeEach(() => {
+      mockPrisma.skillEndorsement = {
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        delete: jest.fn(),
+        count: jest.fn(),
+      };
+    });
+
+    it('getEndorsements — 빈 결과 반환', async () => {
+      mockPrisma.skillEndorsement.findMany.mockResolvedValue([]);
+      const result = await service.getEndorsements('resume-1');
+      expect(result).toEqual({});
+    });
+
+    it('getEndorsements — 추천 수 집계 및 본인 추천 여부 확인', async () => {
+      mockPrisma.skillEndorsement.findMany.mockResolvedValue([
+        { id: '1', resumeId: 'resume-1', userId: 'user-1', skill: 'React', createdAt: new Date() },
+        { id: '2', resumeId: 'resume-1', userId: 'user-2', skill: 'React', createdAt: new Date() },
+        { id: '3', resumeId: 'resume-1', userId: 'user-1', skill: 'TypeScript', createdAt: new Date() },
+      ]);
+      const result = await service.getEndorsements('resume-1', 'user-1');
+      expect(result['React'].count).toBe(2);
+      expect(result['React'].endorsed).toBe(true);
+      expect(result['TypeScript'].count).toBe(1);
+      expect(result['TypeScript'].endorsed).toBe(true);
+    });
+
+    it('getEndorsements — 뷰어가 추천하지 않은 기술', async () => {
+      mockPrisma.skillEndorsement.findMany.mockResolvedValue([
+        { id: '1', resumeId: 'resume-1', userId: 'user-2', skill: 'React', createdAt: new Date() },
+      ]);
+      const result = await service.getEndorsements('resume-1', 'user-1');
+      expect(result['React'].count).toBe(1);
+      expect(result['React'].endorsed).toBe(false);
+    });
+
+    it('toggleEndorse — 추천 추가 (없는 경우)', async () => {
+      mockPrisma.skillEndorsement.findUnique.mockResolvedValue(null);
+      mockPrisma.skillEndorsement.create.mockResolvedValue({ id: 'new-1' });
+      mockPrisma.skillEndorsement.count.mockResolvedValue(1);
+
+      const result = await service.toggleEndorse('resume-1', 'user-1', 'React');
+      expect(result.endorsed).toBe(true);
+      expect(result.count).toBe(1);
+      expect(mockPrisma.skillEndorsement.create).toHaveBeenCalledWith({
+        data: { resumeId: 'resume-1', userId: 'user-1', skill: 'React' },
+      });
+    });
+
+    it('toggleEndorse — 추천 취소 (이미 있는 경우)', async () => {
+      const existing = { id: 'end-1', resumeId: 'resume-1', userId: 'user-1', skill: 'React' };
+      mockPrisma.skillEndorsement.findUnique.mockResolvedValue(existing);
+      mockPrisma.skillEndorsement.delete.mockResolvedValue(existing);
+      mockPrisma.skillEndorsement.count.mockResolvedValue(0);
+
+      const result = await service.toggleEndorse('resume-1', 'user-1', 'React');
+      expect(result.endorsed).toBe(false);
+      expect(result.count).toBe(0);
+      expect(mockPrisma.skillEndorsement.delete).toHaveBeenCalledWith({ where: { id: 'end-1' } });
     });
   });
 });

@@ -247,6 +247,60 @@ describe('ExportService', () => {
   });
 
   // ──────────────────────────────────────────────────
+  // Word(.docx) 내보내기
+  // ──────────────────────────────────────────────────
+  describe('exportAsDocx', () => {
+    it('Buffer를 반환해야 함', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      const buffer = await service.exportAsDocx('resume-1');
+      expect(Buffer.isBuffer(buffer)).toBe(true);
+    });
+
+    it('Word 파일 헤더 매직 바이트 포함 (PK zip)', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      const buffer = await service.exportAsDocx('resume-1');
+      // docx는 ZIP 형식 → 첫 2바이트는 PK (0x50, 0x4B)
+      expect(buffer[0]).toBe(0x50); // 'P'
+      expect(buffer[1]).toBe(0x4B); // 'K'
+    });
+
+    it('비어 있지 않은 파일 생성 (최소 1KB)', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      const buffer = await service.exportAsDocx('resume-1');
+      expect(buffer.length).toBeGreaterThan(1024);
+    });
+
+    it('존재하지 않는 이력서 → NotFoundException', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(null);
+      await expect(service.exportAsDocx('fake')).rejects.toThrow(NotFoundException);
+    });
+
+    it('빈 이력서도 에러 없이 Buffer 반환', async () => {
+      const emptyResume = {
+        id: 'empty-2', title: '빈', personalInfo: null,
+        experiences: [], educations: [], skills: [], projects: [],
+        certifications: [], languages: [], awards: [], activities: [],
+      };
+      mockPrisma.resume.findUnique.mockResolvedValue(emptyResume);
+      const buffer = await service.exportAsDocx('empty-2');
+      expect(Buffer.isBuffer(buffer)).toBe(true);
+    });
+
+    it('한글 이름이 있는 이력서도 정상 처리', async () => {
+      const koreanResume = {
+        id: 'kr-docx', title: '홍길동 이력서',
+        personalInfo: { name: '홍길동', email: 'hong@test.com', phone: '010-1234-5678', address: '서울시', website: '', github: '', summary: '개발자입니다' },
+        experiences: [], educations: [], skills: [], projects: [],
+        certifications: [], languages: [], awards: [], activities: [],
+      };
+      mockPrisma.resume.findUnique.mockResolvedValue(koreanResume);
+      const buffer = await service.exportAsDocx('kr-docx');
+      expect(Buffer.isBuffer(buffer)).toBe(true);
+      expect(buffer.length).toBeGreaterThan(1024);
+    });
+  });
+
+  // ──────────────────────────────────────────────────
   // 한글 문자 처리
   // ──────────────────────────────────────────────────
   describe('한글 문자 처리', () => {
