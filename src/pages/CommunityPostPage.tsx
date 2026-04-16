@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getUser } from '@/lib/auth';
+import { toast } from '@/components/Toast';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -50,6 +51,44 @@ function timeAgo(date: string) {
   return new Date(date).toLocaleDateString('ko-KR');
 }
 
+function readingTime(text: string): string {
+  const words = text.trim().split(/\s+/).length;
+  const mins = Math.ceil(words / 200);
+  return mins <= 1 ? '1분 이내' : `${mins}분`;
+}
+
+/** Auto-link URLs in plain text */
+function linkifyText(text: string) {
+  const parts = text.split(/(https?:\/\/[^\s]+)/g);
+  return parts.map((part, i) => {
+    if (part.match(/^https?:\/\//)) {
+      return (
+        <a key={i} href={part} target="_blank" rel="noopener noreferrer"
+          className="text-indigo-600 dark:text-indigo-400 underline underline-offset-2 break-all hover:text-indigo-800 dark:hover:text-indigo-300">
+          {part}
+        </a>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
+function ContentRenderer({ content }: { content: string }) {
+  const lines = content.split('\n');
+  return (
+    <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm sm:text-base space-y-3">
+      {lines.map((line, i) => {
+        if (!line.trim()) return <div key={i} className="h-2" />;
+        return (
+          <p key={i} className="whitespace-pre-wrap">
+            {linkifyText(line)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function CommunityPostPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -59,36 +98,54 @@ export default function CommunityPostPage() {
   const [loading, setLoading] = useState(true);
   const [liking, setLiking] = useState(false);
   const [commentText, setCommentText] = useState('');
+  const [anonName, setAnonName] = useState(() => localStorage.getItem('anon-name') || '');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const commentRef = useRef<HTMLTextAreaElement>(null);
+  const commentSectionRef = useRef<HTMLElement>(null);
 
   const fetchPost = useCallback(async () => {
     const token = localStorage.getItem('token');
-    const headers: any = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
-    const r = await fetch(`${API_URL}/api/community/${id}`, { headers });
-    if (r.ok) {
-      setPost(await r.json());
-    }
+    const headers: HeadersInit = {};
+    if (token) (headers as any).Authorization = `Bearer ${token}`;
+    try {
+      const r = await fetch(`${API_URL}/api/community/${id}`, { headers });
+      if (r.ok) setPost(await r.json());
+    } catch {}
     setLoading(false);
   }, [id]);
 
   useEffect(() => { fetchPost(); }, [fetchPost]);
+
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (post) document.title = `${post.title} — 커뮤니티 — 이력서공방`;
+    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, [post]);
 
   const handleLike = async () => {
     if (!user) { navigate('/login'); return; }
     if (liking || !post) return;
     setLiking(true);
 
+    // Optimistic update
+    setPost(p => p ? { ...p, liked: !p.liked, likeCount: p.likeCount + (p.liked ? -1 : 1) } : p);
+
     const token = localStorage.getItem('token');
     const r = await fetch(`${API_URL}/api/community/${post.id}/like`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` } as any,
     });
 
-    if (r.ok) {
-      const { liked } = await r.json();
-      setPost(p => p ? { ...p, liked, likeCount: p.likeCount + (liked ? 1 : -1) } : p);
+    if (!r.ok) {
+      // Revert
+      setPost(p => p ? { ...p, liked: !p.liked, likeCount: p.likeCount + (p.liked ? -1 : 1) } : p);
     }
     setLiking(false);
   };
@@ -98,19 +155,28 @@ export default function CommunityPostPage() {
     if (!commentText.trim()) return;
     setSubmittingComment(true);
 
+    if (!user && anonName) {
+      localStorage.setItem('anon-name', anonName);
+    }
+
     const token = localStorage.getItem('token');
-    const headers: any = { 'Content-Type': 'application/json' };
-    if (token) headers.Authorization = `Bearer ${token}`;
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (token) (headers as any).Authorization = `Bearer ${token}`;
+
+    const body: any = { content: commentText.trim() };
+    if (!user && anonName) body.authorName = anonName;
 
     const r = await fetch(`${API_URL}/api/community/${id}/comments`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ content: commentText.trim() }),
+      body: JSON.stringify(body),
     });
 
     if (r.ok) {
       setCommentText('');
       fetchPost();
+    } else {
+      toast('댓글 등록에 실패했습니다', 'error');
     }
     setSubmittingComment(false);
   };
@@ -118,11 +184,12 @@ export default function CommunityPostPage() {
   const handleDeleteComment = async (commentId: string) => {
     if (!confirm('댓글을 삭제하시겠습니까?')) return;
     const token = localStorage.getItem('token');
-    await fetch(`${API_URL}/api/community/${id}/comments/${commentId}`, {
+    const r = await fetch(`${API_URL}/api/community/${id}/comments/${commentId}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` } as any,
     });
-    fetchPost();
+    if (r.ok) fetchPost();
+    else toast('삭제에 실패했습니다', 'error');
   };
 
   const handleDeletePost = async () => {
@@ -131,10 +198,27 @@ export default function CommunityPostPage() {
     const token = localStorage.getItem('token');
     const r = await fetch(`${API_URL}/api/community/${id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` } as any,
     });
     if (r.ok) navigate('/community');
-    setDeleting(false);
+    else { toast('삭제에 실패했습니다', 'error'); setDeleting(false); }
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: post?.title, url });
+        return;
+      } catch {}
+    }
+    await navigator.clipboard.writeText(url);
+    toast('링크가 복사되었습니다', 'success');
+  };
+
+  const scrollToComment = () => {
+    commentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => commentRef.current?.focus(), 400);
   };
 
   const isOwner = user && post?.user?.id === user.id;
@@ -147,11 +231,16 @@ export default function CommunityPostPage() {
         <Header />
         <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8">
           <div className="animate-pulse space-y-4">
-            <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-24" />
+            <div className="h-7 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
             <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/3" />
-            <div className="h-40 bg-slate-200 dark:bg-slate-700 rounded" />
+            <div className="h-px bg-slate-200 dark:bg-slate-700 my-6" />
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => <div key={i} className="h-4 bg-slate-100 dark:bg-slate-700 rounded" style={{ width: `${90 - i * 5}%` }} />)}
+            </div>
           </div>
         </main>
+        <Footer />
       </>
     );
   }
@@ -162,9 +251,14 @@ export default function CommunityPostPage() {
         <Header />
         <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8 text-center">
           <div className="text-5xl mb-4">🚫</div>
-          <p className="text-slate-500 dark:text-slate-400">게시글을 찾을 수 없습니다.</p>
-          <Link to="/community" className="mt-4 inline-block text-sm text-indigo-600 hover:underline">목록으로</Link>
+          <p className="text-slate-600 dark:text-slate-400 font-medium mb-2">게시글을 찾을 수 없습니다</p>
+          <p className="text-sm text-slate-400 mb-6">삭제되었거나 존재하지 않는 게시글입니다.</p>
+          <Link to="/community" className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:underline">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            커뮤니티로 돌아가기
+          </Link>
         </main>
+        <Footer />
       </>
     );
   }
@@ -173,6 +267,7 @@ export default function CommunityPostPage() {
     <>
       <Header />
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8">
+
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-6">
           <Link to="/community" className="hover:text-indigo-600 transition-colors">커뮤니티</Link>
@@ -186,28 +281,21 @@ export default function CommunityPostPage() {
           )}
         </div>
 
-        {/* Post */}
+        {/* Post article */}
         <article className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden mb-6">
           <div className="p-6 sm:p-8">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-4 mb-6">
-              <div className="flex-1">
-                {post.isPinned && <span className="text-sm text-amber-600 dark:text-amber-400 font-bold mr-2">📌 공지</span>}
-                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight">{post.title}</h1>
-                <div className="flex items-center gap-3 mt-3 text-sm text-slate-500 dark:text-slate-400">
-                  {post.user ? (
-                    <div className="flex items-center gap-1.5">
-                      {post.user.avatar && <img src={post.user.avatar} alt="" className="w-5 h-5 rounded-full" />}
-                      <span className="font-medium text-slate-700 dark:text-slate-300">{post.user.name}</span>
-                    </div>
-                  ) : (
-                    <span>익명</span>
-                  )}
-                  <span>·</span>
-                  <span>{timeAgo(post.createdAt)}</span>
-                  <span>·</span>
-                  <span>조회 {post.viewCount}</span>
-                </div>
+
+            {/* Post header */}
+            <div className="flex items-start justify-between gap-4 mb-5">
+              <div className="flex-1 min-w-0">
+                {post.isPinned && (
+                  <div className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-bold mb-2">
+                    <span>📌</span> 공지사항
+                  </div>
+                )}
+                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight break-words">
+                  {post.title}
+                </h1>
               </div>
 
               {(isOwner || isAdmin) && (
@@ -223,96 +311,183 @@ export default function CommunityPostPage() {
                     disabled={deleting}
                     className="px-3 py-1.5 text-xs text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-60"
                   >
-                    삭제
+                    {deleting ? '삭제 중...' : '삭제'}
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Content */}
-            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-              {post.content}
+            {/* Author & meta */}
+            <div className="flex items-center gap-3 pb-5 border-b border-slate-100 dark:border-slate-700">
+              <div className="flex items-center gap-2">
+                {post.user?.avatar ? (
+                  <img src={post.user.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                    {(post.user?.name || '?')[0]}
+                  </div>
+                )}
+                <div>
+                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    {post.user?.name || '익명'}
+                  </div>
+                  <div className="text-xs text-slate-400">{timeAgo(post.createdAt)}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 ml-auto text-xs text-slate-400">
+                <span className="flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  {post.viewCount.toLocaleString()}
+                </span>
+                <span>·</span>
+                <span>읽기 {readingTime(post.content)}</span>
+              </div>
             </div>
 
-            {/* Like button */}
-            <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 flex items-center justify-center">
+            {/* Content */}
+            <div className="py-6">
+              <ContentRenderer content={post.content} />
+            </div>
+
+            {/* Action bar */}
+            <div className="pt-5 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {/* Like button */}
+                <button
+                  onClick={handleLike}
+                  disabled={liking}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl border font-medium text-sm transition-all ${
+                    post.liked
+                      ? 'border-red-300 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 shadow-sm'
+                      : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-red-200 hover:text-red-500 dark:hover:border-red-800 dark:hover:text-red-400'
+                  }`}
+                >
+                  <svg className={`w-4 h-4 transition-transform duration-150 ${liking ? 'scale-90' : 'hover:scale-110'}`} fill={post.liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                  <span>좋아요 {post.likeCount}</span>
+                </button>
+
+                {/* Comment jump */}
+                <button
+                  onClick={scrollToComment}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-indigo-300 hover:text-indigo-600 dark:hover:border-indigo-700 dark:hover:text-indigo-400 font-medium text-sm transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                  댓글 {post.comments?.length ?? 0}
+                </button>
+              </div>
+
+              {/* Share */}
               <button
-                onClick={handleLike}
-                disabled={liking}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl border-2 font-medium text-sm transition-all ${
-                  post.liked
-                    ? 'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-                    : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-red-300 hover:text-red-500 dark:hover:border-red-700 dark:hover:text-red-400'
-                }`}
+                onClick={handleShare}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
               >
-                <svg className={`w-5 h-5 transition-transform ${liking ? 'scale-90' : ''}`} fill={post.liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                좋아요 {post.likeCount}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                공유
               </button>
             </div>
           </div>
         </article>
 
-        {/* Comments */}
-        <section>
-          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-4">
-            댓글 {post.comments?.length ?? 0}개
+        {/* Comments section */}
+        <section ref={commentSectionRef}>
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+            <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+            댓글 <span className="text-indigo-500">{post.comments?.length ?? 0}</span>
           </h2>
 
           {/* Comment form */}
           <form onSubmit={handleComment} className="mb-6">
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden focus-within:border-indigo-400 dark:focus-within:border-indigo-600 transition-colors">
+              {/* Anon name field for non-logged-in users */}
+              {!user && (
+                <div className="px-4 pt-3 pb-2 border-b border-slate-100 dark:border-slate-700">
+                  <input
+                    type="text"
+                    value={anonName}
+                    onChange={e => setAnonName(e.target.value)}
+                    placeholder="닉네임 (선택, 비어 있으면 '익명')"
+                    maxLength={20}
+                    className="w-full text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 bg-transparent focus:outline-none"
+                  />
+                </div>
+              )}
               <textarea
+                ref={commentRef}
                 value={commentText}
                 onChange={e => setCommentText(e.target.value)}
-                placeholder={user ? '댓글을 입력하세요...' : '로그인 후 댓글을 작성할 수 있습니다.'}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                    e.preventDefault();
+                    if (commentText.trim()) handleComment(e as any);
+                  }
+                }}
+                placeholder="댓글을 입력하세요... (⌘+Enter로 등록)"
                 rows={3}
-                disabled={!user}
-                className="w-full px-4 py-3 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none"
               />
               <div className="px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                {!user && (
-                  <Link to="/login" className="text-xs text-indigo-600 hover:underline">로그인</Link>
-                )}
-                <div className="ml-auto">
-                  <button
-                    type="submit"
-                    disabled={!user || !commentText.trim() || submittingComment}
-                    className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {submittingComment ? '등록 중...' : '댓글 등록'}
-                  </button>
+                <div className="flex items-center gap-3">
+                  {!user && (
+                    <Link to="/login" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
+                      로그인하면 이름이 표시됩니다
+                    </Link>
+                  )}
+                  <span className={`text-xs ${commentText.length > 800 ? 'text-red-500' : 'text-slate-400'}`}>
+                    {commentText.length} / 1000
+                  </span>
                 </div>
+                <button
+                  type="submit"
+                  disabled={!commentText.trim() || submittingComment || commentText.length > 1000}
+                  className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {submittingComment ? '등록 중...' : '댓글 등록'}
+                </button>
               </div>
             </div>
           </form>
 
           {/* Comment list */}
           {!post.comments?.length ? (
-            <div className="text-center py-8 text-slate-400 text-sm">첫 번째 댓글을 작성해보세요!</div>
+            <div className="text-center py-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
+              <div className="text-3xl mb-2">💬</div>
+              <p className="text-slate-400 text-sm">첫 번째 댓글을 작성해보세요!</p>
+            </div>
           ) : (
-            <div className="space-y-3">
-              {post.comments.map(comment => (
-                <div key={comment.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
+            <div className="space-y-2">
+              {post.comments.map((comment, idx) => (
+                <div
+                  key={comment.id}
+                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 animate-fade-in-up"
+                  style={{ animationDelay: `${idx * 30}ms` }}
+                >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1.5">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300 shrink-0">
+                          {(comment.authorName || '익')[0]}
+                        </div>
                         <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
                           {comment.authorName || '익명'}
+                          {comment.userId && comment.userId === post.user?.id && (
+                            <span className="ml-1.5 text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full font-semibold">작성자</span>
+                          )}
                         </span>
                         <span className="text-xs text-slate-400">{timeAgo(comment.createdAt)}</span>
                       </div>
-                      <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                      <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed pl-8">
                         {comment.content}
                       </p>
                     </div>
                     {(user?.id === comment.userId || isAdmin) && (
                       <button
                         onClick={() => handleDeleteComment(comment.id)}
-                        className="shrink-0 text-xs text-slate-400 hover:text-red-500 transition-colors"
+                        className="shrink-0 text-xs text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1"
+                        aria-label="댓글 삭제"
                       >
-                        삭제
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     )}
                   </div>
@@ -322,8 +497,9 @@ export default function CommunityPostPage() {
           )}
         </section>
 
+        {/* Back link */}
         <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
-          <Link to="/community" className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-colors">
+          <Link to="/community" className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
@@ -331,6 +507,18 @@ export default function CommunityPostPage() {
           </Link>
         </div>
       </main>
+
+      {/* Scroll to top FAB */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-all duration-200 flex items-center justify-center hover:shadow-xl hover:-translate-y-0.5 animate-fade-in-up"
+          aria-label="맨 위로"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+        </button>
+      )}
+
       <Footer />
     </>
   );
