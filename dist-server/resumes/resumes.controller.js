@@ -187,6 +187,20 @@ let ResumesController = class ResumesController {
             throw new common_1.InternalServerErrorException('Word 내보내기에 실패했습니다');
         }
     }
+    async exportHtml(id, res) {
+        try {
+            const html = await this.exportService.exportAsHtml(id);
+            this.resumesService.incrementViewCount(id);
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.setHeader('Content-Disposition', `attachment; filename="resume.html"`);
+            res.send(html);
+        }
+        catch (e) {
+            if (e instanceof common_1.NotFoundException)
+                throw e;
+            throw new common_1.InternalServerErrorException('HTML 내보내기에 실패했습니다');
+        }
+    }
     async getEndorsements(id, req) {
         return this.resumesService.getEndorsements(id, req.user?.id);
     }
@@ -424,6 +438,15 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ResumesController.prototype, "exportDocx", null);
+__decorate([
+    (0, common_1.Get)(':id/export/html'),
+    (0, swagger_1.ApiOperation)({ summary: '이력서 HTML 내보내기 (독립형 파일)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ResumesController.prototype, "exportHtml", null);
 __decorate([
     (0, common_1.Get)(':id/endorsements'),
     (0, auth_guard_1.Public)(),

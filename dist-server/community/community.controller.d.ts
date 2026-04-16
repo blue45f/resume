@@ -14,22 +14,22 @@ export declare class CommunityController {
                 avatar: string;
             } | null;
             _count: {
-                comments: number;
                 likes: number;
+                comments: number;
             };
         } & {
             id: string;
-            createdAt: Date;
-            userId: string | null;
-            content: string;
             title: string;
-            viewCount: number;
-            updatedAt: Date;
-            attachments: import("@prisma/client/runtime/library").JsonValue;
+            content: string;
             category: string;
-            isPinned: boolean;
+            userId: string | null;
+            viewCount: number;
             likeCount: number;
+            isPinned: boolean;
             isHidden: boolean;
+            attachments: import("@prisma/client/runtime/library").JsonValue;
+            createdAt: Date;
+            updatedAt: Date;
         })[];
         total: number;
         page: number;
@@ -46,29 +46,29 @@ export declare class CommunityController {
         } | null;
         comments: ({} & {
             id: string;
-            createdAt: Date;
-            userId: string | null;
             content: string;
+            userId: string | null;
+            createdAt: Date;
             updatedAt: Date;
-            authorName: string | null;
             postId: string;
+            authorName: string | null;
         })[];
         _count: {
-            comments: number;
             likes: number;
+            comments: number;
         };
         id: string;
-        createdAt: Date;
-        userId: string | null;
-        content: string;
         title: string;
-        viewCount: number;
-        updatedAt: Date;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
+        content: string;
         category: string;
-        isPinned: boolean;
+        userId: string | null;
+        viewCount: number;
         likeCount: number;
+        isPinned: boolean;
         isHidden: boolean;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
+        createdAt: Date;
+        updatedAt: Date;
     } | null>;
     create(body: {
         title: string;
@@ -84,49 +84,49 @@ export declare class CommunityController {
         } | null;
     } & {
         id: string;
-        createdAt: Date;
-        userId: string | null;
-        content: string;
         title: string;
-        viewCount: number;
-        updatedAt: Date;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
+        content: string;
         category: string;
-        isPinned: boolean;
+        userId: string | null;
+        viewCount: number;
         likeCount: number;
+        isPinned: boolean;
         isHidden: boolean;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
+        createdAt: Date;
+        updatedAt: Date;
     }> | {
         error: string;
     };
     update(id: string, body: any, req: any): Promise<{
         id: string;
-        createdAt: Date;
-        userId: string | null;
-        content: string;
         title: string;
-        viewCount: number;
-        updatedAt: Date;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
+        content: string;
         category: string;
-        isPinned: boolean;
+        userId: string | null;
+        viewCount: number;
         likeCount: number;
+        isPinned: boolean;
         isHidden: boolean;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
+        createdAt: Date;
+        updatedAt: Date;
     }> | {
         error: string;
     };
     delete(id: string, req: any): Promise<{
         id: string;
-        createdAt: Date;
-        userId: string | null;
-        content: string;
         title: string;
-        viewCount: number;
-        updatedAt: Date;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
+        content: string;
         category: string;
-        isPinned: boolean;
+        userId: string | null;
+        viewCount: number;
         likeCount: number;
+        isPinned: boolean;
         isHidden: boolean;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
+        createdAt: Date;
+        updatedAt: Date;
     }> | {
         error: string;
     };
@@ -137,33 +137,33 @@ export declare class CommunityController {
     };
     getComments(id: string): Promise<{
         id: string;
-        createdAt: Date;
-        userId: string | null;
         content: string;
+        userId: string | null;
+        createdAt: Date;
         updatedAt: Date;
-        authorName: string | null;
         postId: string;
+        authorName: string | null;
     }[]>;
     addComment(id: string, body: {
         content: string;
         authorName?: string;
     }, req: any): Promise<{
         id: string;
-        createdAt: Date;
-        userId: string | null;
         content: string;
+        userId: string | null;
+        createdAt: Date;
         updatedAt: Date;
-        authorName: string | null;
         postId: string;
+        authorName: string | null;
     }>;
     deleteComment(id: string, commentId: string, req: any): Promise<{
         id: string;
-        createdAt: Date;
-        userId: string | null;
         content: string;
+        userId: string | null;
+        createdAt: Date;
         updatedAt: Date;
-        authorName: string | null;
         postId: string;
+        authorName: string | null;
     }> | {
         error: string;
     };

@@ -404,6 +404,7 @@ export declare class ResumesController {
     exportMarkdown(id: string, res: Response): Promise<void>;
     exportJson(id: string, res: Response): Promise<void>;
     exportDocx(id: string, res: Response): Promise<void>;
+    exportHtml(id: string, res: Response): Promise<void>;
     getEndorsements(id: string, req: any): Promise<Record<string, {
         count: number;
         endorsed: boolean;

@@ -303,6 +303,81 @@ let ExportService = class ExportService {
         });
         return await docx_1.Packer.toBuffer(doc);
     }
+    async exportAsHtml(resumeId) {
+        const resume = await this.getResumeData(resumeId);
+        const pi = resume.personalInfo;
+        const strip = (html) => (html || '').replace(/<[^>]*>/g, '').trim();
+        const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const section = (title, content) => `<section class="section"><h2 class="section-title">${esc(title)}</h2>${content}</section>`;
+        const entry = (header, meta, desc) => `<div class="entry"><div class="entry-header">${header}</div>${meta ? `<div class="entry-meta">${esc(meta)}</div>` : ''}${desc ? `<div class="entry-desc">${esc(desc)}</div>` : ''}</div>`;
+        let body = '';
+        if (pi) {
+            const contacts = [pi.email, pi.phone, pi.address, pi.website, pi.github].filter(Boolean).map(esc).join(' · ');
+            body += `<header class="resume-header"><h1>${esc(pi.name || '이력서')}</h1>${contacts ? `<p class="contacts">${contacts}</p>` : ''}${pi.summary ? `<p class="summary">${esc(strip(pi.summary))}</p>` : ''}</header>`;
+        }
+        if (resume.experiences?.length) {
+            const items = resume.experiences.map(e => entry(`<strong>${esc(e.company)}</strong> · ${esc(e.position)}${e.department ? ` (${esc(e.department)})` : ''}`, `${e.startDate} ~ ${e.current ? '현재' : e.endDate}`, [strip(e.description), e.achievements ? `성과: ${strip(e.achievements)}` : '', e.techStack ? `기술: ${e.techStack}` : ''].filter(Boolean).join('\n'))).join('');
+            body += section('경력', items);
+        }
+        if (resume.educations?.length) {
+            const items = resume.educations.map(e => entry(`<strong>${esc(e.school)}</strong> · ${esc(e.degree)} ${esc(e.field)}`, `${e.startDate} ~ ${e.endDate}${e.gpa ? ` | GPA: ${e.gpa}` : ''}`, strip(e.description))).join('');
+            body += section('학력', items);
+        }
+        if (resume.skills?.length) {
+            const items = resume.skills.map(s => `<div class="skill-row"><span class="skill-cat">${esc(s.category)}</span><span class="skill-items">${esc(s.items)}</span></div>`).join('');
+            body += section('기술', items);
+        }
+        if (resume.projects?.length) {
+            const items = resume.projects.map(p => entry(`<strong>${esc(p.name)}</strong>${p.company ? ` @ ${esc(p.company)}` : ''}`, `${p.startDate} ~ ${p.endDate} | 역할: ${esc(p.role)}`, [strip(p.description), p.techStack ? `기술: ${p.techStack}` : '', p.link ? `링크: ${p.link}` : ''].filter(Boolean).join('\n'))).join('');
+            body += section('프로젝트', items);
+        }
+        if (resume.certifications?.length) {
+            const items = resume.certifications.map(c => entry(`<strong>${esc(c.name)}</strong> · ${esc(c.issuer)}`, c.issueDate, c.credentialId ? `ID: ${c.credentialId}` : '')).join('');
+            body += section('자격증', items);
+        }
+        if (resume.languages?.length) {
+            const items = resume.languages.map(l => `<div class="skill-row"><span class="skill-cat">${esc(l.name)}</span><span class="skill-items">${l.testName ? esc(l.testName) + ' · ' : ''}${esc(l.score)}</span></div>`).join('');
+            body += section('어학', items);
+        }
+        if (resume.awards?.length) {
+            const items = resume.awards.map((a) => entry(`<strong>${esc(a.name)}</strong> · ${esc(a.issuer)}`, a.awardDate || '', strip(a.description))).join('');
+            body += section('수상', items);
+        }
+        if (resume.activities?.length) {
+            const items = resume.activities.map((a) => entry(`<strong>${esc(a.name)}</strong> · ${esc(a.organization)}${a.role ? ` (${esc(a.role)})` : ''}`, `${a.startDate} ~ ${a.endDate}`, strip(a.description))).join('');
+            body += section('활동', items);
+        }
+        return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(resume.title || pi?.name || '이력서')}</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; color: #1e293b; background: #f8fafc; padding: 2rem; }
+  .resume { max-width: 800px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,.08); overflow: hidden; }
+  .resume-header { background: linear-gradient(135deg, #1e40af 0%, #4f46e5 100%); color: #fff; padding: 2.5rem 2.5rem 2rem; }
+  .resume-header h1 { font-size: 2rem; font-weight: 800; margin-bottom: .5rem; letter-spacing: -.02em; }
+  .contacts { font-size: 12px; opacity: .85; margin-bottom: .75rem; }
+  .summary { font-size: 13px; opacity: .9; line-height: 1.7; max-width: 580px; }
+  .section { padding: 1.5rem 2.5rem; border-bottom: 1px solid #e2e8f0; }
+  .section:last-child { border-bottom: none; }
+  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #4f46e5; margin-bottom: 1rem; padding-bottom: .5rem; border-bottom: 2px solid #e0e7ff; }
+  .entry { margin-bottom: 1.25rem; }
+  .entry:last-child { margin-bottom: 0; }
+  .entry-header { font-size: 13.5px; font-weight: 600; color: #0f172a; margin-bottom: .2rem; }
+  .entry-meta { font-size: 11.5px; color: #64748b; margin-bottom: .35rem; font-style: italic; }
+  .entry-desc { font-size: 12.5px; color: #475569; line-height: 1.7; white-space: pre-line; }
+  .skill-row { display: flex; gap: 1rem; align-items: baseline; margin-bottom: .5rem; }
+  .skill-cat { font-weight: 600; font-size: 12px; color: #4f46e5; min-width: 100px; flex-shrink: 0; }
+  .skill-items { font-size: 12.5px; color: #334155; }
+  @media print { body { padding: 0; background: none; } .resume { box-shadow: none; border-radius: 0; } }
+</style>
+</head>
+<body><div class="resume">${body}</div></body>
+</html>`;
+    }
     async getResumeData(resumeId) {
         const resume = await this.prisma.resume.findUnique({
             where: { id: resumeId },

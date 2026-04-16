@@ -84,7 +84,7 @@ export class CommunityService {
     });
   }
 
-  async updatePost(id: string, userId: string, role: string, body: { title?: string; content?: string; category?: string; isPinned?: boolean; attachments?: any[] }) {
+  async updatePost(id: string, userId: string, role: string, body: { title?: string; content?: string; category?: string; isPinned?: boolean; isHidden?: boolean; attachments?: any[] }) {
     const post = await this.prisma.communityPost.findUnique({ where: { id } });
     if (!post) throw new Error('Not found');
     if (post.userId !== userId && role !== 'admin' && role !== 'superadmin') throw new Error('Forbidden');

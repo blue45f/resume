@@ -97,6 +97,18 @@ export default function ExportPanel({ resumeId, resumeTitle, onPrint }: Props) {
       download: `${safeTitle}.json`,
     },
     {
+      label: 'HTML',
+      format: '.html',
+      icon: (
+        <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+        </svg>
+      ),
+      description: '오프라인 열람 가능한 독립형 파일',
+      href: `${API_URL}/api/resumes/${resumeId}/export/html`,
+      download: `${safeTitle}.html`,
+    },
+    {
       label: '이미지',
       format: '.png',
       icon: (

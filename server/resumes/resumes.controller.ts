@@ -258,6 +258,21 @@ export class ResumesController {
     }
   }
 
+  @Get(':id/export/html')
+  @ApiOperation({ summary: '이력서 HTML 내보내기 (독립형 파일)' })
+  async exportHtml(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const html = await this.exportService.exportAsHtml(id);
+      this.resumesService.incrementViewCount(id);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="resume.html"`);
+      res.send(html);
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
+      throw new InternalServerErrorException('HTML 내보내기에 실패했습니다');
+    }
+  }
+
   @Get(':id/endorsements')
   @Public()
   @ApiOperation({ summary: '이력서 스킬 추천 목록 조회' })
