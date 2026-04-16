@@ -116,6 +116,142 @@ export declare class JobsController {
     deleteExternalLink(id: string, req: any): Promise<{
         success: boolean;
     }>;
+    getCuratedJobs(jobType?: string, experienceLevel?: string, companySize?: string, industry?: string, location?: string, q?: string, page?: string, limit?: string): Promise<{
+        items: ({
+            author: {
+                id: string;
+                name: string;
+                companyName: string | null;
+            } | null;
+        } & {
+            id: string;
+            company: string;
+            position: string;
+            location: string;
+            salary: string;
+            requirements: string;
+            benefits: string;
+            status: string;
+            skills: string;
+            createdAt: Date;
+            updatedAt: Date;
+            companySize: string;
+            clickCount: number;
+            companyLogo: string;
+            department: string;
+            summary: string;
+            jobType: string;
+            experienceLevel: string;
+            education: string;
+            industry: string;
+            sourceUrl: string;
+            sourceSite: string;
+            deadline: Date | null;
+            isRolling: boolean;
+            viewCount: number;
+            authorId: string | null;
+        })[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }>;
+    getCuratedJob(id: string): Promise<{
+        author: {
+            id: string;
+            name: string;
+            companyName: string | null;
+        } | null;
+    } & {
+        id: string;
+        company: string;
+        position: string;
+        location: string;
+        salary: string;
+        requirements: string;
+        benefits: string;
+        status: string;
+        skills: string;
+        createdAt: Date;
+        updatedAt: Date;
+        companySize: string;
+        clickCount: number;
+        companyLogo: string;
+        department: string;
+        summary: string;
+        jobType: string;
+        experienceLevel: string;
+        education: string;
+        industry: string;
+        sourceUrl: string;
+        sourceSite: string;
+        deadline: Date | null;
+        isRolling: boolean;
+        viewCount: number;
+        authorId: string | null;
+    }>;
+    createCuratedJob(body: any, req: any): Promise<{
+        id: string;
+        company: string;
+        position: string;
+        location: string;
+        salary: string;
+        requirements: string;
+        benefits: string;
+        status: string;
+        skills: string;
+        createdAt: Date;
+        updatedAt: Date;
+        companySize: string;
+        clickCount: number;
+        companyLogo: string;
+        department: string;
+        summary: string;
+        jobType: string;
+        experienceLevel: string;
+        education: string;
+        industry: string;
+        sourceUrl: string;
+        sourceSite: string;
+        deadline: Date | null;
+        isRolling: boolean;
+        viewCount: number;
+        authorId: string | null;
+    }>;
+    updateCuratedJob(id: string, body: any, req: any): Promise<{
+        id: string;
+        company: string;
+        position: string;
+        location: string;
+        salary: string;
+        requirements: string;
+        benefits: string;
+        status: string;
+        skills: string;
+        createdAt: Date;
+        updatedAt: Date;
+        companySize: string;
+        clickCount: number;
+        companyLogo: string;
+        department: string;
+        summary: string;
+        jobType: string;
+        experienceLevel: string;
+        education: string;
+        industry: string;
+        sourceUrl: string;
+        sourceSite: string;
+        deadline: Date | null;
+        isRolling: boolean;
+        viewCount: number;
+        authorId: string | null;
+    }>;
+    deleteCuratedJob(id: string, req: any): Promise<{
+        success: boolean;
+    }>;
+    recordCuratedJobClick(id: string): Promise<{
+        sourceUrl: string;
+    }>;
     findOne(id: string): Promise<{
         user: {
             id: string;

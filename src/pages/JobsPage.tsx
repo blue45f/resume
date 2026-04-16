@@ -495,6 +495,338 @@ interface JobPost {
   user: { id: string; name: string; companyName?: string };
 }
 
+/* ------------------------------------------------------------------ */
+/*  Curated Jobs (잡코리아 스타일 채용 정보 카드)                        */
+/* ------------------------------------------------------------------ */
+interface CuratedJob {
+  id: string;
+  company: string;
+  companyLogo: string;
+  position: string;
+  department: string;
+  summary: string;
+  requirements: string;
+  benefits: string;
+  skills: string;
+  jobType: string;
+  experienceLevel: string;
+  education: string;
+  salary: string;
+  location: string;
+  companySize: string;
+  industry: string;
+  sourceUrl: string;
+  sourceSite: string;
+  deadline: string | null;
+  isRolling: boolean;
+  status: string;
+  viewCount: number;
+  clickCount: number;
+  createdAt: string;
+}
+
+const EXP_LABELS: Record<string, string> = {
+  junior: '신입', mid: '경력 3~7년', senior: '시니어 7년+', any: '경력무관',
+};
+
+const SIZE_LABELS: Record<string, string> = {
+  conglomerate: '대기업', midsize: '중견기업', public: '공기업', government: '공무원', medium: '중소기업', startup: '스타트업',
+};
+
+const INDUSTRY_LABELS: Record<string, string> = {
+  it: 'IT/SW', semiconductor: '반도체', automotive: '자동차', fintech: '핀테크',
+  ecommerce: '이커머스', energy: '에너지', construction: '건설', transportation: '교통',
+  manufacturing: '제조', government: '공공', healthcare: '의료/보건',
+};
+
+function getDday(deadline: string | null, isRolling: boolean): { text: string; color: string } {
+  if (isRolling) return { text: '상시채용', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' };
+  if (!deadline) return { text: '상시채용', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' };
+  const diff = Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000);
+  if (diff < 0) return { text: '마감', color: 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400' };
+  if (diff === 0) return { text: '오늘마감', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' };
+  if (diff <= 3) return { text: `D-${diff}`, color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' };
+  if (diff <= 7) return { text: `D-${diff}`, color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' };
+  return { text: `D-${diff}`, color: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' };
+}
+
+function CuratedJobsTab() {
+  const [jobs, setJobs] = useState<CuratedJob[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [expFilter, setExpFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [sizeFilter, setSizeFilter] = useState('all');
+  const [searchInput, setSearchInput] = useState('');
+  const [q, setQ] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (expFilter !== 'all') params.set('experienceLevel', expFilter);
+    if (typeFilter !== 'all') params.set('jobType', typeFilter);
+    if (sizeFilter !== 'all') params.set('companySize', sizeFilter);
+    if (q) params.set('q', q);
+    params.set('page', String(page));
+    params.set('limit', '20');
+    fetch(`${API_URL}/api/jobs/curated/list?${params}`)
+      .then(r => r.json())
+      .then(data => {
+        setJobs(data.items || []);
+        setTotal(data.total || 0);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [expFilter, typeFilter, sizeFilter, q, page]);
+
+  const handleClick = (job: CuratedJob) => {
+    fetch(`${API_URL}/api/jobs/curated/${job.id}/click`, { method: 'POST' }).catch(() => {});
+    window.open(job.sourceUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const filterBtn = (active: boolean) =>
+    `px-2.5 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
+      active ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+    }`;
+
+  return (
+    <div>
+      {/* Search */}
+      <form onSubmit={e => { e.preventDefault(); setQ(searchInput); setPage(1); }} className="flex gap-2 mb-4">
+        <input
+          type="search" value={searchInput} onChange={e => setSearchInput(e.target.value)}
+          placeholder="회사명, 포지션, 기술스택 검색..."
+          className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
+        />
+        <button type="submit" className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">검색</button>
+      </form>
+
+      {/* Filters */}
+      <div className="space-y-2 mb-5">
+        <div className="flex gap-1.5 flex-wrap">
+          <span className="text-[10px] text-slate-400 self-center w-10 shrink-0">경력</span>
+          {[{ k: 'all', l: '전체' }, { k: 'junior', l: '신입' }, { k: 'mid', l: '경력' }, { k: 'senior', l: '시니어' }, { k: 'any', l: '무관' }].map(o => (
+            <button key={o.k} onClick={() => { setExpFilter(o.k); setPage(1); }} className={filterBtn(expFilter === o.k)}>{o.l}</button>
+          ))}
+        </div>
+        <div className="flex gap-1.5 flex-wrap">
+          <span className="text-[10px] text-slate-400 self-center w-10 shrink-0">고용</span>
+          {[{ k: 'all', l: '전체' }, { k: 'fulltime', l: '정규직' }, { k: 'contract', l: '계약직' }, { k: 'intern', l: '인턴' }].map(o => (
+            <button key={o.k} onClick={() => { setTypeFilter(o.k); setPage(1); }} className={filterBtn(typeFilter === o.k)}>{o.l}</button>
+          ))}
+        </div>
+        <div className="flex gap-1.5 flex-wrap">
+          <span className="text-[10px] text-slate-400 self-center w-10 shrink-0">기업</span>
+          {[{ k: 'all', l: '전체' }, { k: 'conglomerate', l: '대기업' }, { k: 'midsize', l: '중견기업' }, { k: 'public', l: '공기업' }, { k: 'government', l: '공무원' }, { k: 'medium', l: '중소기업' }, { k: 'startup', l: '스타트업' }].map(o => (
+            <button key={o.k} onClick={() => { setSizeFilter(o.k); setPage(1); }} className={filterBtn(sizeFilter === o.k)}>{o.l}</button>
+          ))}
+        </div>
+      </div>
+
+      <p className="text-xs text-slate-400 mb-3">{total}건의 채용 정보</p>
+
+      {/* Job Cards */}
+      {loading ? (
+        <div className="space-y-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-36 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+          ))}
+        </div>
+      ) : jobs.length === 0 ? (
+        <div className="text-center py-16 text-slate-400">
+          <p className="text-4xl mb-3">📋</p>
+          <p className="text-sm">조건에 맞는 채용 정보가 없습니다</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {jobs.map(job => {
+            const dday = getDday(job.deadline, job.isRolling);
+            const expanded = expandedId === job.id;
+            const skills = job.skills.split(',').map(s => s.trim()).filter(Boolean);
+
+            return (
+              <div
+                key={job.id}
+                className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200 overflow-hidden"
+              >
+                {/* Card Header */}
+                <div className="p-4 sm:p-5">
+                  <div className="flex gap-3">
+                    {/* Company Logo */}
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center text-2xl shrink-0 shadow-sm border border-slate-200 dark:border-slate-600">
+                      {job.companyLogo || '🏢'}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      {/* Top row: company + d-day */}
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">{job.company}</span>
+                          {job.companySize && SIZE_LABELS[job.companySize] && (
+                            <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">
+                              {SIZE_LABELS[job.companySize]}
+                            </span>
+                          )}
+                          {job.industry && INDUSTRY_LABELS[job.industry] && (
+                            <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-medium bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded">
+                              {INDUSTRY_LABELS[job.industry]}
+                            </span>
+                          )}
+                        </div>
+                        <span className={`shrink-0 px-2 py-0.5 text-[10px] font-bold rounded-full ${dday.color}`}>
+                          {dday.text}
+                        </span>
+                      </div>
+
+                      {/* Position title */}
+                      <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 mb-2 leading-snug">
+                        {job.position}
+                      </h3>
+
+                      {/* Meta badges */}
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md">
+                          📍 {job.location || '미정'}
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md">
+                          👤 {EXP_LABELS[job.experienceLevel] || job.experienceLevel}
+                        </span>
+                        {job.education && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md">
+                            🎓 {job.education}
+                          </span>
+                        )}
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md">
+                          📋 {JOB_TYPES[job.jobType] || job.jobType}
+                        </span>
+                        {job.salary && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-md">
+                            💰 {job.salary}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Skills */}
+                      {skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {skills.slice(0, 5).map((sk, i) => {
+                            const c = SKILL_COLORS[i % SKILL_COLORS.length];
+                            return (
+                              <span key={sk} className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${c.bg} ${c.text}`}>
+                                {sk}
+                              </span>
+                            );
+                          })}
+                          {skills.length > 5 && <span className="text-[10px] text-slate-400">+{skills.length - 5}</span>}
+                        </div>
+                      )}
+
+                      {/* Summary */}
+                      {job.summary && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                          {job.summary}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expand/Apply Row */}
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <button
+                      onClick={() => setExpandedId(expanded ? null : job.id)}
+                      className="text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
+                    >
+                      {expanded ? '접기' : '상세보기'}
+                      <svg className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-400">
+                        조회 {job.viewCount} · {job.sourceSite}
+                      </span>
+                      <button
+                        onClick={() => handleClick(job)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-xl transition-colors"
+                      >
+                        지원하기
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expanded Detail */}
+                {expanded && (
+                  <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 space-y-3 animate-fade-in">
+                    {job.requirements && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                          <span className="w-4 h-4 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded flex items-center justify-center text-[10px]">✓</span>
+                          자격 요건
+                        </h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">{job.requirements}</p>
+                      </div>
+                    )}
+                    {job.benefits && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                          <span className="w-4 h-4 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded flex items-center justify-center text-[10px]">★</span>
+                          복리후생
+                        </h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{job.benefits}</p>
+                      </div>
+                    )}
+                    {job.department && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">부서/직군</h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">{job.department}</p>
+                      </div>
+                    )}
+                    <div className="pt-2">
+                      <button
+                        onClick={() => handleClick(job)}
+                        className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                      >
+                        {job.sourceSite}에서 지원하기
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {total > 20 && (
+        <div className="flex justify-center gap-2 mt-6">
+          {Array.from({ length: Math.ceil(total / 20) }, (_, i) => i + 1).map(p => (
+            <button
+              key={p}
+              onClick={() => setPage(p)}
+              className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${
+                page === p ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const JOB_TYPES: Record<string, string> = {
   fulltime: '정규직', contract: '계약직', parttime: '파트타임', intern: '인턴',
 };
@@ -537,7 +869,10 @@ function MatchBadge({ score }: { score: number }) {
   );
 }
 
+type JobTab = 'curated' | 'internal' | 'links';
+
 export default function JobsPage() {
+  const [activeTab, setActiveTab] = useState<JobTab>('curated');
   const [jobs, setJobs] = useState<JobPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -652,10 +987,9 @@ export default function JobsPage() {
     <>
       <Header />
       <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">채용 공고</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{filteredJobs.length}개의 공고</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">채용</h1>
           </div>
           <div className="flex items-center gap-2">
             <JobAlert jobs={jobs} />
@@ -667,9 +1001,39 @@ export default function JobsPage() {
           </div>
         </div>
 
-        {/* External Job Sites Quick Links */}
-        <ExternalJobLinks internalJobs={jobs} onDirectApply={handleQuickApply} />
+        {/* Tab Navigation */}
+        <div className="flex gap-1 mb-5 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+          {[
+            { id: 'curated' as JobTab, label: '채용 정보', icon: '📋', desc: '공기업·대기업 채용' },
+            { id: 'internal' as JobTab, label: '채용 공고', icon: '📝', desc: '직접 등록 공고' },
+            { id: 'links' as JobTab, label: '바로가기', icon: '🔗', desc: '기업 채용사이트' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 py-2.5 px-3 rounded-lg text-center transition-all duration-200 ${
+                activeTab === tab.id
+                  ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-slate-100'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              <span className="text-sm">{tab.icon}</span>
+              <span className="text-xs font-medium ml-1">{tab.label}</span>
+            </button>
+          ))}
+        </div>
 
+        {/* Tab: Curated Jobs */}
+        {activeTab === 'curated' && <CuratedJobsTab />}
+
+        {/* Tab: External Links */}
+        {activeTab === 'links' && (
+          <ExternalJobLinks internalJobs={jobs} onDirectApply={handleQuickApply} />
+        )}
+
+        {/* Tab: Internal Jobs (direct postings) */}
+        {activeTab === 'internal' && (
+        <>
         {/* Search */}
         <form onSubmit={handleSearch} className="flex gap-2 mb-4">
           <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="포지션, 회사, 기술로 검색..." className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500" />
@@ -987,6 +1351,8 @@ export default function JobsPage() {
               </div>
             </div>
           </>
+        )}
+        </>
         )}
         {/* Quick Apply Modal */}
         {applyModalJob && (

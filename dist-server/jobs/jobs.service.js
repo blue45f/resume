@@ -165,6 +165,117 @@ let JobsService = class JobsService {
         await this.prisma.externalJobLink.delete({ where: { id } });
         return { success: true };
     }
+    async getCuratedJobs(filters) {
+        const where = { status: 'active' };
+        if (filters.jobType && filters.jobType !== 'all') {
+            where.jobType = filters.jobType;
+        }
+        if (filters.experienceLevel && filters.experienceLevel !== 'all') {
+            where.experienceLevel = filters.experienceLevel;
+        }
+        if (filters.companySize && filters.companySize !== 'all') {
+            where.companySize = filters.companySize;
+        }
+        if (filters.industry && filters.industry !== 'all') {
+            where.industry = filters.industry;
+        }
+        if (filters.location && filters.location !== 'all') {
+            where.location = { contains: filters.location, mode: 'insensitive' };
+        }
+        if (filters.q) {
+            where.OR = [
+                { company: { contains: filters.q, mode: 'insensitive' } },
+                { position: { contains: filters.q, mode: 'insensitive' } },
+                { skills: { contains: filters.q, mode: 'insensitive' } },
+                { summary: { contains: filters.q, mode: 'insensitive' } },
+            ];
+        }
+        const page = filters.page || 1;
+        const limit = Math.min(filters.limit || 20, 50);
+        const [items, total] = await Promise.all([
+            this.prisma.curatedJob.findMany({
+                where,
+                include: { author: { select: { id: true, name: true, companyName: true } } },
+                orderBy: [{ deadline: 'asc' }, { createdAt: 'desc' }],
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            this.prisma.curatedJob.count({ where }),
+        ]);
+        return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+    }
+    async getCuratedJob(id) {
+        const job = await this.prisma.curatedJob.findUnique({
+            where: { id },
+            include: { author: { select: { id: true, name: true, companyName: true } } },
+        });
+        if (!job)
+            throw new common_1.NotFoundException();
+        await this.prisma.curatedJob.update({ where: { id }, data: { viewCount: { increment: 1 } } });
+        return job;
+    }
+    async createCuratedJob(data, userId, userRole, userType) {
+        if (userRole !== 'admin' && userRole !== 'superadmin' && userType !== 'recruiter' && userType !== 'company') {
+            throw new common_1.ForbiddenException('채용 정보는 관리자 또는 채용담당자만 등록할 수 있습니다');
+        }
+        return this.prisma.curatedJob.create({
+            data: {
+                company: data.company || '',
+                companyLogo: data.companyLogo || '',
+                position: data.position || '',
+                department: data.department || '',
+                summary: data.summary || '',
+                requirements: data.requirements || '',
+                benefits: data.benefits || '',
+                skills: data.skills || '',
+                jobType: data.jobType || 'fulltime',
+                experienceLevel: data.experienceLevel || 'any',
+                education: data.education || '',
+                salary: data.salary || '',
+                location: data.location || '',
+                companySize: data.companySize || '',
+                industry: data.industry || '',
+                sourceUrl: data.sourceUrl || '',
+                sourceSite: data.sourceSite || '',
+                deadline: data.deadline ? new Date(data.deadline) : null,
+                isRolling: data.isRolling || false,
+                authorId: userId,
+            },
+        });
+    }
+    async updateCuratedJob(id, data, userId, userRole) {
+        const job = await this.prisma.curatedJob.findUnique({ where: { id } });
+        if (!job)
+            throw new common_1.NotFoundException();
+        if (job.authorId !== userId && userRole !== 'admin' && userRole !== 'superadmin') {
+            throw new common_1.ForbiddenException();
+        }
+        const updateData = { ...data };
+        if (data.deadline)
+            updateData.deadline = new Date(data.deadline);
+        delete updateData.id;
+        delete updateData.authorId;
+        delete updateData.createdAt;
+        delete updateData.updatedAt;
+        return this.prisma.curatedJob.update({ where: { id }, data: updateData });
+    }
+    async deleteCuratedJob(id, userId, userRole) {
+        const job = await this.prisma.curatedJob.findUnique({ where: { id } });
+        if (!job)
+            throw new common_1.NotFoundException();
+        if (job.authorId !== userId && userRole !== 'admin' && userRole !== 'superadmin') {
+            throw new common_1.ForbiddenException();
+        }
+        await this.prisma.curatedJob.delete({ where: { id } });
+        return { success: true };
+    }
+    async recordCuratedJobClick(id) {
+        const job = await this.prisma.curatedJob.findUnique({ where: { id } });
+        if (!job)
+            throw new common_1.NotFoundException();
+        await this.prisma.curatedJob.update({ where: { id }, data: { clickCount: { increment: 1 } } });
+        return { sourceUrl: job.sourceUrl };
+    }
 };
 exports.JobsService = JobsService;
 exports.JobsService = JobsService = __decorate([

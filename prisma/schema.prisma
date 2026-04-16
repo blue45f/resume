@@ -46,6 +46,7 @@ model User {
   authoredNotices    Notice[]
   noticeComments     NoticeComment[]
   noticeHistoryEdits NoticeHistory[]
+  curatedJobs        CuratedJob[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -717,4 +718,45 @@ model ExternalJobLink {
   @@index([companySize])
   @@index([jobCategory])
   @@map("external_job_links")
+}
+
+model CuratedJob {
+  id            String   @id @default(uuid())
+  company       String
+  companyLogo   String   @default("") @map("company_logo")
+  position      String
+  department    String   @default("")
+  summary       String   @default("")
+  requirements  String   @default("")
+  benefits      String   @default("")
+  skills        String   @default("")
+
+  jobType       String   @default("fulltime") @map("job_type")
+  experienceLevel String @default("any") @map("experience_level")
+  education     String   @default("")
+  salary        String   @default("")
+  location      String   @default("")
+  companySize   String   @default("") @map("company_size")
+  industry      String   @default("")
+
+  sourceUrl     String   @map("source_url")
+  sourceSite    String   @default("") @map("source_site")
+
+  deadline      DateTime?
+  isRolling     Boolean  @default(false) @map("is_rolling")
+  status        String   @default("active")
+
+  viewCount     Int      @default(0) @map("view_count")
+  clickCount    Int      @default(0) @map("click_count")
+  authorId      String?  @map("author_id")
+  author        User?    @relation(fields: [authorId], references: [id])
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([status, deadline])
+  @@index([companySize])
+  @@index([industry])
+  @@index([jobType])
+  @@map("curated_jobs")
 }

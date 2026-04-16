@@ -45,6 +45,28 @@ let JobsController = class JobsController {
     deleteExternalLink(id, req) {
         return this.service.deleteExternalLink(id, req.user?.role);
     }
+    getCuratedJobs(jobType, experienceLevel, companySize, industry, location, q, page, limit) {
+        return this.service.getCuratedJobs({
+            jobType, experienceLevel, companySize, industry, location, q,
+            page: page ? parseInt(page) : 1,
+            limit: limit ? parseInt(limit) : 20,
+        });
+    }
+    getCuratedJob(id) {
+        return this.service.getCuratedJob(id);
+    }
+    createCuratedJob(body, req) {
+        return this.service.createCuratedJob(body, req.user?.id, req.user?.role, req.user?.userType);
+    }
+    updateCuratedJob(id, body, req) {
+        return this.service.updateCuratedJob(id, body, req.user?.id, req.user?.role);
+    }
+    deleteCuratedJob(id, req) {
+        return this.service.deleteCuratedJob(id, req.user?.id, req.user?.role);
+    }
+    recordCuratedJobClick(id) {
+        return this.service.recordCuratedJobClick(id);
+    }
     findOne(id) {
         return this.service.findOne(id);
     }
@@ -131,6 +153,68 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], JobsController.prototype, "deleteExternalLink", null);
+__decorate([
+    (0, common_1.Get)('curated/list'),
+    (0, auth_guard_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: '큐레이션 채용 정보 목록' }),
+    __param(0, (0, common_1.Query)('jobType')),
+    __param(1, (0, common_1.Query)('experienceLevel')),
+    __param(2, (0, common_1.Query)('companySize')),
+    __param(3, (0, common_1.Query)('industry')),
+    __param(4, (0, common_1.Query)('location')),
+    __param(5, (0, common_1.Query)('q')),
+    __param(6, (0, common_1.Query)('page')),
+    __param(7, (0, common_1.Query)('limit')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "getCuratedJobs", null);
+__decorate([
+    (0, common_1.Get)('curated/:id'),
+    (0, auth_guard_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: '큐레이션 채용 정보 상세' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "getCuratedJob", null);
+__decorate([
+    (0, common_1.Post)('curated'),
+    (0, swagger_1.ApiOperation)({ summary: '큐레이션 채용 정보 등록 (관리자/채용담당자)' }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "createCuratedJob", null);
+__decorate([
+    (0, common_1.Put)('curated/:id'),
+    (0, swagger_1.ApiOperation)({ summary: '큐레이션 채용 정보 수정' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "updateCuratedJob", null);
+__decorate([
+    (0, common_1.Delete)('curated/:id'),
+    (0, swagger_1.ApiOperation)({ summary: '큐레이션 채용 정보 삭제' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "deleteCuratedJob", null);
+__decorate([
+    (0, common_1.Post)('curated/:id/click'),
+    (0, auth_guard_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: '큐레이션 채용 클릭 추적' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "recordCuratedJobClick", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, auth_guard_1.Public)(),

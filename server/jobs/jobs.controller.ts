@@ -66,6 +66,60 @@ export class JobsController {
     return this.service.deleteExternalLink(id, req.user?.role);
   }
 
+  // ── Curated Jobs (외부 채용 정보 카드) ───────────────────────────────
+
+  @Get('curated/list')
+  @Public()
+  @ApiOperation({ summary: '큐레이션 채용 정보 목록' })
+  getCuratedJobs(
+    @Query('jobType') jobType?: string,
+    @Query('experienceLevel') experienceLevel?: string,
+    @Query('companySize') companySize?: string,
+    @Query('industry') industry?: string,
+    @Query('location') location?: string,
+    @Query('q') q?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.service.getCuratedJobs({
+      jobType, experienceLevel, companySize, industry, location, q,
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 20,
+    });
+  }
+
+  @Get('curated/:id')
+  @Public()
+  @ApiOperation({ summary: '큐레이션 채용 정보 상세' })
+  getCuratedJob(@Param('id') id: string) {
+    return this.service.getCuratedJob(id);
+  }
+
+  @Post('curated')
+  @ApiOperation({ summary: '큐레이션 채용 정보 등록 (관리자/채용담당자)' })
+  createCuratedJob(@Body() body: any, @Req() req: any) {
+    return this.service.createCuratedJob(body, req.user?.id, req.user?.role, req.user?.userType);
+  }
+
+  @Put('curated/:id')
+  @ApiOperation({ summary: '큐레이션 채용 정보 수정' })
+  updateCuratedJob(@Param('id') id: string, @Body() body: any, @Req() req: any) {
+    return this.service.updateCuratedJob(id, body, req.user?.id, req.user?.role);
+  }
+
+  @Delete('curated/:id')
+  @ApiOperation({ summary: '큐레이션 채용 정보 삭제' })
+  deleteCuratedJob(@Param('id') id: string, @Req() req: any) {
+    return this.service.deleteCuratedJob(id, req.user?.id, req.user?.role);
+  }
+
+  @Post('curated/:id/click')
+  @Public()
+  @ApiOperation({ summary: '큐레이션 채용 클릭 추적' })
+  recordCuratedJobClick(@Param('id') id: string) {
+    return this.service.recordCuratedJobClick(id);
+  }
+
   // ── 동적 :id 경로 — 반드시 정적 경로 뒤에 위치 ─────────────────────
 
   @Get(':id')
