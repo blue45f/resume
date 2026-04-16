@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -10,7 +10,7 @@ import { getTheme, setTheme } from '@/lib/theme';
 import { API_URL } from '@/lib/config';
 import { fetchDashboard, fetchUsage, changePassword as apiChangePassword, deleteAccount as apiDeleteAccount, updateProfile as apiUpdateProfile } from '@/lib/api';
 
-
+/* ── 최근 활동 ───────────────────────────────────── */
 function RecentActivityList() {
   const [activities, setActivities] = useState<any[]>([]);
 
@@ -33,7 +33,8 @@ function RecentActivityList() {
       .catch(() => {});
   }, []);
 
-  if (activities.length === 0) return <p className="text-sm text-slate-400 text-center py-4">최근 활동이 없습니다</p>;
+  if (activities.length === 0)
+    return <p className="text-sm text-slate-400 text-center py-4">최근 활동이 없습니다</p>;
 
   const icons: Record<string, string> = { edit: '✏️', resume: '📄', transform: '🤖' };
 
@@ -43,24 +44,107 @@ function RecentActivityList() {
         <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
           <span className="text-sm">{icons[a.type] || '📌'}</span>
           <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 truncate">{a.desc}</span>
-          <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{new Date(a.date).toLocaleDateString('ko-KR')}</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">
+            {new Date(a.date).toLocaleDateString('ko-KR')}
+          </span>
         </div>
       ))}
     </div>
   );
 }
 
+/* ── 콜랩서블 섹션 ───────────────────────────────── */
+interface SectionProps {
+  id: string;
+  icon: string;
+  title: string;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+  danger?: boolean;
+}
+
+function CollapsibleSection({ id, icon, title, open, onToggle, children, danger }: SectionProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <section
+      id={id}
+      className={`bg-white dark:bg-slate-800 rounded-2xl border mb-4 overflow-hidden transition-shadow ${
+        danger
+          ? 'border-2 border-red-200 dark:border-red-900/60'
+          : 'border-slate-200 dark:border-slate-700'
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors"
+      >
+        <div className="flex items-center gap-2.5">
+          <span className="text-lg" aria-hidden="true">{icon}</span>
+          <h2 className={`text-base font-semibold ${danger ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-slate-100'}`}>
+            {title}
+          </h2>
+        </div>
+        <svg
+          className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <div
+        ref={contentRef}
+        className={`transition-all duration-300 ease-out ${open ? 'opacity-100' : 'opacity-0 max-h-0 overflow-hidden'}`}
+        style={open ? { maxHeight: contentRef.current ? contentRef.current.scrollHeight + 200 : 9999 } : { maxHeight: 0 }}
+      >
+        <div className="px-6 pb-6 pt-0 border-t border-slate-100 dark:border-slate-700/50">
+          <div className="pt-4">{children}</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── 빠른 탐색 ───────────────────────────────────── */
+const NAV_ITEMS = [
+  { id: 'sec-profile', label: '프로필' },
+  { id: 'sec-usertype', label: '유형' },
+  { id: 'sec-subscription', label: '구독' },
+  { id: 'sec-activity', label: '활동' },
+  { id: 'sec-social', label: '소셜' },
+  { id: 'sec-password', label: '비밀번호' },
+  { id: 'sec-notifications', label: '알림' },
+  { id: 'sec-theme', label: '테마' },
+  { id: 'sec-data', label: '데이터' },
+  { id: 'sec-danger', label: '삭제' },
+];
+
+/* ══════════════════════════════════════════════════ */
 export default function SettingsPage() {
   const navigate = useNavigate();
   const user = getUser();
+
+  /* ── 상태 ── */
+  const [openSections, setOpenSections] = useState<Set<string>>(
+    new Set(['sec-profile', 'sec-usertype', 'sec-subscription'])
+  );
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState(user?.name || '');
+  const [savingName, setSavingName] = useState(false);
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPw, setChangingPw] = useState(false);
+
   const [usage, setUsage] = useState<{ feature: string; count: number }[]>([]);
   const [userType, setUserType] = useState(user?.userType || 'personal');
   const [switchingType, setSwitchingType] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(getTheme());
+
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('notification-prefs');
     return saved ? JSON.parse(saved) : { email: true, scout: true, comment: true };
@@ -68,6 +152,7 @@ export default function SettingsPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
+  /* ── 초기화 ── */
   useEffect(() => {
     if (!user) navigate('/login');
   }, [user]);
@@ -78,21 +163,54 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    if (getToken()) {
-      fetchUsage().then(setUsage).catch(() => {});
-    }
+    if (getToken()) fetchUsage().then(setUsage).catch(() => {});
   }, []);
+
+  /* ── 헬퍼 ── */
+  const toggleSection = (id: string) => {
+    setOpenSections(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // 닫혀 있으면 열기
+      if (!openSections.has(id)) toggleSection(id);
+    }
+  };
+
+  /* ── 핸들러 ── */
+  const handleSaveName = async () => {
+    if (!nameValue.trim()) return;
+    setSavingName(true);
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_URL}/api/auth/profile`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ name: nameValue.trim() }),
+      });
+      if (!res.ok) throw new Error();
+      const updated = await res.json();
+      if (token) setAuth(token, updated);
+      setEditingName(false);
+      toast('이름이 변경되었습니다', 'success');
+    } catch {
+      toast('이름 변경에 실패했습니다', 'error');
+    } finally {
+      setSavingName(false);
+    }
+  };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      toast('새 비밀번호가 일치하지 않습니다', 'error');
-      return;
-    }
-    if (newPassword.length < 8) {
-      toast('비밀번호는 8자 이상이어야 합니다', 'error');
-      return;
-    }
+    if (newPassword !== confirmPassword) { toast('새 비밀번호가 일치하지 않습니다', 'error'); return; }
+    if (newPassword.length < 8) { toast('비밀번호는 8자 이상이어야 합니다', 'error'); return; }
     setChangingPw(true);
     try {
       await apiChangePassword(currentPassword, newPassword);
@@ -121,9 +239,7 @@ export default function SettingsPage() {
     const updated = { ...notifications, [key]: !notifications[key] };
     setNotifications(updated);
     localStorage.setItem('notification-prefs', JSON.stringify(updated));
-    if (getToken()) {
-      apiUpdateProfile({ ...updated } as any).catch(() => {});
-    }
+    if (getToken()) apiUpdateProfile({ ...updated } as any).catch(() => {});
     toast('알림 설정이 저장되었습니다', 'success');
   };
 
@@ -136,15 +252,11 @@ export default function SettingsPage() {
   const handleExportData = async () => {
     try {
       const { fetchResumes, fetchApplications } = await import('@/lib/api');
-      const [resumes, apps] = await Promise.all([
-        fetchResumes(),
-        fetchApplications(),
-      ]);
-
+      const [resumes, apps] = await Promise.all([fetchResumes(), fetchApplications()]);
       const data = {
         exportDate: new Date().toISOString(),
         user: { name: user?.name, email: user?.email },
-        resumes: resumes,
+        resumes,
         applications: apps,
         notificationPreferences: notifications,
       };
@@ -164,58 +276,118 @@ export default function SettingsPage() {
   if (!user) return null;
 
   const inputClass = 'w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const isDark = currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   return (
     <>
       <Header />
       <main id="main-content" className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8" role="main">
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">설정</h1>
 
-        {/* Profile Info */}
-        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">프로필</h2>
-          <div className="space-y-3">
-            <div className="flex items-center gap-4">
-              {user.avatar && (
-                <img src={user.avatar} alt="" className="w-14 h-14 rounded-full border border-slate-200 dark:border-slate-600" />
+        {/* 헤더 */}
+        <div className="flex items-center justify-between mb-5">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">설정</h1>
+          <button
+            onClick={() => setOpenSections(prev => prev.size > 0 ? new Set() : new Set(NAV_ITEMS.map(n => n.id)))}
+            className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+          >
+            {openSections.size > 0 ? '모두 접기' : '모두 펼치기'}
+          </button>
+        </div>
+
+        {/* 빠른 탐색 */}
+        <div className="flex gap-1.5 mb-6 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
+          {NAV_ITEMS.filter(n => n.id !== 'sec-password' || user.provider === 'local').map(item => (
+            <button
+              key={item.id}
+              onClick={() => scrollTo(item.id)}
+              className={`shrink-0 px-3 py-1.5 text-xs font-medium rounded-xl whitespace-nowrap transition-colors ${
+                item.id === 'sec-danger'
+                  ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── 프로필 ── */}
+        <CollapsibleSection
+          id="sec-profile" icon="👤" title="프로필"
+          open={openSections.has('sec-profile')} onToggle={() => toggleSection('sec-profile')}
+        >
+          <div className="flex items-start gap-4">
+            {user.avatar ? (
+              <img src={user.avatar} alt="" className="w-16 h-16 rounded-full border-2 border-slate-200 dark:border-slate-600 shrink-0" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xl font-bold shrink-0">
+                {(user.name || user.email || '?')[0].toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              {/* 이름 편집 */}
+              {editingName ? (
+                <div className="flex items-center gap-2 mb-1">
+                  <input
+                    type="text"
+                    value={nameValue}
+                    onChange={e => setNameValue(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false); }}
+                    className="flex-1 px-3 py-1.5 border border-indigo-400 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    autoFocus
+                  />
+                  <button onClick={handleSaveName} disabled={savingName} className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+                    {savingName ? '저장 중' : '저장'}
+                  </button>
+                  <button onClick={() => { setEditingName(false); setNameValue(user.name || ''); }} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs rounded-lg">
+                    취소
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">{user.name || '이름 없음'}</p>
+                  <button
+                    onClick={() => setEditingName(true)}
+                    className="text-xs text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                  >
+                    ✏️
+                  </button>
+                </div>
               )}
-              <div>
-                <p className="font-medium text-slate-900 dark:text-slate-100">{user.name || '이름 없음'}</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                  {user.provider === 'local' ? '이메일 계정' : `${user.provider} 계정`}
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  {user.plan === 'premium' ? '💎 프리미엄' : user.plan === 'standard' ? '⭐ 스탠다드' : '🆓 무료'}
-                </p>
-                <div className="flex gap-3 mt-3">
-                  <Link to="/bookmarks" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">내 북마크</Link>
-                  <Link to="/my-cover-letters" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">내 자소서</Link>
-                  <Link to="/messages" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">쪽지</Link>
-                  <Link to="/scouts" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">스카우트</Link>
-                </div>
-                <div className="mt-2">
-                  <ProfileBadges resumeCount={0} isAdmin={user?.role === 'admin' || user?.role === 'superadmin'} userType={user?.userType} />
-                </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                {user.provider === 'local' ? '이메일 계정' : `${user.provider} 계정`}
+              </p>
+              <p className="text-xs text-slate-400 mt-1">
+                {user.plan === 'premium' ? '💎 프리미엄' : user.plan === 'standard' ? '⭐ 스탠다드' : '🆓 무료'}
+              </p>
+              <div className="flex flex-wrap gap-3 mt-3">
+                <Link to="/bookmarks" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">내 북마크</Link>
+                <Link to="/my-cover-letters" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">내 자소서</Link>
+                <Link to="/messages" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">쪽지</Link>
+                <Link to="/scouts" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">스카우트</Link>
+              </div>
+              <div className="mt-3">
+                <ProfileBadges resumeCount={0} isAdmin={user?.role === 'admin' || user?.role === 'superadmin'} userType={user?.userType} />
               </div>
             </div>
           </div>
-        </section>
+        </CollapsibleSection>
 
-        {/* User Type Switch */}
-        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">사용자 유형</h2>
+        {/* ── 사용자 유형 ── */}
+        <CollapsibleSection
+          id="sec-usertype" icon="🔄" title="사용자 유형"
+          open={openSections.has('sec-usertype')} onToggle={() => toggleSection('sec-usertype')}
+        >
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
             개인(구직자)과 채용담당자 모드를 전환할 수 있습니다. 모드에 따라 메뉴와 기능이 달라집니다.
           </p>
           <div className="flex gap-3">
             {([
               { value: 'personal', label: '개인 (구직자)', desc: '이력서 관리, 지원, 자소서 작성',
-                activeClass: 'border-green-500 bg-green-50 dark:bg-green-900/20 ring-1 ring-green-500',
-                dotActive: 'bg-green-500' },
+                activeClass: 'border-green-500 bg-green-50 dark:bg-green-900/20 ring-1 ring-green-500', dotActive: 'bg-green-500' },
               { value: 'recruiter', label: '채용담당자', desc: '채용 대시보드, 스카우트, 채용공고',
-                activeClass: 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 ring-1 ring-purple-500',
-                dotActive: 'bg-purple-500' },
+                activeClass: 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 ring-1 ring-purple-500', dotActive: 'bg-purple-500' },
             ] as const).map(opt => {
               const isActive = userType === opt.value;
               return (
@@ -244,9 +416,7 @@ export default function SettingsPage() {
                   }}
                   disabled={switchingType}
                   className={`flex-1 p-4 rounded-xl border-2 text-left transition-all duration-200 ${
-                    isActive
-                      ? opt.activeClass
-                      : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
+                    isActive ? opt.activeClass : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-1">
@@ -256,18 +426,18 @@ export default function SettingsPage() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 dark:text-slate-500 pl-5">{opt.desc}</p>
-                  {isActive && (
-                    <p className="text-xs text-green-600 dark:text-green-400 mt-2 pl-5 font-medium">현재 모드</p>
-                  )}
+                  {isActive && <p className="text-xs text-green-600 dark:text-green-400 mt-2 pl-5 font-medium">현재 모드</p>}
                 </button>
               );
             })}
           </div>
-        </section>
+        </CollapsibleSection>
 
-        {/* Subscription Details */}
-        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">구독 관리</h2>
+        {/* ── 구독 관리 ── */}
+        <CollapsibleSection
+          id="sec-subscription" icon="💳" title="구독 관리"
+          open={openSections.has('sec-subscription')} onToggle={() => toggleSection('sec-subscription')}
+        >
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
@@ -281,18 +451,11 @@ export default function SettingsPage() {
               {user.plan === 'free' || !user.plan ? '업그레이드' : '플랜 변경'}
             </Link>
           </div>
-
-          {/* Usage bars */}
           {usage.length > 0 && (
             <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-700">
               <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400">이번 달 사용량</h3>
               {usage.map(u => {
-                const featureLabels: Record<string, string> = {
-                  ai_transform: 'AI 변환',
-                  cover_letter: '자소서',
-                  translation: '번역',
-                  ai_coaching: 'AI 코칭',
-                };
+                const featureLabels: Record<string, string> = { ai_transform: 'AI 변환', cover_letter: '자소서', translation: '번역', ai_coaching: 'AI 코칭' };
                 const plan = getPlan(user?.plan || 'free');
                 const limit = u.feature === 'ai_transform' ? plan.features.aiTransformsPerMonth : -1;
                 const pct = limit > 0 ? Math.min(100, (u.count / limit) * 100) : 0;
@@ -312,17 +475,44 @@ export default function SettingsPage() {
               })}
             </div>
           )}
-        </section>
+          {/* AI 크레딧 */}
+          {(!user?.plan || user.plan === 'free') && (
+            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+              <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">AI 크레딧 충전</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">월 한도 초과 시 추가 크레딧을 구매할 수 있습니다.</p>
+              <div className="grid grid-cols-3 gap-3">
+                {[{ credits: 10, price: 1900, popular: false }, { credits: 30, price: 4900, popular: true }, { credits: 100, price: 9900, popular: false }].map(pack => (
+                  <button
+                    key={pack.credits}
+                    className={`p-3 rounded-xl border text-center transition-all duration-200 ${
+                      pack.popular ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{pack.credits}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">크레딧</p>
+                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">₩{pack.price.toLocaleString()}</p>
+                    {pack.popular && <span className="text-xs text-blue-500">인기</span>}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-slate-400 mt-2">결제 시스템 준비 중입니다.</p>
+            </div>
+          )}
+        </CollapsibleSection>
 
-        {/* Recent Activity */}
-        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">최근 활동</h2>
+        {/* ── 최근 활동 ── */}
+        <CollapsibleSection
+          id="sec-activity" icon="📊" title="최근 활동"
+          open={openSections.has('sec-activity')} onToggle={() => toggleSection('sec-activity')}
+        >
           <RecentActivityList />
-        </section>
+        </CollapsibleSection>
 
-        {/* Social Account Linking */}
-        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">소셜 계정 연동</h2>
+        {/* ── 소셜 계정 ── */}
+        <CollapsibleSection
+          id="sec-social" icon="🔗" title="소셜 계정 연동"
+          open={openSections.has('sec-social')} onToggle={() => toggleSection('sec-social')}
+        >
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">소셜 계정을 연동하면 해당 계정으로도 로그인할 수 있습니다.</p>
           <div className="space-y-3">
             {[
@@ -335,15 +525,10 @@ export default function SettingsPage() {
                 <div key={p.id} className={`flex items-center justify-between p-3 rounded-xl border ${p.color} dark:border-slate-600 transition-colors`}>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{p.name}</span>
-                    {isLinked && (
-                      <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">연동됨</span>
-                    )}
+                    {isLinked && <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">연동됨</span>}
                   </div>
                   {!isLinked && (
-                    <a
-                      href={`${API_URL}/api/auth/link/${p.id}`}
-                      className="text-sm px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                    >
+                    <a href={`${API_URL}/api/auth/link/${p.id}`} className="text-sm px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
                       연동하기
                     </a>
                   )}
@@ -351,12 +536,14 @@ export default function SettingsPage() {
               );
             })}
           </div>
-        </section>
+        </CollapsibleSection>
 
-        {/* Change Password - only for local accounts */}
+        {/* ── 비밀번호 변경 ── */}
         {user.provider === 'local' && (
-          <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">비밀번호 변경</h2>
+          <CollapsibleSection
+            id="sec-password" icon="🔐" title="비밀번호 변경"
+            open={openSections.has('sec-password')} onToggle={() => toggleSection('sec-password')}
+          >
             <form onSubmit={handleChangePassword} className="space-y-3">
               <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="현재 비밀번호" required className={inputClass} />
               <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="새 비밀번호 (8자 이상)" required minLength={8} className={inputClass} />
@@ -365,42 +552,14 @@ export default function SettingsPage() {
                 {changingPw ? '변경 중...' : '비밀번호 변경'}
               </button>
             </form>
-          </section>
+          </CollapsibleSection>
         )}
 
-        {/* Credit Purchase */}
-        {(!user?.plan || user.plan === 'free') && (
-          <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">AI 크레딧</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-              무료 플랜의 월 한도를 초과하면 추가 크레딧을 구매할 수 있습니다.
-            </p>
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              {[
-                { credits: 10, price: 1900, popular: false },
-                { credits: 30, price: 4900, popular: true },
-                { credits: 100, price: 9900, popular: false },
-              ].map(pack => (
-                <button
-                  key={pack.credits}
-                  className={`p-3 rounded-xl border text-center transition-all duration-200 ${
-                    pack.popular ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
-                  }`}
-                >
-                  <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{pack.credits}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">크레딧</p>
-                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">₩{pack.price.toLocaleString()}</p>
-                  {pack.popular && <span className="text-xs text-blue-500">인기</span>}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-slate-400">결제 시스템 준비 중입니다. 프로 플랜을 추천합니다.</p>
-          </section>
-        )}
-
-        {/* Notification Preferences */}
-        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">알림 설정</h2>
+        {/* ── 알림 설정 ── */}
+        <CollapsibleSection
+          id="sec-notifications" icon="🔔" title="알림 설정"
+          open={openSections.has('sec-notifications')} onToggle={() => toggleSection('sec-notifications')}
+        >
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">받고 싶은 알림 유형을 선택하세요.</p>
           <div className="space-y-3">
             {([
@@ -415,29 +574,21 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => handleNotificationToggle(item.key)}
-                  className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
-                    notifications[item.key]
-                      ? 'bg-blue-600'
-                      : 'bg-slate-300 dark:bg-slate-600'
-                  }`}
-                  role="switch"
-                  aria-checked={notifications[item.key]}
-                  aria-label={item.label}
+                  className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${notifications[item.key] ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'}`}
+                  role="switch" aria-checked={notifications[item.key]} aria-label={item.label}
                 >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-                      notifications[item.key] ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${notifications[item.key] ? 'translate-x-5' : 'translate-x-0'}`} />
                 </button>
               </div>
             ))}
           </div>
-        </section>
+        </CollapsibleSection>
 
-        {/* Theme Preview */}
-        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">테마 설정</h2>
+        {/* ── 테마 설정 ── */}
+        <CollapsibleSection
+          id="sec-theme" icon="🎨" title="테마 설정"
+          open={openSections.has('sec-theme')} onToggle={() => toggleSection('sec-theme')}
+        >
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">인터페이스 테마를 선택하세요.</p>
           <div className="grid grid-cols-3 gap-3 mb-4">
             {([
@@ -455,53 +606,57 @@ export default function SettingsPage() {
                 }`}
               >
                 <span className="text-2xl block mb-1">{opt.icon}</span>
-                <span className={`text-sm font-medium ${
-                  currentTheme === opt.value ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'
-                }`}>{opt.label}</span>
+                <span className={`text-sm font-medium ${currentTheme === opt.value ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'}`}>
+                  {opt.label}
+                </span>
               </button>
             ))}
           </div>
-          {/* Mini theme preview */}
+          {/* 미리보기 */}
           <div className="rounded-xl border border-slate-200 dark:border-slate-600 overflow-hidden">
             <div className="text-xs text-slate-400 dark:text-slate-500 px-3 py-1.5 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-600">
               미리보기 — {currentTheme === 'light' ? '라이트' : currentTheme === 'dark' ? '다크' : '시스템'} 모드
             </div>
-            <div className={`p-4 ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-900' : 'bg-white'}`}>
+            <div className={`p-4 ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
               <div className="flex items-center gap-3 mb-3">
-                <div className={`w-8 h-8 rounded-full ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                <div className={`w-8 h-8 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
                 <div className="flex-1 space-y-1.5">
-                  <div className={`h-2.5 rounded-full w-24 ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-700' : 'bg-slate-200'}`} />
-                  <div className={`h-2 rounded-full w-16 ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                  <div className={`h-2.5 rounded-full w-24 ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                  <div className={`h-2 rounded-full w-16 ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <div className={`h-2 rounded-full w-full ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-800' : 'bg-slate-100'}`} />
-                <div className={`h-2 rounded-full w-3/4 ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-800' : 'bg-slate-100'}`} />
-                <div className={`h-2 rounded-full w-1/2 ${currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                <div className={`h-2 rounded-full w-full ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                <div className={`h-2 rounded-full w-3/4 ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                <div className={`h-2 rounded-full w-1/2 ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
               </div>
             </div>
           </div>
-        </section>
+        </CollapsibleSection>
 
-        {/* Data Export */}
-        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">데이터 내보내기</h2>
+        {/* ── 데이터 내보내기 ── */}
+        <CollapsibleSection
+          id="sec-data" icon="📦" title="데이터 내보내기"
+          open={openSections.has('sec-data')} onToggle={() => toggleSection('sec-data')}
+        >
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">모든 이력서, 지원 내역, 설정을 JSON 파일로 다운로드합니다.</p>
           <button
             onClick={handleExportData}
             className="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all duration-200 flex items-center gap-2"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
             JSON으로 내보내기
           </button>
-        </section>
+        </CollapsibleSection>
 
-        {/* Danger Zone — Account Deletion */}
-        <section className="bg-white dark:bg-slate-800 rounded-2xl border-2 border-red-200 dark:border-red-900/60 p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
-            <h2 className="text-lg font-semibold text-red-600 dark:text-red-400">위험 영역</h2>
-          </div>
+        {/* ── 위험 영역 ── */}
+        <CollapsibleSection
+          id="sec-danger" icon="⚠️" title="위험 영역"
+          open={openSections.has('sec-danger')} onToggle={() => toggleSection('sec-danger')}
+          danger
+        >
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
             계정을 삭제하면 모든 이력서, 지원 내역, 버전 기록이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
           </p>
@@ -511,26 +666,27 @@ export default function SettingsPage() {
           >
             계정 영구 삭제
           </button>
-        </section>
+        </CollapsibleSection>
+
       </main>
       <Footer />
 
-      {/* Account Deletion Confirmation Modal */}
+      {/* 계정 삭제 확인 모달 */}
       {deleteConfirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-red-200 dark:border-red-900 shadow-2xl w-full max-w-md p-6">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">계정 삭제</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">이 작업은 되돌릴 수 없습니다</p>
               </div>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-              계정을 삭제하면 다음 데이터가 모두 영구 삭제됩니다:
-            </p>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">계정을 삭제하면 다음 데이터가 모두 영구 삭제됩니다:</p>
             <ul className="text-sm text-slate-500 dark:text-slate-400 mb-4 space-y-1 list-disc list-inside">
               <li>모든 이력서 및 버전 기록</li>
               <li>지원 내역 및 자기소개서</li>

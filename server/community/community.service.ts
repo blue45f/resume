@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CommunityService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async getPosts(category?: string, search?: string, page = 1, limit = 20) {
     const where: any = {};
@@ -125,9 +129,23 @@ export class CommunityService {
   }
 
   async addComment(postId: string, userId: string | undefined, content: string, authorName?: string) {
-    return this.prisma.communityComment.create({
+    const comment = await this.prisma.communityComment.create({
       data: { postId, userId: userId || null, content, authorName: authorName || null },
     });
+
+    // 게시글 작성자에게 알림 (자신의 댓글 제외)
+    const post = await this.prisma.communityPost.findUnique({ where: { id: postId }, select: { userId: true, title: true } });
+    if (post?.userId && post.userId !== userId) {
+      const commenterName = authorName || '익명';
+      await this.notifications.create(
+        post.userId,
+        'comment',
+        `"${post.title.slice(0, 30)}" 게시글에 ${commenterName}님이 댓글을 달았습니다.`,
+        `/community/${postId}`,
+      ).catch(() => {});
+    }
+
+    return comment;
   }
 
   async deleteComment(commentId: string, userId: string, role: string) {
