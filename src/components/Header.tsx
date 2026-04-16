@@ -153,11 +153,9 @@ export default function Header() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1.5" aria-label={t('a11y.mainMenu')}>
-            {!isHome && (
-              <Link to="/" className="nav-link-animated text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 rounded px-2 py-1">
-                {t('nav.resumes')}
-              </Link>
-            )}
+            <Link to="/" className={`nav-link-animated text-sm rounded px-2 py-1 ${isHome ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+              {t('nav.resumes')}
+            </Link>
             {/* Common items */}
             <Link to="/explore" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/explore' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
               {t('nav.explore')}

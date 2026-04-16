@@ -625,22 +625,3 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
     </div>
   );
 }
-
-function ScoreMeter({ score }: { score: number }) {
-  const color = score >= 80 ? '#10b981' : score >= 60 ? '#3b82f6' : score >= 40 ? '#f59e0b' : '#ef4444';
-  const r = 45;
-  const circ = 2 * Math.PI * r;
-  const offset = circ - (score / 100) * circ;
-  return (
-    <div className="relative w-28 h-28 mx-auto">
-      <svg width="112" height="112" viewBox="0 0 112 112" className="rotate-[-90deg]">
-        <circle cx="56" cy="56" r={r} fill="none" stroke="#e2e8f0" strokeWidth="8" />
-        <circle cx="56" cy="56" r={r} fill="none" stroke={color} strokeWidth="8" strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.8s ease' }} />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-bold text-slate-900 dark:text-slate-100">{score}</span>
-        <span className="text-xs text-slate-400">/ 100</span>
-      </div>
-    </div>
-  );
-}
