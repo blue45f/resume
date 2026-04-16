@@ -167,17 +167,9 @@ export default function Header() {
             </Link>
             {/* Role-specific items */}
             {isRecruiter ? (
-              <>
-                <Link to="/recruiter" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/recruiter' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
-                  채용 대시보드
-                </Link>
-                <Link to="/scouts" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/scouts' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
-                  스카우트
-                </Link>
-                <Link to="/jobs" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/jobs' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
-                  채용공고
-                </Link>
-              </>
+              <Link to="/recruiter" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/recruiter' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                채용 대시보드
+              </Link>
             ) : (
               <>
                 <Link to="/applications" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/applications' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
@@ -205,6 +197,15 @@ export default function Header() {
                 {t('common.more')} <span aria-hidden="true">▾</span>
               </button>
               <div role="menu" aria-label={t('common.more')} className="absolute left-0 top-full mt-1 w-44 glass-dropdown rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 py-1">
+                {isRecruiter ? (
+                  <>
+                    <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500" role="presentation">채용</p>
+                    <Link to="/scouts" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">스카우트</Link>
+                    <Link to="/jobs" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">채용공고</Link>
+                    <Link to="/jobs/new" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">공고 등록</Link>
+                    <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
+                  </>
+                ) : null}
                 <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500" role="presentation">도구</p>
                 <Link to="/cover-letter" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
                 <Link to="/compare" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.compare')}</Link>
@@ -215,12 +216,6 @@ export default function Header() {
                 <Link to="/templates" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.templates')}</Link>
                 <Link to="/tags" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.tags')}</Link>
                 <Link to="/pricing" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">요금제</Link>
-                {isRecruiter && (
-                  <>
-                    <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
-                    <Link to="/jobs/new" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">공고 등록</Link>
-                  </>
-                )}
               </div>
             </div>
             {(user?.role === 'admin' || user?.role === 'superadmin') && (
