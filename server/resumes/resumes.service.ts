@@ -544,6 +544,34 @@ export class ResumesService {
     return !!bookmark;
   }
 
+  /** 스킬 추천 목록 조회 — { skill: { count, endorsed } } */
+  async getEndorsements(resumeId: string, viewerId?: string): Promise<Record<string, { count: number; endorsed: boolean }>> {
+    const rows = await this.prisma.skillEndorsement.findMany({ where: { resumeId } });
+    const result: Record<string, { count: number; endorsed: boolean }> = {};
+    for (const row of rows) {
+      if (!result[row.skill]) result[row.skill] = { count: 0, endorsed: false };
+      result[row.skill].count++;
+      if (viewerId && row.userId === viewerId) result[row.skill].endorsed = true;
+    }
+    return result;
+  }
+
+  /** 스킬 추천 토글 (없으면 추가, 있으면 삭제) */
+  async toggleEndorse(resumeId: string, userId: string, skill: string): Promise<{ endorsed: boolean; count: number }> {
+    const existing = await this.prisma.skillEndorsement.findUnique({
+      where: { resumeId_userId_skill: { resumeId, userId, skill } },
+    });
+
+    if (existing) {
+      await this.prisma.skillEndorsement.delete({ where: { id: existing.id } });
+    } else {
+      await this.prisma.skillEndorsement.create({ data: { resumeId, userId, skill } });
+    }
+
+    const count = await this.prisma.skillEndorsement.count({ where: { resumeId, skill } });
+    return { endorsed: !existing, count };
+  }
+
   private formatSummary(resume: any) {
     const pi = resume.personalInfo;
     return {

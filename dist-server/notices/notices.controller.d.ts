@@ -6,9 +6,9 @@ export declare class NoticesController {
         id: string;
         createdAt: Date;
         content: string;
+        type: string;
         title: string;
         updatedAt: Date;
-        type: string;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
@@ -19,9 +19,9 @@ export declare class NoticesController {
             id: string;
             createdAt: Date;
             content: string;
+            type: string;
             title: string;
             updatedAt: Date;
-            type: string;
             startAt: Date | null;
             endAt: Date | null;
             isPopup: boolean;
@@ -36,9 +36,9 @@ export declare class NoticesController {
         id: string;
         createdAt: Date;
         content: string;
+        type: string;
         title: string;
         updatedAt: Date;
-        type: string;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
@@ -48,9 +48,9 @@ export declare class NoticesController {
         id: string;
         createdAt: Date;
         content: string;
+        type: string;
         title: string;
         updatedAt: Date;
-        type: string;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
@@ -60,9 +60,9 @@ export declare class NoticesController {
         id: string;
         createdAt: Date;
         content: string;
+        type: string;
         title: string;
         updatedAt: Date;
-        type: string;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;
@@ -72,9 +72,9 @@ export declare class NoticesController {
         id: string;
         createdAt: Date;
         content: string;
+        type: string;
         title: string;
         updatedAt: Date;
-        type: string;
         startAt: Date | null;
         endAt: Date | null;
         isPopup: boolean;

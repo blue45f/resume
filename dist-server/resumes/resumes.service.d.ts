@@ -447,6 +447,14 @@ export declare class ResumesService {
         createdAt: string;
     }[]>;
     isBookmarked(resumeId: string, userId: string): Promise<boolean>;
+    getEndorsements(resumeId: string, viewerId?: string): Promise<Record<string, {
+        count: number;
+        endorsed: boolean;
+    }>>;
+    toggleEndorse(resumeId: string, userId: string, skill: string): Promise<{
+        endorsed: boolean;
+        count: number;
+    }>;
     private formatSummary;
     private formatFull;
 }

@@ -187,6 +187,16 @@ let ResumesController = class ResumesController {
             throw new common_1.InternalServerErrorException('Word 내보내기에 실패했습니다');
         }
     }
+    async getEndorsements(id, req) {
+        return this.resumesService.getEndorsements(id, req.user?.id);
+    }
+    async toggleEndorse(id, skill, req) {
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        if (!skill?.trim())
+            throw new common_1.BadRequestException('기술명이 필요합니다');
+        return this.resumesService.toggleEndorse(id, req.user.id, skill.trim());
+    }
 };
 exports.ResumesController = ResumesController;
 __decorate([
@@ -414,6 +424,26 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ResumesController.prototype, "exportDocx", null);
+__decorate([
+    (0, common_1.Get)(':id/endorsements'),
+    (0, auth_guard_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: '이력서 스킬 추천 목록 조회' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ResumesController.prototype, "getEndorsements", null);
+__decorate([
+    (0, common_1.Post)(':id/endorse'),
+    (0, swagger_1.ApiOperation)({ summary: '이력서 스킬 추천 토글' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('skill')),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
+], ResumesController.prototype, "toggleEndorse", null);
 exports.ResumesController = ResumesController = __decorate([
     (0, swagger_1.ApiTags)('resumes'),
     (0, common_1.Controller)('resumes'),

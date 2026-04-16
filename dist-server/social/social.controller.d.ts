@@ -36,10 +36,10 @@ export declare class SocialController {
         id: string;
         createdAt: Date;
         company: string;
-        resumeId: string | null;
-        position: string;
         message: string;
         read: boolean;
+        resumeId: string | null;
+        position: string;
         senderId: string;
         receiverId: string;
     }> | {
@@ -55,10 +55,10 @@ export declare class SocialController {
         id: string;
         createdAt: Date;
         company: string;
-        resumeId: string | null;
-        position: string;
         message: string;
         read: boolean;
+        resumeId: string | null;
+        position: string;
         senderId: string;
         receiverId: string;
     })[]>;

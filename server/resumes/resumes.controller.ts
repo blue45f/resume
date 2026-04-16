@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Put, Patch, Delete, Body, Param, Req, Query, Res,
-  UnauthorizedException, NotFoundException, InternalServerErrorException,
+  UnauthorizedException, NotFoundException, InternalServerErrorException, BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
@@ -256,5 +256,24 @@ export class ResumesController {
       if (e instanceof NotFoundException) throw e;
       throw new InternalServerErrorException('Word 내보내기에 실패했습니다');
     }
+  }
+
+  @Get(':id/endorsements')
+  @Public()
+  @ApiOperation({ summary: '이력서 스킬 추천 목록 조회' })
+  async getEndorsements(@Param('id') id: string, @Req() req: any) {
+    return this.resumesService.getEndorsements(id, req.user?.id);
+  }
+
+  @Post(':id/endorse')
+  @ApiOperation({ summary: '이력서 스킬 추천 토글' })
+  async toggleEndorse(
+    @Param('id') id: string,
+    @Body('skill') skill: string,
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    if (!skill?.trim()) throw new BadRequestException('기술명이 필요합니다');
+    return this.resumesService.toggleEndorse(id, req.user.id, skill.trim());
   }
 }

@@ -531,6 +531,31 @@ let ResumesService = class ResumesService {
         const bookmark = await this.prisma.bookmark.findFirst({ where: { userId, resumeId } });
         return !!bookmark;
     }
+    async getEndorsements(resumeId, viewerId) {
+        const rows = await this.prisma.skillEndorsement.findMany({ where: { resumeId } });
+        const result = {};
+        for (const row of rows) {
+            if (!result[row.skill])
+                result[row.skill] = { count: 0, endorsed: false };
+            result[row.skill].count++;
+            if (viewerId && row.userId === viewerId)
+                result[row.skill].endorsed = true;
+        }
+        return result;
+    }
+    async toggleEndorse(resumeId, userId, skill) {
+        const existing = await this.prisma.skillEndorsement.findUnique({
+            where: { resumeId_userId_skill: { resumeId, userId, skill } },
+        });
+        if (existing) {
+            await this.prisma.skillEndorsement.delete({ where: { id: existing.id } });
+        }
+        else {
+            await this.prisma.skillEndorsement.create({ data: { resumeId, userId, skill } });
+        }
+        const count = await this.prisma.skillEndorsement.count({ where: { resumeId, skill } });
+        return { endorsed: !existing, count };
+    }
     formatSummary(resume) {
         const pi = resume.personalInfo;
         return {

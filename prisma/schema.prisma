@@ -39,9 +39,10 @@ model User {
   receivedScouts ScoutMessage[]   @relation("ReceivedScouts")
   sentMessages     DirectMessage[] @relation("SentMessages")
   receivedMessages DirectMessage[] @relation("ReceivedMessages")
-  coverLetters     CoverLetter[]
-  jobPosts         JobPost[]
-  communityPosts   CommunityPost[]
+  coverLetters       CoverLetter[]
+  jobPosts           JobPost[]
+  communityPosts     CommunityPost[]
+  skillEndorsements  SkillEndorsement[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -75,9 +76,10 @@ model Resume {
   transformations LlmTransformation[]
   applications    JobApplication[]
   comments        Comment[]
-  bookmarks       Bookmark[]
-  scoutMessages   ScoutMessage[]
-  coverLetters    CoverLetter[]
+  bookmarks          Bookmark[]
+  scoutMessages      ScoutMessage[]
+  coverLetters       CoverLetter[]
+  skillEndorsements  SkillEndorsement[]
 
   @@index([userId])
   @@index([visibility])
@@ -606,6 +608,21 @@ model CommunityLike {
 
   @@unique([postId, userId])
   @@map("community_likes")
+}
+
+model SkillEndorsement {
+  id        String   @id @default(uuid())
+  resumeId  String   @map("resume_id")
+  userId    String   @map("user_id")   // 추천한 사람
+  skill     String                      // 추천한 기술 이름
+  createdAt DateTime @default(now()) @map("created_at")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([resumeId, userId, skill])
+  @@index([resumeId])
+  @@map("skill_endorsements")
 }
 
 model CommunityComment {
