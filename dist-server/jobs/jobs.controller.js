@@ -30,6 +30,21 @@ let JobsController = class JobsController {
             return [];
         return this.service.findByUser(req.user.id);
     }
+    getExternalLinks(category, companySize, careerLevel, jobType, location, jobCategory, q) {
+        return this.service.getExternalLinks({ category, companySize, careerLevel, jobType, location, jobCategory, q });
+    }
+    createExternalLink(body, req) {
+        return this.service.createExternalLink(body, req.user?.role);
+    }
+    recordClick(id) {
+        return this.service.recordExternalLinkClick(id);
+    }
+    updateExternalLink(id, body, req) {
+        return this.service.updateExternalLink(id, body, req.user?.role);
+    }
+    deleteExternalLink(id, req) {
+        return this.service.deleteExternalLink(id, req.user?.role);
+    }
     findOne(id) {
         return this.service.findOne(id);
     }
@@ -43,21 +58,6 @@ let JobsController = class JobsController {
     }
     remove(id, req) {
         return this.service.remove(id, req.user?.id, req.user?.role);
-    }
-    getExternalLinks(category, companySize, careerLevel, jobType, location, jobCategory, q) {
-        return this.service.getExternalLinks({ category, companySize, careerLevel, jobType, location, jobCategory, q });
-    }
-    recordClick(id) {
-        return this.service.recordExternalLinkClick(id);
-    }
-    createExternalLink(body, req) {
-        return this.service.createExternalLink(body, req.user?.role);
-    }
-    updateExternalLink(id, body, req) {
-        return this.service.updateExternalLink(id, body, req.user?.role);
-    }
-    deleteExternalLink(id, req) {
-        return this.service.deleteExternalLink(id, req.user?.role);
     }
 };
 exports.JobsController = JobsController;
@@ -79,6 +79,58 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], JobsController.prototype, "findMy", null);
+__decorate([
+    (0, common_1.Get)('external-links/list'),
+    (0, auth_guard_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: '외부 채용 링크 목록 (필터 지원)' }),
+    __param(0, (0, common_1.Query)('category')),
+    __param(1, (0, common_1.Query)('companySize')),
+    __param(2, (0, common_1.Query)('careerLevel')),
+    __param(3, (0, common_1.Query)('jobType')),
+    __param(4, (0, common_1.Query)('location')),
+    __param(5, (0, common_1.Query)('jobCategory')),
+    __param(6, (0, common_1.Query)('q')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "getExternalLinks", null);
+__decorate([
+    (0, common_1.Post)('external-links'),
+    (0, swagger_1.ApiOperation)({ summary: '[어드민] 외부 채용 링크 등록' }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "createExternalLink", null);
+__decorate([
+    (0, common_1.Post)('external-links/:id/click'),
+    (0, auth_guard_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: '외부 채용 링크 클릭 추적 + URL 반환' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "recordClick", null);
+__decorate([
+    (0, common_1.Put)('external-links/:id'),
+    (0, swagger_1.ApiOperation)({ summary: '[어드민] 외부 채용 링크 수정' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "updateExternalLink", null);
+__decorate([
+    (0, common_1.Delete)('external-links/:id'),
+    (0, swagger_1.ApiOperation)({ summary: '[어드민] 외부 채용 링크 삭제' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "deleteExternalLink", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, auth_guard_1.Public)(),
@@ -116,58 +168,6 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], JobsController.prototype, "remove", null);
-__decorate([
-    (0, common_1.Get)('external-links/list'),
-    (0, auth_guard_1.Public)(),
-    (0, swagger_1.ApiOperation)({ summary: '외부 채용 링크 목록 (필터 지원)' }),
-    __param(0, (0, common_1.Query)('category')),
-    __param(1, (0, common_1.Query)('companySize')),
-    __param(2, (0, common_1.Query)('careerLevel')),
-    __param(3, (0, common_1.Query)('jobType')),
-    __param(4, (0, common_1.Query)('location')),
-    __param(5, (0, common_1.Query)('jobCategory')),
-    __param(6, (0, common_1.Query)('q')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, String, String]),
-    __metadata("design:returntype", void 0)
-], JobsController.prototype, "getExternalLinks", null);
-__decorate([
-    (0, common_1.Post)('external-links/:id/click'),
-    (0, auth_guard_1.Public)(),
-    (0, swagger_1.ApiOperation)({ summary: '외부 채용 링크 클릭 추적 + URL 반환' }),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], JobsController.prototype, "recordClick", null);
-__decorate([
-    (0, common_1.Post)('external-links'),
-    (0, swagger_1.ApiOperation)({ summary: '[어드민] 외부 채용 링크 등록' }),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", void 0)
-], JobsController.prototype, "createExternalLink", null);
-__decorate([
-    (0, common_1.Put)('external-links/:id'),
-    (0, swagger_1.ApiOperation)({ summary: '[어드민] 외부 채용 링크 수정' }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
-    __param(2, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object, Object]),
-    __metadata("design:returntype", void 0)
-], JobsController.prototype, "updateExternalLink", null);
-__decorate([
-    (0, common_1.Delete)('external-links/:id'),
-    (0, swagger_1.ApiOperation)({ summary: '[어드민] 외부 채용 링크 삭제' }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", void 0)
-], JobsController.prototype, "deleteExternalLink", null);
 exports.JobsController = JobsController = __decorate([
     (0, swagger_1.ApiTags)('jobs'),
     (0, common_1.Controller)('jobs'),
