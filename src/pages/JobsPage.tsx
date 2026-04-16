@@ -539,6 +539,32 @@ const INDUSTRY_LABELS: Record<string, string> = {
   manufacturing: '제조', government: '공공', healthcare: '의료/보건',
 };
 
+function usePermissions() {
+  const [perms, setPerms] = useState<Record<string, string>>({});
+  useEffect(() => {
+    fetch(`${API_URL}/api/system-config/permissions`)
+      .then(r => r.json())
+      .then(setPerms)
+      .catch(() => {});
+  }, []);
+
+  const canDo = (contentType: string, action: string): boolean => {
+    const user = getUser();
+    const key = `perm.${contentType}.${action}`;
+    const allowed = (perms[key] || 'admin').split(',').map(r => r.trim());
+    if (allowed.includes('all')) return true;
+    if (!user) return false;
+    const isAdmin = user.role === 'admin' || user.role === 'superadmin';
+    const isRecruiter = user.userType === 'recruiter' || user.userType === 'company';
+    if (allowed.includes('admin') && isAdmin) return true;
+    if (allowed.includes('recruiter') && isRecruiter) return true;
+    if (allowed.includes('user') && user.id) return true;
+    return false;
+  };
+
+  return { perms, canDo };
+}
+
 function getDday(deadline: string | null, isRolling: boolean): { text: string; color: string } {
   if (isRolling) return { text: '상시채용', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' };
   if (!deadline) return { text: '상시채용', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' };
@@ -548,6 +574,146 @@ function getDday(deadline: string | null, isRolling: boolean): { text: string; c
   if (diff <= 3) return { text: `D-${diff}`, color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' };
   if (diff <= 7) return { text: `D-${diff}`, color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' };
   return { text: `D-${diff}`, color: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' };
+}
+
+function CuratedJobForm({ initial, onSave, onClose }: { initial: CuratedJob | null; onSave: (data: any) => void; onClose: () => void }) {
+  const [form, setForm] = useState({
+    company: initial?.company || '',
+    companyLogo: initial?.companyLogo || '',
+    position: initial?.position || '',
+    department: initial?.department || '',
+    summary: initial?.summary || '',
+    requirements: initial?.requirements || '',
+    benefits: initial?.benefits || '',
+    skills: initial?.skills || '',
+    jobType: initial?.jobType || 'fulltime',
+    experienceLevel: initial?.experienceLevel || 'any',
+    education: initial?.education || '',
+    salary: initial?.salary || '',
+    location: initial?.location || '',
+    companySize: initial?.companySize || '',
+    industry: initial?.industry || '',
+    sourceUrl: initial?.sourceUrl || '',
+    sourceSite: initial?.sourceSite || '',
+    deadline: initial?.deadline ? initial.deadline.slice(0, 10) : '',
+    isRolling: initial?.isRolling || false,
+  });
+  const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto animate-fade-in" onClick={e => e.stopPropagation()}>
+        <div className="sticky top-0 bg-white dark:bg-slate-900 px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between z-10">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{initial ? '채용 정보 수정' : '채용 정보 등록'}</h3>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400">✕</button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">회사명 *</label>
+              <input value={form.company} onChange={e => set('company', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="삼성전자" required />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">회사 이모지</label>
+              <input value={form.companyLogo} onChange={e => set('companyLogo', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="📱" />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">포지션 *</label>
+            <input value={form.position} onChange={e => set('position', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="2026 상반기 신입 공채" required />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">부서/직군</label>
+              <input value={form.department} onChange={e => set('department', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="SW/HW/경영" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">근무지</label>
+              <input value={form.location} onChange={e => set('location', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="서울 강남구" />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">한줄 요약</label>
+            <textarea value={form.summary} onChange={e => set('summary', e.target.value)} rows={2} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg resize-none" placeholder="채용 공고 한줄 요약" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">자격 요건</label>
+            <textarea value={form.requirements} onChange={e => set('requirements', e.target.value)} rows={2} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg resize-none" placeholder="학사 이상, 관련 경력 3년+" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">복리후생</label>
+            <textarea value={form.benefits} onChange={e => set('benefits', e.target.value)} rows={2} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg resize-none" placeholder="성과급, 사택, 건강검진" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">기술스택 (콤마 구분)</label>
+              <input value={form.skills} onChange={e => set('skills', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="React,TypeScript,Java" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">급여</label>
+              <input value={form.salary} onChange={e => set('salary', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="5,000~8,000만원" />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">고용형태</label>
+              <select value={form.jobType} onChange={e => set('jobType', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg">
+                <option value="fulltime">정규직</option><option value="contract">계약직</option><option value="intern">인턴</option><option value="parttime">파트타임</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">경력</label>
+              <select value={form.experienceLevel} onChange={e => set('experienceLevel', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg">
+                <option value="any">무관</option><option value="junior">신입</option><option value="mid">경력</option><option value="senior">시니어</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">기업규모</label>
+              <select value={form.companySize} onChange={e => set('companySize', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg">
+                <option value="">선택</option><option value="conglomerate">대기업</option><option value="midsize">중견기업</option><option value="public">공기업</option><option value="government">공무원</option><option value="medium">중소기업</option><option value="startup">스타트업</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">학력</label>
+              <input value={form.education} onChange={e => set('education', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="학사 이상" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">산업</label>
+              <input value={form.industry} onChange={e => set('industry', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="it, fintech, manufacturing" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">원본 링크 *</label>
+              <input value={form.sourceUrl} onChange={e => set('sourceUrl', e.target.value)} type="url" className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="https://..." required />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">출처 사이트명</label>
+              <input value={form.sourceSite} onChange={e => set('sourceSite', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="삼성커리어스" />
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">마감일</label>
+              <input value={form.deadline} onChange={e => set('deadline', e.target.value)} type="date" disabled={form.isRolling} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg disabled:opacity-50" />
+            </div>
+            <label className="flex items-center gap-2 mt-5 text-sm text-slate-600 dark:text-slate-400 cursor-pointer">
+              <input type="checkbox" checked={form.isRolling} onChange={e => set('isRolling', e.target.checked)} className="rounded border-slate-300 text-blue-600" />
+              상시채용
+            </label>
+          </div>
+        </div>
+        <div className="sticky bottom-0 bg-white dark:bg-slate-900 px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700">취소</button>
+          <button onClick={() => onSave(form)} className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700">
+            {initial ? '수정' : '등록'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function CuratedJobsTab() {
@@ -561,8 +727,17 @@ function CuratedJobsTab() {
   const [searchInput, setSearchInput] = useState('');
   const [q, setQ] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingJob, setEditingJob] = useState<CuratedJob | null>(null);
+  const { canDo } = usePermissions();
+  const user = getUser();
+  const canCreate = canDo('curatedJobs', 'create');
+  const canEdit = canDo('curatedJobs', 'edit');
+  const canDelete = canDo('curatedJobs', 'delete');
 
-  useEffect(() => {
+  useEffect(() => { loadJobs(); }, [expFilter, typeFilter, sizeFilter, q, page]);
+
+  const loadJobs = () => {
     setLoading(true);
     const params = new URLSearchParams();
     if (expFilter !== 'all') params.set('experienceLevel', expFilter);
@@ -573,17 +748,47 @@ function CuratedJobsTab() {
     params.set('limit', '20');
     fetch(`${API_URL}/api/jobs/curated/list?${params}`)
       .then(r => r.json())
-      .then(data => {
-        setJobs(data.items || []);
-        setTotal(data.total || 0);
-        setLoading(false);
-      })
+      .then(data => { setJobs(data.items || []); setTotal(data.total || 0); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [expFilter, typeFilter, sizeFilter, q, page]);
+  };
 
   const handleClick = (job: CuratedJob) => {
     fetch(`${API_URL}/api/jobs/curated/${job.id}/click`, { method: 'POST' }).catch(() => {});
     window.open(job.sourceUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleDelete = async (job: CuratedJob) => {
+    if (!confirm(`"${job.position}" 채용 정보를 삭제하시겠습니까?`)) return;
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/api/jobs/curated/${job.id}`, {
+      method: 'DELETE',
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+    if (res.ok) {
+      toast('삭제되었습니다', 'success');
+      loadJobs();
+    } else {
+      toast('삭제 권한이 없습니다', 'error');
+    }
+  };
+
+  const handleSave = async (data: any) => {
+    const token = localStorage.getItem('token');
+    const isEdit = !!editingJob;
+    const url = isEdit ? `${API_URL}/api/jobs/curated/${editingJob!.id}` : `${API_URL}/api/jobs/curated`;
+    const res = await fetch(url, {
+      method: isEdit ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      toast(isEdit ? '수정되었습니다' : '등록되었습니다', 'success');
+      setShowForm(false);
+      setEditingJob(null);
+      loadJobs();
+    } else {
+      toast('권한이 없습니다', 'error');
+    }
   };
 
   const filterBtn = (active: boolean) =>
@@ -593,6 +798,28 @@ function CuratedJobsTab() {
 
   return (
     <div>
+      {/* Create/Edit Modal */}
+      {showForm && (
+        <CuratedJobForm
+          initial={editingJob}
+          onSave={handleSave}
+          onClose={() => { setShowForm(false); setEditingJob(null); }}
+        />
+      )}
+
+      {/* Header with create button */}
+      {canCreate && (
+        <div className="flex justify-end mb-3">
+          <button
+            onClick={() => { setEditingJob(null); setShowForm(true); }}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            채용 정보 등록
+          </button>
+        </div>
+      )}
+
       {/* Search */}
       <form onSubmit={e => { e.preventDefault(); setQ(searchInput); setPage(1); }} className="flex gap-2 mb-4">
         <input
@@ -748,6 +975,16 @@ function CuratedJobsTab() {
                       <span className="text-[10px] text-slate-400">
                         조회 {job.viewCount} · {job.sourceSite}
                       </span>
+                      {canEdit && (
+                        <button onClick={() => { setEditingJob(job); setShowForm(true); }} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" title="수정">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button onClick={() => handleDelete(job)} className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title="삭제">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      )}
                       <button
                         onClick={() => handleClick(job)}
                         className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-xl transition-colors"
@@ -993,11 +1230,6 @@ export default function JobsPage() {
           </div>
           <div className="flex items-center gap-2">
             <JobAlert jobs={jobs} />
-            {isRecruiter && (
-              <Link to="/jobs/new" className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
-                + 공고 등록
-              </Link>
-            )}
           </div>
         </div>
 
@@ -1034,6 +1266,14 @@ export default function JobsPage() {
         {/* Tab: Internal Jobs (direct postings) */}
         {activeTab === 'internal' && (
         <>
+        {(isRecruiter || user?.role === 'admin' || user?.role === 'superadmin') && (
+          <div className="flex justify-end mb-3">
+            <Link to="/jobs/new" className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              공고 등록
+            </Link>
+          </div>
+        )}
         {/* Search */}
         <form onSubmit={handleSearch} className="flex gap-2 mb-4">
           <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="포지션, 회사, 기술로 검색..." className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500" />
