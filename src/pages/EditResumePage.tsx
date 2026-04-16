@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -10,6 +10,51 @@ import AttachmentPanel from '@/components/AttachmentPanel';
 import VersionPanel from '@/components/VersionPanel';
 import type { Resume } from '@/types/resume';
 import { fetchResume, updateResume, setResumeVisibility } from '@/lib/api';
+import { calculateCompleteness } from '@/lib/completeness';
+
+/** Compact live completeness widget shown at the top of the editor */
+function LiveCompletenessBar({ resume }: { resume: Partial<Resume> }) {
+  if (!resume.personalInfo) return null;
+  const result = calculateCompleteness(resume as Resume);
+  const pct = result.percentage;
+
+  const color = pct >= 80 ? '#3b82f6' : pct >= 60 ? '#22c55e' : pct >= 40 ? '#f97316' : '#ef4444';
+  const label = pct >= 80 ? '우수' : pct >= 60 ? '양호' : pct >= 40 ? '보통' : '부족';
+  const topTip = result.tips[0] || null;
+  const grade = result.grade;
+
+  const gradeColors: Record<string, string> = {
+    S: 'text-purple-600 bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800 dark:text-purple-400',
+    A: 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400',
+    B: 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400',
+    C: 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400',
+    D: 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400',
+  };
+
+  return (
+    <div className="mb-4 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">이력서 완성도</span>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${gradeColors[grade]}`}>{grade}등급 · {label}</span>
+        </div>
+        <span className="text-sm font-bold tabular-nums" style={{ color }}>{pct}%</span>
+      </div>
+      <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+        <div
+          className="h-2 rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${pct}%`, backgroundColor: color }}
+        />
+      </div>
+      {topTip && (
+        <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
+          <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          {topTip}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function EditResumePage() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +64,7 @@ export default function EditResumePage() {
   const [saving, setSaving] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
+  const [liveData, setLiveData] = useState<Partial<Resume> | null>(null);
 
   const loadResume = () => {
     if (!id) return;
@@ -29,7 +75,7 @@ export default function EditResumePage() {
     let cancelled = false;
     if (!id) return;
     fetchResume(id)
-      .then(data => { if (!cancelled) setResume(data); })
+      .then(data => { if (!cancelled) { setResume(data); setLiveData(data); } })
       .catch(() => { if (!cancelled) setNotFound(true); });
     return () => { cancelled = true; };
   }, [id]);
@@ -64,6 +110,10 @@ export default function EditResumePage() {
       throw new Error('auto-save failed');
     }
   };
+
+  const handleDataChange = useCallback((data: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
+    setLiveData(data as Partial<Resume>);
+  }, []);
 
   if (notFound) {
     return (
@@ -154,6 +204,10 @@ export default function EditResumePage() {
             )}
           </div>
         </div>
+
+        {/* Live completeness indicator */}
+        {liveData && <LiveCompletenessBar resume={liveData} />}
+
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6">
           <ResumeForm
             resumeId={id}
@@ -171,6 +225,7 @@ export default function EditResumePage() {
             }}
             onSave={handleSave}
             onAutoSave={handleAutoSave}
+            onDataChange={handleDataChange}
             saving={saving}
           />
         </div>

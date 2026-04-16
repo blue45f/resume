@@ -139,10 +139,11 @@ interface Props {
   initialData: ResumeData;
   onSave: (data: ResumeData) => void;
   onAutoSave?: (data: ResumeData) => Promise<void>;
+  onDataChange?: (data: ResumeData) => void;
   saving?: boolean;
 }
 
-export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, saving }: Props) {
+export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, onDataChange, saving }: Props) {
   const [data, setData] = useState(initialData);
   const [activeTab, setActiveTab] = useState('personal');
   const [dirty, setDirty] = useState(false);
@@ -152,6 +153,11 @@ export default function ResumeForm({ resumeId, initialData, onSave, onAutoSave, 
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dataRef = useRef(data);
   dataRef.current = data;
+
+  // Notify parent of data changes for live completeness tracking
+  useEffect(() => {
+    onDataChange?.(data);
+  }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const doAutoSave = useCallback(async () => {
     const handler = onAutoSave || onSave;
