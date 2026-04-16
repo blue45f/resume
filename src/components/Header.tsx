@@ -180,13 +180,6 @@ export default function Header() {
                 </Link>
               </>
             )}
-            {/* Common items */}
-            <Link to="/bookmarks" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/bookmarks' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
-              북마크
-            </Link>
-            <Link to="/messages" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/messages' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
-              쪽지
-            </Link>
             {/* More dropdown */}
             <div className="relative group">
               <button
@@ -206,12 +199,15 @@ export default function Header() {
                     <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                   </>
                 ) : null}
+                <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500" role="presentation">내 활동</p>
+                <Link to="/bookmarks" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">북마크</Link>
+                <Link to="/messages" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">쪽지</Link>
+                <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                 <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500" role="presentation">도구</p>
                 <Link to="/cover-letter" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
                 <Link to="/compare" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.compare')}</Link>
                 <Link to="/translate" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">번역</Link>
                 <Link to="/interview-prep" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">면접 준비</Link>
-
                 <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                 <Link to="/templates" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.templates')}</Link>
                 <Link to="/tags" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.tags')}</Link>

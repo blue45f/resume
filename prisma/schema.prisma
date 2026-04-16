@@ -43,6 +43,9 @@ model User {
   jobPosts           JobPost[]
   communityPosts     CommunityPost[]
   skillEndorsements  SkillEndorsement[]
+  authoredNotices    Notice[]
+  noticeComments     NoticeComment[]
+  noticeHistoryEdits NoticeHistory[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -552,18 +555,59 @@ model Banner {
 }
 
 model Notice {
-  id        String    @id @default(uuid())
-  title     String
-  content   String
-  type      String    @default("GENERAL")
-  isPopup   Boolean   @default(false) @map("is_popup")
-  isPinned  Boolean   @default(false) @map("is_pinned")
-  startAt   DateTime? @map("start_at")
-  endAt     DateTime? @map("end_at")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  id            String    @id @default(uuid())
+  title         String
+  content       String
+  type          String    @default("GENERAL")   // GENERAL, MAINTENANCE, EVENT, UPDATE, URGENT
+  isPopup       Boolean   @default(false) @map("is_popup")
+  isPinned      Boolean   @default(false) @map("is_pinned")
+  allowComments Boolean   @default(true) @map("allow_comments")
+  viewCount     Int       @default(0) @map("view_count")
+  authorId      String?   @map("author_id")
+  startAt       DateTime? @map("start_at")
+  endAt         DateTime? @map("end_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
+  author   User?            @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  comments NoticeComment[]
+  history  NoticeHistory[]
+
+  @@index([type])
+  @@index([isPinned])
   @@map("notices")
+}
+
+model NoticeComment {
+  id        String   @id @default(uuid())
+  noticeId  String   @map("notice_id")
+  userId    String   @map("user_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  notice Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([noticeId])
+  @@map("notice_comments")
+}
+
+model NoticeHistory {
+  id        String   @id @default(uuid())
+  noticeId  String   @map("notice_id")
+  editorId  String   @map("editor_id")
+  prevTitle String   @map("prev_title")
+  prevContent String @map("prev_content")
+  prevType  String   @map("prev_type")
+  reason    String   @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  notice Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  editor User   @relation(fields: [editorId], references: [id], onDelete: Cascade)
+
+  @@index([noticeId])
+  @@map("notice_history")
 }
 
 model SystemConfig {
@@ -638,4 +682,38 @@ model CommunityComment {
 
   @@index([postId])
   @@map("community_comments")
+}
+
+
+model ExternalJobLink {
+  id          String   @id @default(uuid())
+  name        String                           // 사이트명 (예: Wanted)
+  url         String                           // 기본 URL
+  logoEmoji   String   @default("🔗") @map("logo_emoji")
+  logoUrl     String   @default("") @map("logo_url")   // 실제 로고 이미지 URL
+  badgeText   String   @default("") @map("badge_text") // 뱃지 텍스트 (예: 개발자 인기)
+  description String   @default("")
+  gradientFrom String  @default("#6366f1") @map("gradient_from")
+  gradientTo   String  @default("#4f46e5") @map("gradient_to")
+
+  // 필터용 메타데이터
+  category    String   @default("all")          // 사이트 성격: it, public, conglomerate, startup, global, junior
+  companySize String   @default("all") @map("company_size")  // all, conglomerate, public, government, medium, startup, small
+  jobTypes    String   @default("all")          // comma-separated: fulltime,contract,parttime,intern
+  careerLevel String   @default("all") @map("career_level")  // all, junior, mid, senior
+  location    String   @default("all")          // all, seoul, gyeonggi, busan, daegu, remote, nationwide, global
+  jobCategory String   @default("all") @map("job_category")  // all, it, planning, design, marketing, finance, sales, hr, manufacturing, education, medical, legal, service, research
+
+  // 관리
+  isActive    Boolean  @default(true) @map("is_active")
+  order       Int      @default(0)              // 정렬 순서
+  clickCount  Int      @default(0) @map("click_count")  // 클릭 추적
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([isActive, order])
+  @@index([category])
+  @@index([companySize])
+  @@index([jobCategory])
+  @@map("external_job_links")
 }

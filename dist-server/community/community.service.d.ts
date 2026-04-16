@@ -13,22 +13,22 @@ export declare class CommunityService {
                 avatar: string;
             } | null;
             _count: {
-                likes: number;
                 comments: number;
+                likes: number;
             };
         } & {
             id: string;
-            title: string;
-            content: string;
-            category: string;
+            createdAt: Date;
             userId: string | null;
+            title: string;
             viewCount: number;
+            updatedAt: Date;
+            attachments: import("@prisma/client/runtime/library").JsonValue;
+            category: string;
+            content: string;
             likeCount: number;
             isPinned: boolean;
             isHidden: boolean;
-            attachments: import("@prisma/client/runtime/library").JsonValue;
-            createdAt: Date;
-            updatedAt: Date;
         })[];
         total: number;
         page: number;
@@ -45,29 +45,29 @@ export declare class CommunityService {
         } | null;
         comments: ({} & {
             id: string;
-            content: string;
-            userId: string | null;
             createdAt: Date;
+            userId: string | null;
             updatedAt: Date;
-            postId: string;
+            content: string;
             authorName: string | null;
+            postId: string;
         })[];
         _count: {
-            likes: number;
             comments: number;
+            likes: number;
         };
         id: string;
-        title: string;
-        content: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        title: string;
         viewCount: number;
+        updatedAt: Date;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
+        category: string;
+        content: string;
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
-        createdAt: Date;
-        updatedAt: Date;
     } | null>;
     createPost(userId: string, body: {
         title: string;
@@ -83,17 +83,17 @@ export declare class CommunityService {
         } | null;
     } & {
         id: string;
-        title: string;
-        content: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        title: string;
         viewCount: number;
+        updatedAt: Date;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
+        category: string;
+        content: string;
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     updatePost(id: string, userId: string, role: string, body: {
         title?: string;
@@ -104,60 +104,60 @@ export declare class CommunityService {
         attachments?: any[];
     }): Promise<{
         id: string;
-        title: string;
-        content: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        title: string;
         viewCount: number;
+        updatedAt: Date;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
+        category: string;
+        content: string;
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     deletePost(id: string, userId: string, role: string): Promise<{
         id: string;
-        title: string;
-        content: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        title: string;
         viewCount: number;
+        updatedAt: Date;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
+        category: string;
+        content: string;
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     toggleLike(postId: string, userId: string): Promise<{
         liked: boolean;
     }>;
     getComments(postId: string): Promise<{
         id: string;
-        content: string;
-        userId: string | null;
         createdAt: Date;
+        userId: string | null;
         updatedAt: Date;
-        postId: string;
+        content: string;
         authorName: string | null;
+        postId: string;
     }[]>;
     addComment(postId: string, userId: string | undefined, content: string, authorName?: string): Promise<{
         id: string;
-        content: string;
-        userId: string | null;
         createdAt: Date;
+        userId: string | null;
         updatedAt: Date;
-        postId: string;
+        content: string;
         authorName: string | null;
+        postId: string;
     }>;
     deleteComment(commentId: string, userId: string, role: string): Promise<{
         id: string;
-        content: string;
-        userId: string | null;
         createdAt: Date;
+        userId: string | null;
         updatedAt: Date;
-        postId: string;
+        content: string;
         authorName: string | null;
+        postId: string;
     }>;
 }

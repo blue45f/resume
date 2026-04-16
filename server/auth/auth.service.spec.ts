@@ -480,4 +480,150 @@ describe('AuthService - updateProfile', () => {
     const result = await service.updateProfile('u1', { name: '새이름' });
     expect(result.name).toBe('새이름');
   });
+
+  it('username 설정 성공', async () => {
+    const user = {
+      id: 'u1', email: 'e@t.com', name: '홍길동', avatar: '',
+      provider: 'local', role: 'user', plan: 'free',
+      userType: 'personal', companyName: '', companyTitle: '', username: null,
+    };
+    mockPrisma.user.findUnique.mockResolvedValueOnce(user); // profile lookup
+    mockPrisma.user.findFirst = jest.fn().mockResolvedValue(null); // username not taken
+    mockPrisma.user.update.mockResolvedValue({ ...user, username: 'honggildong' });
+
+    const result = await service.updateProfile('u1', { username: 'honggildong' });
+    expect(result.username).toBe('honggildong');
+  });
+
+  it('username 중복 → BadRequestException', async () => {
+    const user = {
+      id: 'u1', email: 'e@t.com', name: '홍길동', avatar: '',
+      provider: 'local', role: 'user', plan: 'free',
+      userType: 'personal', companyName: '', companyTitle: '', username: null,
+    };
+    mockPrisma.user.findUnique.mockResolvedValueOnce(user);
+    mockPrisma.user.findFirst = jest.fn().mockResolvedValue({ id: 'u2', username: 'taken' });
+
+    await expect(service.updateProfile('u1', { username: 'taken' }))
+      .rejects.toThrow();
+  });
+
+  it('username 형식 오류(특수문자) → BadRequestException', async () => {
+    const user = {
+      id: 'u1', email: 'e@t.com', name: '홍길동', avatar: '',
+      provider: 'local', role: 'user', plan: 'free',
+      userType: 'personal', companyName: '', companyTitle: '', username: null,
+    };
+    mockPrisma.user.findUnique.mockResolvedValueOnce(user);
+    mockPrisma.user.findFirst = jest.fn().mockResolvedValue(null);
+
+    await expect(service.updateProfile('u1', { username: 'invalid username!' }))
+      .rejects.toThrow();
+  });
+
+  it('username 너무 짧음(2자) → BadRequestException', async () => {
+    const user = {
+      id: 'u1', email: 'e@t.com', name: '홍길동', avatar: '',
+      provider: 'local', role: 'user', plan: 'free',
+      userType: 'personal', companyName: '', companyTitle: '', username: null,
+    };
+    mockPrisma.user.findUnique.mockResolvedValueOnce(user);
+    mockPrisma.user.findFirst = jest.fn().mockResolvedValue(null);
+
+    await expect(service.updateProfile('u1', { username: 'ab' }))
+      .rejects.toThrow();
+  });
+});
+
+// ──────────────────────────────────────────────────
+// getPublicPortfolio
+// ──────────────────────────────────────────────────
+describe('AuthService - getPublicPortfolio', () => {
+  let service: AuthService;
+  let mockPrisma: any;
+
+  const makeResume = (overrides = {}) => ({
+    id: 'r1', title: '프론트엔드 이력서', isPublic: true, viewCount: 10,
+    personalInfo: { name: '홍길동', email: 'h@t.com', phone: '', address: '', website: '' },
+    summary: '열정적인 개발자입니다.',
+    skills: [{ id: 's1', category: '기술', items: 'React, TypeScript' }],
+    experiences: [{ id: 'e1', company: '카카오', position: '프론트엔드 개발자', startDate: '2022-01', endDate: '', current: true, description: '' }],
+    tags: [{ tag: { id: 't1', name: 'React', color: '#61dafb' } }],
+    ...overrides,
+  });
+
+  const makeUser = () => ({
+    id: 'u1', name: '홍길동', email: 'h@t.com', avatar: null,
+    username: 'honggildong', bio: null, userType: 'personal',
+    companyName: null, companyTitle: null,
+    isOpenToWork: false, openToWorkRoles: '',
+  });
+
+  beforeEach(() => {
+    mockPrisma = {
+      user: { findFirst: jest.fn() },
+      resume: { findMany: jest.fn() },
+      follow: { count: jest.fn().mockResolvedValue(0) },
+    };
+    service = Object.create(AuthService.prototype);
+    (service as any).prisma = mockPrisma;
+    (service as any).logger = { warn: jest.fn() };
+  });
+
+  it('존재하지 않는 username → null 반환', async () => {
+    mockPrisma.user.findFirst.mockResolvedValue(null);
+
+    const result = await service.getPublicPortfolio('nobody');
+    expect(result).toBeNull();
+  });
+
+  it('유효한 username → 프로필 + 이력서 목록 반환', async () => {
+    const resume = makeResume();
+    mockPrisma.user.findFirst.mockResolvedValue(makeUser());
+    mockPrisma.resume.findMany.mockResolvedValue([resume]);
+
+    const result: any = await service.getPublicPortfolio('honggildong');
+    expect(result.user.username).toBe('honggildong');
+    expect(result.stats.publicResumeCount).toBe(1);
+    expect(result.resumes).toHaveLength(1);
+    expect(result.resumes[0].title).toBe('프론트엔드 이력서');
+  });
+
+  it('topSkills 집계 — 스킬 아이템 중복 제거', async () => {
+    const resume1 = makeResume({ skills: [{ items: 'React, TypeScript, Node.js' }] });
+    const resume2 = makeResume({ id: 'r2', skills: [{ items: 'React, Vue.js' }] });
+    mockPrisma.user.findFirst.mockResolvedValue(makeUser());
+    mockPrisma.resume.findMany.mockResolvedValue([resume1, resume2]);
+
+    const result: any = await service.getPublicPortfolio('honggildong');
+    expect(result.topSkills).toContain('React');
+    expect(result.topSkills).toContain('TypeScript');
+    // React 중복이어도 한 번만 등장 (Set-based dedup)
+    expect(result.topSkills.filter((s: string) => s === 'React')).toHaveLength(1);
+  });
+
+  it('totalViews 합산', async () => {
+    const r1 = makeResume({ viewCount: 50 });
+    const r2 = makeResume({ id: 'r2', viewCount: 30 });
+    mockPrisma.user.findFirst.mockResolvedValue(makeUser());
+    mockPrisma.resume.findMany.mockResolvedValue([r1, r2]);
+
+    const result: any = await service.getPublicPortfolio('honggildong');
+    expect(result.stats.totalViews).toBe(80);
+  });
+
+  it('tags 정규화 — TagsOnResumes join 구조 처리', async () => {
+    const resume = makeResume({
+      tags: [
+        { tag: { id: 't1', name: 'React', color: '#61dafb' } },
+        { tag: { id: 't2', name: 'NestJS', color: '#ea2845' } },
+      ],
+    });
+    mockPrisma.user.findFirst.mockResolvedValue(makeUser());
+    mockPrisma.resume.findMany.mockResolvedValue([resume]);
+
+    const result: any = await service.getPublicPortfolio('honggildong');
+    expect(result.resumes[0].tags[0].name).toBe('React');
+    expect(result.resumes[0].tags[1].name).toBe('NestJS');
+  });
 });

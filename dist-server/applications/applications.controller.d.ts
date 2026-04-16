@@ -8,10 +8,10 @@ export declare class ApplicationsController {
         id: string;
         createdAt: Date;
         userId: string | null;
-        company: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
+        company: string;
         position: string;
         status: string;
         appliedDate: string | null;
@@ -28,10 +28,10 @@ export declare class ApplicationsController {
         id: string;
         createdAt: Date;
         userId: string | null;
-        company: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
+        company: string;
         position: string;
         status: string;
         appliedDate: string | null;
@@ -44,10 +44,10 @@ export declare class ApplicationsController {
         id: string;
         createdAt: Date;
         userId: string | null;
-        company: string;
         visibility: string;
         updatedAt: Date;
         resumeId: string | null;
+        company: string;
         position: string;
         status: string;
         appliedDate: string | null;

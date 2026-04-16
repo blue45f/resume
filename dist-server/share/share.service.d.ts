@@ -19,37 +19,37 @@ export declare class ShareService {
             id: string;
             email: string;
             name: string;
-            summary: string;
-            links: string;
             resumeId: string;
             phone: string;
             address: string;
             website: string;
+            summary: string;
             photo: string;
             birthYear: string;
+            links: string;
             military: string;
         } | null;
         experiences: {
             id: string;
-            company: string;
-            description: string;
             resumeId: string;
             sortOrder: number;
+            company: string;
             position: string;
             department: string;
             startDate: string;
             endDate: string;
             current: boolean;
+            description: string;
             achievements: string;
             techStack: string;
         }[];
         educations: {
             id: string;
-            description: string;
             resumeId: string;
             sortOrder: number;
             startDate: string;
             endDate: string;
+            description: string;
             school: string;
             degree: string;
             field: string;
@@ -67,12 +67,12 @@ export declare class ShareService {
             id: string;
             name: string;
             role: string;
-            company: string;
-            description: string;
             resumeId: string;
             sortOrder: number;
+            company: string;
             startDate: string;
             endDate: string;
+            description: string;
             techStack: string;
         }[];
     } & {

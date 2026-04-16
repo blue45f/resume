@@ -7,16 +7,16 @@ export declare class CommentsController {
         id: string;
         createdAt: Date;
         userId: string | null;
-        content: string;
         resumeId: string;
+        content: string;
         authorName: string;
     }[]>;
     create(resumeId: string, dto: CreateCommentDto, req: any): Promise<{
         id: string;
         createdAt: Date;
         userId: string | null;
-        content: string;
         resumeId: string;
+        content: string;
         authorName: string;
     }>;
     remove(commentId: string, req: any): Promise<{

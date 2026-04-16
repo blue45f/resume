@@ -12,8 +12,8 @@ export declare class VersionsController {
         snapshot: any;
         createdAt: string;
         id: string;
-        description: string;
         resumeId: string;
+        description: string;
         versionNumber: number;
     }>;
     restore(resumeId: string, versionId: string, req: any): Promise<{

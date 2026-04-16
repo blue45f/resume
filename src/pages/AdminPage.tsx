@@ -46,7 +46,7 @@ interface Stats {
   revenue?: { thisMonth: number; lastMonth: number };
 }
 
-type TabId = 'stats' | 'users' | 'content' | 'moderation' | 'settings' | 'plans' | 'banners' | 'notices' | 'community';
+type TabId = 'stats' | 'users' | 'content' | 'moderation' | 'settings' | 'plans' | 'banners' | 'notices' | 'community' | 'extlinks';
 
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -63,6 +63,7 @@ export default function AdminPage() {
     { id: 'banners', label: '배너', icon: '🖼' },
     { id: 'notices', label: '공지사항', icon: '📢' },
     { id: 'community', label: '커뮤니티', icon: '💬' },
+    { id: 'extlinks', label: '채용링크', icon: '🔗' },
     { id: 'content', label: '콘텐츠', icon: '📝' },
     { id: 'moderation', label: '신고 관리', icon: '🛡' },
     { id: 'settings', label: '시스템', icon: '⚙', superOnly: true },
@@ -170,6 +171,7 @@ export default function AdminPage() {
             {activeTab === 'banners' && <AdminBannersTab />}
             {activeTab === 'notices' && <AdminNoticesTab />}
             {activeTab === 'community' && <AdminCommunityTab />}
+            {activeTab === 'extlinks' && <AdminExtLinksTab />}
             {activeTab === 'users' && (
               <div className="space-y-6 animate-fade-in-up">
                 {stats.recentUsers && stats.recentUsers.length > 0 && (
@@ -1206,19 +1208,27 @@ interface Notice {
   id: string;
   title: string;
   content: string;
-  type: 'GENERAL' | 'MAINTENANCE' | 'EVENT';
+  type: string;
   isPopup: boolean;
   isPinned: boolean;
+  allowComments: boolean;
+  viewCount: number;
   startAt?: string;
   endAt?: string;
   createdAt: string;
+  author?: { id: string; name: string; avatar: string };
+  _count?: { comments: number };
 }
 
-const NOTICE_TYPE_LABELS: Record<string, string> = { GENERAL: '일반', MAINTENANCE: '점검', EVENT: '이벤트' };
+const NOTICE_TYPE_LABELS: Record<string, string> = {
+  GENERAL: '일반', MAINTENANCE: '점검', EVENT: '이벤트', UPDATE: '업데이트', URGENT: '긴급'
+};
 const NOTICE_TYPE_COLORS: Record<string, string> = {
   GENERAL: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
   MAINTENANCE: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
   EVENT: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
+  UPDATE: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
+  URGENT: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
 };
 
 function AdminNoticesTab() {
@@ -1226,16 +1236,21 @@ function AdminNoticesTab() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Notice | null>(null);
+  const [historyNotice, setHistoryNotice] = useState<Notice | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [editReason, setEditReason] = useState('');
   const token = localStorage.getItem('token');
 
-  const emptyForm = { title: '', content: '', type: 'GENERAL' as const, isPopup: false, isPinned: false };
+  type NoticeType = 'GENERAL' | 'MAINTENANCE' | 'EVENT' | 'UPDATE' | 'URGENT';
+  const emptyForm = { title: '', content: '', type: 'GENERAL' as NoticeType, isPopup: false, isPinned: false, allowComments: true };
   const [form, setForm] = useState({ ...emptyForm });
 
   const load = () => {
     setLoading(true);
-    fetch(`${API_URL}/api/notices?limit=50`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : { data: [] })
-      .then(d => setNotices(d.data || []))
+    fetch(`${API_URL}/api/notices?limit=100`, { headers: { Authorization: `Bearer ${token}` } as any })
+      .then(r => r.ok ? r.json() : { items: [] })
+      .then(d => setNotices(d.items || []))
       .catch(() => setNotices([]))
       .finally(() => setLoading(false));
   };
@@ -1245,37 +1260,83 @@ function AdminNoticesTab() {
   const handleSave = async () => {
     const method = editing ? 'PATCH' : 'POST';
     const url = editing ? `${API_URL}/api/notices/${editing.id}` : `${API_URL}/api/notices`;
+    const body = editing ? { ...form, reason: editReason } : form;
     const res = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(form),
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } as any,
+      body: JSON.stringify(body),
     });
     if (res.ok) {
       toast(editing ? '공지가 수정되었습니다' : '공지가 등록되었습니다', 'success');
-      setEditing(null); setCreating(false); setForm({ ...emptyForm }); load();
-    } else {
-      toast('저장 실패', 'error');
-    }
+      setEditing(null); setCreating(false); setForm({ ...emptyForm }); setEditReason(''); load();
+    } else { toast('저장 실패', 'error'); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('공지사항을 삭제하시겠습니까?')) return;
-    const res = await fetch(`${API_URL}/api/notices/${id}`, {
-      method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(`${API_URL}/api/notices/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } as any });
     if (res.ok) { toast('삭제되었습니다', 'success'); load(); }
   };
 
-  const startEdit = (n: Notice) => {
-    setEditing(n);
-    setCreating(true);
-    setForm({ title: n.title, content: n.content, type: n.type, isPopup: n.isPopup, isPinned: n.isPinned });
+  const handleToggleComments = async (n: Notice) => {
+    const res = await fetch(`${API_URL}/api/notices/${n.id}/toggle-comments`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } as any,
+      body: JSON.stringify({ allow: !n.allowComments }),
+    });
+    if (res.ok) { toast(!n.allowComments ? '댓글을 허용했습니다' : '댓글을 비허용했습니다', 'success'); load(); }
   };
 
-  const cancelForm = () => { setEditing(null); setCreating(false); setForm({ ...emptyForm }); };
+  const handleShowHistory = async (n: Notice) => {
+    setHistoryNotice(n); setHistoryLoading(true);
+    const res = await fetch(`${API_URL}/api/notices/${n.id}/history`, { headers: { Authorization: `Bearer ${token}` } as any });
+    if (res.ok) setHistory(await res.json());
+    else setHistory([]);
+    setHistoryLoading(false);
+  };
+
+  const startEdit = (n: Notice) => {
+    setEditing(n); setCreating(true); setEditReason('');
+    setForm({ title: n.title, content: n.content, type: n.type as NoticeType, isPopup: n.isPopup, isPinned: n.isPinned, allowComments: n.allowComments });
+  };
+
+  const cancelForm = () => { setEditing(null); setCreating(false); setForm({ ...emptyForm }); setEditReason(''); };
 
   return (
     <div className="space-y-6">
+      {/* History modal */}
+      {historyNotice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setHistoryNotice(null)}>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xl mx-4 p-6 max-h-[80vh] overflow-y-auto animate-fade-in" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">수정 히스토리 — {historyNotice.title}</h3>
+              <button onClick={() => setHistoryNotice(null)} className="text-slate-400 hover:text-slate-600">&times;</button>
+            </div>
+            {historyLoading ? (
+              <div className="text-center py-6 text-slate-400 text-sm">불러오는 중...</div>
+            ) : history.length === 0 ? (
+              <div className="text-center py-6 text-slate-400 text-sm">수정 이력이 없습니다</div>
+            ) : (
+              <div className="space-y-3">
+                {history.map(h => (
+                  <div key={h.id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{h.editor?.name || '관리자'}</span>
+                      <span className="text-[10px] text-slate-400">{new Date(h.createdAt).toLocaleString('ko')}</span>
+                    </div>
+                    {h.reason && <p className="text-xs text-slate-500 mb-2 italic">사유: {h.reason}</p>}
+                    <div className="text-xs text-slate-500">
+                      <div className="mb-1"><span className="font-medium">이전 제목:</span> {h.prevTitle}</div>
+                      <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-2 mt-1 max-h-20 overflow-y-auto">{h.prevContent}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">공지사항 관리</h2>
         {!creating && (
@@ -1297,35 +1358,45 @@ function AdminNoticesTab() {
           <div>
             <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">내용 *</label>
             <textarea value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-              rows={4}
+              rows={5}
               className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 resize-none"
               placeholder="공지 내용을 입력하세요" />
           </div>
           <div className="flex flex-wrap gap-4">
             <div>
               <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">유형</label>
-              <div className="flex gap-2">
-                {(['GENERAL', 'MAINTENANCE', 'EVENT'] as const).map(t => (
+              <div className="flex gap-1.5 flex-wrap">
+                {(['GENERAL', 'MAINTENANCE', 'EVENT', 'UPDATE', 'URGENT'] as const).map(t => (
                   <button key={t} onClick={() => setForm(f => ({ ...f, type: t }))}
-                    className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${form.type === t ? NOTICE_TYPE_COLORS[t] + ' font-medium' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
+                    className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${form.type === t ? (NOTICE_TYPE_COLORS[t] || '') + ' font-medium' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
                     {NOTICE_TYPE_LABELS[t]}
                   </button>
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.isPopup} onChange={e => setForm(f => ({ ...f, isPopup: e.target.checked }))}
-                  className="w-4 h-4 text-indigo-600 rounded" />
+                <input type="checkbox" checked={form.isPopup} onChange={e => setForm(f => ({ ...f, isPopup: e.target.checked }))} className="w-4 h-4 text-indigo-600 rounded" />
                 <span className="text-xs text-slate-600 dark:text-slate-400">팝업 공지</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.isPinned} onChange={e => setForm(f => ({ ...f, isPinned: e.target.checked }))}
-                  className="w-4 h-4 text-indigo-600 rounded" />
+                <input type="checkbox" checked={form.isPinned} onChange={e => setForm(f => ({ ...f, isPinned: e.target.checked }))} className="w-4 h-4 text-indigo-600 rounded" />
                 <span className="text-xs text-slate-600 dark:text-slate-400">상단 고정</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.allowComments} onChange={e => setForm(f => ({ ...f, allowComments: e.target.checked }))} className="w-4 h-4 text-indigo-600 rounded" />
+                <span className="text-xs text-slate-600 dark:text-slate-400">댓글 허용</span>
               </label>
             </div>
           </div>
+          {editing && (
+            <div>
+              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">수정 사유 (히스토리에 기록됩니다)</label>
+              <input value={editReason} onChange={e => setEditReason(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                placeholder="예: 오탈자 수정, 내용 추가" />
+            </div>
+          )}
           <div className="flex gap-2">
             <button onClick={handleSave} disabled={!form.title || !form.content}
               className="px-4 py-2 min-h-[44px] bg-indigo-600 text-white text-sm rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors">
@@ -1347,23 +1418,40 @@ function AdminNoticesTab() {
       ) : (
         <div className="space-y-2">
           {notices.map(n => (
-            <div key={n.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${NOTICE_TYPE_COLORS[n.type]}`}>{NOTICE_TYPE_LABELS[n.type]}</span>
-                  {n.isPinned && <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">📌 고정</span>}
-                  {n.isPopup && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">팝업</span>}
+            <div key={n.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${NOTICE_TYPE_COLORS[n.type] || 'bg-slate-100 text-slate-500'}`}>{NOTICE_TYPE_LABELS[n.type] || n.type}</span>
+                    {n.isPinned && <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">📌 고정</span>}
+                    {n.isPopup && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">팝업</span>}
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${n.allowComments ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
+                      {n.allowComments ? '💬 댓글 ON' : '🔇 댓글 OFF'}
+                    </span>
+                  </div>
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{n.title}</p>
+                  <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">{n.content}</p>
+                  <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400">
+                    <span>👁 {n.viewCount || 0}</span>
+                    <span>💬 {n._count?.comments || 0}</span>
+                    {n.author && <span>작성: {n.author.name}</span>}
+                    <span>{new Date(n.createdAt).toLocaleDateString('ko')}</span>
+                  </div>
                 </div>
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{n.title}</p>
-                <p className="text-xs text-slate-400 truncate mt-0.5">{n.content}</p>
-              </div>
-              <div className="flex gap-1.5 shrink-0">
-                <button onClick={() => startEdit(n)} className="px-3 py-2 min-h-[44px] text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 transition-colors">
-                  수정
-                </button>
-                <button onClick={() => handleDelete(n.id)} className="px-3 py-2 min-h-[44px] text-xs bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 transition-colors">
-                  삭제
-                </button>
+                <div className="flex gap-1.5 shrink-0 flex-wrap justify-end">
+                  <button onClick={() => handleToggleComments(n)} className={`px-2.5 py-1.5 text-xs rounded-lg transition-colors ${n.allowComments ? 'bg-slate-100 dark:bg-slate-700 text-slate-500' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600'}`}>
+                    댓글 {n.allowComments ? 'OFF' : 'ON'}
+                  </button>
+                  <button onClick={() => handleShowHistory(n)} className="px-2.5 py-1.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-lg hover:bg-slate-200 transition-colors">
+                    히스토리
+                  </button>
+                  <button onClick={() => startEdit(n)} className="px-2.5 py-1.5 text-xs bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 transition-colors">
+                    수정
+                  </button>
+                  <button onClick={() => handleDelete(n.id)} className="px-2.5 py-1.5 text-xs bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 transition-colors">
+                    삭제
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -2061,6 +2149,212 @@ function ContentModeration() {
           관리자 계정으로 이력서를 열면 모든 댓글에 &quot;삭제&quot; 버튼이 표시됩니다.{'\n'}공개 이력서의 &quot;공개 설정&quot;을 &quot;비공개&quot;로 변경하면 탐색에서 숨겨집니다.
         </p>
       </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AdminExtLinksTab — 외부 채용 링크 관리
+// ─────────────────────────────────────────────────────────────────────────────
+interface ExtLink { id: string; name: string; url: string; logoEmoji: string; badgeText: string; description: string; gradientFrom: string; gradientTo: string; category: string; companySize: string; careerLevel: string; location: string; jobCategory: string; jobTypes: string; isActive: boolean; order: number; clickCount: number; }
+
+const EXT_COMPANY_SIZES = [
+  { key: 'all', label: '전체' }, { key: 'conglomerate', label: '대기업' }, { key: 'public', label: '공기업' },
+  { key: 'government', label: '공무원' }, { key: 'medium', label: '중소기업' }, { key: 'startup', label: '스타트업' }, { key: 'small', label: '소규모' },
+];
+const EXT_CAREER_LEVELS = [
+  { key: 'all', label: '전 경력' }, { key: 'junior', label: '신입' }, { key: 'mid', label: '경력' }, { key: 'senior', label: '시니어' },
+];
+const EXT_JOB_CATEGORIES = [
+  { key: 'all', label: '전 직종' }, { key: 'it', label: 'IT/개발' }, { key: 'planning', label: '기획' }, { key: 'design', label: '디자인' },
+  { key: 'marketing', label: '마케팅' }, { key: 'finance', label: '금융' }, { key: 'sales', label: '영업' }, { key: 'hr', label: '인사' },
+  { key: 'manufacturing', label: '제조' }, { key: 'education', label: '교육' }, { key: 'medical', label: '의료' }, { key: 'legal', label: '법무' },
+  { key: 'service', label: '서비스' }, { key: 'research', label: '연구' },
+];
+const EXT_LOCATIONS = [
+  { key: 'all', label: '전국' }, { key: 'seoul', label: '서울' }, { key: 'gyeonggi', label: '경기' },
+  { key: 'busan', label: '부산' }, { key: 'daegu', label: '대구' }, { key: 'remote', label: '재택' },
+  { key: 'nationwide', label: '전국가능' }, { key: 'global', label: '글로벌' },
+];
+const EXT_JOB_TYPES = [
+  { key: 'all', label: '전체' }, { key: 'fulltime', label: '정규직' }, { key: 'contract', label: '계약직' },
+  { key: 'parttime', label: '파트타임' }, { key: 'intern', label: '인턴' }, { key: 'freelance', label: '프리랜서' },
+];
+
+function AdminExtLinksTab() {
+  const [links, setLinks] = useState<ExtLink[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<Partial<ExtLink> | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
+
+  const token = localStorage.getItem('token');
+  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+
+  const load = () => {
+    setLoading(true);
+    fetch(`${API_URL}/api/jobs/external-links/list`)
+      .then(r => r.json())
+      .then(data => { setLinks(Array.isArray(data) ? data : []); setLoading(false); })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleSave = async () => {
+    if (!editing) return;
+    setSaving(true);
+    try {
+      const method = editing.id ? 'PUT' : 'POST';
+      const url = editing.id ? `${API_URL}/api/jobs/external-links/${editing.id}` : `${API_URL}/api/jobs/external-links`;
+      const res = await fetch(url, { method, headers, body: JSON.stringify(editing) });
+      if (!res.ok) throw new Error();
+      toast(editing.id ? '수정되었습니다' : '등록되었습니다', 'success');
+      setEditing(null);
+      load();
+    } catch {
+      toast('저장 실패', 'error');
+    }
+    setSaving(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+    const res = await fetch(`${API_URL}/api/jobs/external-links/${id}`, { method: 'DELETE', headers });
+    if (res.ok) { toast('삭제되었습니다', 'success'); load(); }
+    else toast('삭제 실패', 'error');
+  };
+
+  const handleToggleActive = async (link: ExtLink) => {
+    await fetch(`${API_URL}/api/jobs/external-links/${link.id}`, {
+      method: 'PUT', headers, body: JSON.stringify({ isActive: !link.isActive }),
+    });
+    load();
+  };
+
+  const newLink: Partial<ExtLink> = {
+    name: '', url: '', logoEmoji: '🔗', badgeText: '', description: '',
+    gradientFrom: '#6366f1', gradientTo: '#4f46e5',
+    category: 'general', companySize: 'all', careerLevel: 'all',
+    location: 'all', jobCategory: 'all', jobTypes: 'all', isActive: true, order: 0,
+  };
+
+  const filtered = links.filter(l =>
+    filterActive === 'all' ? true : filterActive === 'active' ? l.isActive : !l.isActive
+  );
+
+  const inputCls = 'w-full px-2.5 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none';
+  const labelCls = 'block text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5';
+  const selCls = inputCls;
+
+  return (
+    <div className="space-y-4 animate-fade-in-up">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+          <span className="w-1.5 h-4 bg-blue-500 rounded" />외부 채용 링크 관리 ({links.length}개)
+        </h2>
+        <button onClick={() => setEditing(newLink)} className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">+ 링크 추가</button>
+      </div>
+
+      {/* Filter */}
+      <div className="flex gap-2">
+        {[{ key: 'all', label: '전체' }, { key: 'active', label: '활성' }, { key: 'inactive', label: '비활성' }].map(o => (
+          <button key={o.key} onClick={() => setFilterActive(o.key as any)}
+            className={`px-3 py-1 text-xs rounded-full font-medium transition-colors ${filterActive === o.key ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Edit modal */}
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setEditing(null)}>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 p-6 max-h-[90vh] overflow-y-auto animate-fade-in" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-4">{editing.id ? '링크 수정' : '링크 추가'}</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className={labelCls}>사이트명 *</label><input className={inputCls} value={editing.name || ''} onChange={e => setEditing(p => ({ ...p, name: e.target.value }))} /></div>
+              <div><label className={labelCls}>URL *</label><input className={inputCls} value={editing.url || ''} onChange={e => setEditing(p => ({ ...p, url: e.target.value }))} /></div>
+              <div><label className={labelCls}>이모지</label><input className={inputCls} value={editing.logoEmoji || ''} onChange={e => setEditing(p => ({ ...p, logoEmoji: e.target.value }))} /></div>
+              <div><label className={labelCls}>뱃지 텍스트</label><input className={inputCls} value={editing.badgeText || ''} onChange={e => setEditing(p => ({ ...p, badgeText: e.target.value }))} /></div>
+              <div className="col-span-2"><label className={labelCls}>설명</label><input className={inputCls} value={editing.description || ''} onChange={e => setEditing(p => ({ ...p, description: e.target.value }))} /></div>
+              <div><label className={labelCls}>그라데이션 시작색</label><input type="color" className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer" value={editing.gradientFrom || '#6366f1'} onChange={e => setEditing(p => ({ ...p, gradientFrom: e.target.value }))} /></div>
+              <div><label className={labelCls}>그라데이션 끝색</label><input type="color" className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer" value={editing.gradientTo || '#4f46e5'} onChange={e => setEditing(p => ({ ...p, gradientTo: e.target.value }))} /></div>
+              <div><label className={labelCls}>기업 규모</label><select className={selCls} value={editing.companySize || 'all'} onChange={e => setEditing(p => ({ ...p, companySize: e.target.value }))}>{EXT_COMPANY_SIZES.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}</select></div>
+              <div><label className={labelCls}>직종</label><select className={selCls} value={editing.jobCategory || 'all'} onChange={e => setEditing(p => ({ ...p, jobCategory: e.target.value }))}>{EXT_JOB_CATEGORIES.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}</select></div>
+              <div><label className={labelCls}>경력 수준</label><select className={selCls} value={editing.careerLevel || 'all'} onChange={e => setEditing(p => ({ ...p, careerLevel: e.target.value }))}>{EXT_CAREER_LEVELS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}</select></div>
+              <div><label className={labelCls}>고용 형태</label><input className={inputCls} placeholder="all 또는 fulltime,intern" value={editing.jobTypes || ''} onChange={e => setEditing(p => ({ ...p, jobTypes: e.target.value }))} /></div>
+              <div><label className={labelCls}>지역</label><select className={selCls} value={editing.location || 'all'} onChange={e => setEditing(p => ({ ...p, location: e.target.value }))}>{EXT_LOCATIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}</select></div>
+              <div><label className={labelCls}>정렬 순서</label><input type="number" className={inputCls} value={editing.order ?? 0} onChange={e => setEditing(p => ({ ...p, order: parseInt(e.target.value) || 0 }))} /></div>
+              <div className="col-span-2 flex items-center gap-2">
+                <input type="checkbox" id="ext-active" checked={editing.isActive ?? true} onChange={e => setEditing(p => ({ ...p, isActive: e.target.checked }))} className="rounded" />
+                <label htmlFor="ext-active" className="text-sm text-slate-600 dark:text-slate-300">활성화</label>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4 justify-end">
+              <button onClick={() => setEditing(null)} className="px-4 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">취소</button>
+              <button onClick={handleSave} disabled={saving || !editing.name || !editing.url} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                {saving ? '저장 중...' : '저장'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Table */}
+      {loading ? (
+        <div className="text-center py-8 text-slate-400">불러오는 중...</div>
+      ) : (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                <tr>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-slate-500">사이트</th>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-slate-500">기업규모</th>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-slate-500">직종</th>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-slate-500">지역</th>
+                  <th className="text-right px-3 py-2 text-xs font-medium text-slate-500">클릭</th>
+                  <th className="text-center px-3 py-2 text-xs font-medium text-slate-500">상태</th>
+                  <th className="text-center px-3 py-2 text-xs font-medium text-slate-500">관리</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                {filtered.map(link => (
+                  <tr key={link.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{link.logoEmoji}</span>
+                        <div>
+                          <div className="font-medium text-slate-800 dark:text-slate-100">{link.name}</div>
+                          <div className="text-xs text-slate-400 truncate max-w-[200px]">{link.description}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-xs text-slate-500">{EXT_COMPANY_SIZES.find(o => o.key === link.companySize)?.label || link.companySize}</td>
+                    <td className="px-3 py-2 text-xs text-slate-500">{EXT_JOB_CATEGORIES.find(o => o.key === link.jobCategory)?.label || link.jobCategory}</td>
+                    <td className="px-3 py-2 text-xs text-slate-500">{EXT_LOCATIONS.find(o => o.key === link.location)?.label || link.location}</td>
+                    <td className="px-3 py-2 text-xs text-right text-slate-500">{link.clickCount.toLocaleString()}</td>
+                    <td className="px-3 py-2 text-center">
+                      <button onClick={() => handleToggleActive(link)} className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${link.isActive ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
+                        {link.isActive ? '활성' : '비활성'}
+                      </button>
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <button onClick={() => setEditing(link)} className="p-1 text-slate-400 hover:text-blue-600 transition-colors" title="수정">✏️</button>
+                        <button onClick={() => handleDelete(link.id)} className="p-1 text-slate-400 hover:text-red-600 transition-colors" title="삭제">🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr><td colSpan={7} className="py-8 text-center text-slate-400 text-sm">링크가 없습니다</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

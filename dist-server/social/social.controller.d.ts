@@ -35,11 +35,11 @@ export declare class SocialController {
     }, req: any): Promise<{
         id: string;
         createdAt: Date;
+        resumeId: string | null;
         company: string;
+        position: string;
         message: string;
         read: boolean;
-        resumeId: string | null;
-        position: string;
         senderId: string;
         receiverId: string;
     }> | {
@@ -54,11 +54,11 @@ export declare class SocialController {
     } & {
         id: string;
         createdAt: Date;
+        resumeId: string | null;
         company: string;
+        position: string;
         message: string;
         read: boolean;
-        resumeId: string | null;
-        position: string;
         senderId: string;
         receiverId: string;
     })[]>;

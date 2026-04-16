@@ -166,6 +166,222 @@ function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () =
 }
 
 
+/* ------------------------------------------------------------------ */
+/*  External Job Site Links (API-backed, multi-filter)                 */
+/* ------------------------------------------------------------------ */
+interface ExternalLink {
+  id: string; name: string; url: string; logoEmoji: string; badgeText: string;
+  description: string; gradientFrom: string; gradientTo: string;
+  category: string; companySize: string; careerLevel: string;
+  location: string; jobCategory: string; jobTypes: string; clickCount: number;
+}
+
+const COMPANY_SIZE_OPTIONS = [
+  { key: 'all', label: '전체' },
+  { key: 'conglomerate', label: '대기업' },
+  { key: 'public', label: '공기업' },
+  { key: 'government', label: '공무원' },
+  { key: 'medium', label: '중소기업' },
+  { key: 'startup', label: '스타트업' },
+  { key: 'small', label: '소규모(10인 미만)' },
+];
+
+const CAREER_LEVEL_EXT_OPTIONS = [
+  { key: 'all', label: '전 경력' },
+  { key: 'junior', label: '신입/인턴' },
+  { key: 'mid', label: '경력 3~7년' },
+  { key: 'senior', label: '시니어 7년+' },
+];
+
+const JOB_CATEGORY_OPTIONS = [
+  { key: 'all', label: '전 직종' },
+  { key: 'it', label: 'IT/개발' },
+  { key: 'planning', label: '기획/PM' },
+  { key: 'design', label: '디자인' },
+  { key: 'marketing', label: '마케팅/광고' },
+  { key: 'finance', label: '금융/회계' },
+  { key: 'sales', label: '영업/판매' },
+  { key: 'hr', label: '인사/총무' },
+  { key: 'manufacturing', label: '생산/제조' },
+  { key: 'education', label: '교육' },
+  { key: 'medical', label: '의료/보건' },
+  { key: 'legal', label: '법무/법조' },
+  { key: 'service', label: '서비스/유통' },
+  { key: 'research', label: '연구/R&D' },
+];
+
+const JOB_TYPE_EXT_OPTIONS = [
+  { key: 'all', label: '전체' },
+  { key: 'fulltime', label: '정규직' },
+  { key: 'contract', label: '계약직' },
+  { key: 'parttime', label: '파트타임' },
+  { key: 'intern', label: '인턴' },
+  { key: 'freelance', label: '프리랜서' },
+];
+
+const LOCATION_EXT_OPTIONS = [
+  { key: 'all', label: '전국' },
+  { key: 'seoul', label: '서울' },
+  { key: 'gyeonggi', label: '경기' },
+  { key: 'busan', label: '부산' },
+  { key: 'daegu', label: '대구' },
+  { key: 'remote', label: '재택/원격' },
+  { key: 'nationwide', label: '전국 가능' },
+  { key: 'global', label: '해외/글로벌' },
+];
+
+function ExternalJobLinks() {
+  const [links, setLinks] = useState<ExternalLink[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [companySize, setCompanySize] = useState('all');
+  const [careerLevel, setCareerLevel] = useState('all');
+  const [jobCategory, setJobCategory] = useState('all');
+  const [jobType, setJobType] = useState('all');
+  const [location, setLocation] = useState('all');
+  const [q, setQ] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (companySize !== 'all') params.set('companySize', companySize);
+    if (careerLevel !== 'all') params.set('careerLevel', careerLevel);
+    if (jobCategory !== 'all') params.set('jobCategory', jobCategory);
+    if (jobType !== 'all') params.set('jobType', jobType);
+    if (location !== 'all') params.set('location', location);
+    if (q) params.set('q', q);
+    fetch(`${API_URL}/api/jobs/external-links/list?${params}`)
+      .then(r => r.json())
+      .then(data => { setLinks(Array.isArray(data) ? data : []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [companySize, careerLevel, jobCategory, jobType, location, q]);
+
+  const handleClick = async (link: ExternalLink) => {
+    // fire-and-forget click tracking
+    fetch(`${API_URL}/api/jobs/external-links/${link.id}/click`, { method: 'POST' }).catch(() => {});
+    window.open(link.url, '_blank', 'noopener,noreferrer');
+  };
+
+  const visible = expanded ? links : links.slice(0, 8);
+
+  const filterBtnClass = (active: boolean) =>
+    `px-2.5 py-1 text-[11px] font-medium rounded-full whitespace-nowrap transition-colors ${
+      active ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+    }`;
+
+  return (
+    <div className="mb-6 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800/60 dark:to-blue-900/20 rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-base">🔗</span>
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">주요 채용 사이트 바로가기</span>
+          <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full">{links.length}개</span>
+        </div>
+        <button onClick={() => setExpanded(e => !e)} className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1 transition-colors">
+          {expanded ? '접기' : '전체보기'}
+          <svg className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Search */}
+      <form onSubmit={e => { e.preventDefault(); setQ(searchInput); }} className="flex gap-2 mb-3">
+        <input
+          type="search" value={searchInput} onChange={e => setSearchInput(e.target.value)}
+          placeholder="사이트명, 직종 검색..."
+          className="flex-1 px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        />
+        <button type="submit" className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">검색</button>
+        {q && <button type="button" onClick={() => { setQ(''); setSearchInput(''); }} className="px-2 py-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors">✕</button>}
+      </form>
+
+      {/* Filters */}
+      <div className="space-y-2 mb-4">
+        {/* 기업 규모 */}
+        <div className="flex gap-1.5 flex-wrap">
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">기업규모</span>
+          {COMPANY_SIZE_OPTIONS.map(o => (
+            <button key={o.key} onClick={() => setCompanySize(o.key)} className={filterBtnClass(companySize === o.key)}>{o.label}</button>
+          ))}
+        </div>
+        {/* 직종 */}
+        <div className="flex gap-1.5 flex-wrap">
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">직종</span>
+          {JOB_CATEGORY_OPTIONS.map(o => (
+            <button key={o.key} onClick={() => setJobCategory(o.key)} className={filterBtnClass(jobCategory === o.key)}>{o.label}</button>
+          ))}
+        </div>
+        {/* 경력 + 고용형태 */}
+        <div className="flex gap-1.5 flex-wrap">
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">경력</span>
+          {CAREER_LEVEL_EXT_OPTIONS.map(o => (
+            <button key={o.key} onClick={() => setCareerLevel(o.key)} className={filterBtnClass(careerLevel === o.key)}>{o.label}</button>
+          ))}
+        </div>
+        <div className="flex gap-1.5 flex-wrap">
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">고용</span>
+          {JOB_TYPE_EXT_OPTIONS.map(o => (
+            <button key={o.key} onClick={() => setJobType(o.key)} className={filterBtnClass(jobType === o.key)}>{o.label}</button>
+          ))}
+        </div>
+        {/* 지역 */}
+        <div className="flex gap-1.5 flex-wrap">
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">지역</span>
+          {LOCATION_EXT_OPTIONS.map(o => (
+            <button key={o.key} onClick={() => setLocation(o.key)} className={filterBtnClass(location === o.key)}>{o.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Links grid */}
+      {loading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="h-16 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      ) : visible.length === 0 ? (
+        <div className="text-center py-6 text-sm text-slate-400 dark:text-slate-500">조건에 맞는 채용 사이트가 없습니다</div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {visible.map(link => (
+            <button
+              key={link.id}
+              onClick={() => handleClick(link)}
+              className="group flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200 text-left"
+            >
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-lg shrink-0 shadow-sm"
+                style={{ background: `linear-gradient(135deg, ${link.gradientFrom}, ${link.gradientTo})` }}
+              >
+                {link.logoEmoji}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight">{link.name}</span>
+                  {link.badgeText && <span className="px-1 py-0.5 text-[9px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">{link.badgeText}</span>}
+                </div>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">{link.description}</p>
+              </div>
+              <svg className="w-3 h-3 text-slate-300 group-hover:text-blue-400 transition-colors ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </button>
+          ))}
+        </div>
+      )}
+      {links.length > 8 && (
+        <button onClick={() => setExpanded(e => !e)} className="w-full mt-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+          {expanded ? `▲ 접기` : `▼ ${links.length - 8}개 더 보기`}
+        </button>
+      )}
+    </div>
+  );
+}
+
 interface JobPost {
   id: string;
   company: string;
@@ -351,6 +567,9 @@ export default function JobsPage() {
             )}
           </div>
         </div>
+
+        {/* External Job Sites Quick Links */}
+        <ExternalJobLinks />
 
         {/* Search */}
         <form onSubmit={handleSearch} className="flex gap-2 mb-4">

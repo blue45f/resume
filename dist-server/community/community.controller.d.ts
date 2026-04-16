@@ -14,22 +14,22 @@ export declare class CommunityController {
                 avatar: string;
             } | null;
             _count: {
-                likes: number;
                 comments: number;
+                likes: number;
             };
         } & {
             id: string;
-            title: string;
-            content: string;
-            category: string;
+            createdAt: Date;
             userId: string | null;
+            title: string;
             viewCount: number;
+            updatedAt: Date;
+            attachments: import("@prisma/client/runtime/library").JsonValue;
+            category: string;
+            content: string;
             likeCount: number;
             isPinned: boolean;
             isHidden: boolean;
-            attachments: import("@prisma/client/runtime/library").JsonValue;
-            createdAt: Date;
-            updatedAt: Date;
         })[];
         total: number;
         page: number;
@@ -46,29 +46,29 @@ export declare class CommunityController {
         } | null;
         comments: ({} & {
             id: string;
-            content: string;
-            userId: string | null;
             createdAt: Date;
+            userId: string | null;
             updatedAt: Date;
-            postId: string;
+            content: string;
             authorName: string | null;
+            postId: string;
         })[];
         _count: {
-            likes: number;
             comments: number;
+            likes: number;
         };
         id: string;
-        title: string;
-        content: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        title: string;
         viewCount: number;
+        updatedAt: Date;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
+        category: string;
+        content: string;
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
-        createdAt: Date;
-        updatedAt: Date;
     } | null>;
     create(body: {
         title: string;
@@ -84,49 +84,49 @@ export declare class CommunityController {
         } | null;
     } & {
         id: string;
-        title: string;
-        content: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        title: string;
         viewCount: number;
+        updatedAt: Date;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
+        category: string;
+        content: string;
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
-        createdAt: Date;
-        updatedAt: Date;
     }> | {
         error: string;
     };
     update(id: string, body: any, req: any): Promise<{
         id: string;
-        title: string;
-        content: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        title: string;
         viewCount: number;
+        updatedAt: Date;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
+        category: string;
+        content: string;
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
-        createdAt: Date;
-        updatedAt: Date;
     }> | {
         error: string;
     };
     delete(id: string, req: any): Promise<{
         id: string;
-        title: string;
-        content: string;
-        category: string;
+        createdAt: Date;
         userId: string | null;
+        title: string;
         viewCount: number;
+        updatedAt: Date;
+        attachments: import("@prisma/client/runtime/library").JsonValue;
+        category: string;
+        content: string;
         likeCount: number;
         isPinned: boolean;
         isHidden: boolean;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
-        createdAt: Date;
-        updatedAt: Date;
     }> | {
         error: string;
     };
@@ -137,33 +137,33 @@ export declare class CommunityController {
     };
     getComments(id: string): Promise<{
         id: string;
-        content: string;
-        userId: string | null;
         createdAt: Date;
+        userId: string | null;
         updatedAt: Date;
-        postId: string;
+        content: string;
         authorName: string | null;
+        postId: string;
     }[]>;
     addComment(id: string, body: {
         content: string;
         authorName?: string;
     }, req: any): Promise<{
         id: string;
-        content: string;
-        userId: string | null;
         createdAt: Date;
+        userId: string | null;
         updatedAt: Date;
-        postId: string;
+        content: string;
         authorName: string | null;
+        postId: string;
     }>;
     deleteComment(id: string, commentId: string, req: any): Promise<{
         id: string;
-        content: string;
-        userId: string | null;
         createdAt: Date;
+        userId: string | null;
         updatedAt: Date;
-        postId: string;
+        content: string;
         authorName: string | null;
+        postId: string;
     }> | {
         error: string;
     };

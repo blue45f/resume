@@ -75,4 +75,95 @@ export class JobsService {
     await this.prisma.jobPost.delete({ where: { id } });
     return { success: true };
   }
+
+  // ── External Job Links ──────────────────────────────────────────────
+
+  async getExternalLinks(filters: {
+    category?: string;
+    companySize?: string;
+    careerLevel?: string;
+    jobType?: string;
+    location?: string;
+    jobCategory?: string;
+    q?: string;
+  }) {
+    const andClauses: any[] = [{ isActive: true }];
+
+    if (filters.category && filters.category !== 'all') {
+      andClauses.push({ category: filters.category });
+    }
+    if (filters.companySize && filters.companySize !== 'all') {
+      andClauses.push({
+        OR: [{ companySize: filters.companySize }, { companySize: 'all' }],
+      });
+    }
+    if (filters.careerLevel && filters.careerLevel !== 'all') {
+      andClauses.push({
+        OR: [{ careerLevel: filters.careerLevel }, { careerLevel: 'all' }],
+      });
+    }
+    if (filters.location && filters.location !== 'all') {
+      andClauses.push({
+        OR: [
+          { location: filters.location },
+          { location: 'nationwide' },
+          { location: 'all' },
+        ],
+      });
+    }
+    if (filters.jobCategory && filters.jobCategory !== 'all') {
+      andClauses.push({
+        OR: [{ jobCategory: filters.jobCategory }, { jobCategory: 'all' }],
+      });
+    }
+    if (filters.jobType && filters.jobType !== 'all') {
+      andClauses.push({
+        OR: [
+          { jobTypes: { contains: filters.jobType } },
+          { jobTypes: 'all' },
+        ],
+      });
+    }
+    if (filters.q) {
+      const q = filters.q;
+      andClauses.push({
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { description: { contains: q, mode: 'insensitive' } },
+          { badgeText: { contains: q, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    return this.prisma.externalJobLink.findMany({
+      where: { AND: andClauses },
+      orderBy: [{ order: 'asc' }, { clickCount: 'desc' }],
+    });
+  }
+
+  async recordExternalLinkClick(id: string) {
+    const link = await this.prisma.externalJobLink.findUnique({ where: { id } });
+    if (!link) throw new NotFoundException();
+    await this.prisma.externalJobLink.update({
+      where: { id },
+      data: { clickCount: { increment: 1 } },
+    });
+    return { url: link.url };
+  }
+
+  async createExternalLink(data: any, role: string) {
+    if (role !== 'admin' && role !== 'superadmin') throw new ForbiddenException();
+    return this.prisma.externalJobLink.create({ data });
+  }
+
+  async updateExternalLink(id: string, data: any, role: string) {
+    if (role !== 'admin' && role !== 'superadmin') throw new ForbiddenException();
+    return this.prisma.externalJobLink.update({ where: { id }, data });
+  }
+
+  async deleteExternalLink(id: string, role: string) {
+    if (role !== 'admin' && role !== 'superadmin') throw new ForbiddenException();
+    await this.prisma.externalJobLink.delete({ where: { id } });
+    return { success: true };
+  }
 }
