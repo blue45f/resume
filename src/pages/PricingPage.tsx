@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { PLANS, RECRUITER_PLANS, formatPrice } from '@/lib/plans';
+import { PLANS, RECRUITER_PLANS, formatPrice, isMonetizationEnabled } from '@/lib/plans';
 import { getUser } from '@/lib/auth';
 
 const FAQ_ITEMS = [
@@ -64,18 +64,41 @@ export default function PricingPage() {
     <>
       <Header />
       <main id="main-content" className="flex-1" role="main">
+        {/* 유료화 OFF 배너 */}
+        {!isMonetizationEnabled() && (
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-center py-3 px-4">
+            <p className="text-sm font-medium">
+              🎉 현재 베타 운영 기간으로 <strong>모든 기능을 무료</strong>로 제공하고 있습니다. 로그인 후 바로 사용해보세요!
+            </p>
+          </div>
+        )}
         {/* Hero */}
         <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/20 dark:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/50 to-transparent dark:from-indigo-950/20 dark:to-transparent" />
           <div className="relative text-center py-12 sm:py-16 px-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-medium mb-4">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              합리적인 가격, 강력한 기능
-            </div>
+            {!isMonetizationEnabled() ? (
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-medium mb-4">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                베타 기간 — 모든 기능 무료 제공 중
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-xs font-medium mb-4">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                합리적인 가격, 강력한 기능
+              </div>
+            )}
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 mb-3">
-              나에게 맞는 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">요금제</span>를 선택하세요
+              {isMonetizationEnabled()
+                ? <>나에게 맞는 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">요금제</span>를 선택하세요</>
+                : <>지금은 <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">모든 기능이 무료</span>입니다</>
+              }
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 max-w-lg mx-auto mb-8">무료로 시작하고, 필요할 때 업그레이드하세요. 언제든 취소 가능합니다.</p>
+            <p className="text-slate-500 dark:text-slate-400 max-w-lg mx-auto mb-8">
+              {isMonetizationEnabled()
+                ? '무료로 시작하고, 필요할 때 업그레이드하세요. 언제든 취소 가능합니다.'
+                : '베타 기간 동안 모든 기능을 제한 없이 이용하실 수 있습니다. 향후 유료 플랜으로 전환 시 사전 공지드립니다.'
+              }
+            </p>
 
             {/* Plan type tabs */}
             <div className="flex items-center justify-center gap-2 mb-6">
@@ -228,6 +251,17 @@ export default function PricingPage() {
                   <div className="block w-full py-3 text-center text-sm font-medium rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 cursor-default">
                     현재 사용 중
                   </div>
+                ) : !isMonetizationEnabled() ? (
+                  <Link
+                    to="/resumes/new"
+                    className={`block w-full py-3 text-center text-sm font-semibold rounded-xl transition-all duration-200 ${
+                      plan.popular
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 hover:-translate-y-0.5'
+                        : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30'
+                    }`}
+                  >
+                    무료로 이용하기
+                  </Link>
                 ) : (
                   <Link
                     to={plan.id === 'free' ? '/resumes/new' : `/payment?plan=${plan.id}&period=${yearly ? 'yearly' : 'monthly'}`}

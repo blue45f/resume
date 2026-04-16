@@ -173,7 +173,14 @@ export function getPlan(planId: string): PlanConfig {
   return PLANS.find(p => p.id === planId) || PLANS[0];
 }
 
+// 유료화 비활성화 여부를 런타임에 확인 (system-config/public API 응답 캐시)
+let _monetizationEnabled: boolean | null = null;
+export function setMonetizationEnabled(v: boolean) { _monetizationEnabled = v; }
+export function isMonetizationEnabled(): boolean { return _monetizationEnabled !== false; }
+
 export function canAccess(userPlan: string, feature: keyof PlanConfig['features'], userRole?: string): boolean {
+  // 유료화 OFF → 모든 사용자 모든 기능 접근 가능
+  if (_monetizationEnabled === false) return true;
   // admin/superadmin은 모든 기능 사용 가능
   if (userRole === 'admin' || userRole === 'superadmin') return true;
   const plan = getPlan(userPlan);

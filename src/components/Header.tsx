@@ -162,6 +162,9 @@ export default function Header() {
             <Link to="/explore" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/explore' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
               {t('nav.explore')}
             </Link>
+            <Link to="/community" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname.startsWith('/community') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+              커뮤니티
+            </Link>
             {/* Role-specific items */}
             {isRecruiter ? (
               <>
@@ -358,6 +361,7 @@ export default function Header() {
             {/* Main */}
             <Link to="/" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.resumes')}</Link>
             <Link to="/explore" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.explore')}</Link>
+            <Link to="/community" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">커뮤니티</Link>
             <Link to="/bookmarks" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">북마크</Link>
             <Link to="/messages" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">쪽지</Link>
 

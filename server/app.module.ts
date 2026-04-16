@@ -24,6 +24,7 @@ import { JobsModule } from './jobs/jobs.module';
 import { BannersModule } from './banners/banners.module';
 import { NoticesModule } from './notices/notices.module';
 import { SystemConfigModule } from './system-config/system-config.module';
+import { CommunityModule } from './community/community.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { SystemConfigModule } from './system-config/system-config.module';
     BannersModule,
     NoticesModule,
     SystemConfigModule,
+    CommunityModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

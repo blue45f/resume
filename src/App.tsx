@@ -65,6 +65,10 @@ const FollowListPage = lazyRetry(() => import('@/pages/FollowListPage'));
 const FeedbackPage = lazyRetry(() => import('@/pages/FeedbackPage'));
 const SitemapPage = lazyRetry(() => import('@/pages/SitemapPage'));
 const CompanyPage = lazyRetry(() => import('@/pages/CompanyPage'));
+const CommunityPage = lazyRetry(() => import('@/pages/CommunityPage'));
+const CommunityPostPage = lazyRetry(() => import('@/pages/CommunityPostPage'));
+const CommunityWritePage = lazyRetry(() => import('@/pages/CommunityWritePage'));
+const NoticePage = lazyRetry(() => import('@/pages/NoticePage'));
 const NotFoundPage = lazyRetry(() => import('@/pages/NotFoundPage'));
 
 function PageLoader() {
@@ -134,6 +138,12 @@ export default function App() {
             <Route path="/r/:code" element={<Suspense fallback={<PageLoader />}><ShortLinkPage /></Suspense>} />
             <Route path="/@:username/:slug" element={<Suspense fallback={<PageLoader />}><ProfileResumePage /></Suspense>} />
             <Route path="/company/:name" element={<Suspense fallback={<PageLoader />}><CompanyPage /></Suspense>} />
+            <Route path="/community" element={<Suspense fallback={<PageLoader />}><CommunityPage /></Suspense>} />
+            <Route path="/community/write" element={<Suspense fallback={<PageLoader />}><AuthGuard><CommunityWritePage /></AuthGuard></Suspense>} />
+            <Route path="/community/:id" element={<Suspense fallback={<PageLoader />}><CommunityPostPage /></Suspense>} />
+            <Route path="/community/:id/edit" element={<Suspense fallback={<PageLoader />}><AuthGuard><CommunityWritePage /></AuthGuard></Suspense>} />
+            <Route path="/notices" element={<Suspense fallback={<PageLoader />}><NoticePage /></Suspense>} />
+            <Route path="/notices/:id" element={<Suspense fallback={<PageLoader />}><NoticePage /></Suspense>} />
             <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />
           </Routes>
         </div>
