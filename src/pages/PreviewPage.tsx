@@ -88,6 +88,8 @@ export default function PreviewPage() {
   const [showAiAnalysis, setShowAiAnalysis] = useState(false);
   const [showJdMatch, setShowJdMatch] = useState(false);
   const [themeId, setThemeId] = useState('classic');
+  const [customAccentHex, setCustomAccentHex] = useState('');
+  const [customFont, setCustomFont] = useState('');
   const [showQr, setShowQr] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -438,6 +440,83 @@ export default function PreviewPage() {
             })}
           </div>
 
+          {/* Color & Font customization bar */}
+          {(() => {
+            const PRESET_COLORS = [
+              { hex: '', label: '기본' },
+              { hex: '#6366f1', label: '인디고' },
+              { hex: '#3b82f6', label: '블루' },
+              { hex: '#10b981', label: '에메랄드' },
+              { hex: '#8b5cf6', label: '퍼플' },
+              { hex: '#f59e0b', label: '앰버' },
+              { hex: '#ef4444', label: '레드' },
+              { hex: '#ec4899', label: '핑크' },
+              { hex: '#0ea5e9', label: '스카이' },
+              { hex: '#64748b', label: '슬레이트' },
+            ];
+            const FONTS = [
+              { value: '', label: '기본 폰트' },
+              { value: "'Pretendard', -apple-system, sans-serif", label: 'Pretendard' },
+              { value: "'Noto Sans KR', sans-serif", label: 'Noto Sans KR' },
+              { value: "'Nanum Gothic', sans-serif", label: '나눔고딕' },
+              { value: "'Georgia', serif", label: 'Georgia (영문)' },
+              { value: "'Times New Roman', serif", label: 'Times (영문)' },
+            ];
+            const isOwner = (() => { const u = getUser(); return u && resume && (u.id === resume.userId || u.role === 'admin' || u.role === 'superadmin'); })();
+            if (!isOwner) return null;
+            return (
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-3 flex flex-wrap items-center gap-3">
+                {/* Color presets */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-slate-400 mr-0.5">색상</span>
+                  {PRESET_COLORS.map(c => (
+                    <button
+                      key={c.hex || 'default'}
+                      onClick={() => setCustomAccentHex(c.hex)}
+                      title={c.label}
+                      className={`w-5 h-5 rounded-full border-2 transition-transform hover:scale-110 ${
+                        customAccentHex === c.hex ? 'border-slate-900 dark:border-slate-100 scale-110' : 'border-transparent'
+                      }`}
+                      style={{ background: c.hex || '#94a3b8' }}
+                    />
+                  ))}
+                  <label className="flex items-center gap-1 cursor-pointer" title="직접 색상 선택">
+                    <input
+                      type="color"
+                      value={customAccentHex || '#6366f1'}
+                      onChange={e => setCustomAccentHex(e.target.value)}
+                      className="w-5 h-5 rounded cursor-pointer border border-slate-200 p-0 overflow-hidden"
+                      style={{ padding: '1px' }}
+                    />
+                    <span className="text-[10px] text-slate-400">커스텀</span>
+                  </label>
+                  {customAccentHex && (
+                    <button
+                      onClick={() => setCustomAccentHex('')}
+                      className="text-[10px] text-slate-400 hover:text-slate-600 underline"
+                    >
+                      초기화
+                    </button>
+                  )}
+                </div>
+                <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
+                {/* Font selector */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-slate-400">폰트</span>
+                  <select
+                    value={customFont}
+                    onChange={e => setCustomFont(e.target.value)}
+                    className="text-[11px] px-2 py-0.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 focus:ring-1 focus:ring-blue-400"
+                  >
+                    {FONTS.map(f => (
+                      <option key={f.value} value={f.value}>{f.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Reading time indicator — mobile only (inline in toolbar) */}
           <div className="sm:hidden max-w-6xl mx-auto px-4 pb-2 flex items-center gap-2">
             <span className="text-[11px] text-slate-400">읽는 시간: ~{readingMinutes}분</span>
@@ -576,7 +655,13 @@ export default function PreviewPage() {
                 width: fitToWidth ? '100%' : `${10000 / zoomLevel}%`,
               }}
             >
-              <ResumePreview ref={contentRef} resume={resume} themeId={themeId} />
+              <ResumePreview
+                ref={contentRef}
+                resume={resume}
+                themeId={themeId}
+                customAccentHex={customAccentHex || undefined}
+                customFont={customFont || undefined}
+              />
               {resume.skills.length > 0 && (
                 <SkillEndorsement resumeId={id!} skills={resume.skills} />
               )}

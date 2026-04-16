@@ -8,6 +8,8 @@ import { t } from '@/lib/i18n';
 interface Props {
   resume: Resume;
   themeId?: string;
+  customAccentHex?: string; // e.g. "#6366f1"
+  customFont?: string;      // e.g. "'Noto Sans KR', sans-serif"
 }
 
 const MONTH_NAMES_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -528,7 +530,7 @@ function ProjectBlock({ proj, themeId }: { proj: Resume['projects'][0]; themeId:
 /* ================================================================== */
 /*  MAIN COMPONENT                                                     */
 /* ================================================================== */
-const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, ref) => {
+const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId, customAccentHex, customFont }, ref) => {
   const theme = resumeThemes.find(t => t.id === themeId) || resumeThemes[0];
   const { personalInfo: pi, experiences, educations, skills, projects } = resume;
   const hasPhoto = !!pi.photo;
@@ -1382,8 +1384,34 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ resume, themeId }, re
   }
 
   /* ---- DEFAULT: Classic / Professional / all other themes ---- */
+  const wrapperStyle: React.CSSProperties = {
+    fontFamily: customFont || theme.fontFamily,
+    ...(customAccentHex ? { '--resume-accent': customAccentHex } as any : {}),
+  };
+
   return (
-    <div ref={ref} className={`resume-preview bg-white p-6 sm:p-10 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 ${theme.bodyStyle} overflow-hidden`} style={{ fontFamily: theme.fontFamily }}>
+    <div
+      ref={ref}
+      className={`resume-preview bg-white p-6 sm:p-10 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:p-0 ${theme.bodyStyle} overflow-hidden`}
+      style={wrapperStyle}
+      data-custom-accent={customAccentHex ? 'true' : undefined}
+    >
+      {customAccentHex && (
+        <style>{`
+          [data-custom-accent="true"] .section-title-accent,
+          [data-custom-accent="true"] .accent-border,
+          [data-custom-accent="true"] .accent-text {
+            border-color: ${customAccentHex} !important;
+            color: ${customAccentHex} !important;
+          }
+          [data-custom-accent="true"] .accent-bg {
+            background-color: ${customAccentHex} !important;
+          }
+          [data-custom-accent="true"] .accent-bg-light {
+            background-color: ${customAccentHex}18 !important;
+          }
+        `}</style>
+      )}
       <header className={theme.headerStyle}>
         {headerContent}
       </header>
