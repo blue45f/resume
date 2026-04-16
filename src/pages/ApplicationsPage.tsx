@@ -1,5 +1,5 @@
 import { getUser } from '@/lib/auth';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -31,11 +31,47 @@ const KANBAN_COLUMNS = [
   { value: 'rejected', label: '탈락', headerColor: 'bg-red-500' },
 ];
 
+const PRIORITY_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
+  high: { label: '중요', color: 'text-red-500', icon: '★' },
+  medium: { label: '보통', color: 'text-amber-500', icon: '☆' },
+  low: { label: '낮음', color: 'text-slate-400', icon: '○' },
+};
+
+const MONTHS_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const DAYS_KO = ['일','월','화','수','목','금','토'];
+
 function daysSince(dateStr?: string): number {
   if (!dateStr) return 0;
   const diff = Date.now() - new Date(dateStr).getTime();
   return Math.max(0, Math.floor(diff / 86400000));
 }
+
+function daysUntil(dateStr?: string): number | null {
+  if (!dateStr) return null;
+  const diff = new Date(dateStr).getTime() - Date.now();
+  return Math.ceil(diff / 86400000);
+}
+
+type FormState = {
+  company: string;
+  position: string;
+  url: string;
+  status: string;
+  notes: string;
+  salary: string;
+  location: string;
+  visibility: string;
+  resumeId: string;
+  priority: string;
+  interviewDate: string;
+  deadline: string;
+};
+
+const DEFAULT_FORM: FormState = {
+  company: '', position: '', url: '', status: 'applied', notes: '',
+  salary: '', location: '', visibility: 'private', resumeId: '',
+  priority: 'medium', interviewDate: '', deadline: '',
+};
 
 export default function ApplicationsPage() {
   const [params] = useSearchParams();
@@ -43,14 +79,21 @@ export default function ApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ company: '', position: '', url: '', status: 'applied', notes: '', salary: '', location: '', visibility: 'private', resumeId: '' });
+  const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [filter, setFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'recent' | 'company'>('recent');
+  const [sortBy, setSortBy] = useState<'recent' | 'company' | 'deadline'>('recent');
   const [yearFilter, setYearFilter] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'calendar'>('list');
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set());
+  const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [calMonth, setCalMonth] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
+  const formRef = useRef<HTMLFormElement>(null);
 
   const load = () => {
     setError(false);
@@ -68,11 +111,7 @@ export default function ApplicationsPage() {
     const company = params.get('company');
     const position = params.get('position');
     if (company || position) {
-      setForm(f => ({
-        ...f,
-        company: company || f.company,
-        position: position || f.position,
-      }));
+      setForm(f => ({ ...f, company: company || f.company, position: position || f.position }));
       setShowForm(true);
     }
   }, []);
@@ -89,16 +128,26 @@ export default function ApplicationsPage() {
       await createApplication({ ...form, appliedDate: new Date().toISOString().slice(0, 10) });
       toast('지원 내역이 추가되었습니다', 'success');
       setShowForm(false);
-      setForm({ company: '', position: '', url: '', status: 'applied', notes: '', salary: '', location: '', visibility: 'private', resumeId: '' });
+      setForm(DEFAULT_FORM);
       load();
     } catch { toast('추가에 실패했습니다', 'error'); }
   };
 
   const handleStatusChange = async (id: string, status: string) => {
+    setApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
     try {
       await updateApplication(id, { status });
+    } catch {
       load();
-    } catch { toast('상태 변경에 실패했습니다', 'error'); }
+      toast('상태 변경에 실패했습니다', 'error');
+    }
+  };
+
+  const handlePriorityChange = async (id: string, priority: string) => {
+    setApps(prev => prev.map(a => a.id === id ? { ...a, priority } : a));
+    try {
+      await updateApplication(id, { priority } as any);
+    } catch { load(); }
   };
 
   const handleDelete = async (id: string) => {
@@ -116,14 +165,21 @@ export default function ApplicationsPage() {
   const filtered = apps
     .filter(a => !filter || a.status === filter)
     .filter(a => !yearFilter || (a.appliedDate || a.createdAt)?.startsWith(yearFilter))
+    .filter(a => !priorityFilter || (a as any).priority === priorityFilter)
     .filter(a => !searchQuery ||
       a.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.position.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .sort((a, b) => {
       if (sortBy === 'company') return a.company.localeCompare(b.company, 'ko');
+      if (sortBy === 'deadline') {
+        const da = (a as any).deadline || '9999-12-31';
+        const db = (b as any).deadline || '9999-12-31';
+        return da.localeCompare(db);
+      }
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
+
   const stats = STATUSES.map(s => ({ ...s, count: apps.filter(a => a.status === s.value).length }));
 
   // Kanban: group filtered apps by status
@@ -131,36 +187,16 @@ export default function ApplicationsPage() {
   for (const col of KANBAN_COLUMNS) {
     kanbanGroups[col.value] = filtered.filter(a => a.status === col.value);
   }
-  // Also add withdrawn to rejected column display
   kanbanGroups['rejected'] = [...(kanbanGroups['rejected'] || []), ...filtered.filter(a => a.status === 'withdrawn')];
 
-  // Success rate per resume
-  const resumeSuccessRates = useMemo(() => {
-    const rates: Record<string, { total: number; offered: number; rejected: number; resumeTitle: string }> = {};
-    apps.forEach(app => {
-      const rid = app.resumeId || 'unknown';
-      if (!rates[rid]) {
-        const r = resumes.find(res => res.id === rid);
-        rates[rid] = { total: 0, offered: 0, rejected: 0, resumeTitle: r?.title || '미지정' };
-      }
-      rates[rid].total++;
-      if (app.status === 'offer') rates[rid].offered++;
-      if (app.status === 'rejected') rates[rid].rejected++;
-    });
-    return rates;
-  }, [apps, resumes]);
+  // Success rate
+  const offerCount = apps.filter(a => a.status === 'offer').length;
+  const decidedCount = apps.filter(a => ['offer', 'rejected'].includes(a.status)).length;
+  const successRate = decidedCount > 0 ? Math.round((offerCount / decidedCount) * 100) : 0;
 
-  // Interview reminders: apps in 'interview' status
-  const interviewApps = useMemo(() =>
-    apps.filter(a => a.status === 'interview' && !dismissedReminders.has(a.id)),
-    [apps, dismissedReminders]
-  );
-
-  // Calendar data: group apps by date
+  // Calendar data
   const calendarData = useMemo(() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
+    const { year, month } = calMonth;
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const appsByDate: Record<string, JobApplication[]> = {};
@@ -170,14 +206,61 @@ export default function ApplicationsPage() {
         if (!appsByDate[date]) appsByDate[date] = [];
         appsByDate[date].push(app);
       }
+      const interviewDate = (app as any).interviewDate;
+      if (interviewDate && interviewDate !== date) {
+        if (!appsByDate[interviewDate]) appsByDate[interviewDate] = [];
+        appsByDate[interviewDate].push({ ...app, _isInterview: true } as any);
+      }
     });
     return { year, month, firstDay, daysInMonth, appsByDate };
-  }, [filtered]);
+  }, [filtered, calMonth]);
+
+  // Interview reminders
+  const interviewApps = useMemo(() =>
+    apps.filter(a => a.status === 'interview' && !dismissedReminders.has(a.id)),
+    [apps, dismissedReminders]
+  );
+
+  // Upcoming deadlines
+  const upcomingDeadlines = useMemo(() =>
+    apps
+      .filter(a => (a as any).deadline && daysUntil((a as any).deadline) !== null && daysUntil((a as any).deadline)! <= 7 && daysUntil((a as any).deadline)! >= 0)
+      .sort((a, b) => ((a as any).deadline || '').localeCompare((b as any).deadline || '')),
+    [apps]
+  );
 
   return (
     <>
       <Header />
       <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+
+        {/* Alerts row */}
+        {(interviewApps.length > 0 || upcomingDeadlines.length > 0) && (
+          <div className="space-y-2 mb-5">
+            {interviewApps.slice(0, 2).map(app => (
+              <div key={app.id} className="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl text-sm text-amber-800 dark:text-amber-300">
+                <span className="text-base">📋</span>
+                <span className="flex-1 font-medium">{app.company} — {app.position} 면접 진행 중</span>
+                <button
+                  onClick={() => setDismissedReminders(prev => new Set([...prev, app.id]))}
+                  className="text-amber-500 hover:text-amber-700 dark:hover:text-amber-200 text-lg leading-none"
+                  aria-label="알림 닫기"
+                >×</button>
+              </div>
+            ))}
+            {upcomingDeadlines.slice(0, 2).map(app => {
+              const d = daysUntil((app as any).deadline);
+              return (
+                <div key={`dl-${app.id}`} className="flex items-center gap-3 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl text-sm text-red-800 dark:text-red-300">
+                  <span className="text-base">⏰</span>
+                  <span className="flex-1 font-medium">{app.company} — {app.position} 마감 {d === 0 ? '오늘' : `${d}일 후`} ({(app as any).deadline})</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">지원 관리</h1>
@@ -190,6 +273,7 @@ export default function ApplicationsPage() {
                 onClick={() => setViewMode('list')}
                 className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                 aria-label="목록 보기"
+                title="목록 보기"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
               </button>
@@ -197,21 +281,31 @@ export default function ApplicationsPage() {
                 onClick={() => setViewMode('kanban')}
                 className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                 aria-label="칸반 보기"
+                title="칸반 보기"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>
               </button>
+              <button
+                onClick={() => setViewMode('calendar')}
+                className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                aria-label="캘린더 보기"
+                title="캘린더 보기"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              </button>
             </div>
             <button
-              onClick={() => setShowForm(!showForm)}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+              onClick={() => { setShowForm(!showForm); if (!showForm) setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }}
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center gap-1.5"
             >
-              + 지원 추가
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              지원 추가
             </button>
           </div>
         </div>
 
-        {/* Application Statistics Bar */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-6">
+        {/* Statistics Bar */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-5">
           <div className="flex flex-wrap items-center gap-3">
             <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 mr-2">
               전체 <span className="text-lg text-blue-600 dark:text-blue-400">{apps.length}</span>건
@@ -226,90 +320,200 @@ export default function ApplicationsPage() {
             {apps.length > 0 && (
               <>
                 <div className="h-5 w-px bg-slate-200 dark:bg-slate-600" />
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                  합격률 {apps.filter(a => a.status === 'offer').length > 0
-                    ? Math.round((apps.filter(a => a.status === 'offer').length / apps.filter(a => ['offer', 'rejected'].includes(a.status)).length) * 100) || 0
-                    : 0}%
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">합격률</span>
+                  <span className={`text-xs font-bold ${successRate >= 50 ? 'text-green-600 dark:text-green-400' : successRate >= 20 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-600 dark:text-slate-400'}`}>
+                    {successRate}%
+                  </span>
+                </div>
+                {/* Mini progress bar */}
+                <div className="flex-1 hidden sm:flex items-center gap-2 min-w-[120px]">
+                  <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-400 via-amber-400 to-green-500 rounded-full transition-all duration-500"
+                      style={{ width: `${apps.length > 0 ? 100 : 0}%` }}
+                    >
+                      {/* Segmented bar */}
+                    </div>
+                  </div>
+                </div>
               </>
             )}
           </div>
+          {/* Status progress segments */}
+          {apps.length > 0 && (
+            <div className="flex h-1.5 rounded-full overflow-hidden mt-3 gap-px">
+              {stats.filter(s => s.count > 0).map(s => (
+                <div
+                  key={s.value}
+                  className={`h-full transition-all duration-500 ${
+                    s.value === 'applied' ? 'bg-blue-400' :
+                    s.value === 'screening' ? 'bg-purple-400' :
+                    s.value === 'interview' ? 'bg-amber-400' :
+                    s.value === 'offer' ? 'bg-green-500' :
+                    s.value === 'rejected' ? 'bg-red-400' : 'bg-slate-300'
+                  }`}
+                  style={{ width: `${(s.count / apps.length) * 100}%` }}
+                  title={`${s.label}: ${s.count}건`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Stats filter buttons */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        {/* Filter row */}
+        <div className="flex flex-wrap gap-2 mb-4">
           <button
             onClick={() => setFilter(null)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${!filter ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+            className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${!filter ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
           >
             전체 ({apps.length})
           </button>
-          {stats.map(s => (
+          {stats.filter(s => s.count > 0).map(s => (
             <button
               key={s.value}
               onClick={() => setFilter(filter === s.value ? null : s.value)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${filter === s.value ? s.color + ' ring-2 ring-offset-1' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${filter === s.value ? s.color + ' ring-2 ring-offset-1 dark:ring-offset-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
             >
               {s.label} ({s.count})
             </button>
           ))}
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-600 self-center mx-1" />
+          {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
+            <button
+              key={key}
+              onClick={() => setPriorityFilter(priorityFilter === key ? null : key)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors flex items-center gap-1 ${priorityFilter === key ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+            >
+              <span className={cfg.color}>{cfg.icon}</span>
+              {cfg.label}
+            </button>
+          ))}
         </div>
 
-        {/* Year filter */}
-        {years.length > 1 && (
-          <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-none">
-            <button onClick={() => setYearFilter(null)} className={`px-2.5 py-1 text-xs rounded-lg whitespace-nowrap transition-colors ${!yearFilter ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
-              전체 연도
-            </button>
-            {years.map(y => (
-              <button key={y} onClick={() => setYearFilter(yearFilter === y ? null : y)} className={`px-2.5 py-1 text-xs rounded-lg whitespace-nowrap transition-colors ${yearFilter === y ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
-                {y}년
+        {/* Year filter + Search + Sort */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-5">
+          {years.length > 1 && (
+            <div className="flex gap-1 flex-wrap">
+              <button onClick={() => setYearFilter(null)} className={`px-2.5 py-1 text-xs rounded-lg whitespace-nowrap transition-colors ${!yearFilter ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                전체
               </button>
-            ))}
+              {years.map(y => (
+                <button key={y} onClick={() => setYearFilter(yearFilter === y ? null : y)} className={`px-2.5 py-1 text-xs rounded-lg whitespace-nowrap transition-colors ${yearFilter === y ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                  {y}년
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
+            <div className="relative flex-1">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="회사명 또는 포지션 검색..."
+                className="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as typeof sortBy)}
+              className="px-3 py-2 text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl border-0 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            >
+              <option value="recent">최신순</option>
+              <option value="company">회사순</option>
+              <option value="deadline">마감순</option>
+            </select>
           </div>
-        )}
-
-        {/* Search & Sort */}
-        <div className="flex items-center gap-2 mb-4">
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="회사명 또는 포지션 검색..."
-            className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={() => setSortBy(sortBy === 'recent' ? 'company' : 'recent')}
-            className="px-3 py-2 text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-          >
-            {sortBy === 'recent' ? '최신순' : '회사순'}
-          </button>
         </div>
 
         {/* Add Form */}
         {showForm && (
-          <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 mb-6 animate-fade-in-up">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          <form ref={formRef} onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 mb-6 animate-fade-in-up">
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">새 지원 추가</h3>
+
+            {/* Required fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
               <div className="relative">
-                <input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} placeholder="회사명" required className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" />
-                {!form.company && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 text-sm font-bold" aria-hidden="true">*</span>}
+                <label className="block text-xs text-slate-500 mb-1">회사명 <span className="text-red-500">*</span></label>
+                <input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} placeholder="예: 카카오" required className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
-              <div className="relative">
-                <input value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))} placeholder="포지션" required className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" />
-                {!form.position && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 text-sm font-bold" aria-hidden="true">*</span>}
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">포지션 <span className="text-red-500">*</span></label>
+                <input value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))} placeholder="예: 백엔드 개발자" required className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
-              <input value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} placeholder="공고 URL" className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="근무지" className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <input value={form.salary} onChange={e => setForm(f => ({ ...f, salary: e.target.value }))} placeholder="연봉" className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="메모" rows={2} className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:col-span-2" />
-              <select value={form.visibility || 'private'} onChange={e => setForm(f => ({ ...f, visibility: e.target.value }))} className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="private">비공개</option>
-                <option value="public">공개</option>
-              </select>
             </div>
+
+            {/* Optional fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">공고 URL</label>
+                <input value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} placeholder="https://..." className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">근무지</label>
+                <input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="예: 서울 강남구" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">연봉</label>
+                <input value={form.salary} onChange={e => setForm(f => ({ ...f, salary: e.target.value }))} placeholder="예: 5,000만원" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">지원 이력서</label>
+                <select value={form.resumeId} onChange={e => setForm(f => ({ ...f, resumeId: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">선택 안 함</option>
+                  {resumes.map(r => <option key={r.id} value={r.id}>{r.title || '제목 없음'}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">지원 마감일</label>
+                <input type="date" value={form.deadline} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">면접 예정일</label>
+                <input type="date" value={form.interviewDate} onChange={e => setForm(f => ({ ...f, interviewDate: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">상태</label>
+                <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">우선순위</label>
+                <select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="high">★ 중요</option>
+                  <option value="medium">☆ 보통</option>
+                  <option value="low">○ 낮음</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">공개 여부</label>
+                <select value={form.visibility} onChange={e => setForm(f => ({ ...f, visibility: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="private">비공개</option>
+                  <option value="public">공개</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-xs text-slate-500 mb-1">메모</label>
+              <textarea
+                value={form.notes}
+                onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+                placeholder="면접 준비 사항, 특이사항 등..."
+                rows={3}
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
+
             <div className="flex gap-2 justify-end">
-              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800">취소</button>
-              <button type="submit" className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">추가</button>
+              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">취소</button>
+              <button type="submit" className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">추가하기</button>
             </div>
           </form>
         )}
@@ -328,12 +532,10 @@ export default function ApplicationsPage() {
               const colApps = kanbanGroups[col.value] || [];
               return (
                 <div key={col.value} className="flex-shrink-0 w-64 sm:w-72">
-                  {/* Column header */}
                   <div className={`${col.headerColor} text-white rounded-t-xl px-3 py-2 flex items-center justify-between`}>
                     <span className="text-sm font-semibold">{col.label}</span>
                     <span className="text-xs bg-white/20 rounded-full px-2 py-0.5">{colApps.length}</span>
                   </div>
-                  {/* Column body */}
                   <div className="bg-slate-50 dark:bg-slate-900/50 border border-t-0 border-slate-200 dark:border-slate-700 rounded-b-xl p-2 min-h-[200px] space-y-2">
                     {colApps.length === 0 && (
                       <div className="text-center py-8 text-xs text-slate-400">비어 있음</div>
@@ -341,13 +543,18 @@ export default function ApplicationsPage() {
                     {colApps.map(app => {
                       const days = daysSince(app.appliedDate || app.createdAt);
                       const colDef = KANBAN_COLUMNS.find(c => c.value === col.value);
+                      const priority = (app as any).priority as string | undefined;
+                      const pCfg = priority ? PRIORITY_CONFIG[priority] : null;
                       return (
                         <div
                           key={app.id}
                           className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-3 shadow-sm hover:shadow-md transition-shadow duration-200"
                         >
-                          <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{app.company}</h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{app.position}</p>
+                          <div className="flex items-start justify-between gap-1 mb-0.5">
+                            <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate flex-1">{app.company}</h4>
+                            {pCfg && <span className={`text-sm shrink-0 ${pCfg.color}`} title={pCfg.label}>{pCfg.icon}</span>}
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{app.position}</p>
                           <div className="flex items-center justify-between mt-2">
                             <span className="text-xs text-slate-400">
                               {days === 0 ? '오늘 지원' : `${days}일 경과`}
@@ -357,13 +564,11 @@ export default function ApplicationsPage() {
                             )}
                           </div>
                           {app.notes && <p className="text-xs text-slate-400 mt-1.5 line-clamp-2">{app.notes}</p>}
-                          {/* Status transition buttons */}
                           <div className="flex items-center gap-1 mt-2 pt-2 border-t border-slate-100 dark:border-slate-700">
                             {colDef?.prevStatus && (
                               <button
                                 onClick={() => handleStatusChange(app.id, colDef.prevStatus!)}
                                 className="flex-1 text-xs px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                title={`${KANBAN_COLUMNS.find(c => c.value === colDef.prevStatus)?.label}(으)로 이동`}
                               >
                                 ← {KANBAN_COLUMNS.find(c => c.value === colDef.prevStatus)?.label}
                               </button>
@@ -372,7 +577,6 @@ export default function ApplicationsPage() {
                               <button
                                 onClick={() => handleStatusChange(app.id, colDef.nextStatus!)}
                                 className="flex-1 text-xs px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                                title={`${KANBAN_COLUMNS.find(c => c.value === colDef.nextStatus)?.label}(으)로 이동`}
                               >
                                 {KANBAN_COLUMNS.find(c => c.value === colDef.nextStatus)?.label} →
                               </button>
@@ -382,9 +586,7 @@ export default function ApplicationsPage() {
                                 onClick={() => handleStatusChange(app.id, 'rejected')}
                                 className="text-xs px-2 py-1 rounded bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                                 title="탈락 처리"
-                              >
-                                ✕
-                              </button>
+                              >✕</button>
                             )}
                           </div>
                         </div>
@@ -395,59 +597,213 @@ export default function ApplicationsPage() {
               );
             })}
           </div>
+        ) : viewMode === 'calendar' ? (
+          /* Calendar View */
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            {/* Calendar header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-700">
+              <button
+                onClick={() => setCalMonth(m => {
+                  const d = new Date(m.year, m.month - 1, 1);
+                  return { year: d.getFullYear(), month: d.getMonth() };
+                })}
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-500"
+                aria-label="이전 달"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                {calendarData.year}년 {MONTHS_KO[calendarData.month]}
+              </h3>
+              <button
+                onClick={() => setCalMonth(m => {
+                  const d = new Date(m.year, m.month + 1, 1);
+                  return { year: d.getFullYear(), month: d.getMonth() };
+                })}
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-500"
+                aria-label="다음 달"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+            {/* Day headers */}
+            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-700">
+              {DAYS_KO.map((d, i) => (
+                <div key={d} className={`text-center py-2 text-xs font-medium ${i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-slate-500 dark:text-slate-400'}`}>
+                  {d}
+                </div>
+              ))}
+            </div>
+            {/* Calendar grid */}
+            <div className="grid grid-cols-7">
+              {/* Empty cells for first day offset */}
+              {Array.from({ length: calendarData.firstDay }).map((_, i) => (
+                <div key={`empty-${i}`} className="min-h-[80px] sm:min-h-[100px] border-b border-r border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-900/30" />
+              ))}
+              {/* Day cells */}
+              {Array.from({ length: calendarData.daysInMonth }).map((_, dayIdx) => {
+                const day = dayIdx + 1;
+                const dateStr = `${calendarData.year}-${String(calendarData.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayApps = calendarData.appsByDate[dateStr] || [];
+                const isToday = dateStr === new Date().toISOString().slice(0, 10);
+                const col = (calendarData.firstDay + dayIdx) % 7;
+                return (
+                  <div
+                    key={day}
+                    className={`min-h-[80px] sm:min-h-[100px] border-b border-r border-slate-100 dark:border-slate-700/50 p-1.5 ${isToday ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
+                  >
+                    <div className={`text-xs font-medium mb-1 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-blue-600 text-white' : col === 0 ? 'text-red-500' : col === 6 ? 'text-blue-500' : 'text-slate-600 dark:text-slate-400'}`}>
+                      {day}
+                    </div>
+                    <div className="space-y-0.5">
+                      {dayApps.slice(0, 3).map((app, i) => {
+                        const isInterview = (app as any)._isInterview;
+                        const statusInfo = STATUSES.find(s => s.value === app.status) || STATUSES[0];
+                        return (
+                          <div
+                            key={`${app.id}-${i}`}
+                            className={`text-[9px] sm:text-[10px] truncate rounded px-1 py-0.5 leading-tight ${isInterview ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'}`}
+                            title={`${app.company} — ${app.position}${isInterview ? ' (면접)' : ''}`}
+                          >
+                            {isInterview ? '📋 ' : ''}{app.company}
+                          </div>
+                        );
+                      })}
+                      {dayApps.length > 3 && (
+                        <div className="text-[9px] text-slate-400 pl-1">+{dayApps.length - 3}건</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Calendar legend */}
+            <div className="flex items-center gap-4 px-5 py-3 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded bg-blue-100 dark:bg-blue-900/30" />
+                지원일
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded bg-amber-100 dark:bg-amber-900/30" />
+                면접일
+              </div>
+            </div>
+          </div>
         ) : (
           /* List View */
           <div className="space-y-3">
             {filtered.map(app => {
               const statusInfo = STATUSES.find(s => s.value === app.status) || STATUSES[0];
+              const priority = (app as any).priority as string | undefined;
+              const pCfg = priority ? PRIORITY_CONFIG[priority] : null;
+              const deadline = (app as any).deadline as string | undefined;
+              const deadlineDays = deadline ? daysUntil(deadline) : null;
+              const isExpanded = expandedId === app.id;
+
               return (
-                <div key={app.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:shadow-md transition-all duration-200 animate-fade-in-up">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{app.company}</h3>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {app.position}
-                        {app.visibility === 'public' && (
-                          <span className="ml-2 text-xs px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded">공개</span>
-                        )}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-400">
-                        {app.location && <span>{app.location}</span>}
-                        {app.salary && <span>· {app.salary}</span>}
-                        {app.appliedDate && <span>· {app.appliedDate}</span>}
-                        <span>· {daysSince(app.appliedDate || app.createdAt) === 0 ? '오늘' : `${daysSince(app.appliedDate || app.createdAt)}일 경과`}</span>
+                <div key={app.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-all duration-200 animate-fade-in-up">
+                  {/* Main row */}
+                  <div className="p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          {pCfg && (
+                            <button
+                              onClick={() => {
+                                const next = priority === 'high' ? 'medium' : priority === 'medium' ? 'low' : 'high';
+                                handlePriorityChange(app.id, next);
+                              }}
+                              className={`text-lg shrink-0 leading-none ${pCfg.color} hover:scale-125 transition-transform`}
+                              title={`우선순위: ${pCfg.label}`}
+                              aria-label="우선순위 변경"
+                            >
+                              {pCfg.icon}
+                            </button>
+                          )}
+                          {!pCfg && (
+                            <button
+                              onClick={() => handlePriorityChange(app.id, 'medium')}
+                              className="text-lg shrink-0 leading-none text-slate-300 hover:text-amber-400 hover:scale-125 transition-all"
+                              title="우선순위 설정"
+                              aria-label="우선순위 설정"
+                            >☆</button>
+                          )}
+                          <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{app.company}</h3>
+                          {app.visibility === 'public' && (
+                            <span className="text-xs px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded shrink-0">공개</span>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5 ml-7">{app.position}</p>
+                        <div className="flex flex-wrap items-center gap-2 mt-2 ml-7 text-xs text-slate-400">
+                          {app.location && <span>{app.location}</span>}
+                          {app.salary && <span>· {app.salary}</span>}
+                          {app.appliedDate && <span>· {app.appliedDate}</span>}
+                          <span>· {daysSince(app.appliedDate || app.createdAt) === 0 ? '오늘' : `${daysSince(app.appliedDate || app.createdAt)}일 경과`}</span>
+                          {deadlineDays !== null && (
+                            <span className={`font-medium ${deadlineDays <= 3 ? 'text-red-500' : deadlineDays <= 7 ? 'text-amber-500' : 'text-slate-400'}`}>
+                              · 마감 {deadlineDays === 0 ? '오늘' : `${deadlineDays}일 후`}
+                            </span>
+                          )}
+                        </div>
+                        {app.notes && !isExpanded && <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 ml-7 line-clamp-1">{app.notes}</p>}
                       </div>
-                      {app.notes && <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-2">{app.notes}</p>}
+
+                      <div className="flex items-center gap-2 shrink-0 ml-7 sm:ml-0">
+                        <select
+                          value={app.status}
+                          onChange={e => handleStatusChange(app.id, e.target.value)}
+                          className={`text-xs font-medium px-2 py-1.5 rounded-lg border-0 cursor-pointer focus:ring-2 focus:ring-blue-500 ${statusInfo.color}`}
+                        >
+                          {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                        </select>
+                        <button
+                          onClick={() => setExpandedId(isExpanded ? null : app.id)}
+                          className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg transition-colors"
+                          aria-label={isExpanded ? '접기' : '펼치기'}
+                        >
+                          <svg className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                        <button onClick={() => handleDelete(app.id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors" aria-label="삭제">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-                      <select
-                        value={app.status}
-                        onChange={e => handleStatusChange(app.id, e.target.value)}
-                        className={`text-xs font-medium px-2 py-1 rounded-lg border-0 cursor-pointer focus:ring-2 focus:ring-blue-500 ${statusInfo.color}`}
-                      >
-                        {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                      </select>
-                      <button onClick={() => handleDelete(app.id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors" aria-label="삭제">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
-                    </div>
+
+                    {/* Quick links */}
+                    {app.url && (
+                      <a href={app.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 mt-2 ml-7 hover:underline">
+                        공고 보기
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                      </a>
+                    )}
                   </div>
-                  {/* Application timeline */}
-                  <ApplicationTimeline
-                    applicationId={app.id}
-                    status={app.status}
-                    appliedDate={app.appliedDate}
-                    createdAt={app.createdAt}
-                    updatedAt={app.updatedAt}
-                  />
-                  {app.url && (
-                    <a href={app.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 mt-2 hover:underline">
-                      공고 보기 &rarr;
-                    </a>
+
+                  {/* Expanded details */}
+                  {isExpanded && (
+                    <div className="border-t border-slate-100 dark:border-slate-700 animate-fade-in-up">
+                      {app.notes && (
+                        <div className="px-4 py-3 bg-slate-50 dark:bg-slate-900/30">
+                          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">메모</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{app.notes}</p>
+                        </div>
+                      )}
+                      <div className="px-4 py-3">
+                        <ApplicationTimeline
+                          applicationId={app.id}
+                          status={app.status}
+                          appliedDate={app.appliedDate}
+                          createdAt={app.createdAt}
+                          updatedAt={app.updatedAt}
+                        />
+                      </div>
+                      <div className="px-4 pb-3">
+                        <InterviewReview applicationId={app.id} />
+                      </div>
+                      <div className="px-4 pb-4">
+                        <AppCommentSection applicationId={app.id} isPublic={app.visibility === 'public'} />
+                      </div>
+                    </div>
                   )}
-                  {/* Interview review section */}
-                  <InterviewReview applicationId={app.id} />
-                  <AppCommentSection applicationId={app.id} isPublic={app.visibility === 'public'} />
                 </div>
               );
             })}
