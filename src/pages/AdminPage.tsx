@@ -46,7 +46,7 @@ interface Stats {
   revenue?: { thisMonth: number; lastMonth: number };
 }
 
-type TabId = 'stats' | 'users' | 'content' | 'moderation' | 'settings' | 'plans';
+type TabId = 'stats' | 'users' | 'content' | 'moderation' | 'settings' | 'plans' | 'banners' | 'notices';
 
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -60,6 +60,8 @@ export default function AdminPage() {
   const tabs: { id: TabId; label: string; icon: string; superOnly?: boolean }[] = [
     { id: 'stats', label: '대시보드', icon: '📊' },
     { id: 'users', label: '사용자', icon: '👥' },
+    { id: 'banners', label: '배너', icon: '🖼' },
+    { id: 'notices', label: '공지사항', icon: '📢' },
     { id: 'content', label: '콘텐츠', icon: '📝' },
     { id: 'moderation', label: '신고 관리', icon: '🛡' },
     { id: 'settings', label: '시스템', icon: '⚙', superOnly: true },
@@ -147,7 +149,7 @@ export default function AdminPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] text-sm rounded-xl whitespace-nowrap transition-all duration-200 ${
                 activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-indigo-600 text-white shadow-sm'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
               }`}
             >
@@ -164,6 +166,8 @@ export default function AdminPage() {
         ) : (
           <>
             {activeTab === 'stats' && <DashboardHome stats={stats} />}
+            {activeTab === 'banners' && <AdminBannersTab />}
+            {activeTab === 'notices' && <AdminNoticesTab />}
             {activeTab === 'users' && (
               <div className="space-y-6 animate-fade-in-up">
                 {stats.recentUsers && stats.recentUsers.length > 0 && (
@@ -952,10 +956,416 @@ function ReportedContentQueue() {
 }
 
 // ═══════════════════════════════════════════════════════════
+// NEW: AdminBannersTab
+// ═══════════════════════════════════════════════════════════
+interface Banner {
+  id: string;
+  title: string;
+  subtitle?: string;
+  imageUrl?: string;
+  linkUrl?: string;
+  bgColor: string;
+  isActive: boolean;
+  order: number;
+  startAt?: string;
+  endAt?: string;
+}
+
+const BANNER_COLORS = [
+  { label: '인디고', value: 'from-indigo-600 to-purple-600' },
+  { label: '에메랄드', value: 'from-emerald-500 to-teal-600' },
+  { label: '앰버', value: 'from-amber-500 to-orange-500' },
+  { label: '로즈', value: 'from-rose-500 to-pink-600' },
+  { label: '슬레이트', value: 'from-slate-700 to-slate-900' },
+];
+
+function AdminBannersTab() {
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<Banner | null>(null);
+  const [creating, setCreating] = useState(false);
+  const token = localStorage.getItem('token');
+
+  const emptyBanner: Omit<Banner, 'id' | 'order'> = {
+    title: '', subtitle: '', imageUrl: '', linkUrl: '',
+    bgColor: 'from-indigo-600 to-purple-600', isActive: true,
+  };
+  const [form, setForm] = useState({ ...emptyBanner });
+
+  const load = () => {
+    setLoading(true);
+    fetch(`${API_URL}/api/banners`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setBanners(Array.isArray(d) ? d : []))
+      .catch(() => setBanners([]))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleSave = async () => {
+    const method = editing ? 'PATCH' : 'POST';
+    const url = editing ? `${API_URL}/api/banners/${editing.id}` : `${API_URL}/api/banners`;
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(form),
+    });
+    if (res.ok) {
+      toast(editing ? '배너가 수정되었습니다' : '배너가 생성되었습니다', 'success');
+      setEditing(null); setCreating(false); setForm({ ...emptyBanner }); load();
+    } else {
+      toast('저장 실패', 'error');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('배너를 삭제하시겠습니까?')) return;
+    const res = await fetch(`${API_URL}/api/banners/${id}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) { toast('삭제되었습니다', 'success'); load(); }
+  };
+
+  const handleToggleActive = async (b: Banner) => {
+    const res = await fetch(`${API_URL}/api/banners/${b.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ isActive: !b.isActive }),
+    });
+    if (res.ok) load();
+  };
+
+  const startEdit = (b: Banner) => {
+    setEditing(b);
+    setCreating(true);
+    setForm({ title: b.title, subtitle: b.subtitle || '', imageUrl: b.imageUrl || '',
+      linkUrl: b.linkUrl || '', bgColor: b.bgColor, isActive: b.isActive });
+  };
+
+  const cancelForm = () => { setEditing(null); setCreating(false); setForm({ ...emptyBanner }); };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">배너 관리</h2>
+        {!creating && (
+          <button onClick={() => setCreating(true)} className="px-4 py-2 min-h-[44px] bg-indigo-600 text-white text-sm rounded-xl hover:bg-indigo-700 transition-colors">
+            + 배너 추가
+          </button>
+        )}
+      </div>
+
+      {creating && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-indigo-200 dark:border-indigo-700 p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{editing ? '배너 수정' : '새 배너 만들기'}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">제목 *</label>
+              <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                placeholder="배너 제목" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">부제목</label>
+              <input value={form.subtitle} onChange={e => setForm(f => ({ ...f, subtitle: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                placeholder="배너 설명 (선택)" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">링크 URL</label>
+              <input value={form.linkUrl} onChange={e => setForm(f => ({ ...f, linkUrl: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                placeholder="https://..." />
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">이미지 URL</label>
+              <input value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                placeholder="https://... (선택)" />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-slate-500 dark:text-slate-400 mb-2 block">배경 색상</label>
+            <div className="flex gap-2 flex-wrap">
+              {BANNER_COLORS.map(c => (
+                <button key={c.value} onClick={() => setForm(f => ({ ...f, bgColor: c.value }))}
+                  className={`px-3 py-1.5 text-xs text-white rounded-lg bg-gradient-to-r ${c.value} ${form.bgColor === c.value ? 'ring-2 ring-offset-1 ring-indigo-500' : ''}`}>
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {form.title && (
+            <div className={`rounded-xl p-4 bg-gradient-to-r ${form.bgColor} text-white`}>
+              <p className="font-bold">{form.title}</p>
+              {form.subtitle && <p className="text-sm opacity-80 mt-1">{form.subtitle}</p>}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button onClick={handleSave} disabled={!form.title}
+              className="px-4 py-2 min-h-[44px] bg-indigo-600 text-white text-sm rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+              저장
+            </button>
+            <button onClick={cancelForm} className="px-4 py-2 min-h-[44px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm rounded-xl hover:bg-slate-200 transition-colors">
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="text-center py-8 text-slate-400 text-sm">불러오는 중...</div>
+      ) : banners.length === 0 ? (
+        <div className="text-center py-12 text-slate-400 text-sm bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+          등록된 배너가 없습니다
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {banners.map(b => (
+            <div key={b.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+              <div className={`h-2 bg-gradient-to-r ${b.bgColor}`} />
+              <div className="p-4 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${b.isActive ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
+                      {b.isActive ? '활성' : '비활성'}
+                    </span>
+                    <span className="text-xs text-slate-400">순서 {b.order}</span>
+                  </div>
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{b.title}</p>
+                  {b.subtitle && <p className="text-xs text-slate-400 truncate">{b.subtitle}</p>}
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button onClick={() => handleToggleActive(b)}
+                    className={`w-10 h-6 rounded-full transition-colors ${b.isActive ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+                    <span className={`block w-4 h-4 bg-white rounded-full transition-transform shadow mx-auto ${b.isActive ? 'translate-x-2' : '-translate-x-2'}`} />
+                  </button>
+                  <button onClick={() => startEdit(b)} className="px-3 py-2 min-h-[44px] text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 transition-colors">
+                    수정
+                  </button>
+                  <button onClick={() => handleDelete(b.id)} className="px-3 py-2 min-h-[44px] text-xs bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 transition-colors">
+                    삭제
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// NEW: AdminNoticesTab
+// ═══════════════════════════════════════════════════════════
+interface Notice {
+  id: string;
+  title: string;
+  content: string;
+  type: 'GENERAL' | 'MAINTENANCE' | 'EVENT';
+  isPopup: boolean;
+  isPinned: boolean;
+  startAt?: string;
+  endAt?: string;
+  createdAt: string;
+}
+
+const NOTICE_TYPE_LABELS: Record<string, string> = { GENERAL: '일반', MAINTENANCE: '점검', EVENT: '이벤트' };
+const NOTICE_TYPE_COLORS: Record<string, string> = {
+  GENERAL: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+  MAINTENANCE: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+  EVENT: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
+};
+
+function AdminNoticesTab() {
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Notice | null>(null);
+  const token = localStorage.getItem('token');
+
+  const emptyForm = { title: '', content: '', type: 'GENERAL' as const, isPopup: false, isPinned: false };
+  const [form, setForm] = useState({ ...emptyForm });
+
+  const load = () => {
+    setLoading(true);
+    fetch(`${API_URL}/api/notices?limit=50`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(d => setNotices(d.data || []))
+      .catch(() => setNotices([]))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleSave = async () => {
+    const method = editing ? 'PATCH' : 'POST';
+    const url = editing ? `${API_URL}/api/notices/${editing.id}` : `${API_URL}/api/notices`;
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(form),
+    });
+    if (res.ok) {
+      toast(editing ? '공지가 수정되었습니다' : '공지가 등록되었습니다', 'success');
+      setEditing(null); setCreating(false); setForm({ ...emptyForm }); load();
+    } else {
+      toast('저장 실패', 'error');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('공지사항을 삭제하시겠습니까?')) return;
+    const res = await fetch(`${API_URL}/api/notices/${id}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) { toast('삭제되었습니다', 'success'); load(); }
+  };
+
+  const startEdit = (n: Notice) => {
+    setEditing(n);
+    setCreating(true);
+    setForm({ title: n.title, content: n.content, type: n.type, isPopup: n.isPopup, isPinned: n.isPinned });
+  };
+
+  const cancelForm = () => { setEditing(null); setCreating(false); setForm({ ...emptyForm }); };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">공지사항 관리</h2>
+        {!creating && (
+          <button onClick={() => setCreating(true)} className="px-4 py-2 min-h-[44px] bg-indigo-600 text-white text-sm rounded-xl hover:bg-indigo-700 transition-colors">
+            + 공지 작성
+          </button>
+        )}
+      </div>
+
+      {creating && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-indigo-200 dark:border-indigo-700 p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{editing ? '공지 수정' : '새 공지 작성'}</h3>
+          <div>
+            <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">제목 *</label>
+            <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+              placeholder="공지 제목" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">내용 *</label>
+            <textarea value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
+              rows={4}
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 resize-none"
+              placeholder="공지 내용을 입력하세요" />
+          </div>
+          <div className="flex flex-wrap gap-4">
+            <div>
+              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">유형</label>
+              <div className="flex gap-2">
+                {(['GENERAL', 'MAINTENANCE', 'EVENT'] as const).map(t => (
+                  <button key={t} onClick={() => setForm(f => ({ ...f, type: t }))}
+                    className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${form.type === t ? NOTICE_TYPE_COLORS[t] + ' font-medium' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
+                    {NOTICE_TYPE_LABELS[t]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.isPopup} onChange={e => setForm(f => ({ ...f, isPopup: e.target.checked }))}
+                  className="w-4 h-4 text-indigo-600 rounded" />
+                <span className="text-xs text-slate-600 dark:text-slate-400">팝업 공지</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.isPinned} onChange={e => setForm(f => ({ ...f, isPinned: e.target.checked }))}
+                  className="w-4 h-4 text-indigo-600 rounded" />
+                <span className="text-xs text-slate-600 dark:text-slate-400">상단 고정</span>
+              </label>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={handleSave} disabled={!form.title || !form.content}
+              className="px-4 py-2 min-h-[44px] bg-indigo-600 text-white text-sm rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+              저장
+            </button>
+            <button onClick={cancelForm} className="px-4 py-2 min-h-[44px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm rounded-xl hover:bg-slate-200 transition-colors">
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="text-center py-8 text-slate-400 text-sm">불러오는 중...</div>
+      ) : notices.length === 0 ? (
+        <div className="text-center py-12 text-slate-400 text-sm bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+          등록된 공지사항이 없습니다
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {notices.map(n => (
+            <div key={n.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${NOTICE_TYPE_COLORS[n.type]}`}>{NOTICE_TYPE_LABELS[n.type]}</span>
+                  {n.isPinned && <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">📌 고정</span>}
+                  {n.isPopup && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">팝업</span>}
+                </div>
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{n.title}</p>
+                <p className="text-xs text-slate-400 truncate mt-0.5">{n.content}</p>
+              </div>
+              <div className="flex gap-1.5 shrink-0">
+                <button onClick={() => startEdit(n)} className="px-3 py-2 min-h-[44px] text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 transition-colors">
+                  수정
+                </button>
+                <button onClick={() => handleDelete(n.id)} className="px-3 py-2 min-h-[44px] text-xs bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 transition-colors">
+                  삭제
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
 // 4. System Settings (superadmin only)
 // ═══════════════════════════════════════════════════════════
 function SystemSettings() {
   const [maintenance, setMaintenance] = useState(() => localStorage.getItem('admin-maintenance') === 'true');
+  const [monetization, setMonetization] = useState(false);
+  const [sysConfigLoaded, setSysConfigLoaded] = useState(false);
+  const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/system-config/public`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d) {
+          setMonetization(d.monetization_enabled === 'true' || d.monetization_enabled === true);
+          if (d.maintenance_mode === 'true' || d.maintenance_mode === true) setMaintenance(true);
+        }
+        setSysConfigLoaded(true);
+      })
+      .catch(() => setSysConfigLoaded(true));
+  }, []);
+
+  const toggleSysConfig = async (key: string, value: boolean) => {
+    try {
+      await fetch(`${API_URL}/api/system-config`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ [key]: String(value) }),
+      });
+      toast(`설정이 저장되었습니다`, 'success');
+    } catch {
+      toast('저장 실패 — 설정이 로컬에만 반영됩니다', 'error');
+    }
+  };
+
   const [announcement, setAnnouncement] = useState(() => {
     try { return JSON.parse(localStorage.getItem('admin-announcement') || '{}').message || ''; } catch { return ''; }
   });
@@ -1014,7 +1424,7 @@ function SystemSettings() {
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">활성화 시 일반 사용자는 서비스에 접근할 수 없습니다</p>
             </div>
             <button
-              onClick={() => { setMaintenance(!maintenance); setSaved(false); }}
+              onClick={() => { const next = !maintenance; setMaintenance(next); setSaved(false); toggleSysConfig('maintenance_mode', next); }}
               className={`w-12 h-7 rounded-full transition-colors ${maintenance ? 'bg-red-500' : 'bg-slate-300 dark:bg-slate-600'}`}
             >
               <span className={`block w-5 h-5 bg-white rounded-full transition-transform shadow ${maintenance ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -1024,6 +1434,36 @@ function SystemSettings() {
             <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
               <p className="text-xs text-red-700 dark:text-red-400 font-medium">주의: 점검 모드가 활성화되어 있습니다</p>
               <p className="text-xs text-red-600 dark:text-red-500 mt-0.5">관리자 계정을 제외한 모든 접근이 차단됩니다</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Monetization Toggle */}
+      <section>
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+          <span className="w-1.5 h-4 bg-emerald-500 rounded" />
+          유료화 설정
+        </h2>
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300">유료화 활성화</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                {monetization ? '현재 유료 플랜이 활성화되어 있습니다. 사용자에게 요금제 선택이 표시됩니다.' : '현재 무료 운영 중입니다. 모든 기능이 무료로 제공됩니다.'}
+              </p>
+            </div>
+            <button
+              onClick={() => { const next = !monetization; setMonetization(next); toggleSysConfig('monetization_enabled', next); }}
+              disabled={!sysConfigLoaded}
+              className={`w-12 h-7 rounded-full transition-colors disabled:opacity-50 ${monetization ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+            >
+              <span className={`block w-5 h-5 bg-white rounded-full transition-transform shadow ${monetization ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+          {!monetization && (
+            <div className="mt-3 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+              <p className="text-xs text-emerald-700 dark:text-emerald-400">무료 운영 모드: 요금제 페이지에 "곧 유료 서비스 출시" 안내가 표시됩니다</p>
             </div>
           )}
         </div>
