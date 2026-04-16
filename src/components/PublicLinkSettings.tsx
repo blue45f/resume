@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from '@/components/Toast';
 import { updateResumeSlug } from '@/lib/api';
 import { getUser } from '@/lib/auth';
+import { API_URL } from '@/lib/config';
 
 interface Props {
   resumeId: string;
@@ -15,6 +16,8 @@ export default function PublicLinkSettings({ resumeId, currentSlug, ownerName, o
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
+  const [showEmbed, setShowEmbed] = useState(false);
 
   useEffect(() => {
     if (currentSlug) setSlug(currentSlug);
@@ -72,6 +75,16 @@ export default function PublicLinkSettings({ resumeId, currentSlug, ownerName, o
       setCopied(true);
       toast('공개 링크가 복사되었습니다', 'success');
       setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const embedCode = `<iframe src="${previewUrl}" width="100%" height="900" style="border:none;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.12);" title="이력서" loading="lazy"></iframe>`;
+
+  const handleCopyEmbed = () => {
+    navigator.clipboard.writeText(embedCode).then(() => {
+      setEmbedCopied(true);
+      toast('임베드 코드가 복사되었습니다', 'success');
+      setTimeout(() => setEmbedCopied(false), 2000);
     });
   };
 
@@ -183,6 +196,46 @@ export default function PublicLinkSettings({ resumeId, currentSlug, ownerName, o
           )}
         </div>
       )}
+
+      {/* Embed Code Section */}
+      <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+        <button
+          onClick={() => setShowEmbed(!showEmbed)}
+          className="w-full flex items-center justify-between text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+        >
+          <span className="flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            임베드 코드
+          </span>
+          <svg className={`w-3.5 h-3.5 transition-transform ${showEmbed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {showEmbed && (
+          <div className="mt-2 space-y-2">
+            <p className="text-[11px] text-slate-400 dark:text-slate-500">다른 웹사이트나 블로그에 이력서를 삽입하세요</p>
+            <div className="relative">
+              <code className="block px-3 py-2 text-[10px] font-mono bg-slate-900 dark:bg-slate-950 text-green-400 rounded-lg overflow-x-auto whitespace-nowrap border border-slate-700">
+                {embedCode}
+              </code>
+            </div>
+            <button
+              onClick={handleCopyEmbed}
+              className={`w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                embedCopied ? 'bg-green-500 text-white' : 'bg-slate-700 text-white hover:bg-slate-600'
+              }`}
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              {embedCopied ? '복사됨!' : '임베드 코드 복사'}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
