@@ -275,6 +275,14 @@ export class AuthController {
     }
   }
 
+  // ---- 공개 포트폴리오 (username 조회) ----
+  @Get('u/:username')
+  @Public()
+  @ApiOperation({ summary: '공개 포트폴리오 페이지용 사용자 프로필 조회 (username)' })
+  getUserPortfolio(@Param('username') username: string) {
+    return this.authService.getPublicPortfolio(username);
+  }
+
   // ---- 내 정보 ----
   @Get('me')
   @ApiOperation({ summary: '내 정보 조회' })

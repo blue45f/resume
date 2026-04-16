@@ -240,6 +240,71 @@ let AuthService = AuthService_1 = class AuthService {
             followingCount,
         };
     }
+    async getPublicPortfolio(username) {
+        const user = await this.prisma.user.findFirst({
+            where: { username: { equals: username, mode: 'insensitive' } },
+        });
+        if (!user)
+            return null;
+        const [publicResumes, followerCount, followingCount] = await Promise.all([
+            this.prisma.resume.findMany({
+                where: { userId: user.id, visibility: 'public' },
+                select: {
+                    id: true, title: true, viewCount: true, createdAt: true, updatedAt: true,
+                    personalInfo: { select: { name: true, email: true, summary: true, github: true, website: true, photo: true } },
+                    skills: { select: { category: true, items: true } },
+                    experiences: { select: { company: true, position: true, startDate: true, endDate: true, current: true } },
+                    tags: { select: { id: true, name: true, color: true } },
+                },
+                orderBy: { viewCount: 'desc' },
+                take: 6,
+            }),
+            this.prisma.follow.count({ where: { followingId: user.id } }),
+            this.prisma.follow.count({ where: { followerId: user.id } }),
+        ]);
+        const totalViews = publicResumes.reduce((s, r) => s + (r.viewCount || 0), 0);
+        const totalExp = publicResumes.reduce((s, r) => s + r.experiences.length, 0);
+        const allSkills = [];
+        publicResumes.forEach(r => r.skills.forEach(sk => {
+            sk.items.split(',').map(s => s.trim()).filter(Boolean).forEach(s => allSkills.push(s));
+        }));
+        const uniqueSkills = [...new Set(allSkills)].slice(0, 20);
+        return {
+            user: {
+                id: user.id,
+                username: user.username,
+                name: user.name,
+                avatar: user.avatar,
+                isOpenToWork: user.isOpenToWork,
+                openToWorkRoles: user.openToWorkRoles,
+                companyName: user.companyName,
+                companyTitle: user.companyTitle,
+                userType: user.userType,
+            },
+            stats: {
+                publicResumeCount: publicResumes.length,
+                followerCount,
+                followingCount,
+                totalViews,
+                totalExperiences: totalExp,
+            },
+            topSkills: uniqueSkills,
+            resumes: publicResumes.map(r => ({
+                id: r.id,
+                title: r.title,
+                viewCount: r.viewCount,
+                updatedAt: r.updatedAt,
+                name: r.personalInfo?.name || '',
+                summary: r.personalInfo?.summary || '',
+                github: r.personalInfo?.github || '',
+                website: r.personalInfo?.website || '',
+                photo: r.personalInfo?.photo || '',
+                experiences: r.experiences,
+                tags: r.tags,
+                topSkills: (r.skills[0]?.items || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 5),
+            })),
+        };
+    }
     getAvailableProviders() {
         const providers = [];
         if (this.config.get('GOOGLE_CLIENT_ID'))

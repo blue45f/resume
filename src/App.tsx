@@ -70,6 +70,7 @@ const CommunityPostPage = lazyRetry(() => import('@/pages/CommunityPostPage'));
 const CommunityWritePage = lazyRetry(() => import('@/pages/CommunityWritePage'));
 const NoticePage = lazyRetry(() => import('@/pages/NoticePage'));
 const NotFoundPage = lazyRetry(() => import('@/pages/NotFoundPage'));
+const PortfolioPage = lazyRetry(() => import('@/pages/PortfolioPage'));
 
 function PageLoader() {
   return (
@@ -137,6 +138,7 @@ export default function App() {
             <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AuthGuard><AdminPage /></AuthGuard></Suspense>} />
             <Route path="/r/:code" element={<Suspense fallback={<PageLoader />}><ShortLinkPage /></Suspense>} />
             <Route path="/@:username/:slug" element={<Suspense fallback={<PageLoader />}><ProfileResumePage /></Suspense>} />
+            <Route path="/u/:username" element={<Suspense fallback={<PageLoader />}><PortfolioPage /></Suspense>} />
             <Route path="/company/:name" element={<Suspense fallback={<PageLoader />}><CompanyPage /></Suspense>} />
             <Route path="/community" element={<Suspense fallback={<PageLoader />}><CommunityPage /></Suspense>} />
             <Route path="/community/write" element={<Suspense fallback={<PageLoader />}><AuthGuard><CommunityWritePage /></AuthGuard></Suspense>} />

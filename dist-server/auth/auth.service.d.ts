@@ -57,6 +57,41 @@ export declare class AuthService {
         followerCount: number;
         followingCount: number;
     }>;
+    getPublicPortfolio(username: string): Promise<{
+        user: {
+            id: string;
+            username: string;
+            name: string;
+            avatar: string;
+            isOpenToWork: boolean;
+            openToWorkRoles: string;
+            companyName: string | null;
+            companyTitle: string | null;
+            userType: string;
+        };
+        stats: {
+            publicResumeCount: number;
+            followerCount: number;
+            followingCount: number;
+            totalViews: number;
+            totalExperiences: number;
+        };
+        topSkills: string[];
+        resumes: {
+            id: string;
+            title: string;
+            viewCount: number;
+            updatedAt: Date;
+            name: any;
+            summary: any;
+            github: any;
+            website: any;
+            photo: any;
+            experiences: any;
+            tags: any;
+            topSkills: any;
+        }[];
+    } | null>;
     getAvailableProviders(): string[];
     getGoogleProfile(code: string): Promise<OAuthProfile>;
     getGithubProfile(code: string): Promise<OAuthProfile>;

@@ -21,6 +21,41 @@ export declare class AuthController {
         hasPassword: boolean;
     }> | null;
     linkSocial(provider: string, req: any, res: Response): void;
+    getUserPortfolio(username: string): Promise<{
+        user: {
+            id: string;
+            username: string;
+            name: string;
+            avatar: string;
+            isOpenToWork: boolean;
+            openToWorkRoles: string;
+            companyName: string | null;
+            companyTitle: string | null;
+            userType: string;
+        };
+        stats: {
+            publicResumeCount: number;
+            followerCount: number;
+            followingCount: number;
+            totalViews: number;
+            totalExperiences: number;
+        };
+        topSkills: string[];
+        resumes: {
+            id: string;
+            title: string;
+            viewCount: number;
+            updatedAt: Date;
+            name: any;
+            summary: any;
+            github: any;
+            website: any;
+            photo: any;
+            experiences: any;
+            tags: any;
+            topSkills: any;
+        }[];
+    } | null>;
     getProfile(req: any): Promise<{
         id: string;
         email: string;

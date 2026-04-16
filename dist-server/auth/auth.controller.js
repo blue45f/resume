@@ -209,6 +209,9 @@ let AuthController = class AuthController {
                 res.status(400).json({ message: '지원하지 않는 프로바이더입니다' });
         }
     }
+    getUserPortfolio(username) {
+        return this.authService.getPublicPortfolio(username);
+    }
     getProfile(req) {
         if (!req.user)
             return null;
@@ -384,6 +387,15 @@ __decorate([
     __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "linkSocial", null);
+__decorate([
+    (0, common_1.Get)('u/:username'),
+    (0, auth_guard_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: '공개 포트폴리오 페이지용 사용자 프로필 조회 (username)' }),
+    __param(0, (0, common_1.Param)('username')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "getUserPortfolio", null);
 __decorate([
     (0, common_1.Get)('me'),
     (0, swagger_1.ApiOperation)({ summary: '내 정보 조회' }),
