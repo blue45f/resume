@@ -162,6 +162,9 @@ export default function Header() {
             <Link to="/explore" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/explore' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
               {t('nav.explore')}
             </Link>
+            <Link to="/jobs" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname.startsWith('/jobs') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+              채용
+            </Link>
             <Link to="/community" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname.startsWith('/community') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
               커뮤니티
             </Link>
@@ -190,15 +193,15 @@ export default function Header() {
                 {t('common.more')} <span aria-hidden="true">▾</span>
               </button>
               <div role="menu" aria-label={t('common.more')} className="absolute left-0 top-full mt-1 w-44 glass-dropdown rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 py-1">
-                {isRecruiter ? (
+                <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500" role="presentation">채용</p>
+                <Link to="/jobs" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">채용공고 · 외부링크</Link>
+                {isRecruiter && (
                   <>
-                    <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500" role="presentation">채용</p>
                     <Link to="/scouts" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">스카우트</Link>
-                    <Link to="/jobs" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">채용공고</Link>
                     <Link to="/jobs/new" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">공고 등록</Link>
-                    <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                   </>
-                ) : null}
+                )}
+                <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                 <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500" role="presentation">내 활동</p>
                 <Link to="/bookmarks" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">북마크</Link>
                 <Link to="/messages" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">쪽지</Link>
