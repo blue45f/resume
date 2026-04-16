@@ -11,6 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'recharts': path.resolve(__dirname, 'node_modules/recharts/es6/index.js'),
     },
   },
   server: {
