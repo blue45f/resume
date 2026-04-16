@@ -1,3 +1,4 @@
+import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminStatsService } from './admin-stats.service';
@@ -85,4 +86,5 @@ export declare class HealthController {
             createdAt: string;
         }[];
     }>;
+    sitemapXml(res: Response): Promise<void>;
 }

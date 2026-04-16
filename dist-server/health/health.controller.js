@@ -103,6 +103,61 @@ let HealthController = class HealthController {
         }
         return this.statsService.getStats();
     }
+    async sitemapXml(res) {
+        const BASE = process.env.FRONTEND_URL || 'https://resume-silk-three.vercel.app';
+        const now = new Date().toISOString().split('T')[0];
+        const [publicResumes, communityPosts] = await Promise.all([
+            this.prisma.resume.findMany({
+                where: { visibility: 'public', slug: { not: '' } },
+                select: { slug: true, userId: true, updatedAt: true, personalInfo: { select: { name: true } } },
+                orderBy: { updatedAt: 'desc' },
+                take: 1000,
+            }),
+            this.prisma.communityPost.findMany({
+                where: { isHidden: false },
+                select: { id: true, updatedAt: true },
+                orderBy: { updatedAt: 'desc' },
+                take: 500,
+            }),
+        ]);
+        const userIds = [...new Set(publicResumes.map(r => r.userId).filter(Boolean))];
+        const users = userIds.length
+            ? await this.prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, username: true } })
+            : [];
+        const userMap = new Map(users.map(u => [u.id, u.username]));
+        const staticUrls = [
+            { loc: `${BASE}/`, priority: '1.0', changefreq: 'daily' },
+            { loc: `${BASE}/explore`, priority: '0.9', changefreq: 'daily' },
+            { loc: `${BASE}/jobs`, priority: '0.9', changefreq: 'daily' },
+            { loc: `${BASE}/templates`, priority: '0.8', changefreq: 'weekly' },
+            { loc: `${BASE}/community`, priority: '0.8', changefreq: 'daily' },
+            { loc: `${BASE}/interview-prep`, priority: '0.7', changefreq: 'weekly' },
+            { loc: `${BASE}/about`, priority: '0.6', changefreq: 'monthly' },
+            { loc: `${BASE}/tutorial`, priority: '0.6', changefreq: 'monthly' },
+            { loc: `${BASE}/pricing`, priority: '0.6', changefreq: 'weekly' },
+            { loc: `${BASE}/notices`, priority: '0.5', changefreq: 'weekly' },
+            { loc: `${BASE}/terms`, priority: '0.3', changefreq: 'monthly' },
+        ];
+        const resumeUrls = publicResumes
+            .filter(r => r.slug && r.userId && userMap.get(r.userId))
+            .map(r => ({
+            loc: `${BASE}/@${encodeURIComponent(userMap.get(r.userId))}/${encodeURIComponent(r.slug)}`,
+            priority: '0.7',
+            changefreq: 'weekly',
+            lastmod: r.updatedAt.toISOString().split('T')[0],
+        }));
+        const communityUrls = communityPosts.map(p => ({
+            loc: `${BASE}/community/${p.id}`,
+            priority: '0.5',
+            changefreq: 'weekly',
+            lastmod: p.updatedAt.toISOString().split('T')[0],
+        }));
+        const allUrls = [...staticUrls, ...resumeUrls, ...communityUrls];
+        const urlsXml = allUrls.map(u => `  <url><loc>${u.loc}</loc>${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : `<lastmod>${now}</lastmod>`}<changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`).join('\n');
+        const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urlsXml}\n</urlset>`;
+        res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+        res.send(xml);
+    }
 };
 exports.HealthController = HealthController;
 __decorate([
@@ -149,6 +204,16 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], HealthController.prototype, "adminStats", null);
+__decorate([
+    (0, common_1.Get)('sitemap.xml'),
+    (0, auth_guard_1.Public)(),
+    (0, cache_interceptor_1.CacheTTL)(3600),
+    (0, swagger_1.ApiOperation)({ summary: '동적 XML 사이트맵' }),
+    __param(0, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "sitemapXml", null);
 exports.HealthController = HealthController = __decorate([
     (0, swagger_1.ApiTags)('health'),
     (0, common_1.Controller)('health'),
