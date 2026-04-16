@@ -43,6 +43,7 @@ import QrCodeModal from '@/components/QrCodeModal';
 import ExportPanel from '@/components/ExportPanel';
 import PublicLinkSettings from '@/components/PublicLinkSettings';
 import ShareStats from '@/components/ShareStats';
+import ResumeAuditPanel from '@/components/ResumeAuditPanel';
 
 /** Map theme accentColor to Tailwind classes */
 const accentColorMap: Record<string, { dot: string; ring: string; bgLight: string; border: string }> = {
@@ -546,6 +547,7 @@ export default function PreviewPage() {
             })()}
 
             <CompletenessBar resume={resume} />
+            <ResumeAuditPanel resume={resume} />
             <Suspense fallback={<div className="h-24 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />}>
               <ResumeScoreboard resume={resume} />
               <SalaryEstimate resume={resume} />
