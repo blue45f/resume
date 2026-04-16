@@ -261,12 +261,11 @@ export class AuthService {
     const [publicResumes, followerCount, followingCount] = await Promise.all([
       this.prisma.resume.findMany({
         where: { userId: user.id, visibility: 'public' },
-        select: {
-          id: true, title: true, viewCount: true, createdAt: true, updatedAt: true,
-          personalInfo: { select: { name: true, email: true, summary: true, github: true, website: true, photo: true } },
+        include: {
+          personalInfo: { select: { name: true, summary: true, github: true, website: true, photo: true } },
           skills: { select: { category: true, items: true } },
           experiences: { select: { company: true, position: true, startDate: true, endDate: true, current: true } },
-          tags: { select: { id: true, name: true, color: true } },
+          tags: { include: { tag: true } },
         },
         orderBy: { viewCount: 'desc' },
         take: 6,
@@ -278,8 +277,8 @@ export class AuthService {
     const totalViews = publicResumes.reduce((s, r) => s + (r.viewCount || 0), 0);
     const totalExp = publicResumes.reduce((s, r) => s + r.experiences.length, 0);
     const allSkills: string[] = [];
-    publicResumes.forEach(r => r.skills.forEach(sk => {
-      sk.items.split(',').map(s => s.trim()).filter(Boolean).forEach(s => allSkills.push(s));
+    publicResumes.forEach(r => r.skills.forEach((sk: any) => {
+      (sk.items as string).split(',').map((s: string) => s.trim()).filter(Boolean).forEach((s: string) => allSkills.push(s));
     }));
     const uniqueSkills = [...new Set(allSkills)].slice(0, 20);
 
@@ -303,7 +302,7 @@ export class AuthService {
         totalExperiences: totalExp,
       },
       topSkills: uniqueSkills,
-      resumes: publicResumes.map(r => ({
+      resumes: publicResumes.map((r: any) => ({
         id: r.id,
         title: r.title,
         viewCount: r.viewCount,
@@ -314,8 +313,8 @@ export class AuthService {
         website: r.personalInfo?.website || '',
         photo: r.personalInfo?.photo || '',
         experiences: r.experiences,
-        tags: r.tags,
-        topSkills: (r.skills[0]?.items || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 5),
+        tags: r.tags.map((t: any) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })),
+        topSkills: (r.skills[0]?.items || '').split(',').map((s: string) => s.trim()).filter(Boolean).slice(0, 5),
       })),
     };
   }

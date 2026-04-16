@@ -79,10 +79,10 @@ export declare class AuthService {
         };
         topSkills: string[];
         resumes: {
-            id: string;
-            title: string;
-            viewCount: number;
-            updatedAt: Date;
+            id: any;
+            title: any;
+            viewCount: any;
+            updatedAt: any;
             name: any;
             summary: any;
             github: any;
