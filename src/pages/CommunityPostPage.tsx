@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getUser } from '@/lib/auth';
 import { toast } from '@/components/Toast';
+import SendMessageButton from '@/components/SendMessageButton';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -328,8 +329,17 @@ export default function CommunityPostPage() {
                   </div>
                 )}
                 <div>
-                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    {post.user?.name || '익명'}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      {post.user?.name || '익명'}
+                    </span>
+                    {post.user?.id && (
+                      <SendMessageButton
+                        targetUserId={post.user.id}
+                        targetUserName={post.user.name}
+                        variant="mini"
+                      />
+                    )}
                   </div>
                   <div className="text-xs text-slate-400">{timeAgo(post.createdAt)}</div>
                 </div>

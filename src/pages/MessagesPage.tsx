@@ -1,5 +1,6 @@
 import { getUser } from '@/lib/auth';
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
@@ -81,8 +82,9 @@ function savePinned(pinned: Set<string>) {
 }
 
 export default function MessagesPage() {
+  const [searchParams] = useSearchParams();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(searchParams.get('to'));
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -104,6 +106,14 @@ export default function MessagesPage() {
     loadConversations();
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
   }, []);
+
+  // Auto-open conversation from ?to= URL param
+  useEffect(() => {
+    const toId = searchParams.get('to');
+    if (toId && !loading) {
+      loadMessages(toId);
+    }
+  }, [loading]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
