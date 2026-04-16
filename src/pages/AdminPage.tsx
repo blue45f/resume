@@ -972,11 +972,12 @@ interface Banner {
 }
 
 const BANNER_COLORS = [
-  { label: '인디고', value: 'from-indigo-600 to-purple-600' },
-  { label: '에메랄드', value: 'from-emerald-500 to-teal-600' },
-  { label: '앰버', value: 'from-amber-500 to-orange-500' },
-  { label: '로즈', value: 'from-rose-500 to-pink-600' },
-  { label: '슬레이트', value: 'from-slate-700 to-slate-900' },
+  { label: '인디고', value: 'linear-gradient(135deg, #6366f1, #9333ea)', preview: 'from-indigo-500 to-purple-600' },
+  { label: '에메랄드', value: 'linear-gradient(135deg, #10b981, #0d9488)', preview: 'from-emerald-500 to-teal-600' },
+  { label: '앰버', value: 'linear-gradient(135deg, #f59e0b, #f97316)', preview: 'from-amber-400 to-orange-500' },
+  { label: '로즈', value: 'linear-gradient(135deg, #f43f5e, #db2777)', preview: 'from-rose-500 to-pink-600' },
+  { label: '슬레이트', value: 'linear-gradient(135deg, #334155, #0f172a)', preview: 'from-slate-700 to-slate-900' },
+  { label: '스카이', value: 'linear-gradient(135deg, #0ea5e9, #6366f1)', preview: 'from-sky-500 to-indigo-600' },
 ];
 
 function AdminBannersTab() {
@@ -1079,10 +1080,40 @@ function AdminBannersTab() {
                 placeholder="https://..." />
             </div>
             <div>
-              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">이미지 URL</label>
-              <input value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
-                placeholder="https://... (선택)" />
+              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">배경 이미지</label>
+              <div className="flex gap-2 items-center">
+                <input value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
+                  className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                  placeholder="이미지 URL 직접 입력" />
+                <label className="cursor-pointer px-3 py-2 min-h-[44px] flex items-center text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 transition-colors whitespace-nowrap">
+                  파일 업로드
+                  <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    fd.append('upload_preset', 'resume_upload');
+                    try {
+                      const res = await fetch('https://api.cloudinary.com/v1_1/democloud/image/upload', { method: 'POST', body: fd });
+                      if (res.ok) {
+                        const data = await res.json();
+                        setForm(f => ({ ...f, imageUrl: data.secure_url }));
+                        toast('이미지 업로드 완료', 'success');
+                      } else {
+                        toast('업로드 실패 — URL 직접 입력을 사용해주세요', 'error');
+                      }
+                    } catch {
+                      toast('업로드 실패 — URL 직접 입력을 사용해주세요', 'error');
+                    }
+                  }} />
+                </label>
+              </div>
+              {form.imageUrl && (
+                <div className="mt-2 flex items-center gap-2">
+                  <img src={form.imageUrl} alt="미리보기" className="h-12 w-20 object-cover rounded-lg border border-slate-200 dark:border-slate-600" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  <button onClick={() => setForm(f => ({ ...f, imageUrl: '' }))} className="text-xs text-red-500 hover:text-red-600">제거</button>
+                </div>
+              )}
             </div>
           </div>
           <div>
@@ -1090,16 +1121,25 @@ function AdminBannersTab() {
             <div className="flex gap-2 flex-wrap">
               {BANNER_COLORS.map(c => (
                 <button key={c.value} onClick={() => setForm(f => ({ ...f, bgColor: c.value }))}
-                  className={`px-3 py-1.5 text-xs text-white rounded-lg bg-gradient-to-r ${c.value} ${form.bgColor === c.value ? 'ring-2 ring-offset-1 ring-indigo-500' : ''}`}>
+                  style={{ background: c.value }}
+                  className={`px-3 py-1.5 text-xs text-white rounded-lg font-medium ${form.bgColor === c.value ? 'ring-2 ring-offset-2 ring-indigo-500 shadow-md' : 'opacity-80 hover:opacity-100'} transition-all`}>
                   {c.label}
                 </button>
               ))}
             </div>
           </div>
           {form.title && (
-            <div className={`rounded-xl p-4 bg-gradient-to-r ${form.bgColor} text-white`}>
-              <p className="font-bold">{form.title}</p>
-              {form.subtitle && <p className="text-sm opacity-80 mt-1">{form.subtitle}</p>}
+            <div className="rounded-xl overflow-hidden">
+              <div style={{
+                background: form.bgColor || 'linear-gradient(135deg, #6366f1, #9333ea)',
+                backgroundImage: form.imageUrl ? `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url(${form.imageUrl})` : form.bgColor,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                padding: '1.5rem',
+              }}>
+                <p className="font-bold text-white text-lg drop-shadow">{form.title}</p>
+                {form.subtitle && <p className="text-white/90 text-sm mt-1 drop-shadow">{form.subtitle}</p>}
+              </div>
             </div>
           )}
           <div className="flex gap-2">

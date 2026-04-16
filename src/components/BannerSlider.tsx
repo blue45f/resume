@@ -35,36 +35,68 @@ export default function BannerSlider() {
 
   const banner = banners[current];
 
+  // bgColor가 Tailwind 클래스명이면 기본 인디고로 fallback
+  const isCssGradient = (v: string) => v.startsWith('linear-gradient') || v.startsWith('#') || v.startsWith('rgb');
+  const bgStyle = isCssGradient(banner.bgColor)
+    ? banner.bgColor
+    : 'linear-gradient(135deg, #6366f1, #9333ea)';
+
+  const slideStyle: React.CSSProperties = banner.imageUrl
+    ? {
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${banner.imageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    : { background: bgStyle };
+
   return (
-    <div className="banner-slider" style={{ position: 'relative', overflow: 'hidden', borderRadius: '12px', marginBottom: '2rem' }}>
+    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '16px', marginBottom: '2rem', boxShadow: '0 4px 24px rgba(0,0,0,0.12)' }}>
       <div
-        className="banner-slide"
         style={{
-          background: banner.bgColor || '#6366f1',
-          padding: '2.5rem',
-          color: '#fff',
-          cursor: banner.linkUrl ? 'pointer' : 'default',
+          ...slideStyle,
+          padding: '2.5rem 3rem',
           minHeight: '160px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
+          cursor: banner.linkUrl ? 'pointer' : 'default',
+          transition: 'opacity 0.3s ease',
         }}
         onClick={() => banner.linkUrl && window.open(banner.linkUrl, '_blank')}
       >
-        {banner.imageUrl && (
-          <img src={banner.imageUrl} alt="" style={{ position: 'absolute', right: '2rem', top: '50%', transform: 'translateY(-50%)', height: '120px', objectFit: 'contain', opacity: 0.85 }} />
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)', lineHeight: 1.3 }}>{banner.title}</h2>
+        {banner.subtitle && (
+          <p style={{ margin: '0.5rem 0 0', color: 'rgba(255,255,255,0.92)', fontSize: '0.95rem', textShadow: '0 1px 3px rgba(0,0,0,0.25)' }}>
+            {banner.subtitle}
+          </p>
         )}
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>{banner.title}</h2>
-        {banner.subtitle && <p style={{ margin: '0.5rem 0 0', opacity: 0.9 }}>{banner.subtitle}</p>}
+        {banner.linkUrl && (
+          <span style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#fff', fontSize: '0.8rem', fontWeight: 600, background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)', padding: '4px 12px', borderRadius: '999px', width: 'fit-content' }}>
+            자세히 보기 →
+          </span>
+        )}
       </div>
 
       {banners.length > 1 && (
         <>
-          <button onClick={prev} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.3)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', color: '#fff', fontSize: '1rem' }}>&#8249;</button>
-          <button onClick={next} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.3)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', color: '#fff', fontSize: '1rem' }}>&#8250;</button>
+          <button
+            onClick={e => { e.stopPropagation(); prev(); }}
+            style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', color: '#fff', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            aria-label="이전"
+          >‹</button>
+          <button
+            onClick={e => { e.stopPropagation(); next(); }}
+            style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', color: '#fff', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            aria-label="다음"
+          >›</button>
           <div style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '6px' }}>
             {banners.map((_, i) => (
-              <button key={i} onClick={() => setCurrent(i)} style={{ width: '8px', height: '8px', borderRadius: '50%', border: 'none', background: i === current ? '#fff' : 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 0 }} />
+              <button
+                key={i}
+                onClick={e => { e.stopPropagation(); setCurrent(i); }}
+                style={{ width: i === current ? '20px' : '8px', height: '8px', borderRadius: '999px', border: 'none', background: i === current ? '#fff' : 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 0, transition: 'all 0.3s ease' }}
+                aria-label={`${i + 1}번째 배너`}
+              />
             ))}
           </div>
         </>
