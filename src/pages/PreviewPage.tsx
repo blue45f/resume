@@ -326,6 +326,7 @@ export default function PreviewPage() {
               <button onClick={() => navigate(`/resumes/${id}/review`)} className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors">리뷰</button>
               <button onClick={() => setShowAiAnalysis(true)} className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors">AI 분석</button>
               <button onClick={() => setShowJdMatch(true)} className="px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition-colors">JD 매칭</button>
+              <button onClick={() => navigate(`/cover-letter?resumeId=${id}`)} className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors" title="이 이력서를 기반으로 자소서 작성">자소서</button>
               <button onClick={() => setShowTransform(true)} className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors">변환</button>
               <button onClick={handlePrint} disabled={printPreparing} className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-70 transition-colors">
                 {printPreparing ? '준비 중...' : 'PDF'}

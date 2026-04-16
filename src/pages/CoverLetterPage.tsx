@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FeatureGate from '@/components/FeatureGate';
@@ -126,12 +127,14 @@ function ScoreMeter({ score }: { score: number }) {
 }
 
 export default function CoverLetterPage() {
+  const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<PageMode>('generate');
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
-  const [selectedResumeId, setSelectedResumeId] = useState('');
+  // Support ?resumeId=xxx from PreviewPage "자소서" button
+  const [selectedResumeId, setSelectedResumeId] = useState(searchParams.get('resumeId') || '');
   const [jobDescription, setJobDescription] = useState('');
   const [companyName, setCompanyName] = useState('');
-  const [position, setPosition] = useState('');
+  const [position, setPosition] = useState(searchParams.get('position') || '');
   const [tone, setTone] = useState<'formal' | 'friendly' | 'confident'>('formal');
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
