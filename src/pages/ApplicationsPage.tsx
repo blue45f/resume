@@ -84,7 +84,7 @@ export default function ApplicationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'company' | 'deadline'>('recent');
   const [yearFilter, setYearFilter] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'calendar'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'calendar' | 'analytics'>('list');
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set());
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
@@ -292,6 +292,14 @@ export default function ApplicationsPage() {
                 title="캘린더 보기"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              </button>
+              <button
+                onClick={() => setViewMode('analytics')}
+                className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'analytics' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                aria-label="분석 보기"
+                title="분석 보기"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
               </button>
             </div>
             <button
@@ -688,6 +696,159 @@ export default function ApplicationsPage() {
                 면접일
               </div>
             </div>
+          </div>
+        ) : viewMode === 'analytics' ? (
+          /* Analytics Dashboard */
+          <div className="space-y-5">
+            {apps.length === 0 ? (
+              <div className="text-center py-16 text-slate-400">지원 데이터가 없습니다. 지원을 추가해보세요!</div>
+            ) : (
+              <>
+                {/* Funnel */}
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+                  <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                    <span className="w-5 h-5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md flex items-center justify-center text-xs">📊</span>
+                    전형 단계별 전환율
+                  </h3>
+                  <div className="space-y-3">
+                    {[
+                      { label: '지원완료', key: 'applied', color: 'bg-blue-500', total: apps.length },
+                      { label: '서류심사', key: 'screening', color: 'bg-purple-500', total: apps.filter(a => ['screening','interview','offer'].includes(a.status)).length },
+                      { label: '면접', key: 'interview', color: 'bg-amber-500', total: apps.filter(a => ['interview','offer'].includes(a.status)).length },
+                      { label: '최종합격', key: 'offer', color: 'bg-green-500', total: apps.filter(a => a.status === 'offer').length },
+                    ].map((stage, i, arr) => {
+                      const base = i === 0 ? apps.length : arr[i - 1].total;
+                      const pct = base > 0 ? Math.round((stage.total / base) * 100) : 0;
+                      const widthPct = apps.length > 0 ? (stage.total / apps.length) * 100 : 0;
+                      return (
+                        <div key={stage.key} className="flex items-center gap-3">
+                          <div className="w-20 text-xs text-right text-slate-500 dark:text-slate-400 flex-shrink-0">{stage.label}</div>
+                          <div className="flex-1 h-7 bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden relative">
+                            <div
+                              className={`h-full ${stage.color} transition-all duration-700 flex items-center justify-end pr-2`}
+                              style={{ width: `${Math.max(widthPct, 2)}%` }}
+                            >
+                              <span className="text-[10px] text-white font-semibold">{stage.total}</span>
+                            </div>
+                          </div>
+                          {i > 0 && (
+                            <span className={`text-xs font-bold flex-shrink-0 w-12 text-right ${pct >= 50 ? 'text-green-600 dark:text-green-400' : pct >= 20 ? 'text-amber-600 dark:text-amber-400' : 'text-red-500 dark:text-red-400'}`}>
+                              {pct}%
+                            </span>
+                          )}
+                          {i === 0 && <span className="text-xs text-slate-400 flex-shrink-0 w-12 text-right">기준</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Key stats grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: '총 지원', value: apps.length, unit: '건', icon: '📝', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+                    { label: '면접 진행중', value: apps.filter(a => a.status === 'interview').length, unit: '건', icon: '🎤', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+                    { label: '최종합격', value: apps.filter(a => a.status === 'offer').length, unit: '건', icon: '🎉', color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20' },
+                    { label: '합격률', value: successRate, unit: '%', icon: '📈', color: successRate >= 30 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400', bg: successRate >= 30 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-orange-50 dark:bg-orange-900/20' },
+                  ].map(s => (
+                    <div key={s.label} className={`${s.bg} border border-slate-200/50 dark:border-slate-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center`}>
+                      <span className="text-2xl mb-1">{s.icon}</span>
+                      <span className={`text-2xl font-extrabold ${s.color}`}>{s.value}<span className="text-sm ml-0.5">{s.unit}</span></span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Monthly trend */}
+                {(() => {
+                  const monthlyMap: Record<string, number> = {};
+                  apps.forEach(a => {
+                    const m = (a.appliedDate || a.createdAt || '').slice(0, 7);
+                    if (m) monthlyMap[m] = (monthlyMap[m] || 0) + 1;
+                  });
+                  const months = Object.keys(monthlyMap).sort().slice(-6);
+                  if (months.length < 2) return null;
+                  const max = Math.max(...months.map(m => monthlyMap[m]));
+                  return (
+                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+                      <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                        <span className="w-5 h-5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-md flex items-center justify-center text-xs">📅</span>
+                        월별 지원 추이 (최근 6개월)
+                      </h3>
+                      <div className="flex items-end gap-2 h-32">
+                        {months.map(m => {
+                          const count = monthlyMap[m];
+                          const heightPct = max > 0 ? (count / max) * 100 : 0;
+                          const [y, mo] = m.split('-');
+                          return (
+                            <div key={m} className="flex-1 flex flex-col items-center gap-1">
+                              <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">{count}</span>
+                              <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-t-md relative overflow-hidden" style={{ height: '80px' }}>
+                                <div
+                                  className="absolute bottom-0 left-0 right-0 bg-blue-500 dark:bg-blue-600 rounded-t-md transition-all duration-700"
+                                  style={{ height: `${Math.max(heightPct, 5)}%` }}
+                                />
+                              </div>
+                              <span className="text-[10px] text-slate-400">{parseInt(mo)}월</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Top companies & status breakdown */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Top companies */}
+                  <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                      <span className="text-base">🏢</span> 자주 지원한 기업
+                    </h3>
+                    {(() => {
+                      const companyCounts: Record<string, number> = {};
+                      apps.forEach(a => { companyCounts[a.company] = (companyCounts[a.company] || 0) + 1; });
+                      return Object.entries(companyCounts)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5)
+                        .map(([company, count], i) => (
+                          <div key={company} className="flex items-center gap-2 py-1.5">
+                            <span className="text-xs font-bold text-slate-400 w-4">{i + 1}</span>
+                            <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 truncate">{company}</span>
+                            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">{count}회</span>
+                          </div>
+                        ));
+                    })()}
+                  </div>
+                  {/* Status distribution */}
+                  <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                      <span className="text-base">📋</span> 상태별 분포
+                    </h3>
+                    {stats.filter(s => s.count > 0).map(s => (
+                      <div key={s.value} className="flex items-center gap-2 py-1.5">
+                        <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${
+                          s.value === 'applied' ? 'bg-blue-500' : s.value === 'screening' ? 'bg-purple-500' :
+                          s.value === 'interview' ? 'bg-amber-500' : s.value === 'offer' ? 'bg-green-500' :
+                          s.value === 'rejected' ? 'bg-red-400' : 'bg-slate-400'
+                        }`} />
+                        <span className="flex-1 text-sm text-slate-600 dark:text-slate-400">{s.label}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full ${
+                              s.value === 'applied' ? 'bg-blue-500' : s.value === 'screening' ? 'bg-purple-500' :
+                              s.value === 'interview' ? 'bg-amber-500' : s.value === 'offer' ? 'bg-green-500' :
+                              s.value === 'rejected' ? 'bg-red-400' : 'bg-slate-400'
+                            }`} style={{ width: `${(s.count / apps.length) * 100}%` }} />
+                          </div>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-6 text-right">{s.count}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           /* List View */
