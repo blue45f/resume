@@ -135,6 +135,10 @@ export default function SettingsPage() {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(user?.name || '');
   const [savingName, setSavingName] = useState(false);
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [usernameValue, setUsernameValue] = useState(user?.username || '');
+  const [savingUsername, setSavingUsername] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -208,6 +212,37 @@ export default function SettingsPage() {
       toast('이름 변경에 실패했습니다', 'error');
     } finally {
       setSavingName(false);
+    }
+  };
+
+  const handleSaveUsername = async () => {
+    const cleaned = usernameValue.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    if (!cleaned || cleaned.length < 3) {
+      setUsernameError('영문 소문자, 숫자, - _ 만 사용 가능하며 3자 이상이어야 합니다');
+      return;
+    }
+    setUsernameError('');
+    setSavingUsername(true);
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_URL}/api/auth/profile`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ username: cleaned }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || '사용자명 변경에 실패했습니다');
+      }
+      const updated = await res.json();
+      if (token) setAuth(token, updated);
+      setUsernameValue(cleaned);
+      setEditingUsername(false);
+      toast('포트폴리오 URL이 설정되었습니다', 'success');
+    } catch (err: any) {
+      setUsernameError(err.message || '사용자명 변경에 실패했습니다');
+    } finally {
+      setSavingUsername(false);
     }
   };
 
@@ -365,6 +400,51 @@ export default function SettingsPage() {
               <p className="text-xs text-slate-400 mt-1">
                 {user.plan === 'premium' ? '💎 프리미엄' : user.plan === 'standard' ? '⭐ 스탠다드' : '🆓 무료'}
               </p>
+              {/* 포트폴리오 URL (username) */}
+              <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">포트폴리오 URL</span>
+                  {!editingUsername && (
+                    <button onClick={() => { setEditingUsername(true); setUsernameValue(user?.username || ''); }} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
+                      {user?.username ? '변경' : '설정하기'}
+                    </button>
+                  )}
+                </div>
+                {editingUsername ? (
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400 shrink-0">이력서공방.com/u/</span>
+                      <input
+                        type="text"
+                        value={usernameValue}
+                        onChange={e => { setUsernameValue(e.target.value.toLowerCase()); setUsernameError(''); }}
+                        onKeyDown={e => { if (e.key === 'Enter') handleSaveUsername(); if (e.key === 'Escape') setEditingUsername(false); }}
+                        placeholder="my-username"
+                        className="flex-1 px-2 py-1 border border-indigo-400 rounded-lg text-xs dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        autoFocus
+                      />
+                      <button onClick={handleSaveUsername} disabled={savingUsername} className="px-2.5 py-1 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50 shrink-0">
+                        {savingUsername ? '...' : '저장'}
+                      </button>
+                      <button onClick={() => { setEditingUsername(false); setUsernameError(''); }} className="px-2 py-1 text-xs text-slate-500 hover:text-slate-700">취소</button>
+                    </div>
+                    {usernameError && <p className="text-[11px] text-red-500 mt-1">{usernameError}</p>}
+                    <p className="text-[10px] text-slate-400 mt-1">영문 소문자, 숫자, -, _ 만 사용 가능 (3자 이상)</p>
+                  </div>
+                ) : user?.username ? (
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded">
+                      /u/{user.username}
+                    </code>
+                    <Link to={`/u/${user.username}`} className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" target="_blank">
+                      보기 →
+                    </Link>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400">설정하면 <strong>이력서공방.com/u/이름</strong>으로 포트폴리오 공유 가능</p>
+                )}
+              </div>
+
               <div className="flex flex-wrap gap-3 mt-3">
                 <Link to="/bookmarks" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">내 북마크</Link>
                 <Link to="/my-cover-letters" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">내 자소서</Link>

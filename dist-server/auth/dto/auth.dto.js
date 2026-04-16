@@ -100,6 +100,7 @@ class UpdateProfileDto {
     name;
     companyName;
     companyTitle;
+    username;
 }
 exports.UpdateProfileDto = UpdateProfileDto;
 __decorate([
@@ -130,3 +131,11 @@ __decorate([
     (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], UpdateProfileDto.prototype, "companyTitle", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(3),
+    (0, class_validator_1.MaxLength)(30),
+    __metadata("design:type", String)
+], UpdateProfileDto.prototype, "username", void 0);

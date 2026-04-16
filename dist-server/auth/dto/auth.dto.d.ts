@@ -19,4 +19,5 @@ export declare class UpdateProfileDto {
     name?: string;
     companyName?: string;
     companyTitle?: string;
+    username?: string;
 }

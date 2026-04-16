@@ -26,4 +26,5 @@ export class UpdateProfileDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(1) @MaxLength(50) name?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) companyName?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) companyTitle?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(3) @MaxLength(30) username?: string;
 }

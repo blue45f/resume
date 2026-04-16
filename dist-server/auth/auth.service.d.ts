@@ -53,6 +53,7 @@ export declare class AuthService {
         companyTitle: string;
         isOpenToWork: boolean;
         openToWorkRoles: string;
+        username: string;
         resumeCount: number;
         followerCount: number;
         followingCount: number;
@@ -113,6 +114,7 @@ export declare class AuthService {
         companyTitle?: string;
         isOpenToWork?: boolean;
         openToWorkRoles?: string;
+        username?: string;
     }): Promise<{
         id: string;
         email: string;
@@ -126,6 +128,7 @@ export declare class AuthService {
         companyTitle: string;
         isOpenToWork: boolean;
         openToWorkRoles: string;
+        username: string;
     }>;
     deleteAccount(userId: string): Promise<void>;
     login(email: string, password: string): Promise<string>;

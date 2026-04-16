@@ -235,6 +235,7 @@ let AuthService = AuthService_1 = class AuthService {
             companyTitle: user.companyTitle || '',
             isOpenToWork: user.isOpenToWork || false,
             openToWorkRoles: user.openToWorkRoles || '',
+            username: user.username || '',
             resumeCount,
             followerCount,
             followingCount,
@@ -525,6 +526,15 @@ let AuthService = AuthService_1 = class AuthService {
             updateData.isOpenToWork = data.isOpenToWork;
         if (data.openToWorkRoles !== undefined)
             updateData.openToWorkRoles = data.openToWorkRoles;
+        if (data.username !== undefined) {
+            const clean = data.username.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+            if (clean.length < 3)
+                throw new Error('사용자명은 3자 이상이어야 합니다');
+            const existing = await this.prisma.user.findFirst({ where: { username: clean, NOT: { id: userId } } });
+            if (existing)
+                throw new Error('이미 사용 중인 사용자명입니다');
+            updateData.username = clean;
+        }
         const updated = await this.prisma.user.update({ where: { id: userId }, data: updateData });
         return {
             id: updated.id, email: updated.email, name: updated.name, avatar: updated.avatar,
@@ -534,6 +544,7 @@ let AuthService = AuthService_1 = class AuthService {
             companyTitle: updated.companyTitle || '',
             isOpenToWork: updated.isOpenToWork || false,
             openToWorkRoles: updated.openToWorkRoles || '',
+            username: updated.username || '',
         };
     }
     async deleteAccount(userId) {
