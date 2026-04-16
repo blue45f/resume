@@ -119,8 +119,21 @@ export default function ExplorePage() {
   });
 
   const [searchFocused, setSearchFocused] = useState(false);
+  const [industryFilter, setIndustryFilter] = useState('all');
   const searchWrapperRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // 직종 감지 키워드맵
+  const INDUSTRY_KEYWORDS: Record<string, { label: string; emoji: string; keywords: string[] }> = {
+    dev: { label: '개발', emoji: '💻', keywords: ['react', 'python', 'java', 'javascript', 'typescript', 'node', 'spring', 'vue', 'angular', 'kotlin', 'swift', 'go', 'rust', 'c++', 'aws', 'docker', 'kubernetes', 'sql', 'backend', 'frontend', '프론트', '백엔드', '풀스택'] },
+    design: { label: '디자인', emoji: '🎨', keywords: ['figma', 'photoshop', 'illustrator', 'ui', 'ux', 'sketch', 'zeplin', 'adobe', 'graphic', '디자이너', 'ux/ui', 'product design', 'branding'] },
+    marketing: { label: '마케팅', emoji: '📣', keywords: ['마케팅', 'marketing', 'sns', 'seo', 'growth', 'ads', 'google ads', 'meta', '콘텐츠', 'content', 'crm', 'copywriting', 'brand'] },
+    finance: { label: '금융/회계', emoji: '💰', keywords: ['회계', '재무', '세무', 'erp', '경리', '재무제표', '원가', '예산', '투자', 'cfa', '금융', 'finance', 'accounting'] },
+    sales: { label: '영업', emoji: '🤝', keywords: ['영업', 'b2b', 'b2c', '세일즈', 'sales', '고객관리', '계약', '협상', 'crm', '파트너십'] },
+    hr: { label: 'HR', emoji: '👥', keywords: ['인사', 'hr', '채용', '노무', '조직문화', '교육훈련', '인재개발', 'hrd', 'hrm', '복리후생', '급여'] },
+    pm: { label: '기획/PM', emoji: '📋', keywords: ['기획', 'pm', 'po', 'product', '프로젝트', '서비스기획', '전략', '비즈니스', 'it기획', '데이터분석', 'agile', 'scrum'] },
+    data: { label: '데이터', emoji: '📊', keywords: ['데이터', 'data', 'analytics', 'ml', 'ai', '머신러닝', '딥러닝', 'tensorflow', 'pytorch', 'tableau', 'power bi', 'statistics', 'r ', 'bigquery', 'spark'] },
+  };
 
   const debouncedSearch = useCallback((value: string) => {
     clearTimeout(debounceRef.current);
@@ -260,6 +273,20 @@ export default function ExplorePage() {
       .sort((a, b) => b.matchCount - a.matchCount)
       .slice(0, 6);
   }, [users, mySkills, currentUserId]);
+
+  // 직종 필터링 (client-side — result.data에서 스킬 텍스트 분석)
+  const industryFilteredResumes = useMemo(() => {
+    if (!result?.data || industryFilter === 'all') return result?.data || [];
+    const industry = INDUSTRY_KEYWORDS[industryFilter];
+    if (!industry) return result.data;
+    return result.data.filter(r => {
+      const skillText = (r.skills || []).map((s: any) => `${s.category || ''} ${s.items || ''}`).join(' ').toLowerCase();
+      const titleText = (r.title || '').toLowerCase();
+      const positionText = (r.personalInfo?.title || '').toLowerCase();
+      const combined = `${skillText} ${titleText} ${positionText}`;
+      return industry.keywords.some(kw => combined.includes(kw.toLowerCase()));
+    });
+  }, [result?.data, industryFilter, INDUSTRY_KEYWORDS]);
 
   const toggleFollow = (userId: string) => {
     setFollowedUsers(prev => {
@@ -426,6 +453,25 @@ export default function ExplorePage() {
         </div>
 
         {/* 정렬 + 보기 모드 */}
+        {/* 직종 필터 */}
+        <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-none pb-1">
+          <button
+            onClick={() => setIndustryFilter('all')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors flex-shrink-0 ${industryFilter === 'all' ? 'bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+          >
+            전체
+          </button>
+          {Object.entries(INDUSTRY_KEYWORDS).map(([key, { label, emoji }]) => (
+            <button
+              key={key}
+              onClick={() => setIndustryFilter(industryFilter === key ? 'all' : key)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors flex-shrink-0 flex items-center gap-1 ${industryFilter === key ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+            >
+              {emoji} {label}
+            </button>
+          ))}
+        </div>
+
         <div className="flex items-center gap-2 mb-4 overflow-x-auto scrollbar-none">
           <span className="text-xs text-slate-500 dark:text-slate-400">정렬:</span>
           <button
@@ -440,6 +486,11 @@ export default function ExplorePage() {
           >
             인기순
           </button>
+          {industryFilter !== 'all' && (
+            <span className="ml-auto text-xs text-blue-600 dark:text-blue-400">
+              {industryFilteredResumes.length}개 결과
+            </span>
+          )}
           <div className="ml-auto flex items-center gap-1">
             <button
               onClick={() => setViewMode('grid')}
@@ -839,7 +890,7 @@ export default function ExplorePage() {
             </p>
 
             <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5' : 'space-y-3'}>
-              {result.data.map(resume => {
+              {(industryFilter !== 'all' ? industryFilteredResumes : result.data).map(resume => {
                 const themeIdx = getThemeIndex(resume.id);
                 const skillNames = extractSkillNames(resume.skills);
 
