@@ -1,7 +1,9 @@
 import { PrismaService } from '../prisma/prisma.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 export declare class JobsService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private config;
+    constructor(prisma: PrismaService, config: SystemConfigService);
     findAll(status?: string, query?: string): Promise<({
         user: {
             id: string;
@@ -134,7 +136,11 @@ export declare class JobsService {
     recordExternalLinkClick(id: string): Promise<{
         url: string;
     }>;
-    createExternalLink(data: any, role: string): Promise<{
+    createExternalLink(data: any, user: {
+        id?: string;
+        role?: string;
+        userType?: string;
+    }): Promise<{
         id: string;
         location: string;
         description: string;
@@ -157,7 +163,11 @@ export declare class JobsService {
         order: number;
         clickCount: number;
     }>;
-    updateExternalLink(id: string, data: any, role: string): Promise<{
+    updateExternalLink(id: string, data: any, user: {
+        id?: string;
+        role?: string;
+        userType?: string;
+    }): Promise<{
         id: string;
         location: string;
         description: string;
@@ -180,7 +190,11 @@ export declare class JobsService {
         order: number;
         clickCount: number;
     }>;
-    deleteExternalLink(id: string, role: string): Promise<{
+    deleteExternalLink(id: string, user: {
+        id?: string;
+        role?: string;
+        userType?: string;
+    }): Promise<{
         success: boolean;
     }>;
     getCuratedJobs(filters: {
@@ -294,7 +308,7 @@ export declare class JobsService {
         viewCount: number;
         authorId: string | null;
     }>;
-    updateCuratedJob(id: string, data: any, userId: string, userRole: string): Promise<{
+    updateCuratedJob(id: string, data: any, userId: string, userRole: string, userType?: string): Promise<{
         id: string;
         company: string;
         position: string;
@@ -322,7 +336,7 @@ export declare class JobsService {
         viewCount: number;
         authorId: string | null;
     }>;
-    deleteCuratedJob(id: string, userId: string, userRole: string): Promise<{
+    deleteCuratedJob(id: string, userId: string, userRole: string, userType?: string): Promise<{
         success: boolean;
     }>;
     recordCuratedJobClick(id: string): Promise<{

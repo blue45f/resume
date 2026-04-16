@@ -42,9 +42,9 @@ export class JobsController {
   }
 
   @Post('external-links')
-  @ApiOperation({ summary: '[어드민] 외부 채용 링크 등록' })
+  @ApiOperation({ summary: '외부 채용 링크 등록' })
   createExternalLink(@Body() body: any, @Req() req: any) {
-    return this.service.createExternalLink(body, req.user?.role);
+    return this.service.createExternalLink(body, { id: req.user?.id, role: req.user?.role, userType: req.user?.userType });
   }
 
   @Post('external-links/:id/click')
@@ -55,15 +55,15 @@ export class JobsController {
   }
 
   @Put('external-links/:id')
-  @ApiOperation({ summary: '[어드민] 외부 채용 링크 수정' })
+  @ApiOperation({ summary: '외부 채용 링크 수정' })
   updateExternalLink(@Param('id') id: string, @Body() body: any, @Req() req: any) {
-    return this.service.updateExternalLink(id, body, req.user?.role);
+    return this.service.updateExternalLink(id, body, { id: req.user?.id, role: req.user?.role, userType: req.user?.userType });
   }
 
   @Delete('external-links/:id')
-  @ApiOperation({ summary: '[어드민] 외부 채용 링크 삭제' })
+  @ApiOperation({ summary: '외부 채용 링크 삭제' })
   deleteExternalLink(@Param('id') id: string, @Req() req: any) {
-    return this.service.deleteExternalLink(id, req.user?.role);
+    return this.service.deleteExternalLink(id, { id: req.user?.id, role: req.user?.role, userType: req.user?.userType });
   }
 
   // ── Curated Jobs (외부 채용 정보 카드) ───────────────────────────────
@@ -104,13 +104,13 @@ export class JobsController {
   @Put('curated/:id')
   @ApiOperation({ summary: '큐레이션 채용 정보 수정' })
   updateCuratedJob(@Param('id') id: string, @Body() body: any, @Req() req: any) {
-    return this.service.updateCuratedJob(id, body, req.user?.id, req.user?.role);
+    return this.service.updateCuratedJob(id, body, req.user?.id, req.user?.role, req.user?.userType);
   }
 
   @Delete('curated/:id')
   @ApiOperation({ summary: '큐레이션 채용 정보 삭제' })
   deleteCuratedJob(@Param('id') id: string, @Req() req: any) {
-    return this.service.deleteCuratedJob(id, req.user?.id, req.user?.role);
+    return this.service.deleteCuratedJob(id, req.user?.id, req.user?.role, req.user?.userType);
   }
 
   @Post('curated/:id/click')

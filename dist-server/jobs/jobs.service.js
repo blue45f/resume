@@ -12,10 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const system_config_service_1 = require("../system-config/system-config.service");
 let JobsService = class JobsService {
     prisma;
-    constructor(prisma) {
+    config;
+    constructor(prisma, config) {
         this.prisma = prisma;
+        this.config = config;
     }
     async findAll(status = 'active', query) {
         const where = { status };
@@ -149,18 +152,21 @@ let JobsService = class JobsService {
         });
         return { url: link.url };
     }
-    async createExternalLink(data, role) {
-        if (role !== 'admin' && role !== 'superadmin')
-            throw new common_1.ForbiddenException();
+    async createExternalLink(data, user) {
+        const allowed = await this.config.checkPermission('perm.externalLinks.create', user);
+        if (!allowed)
+            throw new common_1.ForbiddenException('채용 링크 등록 권한이 없습니다');
         return this.prisma.externalJobLink.create({ data });
     }
-    async updateExternalLink(id, data, role) {
-        if (role !== 'admin' && role !== 'superadmin')
+    async updateExternalLink(id, data, user) {
+        const allowed = await this.config.checkPermission('perm.externalLinks.edit', user);
+        if (!allowed)
             throw new common_1.ForbiddenException();
         return this.prisma.externalJobLink.update({ where: { id }, data });
     }
-    async deleteExternalLink(id, role) {
-        if (role !== 'admin' && role !== 'superadmin')
+    async deleteExternalLink(id, user) {
+        const allowed = await this.config.checkPermission('perm.externalLinks.delete', user);
+        if (!allowed)
             throw new common_1.ForbiddenException();
         await this.prisma.externalJobLink.delete({ where: { id } });
         return { success: true };
@@ -215,9 +221,9 @@ let JobsService = class JobsService {
         return job;
     }
     async createCuratedJob(data, userId, userRole, userType) {
-        if (userRole !== 'admin' && userRole !== 'superadmin' && userType !== 'recruiter' && userType !== 'company') {
-            throw new common_1.ForbiddenException('채용 정보는 관리자 또는 채용담당자만 등록할 수 있습니다');
-        }
+        const allowed = await this.config.checkPermission('perm.curatedJobs.create', { id: userId, role: userRole, userType });
+        if (!allowed)
+            throw new common_1.ForbiddenException('채용 정보 등록 권한이 없습니다');
         return this.prisma.curatedJob.create({
             data: {
                 company: data.company || '',
@@ -243,13 +249,13 @@ let JobsService = class JobsService {
             },
         });
     }
-    async updateCuratedJob(id, data, userId, userRole) {
+    async updateCuratedJob(id, data, userId, userRole, userType) {
         const job = await this.prisma.curatedJob.findUnique({ where: { id } });
         if (!job)
             throw new common_1.NotFoundException();
-        if (job.authorId !== userId && userRole !== 'admin' && userRole !== 'superadmin') {
+        const allowed = await this.config.checkPermission('perm.curatedJobs.edit', { id: userId, role: userRole, userType }, job.authorId);
+        if (!allowed)
             throw new common_1.ForbiddenException();
-        }
         const updateData = { ...data };
         if (data.deadline)
             updateData.deadline = new Date(data.deadline);
@@ -259,13 +265,13 @@ let JobsService = class JobsService {
         delete updateData.updatedAt;
         return this.prisma.curatedJob.update({ where: { id }, data: updateData });
     }
-    async deleteCuratedJob(id, userId, userRole) {
+    async deleteCuratedJob(id, userId, userRole, userType) {
         const job = await this.prisma.curatedJob.findUnique({ where: { id } });
         if (!job)
             throw new common_1.NotFoundException();
-        if (job.authorId !== userId && userRole !== 'admin' && userRole !== 'superadmin') {
+        const allowed = await this.config.checkPermission('perm.curatedJobs.delete', { id: userId, role: userRole, userType }, job.authorId);
+        if (!allowed)
             throw new common_1.ForbiddenException();
-        }
         await this.prisma.curatedJob.delete({ where: { id } });
         return { success: true };
     }
@@ -280,5 +286,6 @@ let JobsService = class JobsService {
 exports.JobsService = JobsService;
 exports.JobsService = JobsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        system_config_service_1.SystemConfigService])
 ], JobsService);

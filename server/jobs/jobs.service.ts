@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 @Injectable()
 export class JobsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private config: SystemConfigService,
+  ) {}
 
   async findAll(status = 'active', query?: string) {
     const where: any = { status };
@@ -151,18 +155,21 @@ export class JobsService {
     return { url: link.url };
   }
 
-  async createExternalLink(data: any, role: string) {
-    if (role !== 'admin' && role !== 'superadmin') throw new ForbiddenException();
+  async createExternalLink(data: any, user: { id?: string; role?: string; userType?: string }) {
+    const allowed = await this.config.checkPermission('perm.externalLinks.create', user);
+    if (!allowed) throw new ForbiddenException('채용 링크 등록 권한이 없습니다');
     return this.prisma.externalJobLink.create({ data });
   }
 
-  async updateExternalLink(id: string, data: any, role: string) {
-    if (role !== 'admin' && role !== 'superadmin') throw new ForbiddenException();
+  async updateExternalLink(id: string, data: any, user: { id?: string; role?: string; userType?: string }) {
+    const allowed = await this.config.checkPermission('perm.externalLinks.edit', user);
+    if (!allowed) throw new ForbiddenException();
     return this.prisma.externalJobLink.update({ where: { id }, data });
   }
 
-  async deleteExternalLink(id: string, role: string) {
-    if (role !== 'admin' && role !== 'superadmin') throw new ForbiddenException();
+  async deleteExternalLink(id: string, user: { id?: string; role?: string; userType?: string }) {
+    const allowed = await this.config.checkPermission('perm.externalLinks.delete', user);
+    if (!allowed) throw new ForbiddenException();
     await this.prisma.externalJobLink.delete({ where: { id } });
     return { success: true };
   }
@@ -233,9 +240,8 @@ export class JobsService {
   }
 
   async createCuratedJob(data: any, userId: string, userRole: string, userType: string) {
-    if (userRole !== 'admin' && userRole !== 'superadmin' && userType !== 'recruiter' && userType !== 'company') {
-      throw new ForbiddenException('채용 정보는 관리자 또는 채용담당자만 등록할 수 있습니다');
-    }
+    const allowed = await this.config.checkPermission('perm.curatedJobs.create', { id: userId, role: userRole, userType });
+    if (!allowed) throw new ForbiddenException('채용 정보 등록 권한이 없습니다');
     return this.prisma.curatedJob.create({
       data: {
         company: data.company || '',
@@ -262,12 +268,11 @@ export class JobsService {
     });
   }
 
-  async updateCuratedJob(id: string, data: any, userId: string, userRole: string) {
+  async updateCuratedJob(id: string, data: any, userId: string, userRole: string, userType?: string) {
     const job = await this.prisma.curatedJob.findUnique({ where: { id } });
     if (!job) throw new NotFoundException();
-    if (job.authorId !== userId && userRole !== 'admin' && userRole !== 'superadmin') {
-      throw new ForbiddenException();
-    }
+    const allowed = await this.config.checkPermission('perm.curatedJobs.edit', { id: userId, role: userRole, userType }, job.authorId);
+    if (!allowed) throw new ForbiddenException();
     const updateData: any = { ...data };
     if (data.deadline) updateData.deadline = new Date(data.deadline);
     delete updateData.id;
@@ -277,12 +282,11 @@ export class JobsService {
     return this.prisma.curatedJob.update({ where: { id }, data: updateData });
   }
 
-  async deleteCuratedJob(id: string, userId: string, userRole: string) {
+  async deleteCuratedJob(id: string, userId: string, userRole: string, userType?: string) {
     const job = await this.prisma.curatedJob.findUnique({ where: { id } });
     if (!job) throw new NotFoundException();
-    if (job.authorId !== userId && userRole !== 'admin' && userRole !== 'superadmin') {
-      throw new ForbiddenException();
-    }
+    const allowed = await this.config.checkPermission('perm.curatedJobs.delete', { id: userId, role: userRole, userType }, job.authorId);
+    if (!allowed) throw new ForbiddenException();
     await this.prisma.curatedJob.delete({ where: { id } });
     return { success: true };
   }

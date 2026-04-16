@@ -34,16 +34,16 @@ let JobsController = class JobsController {
         return this.service.getExternalLinks({ category, companySize, careerLevel, jobType, location, jobCategory, q });
     }
     createExternalLink(body, req) {
-        return this.service.createExternalLink(body, req.user?.role);
+        return this.service.createExternalLink(body, { id: req.user?.id, role: req.user?.role, userType: req.user?.userType });
     }
     recordClick(id) {
         return this.service.recordExternalLinkClick(id);
     }
     updateExternalLink(id, body, req) {
-        return this.service.updateExternalLink(id, body, req.user?.role);
+        return this.service.updateExternalLink(id, body, { id: req.user?.id, role: req.user?.role, userType: req.user?.userType });
     }
     deleteExternalLink(id, req) {
-        return this.service.deleteExternalLink(id, req.user?.role);
+        return this.service.deleteExternalLink(id, { id: req.user?.id, role: req.user?.role, userType: req.user?.userType });
     }
     getCuratedJobs(jobType, experienceLevel, companySize, industry, location, q, page, limit) {
         return this.service.getCuratedJobs({
@@ -59,10 +59,10 @@ let JobsController = class JobsController {
         return this.service.createCuratedJob(body, req.user?.id, req.user?.role, req.user?.userType);
     }
     updateCuratedJob(id, body, req) {
-        return this.service.updateCuratedJob(id, body, req.user?.id, req.user?.role);
+        return this.service.updateCuratedJob(id, body, req.user?.id, req.user?.role, req.user?.userType);
     }
     deleteCuratedJob(id, req) {
-        return this.service.deleteCuratedJob(id, req.user?.id, req.user?.role);
+        return this.service.deleteCuratedJob(id, req.user?.id, req.user?.role, req.user?.userType);
     }
     recordCuratedJobClick(id) {
         return this.service.recordCuratedJobClick(id);
@@ -118,7 +118,7 @@ __decorate([
 ], JobsController.prototype, "getExternalLinks", null);
 __decorate([
     (0, common_1.Post)('external-links'),
-    (0, swagger_1.ApiOperation)({ summary: '[어드민] 외부 채용 링크 등록' }),
+    (0, swagger_1.ApiOperation)({ summary: '외부 채용 링크 등록' }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -136,7 +136,7 @@ __decorate([
 ], JobsController.prototype, "recordClick", null);
 __decorate([
     (0, common_1.Put)('external-links/:id'),
-    (0, swagger_1.ApiOperation)({ summary: '[어드민] 외부 채용 링크 수정' }),
+    (0, swagger_1.ApiOperation)({ summary: '외부 채용 링크 수정' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Req)()),
@@ -146,7 +146,7 @@ __decorate([
 ], JobsController.prototype, "updateExternalLink", null);
 __decorate([
     (0, common_1.Delete)('external-links/:id'),
-    (0, swagger_1.ApiOperation)({ summary: '[어드민] 외부 채용 링크 삭제' }),
+    (0, swagger_1.ApiOperation)({ summary: '외부 채용 링크 삭제' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),

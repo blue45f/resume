@@ -46,7 +46,7 @@ interface Stats {
   revenue?: { thisMonth: number; lastMonth: number };
 }
 
-type TabId = 'stats' | 'users' | 'content' | 'moderation' | 'settings' | 'plans' | 'banners' | 'notices' | 'community' | 'extlinks';
+type TabId = 'stats' | 'users' | 'content' | 'moderation' | 'settings' | 'plans' | 'banners' | 'notices' | 'community' | 'extlinks' | 'permissions';
 
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -65,6 +65,7 @@ export default function AdminPage() {
     { id: 'community', label: '커뮤니티', icon: '💬' },
     { id: 'extlinks', label: '채용링크', icon: '🔗' },
     { id: 'content', label: '콘텐츠', icon: '📝' },
+    { id: 'permissions', label: '권한 관리', icon: '🔐' },
     { id: 'moderation', label: '신고 관리', icon: '🛡' },
     { id: 'settings', label: '시스템', icon: '⚙', superOnly: true },
     { id: 'plans', label: '요금제', icon: '💰' },
@@ -172,6 +173,7 @@ export default function AdminPage() {
             {activeTab === 'notices' && <AdminNoticesTab />}
             {activeTab === 'community' && <AdminCommunityTab />}
             {activeTab === 'extlinks' && <AdminExtLinksTab />}
+            {activeTab === 'permissions' && <AdminPermissionsTab />}
             {activeTab === 'users' && (
               <div className="space-y-6 animate-fade-in-up">
                 {stats.recentUsers && stats.recentUsers.length > 0 && (
@@ -2355,6 +2357,191 @@ function AdminExtLinksTab() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── 권한 관리 탭 ─────────────────────────────────────────────── */
+
+const PERM_CONTENT_TYPES = [
+  { key: 'curatedJobs', label: '채용 정보', icon: '📋', desc: '외부 채용 공고 요약 카드' },
+  { key: 'externalLinks', label: '채용 바로가기', icon: '🔗', desc: '주요 채용 사이트 링크' },
+  { key: 'jobPosts', label: '채용 공고', icon: '📝', desc: '직접 등록 채용 공고' },
+  { key: 'notices', label: '공지사항', icon: '📢', desc: '사이트 공지/이벤트' },
+  { key: 'community', label: '커뮤니티', icon: '💬', desc: '게시판 글' },
+  { key: 'banners', label: '배너', icon: '🖼', desc: '메인 페이지 배너' },
+];
+
+const PERM_ACTIONS = [
+  { key: 'create', label: '생성' },
+  { key: 'edit', label: '수정' },
+  { key: 'delete', label: '삭제' },
+];
+
+const PERM_ROLES = [
+  { key: 'all', label: '누구나', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', border: 'border-emerald-300 dark:border-emerald-700' },
+  { key: 'user', label: '로그인 사용자', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', border: 'border-blue-300 dark:border-blue-700' },
+  { key: 'recruiter', label: '채용담당자', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', border: 'border-purple-300 dark:border-purple-700' },
+  { key: 'admin', label: '관리자', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', border: 'border-red-300 dark:border-red-700' },
+  { key: 'author', label: '작성자 본인', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-700' },
+];
+
+function AdminPermissionsTab() {
+  const [perms, setPerms] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [changed, setChanged] = useState(false);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/system-config/permissions`)
+      .then(r => r.json())
+      .then(data => { setPerms(data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const getRoles = (contentType: string, action: string): string[] => {
+    const key = `perm.${contentType}.${action}`;
+    return (perms[key] || 'admin').split(',').map(r => r.trim());
+  };
+
+  const toggleRole = (contentType: string, action: string, role: string) => {
+    const key = `perm.${contentType}.${action}`;
+    const current = getRoles(contentType, action);
+    let next: string[];
+
+    if (role === 'all') {
+      next = current.includes('all') ? ['admin'] : ['all'];
+    } else {
+      next = current.filter(r => r !== 'all');
+      if (next.includes(role)) {
+        next = next.filter(r => r !== role);
+        if (next.length === 0) next = ['admin'];
+      } else {
+        next.push(role);
+      }
+    }
+
+    setPerms(prev => ({ ...prev, [key]: next.join(',') }));
+    setChanged(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${API_URL}/api/system-config/permissions`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify(perms),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setPerms(updated);
+        setChanged(false);
+        toast('권한 설정이 저장되었습니다', 'success');
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="py-12 text-center text-slate-400 animate-pulse">권한 설정 로딩 중...</div>;
+  }
+
+  return (
+    <div className="space-y-6 animate-fade-in-up">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <span className="w-1.5 h-5 bg-indigo-500 rounded" />
+            콘텐츠 권한 관리
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">콘텐츠별 생성/수정/삭제 권한을 설정합니다. 변경 후 저장 버튼을 클릭하세요.</p>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving || !changed}
+          className={`px-4 py-2 text-sm font-medium rounded-xl transition-all ${
+            changed
+              ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/20'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
+          }`}
+        >
+          {saving ? '저장 중...' : changed ? '💾 변경사항 저장' : '변경 없음'}
+        </button>
+      </div>
+
+      {/* Permission Cards */}
+      <div className="space-y-4">
+        {PERM_CONTENT_TYPES.map(ct => (
+          <div key={ct.key} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="px-5 py-3.5 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{ct.icon}</span>
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{ct.label}</h3>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500">{ct.desc}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 sm:p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {PERM_ACTIONS.map(action => {
+                  const roles = getRoles(ct.key, action.key);
+                  const isAll = roles.includes('all');
+                  return (
+                    <div key={action.key}>
+                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2.5 flex items-center gap-1.5">
+                        <span className={`w-1.5 h-1.5 rounded-full ${action.key === 'create' ? 'bg-emerald-500' : action.key === 'edit' ? 'bg-blue-500' : 'bg-red-500'}`} />
+                        {action.label}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {PERM_ROLES.map(role => {
+                          const active = isAll ? role.key === 'all' : roles.includes(role.key);
+                          return (
+                            <button
+                              key={role.key}
+                              onClick={() => toggleRole(ct.key, action.key, role.key)}
+                              className={`px-2.5 py-1.5 text-[11px] font-medium rounded-lg border transition-all duration-150 ${
+                                active
+                                  ? `${role.color} ${role.border} shadow-sm`
+                                  : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                              }`}
+                            >
+                              {active && <span className="mr-0.5">✓</span>}
+                              {role.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
+        <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">권한 등급 설명</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          {[
+            { ...PERM_ROLES[0], desc: '비로그인 사용자 포함 모든 방문자' },
+            { ...PERM_ROLES[1], desc: '로그인한 모든 사용자 (개인/기업)' },
+            { ...PERM_ROLES[2], desc: '채용담당자 또는 기업회원' },
+            { ...PERM_ROLES[3], desc: '관리자 (admin/superadmin)' },
+            { ...PERM_ROLES[4], desc: '해당 콘텐츠를 직접 작성한 사람' },
+          ].map(r => (
+            <div key={r.key} className="flex items-start gap-2">
+              <span className={`shrink-0 mt-0.5 px-2 py-0.5 text-[10px] font-bold rounded ${r.color}`}>{r.label}</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">{r.desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

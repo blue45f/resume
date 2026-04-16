@@ -16,6 +16,7 @@ exports.SystemConfigController = void 0;
 const common_1 = require("@nestjs/common");
 const system_config_service_1 = require("./system-config.service");
 const common_2 = require("@nestjs/common");
+const auth_guard_1 = require("../auth/auth.guard");
 let SystemConfigController = class SystemConfigController {
     service;
     constructor(service) {
@@ -23,6 +24,14 @@ let SystemConfigController = class SystemConfigController {
     }
     getPublic() {
         return this.service.getPublicConfig();
+    }
+    getPermissions() {
+        return this.service.getPermissions();
+    }
+    setPermissions(req, body) {
+        if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin')
+            throw new common_2.ForbiddenException();
+        return this.service.setPermissions(body);
     }
     getAll(req) {
         if (req.user?.role !== 'admin')
@@ -42,6 +51,21 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], SystemConfigController.prototype, "getPublic", null);
+__decorate([
+    (0, common_1.Get)('permissions'),
+    (0, auth_guard_1.Public)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], SystemConfigController.prototype, "getPermissions", null);
+__decorate([
+    (0, common_1.Patch)('permissions'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], SystemConfigController.prototype, "setPermissions", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Req)()),
