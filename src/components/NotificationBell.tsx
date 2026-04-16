@@ -55,6 +55,19 @@ export default function NotificationBell() {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
+  const getNotifIcon = (type: string) => {
+    const icons: Record<string, { icon: string; color: string }> = {
+      resume_viewed:  { icon: '👀', color: 'bg-blue-100 dark:bg-blue-900/30' },
+      follow:         { icon: '👤', color: 'bg-indigo-100 dark:bg-indigo-900/30' },
+      comment:        { icon: '💬', color: 'bg-green-100 dark:bg-green-900/30' },
+      scout:          { icon: '🏢', color: 'bg-amber-100 dark:bg-amber-900/30' },
+      message:        { icon: '✉️', color: 'bg-purple-100 dark:bg-purple-900/30' },
+      endorsement:    { icon: '⭐', color: 'bg-yellow-100 dark:bg-yellow-900/30' },
+      bookmark:       { icon: '🔖', color: 'bg-rose-100 dark:bg-rose-900/30' },
+    };
+    return icons[type] || { icon: '🔔', color: 'bg-slate-100 dark:bg-slate-700' };
+  };
+
   return (
     <div className="relative">
       <button
@@ -86,19 +99,28 @@ export default function NotificationBell() {
               {notifications.length === 0 ? (
                 <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">알림이 없습니다</p>
               ) : (
-                notifications.map(n => (
+                notifications.map(n => {
+                const notifStyle = getNotifIcon(n.type);
+                return (
                   <Link
                     key={n.id}
                     to={n.link || '#'}
                     onClick={() => setOpen(false)}
-                    className={`block px-3 py-2.5 text-sm border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${
+                    className={`flex items-start gap-3 px-3 py-2.5 text-sm border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${
                       !n.read ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''
                     }`}
                   >
-                    <p className="text-slate-700 dark:text-slate-300 line-clamp-2">{n.message}</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{timeAgo(n.createdAt)}</p>
+                    <span className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-base ${notifStyle.color}`} aria-hidden="true">
+                      {notifStyle.icon}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-slate-700 dark:text-slate-300 line-clamp-2 text-[13px]">{n.message}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{timeAgo(n.createdAt)}</p>
+                    </div>
+                    {!n.read && <span className="shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-1.5" aria-hidden="true" />}
                   </Link>
-                ))
+                );
+              })
               )}
             </div>
             <Link
