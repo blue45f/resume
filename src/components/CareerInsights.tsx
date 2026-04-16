@@ -27,11 +27,6 @@ interface JobPost {
   createdAt: string;
 }
 
-interface SkillCount {
-  name: string;
-  count: number;
-}
-
 interface SkillTrend {
   name: string;
   count: number;
@@ -52,12 +47,47 @@ interface LearningRec {
   impact: string;
 }
 
+interface NewsItem {
+  id: string;
+  title: string;
+  url: string;
+  source: string;
+  pubDate: string;
+}
+
 const JOB_TYPE_LABELS: Record<string, string> = {
   fulltime: '정규직',
   contract: '계약직',
   parttime: '파트타임',
   intern: '인턴',
 };
+
+// Industry classification keywords (Korean + English)
+const INDUSTRY_MAP: { id: string; label: string; icon: string; keywords: string[] }[] = [
+  { id: 'it', label: 'IT/개발', icon: '💻', keywords: ['개발', 'engineer', 'developer', 'devops', '백엔드', '프론트', 'software', 'frontend', 'backend', 'fullstack', 'iOS', 'android', 'python', 'java', 'react', 'vue', '시스템', '임베디드', '보안', 'security', 'cloud', 'aws'] },
+  { id: 'data', label: '데이터/AI', icon: '📊', keywords: ['데이터', 'data', 'analyst', '분석', 'ai', 'ml', '머신러닝', 'machine learning', 'deep learning', '딥러닝', 'scientist', 'bi', 'etl', '통계'] },
+  { id: 'design', label: '디자인/UX', icon: '🎨', keywords: ['디자인', 'design', 'ui', 'ux', '그래픽', 'graphic', '영상', 'video', '편집', '포토', 'figma', '브랜드', 'brand', '인터랙션'] },
+  { id: 'marketing', label: '마케팅/광고', icon: '📣', keywords: ['마케팅', 'marketing', '광고', '홍보', 'pr', 'sns', '콘텐츠', 'content', 'seo', 'sem', '퍼포먼스', 'performance', '브랜드', '기획', 'md', '커머스'] },
+  { id: 'sales', label: '영업/BD', icon: '🤝', keywords: ['영업', '세일즈', 'sales', 'bd', '비즈니스개발', '계정', 'account', 'crm', '고객', 'customer', '파트너', 'partner', '제안'] },
+  { id: 'finance', label: '재무/회계', icon: '💰', keywords: ['회계', '재무', '세무', '경리', 'finance', 'accounting', 'tax', '감사', 'audit', 'ipo', 'cfo', '자금', '투자', '벤처', 'vc', '금융', '증권', '은행'] },
+  { id: 'hr', label: '인사/HR', icon: '👥', keywords: ['인사', 'hr', '채용', 'recruit', '조직', '총무', '복리후생', 'hrbp', '노무', '급여', 'payroll', '교육훈련', '조직문화'] },
+  { id: 'product', label: '기획/PM', icon: '📋', keywords: ['기획', 'pm', 'po', 'product', '프로덕트', '서비스기획', '사업기획', '전략', 'strategy', 'planner', 'scrum', 'agile'] },
+  { id: 'medical', label: '의료/보건', icon: '🏥', keywords: ['간호', '의사', '약사', '의료', '보건', '한의', '치과', '임상', 'clinical', '제약', 'pharma', '바이오', 'bio', '의공', '영양', '물리치료', '작업치료'] },
+  { id: 'education', label: '교육/연구', icon: '📚', keywords: ['교사', '강사', '교육', 'teacher', 'tutor', '연구', 'research', '학원', '과외', '강의', '훈련', '코치', '멘토'] },
+  { id: 'logistics', label: '물류/운영', icon: '📦', keywords: ['물류', 'logistics', '유통', '운영', 'operation', '공급망', 'supply chain', '창고', '배송', '운송', 'scm', 'wms', '재고'] },
+  { id: 'construction', label: '건축/건설', icon: '🏗️', keywords: ['건축', '건설', '시공', '설계', '인테리어', '토목', '전기', '기계', '설비', '플랜트', '제조', '생산'] },
+  { id: 'other', label: '기타', icon: '✨', keywords: [] },
+];
+
+function detectIndustry(position: string, skills: string): string {
+  const text = `${position} ${skills}`.toLowerCase();
+  for (const ind of INDUSTRY_MAP.slice(0, -1)) {
+    if (ind.keywords.some(kw => text.includes(kw.toLowerCase()))) {
+      return ind.id;
+    }
+  }
+  return 'other';
+}
 
 function parseSalaryNumber(salary: string): number | null {
   if (!salary) return null;
@@ -68,14 +98,6 @@ function parseSalaryNumber(salary: string): number | null {
   return null;
 }
 
-interface NewsItem {
-  id: string;
-  title: string;
-  url: string;
-  source: string;
-  pubDate: string;
-}
-
 export default function CareerInsights() {
   const user = getUser();
   const [jobs, setJobs] = useState<JobPost[]>([]);
@@ -84,12 +106,13 @@ export default function CareerInsights() {
   const [collapsed, setCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<'market' | 'skills' | 'learning' | 'news'>('market');
   const [loading, setLoading] = useState(true);
+  const [industryFilter, setIndustryFilter] = useState<string>('all');
+  const [myIndustry, setMyIndustry] = useState<string>('');
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API_URL}/api/jobs`).then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch(`${API_URL}/api/jobs?limit=200`).then(r => r.ok ? r.json() : []).catch(() => []),
       fetchResumes().catch(() => []),
-      // 한국 취업/채용 뉴스 (Google News RSS)
       fetch('https://news.google.com/rss/search?q=%EC%B1%84%EC%9A%A9+%EC%B7%A8%EC%97%85+%EC%9D%B4%EB%A0%A5%EC%84%9C&hl=ko&gl=KR&ceid=KR:ko')
         .then(r => r.text())
         .then(xml => {
@@ -115,7 +138,35 @@ export default function CareerInsights() {
     }).finally(() => setLoading(false));
   }, []);
 
-  // User's current skills from resumes
+  // Detect user's industry from their resumes
+  useEffect(() => {
+    if (resumes.length === 0) return;
+    // Combine all skills from resumes to detect industry
+    const allSkills = resumes.flatMap(r => r.skills?.map(s => s.items) || []).join(',');
+    const title = resumes[0]?.personalInfo?.name || '';
+    const detected = detectIndustry(title, allSkills);
+    if (!myIndustry) setMyIndustry(detected !== 'other' ? detected : 'it');
+  }, [resumes]);
+
+  // Classify all jobs by industry
+  const jobsWithIndustry = useMemo(() =>
+    jobs.map(j => ({ ...j, industry: detectIndustry(j.position, j.skills) })),
+    [jobs]
+  );
+
+  // Industry distribution
+  const industryDist = useMemo(() => {
+    const counts: Record<string, number> = {};
+    jobsWithIndustry.forEach(j => {
+      counts[j.industry] = (counts[j.industry] || 0) + 1;
+    });
+    return INDUSTRY_MAP.map(ind => ({
+      ...ind,
+      count: counts[ind.id] || 0,
+    })).filter(ind => ind.count > 0).sort((a, b) => b.count - a.count);
+  }, [jobsWithIndustry]);
+
+  // User's skills
   const userSkills = useMemo((): Set<string> => {
     const skills = new Set<string>();
     resumes.forEach(r => {
@@ -129,10 +180,16 @@ export default function CareerInsights() {
     return skills;
   }, [resumes]);
 
-  // Top skills with trend indicators
+  // Filtered jobs for skill analysis
+  const filteredJobs = useMemo(() =>
+    industryFilter === 'all' ? jobsWithIndustry : jobsWithIndustry.filter(j => j.industry === industryFilter),
+    [jobsWithIndustry, industryFilter]
+  );
+
+  // Skill trends
   const skillTrends = useMemo((): SkillTrend[] => {
     const counts: Record<string, number> = {};
-    jobs.forEach(j => {
+    filteredJobs.forEach(j => {
       if (!j.skills) return;
       j.skills.split(',').forEach(s => {
         const skill = s.trim().toLowerCase();
@@ -140,12 +197,12 @@ export default function CareerInsights() {
       });
     });
 
-    // 최근 공고(7일 이내) vs 이전 공고 비교로 실제 트렌드 계산
+    // Recent vs older trend
     const now = Date.now();
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
     const recentCounts: Record<string, number> = {};
     const olderCounts: Record<string, number> = {};
-    jobs.forEach(j => {
+    filteredJobs.forEach(j => {
       if (!j.skills) return;
       const isRecent = (now - new Date(j.createdAt).getTime()) < oneWeek;
       j.skills.split(',').forEach(s => {
@@ -164,63 +221,62 @@ export default function CareerInsights() {
       let trend: 'up' | 'down' | 'stable' = 'stable';
       if (recent > older * 1.2) trend = 'up';
       else if (recent < older * 0.8 && older > 0) trend = 'down';
-
       return { name, count, trend, owned: userSkills.has(name) };
     });
-  }, [jobs, userSkills]);
+  }, [filteredJobs, userSkills]);
 
-  // Market value score
+  // Market value score (industry-aware)
   const marketValue = useMemo((): MarketValueScore => {
     const skillScore = Math.min(30, userSkills.size * 3);
     const expScore = Math.min(25, resumes.length * 5);
+    let eduScore = resumes.length > 0 ? 10 : 0;
 
-    // Education score
-    let eduScore = 0;
-    resumes.forEach(r => {
-      // Use personalInfo as a proxy (in full version, check educations)
-      if (r.personalInfo?.name) eduScore = Math.min(20, eduScore + 10);
+    // Industry demand match
+    const inIndustry = myIndustry !== '' && myIndustry !== 'all'
+      ? jobsWithIndustry.filter(j => j.industry === myIndustry)
+      : jobsWithIndustry;
+    const indSkillCounts: Record<string, number> = {};
+    inIndustry.forEach(j => {
+      j.skills.split(',').forEach(s => {
+        const k = s.trim().toLowerCase();
+        if (k) indSkillCounts[k] = (indSkillCounts[k] || 0) + 1;
+      });
     });
-    eduScore = Math.min(20, Math.max(eduScore, 5));
+    const topIndustrySkills = Object.entries(indSkillCounts).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([k]) => k);
+    const matchCount = topIndustrySkills.filter(sk => userSkills.has(sk)).length;
+    const demandScore = Math.min(25, matchCount * 5);
 
-    // Demand match score
-    const demandedSkills = skillTrends.filter(st => st.trend === 'up').map(st => st.name);
-    const matchCount = demandedSkills.filter(sk => userSkills.has(sk)).length;
-    const demandScore = Math.min(25, matchCount * 8);
-
-    const total = skillScore + expScore + eduScore + demandScore;
+    const total = Math.min(100, skillScore + expScore + eduScore + demandScore);
 
     return {
-      total: Math.min(100, total),
+      total,
       breakdown: [
         { label: '기술 스택', score: skillScore, max: 30 },
-        { label: '경력', score: expScore, max: 25 },
+        { label: '경력/이력서', score: expScore, max: 25 },
         { label: '학력/자격', score: eduScore, max: 20 },
-        { label: '시장 수요 매칭', score: demandScore, max: 25 },
+        { label: '직종 수요 매칭', score: demandScore, max: 25 },
       ],
     };
-  }, [userSkills, resumes, skillTrends]);
+  }, [userSkills, resumes, jobsWithIndustry, myIndustry]);
 
-  // Learning recommendations
+  // Learning recommendations (universal — no hardcoding)
   const learningRecs = useMemo((): LearningRec[] => {
     const recs: LearningRec[] = [];
     const trendingNotOwned = skillTrends.filter(st => st.trend === 'up' && !st.owned);
-
-    // 채용 시장 데이터 기반 동적 추천 (하드코딩 없음)
     trendingNotOwned.forEach(st => {
       const type = st.count >= 5 ? 'cert' as const : st.count >= 3 ? 'course' as const : 'project' as const;
       recs.push({
-        title: `${st.name} ${type === 'cert' ? '자격증' : type === 'course' ? '학습 과정' : '실습 프로젝트'}`,
+        title: `${st.name} ${type === 'cert' ? '관련 자격 취득' : type === 'course' ? '학습 과정' : '실습 프로젝트'}`,
         type,
         skill: st.name,
-        reason: `${st.count}개 채용 공고에서 요구`,
+        reason: `${st.count}개 공고에서 요구`,
         impact: st.trend === 'up' ? '수요 상승 중' : '안정적 수요',
       });
     });
-
     return recs.slice(0, 5);
   }, [skillTrends]);
 
-  // Salary by type
+  // Salary by job type
   const salaryTrends = useMemo(() => {
     const byType: Record<string, number[]> = {};
     jobs.forEach(j => {
@@ -242,9 +298,7 @@ export default function CareerInsights() {
       <div className="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 animate-pulse">
         <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-4" />
         <div className="space-y-2">
-          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full" />
-          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-5/6" />
-          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-4/6" />
+          {[...Array(3)].map((_, i) => <div key={i} className="h-4 bg-slate-200 dark:bg-slate-700 rounded" style={{ width: `${90 - i * 10}%` }} />)}
         </div>
       </div>
     );
@@ -264,6 +318,8 @@ export default function CareerInsights() {
     return '📚';
   };
 
+  const myIndustryInfo = INDUSTRY_MAP.find(i => i.id === myIndustry);
+
   return (
     <div className="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in">
       {/* Header */}
@@ -279,11 +335,12 @@ export default function CareerInsights() {
           </div>
           <div className="text-left">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">AI 커리어 인사이트 대시보드</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{jobs.length}개 공고 기반 | 시장 가치: {marketValue.total}점</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {jobs.length}개 공고 · {industryDist.length}개 직종 | 시장 가치 {marketValue.total}점
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* Quick market value badge */}
           <div className={`px-2 py-0.5 text-xs font-bold rounded-full ${
             marketValue.total >= 70 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' :
             marketValue.total >= 40 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
@@ -291,10 +348,7 @@ export default function CareerInsights() {
           }`}>
             {marketValue.total}점
           </div>
-          <svg
-            className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          >
+          <svg className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
@@ -302,11 +356,39 @@ export default function CareerInsights() {
 
       {!collapsed && (
         <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-slate-100 dark:border-slate-700">
+
+          {/* My Industry Selector */}
+          <div className="mt-3 mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-medium text-slate-600 dark:text-slate-400">내 직종</span>
+              {myIndustryInfo && (
+                <span className="px-2 py-0.5 text-xs bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-full font-medium">
+                  {myIndustryInfo.icon} {myIndustryInfo.label}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {INDUSTRY_MAP.slice(0, -1).map(ind => (
+                <button
+                  key={ind.id}
+                  onClick={() => setMyIndustry(ind.id)}
+                  className={`px-2 py-0.5 text-[11px] rounded-full transition-colors ${
+                    myIndustry === ind.id
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+                  }`}
+                >
+                  {ind.icon} {ind.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Tabs */}
-          <div className="flex gap-1 mt-3 mb-4 bg-slate-100 dark:bg-slate-900 rounded-lg p-1">
+          <div className="flex gap-1 mb-4 bg-slate-100 dark:bg-slate-900 rounded-lg p-1">
             {([
               { id: 'market' as const, label: '내 시장 가치' },
-              { id: 'skills' as const, label: '수요 높은 기술' },
+              { id: 'skills' as const, label: '수요 역량' },
               { id: 'learning' as const, label: '추천 학습' },
               { id: 'news' as const, label: '업계 뉴스' },
             ]).map(tab => (
@@ -324,20 +406,17 @@ export default function CareerInsights() {
             ))}
           </div>
 
-          {/* Market Value Tab */}
+          {/* ─── Market Value Tab ─── */}
           {activeTab === 'market' && (
             <div className="space-y-4">
-              {/* RadialBarChart 스코어 */}
+              {/* Radial score */}
               <div className="flex items-center justify-center gap-4">
                 <div className="relative">
-                  <ResponsiveContainer width={140} height={140}>
+                  <ResponsiveContainer width={130} height={130}>
                     <RadialBarChart
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={42}
-                      outerRadius={62}
-                      startAngle={90}
-                      endAngle={-270}
+                      cx="50%" cy="50%"
+                      innerRadius={40} outerRadius={58}
+                      startAngle={90} endAngle={-270}
                       data={[{ value: marketValue.total, fill: marketValue.total >= 70 ? '#10b981' : marketValue.total >= 40 ? '#3b82f6' : '#f59e0b' }]}
                     >
                       <RadialBar dataKey="value" background={{ fill: '#e2e8f0' }} cornerRadius={6} />
@@ -350,33 +429,22 @@ export default function CareerInsights() {
                 </div>
               </div>
 
-              {/* 항목별 BarChart */}
-              <div>
-                <ResponsiveContainer width="100%" height={100}>
-                  <BarChart
-                    data={marketValue.breakdown.map(b => ({ name: b.label, 점수: b.score, 최대: b.max }))}
-                    margin={{ top: 0, right: 5, left: -20, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                    <Tooltip
-                      contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: 11 }}
-                      formatter={(v: number, name: string) => [`${v}점`, name]}
-                    />
-                    <Bar dataKey="점수" radius={[3, 3, 0, 0]}>
-                      {marketValue.breakdown.map((b, i) => (
-                        <Cell
-                          key={`cell-${i}`}
-                          fill={(b.score / b.max) >= 0.7 ? '#10b981' : (b.score / b.max) >= 0.4 ? '#3b82f6' : '#f59e0b'}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              {/* Breakdown bar chart */}
+              <ResponsiveContainer width="100%" height={90}>
+                <BarChart data={marketValue.breakdown.map(b => ({ name: b.label, 점수: b.score, 최대: b.max }))} margin={{ top: 0, right: 5, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: 11 }} formatter={(v: number, name: string) => [`${v}점`, name]} />
+                  <Bar dataKey="점수" radius={[3, 3, 0, 0]}>
+                    {marketValue.breakdown.map((b, i) => (
+                      <Cell key={`cell-${i}`} fill={(b.score / b.max) >= 0.7 ? '#10b981' : (b.score / b.max) >= 0.4 ? '#3b82f6' : '#f59e0b'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
 
-              {/* Summary message */}
+              {/* Message */}
               <div className={`p-2.5 rounded-lg text-center text-xs font-medium ${
                 marketValue.total >= 70
                   ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
@@ -384,22 +452,42 @@ export default function CareerInsights() {
                   ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
                   : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
               }`}>
-                {marketValue.total >= 70
-                  ? '시장에서 높은 경쟁력을 갖추고 있습니다!'
-                  : marketValue.total >= 40
-                  ? '좋은 프로필입니다. 트렌딩 기술을 추가하면 더 강해집니다.'
-                  : '기술 스택과 경험을 보강하면 시장 가치가 크게 올라갑니다.'}
+                {marketValue.total >= 70 ? '시장에서 높은 경쟁력을 갖추고 있습니다!' :
+                  marketValue.total >= 40 ? '좋은 프로필입니다. 수요 높은 역량을 추가하면 더 강해집니다.' :
+                  '역량과 경험을 보강하면 시장 가치가 크게 올라갑니다.'}
               </div>
+
+              {/* Industry distribution */}
+              {industryDist.length > 0 && (
+                <div className="border-t border-slate-100 dark:border-slate-700 pt-3">
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">직종별 채용 현황</p>
+                  <div className="space-y-1.5">
+                    {industryDist.slice(0, 6).map(ind => {
+                      const pct = Math.round((ind.count / jobs.length) * 100);
+                      return (
+                        <div key={ind.id} className="flex items-center gap-2">
+                          <span className="text-sm w-5 shrink-0 text-center">{ind.icon}</span>
+                          <span className="text-xs text-slate-600 dark:text-slate-400 w-24 shrink-0 truncate">{ind.label}</span>
+                          <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div className="h-full bg-indigo-400 dark:bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="text-[10px] text-slate-400 shrink-0 w-10 text-right">{ind.count}건</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Salary overview */}
               {salaryTrends.length > 0 && (
                 <div className="border-t border-slate-100 dark:border-slate-700 pt-3">
-                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">급여 트렌드</p>
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">고용 형태별 급여</p>
                   {salaryTrends.map(st => (
-                    <div key={st.type} className="flex items-center justify-between py-1.5">
-                      <div>
+                    <div key={st.type} className="flex items-center justify-between py-1">
+                      <div className="flex items-center gap-1.5">
                         <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{st.label}</span>
-                        <span className="text-[10px] text-slate-400 ml-1.5">({st.count}개 공고)</span>
+                        <span className="text-[10px] text-slate-400">({st.count}건)</span>
                       </div>
                       <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{st.avgSalary}</span>
                     </div>
@@ -409,54 +497,76 @@ export default function CareerInsights() {
             </div>
           )}
 
-          {/* Skills Demand Tab */}
+          {/* ─── Skills Demand Tab ─── */}
           {activeTab === 'skills' && (
-            <div className="space-y-2">
-              {skillTrends.length > 0 ? skillTrends.map((sk, i) => {
-                const maxCount = skillTrends[0]?.count || 1;
-                return (
-                  <div key={sk.name} className="flex items-center gap-2.5">
-                    <span className="w-4 text-[10px] text-slate-400 text-right font-medium">{i + 1}</span>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 capitalize">{sk.name}</span>
-                          {trendIcon(sk.trend)}
-                          {sk.owned && (
-                            <span className="px-1 py-0.5 text-[9px] bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded font-medium">
-                              보유
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[10px] text-slate-400">{sk.count}개 공고</span>
-                      </div>
-                      <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5">
-                        <div
-                          className={`h-1.5 rounded-full transition-all duration-500 ${
-                            sk.owned ? 'bg-emerald-500' : sk.trend === 'up' ? 'bg-indigo-500' : 'bg-slate-400'
-                          }`}
-                          style={{ width: `${(sk.count / maxCount) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              }) : (
-                <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">충분한 데이터가 없습니다</p>
-              )}
+            <div className="space-y-3">
+              {/* Industry filter */}
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">직종 필터</p>
+                <div className="flex flex-wrap gap-1">
+                  <button
+                    onClick={() => setIndustryFilter('all')}
+                    className={`px-2 py-0.5 text-[11px] rounded-full transition-colors ${industryFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
+                  >
+                    전체
+                  </button>
+                  {industryDist.slice(0, 8).map(ind => (
+                    <button
+                      key={ind.id}
+                      onClick={() => setIndustryFilter(ind.id)}
+                      className={`px-2 py-0.5 text-[11px] rounded-full transition-colors ${industryFilter === ind.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
+                    >
+                      {ind.icon} {ind.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-              {/* Owned skill count summary */}
-              {skillTrends.length > 0 && (
-                <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg text-center">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    상위 {skillTrends.length}개 기술 중 <span className="font-bold text-emerald-600 dark:text-emerald-400">{skillTrends.filter(s => s.owned).length}개</span> 보유
-                  </p>
+              {/* Skills list */}
+              {skillTrends.length > 0 ? (
+                <div className="space-y-2">
+                  {skillTrends.map((sk, i) => {
+                    const maxCount = skillTrends[0]?.count || 1;
+                    return (
+                      <div key={sk.name} className="flex items-center gap-2.5">
+                        <span className="w-4 text-[10px] text-slate-400 text-right font-medium">{i + 1}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm font-medium text-slate-700 dark:text-slate-300 capitalize">{sk.name}</span>
+                              {trendIcon(sk.trend)}
+                              {sk.owned && (
+                                <span className="px-1 py-0.5 text-[9px] bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded font-medium">보유</span>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-slate-400">{sk.count}건</span>
+                          </div>
+                          <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5">
+                            <div
+                              className={`h-1.5 rounded-full transition-all duration-500 ${sk.owned ? 'bg-emerald-500' : sk.trend === 'up' ? 'bg-indigo-500' : 'bg-slate-400'}`}
+                              style={{ width: `${(sk.count / maxCount) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {/* Summary */}
+                  <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg text-center">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      상위 {skillTrends.length}개 역량 중 <span className="font-bold text-emerald-600 dark:text-emerald-400">{skillTrends.filter(s => s.owned).length}개</span> 보유
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-slate-400">
+                  <p className="text-sm">{industryFilter === 'all' ? '데이터를 분석 중...' : '이 직종의 공고 데이터가 충분하지 않습니다'}</p>
                 </div>
               )}
             </div>
           )}
 
-          {/* Learning Recommendations Tab */}
+          {/* ─── Learning Recommendations Tab ─── */}
           {activeTab === 'learning' && (
             <div className="space-y-2">
               {learningRecs.length > 0 ? learningRecs.map(rec => (
@@ -471,7 +581,7 @@ export default function CareerInsights() {
                           rec.type === 'project' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
                           'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                         }`}>
-                          {rec.type === 'cert' ? '자격증' : rec.type === 'project' ? '프로젝트' : '강의'}
+                          {rec.type === 'cert' ? '자격' : rec.type === 'project' ? '실습' : '강의'}
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
@@ -482,8 +592,8 @@ export default function CareerInsights() {
                 </div>
               )) : userSkills.size === 0 ? (
                 <div className="text-center py-6">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">이력서에 기술 스택을 추가하면</p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">맞춤 추천을 받을 수 있습니다</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">이력서에 역량/기술을 추가하면</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">맞춤 학습 추천을 받을 수 있습니다</p>
                   <Link to="/resumes/new" className="inline-block mt-3 px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">
                     이력서 작성하기
                   </Link>
@@ -495,19 +605,19 @@ export default function CareerInsights() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">트렌딩 기술을 모두 보유하고 있습니다!</p>
+                  <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">현재 직종 수요 역량을 잘 갖추고 있습니다!</p>
                 </div>
               )}
             </div>
           )}
 
-          {/* Industry News Tab (placeholder) */}
+          {/* ─── News Tab ─── */}
           {activeTab === 'news' && (
             <div className="space-y-3">
               {news.length > 0 ? (
                 <>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">채용/취업 뉴스</p>
-                  {news.map((item) => (
+                  {news.map(item => (
                     <a
                       key={item.id}
                       href={item.url}
@@ -526,7 +636,7 @@ export default function CareerInsights() {
                   <p className="text-[10px] text-slate-400 text-center">Google News 기반 실시간 뉴스</p>
                 </>
               ) : (
-                <div className="text-center py-8 text-slate-400 dark:text-slate-500">
+                <div className="text-center py-8 text-slate-400">
                   <p className="text-sm">뉴스를 불러오는 중...</p>
                 </div>
               )}
@@ -536,10 +646,10 @@ export default function CareerInsights() {
           {/* Footer */}
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center">
             <span className="text-[10px] text-slate-400 dark:text-slate-500">
-              {jobs.length}개 채용 공고 데이터 기반
+              {jobs.length}개 채용 공고 실시간 데이터 기반
             </span>
             <Link to="/jobs" className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium">
-              채용 공고 보기 &rarr;
+              채용 공고 보기 →
             </Link>
           </div>
         </div>
