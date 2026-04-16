@@ -12,15 +12,82 @@ import type { Resume } from '@/types/resume';
 import { fetchResume, updateResume, setResumeVisibility } from '@/lib/api';
 import { calculateCompleteness } from '@/lib/completeness';
 
-/** Compact live completeness widget shown at the top of the editor */
+interface RoadmapTask {
+  label: string;
+  tip: string;
+  gain: number;
+  done: boolean;
+  sectionId: string;
+}
+
+function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
+  if (!resume.personalInfo) return [];
+  const r = resume as Resume;
+  const tasks: RoadmapTask[] = [];
+  const pi = r.personalInfo;
+
+  if (!pi.summary || pi.summary.replace(/<[^>]*>/g, '').length < 30)
+    tasks.push({ label: '자기소개 작성', tip: '30자 이상 자기소개를 작성하면 +8점', gain: 8, done: false, sectionId: 'summary' });
+  else
+    tasks.push({ label: '자기소개 완성', tip: '자기소개가 잘 작성되어 있습니다', gain: 8, done: true, sectionId: 'summary' });
+
+  if (!pi.github && !pi.website)
+    tasks.push({ label: 'GitHub / 포트폴리오 링크 추가', tip: 'URL 추가 시 +3점, ATS 매칭률 향상', gain: 3, done: false, sectionId: 'links' });
+  else
+    tasks.push({ label: 'GitHub / 포트폴리오 링크', tip: '링크가 등록되어 있습니다', gain: 3, done: true, sectionId: 'links' });
+
+  const hasDescriptions = r.experiences.some(e => e.description && e.description.replace(/<[^>]*>/g, '').length > 30);
+  if (r.experiences.length === 0)
+    tasks.push({ label: '경력 사항 추가', tip: '경력 1개 추가 시 +10점', gain: 10, done: false, sectionId: 'experience' });
+  else if (!hasDescriptions)
+    tasks.push({ label: '경력 업무 내용 상세화', tip: '업무 설명 30자+ 입력 시 +5점', gain: 5, done: false, sectionId: 'experience' });
+  else if (!r.experiences.some(e => e.techStack))
+    tasks.push({ label: '경력에 기술 스택 명시', tip: '사용 기술 추가 시 +2점, ATS 키워드 강화', gain: 2, done: false, sectionId: 'experience' });
+  else
+    tasks.push({ label: '경력 섹션 완성', tip: '경력이 충실하게 작성되어 있습니다', gain: 25, done: true, sectionId: 'experience' });
+
+  if (r.educations.length === 0)
+    tasks.push({ label: '학력 추가', tip: '학력 입력 시 +7점', gain: 7, done: false, sectionId: 'education' });
+  else
+    tasks.push({ label: '학력 완성', tip: '학력이 등록되어 있습니다', gain: 10, done: true, sectionId: 'education' });
+
+  if (r.skills.length === 0)
+    tasks.push({ label: '기술 스택 추가', tip: '기술 1개 카테고리 추가 시 +6점', gain: 6, done: false, sectionId: 'skills' });
+  else if (r.skills.length < 2)
+    tasks.push({ label: '기술 카테고리 추가', tip: '2개 이상 카테고리 입력 시 +4점 추가', gain: 4, done: false, sectionId: 'skills' });
+  else
+    tasks.push({ label: '기술 스택 완성', tip: '다양한 기술이 등록되어 있습니다', gain: 15, done: true, sectionId: 'skills' });
+
+  if (r.projects.length === 0)
+    tasks.push({ label: '프로젝트 추가', tip: '프로젝트 1개 추가 시 +5점', gain: 5, done: false, sectionId: 'projects' });
+  else
+    tasks.push({ label: '프로젝트 완성', tip: '프로젝트가 등록되어 있습니다', gain: 10, done: true, sectionId: 'projects' });
+
+  const hasExtras = r.certifications.length > 0 || r.languages.length > 0 || r.awards.length > 0;
+  if (!hasExtras)
+    tasks.push({ label: '자격증 또는 어학 추가', tip: '자격증/어학/수상 추가 시 +3~5점', gain: 5, done: false, sectionId: 'extras' });
+  else
+    tasks.push({ label: '자격증 / 어학', tip: '추가 스펙이 등록되어 있습니다', gain: 10, done: true, sectionId: 'extras' });
+
+  // Sort: incomplete tasks first, by gain descending
+  return tasks.sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return b.gain - a.gain;
+  });
+}
+
+/** Enhanced live completeness + roadmap widget */
 function LiveCompletenessBar({ resume }: { resume: Partial<Resume> }) {
+  const [expanded, setExpanded] = useState(false);
   if (!resume.personalInfo) return null;
   const result = calculateCompleteness(resume as Resume);
   const pct = result.percentage;
+  const roadmap = buildRoadmap(resume);
+  const pendingTasks = roadmap.filter(t => !t.done);
+  const potentialGain = pendingTasks.reduce((s, t) => s + t.gain, 0);
 
   const color = pct >= 80 ? '#3b82f6' : pct >= 60 ? '#22c55e' : pct >= 40 ? '#f97316' : '#ef4444';
   const label = pct >= 80 ? '우수' : pct >= 60 ? '양호' : pct >= 40 ? '보통' : '부족';
-  const topTip = result.tips[0] || null;
   const grade = result.grade;
 
   const gradeColors: Record<string, string> = {
@@ -31,26 +98,100 @@ function LiveCompletenessBar({ resume }: { resume: Partial<Resume> }) {
     D: 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400',
   };
 
+  const sectionIcons: Record<string, string> = {
+    summary: '✍️', links: '🔗', experience: '💼', education: '🎓',
+    skills: '⚡', projects: '🚀', extras: '🏆',
+  };
+
   return (
-    <div className="mb-4 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">이력서 완성도</span>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${gradeColors[grade]}`}>{grade}등급 · {label}</span>
+    <div className="mb-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+      {/* Header row */}
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="w-full p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left"
+        aria-expanded={expanded}
+      >
+        {/* Circular mini-progress */}
+        <svg width="36" height="36" viewBox="0 0 36 36" className="shrink-0">
+          <circle cx="18" cy="18" r="15" fill="none" stroke="#e2e8f0" strokeWidth="3" className="dark:stroke-slate-700" />
+          <circle
+            cx="18" cy="18" r="15"
+            fill="none"
+            stroke={color}
+            strokeWidth="3"
+            strokeDasharray={`${(pct / 100) * 94.2} 94.2`}
+            strokeLinecap="round"
+            transform="rotate(-90 18 18)"
+            style={{ transition: 'stroke-dasharray 0.6s ease' }}
+          />
+          <text x="18" y="22" textAnchor="middle" fontSize="9" fontWeight="bold" fill={color}>{pct}%</text>
+        </svg>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">이력서 완성도</span>
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${gradeColors[grade]}`}>{grade}등급 · {label}</span>
+          </div>
+          <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+            <div
+              className="h-1.5 rounded-full transition-all duration-700 ease-out"
+              style={{ width: `${pct}%`, backgroundColor: color }}
+            />
+          </div>
         </div>
-        <span className="text-sm font-bold tabular-nums" style={{ color }}>{pct}%</span>
-      </div>
-      <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
-        <div
-          className="h-2 rounded-full transition-all duration-500 ease-out"
-          style={{ width: `${pct}%`, backgroundColor: color }}
-        />
-      </div>
-      {topTip && (
-        <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
-          <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          {topTip}
-        </p>
+
+        <div className="shrink-0 flex items-center gap-2">
+          {pendingTasks.length > 0 && (
+            <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
+              +{potentialGain}점 가능
+            </span>
+          )}
+          <svg
+            className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </button>
+
+      {/* Roadmap panel */}
+      {expanded && (
+        <div className="border-t border-slate-100 dark:border-slate-700 px-3 pb-3 pt-2 animate-fade-in">
+          <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-2">개선 로드맵</p>
+          <div className="space-y-1.5">
+            {roadmap.slice(0, 6).map((task) => (
+              <div
+                key={task.sectionId}
+                className={`flex items-start gap-2.5 p-2 rounded-lg ${
+                  task.done
+                    ? 'bg-slate-50 dark:bg-slate-700/30 opacity-60'
+                    : 'bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30'
+                }`}
+              >
+                <span className="text-sm shrink-0 mt-0.5">{task.done ? '✅' : sectionIcons[task.sectionId]}</span>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[11px] font-medium leading-tight ${task.done ? 'text-slate-500 dark:text-slate-400 line-through' : 'text-slate-700 dark:text-slate-300'}`}>
+                    {task.label}
+                  </p>
+                  {!task.done && (
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{task.tip}</p>
+                  )}
+                </div>
+                {!task.done && (
+                  <span className="shrink-0 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                    +{task.gain}점
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+          {pct === 100 && (
+            <p className="mt-2 text-[11px] text-center text-purple-600 dark:text-purple-400 font-medium">
+              🎉 완벽한 이력서! 이제 공개로 전환해 보세요.
+            </p>
+          )}
+        </div>
       )}
     </div>
   );
