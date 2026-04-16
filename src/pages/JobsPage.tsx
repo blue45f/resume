@@ -238,6 +238,7 @@ export default function JobsPage() {
   const [appliedJobs, setAppliedJobs] = useState<Set<string>>(getAppliedJobs);
   const [savedJobs, setSavedJobs] = useState<Set<string>>(getSavedJobs);
   const [showSavedOnly, setShowSavedOnly] = useState(false);
+  const [levelFilter, setLevelFilter] = useState<'all' | 'junior' | 'mid' | 'senior'>('all');
   const [applyModalJob, setApplyModalJob] = useState<JobPost | null>(null);
   const user = getUser();
   const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company';
@@ -310,6 +311,17 @@ export default function JobsPage() {
   const filteredJobs = useMemo(() => {
     let result = typeFilter === 'all' ? jobs : jobs.filter(j => j.type === typeFilter);
     if (showSavedOnly) result = result.filter(j => savedJobs.has(j.id));
+    if (levelFilter !== 'all') {
+      const JUNIOR_KW = ['신입', '주니어', 'junior', '1~3', '0~3', '1년', '2년', '3년'];
+      const SENIOR_KW = ['시니어', '선임', '수석', '책임', 'senior', '리드', 'lead', '7년', '8년', '9년', '10년'];
+      result = result.filter(j => {
+        const text = `${j.position} ${j.description}`.toLowerCase();
+        if (levelFilter === 'junior') return JUNIOR_KW.some(kw => text.includes(kw));
+        if (levelFilter === 'senior') return SENIOR_KW.some(kw => text.includes(kw));
+        // mid: not junior and not senior
+        return !JUNIOR_KW.some(kw => text.includes(kw)) && !SENIOR_KW.some(kw => text.includes(kw));
+      });
+    }
     if (salaryFilterEnabled) {
       result = result.filter(j => {
         const range = parseSalaryRange(j.salary);
@@ -377,6 +389,28 @@ export default function JobsPage() {
           </button>
         </div>
 
+
+        {/* Experience level filter */}
+        <div className="flex gap-2 mb-4">
+          {([
+            { key: 'all', label: '전 경력' },
+            { key: 'junior', label: '신입/주니어' },
+            { key: 'mid', label: '미드급' },
+            { key: 'senior', label: '시니어/선임' },
+          ] as const).map(opt => (
+            <button
+              key={opt.key}
+              onClick={() => { setLevelFilter(opt.key); setSelectedId(null); }}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${
+                levelFilter === opt.key
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
 
         {/* Salary filter & contribute */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
