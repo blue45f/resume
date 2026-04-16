@@ -16,6 +16,7 @@ import type { ResumeSummary } from '@/types/resume';
 /*  One-Click Apply: localStorage tracking for applied jobs            */
 /* ------------------------------------------------------------------ */
 const APPLIED_STORAGE_KEY = 'applied-jobs';
+const SAVED_JOBS_KEY = 'saved-jobs';
 
 function getAppliedJobs(): Set<string> {
   try {
@@ -29,6 +30,27 @@ function addAppliedJob(jobId: string) {
   const applied = getAppliedJobs();
   applied.add(jobId);
   localStorage.setItem(APPLIED_STORAGE_KEY, JSON.stringify(Array.from(applied)));
+}
+
+function getSavedJobs(): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(SAVED_JOBS_KEY) || '[]'));
+  } catch {
+    return new Set();
+  }
+}
+
+function toggleSavedJob(jobId: string): boolean {
+  const saved = getSavedJobs();
+  if (saved.has(jobId)) {
+    saved.delete(jobId);
+    localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(Array.from(saved)));
+    return false;
+  } else {
+    saved.add(jobId);
+    localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(Array.from(saved)));
+    return true;
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -214,6 +236,8 @@ export default function JobsPage() {
   const [salaryFilterEnabled, setSalaryFilterEnabled] = useState(false);
   const [showSalaryContribute, setShowSalaryContribute] = useState(false);
   const [appliedJobs, setAppliedJobs] = useState<Set<string>>(getAppliedJobs);
+  const [savedJobs, setSavedJobs] = useState<Set<string>>(getSavedJobs);
+  const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [applyModalJob, setApplyModalJob] = useState<JobPost | null>(null);
   const user = getUser();
   const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company';
@@ -276,8 +300,16 @@ export default function JobsPage() {
     setMobileDetailOpen(true);
   };
 
+  const handleToggleSave = useCallback((jobId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nowSaved = toggleSavedJob(jobId);
+    setSavedJobs(getSavedJobs());
+    toast(nowSaved ? '공고를 저장했습니다' : '저장을 취소했습니다', 'success');
+  }, []);
+
   const filteredJobs = useMemo(() => {
     let result = typeFilter === 'all' ? jobs : jobs.filter(j => j.type === typeFilter);
+    if (showSavedOnly) result = result.filter(j => savedJobs.has(j.id));
     if (salaryFilterEnabled) {
       result = result.filter(j => {
         const range = parseSalaryRange(j.salary);
@@ -286,7 +318,7 @@ export default function JobsPage() {
       });
     }
     return result;
-  }, [jobs, typeFilter, salaryFilterEnabled, salaryMin, salaryMax]);
+  }, [jobs, typeFilter, showSavedOnly, savedJobs, salaryFilterEnabled, salaryMin, salaryMax]);
   const selected = filteredJobs.find(j => j.id === selectedId);
 
   return (
@@ -319,9 +351,9 @@ export default function JobsPage() {
           {[{ key: 'all', label: '전체' }, { key: 'fulltime', label: '정규직' }, { key: 'contract', label: '계약직' }, { key: 'parttime', label: '파트타임' }, { key: 'intern', label: '인턴' }].map(opt => (
             <button
               key={opt.key}
-              onClick={() => { setTypeFilter(opt.key); setSelectedId(null); setMobileDetailOpen(false); }}
+              onClick={() => { setTypeFilter(opt.key); setShowSavedOnly(false); setSelectedId(null); setMobileDetailOpen(false); }}
               className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
-                typeFilter === opt.key
+                !showSavedOnly && typeFilter === opt.key
                   ? 'bg-blue-600 text-white'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
@@ -329,6 +361,20 @@ export default function JobsPage() {
               {opt.label}
             </button>
           ))}
+          <button
+            onClick={() => { setShowSavedOnly(!showSavedOnly); setSelectedId(null); setMobileDetailOpen(false); }}
+            className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors flex items-center gap-1 ${
+              showSavedOnly
+                ? 'bg-amber-500 text-white'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+          >
+            <svg className="w-3 h-3" fill={showSavedOnly ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+            저장한 공고
+            {savedJobs.size > 0 && <span className="ml-0.5 font-bold">{savedJobs.size}</span>}
+          </button>
         </div>
 
 
@@ -447,7 +493,7 @@ export default function JobsPage() {
                   <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{selected.position}</h2>
                 </div>
                 <div className="p-4">
-                  <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} appliedJobs={appliedJobs} onQuickApply={handleQuickApply} userResumes={userResumes} />
+                  <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} appliedJobs={appliedJobs} savedJobs={savedJobs} onToggleSave={handleToggleSave} onQuickApply={handleQuickApply} userResumes={userResumes} />
                 </div>
               </div>
             )}
@@ -477,7 +523,22 @@ export default function JobsPage() {
                           <MatchBadge score={calculateMatchScore(userSkills, j.skills)} />
                         )}
                       </div>
-                      <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{timeAgo(j.createdAt)}</span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={e => handleToggleSave(j.id, e)}
+                          className={`p-1 rounded-lg transition-colors ${
+                            savedJobs.has(j.id)
+                              ? 'text-amber-500 hover:text-amber-600'
+                              : 'text-slate-300 dark:text-slate-600 hover:text-amber-400'
+                          }`}
+                          aria-label={savedJobs.has(j.id) ? '저장 취소' : '공고 저장'}
+                        >
+                          <svg className="w-4 h-4" fill={savedJobs.has(j.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                          </svg>
+                        </button>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">{timeAgo(j.createdAt)}</span>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between mt-0.5">
                       <p className="text-xs text-slate-600 dark:text-slate-400">{j.company}</p>
@@ -524,7 +585,7 @@ export default function JobsPage() {
               <div className="lg:col-span-2 hidden lg:block">
                 {selected ? (
                   <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 sticky top-20">
-                    <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} appliedJobs={appliedJobs} onQuickApply={handleQuickApply} userResumes={userResumes} />
+                    <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} appliedJobs={appliedJobs} savedJobs={savedJobs} onToggleSave={handleToggleSave} onQuickApply={handleQuickApply} userResumes={userResumes} />
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-64 text-slate-400 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -692,7 +753,7 @@ function QuickApplyModal({ job, resumes, onClose, onSuccess }: {
 }
 
 /* Extracted detail panel for reuse in desktop and mobile */
-function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, appliedJobs, onQuickApply, userResumes }: { job: JobPost; isPersonal: boolean; userSkills: Set<string>; allJobs: JobPost[]; onSelectJob: (id: string) => void; appliedJobs: Set<string>; onQuickApply: (job: JobPost) => void; userResumes: ResumeSummary[] }) {
+function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, appliedJobs, savedJobs, onToggleSave, onQuickApply, userResumes }: { job: JobPost; isPersonal: boolean; userSkills: Set<string>; allJobs: JobPost[]; onSelectJob: (id: string) => void; appliedJobs: Set<string>; savedJobs: Set<string>; onToggleSave: (id: string, e: React.MouseEvent) => void; onQuickApply: (job: JobPost) => void; userResumes: ResumeSummary[] }) {
   const matchScore = userSkills.size > 0 && job.skills ? calculateMatchScore(userSkills, job.skills) : 0;
   const jobSkillsList = job.skills ? job.skills.split(',').map(s => s.trim()) : [];
   const matchedSkills = jobSkillsList.filter(s => userSkills.has(s.toLowerCase()));
@@ -704,8 +765,22 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
       <div className="mb-5">
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{job.position}</h2>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={e => onToggleSave(job.id, e)}
+              className={`p-1.5 rounded-lg border transition-colors ${
+                savedJobs.has(job.id)
+                  ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-500'
+                  : 'border-slate-200 dark:border-slate-600 text-slate-400 hover:text-amber-400 hover:border-amber-300'
+              }`}
+              aria-label={savedJobs.has(job.id) ? '저장 취소' : '공고 저장'}
+            >
+              <svg className="w-4 h-4" fill={savedJobs.has(job.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </button>
           {matchScore > 0 && (
-            <div className={`shrink-0 px-3 py-1.5 rounded-xl text-center ${
+            <div className={`px-3 py-1.5 rounded-xl text-center ${
               matchScore >= 80 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
               matchScore >= 60 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' :
               matchScore >= 30 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
@@ -715,6 +790,7 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
               <div className="text-[10px] font-medium">매칭률</div>
             </div>
           )}
+          </div>
         </div>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{job.company}</p>
         <div className="flex flex-wrap gap-3 mt-3 text-xs text-slate-500 dark:text-slate-400">
