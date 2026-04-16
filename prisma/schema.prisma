@@ -581,6 +581,7 @@ model CommunityPost {
   viewCount Int      @default(0) @map("view_count")
   likeCount Int      @default(0) @map("like_count")
   isPinned  Boolean  @default(false) @map("is_pinned")
+  isHidden  Boolean  @default(false) @map("is_hidden")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

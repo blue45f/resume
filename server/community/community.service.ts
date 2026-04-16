@@ -9,8 +9,9 @@ export class CommunityService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  async getPosts(category?: string, search?: string, page = 1, limit = 20) {
+  async getPosts(category?: string, search?: string, page = 1, limit = 20, showHidden = false) {
     const where: any = {};
+    if (!showHidden) where.isHidden = false;
     if (category && category !== 'all') where.category = category;
     if (search) {
       where.OR = [
@@ -93,6 +94,9 @@ export class CommunityService {
     if (body.category !== undefined) data.category = body.category;
     if ((role === 'admin' || role === 'superadmin') && body.isPinned !== undefined) {
       data.isPinned = body.isPinned;
+    }
+    if ((role === 'admin' || role === 'superadmin') && body.isHidden !== undefined) {
+      data.isHidden = body.isHidden;
     }
 
     return this.prisma.communityPost.update({ where: { id }, data });

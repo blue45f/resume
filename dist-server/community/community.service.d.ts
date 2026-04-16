@@ -4,7 +4,7 @@ export declare class CommunityService {
     private readonly prisma;
     private readonly notifications;
     constructor(prisma: PrismaService, notifications: NotificationsService);
-    getPosts(category?: string, search?: string, page?: number, limit?: number): Promise<{
+    getPosts(category?: string, search?: string, page?: number, limit?: number, showHidden?: boolean): Promise<{
         items: ({
             user: {
                 id: string;
@@ -25,6 +25,7 @@ export declare class CommunityService {
             viewCount: number;
             likeCount: number;
             isPinned: boolean;
+            isHidden: boolean;
             createdAt: Date;
             updatedAt: Date;
         })[];
@@ -62,6 +63,7 @@ export declare class CommunityService {
         viewCount: number;
         likeCount: number;
         isPinned: boolean;
+        isHidden: boolean;
         createdAt: Date;
         updatedAt: Date;
     } | null>;
@@ -85,6 +87,7 @@ export declare class CommunityService {
         viewCount: number;
         likeCount: number;
         isPinned: boolean;
+        isHidden: boolean;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -102,6 +105,7 @@ export declare class CommunityService {
         viewCount: number;
         likeCount: number;
         isPinned: boolean;
+        isHidden: boolean;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -114,6 +118,7 @@ export declare class CommunityService {
         viewCount: number;
         likeCount: number;
         isPinned: boolean;
+        isHidden: boolean;
         createdAt: Date;
         updatedAt: Date;
     }>;

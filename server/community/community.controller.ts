@@ -17,8 +17,12 @@ export class CommunityController {
     @Query('search') search?: string,
     @Query('page') page = '1',
     @Query('limit') limit = '20',
+    @Query('showHidden') showHidden?: string,
+    @Req() req?: any,
   ) {
-    return this.service.getPosts(category, search, parseInt(page), parseInt(limit));
+    const isAdmin = req?.user?.role === 'admin' || req?.user?.role === 'superadmin';
+    const includeHidden = isAdmin && showHidden === 'true';
+    return this.service.getPosts(category, search, parseInt(page), parseInt(limit), includeHidden);
   }
 
   @Get(':id')

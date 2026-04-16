@@ -23,8 +23,10 @@ let CommunityController = class CommunityController {
     constructor(service) {
         this.service = service;
     }
-    getPosts(category, search, page = '1', limit = '20') {
-        return this.service.getPosts(category, search, parseInt(page), parseInt(limit));
+    getPosts(category, search, page = '1', limit = '20', showHidden, req) {
+        const isAdmin = req?.user?.role === 'admin' || req?.user?.role === 'superadmin';
+        const includeHidden = isAdmin && showHidden === 'true';
+        return this.service.getPosts(category, search, parseInt(page), parseInt(limit), includeHidden);
     }
     getPost(id, req) {
         return this.service.getPost(id, req.user?.id);
@@ -70,8 +72,10 @@ __decorate([
     __param(1, (0, common_1.Query)('search')),
     __param(2, (0, common_1.Query)('page')),
     __param(3, (0, common_1.Query)('limit')),
+    __param(4, (0, common_1.Query)('showHidden')),
+    __param(5, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Object, Object]),
+    __metadata("design:paramtypes", [String, String, Object, Object, String, Object]),
     __metadata("design:returntype", void 0)
 ], CommunityController.prototype, "getPosts", null);
 __decorate([

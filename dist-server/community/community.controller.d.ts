@@ -2,7 +2,7 @@ import { CommunityService } from './community.service';
 export declare class CommunityController {
     private readonly service;
     constructor(service: CommunityService);
-    getPosts(category?: string, search?: string, page?: string, limit?: string): Promise<{
+    getPosts(category?: string, search?: string, page?: string, limit?: string, showHidden?: string, req?: any): Promise<{
         items: ({
             user: {
                 id: string;
@@ -23,6 +23,7 @@ export declare class CommunityController {
             viewCount: number;
             likeCount: number;
             isPinned: boolean;
+            isHidden: boolean;
             createdAt: Date;
             updatedAt: Date;
         })[];
@@ -60,6 +61,7 @@ export declare class CommunityController {
         viewCount: number;
         likeCount: number;
         isPinned: boolean;
+        isHidden: boolean;
         createdAt: Date;
         updatedAt: Date;
     } | null>;
@@ -83,6 +85,7 @@ export declare class CommunityController {
         viewCount: number;
         likeCount: number;
         isPinned: boolean;
+        isHidden: boolean;
         createdAt: Date;
         updatedAt: Date;
     }> | {
@@ -97,6 +100,7 @@ export declare class CommunityController {
         viewCount: number;
         likeCount: number;
         isPinned: boolean;
+        isHidden: boolean;
         createdAt: Date;
         updatedAt: Date;
     }> | {
@@ -111,6 +115,7 @@ export declare class CommunityController {
         viewCount: number;
         likeCount: number;
         isPinned: boolean;
+        isHidden: boolean;
         createdAt: Date;
         updatedAt: Date;
     }> | {

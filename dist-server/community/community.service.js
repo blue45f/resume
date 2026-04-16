@@ -20,8 +20,10 @@ let CommunityService = class CommunityService {
         this.prisma = prisma;
         this.notifications = notifications;
     }
-    async getPosts(category, search, page = 1, limit = 20) {
+    async getPosts(category, search, page = 1, limit = 20, showHidden = false) {
         const where = {};
+        if (!showHidden)
+            where.isHidden = false;
         if (category && category !== 'all')
             where.category = category;
         if (search) {
@@ -101,6 +103,9 @@ let CommunityService = class CommunityService {
             data.category = body.category;
         if ((role === 'admin' || role === 'superadmin') && body.isPinned !== undefined) {
             data.isPinned = body.isPinned;
+        }
+        if ((role === 'admin' || role === 'superadmin') && body.isHidden !== undefined) {
+            data.isHidden = body.isHidden;
         }
         return this.prisma.communityPost.update({ where: { id }, data });
     }

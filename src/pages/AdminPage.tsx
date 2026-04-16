@@ -1383,6 +1383,8 @@ function AdminCommunityTab() {
   const [category, setCategory] = useState('all');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [showHidden, setShowHidden] = useState(false);
+  const [actionId, setActionId] = useState<string | null>(null);
   const token = localStorage.getItem('token');
 
   const fetchPosts = async () => {
@@ -1390,7 +1392,8 @@ function AdminCommunityTab() {
     const params = new URLSearchParams({ page: String(page), limit: '20' });
     if (category !== 'all') params.set('category', category);
     if (search) params.set('search', search);
-    const r = await fetch(`${API_URL}/api/community?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (showHidden) params.set('showHidden', 'true');
+    const r = await fetch(`${API_URL}/api/community?${params}`, { headers: { Authorization: `Bearer ${token}` } as any });
     if (r.ok) {
       const data = await r.json();
       setPosts(data.items || []);
@@ -1399,51 +1402,89 @@ function AdminCommunityTab() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchPosts(); }, [category, page]);
+  useEffect(() => { fetchPosts(); }, [category, page, showHidden]);
 
   const deletePost = async (id: string) => {
-    if (!confirm('게시글을 삭제하시겠습니까?')) return;
+    if (!confirm('게시글을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+    setActionId(id);
     const r = await fetch(`${API_URL}/api/community/${id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` } as any,
     });
     if (r.ok) { setPosts(p => p.filter(x => x.id !== id)); setTotal(t => t - 1); }
+    setActionId(null);
   };
 
-  const togglePin = async (post: any) => {
-    const r = await fetch(`${API_URL}/api/community/${post.id}`, {
+  const patchPost = async (id: string, data: Record<string, any>) => {
+    setActionId(id);
+    const r = await fetch(`${API_URL}/api/community/${id}`, {
       method: 'PATCH',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isPinned: !post.isPinned }),
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } as any,
+      body: JSON.stringify(data),
     });
-    if (r.ok) fetchPosts();
+    if (r.ok) {
+      const updated = await r.json();
+      setPosts(p => p.map(x => x.id === id ? { ...x, ...updated } : x));
+    }
+    setActionId(null);
   };
 
   const CATS = ['all', 'free', 'tips', 'resume', 'cover-letter', 'question'];
   const CAT_LABELS: Record<string, string> = { all: '전체', free: '자유', tips: '취업팁', resume: '이력서피드백', 'cover-letter': '자소서', question: '질문' };
+  const CAT_COLORS: Record<string, string> = {
+    free: 'bg-slate-100 text-slate-600',
+    tips: 'bg-yellow-100 text-yellow-700',
+    resume: 'bg-blue-100 text-blue-700',
+    'cover-letter': 'bg-purple-100 text-purple-700',
+    question: 'bg-green-100 text-green-700',
+  };
+
+  const hiddenCount = posts.filter(p => p.isHidden).length;
 
   return (
     <div className="space-y-5 animate-fade-in-up">
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
           <span className="w-1.5 h-4 bg-indigo-500 rounded" />
-          커뮤니티 게시글 관리 ({total}개)
+          커뮤니티 게시글 관리
+          <span className="text-slate-400 font-normal">({total}개)</span>
+          {hiddenCount > 0 && (
+            <span className="px-1.5 py-0.5 text-[10px] bg-red-100 text-red-600 rounded-full font-medium">
+              숨김 {hiddenCount}
+            </span>
+          )}
         </h2>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && fetchPosts()}
-            placeholder="검색..."
-            className="px-3 py-1.5 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
-          />
-          <button onClick={fetchPosts} className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">검색</button>
+        <div className="flex items-center gap-2">
+          {/* Show hidden toggle */}
+          <button
+            onClick={() => setShowHidden(v => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors ${showHidden ? 'bg-slate-800 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200'}`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {showHidden
+                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+              }
+            </svg>
+            {showHidden ? '숨김 포함 중' : '숨김 제외 중'}
+          </button>
+          <div className="flex gap-1.5">
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && fetchPosts()}
+              placeholder="검색..."
+              className="px-3 py-1.5 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 w-40"
+            />
+            <button onClick={fetchPosts} className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">검색</button>
+          </div>
         </div>
       </div>
 
       {/* Category filter */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-1.5 flex-wrap">
         {CATS.map(cat => (
           <button key={cat} onClick={() => { setCategory(cat); setPage(1); }}
             className={`px-3 py-1 text-xs rounded-lg transition-colors ${category === cat ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
@@ -1453,6 +1494,7 @@ function AdminCommunityTab() {
         ))}
       </div>
 
+      {/* Post table */}
       {loading ? (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -1461,51 +1503,80 @@ function AdminCommunityTab() {
         </div>
       ) : (
         <div className="overflow-x-auto bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-          <table className="w-full text-sm min-w-[600px]">
+          <table className="w-full text-sm min-w-[700px]">
             <thead>
-              <tr className="border-b border-slate-100 dark:border-slate-700">
+              <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400">제목</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400">카테고리</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400">작성자</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400">조회/좋아요/댓글</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400">핀</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400">삭제</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400">조회/좋아요</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400">관리</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {posts.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-8 text-slate-400">게시글이 없습니다</td></tr>
+                <tr><td colSpan={5} className="text-center py-10 text-slate-400">게시글이 없습니다</td></tr>
               ) : posts.map(post => (
-                <tr key={post.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                  <td className="px-4 py-3">
-                    <a href={`/community/${post.id}`} target="_blank" rel="noopener noreferrer" className="text-slate-900 dark:text-slate-100 hover:text-indigo-600 transition-colors font-medium line-clamp-1">
-                      {post.isPinned && '📌 '}{post.title}
-                    </a>
+                <tr
+                  key={post.id}
+                  className={`transition-colors ${post.isHidden ? 'bg-red-50/50 dark:bg-red-900/5 opacity-70' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'} ${actionId === post.id ? 'opacity-50 pointer-events-none' : ''}`}
+                >
+                  <td className="px-4 py-3 max-w-[250px]">
+                    <div className="flex items-center gap-1.5">
+                      {post.isPinned && <span className="text-amber-500 text-xs shrink-0">📌</span>}
+                      {post.isHidden && <span className="text-xs px-1 py-0.5 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded shrink-0">숨김</span>}
+                      <a
+                        href={`/community/${post.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-900 dark:text-slate-100 hover:text-indigo-600 transition-colors font-medium truncate block"
+                      >
+                        {post.title}
+                      </a>
+                    </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg">
+                    <span className={`text-xs px-2 py-0.5 rounded-lg font-medium ${CAT_COLORS[post.category] || 'bg-slate-100 text-slate-600'}`}>
                       {CAT_LABELS[post.category] || post.category}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs">{post.user?.name || '알 수 없음'}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs">
+                    {post.user?.name || '알 수 없음'}
+                  </td>
                   <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">
-                    {post.viewCount} / {post.likeCount} / {post._count?.comments ?? 0}
+                    <span>👁 {post.viewCount}</span>
+                    <span className="mx-1 text-slate-300">·</span>
+                    <span>♥ {post.likeCount}</span>
+                    <span className="mx-1 text-slate-300">·</span>
+                    <span>💬 {post._count?.comments ?? 0}</span>
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => togglePin(post)}
-                      className={`text-xs px-2 py-1 rounded-lg transition-colors ${post.isPinned ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 hover:bg-amber-50 hover:text-amber-600'}`}
-                    >
-                      {post.isPinned ? '핀 해제' : '핀 고정'}
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => deletePost(post.id)}
-                      className="text-xs px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-                    >
-                      삭제
-                    </button>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-1.5">
+                      {/* Pin toggle */}
+                      <button
+                        onClick={() => patchPost(post.id, { isPinned: !post.isPinned })}
+                        className={`text-xs px-2 py-1 rounded-lg transition-colors ${post.isPinned ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 hover:bg-amber-50 hover:text-amber-600'}`}
+                        title={post.isPinned ? '핀 해제' : '핀 고정'}
+                      >
+                        {post.isPinned ? '핀 해제' : '📌 핀'}
+                      </button>
+                      {/* Hide toggle */}
+                      <button
+                        onClick={() => patchPost(post.id, { isHidden: !post.isHidden })}
+                        className={`text-xs px-2 py-1 rounded-lg transition-colors ${post.isHidden ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 hover:bg-slate-200'}`}
+                        title={post.isHidden ? '숨김 해제' : '게시물 숨김'}
+                      >
+                        {post.isHidden ? '숨김 해제' : '🙈 숨김'}
+                      </button>
+                      {/* Delete */}
+                      <button
+                        onClick={() => deletePost(post.id)}
+                        className="text-xs px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                        title="게시물 영구 삭제"
+                      >
+                        삭제
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -1517,9 +1588,9 @@ function AdminCommunityTab() {
       {/* Pagination */}
       {total > 20 && (
         <div className="flex items-center justify-center gap-2">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 text-sm border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-40">이전</button>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 text-sm border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">이전</button>
           <span className="text-sm text-slate-500">{page} / {Math.ceil(total / 20)}</span>
-          <button onClick={() => setPage(p => p + 1)} disabled={page >= Math.ceil(total / 20)} className="px-3 py-1 text-sm border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-40">다음</button>
+          <button onClick={() => setPage(p => p + 1)} disabled={page >= Math.ceil(total / 20)} className="px-3 py-1 text-sm border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">다음</button>
         </div>
       )}
     </div>
