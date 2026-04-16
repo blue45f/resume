@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
+import { useScrollRevealAll } from '@/hooks/useScrollReveal';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
 import QuickImportModal from '@/components/QuickImportModal';
@@ -99,6 +100,8 @@ export default function HomePage() {
   const [wizardResume, setWizardResume] = useState<Resume | null>(null);
   const navigate = useNavigate();
   const user = getUser();
+
+  useScrollRevealAll('.reveal');
 
   const load = async (signal?: AbortSignal) => {
     try {

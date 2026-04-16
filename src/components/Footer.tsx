@@ -30,6 +30,10 @@ const FOOTER_SECTIONS = [
     { to: '/cover-letter', label: '자소서' }, { to: '/compare', label: '비교' },
     { to: '/interview-prep', label: '면접 준비' }, { to: '/jobs', label: '채용 공고' },
   ]},
+  { title: '커뮤니티', links: [
+    { to: '/community', label: '게시판' }, { to: '/community?category=tips', label: '취업팁' },
+    { to: '/community?category=resume', label: '이력서피드백' }, { to: '/notices', label: '공지사항' },
+  ]},
   { title: '정보', links: [
     { to: '/about', label: '소개' }, { to: '/tutorial', label: '가이드' },
     { to: '/pricing', label: '요금제' }, { to: '/feedback', label: '피드백' },
@@ -78,7 +82,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-8 mb-8">
 
           {/* Brand column */}
-          <div className="sm:col-span-3">
+          <div className="sm:col-span-2">
             <Link to="/" className="inline-flex items-center gap-2.5 mb-3 group">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-indigo-300/40 dark:group-hover:shadow-indigo-900/60 transition-shadow duration-300">
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -91,8 +95,8 @@ export default function Footer() {
             <SiteStats />
           </div>
 
-          {/* Link Groups — 4 columns */}
-          <div className="sm:col-span-6 grid grid-cols-1 sm:grid-cols-4 gap-1 sm:gap-4 divide-y sm:divide-y-0 divide-slate-100 dark:divide-slate-800">
+          {/* Link Groups — 5 columns */}
+          <div className="sm:col-span-7 grid grid-cols-2 sm:grid-cols-5 gap-1 sm:gap-3 divide-y sm:divide-y-0 divide-slate-100 dark:divide-slate-800">
             {FOOTER_SECTIONS.map(section => (
               <FooterSection key={section.title} title={section.title} links={section.links} />
             ))}

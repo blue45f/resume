@@ -386,6 +386,11 @@ export default function Header() {
             )}
 
             <div className="border-t border-slate-100 dark:border-slate-700 my-1.5" />
+            <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500">커뮤니티</p>
+            <Link to="/community" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">게시판</Link>
+            <Link to="/notices" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">공지사항</Link>
+
+            <div className="border-t border-slate-100 dark:border-slate-700 my-1.5" />
             <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500">도구</p>
             <Link to="/cover-letter" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
             <Link to="/compare" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.compare')}</Link>
