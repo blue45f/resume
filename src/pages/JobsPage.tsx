@@ -241,6 +241,66 @@ const LOCATION_EXT_OPTIONS = [
   { key: 'global', label: '해외/글로벌' },
 ];
 
+function ExtLinkForm({ initial, onSave }: { initial: ExternalLink | null; onSave: (data: any) => void }) {
+  const [form, setForm] = useState({
+    name: initial?.name || '',
+    url: initial?.url || '',
+    logoEmoji: initial?.logoEmoji || '🔗',
+    description: initial?.description || '',
+    badgeText: initial?.badgeText || '',
+    gradientFrom: initial?.gradientFrom || '#6366f1',
+    gradientTo: initial?.gradientTo || '#4f46e5',
+    companySize: initial?.companySize || 'all',
+    careerLevel: initial?.careerLevel || 'all',
+    jobCategory: initial?.jobCategory || 'all',
+    location: initial?.location || 'all',
+  });
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+  return (
+    <div className="p-5 space-y-3">
+      <div>
+        <label className="text-xs font-medium text-slate-600 dark:text-slate-400">사이트명 *</label>
+        <input value={form.name} onChange={e => set('name', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="네이버 채용" required />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-slate-600 dark:text-slate-400">URL *</label>
+        <input value={form.url} onChange={e => set('url', e.target.value)} type="url" className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="https://..." required />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">이모지</label>
+          <input value={form.logoEmoji} onChange={e => set('logoEmoji', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">뱃지 텍스트</label>
+          <input value={form.badgeText} onChange={e => set('badgeText', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="인기" />
+        </div>
+      </div>
+      <div>
+        <label className="text-xs font-medium text-slate-600 dark:text-slate-400">설명</label>
+        <input value={form.description} onChange={e => set('description', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="간단 설명" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">기업규모</label>
+          <select value={form.companySize} onChange={e => set('companySize', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg">
+            {COMPANY_SIZE_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">직종</label>
+          <select value={form.jobCategory} onChange={e => set('jobCategory', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg">
+            {JOB_CATEGORY_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+          </select>
+        </div>
+      </div>
+      <button onClick={() => onSave(form)} className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors">
+        {initial ? '수정' : '등록'}
+      </button>
+    </div>
+  );
+}
+
 function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPost[]; onDirectApply: (job: JobPost) => void }) {
   const [links, setLinks] = useState<ExternalLink[]>([]);
   const [loading, setLoading] = useState(true);
@@ -253,8 +313,14 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
   const [searchInput, setSearchInput] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [matchModal, setMatchModal] = useState<{ link: ExternalLink; jobs: JobPost[] } | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingLink, setEditingLink] = useState<ExternalLink | null>(null);
+  const { canDo } = usePermissions();
+  const canCreate = canDo('externalLinks', 'create');
+  const canEdit = canDo('externalLinks', 'edit');
+  const canDelete = canDo('externalLinks', 'delete');
 
-  useEffect(() => {
+  const loadLinks = () => {
     setLoading(true);
     const params = new URLSearchParams();
     if (companySize !== 'all') params.set('companySize', companySize);
@@ -267,7 +333,9 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
       .then(r => r.json())
       .then(data => { setLinks(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [companySize, careerLevel, jobCategory, jobType, location, q]);
+  };
+
+  useEffect(() => { loadLinks(); }, [companySize, careerLevel, jobCategory, jobType, location, q]);
 
   const handleClick = async (link: ExternalLink) => {
     fetch(`${API_URL}/api/jobs/external-links/${link.id}/click`, { method: 'POST' }).catch(() => {});
@@ -281,6 +349,36 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
     } else {
       handleClick(link);
     }
+  };
+
+  const handleSaveLink = async (data: any) => {
+    const token = localStorage.getItem('token');
+    const isEdit = !!editingLink;
+    const url = isEdit ? `${API_URL}/api/jobs/external-links/${editingLink!.id}` : `${API_URL}/api/jobs/external-links`;
+    const res = await fetch(url, {
+      method: isEdit ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      toast(isEdit ? '수정되었습니다' : '등록되었습니다', 'success');
+      setShowAddForm(false);
+      setEditingLink(null);
+      loadLinks();
+    } else {
+      toast('권한이 없습니다', 'error');
+    }
+  };
+
+  const handleDeleteLink = async (link: ExternalLink) => {
+    if (!confirm(`"${link.name}" ���크를 삭제하시겠습니까?`)) return;
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/api/jobs/external-links/${link.id}`, {
+      method: 'DELETE',
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+    if (res.ok) { toast('삭제되었습니다', 'success'); loadLinks(); }
+    else { toast('삭제 권한이 없습니다', 'error'); }
   };
 
   const visible = expanded ? links : links.slice(0, 8);
@@ -350,6 +448,19 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
         </div>
       )}
 
+      {/* Add/Edit Link Form Modal */}
+      {showAddForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => { setShowAddForm(false); setEditingLink(null); }}>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto animate-fade-in" onClick={e => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">{editingLink ? '바로가기 수정' : '바로가기 등록'}</h3>
+              <button onClick={() => { setShowAddForm(false); setEditingLink(null); }} className="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <ExtLinkForm initial={editingLink} onSave={handleSaveLink} />
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -357,12 +468,19 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
           <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">주요 채용 사이트 바로가기</span>
           <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full">{links.length}개</span>
         </div>
-        <button onClick={() => setExpanded(e => !e)} className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1 transition-colors">
-          {expanded ? '접기' : '전체보기'}
-          <svg className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          {canCreate && (
+            <button onClick={() => { setEditingLink(null); setShowAddForm(true); }} className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+              + 등록
+            </button>
+          )}
+          <button onClick={() => setExpanded(e => !e)} className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1 transition-colors">
+            {expanded ? '접기' : '전체보기'}
+            <svg className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Search */}
@@ -462,11 +580,23 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
                     <p className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">✅ 이력서공방에서 직접 지원 가능</p>
                   )}
                 </div>
-                {!hasMatch && (
-                  <svg className="w-3 h-3 text-slate-300 group-hover:text-blue-400 transition-colors ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                )}
+                <div className="ml-auto shrink-0 flex items-center gap-0.5">
+                  {canEdit && (
+                    <span onClick={e => { e.stopPropagation(); setEditingLink(link); setShowAddForm(true); }} className="p-1 text-slate-300 hover:text-blue-500 cursor-pointer rounded transition-colors" title="수정">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    </span>
+                  )}
+                  {canDelete && (
+                    <span onClick={e => { e.stopPropagation(); handleDeleteLink(link); }} className="p-1 text-slate-300 hover:text-red-500 cursor-pointer rounded transition-colors" title="삭제">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </span>
+                  )}
+                  {!hasMatch && !canEdit && !canDelete && (
+                    <svg className="w-3 h-3 text-slate-300 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  )}
+                </div>
               </button>
             );
           })}
