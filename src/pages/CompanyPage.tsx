@@ -1,10 +1,341 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ErrorRetry from '@/components/ErrorRetry';
 import { API_URL } from '@/lib/config';
 import { timeAgo } from '@/lib/time';
+import { getUser } from '@/lib/auth';
+
+// ── Company Review System (localStorage-based) ─────────────────────────────
+
+interface CompanyReview {
+  id: string;
+  companyName: string;
+  position: string;
+  rating: number;         // 1~5 overall
+  culture: number;        // 1~5
+  worklife: number;       // 1~5
+  growth: number;         // 1~5
+  salary: number;         // 1~5
+  pros: string;
+  cons: string;
+  recommend: boolean;
+  anonymous: boolean;
+  createdAt: string;
+  reviewerName?: string;
+}
+
+const REVIEWS_KEY = 'company-reviews';
+
+function getReviews(companyName: string): CompanyReview[] {
+  try {
+    const all = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]') as CompanyReview[];
+    return all.filter(r => r.companyName === companyName);
+  } catch { return []; }
+}
+
+function saveReview(review: CompanyReview) {
+  try {
+    const all = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]') as CompanyReview[];
+    localStorage.setItem(REVIEWS_KEY, JSON.stringify([...all, review]));
+  } catch {}
+}
+
+function StarRating({ value, onChange, size = 'md' }: { value: number; onChange?: (v: number) => void; size?: 'sm' | 'md' }) {
+  const [hovered, setHovered] = useState(0);
+  const sz = size === 'sm' ? 'w-4 h-4' : 'w-6 h-6';
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map(star => (
+        <button
+          key={star}
+          type="button"
+          disabled={!onChange}
+          onClick={() => onChange?.(star)}
+          onMouseEnter={() => onChange && setHovered(star)}
+          onMouseLeave={() => onChange && setHovered(0)}
+          className={`${sz} transition-colors ${!onChange ? 'cursor-default' : 'cursor-pointer'}`}
+          aria-label={`${star}점`}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill={star <= (hovered || value) ? '#f59e0b' : 'none'}
+            stroke={star <= (hovered || value) ? '#f59e0b' : '#d1d5db'}
+            strokeWidth={2}
+          >
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const RATING_LABELS: Record<string, string> = {
+  culture: '기업 문화',
+  worklife: '워라밸',
+  growth: '성장 기회',
+  salary: '급여/복지',
+};
+
+function ReviewCard({ review }: { review: CompanyReview }) {
+  const avg = ((review.culture + review.worklife + review.growth + review.salary) / 4).toFixed(1);
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <StarRating value={review.rating} size="sm" />
+            <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{review.rating}.0</span>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {review.position || '미기재'} · {review.anonymous ? '익명' : (review.reviewerName || '익명')} · {timeAgo(review.createdAt)}
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+          {review.recommend ? '✓ 추천' : '✗ 비추천'}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+        {Object.entries(RATING_LABELS).map(([key, label]) => (
+          <div key={key} className="text-center">
+            <p className="text-[10px] text-slate-500 mb-1">{label}</p>
+            <StarRating value={review[key as keyof CompanyReview] as number} size="sm" />
+          </div>
+        ))}
+      </div>
+
+      {review.pros && (
+        <div className="mb-2">
+          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mr-1.5">장점</span>
+          <span className="text-xs text-slate-700 dark:text-slate-300">{review.pros}</span>
+        </div>
+      )}
+      {review.cons && (
+        <div>
+          <span className="text-xs font-semibold text-red-500 mr-1.5">단점</span>
+          <span className="text-xs text-slate-700 dark:text-slate-300">{review.cons}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const DEFAULT_REVIEW_FORM = {
+  rating: 0, culture: 0, worklife: 0, growth: 0, salary: 0,
+  position: '', pros: '', cons: '', recommend: true, anonymous: true,
+};
+
+function CompanyReviewSection({ companyName }: { companyName: string }) {
+  const [reviews, setReviews] = useState<CompanyReview[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(DEFAULT_REVIEW_FORM);
+  const [submitting, setSubmitting] = useState(false);
+  const user = getUser();
+
+  useEffect(() => {
+    setReviews(getReviews(companyName));
+  }, [companyName]);
+
+  const avgRatings = useMemo(() => {
+    if (!reviews.length) return null;
+    const sum = reviews.reduce((acc, r) => ({
+      rating: acc.rating + r.rating,
+      culture: acc.culture + r.culture,
+      worklife: acc.worklife + r.worklife,
+      growth: acc.growth + r.growth,
+      salary: acc.salary + r.salary,
+    }), { rating: 0, culture: 0, worklife: 0, growth: 0, salary: 0 });
+    const n = reviews.length;
+    return {
+      rating: +(sum.rating / n).toFixed(1),
+      culture: +(sum.culture / n).toFixed(1),
+      worklife: +(sum.worklife / n).toFixed(1),
+      growth: +(sum.growth / n).toFixed(1),
+      salary: +(sum.salary / n).toFixed(1),
+    };
+  }, [reviews]);
+
+  const handleSubmit = useCallback(() => {
+    if (form.rating === 0) { alert('전체 평점을 선택해주세요'); return; }
+    if (!form.pros.trim() && !form.cons.trim()) { alert('장점 또는 단점을 작성해주세요'); return; }
+    setSubmitting(true);
+    const review: CompanyReview = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      companyName,
+      position: form.position,
+      rating: form.rating,
+      culture: form.culture || form.rating,
+      worklife: form.worklife || form.rating,
+      growth: form.growth || form.rating,
+      salary: form.salary || form.rating,
+      pros: form.pros,
+      cons: form.cons,
+      recommend: form.recommend,
+      anonymous: form.anonymous,
+      createdAt: new Date().toISOString(),
+      reviewerName: form.anonymous ? undefined : (user?.name || '익명'),
+    };
+    saveReview(review);
+    setReviews(prev => [review, ...prev]);
+    setForm(DEFAULT_REVIEW_FORM);
+    setShowForm(false);
+    setSubmitting(false);
+  }, [form, companyName, user]);
+
+  const recommendRate = reviews.length > 0
+    ? Math.round((reviews.filter(r => r.recommend).length / reviews.length) * 100)
+    : null;
+
+  return (
+    <div className="mt-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+          <span>⭐</span> 직원 리뷰
+          {reviews.length > 0 && <span className="text-sm font-normal text-slate-400">({reviews.length}개)</span>}
+        </h3>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+        >
+          {showForm ? '취소' : '+ 리뷰 작성'}
+        </button>
+      </div>
+
+      {/* Aggregate Rating Display */}
+      {avgRatings && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="text-center shrink-0">
+              <div className="text-5xl font-bold text-amber-500">{avgRatings.rating}</div>
+              <StarRating value={Math.round(avgRatings.rating)} size="sm" />
+              <p className="text-xs text-slate-400 mt-1">{reviews.length}개의 리뷰</p>
+              {recommendRate !== null && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">{recommendRate}% 추천</p>
+              )}
+            </div>
+            <div className="flex-1 w-full grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {Object.entries(RATING_LABELS).map(([key, label]) => (
+                <div key={key} className="text-center">
+                  <p className="text-[10px] text-slate-500 mb-1">{label}</p>
+                  <p className="text-lg font-bold text-slate-800 dark:text-slate-200">{avgRatings[key as keyof typeof avgRatings]}</p>
+                  <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 mt-1">
+                    <div
+                      className="bg-amber-400 h-1.5 rounded-full"
+                      style={{ width: `${(avgRatings[key as keyof typeof avgRatings] / 5) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Form */}
+      {showForm && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-indigo-200 dark:border-indigo-800 p-5 mb-4 space-y-4">
+          <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200">리뷰 작성</h4>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">전체 평점 *</label>
+              <StarRating value={form.rating} onChange={v => setForm(prev => ({ ...prev, rating: v }))} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">직책 (선택)</label>
+              <input
+                type="text"
+                value={form.position}
+                onChange={e => setForm(prev => ({ ...prev, position: e.target.value }))}
+                placeholder="예: 프론트엔드 개발자"
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {Object.entries(RATING_LABELS).map(([key, label]) => (
+              <div key={key}>
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">{label}</label>
+                <StarRating
+                  value={form[key as keyof typeof form] as number}
+                  onChange={v => setForm(prev => ({ ...prev, [key]: v }))}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">장점</label>
+            <textarea
+              value={form.pros}
+              onChange={e => setForm(prev => ({ ...prev, pros: e.target.value }))}
+              placeholder="이 회사의 좋은 점을 알려주세요"
+              rows={2}
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">단점</label>
+            <textarea
+              value={form.cons}
+              onChange={e => setForm(prev => ({ ...prev, cons: e.target.value }))}
+              placeholder="아쉬운 점을 알려주세요"
+              rows={2}
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.recommend}
+                  onChange={e => setForm(prev => ({ ...prev, recommend: e.target.checked }))}
+                  className="rounded"
+                />
+                이 회사 추천
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.anonymous}
+                  onChange={e => setForm(prev => ({ ...prev, anonymous: e.target.checked }))}
+                  className="rounded"
+                />
+                익명으로 작성
+              </label>
+            </div>
+            <button
+              onClick={handleSubmit}
+              disabled={submitting || form.rating === 0}
+              className="px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              등록하기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Reviews List */}
+      {reviews.length === 0 ? (
+        <div className="text-center py-8 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+          <p className="text-4xl mb-2">💬</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">아직 리뷰가 없습니다</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">이 회사에 지원한 경험이 있으면 리뷰를 남겨주세요</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {reviews.map(review => <ReviewCard key={review.id} review={review} />)}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface JobPost {
   id: string;
@@ -346,6 +677,9 @@ export default function CompanyPage() {
             </div>
           </div>
         </div>
+
+        {/* Company Reviews Section */}
+        <CompanyReviewSection companyName={companyName} />
       </main>
       <Footer />
     </>
