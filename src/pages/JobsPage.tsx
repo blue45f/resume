@@ -174,6 +174,17 @@ interface ExternalLink {
   description: string; gradientFrom: string; gradientTo: string;
   category: string; companySize: string; careerLevel: string;
   location: string; jobCategory: string; jobTypes: string; clickCount: number;
+  matchKeywords: string;
+}
+
+/** 외부 링크의 matchKeywords와 내부 공고 company가 매칭되면 해당 공고 목록 반환 */
+function findMatchedJobs(link: ExternalLink, internalJobs: JobPost[]): JobPost[] {
+  if (!link.matchKeywords) return [];
+  const keywords = link.matchKeywords.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
+  return internalJobs.filter(job => {
+    const company = (job.company || job.user?.companyName || '').toLowerCase();
+    return keywords.some(kw => company.includes(kw) || kw.includes(company.split(' ')[0]));
+  });
 }
 
 const COMPANY_SIZE_OPTIONS = [
@@ -230,7 +241,7 @@ const LOCATION_EXT_OPTIONS = [
   { key: 'global', label: '해외/글로벌' },
 ];
 
-function ExternalJobLinks() {
+function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPost[]; onDirectApply: (job: JobPost) => void }) {
   const [links, setLinks] = useState<ExternalLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [companySize, setCompanySize] = useState('all');
@@ -241,6 +252,7 @@ function ExternalJobLinks() {
   const [q, setQ] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [expanded, setExpanded] = useState(false);
+  const [matchModal, setMatchModal] = useState<{ link: ExternalLink; jobs: JobPost[] } | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -258,9 +270,17 @@ function ExternalJobLinks() {
   }, [companySize, careerLevel, jobCategory, jobType, location, q]);
 
   const handleClick = async (link: ExternalLink) => {
-    // fire-and-forget click tracking
     fetch(`${API_URL}/api/jobs/external-links/${link.id}/click`, { method: 'POST' }).catch(() => {});
     window.open(link.url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleCardClick = (link: ExternalLink) => {
+    const matched = findMatchedJobs(link, internalJobs);
+    if (matched.length > 0) {
+      setMatchModal({ link, jobs: matched });
+    } else {
+      handleClick(link);
+    }
   };
 
   const visible = expanded ? links : links.slice(0, 8);
@@ -272,6 +292,64 @@ function ExternalJobLinks() {
 
   return (
     <div className="mb-6 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800/60 dark:to-blue-900/20 rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
+      {/* Match Modal */}
+      {matchModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setMatchModal(null)}>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md animate-fade-in" onClick={e => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-100 dark:border-slate-700">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm" style={{ background: `linear-gradient(135deg, ${matchModal.link.gradientFrom}, ${matchModal.link.gradientTo})` }}>
+                  {matchModal.link.logoEmoji}
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{matchModal.link.name}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{matchModal.link.description}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-3 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800">
+                <span className="text-emerald-600 dark:text-emerald-400 text-sm">✅</span>
+                <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                  이력서공방에 <span className="font-bold">{matchModal.jobs.length}개</span>의 직접 지원 가능한 공고가 있습니다!
+                </p>
+              </div>
+            </div>
+
+            {/* Internal Jobs */}
+            <div className="p-5 space-y-3 max-h-64 overflow-y-auto">
+              {matchModal.jobs.map(job => (
+                <div key={job.id} className="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{job.position}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{job.company} · {JOB_TYPES[job.type] || job.type}</p>
+                    {job.salary && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">{job.salary}</p>}
+                  </div>
+                  <button
+                    onClick={() => { setMatchModal(null); onDirectApply(job); }}
+                    className="shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
+                  >
+                    지원하기
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-100 dark:border-slate-700 flex gap-2">
+              <button
+                onClick={() => { handleClick(matchModal.link); setMatchModal(null); }}
+                className="flex-1 py-2 text-xs text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                외부 사이트로 이동 →
+              </button>
+              <button onClick={() => setMatchModal(null)} className="px-4 py-2 text-xs bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -347,30 +425,51 @@ function ExternalJobLinks() {
         <div className="text-center py-6 text-sm text-slate-400 dark:text-slate-500">조건에 맞는 채용 사이트가 없습니다</div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {visible.map(link => (
-            <button
-              key={link.id}
-              onClick={() => handleClick(link)}
-              className="group flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200 text-left"
-            >
-              <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-lg shrink-0 shadow-sm"
-                style={{ background: `linear-gradient(135deg, ${link.gradientFrom}, ${link.gradientTo})` }}
+          {visible.map(link => {
+            const matched = findMatchedJobs(link, internalJobs);
+            const hasMatch = matched.length > 0;
+            return (
+              <button
+                key={link.id}
+                onClick={() => handleCardClick(link)}
+                className={`group relative flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border transition-all duration-200 text-left ${
+                  hasMatch
+                    ? 'border-emerald-300 dark:border-emerald-700 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-md ring-1 ring-emerald-200 dark:ring-emerald-800'
+                    : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md'
+                }`}
               >
-                {link.logoEmoji}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight">{link.name}</span>
-                  {link.badgeText && <span className="px-1 py-0.5 text-[9px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">{link.badgeText}</span>}
+                {/* 직접 지원 가능 배지 */}
+                {hasMatch && (
+                  <span className="absolute -top-1.5 -right-1.5 z-10 px-1.5 py-0.5 bg-emerald-500 text-white text-[9px] font-bold rounded-full shadow-sm">
+                    직접지원 {matched.length}
+                  </span>
+                )}
+                <div
+                  className="w-9 h-9 rounded-lg flex items-center justify-center text-lg shrink-0 shadow-sm"
+                  style={{ background: `linear-gradient(135deg, ${link.gradientFrom}, ${link.gradientTo})` }}
+                >
+                  {link.logoEmoji}
                 </div>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">{link.description}</p>
-              </div>
-              <svg className="w-3 h-3 text-slate-300 group-hover:text-blue-400 transition-colors ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </button>
-          ))}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={`text-xs font-bold leading-tight transition-colors ${hasMatch ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}>
+                      {link.name}
+                    </span>
+                    {link.badgeText && <span className="px-1 py-0.5 text-[9px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">{link.badgeText}</span>}
+                  </div>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">{link.description}</p>
+                  {hasMatch && (
+                    <p className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">✅ 이력서공방에서 직접 지원 가능</p>
+                  )}
+                </div>
+                {!hasMatch && (
+                  <svg className="w-3 h-3 text-slate-300 group-hover:text-blue-400 transition-colors ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
       {links.length > 8 && (
@@ -569,7 +668,7 @@ export default function JobsPage() {
         </div>
 
         {/* External Job Sites Quick Links */}
-        <ExternalJobLinks />
+        <ExternalJobLinks internalJobs={jobs} onDirectApply={handleQuickApply} />
 
         {/* Search */}
         <form onSubmit={handleSearch} className="flex gap-2 mb-4">

@@ -4,28 +4,28 @@ export declare class NoticesService {
     constructor(prisma: PrismaService);
     getAll(type?: string, page?: number, limit?: number): Promise<{
         items: ({
+            _count: {
+                comments: number;
+            };
             author: {
                 id: string;
                 name: string;
                 avatar: string;
             } | null;
-            _count: {
-                comments: number;
-            };
         } & {
             id: string;
+            createdAt: Date;
             title: string;
+            viewCount: number;
+            updatedAt: Date;
             content: string;
             type: string;
-            isPopup: boolean;
             isPinned: boolean;
-            allowComments: boolean;
-            viewCount: number;
-            authorId: string | null;
             startAt: Date | null;
             endAt: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
+            isPopup: boolean;
+            allowComments: boolean;
+            authorId: string | null;
         })[];
         total: number;
         page: number;
@@ -34,25 +34,20 @@ export declare class NoticesService {
     }>;
     getPopup(): Promise<{
         id: string;
+        createdAt: Date;
         title: string;
+        viewCount: number;
+        updatedAt: Date;
         content: string;
         type: string;
-        isPopup: boolean;
         isPinned: boolean;
-        allowComments: boolean;
-        viewCount: number;
-        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+        isPopup: boolean;
+        allowComments: boolean;
+        authorId: string | null;
     }[]>;
     getOne(id: string): Promise<{
-        author: {
-            id: string;
-            name: string;
-            avatar: string;
-        } | null;
         comments: ({
             user: {
                 id: string;
@@ -61,29 +56,34 @@ export declare class NoticesService {
             };
         } & {
             id: string;
-            content: string;
             createdAt: Date;
-            updatedAt: Date;
-            noticeId: string;
             userId: string;
+            updatedAt: Date;
+            content: string;
+            noticeId: string;
         })[];
         _count: {
             comments: number;
         };
+        author: {
+            id: string;
+            name: string;
+            avatar: string;
+        } | null;
     } & {
         id: string;
+        createdAt: Date;
         title: string;
+        viewCount: number;
+        updatedAt: Date;
         content: string;
         type: string;
-        isPopup: boolean;
         isPinned: boolean;
-        allowComments: boolean;
-        viewCount: number;
-        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+        isPopup: boolean;
+        allowComments: boolean;
+        authorId: string | null;
     }>;
     create(data: any, authorId?: string): Promise<{
         author: {
@@ -92,18 +92,18 @@ export declare class NoticesService {
         } | null;
     } & {
         id: string;
+        createdAt: Date;
         title: string;
+        viewCount: number;
+        updatedAt: Date;
         content: string;
         type: string;
-        isPopup: boolean;
         isPinned: boolean;
-        allowComments: boolean;
-        viewCount: number;
-        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+        isPopup: boolean;
+        allowComments: boolean;
+        authorId: string | null;
     }>;
     update(id: string, data: any, editorId?: string, reason?: string): Promise<{
         author: {
@@ -112,33 +112,33 @@ export declare class NoticesService {
         } | null;
     } & {
         id: string;
+        createdAt: Date;
         title: string;
+        viewCount: number;
+        updatedAt: Date;
         content: string;
         type: string;
-        isPopup: boolean;
         isPinned: boolean;
-        allowComments: boolean;
-        viewCount: number;
-        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+        isPopup: boolean;
+        allowComments: boolean;
+        authorId: string | null;
     }>;
     remove(id: string): Promise<{
         id: string;
+        createdAt: Date;
         title: string;
+        viewCount: number;
+        updatedAt: Date;
         content: string;
         type: string;
-        isPopup: boolean;
         isPinned: boolean;
-        allowComments: boolean;
-        viewCount: number;
-        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+        isPopup: boolean;
+        allowComments: boolean;
+        authorId: string | null;
     }>;
     addComment(noticeId: string, userId: string, content: string): Promise<{
         user: {
@@ -148,34 +148,34 @@ export declare class NoticesService {
         };
     } & {
         id: string;
-        content: string;
         createdAt: Date;
-        updatedAt: Date;
-        noticeId: string;
         userId: string;
+        updatedAt: Date;
+        content: string;
+        noticeId: string;
     }>;
     deleteComment(commentId: string, userId: string, role: string): Promise<{
         id: string;
-        content: string;
         createdAt: Date;
-        updatedAt: Date;
-        noticeId: string;
         userId: string;
+        updatedAt: Date;
+        content: string;
+        noticeId: string;
     }>;
     toggleComments(noticeId: string, allow: boolean): Promise<{
         id: string;
+        createdAt: Date;
         title: string;
+        viewCount: number;
+        updatedAt: Date;
         content: string;
         type: string;
-        isPopup: boolean;
         isPinned: boolean;
-        allowComments: boolean;
-        viewCount: number;
-        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+        isPopup: boolean;
+        allowComments: boolean;
+        authorId: string | null;
     }>;
     getHistory(noticeId: string): Promise<({
         editor: {
@@ -185,11 +185,11 @@ export declare class NoticesService {
     } & {
         id: string;
         createdAt: Date;
-        noticeId: string;
-        editorId: string;
         prevTitle: string;
         prevContent: string;
         prevType: string;
         reason: string;
+        noticeId: string;
+        editorId: string;
     })[]>;
 }

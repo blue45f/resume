@@ -4,43 +4,43 @@ export declare class NoticesController {
     constructor(service: NoticesService);
     getPopup(): Promise<{
         id: string;
+        createdAt: Date;
         title: string;
+        viewCount: number;
+        updatedAt: Date;
         content: string;
         type: string;
-        isPopup: boolean;
         isPinned: boolean;
-        allowComments: boolean;
-        viewCount: number;
-        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+        isPopup: boolean;
+        allowComments: boolean;
+        authorId: string | null;
     }[]>;
     getAll(type?: string, page?: string, limit?: string): Promise<{
         items: ({
+            _count: {
+                comments: number;
+            };
             author: {
                 id: string;
                 name: string;
                 avatar: string;
             } | null;
-            _count: {
-                comments: number;
-            };
         } & {
             id: string;
+            createdAt: Date;
             title: string;
+            viewCount: number;
+            updatedAt: Date;
             content: string;
             type: string;
-            isPopup: boolean;
             isPinned: boolean;
-            allowComments: boolean;
-            viewCount: number;
-            authorId: string | null;
             startAt: Date | null;
             endAt: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
+            isPopup: boolean;
+            allowComments: boolean;
+            authorId: string | null;
         })[];
         total: number;
         page: number;
@@ -48,11 +48,6 @@ export declare class NoticesController {
         totalPages: number;
     }>;
     getOne(id: string): Promise<{
-        author: {
-            id: string;
-            name: string;
-            avatar: string;
-        } | null;
         comments: ({
             user: {
                 id: string;
@@ -61,29 +56,34 @@ export declare class NoticesController {
             };
         } & {
             id: string;
-            content: string;
             createdAt: Date;
-            updatedAt: Date;
-            noticeId: string;
             userId: string;
+            updatedAt: Date;
+            content: string;
+            noticeId: string;
         })[];
         _count: {
             comments: number;
         };
+        author: {
+            id: string;
+            name: string;
+            avatar: string;
+        } | null;
     } & {
         id: string;
+        createdAt: Date;
         title: string;
+        viewCount: number;
+        updatedAt: Date;
         content: string;
         type: string;
-        isPopup: boolean;
         isPinned: boolean;
-        allowComments: boolean;
-        viewCount: number;
-        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+        isPopup: boolean;
+        allowComments: boolean;
+        authorId: string | null;
     }>;
     create(req: any, body: any): Promise<{
         author: {
@@ -92,18 +92,18 @@ export declare class NoticesController {
         } | null;
     } & {
         id: string;
+        createdAt: Date;
         title: string;
+        viewCount: number;
+        updatedAt: Date;
         content: string;
         type: string;
-        isPopup: boolean;
         isPinned: boolean;
-        allowComments: boolean;
-        viewCount: number;
-        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+        isPopup: boolean;
+        allowComments: boolean;
+        authorId: string | null;
     }>;
     update(req: any, id: string, body: any): Promise<{
         author: {
@@ -112,33 +112,33 @@ export declare class NoticesController {
         } | null;
     } & {
         id: string;
+        createdAt: Date;
         title: string;
+        viewCount: number;
+        updatedAt: Date;
         content: string;
         type: string;
-        isPopup: boolean;
         isPinned: boolean;
-        allowComments: boolean;
-        viewCount: number;
-        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+        isPopup: boolean;
+        allowComments: boolean;
+        authorId: string | null;
     }>;
     remove(req: any, id: string): Promise<{
         id: string;
+        createdAt: Date;
         title: string;
+        viewCount: number;
+        updatedAt: Date;
         content: string;
         type: string;
-        isPopup: boolean;
         isPinned: boolean;
-        allowComments: boolean;
-        viewCount: number;
-        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+        isPopup: boolean;
+        allowComments: boolean;
+        authorId: string | null;
     }>;
     addComment(req: any, noticeId: string, body: {
         content: string;
@@ -150,36 +150,36 @@ export declare class NoticesController {
         };
     } & {
         id: string;
-        content: string;
         createdAt: Date;
-        updatedAt: Date;
-        noticeId: string;
         userId: string;
+        updatedAt: Date;
+        content: string;
+        noticeId: string;
     }>;
     deleteComment(req: any, _noticeId: string, commentId: string): Promise<{
         id: string;
-        content: string;
         createdAt: Date;
-        updatedAt: Date;
-        noticeId: string;
         userId: string;
+        updatedAt: Date;
+        content: string;
+        noticeId: string;
     }>;
     toggleComments(req: any, id: string, body: {
         allow: boolean;
     }): Promise<{
         id: string;
+        createdAt: Date;
         title: string;
+        viewCount: number;
+        updatedAt: Date;
         content: string;
         type: string;
-        isPopup: boolean;
         isPinned: boolean;
-        allowComments: boolean;
-        viewCount: number;
-        authorId: string | null;
         startAt: Date | null;
         endAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+        isPopup: boolean;
+        allowComments: boolean;
+        authorId: string | null;
     }>;
     getHistory(req: any, id: string): Promise<({
         editor: {
@@ -189,11 +189,11 @@ export declare class NoticesController {
     } & {
         id: string;
         createdAt: Date;
-        noticeId: string;
-        editorId: string;
         prevTitle: string;
         prevContent: string;
         prevType: string;
         reason: string;
+        noticeId: string;
+        editorId: string;
     })[]>;
 }

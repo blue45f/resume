@@ -122,6 +122,7 @@ export declare class JobsService {
         logoUrl: string;
         gradientFrom: string;
         gradientTo: string;
+        matchKeywords: string;
         companySize: string;
         jobTypes: string;
         careerLevel: string;
@@ -147,6 +148,7 @@ export declare class JobsService {
         logoUrl: string;
         gradientFrom: string;
         gradientTo: string;
+        matchKeywords: string;
         companySize: string;
         jobTypes: string;
         careerLevel: string;
@@ -169,6 +171,7 @@ export declare class JobsService {
         logoUrl: string;
         gradientFrom: string;
         gradientTo: string;
+        matchKeywords: string;
         companySize: string;
         jobTypes: string;
         careerLevel: string;

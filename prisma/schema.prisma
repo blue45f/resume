@@ -693,8 +693,9 @@ model ExternalJobLink {
   logoUrl     String   @default("") @map("logo_url")   // 실제 로고 이미지 URL
   badgeText   String   @default("") @map("badge_text") // 뱃지 텍스트 (예: 개발자 인기)
   description String   @default("")
-  gradientFrom String  @default("#6366f1") @map("gradient_from")
-  gradientTo   String  @default("#4f46e5") @map("gradient_to")
+  gradientFrom  String  @default("#6366f1") @map("gradient_from")
+  gradientTo    String  @default("#4f46e5") @map("gradient_to")
+  matchKeywords String  @default("") @map("match_keywords")  // 내부 공고 매핑 키워드 (콤마 구분, 비어있으면 집계사이트)
 
   // 필터용 메타데이터
   category    String   @default("all")          // 사이트 성격: it, public, conglomerate, startup, global, junior

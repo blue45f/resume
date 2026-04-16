@@ -116,6 +116,7 @@ export declare class JobsController {
         logoUrl: string;
         gradientFrom: string;
         gradientTo: string;
+        matchKeywords: string;
         companySize: string;
         jobTypes: string;
         careerLevel: string;
@@ -141,6 +142,7 @@ export declare class JobsController {
         logoUrl: string;
         gradientFrom: string;
         gradientTo: string;
+        matchKeywords: string;
         companySize: string;
         jobTypes: string;
         careerLevel: string;
@@ -163,6 +165,7 @@ export declare class JobsController {
         logoUrl: string;
         gradientFrom: string;
         gradientTo: string;
+        matchKeywords: string;
         companySize: string;
         jobTypes: string;
         careerLevel: string;
