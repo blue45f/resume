@@ -96,7 +96,9 @@ export default function ExplorePage() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const [result, setResult] = useState<SearchResult | null>(null);
-  const [activeTab, setActiveTab] = useState<'resumes' | 'people'>('resumes');
+  const [activeTab, setActiveTab] = useState<'resumes' | 'people' | 'community'>('resumes');
+  const [communityPosts, setCommunityPosts] = useState<any[]>([]);
+  const [communityLoading, setCommunityLoading] = useState(false);
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(() => {
     try { return new Set(JSON.parse(localStorage.getItem('followed-users') || '[]')); } catch { return new Set(); }
   });
@@ -231,6 +233,16 @@ export default function ExplorePage() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== 'community') return;
+    setCommunityLoading(true);
+    fetch(`${API_URL}/api/community?limit=20&page=1`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.items) setCommunityPosts(d.items); })
+      .catch(() => {})
+      .finally(() => setCommunityLoading(false));
+  }, [activeTab]);
 
   const currentUserId = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('user') || '{}').id; } catch { return null; }
@@ -392,6 +404,23 @@ export default function ExplorePage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               사람
               {users.length > 0 && <span className="ml-1 px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 rounded-full">{users.length}</span>}
+            </span>
+          </button>
+          <button
+            role="tab"
+            id="tab-community"
+            aria-selected={activeTab === 'community'}
+            aria-controls="tabpanel-community"
+            onClick={() => setActiveTab('community')}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'community'
+                ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400'
+                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+            }`}
+          >
+            <span className="flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+              커뮤니티
             </span>
           </button>
         </div>
@@ -702,6 +731,75 @@ export default function ExplorePage() {
                 })}
               </div>
             )}
+          </div>
+        ) : activeTab === 'community' ? (
+          /* ===== 커뮤니티 탭 ===== */
+          <div role="tabpanel" id="tabpanel-community" aria-labelledby="tab-community">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-slate-500 dark:text-slate-400">최신 커뮤니티 게시글</p>
+              <Link to="/community/write" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                글쓰기
+              </Link>
+            </div>
+            {communityLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-14 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            ) : communityPosts.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="text-4xl mb-3">📭</div>
+                <p className="text-slate-500 dark:text-slate-400 mb-4">아직 게시글이 없습니다</p>
+                <Link to="/community/write" className="text-sm text-indigo-600 hover:underline">첫 글 작성하기</Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {communityPosts.map(post => {
+                  const CAT_COLORS: Record<string, string> = {
+                    free: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
+                    tips: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                    resume: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                    'cover-letter': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+                    question: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                  };
+                  const CAT_LABELS: Record<string, string> = {
+                    free: '자유', tips: '취업팁', resume: '이력서피드백', 'cover-letter': '자소서', question: '질문',
+                  };
+                  const diff = Date.now() - new Date(post.createdAt).getTime();
+                  const mins = Math.floor(diff / 60000);
+                  const timeStr = mins < 60 ? `${mins}분 전` : mins < 1440 ? `${Math.floor(mins/60)}시간 전` : `${Math.floor(mins/1440)}일 전`;
+                  return (
+                    <Link
+                      key={post.id}
+                      to={`/community/${post.id}`}
+                      className="flex items-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm transition-all"
+                    >
+                      <span className={`shrink-0 text-xs px-2 py-0.5 rounded-lg font-medium ${CAT_COLORS[post.category] || CAT_COLORS.free}`}>
+                        {CAT_LABELS[post.category] || '자유'}
+                      </span>
+                      <span className="flex-1 text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{post.title}</span>
+                      <div className="shrink-0 flex items-center gap-3 text-xs text-slate-400">
+                        <span className="flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                          {post.likeCount}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                          {post._count?.comments ?? 0}
+                        </span>
+                        <span className="hidden sm:block">{timeStr}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+            <div className="mt-6 text-center">
+              <Link to="/community" className="inline-flex items-center gap-1.5 text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+                커뮤니티 전체 보기 →
+              </Link>
+            </div>
           </div>
         ) : (
           /* ===== 이력서 탭 ===== */

@@ -26,6 +26,66 @@ import { API_URL } from '@/lib/config';
 import ShareMenu from '@/components/ShareMenu';
 
 
+function CommunityWidget() {
+  const [posts, setPosts] = useState<{ id: string; title: string; category: string; likeCount: number; createdAt: string }[]>([]);
+  useEffect(() => {
+    fetch(`${API_URL}/api/community?limit=5&page=1`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.items) setPosts(d.items.slice(0, 5)); })
+      .catch(() => {});
+  }, []);
+
+  if (!posts.length) return null;
+
+  const CAT_COLORS: Record<string, string> = {
+    free: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
+    tips: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+    resume: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    'cover-letter': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    question: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  };
+  const CAT_LABELS: Record<string, string> = {
+    free: '자유', tips: '취업팁', resume: '이력서피드백', 'cover-letter': '자소서', question: '질문',
+  };
+
+  return (
+    <div className="mb-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-700">
+        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+          <span className="w-5 h-5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-md flex items-center justify-center text-xs">💬</span>
+          커뮤니티 최신 글
+        </h3>
+        <Link to="/community" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">더보기 →</Link>
+      </div>
+      <div className="divide-y divide-slate-100 dark:divide-slate-700">
+        {posts.map(post => (
+          <Link
+            key={post.id}
+            to={`/community/${post.id}`}
+            className="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+          >
+            <span className={`shrink-0 text-xs px-1.5 py-0.5 rounded-md font-medium ${CAT_COLORS[post.category] || CAT_COLORS.free}`}>
+              {CAT_LABELS[post.category] || '자유'}
+            </span>
+            <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 truncate">{post.title}</span>
+            <span className="shrink-0 flex items-center gap-1 text-xs text-slate-400">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              {post.likeCount}
+            </span>
+          </Link>
+        ))}
+      </div>
+      <div className="px-5 py-2.5 bg-slate-50 dark:bg-slate-700/30 border-t border-slate-100 dark:border-slate-700">
+        <Link to="/community/write" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+          + 새 글 작성하기
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function useCountUp(target: number, duration = 1200) {
   const [value, setValue] = useState(0);
   useEffect(() => {
@@ -475,6 +535,8 @@ export default function HomePage() {
             <HiringTrends />
 
             <CareerInsights />
+
+            <CommunityWidget />
 
             {/* Search and filters */}
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
