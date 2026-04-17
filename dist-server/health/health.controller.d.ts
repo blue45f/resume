@@ -38,58 +38,55 @@ export declare class HealthController {
             kakao: boolean;
         };
     }>;
-    getUsage(req: any): Promise<{
-        feature: string;
-        count: number;
-    }[]>;
+    getUsage(req: any): Promise<any>;
     publicStats(): Promise<{
         users: {
-            total: number;
-            today: number;
-            thisWeek: number;
+            total: any;
+            today: any;
+            thisWeek: any;
         };
         resumes: {
-            total: number;
-            public: number;
-            today: number;
+            total: any;
+            public: any;
+            today: any;
         };
         activity: {
-            totalViews: number;
+            totalViews: any;
         };
         content: {
-            templates: number;
+            templates: any;
         };
         community: {
-            posts: number;
-            comments: number;
+            posts: any;
+            comments: any;
         };
         jobs: {
-            active: number;
+            active: any;
         };
     }>;
     adminStats(req: any): Promise<{
         users: {
-            total: number;
-            today: number;
-            week: number;
-            month: number;
+            total: any;
+            today: any;
+            week: any;
+            month: any;
         };
         resumes: {
-            total: number;
-            today: number;
-            week: number;
-            public: number;
+            total: any;
+            today: any;
+            week: any;
+            public: any;
         };
         content: {
-            templates: number;
-            tags: number;
-            comments: number;
-            versions: number;
+            templates: any;
+            tags: any;
+            comments: any;
+            versions: any;
         };
         activity: {
-            applications: number;
-            transforms: number;
-            totalViews: number;
+            applications: any;
+            transforms: any;
+            totalViews: any;
         };
         coaching: {
             totalCoaches: any;
@@ -98,13 +95,7 @@ export declare class HealthController {
             totalCommission: number;
             byStatus: Record<string, number>;
         };
-        recentUsers: {
-            id: string;
-            name: string;
-            email: string;
-            provider: string;
-            createdAt: string;
-        }[];
+        recentUsers: any;
     }>;
     private newsCache;
     newsRss(): Promise<any[]>;

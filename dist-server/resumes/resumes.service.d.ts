@@ -8,67 +8,15 @@ export declare class ResumesService {
     constructor(prisma: PrismaService, notifications: NotificationsService);
     private sendViewNotification;
     findAll(userId?: string, page?: number, limit?: number): Promise<{
-        data: {
-            id: any;
-            title: any;
-            slug: any;
-            userId: any;
-            viewCount: any;
-            visibility: any;
-            isOpenToWork: any;
-            openToWorkRoles: any;
-            personalInfo: {
-                name: any;
-                email: any;
-                phone: any;
-                address: any;
-                website: any;
-                github: any;
-                summary: any;
-                photo: any;
-                birthYear: any;
-                links: any;
-                military: any;
-            };
-            tags: any;
-            skills: any;
-            createdAt: any;
-            updatedAt: any;
-        }[];
-        total: number;
+        data: any;
+        total: any;
         page: number;
         totalPages: number;
         limit: number;
     }>;
     findPublic(page?: number, limit?: number): Promise<{
-        data: {
-            id: any;
-            title: any;
-            slug: any;
-            userId: any;
-            viewCount: any;
-            visibility: any;
-            isOpenToWork: any;
-            openToWorkRoles: any;
-            personalInfo: {
-                name: any;
-                email: any;
-                phone: any;
-                address: any;
-                website: any;
-                github: any;
-                summary: any;
-                photo: any;
-                birthYear: any;
-                links: any;
-                military: any;
-            };
-            tags: any;
-            skills: any;
-            createdAt: any;
-            updatedAt: any;
-        }[];
-        total: number;
+        data: any;
+        total: any;
         page: number;
         totalPages: number;
         limit: number;
@@ -80,34 +28,8 @@ export declare class ResumesService {
         page: number;
         limit: number;
     }): Promise<{
-        data: {
-            id: any;
-            title: any;
-            slug: any;
-            userId: any;
-            viewCount: any;
-            visibility: any;
-            isOpenToWork: any;
-            openToWorkRoles: any;
-            personalInfo: {
-                name: any;
-                email: any;
-                phone: any;
-                address: any;
-                website: any;
-                github: any;
-                summary: any;
-                photo: any;
-                birthYear: any;
-                links: any;
-                military: any;
-            };
-            tags: any;
-            skills: any;
-            createdAt: any;
-            updatedAt: any;
-        }[];
-        total: number;
+        data: any;
+        total: any;
         page: number;
         totalPages: number;
         limit: number;
@@ -213,7 +135,7 @@ export declare class ResumesService {
         updatedAt: any;
     } | null>;
     findOne(id: string, userId?: string): Promise<{
-        bookmarkCount: number;
+        bookmarkCount: $Public.PrismaPromise<T>;
         experiences: {
             [k: string]: any;
         }[];
@@ -324,7 +246,7 @@ export declare class ResumesService {
         updatedAt: any;
     }>;
     update(id: string, dto: UpdateResumeDto, userId?: string): Promise<{
-        bookmarkCount: number;
+        bookmarkCount: $Public.PrismaPromise<T>;
         experiences: {
             [k: string]: any;
         }[];
@@ -439,13 +361,7 @@ export declare class ResumesService {
     removeBookmark(resumeId: string, userId: string): Promise<{
         bookmarked: boolean;
     }>;
-    getBookmarks(userId: string): Promise<{
-        id: string;
-        resumeId: string;
-        title: string;
-        name: any;
-        createdAt: string;
-    }[]>;
+    getBookmarks(userId: string): Promise<any>;
     isBookmarked(resumeId: string, userId: string): Promise<boolean>;
     getEndorsements(resumeId: string, viewerId?: string): Promise<Record<string, {
         count: number;

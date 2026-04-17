@@ -6,7 +6,7 @@
  */
 
 // ts-jest의 tsconfig가 server/**만 포함하므로 직접 require로 로드
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
 const plans = require('../../src/lib/plans');
 
 const { PLANS, RECRUITER_PLANS, getPlansForUserType, getPlan, canAccess, formatPrice } = plans;

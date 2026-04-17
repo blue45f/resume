@@ -3,8 +3,7 @@
  * time.ts 유틸리티 테스트 (한국어 상대 시간)
  *
  * src/lib/time.ts의 timeAgo 함수를 테스트합니다.
- */ // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { timeAgo } = require('../../src/shared/lib/time');
+ */ const { timeAgo } = require('../../src/shared/lib/time');
 describe('timeAgo', ()=>{
     // Date.now()를 고정하여 안정적인 테스트
     const NOW = 1712150400000; // 2024-04-03T12:00:00.000Z (고정 시점)

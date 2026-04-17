@@ -2,10 +2,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { fetchTemplates, fetchResumes } from '@/lib/api';
+import { useTemplates, useResumes } from '@/hooks/useResources';
 import type { Template, ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
-
 
 const EXAMPLES = [
   '경력 메모, 자기소개 텍스트',
@@ -24,7 +23,11 @@ const STEPS = [
 const ACCEPTED_FILE_TYPES = '.pdf,.docx,.doc,.txt,.rtf';
 
 function parseLayout(layout: string) {
-  try { return JSON.parse(layout); } catch { return {}; }
+  try {
+    return JSON.parse(layout);
+  } catch {
+    return {};
+  }
 }
 
 export default function AutoGeneratePage() {
@@ -34,7 +37,11 @@ export default function AutoGeneratePage() {
   const [instruction, setInstruction] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [preview, setPreview] = useState<{ resume: Record<string, any>; tokensUsed?: number; provider?: string } | null>(null);
+  const [preview, setPreview] = useState<{
+    resume: Record<string, any>;
+    tokensUsed?: number;
+    provider?: string;
+  } | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [inputMode, setInputMode] = useState<'text' | 'file'>('text');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -42,11 +49,13 @@ export default function AutoGeneratePage() {
   const [analysisPhrase, setAnalysisPhrase] = useState(0);
 
   // Template selection
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const { data: templatesData } = useTemplates();
+  const templates: Template[] = ((templatesData as Template[] | undefined) ?? []).slice(0, 4);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   // Previous auto-generates (user's existing resumes as history)
-  const [previousResumes, setPreviousResumes] = useState<ResumeSummary[]>([]);
+  const { data: resumesData } = useResumes();
+  const previousResumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? [];
   const [showHistory, setShowHistory] = useState(false);
 
   const ANALYSIS_PHRASES = [
@@ -59,17 +68,27 @@ export default function AutoGeneratePage() {
 
   useEffect(() => {
     document.title = 'AI 자동 생성 — 이력서공방';
-    fetchTemplates().then(t => setTemplates(t.slice(0, 4))).catch(() => {});
-    fetchResumes().then(r => setPreviousResumes(r)).catch(() => {});
-    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+    return () => {
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
+    };
   }, []);
 
   // Timer during analysis
   useEffect(() => {
-    if (!loading) { setElapsedTime(0); setAnalysisPhrase(0); return; }
-    const timer = setInterval(() => setElapsedTime(t => t + 1), 1000);
-    const phraseTimer = setInterval(() => setAnalysisPhrase(p => (p + 1) % ANALYSIS_PHRASES.length), 4000);
-    return () => { clearInterval(timer); clearInterval(phraseTimer); };
+    if (!loading) {
+      setElapsedTime(0);
+      setAnalysisPhrase(0);
+      return;
+    }
+    const timer = setInterval(() => setElapsedTime((t) => t + 1), 1000);
+    const phraseTimer = setInterval(
+      () => setAnalysisPhrase((p) => (p + 1) % ANALYSIS_PHRASES.length),
+      4000,
+    );
+    return () => {
+      clearInterval(timer);
+      clearInterval(phraseTimer);
+    };
   }, [loading]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,9 +196,17 @@ export default function AutoGeneratePage() {
   return (
     <>
       <Header />
-      <main id="main-content" className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">AI 이력서 자동 생성</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">경력 관련 아무 자료나 붙여넣거나 파일을 업로드하면 AI가 자동으로 이력서를 생성합니다.</p>
+      <main
+        id="main-content"
+        className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+        role="main"
+      >
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+          AI 이력서 자동 생성
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+          경력 관련 아무 자료나 붙여넣거나 파일을 업로드하면 AI가 자동으로 이력서를 생성합니다.
+        </p>
 
         {/* Progress Steps */}
         <div className="mb-8">
@@ -197,17 +224,33 @@ export default function AutoGeneratePage() {
                     }`}
                   >
                     {currentStep > s.id ? (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
-                    ) : s.icon}
+                    ) : (
+                      s.icon
+                    )}
                   </div>
-                  <span className={`text-xs mt-1 font-medium ${currentStep >= s.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                  <span
+                    className={`text-xs mt-1 font-medium ${currentStep >= s.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`}
+                  >
                     {s.label}
                   </span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`w-12 sm:w-20 h-0.5 mx-1 mb-5 transition-colors duration-300 ${currentStep > s.id ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
+                  <div
+                    className={`w-12 sm:w-20 h-0.5 mx-1 mb-5 transition-colors duration-300 ${currentStep > s.id ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'}`}
+                  />
                 )}
               </div>
             ))}
@@ -243,17 +286,22 @@ export default function AutoGeneratePage() {
 
             {inputMode === 'text' ? (
               <div>
-                <label htmlFor="raw-text" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="raw-text"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                >
                   원본 텍스트 *
                 </label>
                 <textarea
                   id="raw-text"
                   value={rawText}
-                  onChange={e => setRawText(e.target.value)}
+                  onChange={(e) => setRawText(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-52 resize-none bg-white dark:bg-slate-700 dark:text-slate-100"
                   placeholder={`아무 형식으로 경력/학력/기술 정보를 입력하세요.\n\n예시:\n- 경력 메모\n- LinkedIn 프로필 복사\n- 이전 이력서 텍스트\n- 자기소개 + 경력 나열`}
                 />
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{rawText.length.toLocaleString()}자</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                  {rawText.length.toLocaleString()}자
+                </p>
               </div>
             ) : (
               <div>
@@ -263,21 +311,45 @@ export default function AutoGeneratePage() {
                 {uploadedFile ? (
                   <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                     <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center shrink-0">
-                      <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <svg
+                        className="w-5 h-5 text-blue-600 dark:text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
                       </svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{uploadedFile.name}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{formatFileSize(uploadedFile.size)}</p>
+                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                        {uploadedFile.name}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {formatFileSize(uploadedFile.size)}
+                      </p>
                     </div>
                     <button
                       onClick={handleRemoveFile}
                       className="text-slate-400 hover:text-red-500 transition-colors p-1"
                       aria-label="파일 제거"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -286,11 +358,25 @@ export default function AutoGeneratePage() {
                     onClick={() => fileInputRef.current?.click()}
                     className="w-full p-8 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors text-center"
                   >
-                    <svg className="w-10 h-10 mx-auto text-slate-400 dark:text-slate-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    <svg
+                      className="w-10 h-10 mx-auto text-slate-400 dark:text-slate-500 mb-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
                     </svg>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">클릭하여 파일을 선택하세요</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">PDF, DOCX, DOC, TXT, RTF 지원</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+                      클릭하여 파일을 선택하세요
+                    </p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                      PDF, DOCX, DOC, TXT, RTF 지원
+                    </p>
                   </button>
                 )}
                 <input
@@ -310,13 +396,15 @@ export default function AutoGeneratePage() {
                   템플릿 선택 (선택사항)
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {templates.map(t => {
+                  {templates.map((t) => {
                     const layout = parseLayout(t.layout || '{}');
                     const sections: string[] = (layout.sections || []).slice(0, 3);
                     return (
                       <button
                         key={t.id}
-                        onClick={() => setSelectedTemplateId(selectedTemplateId === t.id ? null : t.id)}
+                        onClick={() =>
+                          setSelectedTemplateId(selectedTemplateId === t.id ? null : t.id)
+                        }
                         className={`p-3 rounded-lg border text-left transition-all duration-200 ${
                           selectedTemplateId === t.id
                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500'
@@ -331,7 +419,9 @@ export default function AutoGeneratePage() {
                             <div className="h-0.5 bg-slate-200 dark:bg-slate-600 rounded-full w-4/5" />
                           </div>
                         </div>
-                        <p className="text-xs font-medium text-slate-900 dark:text-slate-100 truncate">{t.name}</p>
+                        <p className="text-xs font-medium text-slate-900 dark:text-slate-100 truncate">
+                          {t.name}
+                        </p>
                         {sections.length > 0 && (
                           <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
                             {sections.join(' / ')}
@@ -345,13 +435,16 @@ export default function AutoGeneratePage() {
             )}
 
             <div>
-              <label htmlFor="instruction" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label
+                htmlFor="instruction"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
                 추가 지시 (선택)
               </label>
               <input
                 id="instruction"
                 value={instruction}
-                onChange={e => setInstruction(e.target.value)}
+                onChange={(e) => setInstruction(e.target.value)}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 dark:text-slate-100"
                 placeholder="예: 개발자 이력서로 만들어줘, 성과 중심으로 작성해줘"
               />
@@ -374,13 +467,24 @@ export default function AutoGeneratePage() {
               </button>
             </div>
 
-            {error && <div role="alert" className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-400">{error}</div>}
+            {error && (
+              <div
+                role="alert"
+                className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-400"
+              >
+                {error}
+              </div>
+            )}
 
             {/* Examples */}
             <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">이런 것들을 입력할 수 있어요:</p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+                이런 것들을 입력할 수 있어요:
+              </p>
               <ul className="text-xs text-slate-400 dark:text-slate-500 space-y-1">
-                {EXAMPLES.map((ex, i) => <li key={i}>- {ex}</li>)}
+                {EXAMPLES.map((ex, i) => (
+                  <li key={i}>- {ex}</li>
+                ))}
               </ul>
             </div>
           </div>
@@ -391,25 +495,49 @@ export default function AutoGeneratePage() {
               <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="font-semibold text-slate-900 dark:text-slate-100">생성 결과</h2>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">{preview.tokensUsed?.toLocaleString()} tokens ({preview.provider})</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">
+                    {preview.tokensUsed?.toLocaleString()} tokens ({preview.provider})
+                  </span>
                 </div>
 
                 {preview.resume?.personalInfo?.name && (
                   <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-                    <p className="font-medium text-slate-900 dark:text-slate-100">{preview.resume.personalInfo.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{preview.resume.personalInfo.email} {preview.resume.personalInfo.phone}</p>
+                    <p className="font-medium text-slate-900 dark:text-slate-100">
+                      {preview.resume.personalInfo.name}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {preview.resume.personalInfo.email} {preview.resume.personalInfo.phone}
+                    </p>
                     {preview.resume.personalInfo.summary && (
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">{preview.resume.personalInfo.summary}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                        {preview.resume.personalInfo.summary}
+                      </p>
                     )}
                   </div>
                 )}
 
                 {[
-                  { key: 'experiences', label: '경력', render: (e: any) => `${e.company} - ${e.position}` },
-                  { key: 'educations', label: '학력', render: (e: any) => `${e.school} ${e.degree} ${e.field}` },
+                  {
+                    key: 'experiences',
+                    label: '경력',
+                    render: (e: any) => `${e.company} - ${e.position}`,
+                  },
+                  {
+                    key: 'educations',
+                    label: '학력',
+                    render: (e: any) => `${e.school} ${e.degree} ${e.field}`,
+                  },
                   { key: 'skills', label: '기술', render: (s: any) => `${s.category}: ${s.items}` },
-                  { key: 'certifications', label: '자격증', render: (c: any) => `${c.name} (${c.issuer})` },
-                  { key: 'languages', label: '어학', render: (l: any) => `${l.name} ${l.testName} ${l.score}` },
+                  {
+                    key: 'certifications',
+                    label: '자격증',
+                    render: (c: any) => `${c.name} (${c.issuer})`,
+                  },
+                  {
+                    key: 'languages',
+                    label: '어학',
+                    render: (l: any) => `${l.name} ${l.testName} ${l.score}`,
+                  },
                   { key: 'projects', label: '프로젝트', render: (p: any) => p.name },
                   { key: 'awards', label: '수상', render: (a: any) => a.name },
                   { key: 'activities', label: '활동', render: (a: any) => a.name },
@@ -418,10 +546,14 @@ export default function AutoGeneratePage() {
                   if (!items?.length) return null;
                   return (
                     <div key={key}>
-                      <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{label} ({items.length})</h3>
+                      <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        {label} ({items.length})
+                      </h3>
                       <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-0.5">
                         {items.map((item: any, i: number) => (
-                          <li key={i} className="truncate">- {render(item)}</li>
+                          <li key={i} className="truncate">
+                            - {render(item)}
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -439,7 +571,9 @@ export default function AutoGeneratePage() {
             ) : loading ? (
               <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
                 <div className="inline-block w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4" />
-                <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold mb-1">AI가 이력서를 분석하고 있습니다</p>
+                <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                  AI가 이력서를 분석하고 있습니다
+                </p>
                 <p className="text-sm text-blue-600 dark:text-blue-400 font-medium animate-pulse mb-3">
                   {ANALYSIS_PHRASES[analysisPhrase]}
                 </p>
@@ -458,7 +592,9 @@ export default function AutoGeneratePage() {
               </div>
             ) : (
               <div className="bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 p-8 text-center text-slate-400 dark:text-slate-500">
-                <p className="text-4xl mb-3" aria-hidden="true">&#129302;</p>
+                <p className="text-4xl mb-3" aria-hidden="true">
+                  &#129302;
+                </p>
                 <p className="text-sm">원본 텍스트를 입력하거나 파일을 업로드하고</p>
                 <p className="text-sm">미리보기를 누르면 AI가 자동으로 이력서를 구성합니다</p>
               </div>
@@ -475,22 +611,33 @@ export default function AutoGeneratePage() {
             >
               <svg
                 className={`w-4 h-4 transition-transform duration-200 ${showHistory ? 'rotate-90' : ''}`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
               이전 변환 내역 ({previousResumes.length})
             </button>
             {showHistory && (
               <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {previousResumes.slice(0, 6).map(r => (
+                {previousResumes.slice(0, 6).map((r) => (
                   <button
                     key={r.id}
                     onClick={() => navigate(`/resumes/${r.id}/edit`)}
                     className="text-left p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-sm transition-all"
                   >
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{r.title || '제목 없음'}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{r.personalInfo?.name || ''}</p>
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                      {r.title || '제목 없음'}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      {r.personalInfo?.name || ''}
+                    </p>
                     <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                       {new Date(r.updatedAt).toLocaleDateString('ko-KR')}
                     </p>

@@ -1,5 +1,12 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger, BeforeApplicationShutdown } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+  BeforeApplicationShutdown,
+} from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 @Injectable()
 export class PrismaService
@@ -10,16 +17,19 @@ export class PrismaService
   private isConnected = false;
 
   constructor() {
+    const url = process.env.DATABASE_URL;
+    if (!url) {
+      throw new Error('DATABASE_URL environment variable is required');
+    }
     super({
       log:
         process.env.NODE_ENV !== 'production'
           ? [{ emit: 'event', level: 'query' }]
-          : [{ emit: 'event', level: 'warn' }, { emit: 'event', level: 'error' }],
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL,
-        },
-      },
+          : [
+              { emit: 'event', level: 'warn' },
+              { emit: 'event', level: 'error' },
+            ],
+      adapter: new PrismaPg({ connectionString: url }),
     });
 
     if (process.env.NODE_ENV !== 'production') {
@@ -52,7 +62,9 @@ export class PrismaService
   }
 
   async beforeApplicationShutdown(signal?: string) {
-    this.logger.log(`Application shutting down (signal: ${signal}), closing database connections...`);
+    this.logger.log(
+      `Application shutting down (signal: ${signal}), closing database connections...`,
+    );
     if (this.isConnected) {
       await this.$disconnect();
       this.isConnected = false;

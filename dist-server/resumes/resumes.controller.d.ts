@@ -10,91 +10,44 @@ export declare class ResumesController {
     private readonly analyticsService;
     constructor(resumesService: ResumesService, exportService: ExportService, analyticsService: AnalyticsService);
     findAll(req: any, isPublic?: string, page?: string, limit?: string): Promise<{
-        data: {
-            id: any;
-            title: any;
-            slug: any;
-            userId: any;
-            viewCount: any;
-            visibility: any;
-            isOpenToWork: any;
-            openToWorkRoles: any;
-            personalInfo: {
-                name: any;
-                email: any;
-                phone: any;
-                address: any;
-                website: any;
-                github: any;
-                summary: any;
-                photo: any;
-                birthYear: any;
-                links: any;
-                military: any;
-            };
-            tags: any;
-            skills: any;
-            createdAt: any;
-            updatedAt: any;
-        }[];
-        total: number;
+        data: any;
+        total: any;
         page: number;
         totalPages: number;
         limit: number;
     }>;
     analytics(req: any): Promise<{
         summary: {
-            totalResumes: number;
-            publicResumes: number;
-            totalViews: number;
-            totalTransforms: number;
-            recentEdits: number;
+            totalResumes: any;
+            publicResumes: any;
+            totalViews: any;
+            totalTransforms: any;
+            recentEdits: $Public.PrismaPromise<T>;
         };
-        resumes: {
-            id: string;
-            title: string;
-            viewCount: number;
-            visibility: string;
-            updatedAt: string;
-        }[];
-        recentVersions: {
-            id: string;
-            versionNumber: number;
-            resumeId: string;
-            createdAt: string;
-        }[];
+        resumes: any;
+        recentVersions: any;
     }>;
     getViewers(req: any): Promise<{
         viewers: never[];
         thisWeek: number;
         lastWeek: number;
     }>;
-    getResumeTrend(resumeId: string): Promise<{
-        version: number;
-        sections: number;
-        createdAt: string;
-    }[]>;
+    getResumeTrend(resumeId: string): Promise<any>;
     getPopularSkills(): Promise<{
         name: string;
         count: number;
     }[]>;
     getResumeAnalytics(resumeId: string): Promise<{
-        viewCount: number;
-        commentCount: number;
-        bookmarkCount: number;
-        shareCount: number;
-        versionCount: number;
-        visibility: string;
-        createdAt: string;
-        updatedAt: string;
+        viewCount: any;
+        commentCount: any;
+        bookmarkCount: any;
+        shareCount: any;
+        versionCount: any;
+        visibility: any;
+        createdAt: any;
+        updatedAt: any;
     } | null>;
-    getBookmarks(req: any): Promise<{
-        id: string;
-        resumeId: string;
-        title: string;
-        name: any;
-        createdAt: string;
-    }[]>;
+    getBookmarks(req: any): Promise<any>;
     findBySlug(username: string, slug: string): Promise<{
         experiences: {
             [k: string]: any;
@@ -147,34 +100,8 @@ export declare class ResumesController {
     }>;
     findByShortCode(code: string, res: Response): Promise<Response<any, Record<string, any>>>;
     findPublicResumes(query?: string, tag?: string, sort?: string, page?: string, limit?: string): Promise<{
-        data: {
-            id: any;
-            title: any;
-            slug: any;
-            userId: any;
-            viewCount: any;
-            visibility: any;
-            isOpenToWork: any;
-            openToWorkRoles: any;
-            personalInfo: {
-                name: any;
-                email: any;
-                phone: any;
-                address: any;
-                website: any;
-                github: any;
-                summary: any;
-                photo: any;
-                birthYear: any;
-                links: any;
-                military: any;
-            };
-            tags: any;
-            skills: any;
-            createdAt: any;
-            updatedAt: any;
-        }[];
-        total: number;
+        data: any;
+        total: any;
         page: number;
         totalPages: number;
         limit: number;
@@ -183,7 +110,7 @@ export declare class ResumesController {
         bookmarked: boolean;
     }>;
     findOne(id: string, req: any): Promise<{
-        bookmarkCount: number;
+        bookmarkCount: $Public.PrismaPromise<T>;
         experiences: {
             [k: string]: any;
         }[];
@@ -284,7 +211,7 @@ export declare class ResumesController {
         updatedAt: any;
     }>;
     update(id: string, dto: UpdateResumeDto, req: any): Promise<{
-        bookmarkCount: number;
+        bookmarkCount: $Public.PrismaPromise<T>;
         experiences: {
             [k: string]: any;
         }[];

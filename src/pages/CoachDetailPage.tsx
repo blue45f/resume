@@ -2,35 +2,20 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { bookCoachingSession, fetchCoach, type CoachProfile } from '@/lib/api';
 import { getUser } from '@/lib/auth';
+import {
+  bookingSchema,
+  type BookingFormInput,
+  type BookingFormOutput,
+} from '@/shared/lib/schemas/coach';
 
 const DURATION_OPTIONS = [30, 45, 60, 90, 120];
 
 const PLATFORM_FEE_RATE = 0.15;
-
-const bookingSchema = z.object({
-  scheduledAt: z
-    .string()
-    .min(1, '일정을 선택해주세요')
-    .refine(v => !Number.isNaN(new Date(v).getTime()), '유효한 일정을 선택해주세요')
-    .refine(v => new Date(v).getTime() > Date.now(), '미래 시각을 선택해주세요'),
-  duration: z
-    .coerce.number({ invalid_type_error: '세션 시간을 선택해주세요' })
-    .int()
-    .min(15, '최소 15분 이상')
-    .max(240, '최대 240분까지 가능합니다'),
-  note: z
-    .string()
-    .max(1000, '요청사항은 최대 1000자까지 입력 가능합니다')
-    .optional(),
-});
-
-type BookingFormValues = z.infer<typeof bookingSchema>;
 
 function getDefaultDateTime() {
   const d = new Date();
@@ -54,7 +39,7 @@ export default function CoachDetailPage() {
     handleSubmit,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<BookingFormValues>({
+  } = useForm<BookingFormInput, unknown, BookingFormOutput>({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       scheduledAt: getDefaultDateTime(),
@@ -71,17 +56,27 @@ export default function CoachDetailPage() {
     setLoading(true);
     setError(null);
     fetchCoach(id)
-      .then(data => { if (!cancelled) setCoach(data); })
-      .catch(err => { if (!cancelled) setError(err?.message || '코치 정보를 불러오지 못했습니다'); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .then((data) => {
+        if (!cancelled) setCoach(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err?.message || '코치 정보를 불러오지 못했습니다');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   useEffect(() => {
     document.title = coach?.user?.name
       ? `${coach.user.name} 코치 — 이력서공방`
       : '코치 상세 — 이력서공방';
-    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+    return () => {
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
+    };
   }, [coach?.user?.name]);
 
   const priceBreakdown = useMemo(() => {
@@ -93,7 +88,7 @@ export default function CoachDetailPage() {
     return { base, fee, total };
   }, [coach?.hourlyRate, durationValue]);
 
-  const onSubmit = async (data: BookingFormValues) => {
+  const onSubmit = async (data: BookingFormOutput) => {
     if (!user) {
       toast('로그인이 필요합니다', 'error');
       navigate('/login');
@@ -141,9 +136,16 @@ export default function CoachDetailPage() {
         <main className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-12">
           <div className="imp-card p-8 text-center">
             <p className="text-4xl mb-3">⚠️</p>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">코치를 찾을 수 없습니다</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error || '요청하신 코치 정보가 존재하지 않거나 비활성 상태입니다.'}</p>
-            <Link to="/coaches" className="inline-block px-4 py-2 text-sm font-medium rounded-lg bg-rose-500 hover:bg-rose-600 text-white">
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+              코치를 찾을 수 없습니다
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              {error || '요청하신 코치 정보가 존재하지 않거나 비활성 상태입니다.'}
+            </p>
+            <Link
+              to="/coaches"
+              className="inline-block px-4 py-2 text-sm font-medium rounded-lg bg-rose-500 hover:bg-rose-600 text-white"
+            >
               코치 목록으로
             </Link>
           </div>
@@ -156,14 +158,23 @@ export default function CoachDetailPage() {
   const name = coach.user?.name || '익명 코치';
   const avatar = coach.user?.avatar || '';
   const initials = (name || 'C').slice(0, 1).toUpperCase();
-  const languages = (coach.languages || '').split(',').map(s => s.trim()).filter(Boolean);
+  const languages = (coach.languages || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   return (
     <>
       <Header />
-      <main id="main-content" className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+      <main
+        id="main-content"
+        className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+        role="main"
+      >
         <nav aria-label="경로" className="mb-4 text-xs text-slate-400 dark:text-slate-500">
-          <Link to="/coaches" className="hover:text-slate-600 dark:hover:text-slate-300">코치 찾기</Link>
+          <Link to="/coaches" className="hover:text-slate-600 dark:hover:text-slate-300">
+            코치 찾기
+          </Link>
           <span className="mx-1">/</span>
           <span className="text-slate-600 dark:text-slate-300">{name}</span>
         </nav>
@@ -174,18 +185,30 @@ export default function CoachDetailPage() {
             <div className="imp-card p-6">
               <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                 {avatar ? (
-                  <img src={avatar} alt={name} className="w-20 h-20 rounded-full object-cover bg-slate-100 dark:bg-slate-700" />
+                  <img
+                    src={avatar}
+                    alt={name}
+                    className="w-20 h-20 rounded-full object-cover bg-slate-100 dark:bg-slate-700"
+                  />
                 ) : (
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-rose-400 to-pink-600 flex items-center justify-center text-white font-bold text-2xl shadow-sm">
                     {initials}
                   </div>
                 )}
                 <div className="flex-1">
-                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">{name}</h1>
-                  <p className="text-sm text-rose-600 dark:text-rose-400 font-medium mt-0.5">{coach.specialty || '전문 분야 미설정'}</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    {name}
+                  </h1>
+                  <p className="text-sm text-rose-600 dark:text-rose-400 font-medium mt-0.5">
+                    {coach.specialty || '전문 분야 미설정'}
+                  </p>
                   <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-500 dark:text-slate-400">
                     <span className="inline-flex items-center gap-1">
-                      <svg className="w-3.5 h-3.5 text-amber-400 fill-current" viewBox="0 0 20 20" aria-hidden="true">
+                      <svg
+                        className="w-3.5 h-3.5 text-amber-400 fill-current"
+                        viewBox="0 0 20 20"
+                        aria-hidden="true"
+                      >
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                       <span className="font-semibold text-slate-700 dark:text-slate-200">
@@ -205,8 +228,16 @@ export default function CoachDetailPage() {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-5 border-t border-slate-100 dark:border-slate-700/60">
-                <Stat label="시급" value={`${(coach.hourlyRate || 0).toLocaleString()}원`} tone="rose" />
-                <Stat label="평점" value={coach.avgRating > 0 ? coach.avgRating.toFixed(1) : '—'} tone="amber" />
+                <Stat
+                  label="시급"
+                  value={`${(coach.hourlyRate || 0).toLocaleString()}원`}
+                  tone="rose"
+                />
+                <Stat
+                  label="평점"
+                  value={coach.avgRating > 0 ? coach.avgRating.toFixed(1) : '—'}
+                  tone="amber"
+                />
                 <Stat label="세션" value={`${coach.totalSessions || 0}회`} tone="blue" />
                 <Stat label="경력" value={`${coach.yearsExp || 0}년`} tone="emerald" />
               </div>
@@ -229,16 +260,25 @@ export default function CoachDetailPage() {
               </h2>
               <dl className="space-y-3 text-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                  <dt className="w-24 text-xs font-medium text-slate-400 dark:text-slate-500">가능 시간</dt>
-                  <dd className="text-slate-700 dark:text-slate-300">{coach.availableHours || '협의 필요'}</dd>
+                  <dt className="w-24 text-xs font-medium text-slate-400 dark:text-slate-500">
+                    가능 시간
+                  </dt>
+                  <dd className="text-slate-700 dark:text-slate-300">
+                    {coach.availableHours || '협의 필요'}
+                  </dd>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3">
-                  <dt className="w-24 text-xs font-medium text-slate-400 dark:text-slate-500">언어</dt>
+                  <dt className="w-24 text-xs font-medium text-slate-400 dark:text-slate-500">
+                    언어
+                  </dt>
                   <dd className="text-slate-700 dark:text-slate-300">
                     {languages.length > 0 ? (
                       <span className="flex flex-wrap gap-1.5">
-                        {languages.map(l => (
-                          <span key={l} className="px-2 py-0.5 text-[11px] rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                        {languages.map((l) => (
+                          <span
+                            key={l}
+                            className="px-2 py-0.5 text-[11px] rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                          >
                             {l}
                           </span>
                         ))}
@@ -261,7 +301,10 @@ export default function CoachDetailPage() {
               </h2>
 
               <div className="mb-3">
-                <label htmlFor="scheduledAt" className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                <label
+                  htmlFor="scheduledAt"
+                  className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1"
+                >
                   일정 *
                 </label>
                 <input
@@ -276,7 +319,10 @@ export default function CoachDetailPage() {
               </div>
 
               <div className="mb-3">
-                <label htmlFor="duration" className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                <label
+                  htmlFor="duration"
+                  className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1"
+                >
                   세션 시간 *
                 </label>
                 <select
@@ -284,8 +330,10 @@ export default function CoachDetailPage() {
                   {...register('duration')}
                   className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
                 >
-                  {DURATION_OPTIONS.map(d => (
-                    <option key={d} value={d}>{d}분</option>
+                  {DURATION_OPTIONS.map((d) => (
+                    <option key={d} value={d}>
+                      {d}분
+                    </option>
                   ))}
                 </select>
                 {errors.duration && (
@@ -294,7 +342,10 @@ export default function CoachDetailPage() {
               </div>
 
               <div className="mb-4">
-                <label htmlFor="note" className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                <label
+                  htmlFor="note"
+                  className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1"
+                >
                   요청사항
                 </label>
                 <textarea
@@ -304,26 +355,38 @@ export default function CoachDetailPage() {
                   {...register('note')}
                   className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 resize-none focus:ring-2 focus:ring-rose-500"
                 />
-                {errors.note && (
-                  <p className="text-xs text-red-500 mt-1">{errors.note.message}</p>
-                )}
+                {errors.note && <p className="text-xs text-red-500 mt-1">{errors.note.message}</p>}
               </div>
 
               {/* Price preview */}
               <div className="rounded-xl border border-rose-100 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-900/10 p-3 text-sm mb-4 space-y-1.5">
                 <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 text-xs">
-                  <span>코칭료 ({(coach.hourlyRate || 0).toLocaleString()}원 × {durationValue}분)</span>
-                  <span className="font-medium text-slate-700 dark:text-slate-200">{priceBreakdown.base.toLocaleString()}원</span>
+                  <span>
+                    코칭료 ({(coach.hourlyRate || 0).toLocaleString()}원 × {String(durationValue)}
+                    분)
+                  </span>
+                  <span className="font-medium text-slate-700 dark:text-slate-200">
+                    {priceBreakdown.base.toLocaleString()}원
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="inline-flex items-center gap-1 text-rose-700 dark:text-rose-300 font-medium">
-                    플랫폼 수수료 <span className="px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/40 text-[10px]">15%</span>
+                    플랫폼 수수료{' '}
+                    <span className="px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/40 text-[10px]">
+                      15%
+                    </span>
                   </span>
-                  <span className="font-medium text-rose-700 dark:text-rose-300">{priceBreakdown.fee.toLocaleString()}원</span>
+                  <span className="font-medium text-rose-700 dark:text-rose-300">
+                    {priceBreakdown.fee.toLocaleString()}원
+                  </span>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-rose-100 dark:border-rose-900/40">
-                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">총 결제 예정</span>
-                  <span className="text-base font-bold text-rose-600 dark:text-rose-400">{priceBreakdown.total.toLocaleString()}원</span>
+                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    총 결제 예정
+                  </span>
+                  <span className="text-base font-bold text-rose-600 dark:text-rose-400">
+                    {priceBreakdown.total.toLocaleString()}원
+                  </span>
                 </div>
               </div>
 
@@ -365,11 +428,21 @@ const TONE_MAP: Record<string, string> = {
   emerald: 'text-emerald-600 dark:text-emerald-400',
 };
 
-function Stat({ label, value, tone }: { label: string; value: string; tone: keyof typeof TONE_MAP }) {
+function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: keyof typeof TONE_MAP;
+}) {
   return (
     <div className="text-center">
       <p className={`text-base font-bold ${TONE_MAP[tone]}`}>{value}</p>
-      <p className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-0.5">{label}</p>
+      <p className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-0.5">
+        {label}
+      </p>
     </div>
   );
 }

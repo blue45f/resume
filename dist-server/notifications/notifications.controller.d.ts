@@ -2,24 +2,8 @@ import { NotificationsService } from './notifications.service';
 export declare class NotificationsController {
     private readonly service;
     constructor(service: NotificationsService);
-    getAll(req: any): never[] | Promise<{
-        link: string | null;
-        id: string;
-        createdAt: Date;
-        userId: string;
-        type: string;
-        message: string;
-        read: boolean;
-    }[]>;
-    getUnread(req: any): never[] | Promise<{
-        link: string | null;
-        id: string;
-        createdAt: Date;
-        userId: string;
-        type: string;
-        message: string;
-        read: boolean;
-    }[]>;
+    getAll(req: any): Promise<$Public.PrismaPromise<T>> | never[];
+    getUnread(req: any): Promise<$Public.PrismaPromise<T>> | never[];
     getCount(req: any): Promise<{
         count: number;
     }>;
@@ -42,12 +26,12 @@ export declare class NotificationsController {
         ids: string[];
     }, req: any): Promise<{
         success: boolean;
-        deleted: number;
+        deleted: $Public.PrismaPromise<T>;
     }> | {
         success: boolean;
     };
     cleanup(req: any): Promise<{
-        deleted: number;
+        deleted: $Public.PrismaPromise<T>;
     }> | {
         success: boolean;
     };

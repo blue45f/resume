@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as RadixDialog from '@radix-ui/react-dialog';
 
 const shortcuts = [
   { keys: ['⌘/Ctrl', 'K'], description: '글로벌 검색', category: '탐색' },
@@ -19,18 +20,20 @@ export default function KeyboardShortcuts() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+        return;
       if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
-        setOpen(prev => !prev);
+        setOpen((prev) => !prev);
       }
-      if (e.key === 'Escape') setOpen(false);
       if (e.key === 'e' && !e.ctrlKey && !e.metaKey) {
         window.location.href = '/explore';
       }
       if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
-        const searchInput = document.querySelector<HTMLInputElement>('input[type="text"][placeholder*="검색"]');
+        const searchInput = document.querySelector<HTMLInputElement>(
+          'input[type="text"][placeholder*="검색"]',
+        );
         if (searchInput) searchInput.focus();
       }
     };
@@ -38,43 +41,61 @@ export default function KeyboardShortcuts() {
     return () => document.removeEventListener('keydown', handler);
   }, []);
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in" onClick={() => setOpen(false)}>
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 animate-scale-in" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">키보드 단축키</h2>
-          <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600 text-xl" aria-label="닫기">&times;</button>
-        </div>
-        <div className="space-y-4">
-          {['편집', '미리보기', '탐색', '일반'].map(cat => {
-            const items = shortcuts.filter(s => s.category === cat);
-            if (!items.length) return null;
-            return (
-              <div key={cat}>
-                <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">{cat}</h3>
-                <div className="space-y-2">
-                  {items.map((s, i) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600 dark:text-slate-300">{s.description}</span>
-                      <div className="flex gap-1">
-                        {s.keys.map((key, j) => (
-                          <span key={j}>
-                            <kbd className="px-2 py-1 text-xs font-mono bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded border border-slate-300 dark:border-slate-600 shadow-sm">{key}</kbd>
-                            {j < s.keys.length - 1 && <span className="text-slate-400 mx-0.5">+</span>}
-                          </span>
-                        ))}
+    <RadixDialog.Root open={open} onOpenChange={setOpen}>
+      <RadixDialog.Portal>
+        <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/50 animate-fade-in" />
+        <RadixDialog.Content
+          aria-describedby={undefined}
+          className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl p-6 animate-scale-in max-h-[90vh] overflow-y-auto focus:outline-none"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <RadixDialog.Title className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+              키보드 단축키
+            </RadixDialog.Title>
+            <RadixDialog.Close asChild>
+              <button className="text-neutral-400 hover:text-neutral-600 text-xl" aria-label="닫기">
+                &times;
+              </button>
+            </RadixDialog.Close>
+          </div>
+          <div className="space-y-4">
+            {['편집', '미리보기', '탐색', '일반'].map((cat) => {
+              const items = shortcuts.filter((s) => s.category === cat);
+              if (!items.length) return null;
+              return (
+                <div key={cat}>
+                  <h3 className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-2">
+                    {cat}
+                  </h3>
+                  <div className="space-y-2">
+                    {items.map((s, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <span className="text-sm text-neutral-600 dark:text-neutral-300">
+                          {s.description}
+                        </span>
+                        <div className="flex gap-1">
+                          {s.keys.map((key, j) => (
+                            <span key={j}>
+                              <kbd className="px-2 py-1 text-xs font-mono bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded border border-neutral-300 dark:border-neutral-600 shadow-sm">
+                                {key}
+                              </kbd>
+                              {j < s.keys.length - 1 && (
+                                <span className="text-neutral-400 mx-0.5">+</span>
+                              )}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-        <p className="mt-4 text-xs text-slate-400 text-center">아무 키나 눌러 닫기</p>
-      </div>
-    </div>
+              );
+            })}
+          </div>
+          <p className="mt-4 text-xs text-neutral-400 text-center">Esc 로 닫기</p>
+        </RadixDialog.Content>
+      </RadixDialog.Portal>
+    </RadixDialog.Root>
   );
 }

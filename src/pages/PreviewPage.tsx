@@ -34,7 +34,8 @@ import ResumeStats from '@/components/ResumeStats';
 import AICareerAdvisor from '@/components/AICareerAdvisor';
 import { toast } from '@/components/Toast';
 import type { Resume } from '@/types/resume';
-import { fetchResume } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { useResume } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 import BookmarkButton from '@/components/BookmarkButton';
 import FollowButton from '@/components/FollowButton';
@@ -47,43 +48,107 @@ import ResumeAuditPanel from '@/components/ResumeAuditPanel';
 import ResumeScoreCard from '@/components/ResumeScoreCard';
 
 /** Map theme accentColor to Tailwind classes */
-const accentColorMap: Record<string, { dot: string; ring: string; bgLight: string; border: string }> = {
-  blue:   { dot: 'bg-blue-500',   ring: 'ring-blue-400',   bgLight: 'bg-blue-50',   border: 'border-blue-400' },
-  slate:  { dot: 'bg-slate-500',  ring: 'ring-slate-400',  bgLight: 'bg-slate-50',  border: 'border-slate-400' },
-  purple: { dot: 'bg-purple-500', ring: 'ring-purple-400', bgLight: 'bg-purple-50', border: 'border-purple-400' },
-  indigo: { dot: 'bg-indigo-500', ring: 'ring-indigo-400', bgLight: 'bg-indigo-50', border: 'border-indigo-400' },
-  green:  { dot: 'bg-green-500',  ring: 'ring-green-400',  bgLight: 'bg-green-50',  border: 'border-green-400' },
-  amber:  { dot: 'bg-amber-500',  ring: 'ring-amber-400',  bgLight: 'bg-amber-50',  border: 'border-amber-400' },
+const accentColorMap: Record<
+  string,
+  { dot: string; ring: string; bgLight: string; border: string }
+> = {
+  blue: {
+    dot: 'bg-blue-500',
+    ring: 'ring-blue-400',
+    bgLight: 'bg-blue-50',
+    border: 'border-blue-400',
+  },
+  slate: {
+    dot: 'bg-slate-500',
+    ring: 'ring-slate-400',
+    bgLight: 'bg-slate-50',
+    border: 'border-slate-400',
+  },
+  purple: {
+    dot: 'bg-purple-500',
+    ring: 'ring-purple-400',
+    bgLight: 'bg-purple-50',
+    border: 'border-purple-400',
+  },
+  indigo: {
+    dot: 'bg-indigo-500',
+    ring: 'ring-indigo-400',
+    bgLight: 'bg-indigo-50',
+    border: 'border-indigo-400',
+  },
+  green: {
+    dot: 'bg-green-500',
+    ring: 'ring-green-400',
+    bgLight: 'bg-green-50',
+    border: 'border-green-400',
+  },
+  amber: {
+    dot: 'bg-amber-500',
+    ring: 'ring-amber-400',
+    bgLight: 'bg-amber-50',
+    border: 'border-amber-400',
+  },
 };
 
 /** Estimate reading time for Korean resume content (~200 words/min) */
 function estimateReadingMinutes(resume: Resume): number {
   const parts: string[] = [];
-  const { personalInfo, experiences, educations, skills, projects, certifications, languages, awards, activities } = resume;
+  const {
+    personalInfo,
+    experiences,
+    educations,
+    skills,
+    projects,
+    certifications,
+    languages,
+    awards,
+    activities,
+  } = resume;
   if (personalInfo.name) parts.push(personalInfo.name);
   if (personalInfo.email) parts.push(personalInfo.email);
   if (personalInfo.phone) parts.push(personalInfo.phone);
   if (personalInfo.summary) parts.push(personalInfo.summary);
-  experiences.forEach(e => { parts.push(e.company, e.position, e.description ?? ''); });
-  educations.forEach(e => { parts.push(e.school, e.degree, e.field ?? ''); });
-  skills.forEach(s => { parts.push(s.category, s.items); });
-  projects.forEach(p => { parts.push(p.name, p.description ?? ''); });
-  certifications.forEach(c => { parts.push(c.name); });
-  languages.forEach(l => { parts.push(l.name); });
-  awards.forEach(a => { parts.push(a.name, a.description ?? ''); });
-  activities.forEach(a => { parts.push(a.name, a.description ?? ''); });
+  experiences.forEach((e) => {
+    parts.push(e.company, e.position, e.description ?? '');
+  });
+  educations.forEach((e) => {
+    parts.push(e.school, e.degree, e.field ?? '');
+  });
+  skills.forEach((s) => {
+    parts.push(s.category, s.items);
+  });
+  projects.forEach((p) => {
+    parts.push(p.name, p.description ?? '');
+  });
+  certifications.forEach((c) => {
+    parts.push(c.name);
+  });
+  languages.forEach((l) => {
+    parts.push(l.name);
+  });
+  awards.forEach((a) => {
+    parts.push(a.name, a.description ?? '');
+  });
+  activities.forEach((a) => {
+    parts.push(a.name, a.description ?? '');
+  });
   const totalChars = parts.join(' ').length;
   // Korean: ~2 chars/word on average => chars/2 = word count => /200 = minutes
   const minutes = Math.max(1, Math.ceil(totalChars / 2 / 200));
   return minutes;
 }
 
-
 export default function PreviewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [resume, setResume] = useState<Resume | null>(null);
-  const [notFound, setNotFound] = useState(false);
+  const queryClient = useQueryClient();
+  const { data: resumeData, error: resumeError } = useResume(id);
+  const resume: Resume | null = (resumeData as Resume | undefined) ?? null;
+  const notFound = !!resumeError;
+  const setResume = (r: Resume | ((prev: Resume | null) => Resume | null) | null) => {
+    queryClient.setQueryData(['resume', id], typeof r === 'function' ? r(resume) : r);
+  };
+  // setNotFound handled by query error state
   const [showTransform, setShowTransform] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
@@ -108,7 +173,9 @@ export default function PreviewPage() {
 
   const reactToPrint = useReactToPrint({
     contentRef,
-    documentTitle: resume ? `${resume.personalInfo?.name || resume.title || '이력서'}_${new Date().toISOString().slice(0, 10)}` : '이력서',
+    documentTitle: resume
+      ? `${resume.personalInfo?.name || resume.title || '이력서'}_${new Date().toISOString().slice(0, 10)}`
+      : '이력서',
   });
 
   const handlePrint = useCallback(() => {
@@ -141,7 +208,11 @@ export default function PreviewPage() {
   }, [resume, shareUrl]);
 
   const handleShareLinkedIn = useCallback(() => {
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank', 'noopener');
+    window.open(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+      '_blank',
+      'noopener',
+    );
     setShowShareMenu(false);
   }, [shareUrl]);
 
@@ -153,12 +224,12 @@ export default function PreviewPage() {
     setShowShareMenu(false);
   }, [shareUrl]);
 
-  const readingMinutes = useMemo(() => resume ? estimateReadingMinutes(resume) : 0, [resume]);
+  const readingMinutes = useMemo(() => (resume ? estimateReadingMinutes(resume) : 0), [resume]);
 
   // Zoom handlers
   const handleZoomIn = useCallback(() => {
     setFitToWidth(false);
-    setZoomLevel(prev => {
+    setZoomLevel((prev) => {
       const idx = ZOOM_LEVELS.indexOf(prev as (typeof ZOOM_LEVELS)[number]);
       if (idx >= 0 && idx < ZOOM_LEVELS.length - 1) return ZOOM_LEVELS[idx + 1];
       return prev;
@@ -167,7 +238,7 @@ export default function PreviewPage() {
 
   const handleZoomOut = useCallback(() => {
     setFitToWidth(false);
-    setZoomLevel(prev => {
+    setZoomLevel((prev) => {
       const idx = ZOOM_LEVELS.indexOf(prev as (typeof ZOOM_LEVELS)[number]);
       if (idx > 0) return ZOOM_LEVELS[idx - 1];
       return prev;
@@ -175,15 +246,21 @@ export default function PreviewPage() {
   }, []);
 
   const handleFitToWidth = useCallback(() => {
-    setFitToWidth(prev => !prev);
+    setFitToWidth((prev) => !prev);
   }, []);
 
   const handleFullscreen = useCallback(() => {
     if (!previewWrapperRef.current) return;
     if (!document.fullscreenElement) {
-      previewWrapperRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+      previewWrapperRef.current
+        .requestFullscreen()
+        .then(() => setIsFullscreen(true))
+        .catch(() => {});
     } else {
-      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+      document
+        .exitFullscreen()
+        .then(() => setIsFullscreen(false))
+        .catch(() => {});
     }
   }, []);
 
@@ -210,19 +287,12 @@ export default function PreviewPage() {
   }, [showShareMenu]);
 
   const loadResume = () => {
-    if (!id) return;
-    setNotFound(false);
-    fetchResume(id)
-      .then(r => {
-        setResume(r);
-        if (r) addRecentView(r.id, r.title || '이력서', r.personalInfo?.name);
-      })
-      .catch(() => setNotFound(true));
+    queryClient.invalidateQueries({ queryKey: ['resume', id] });
   };
 
   useEffect(() => {
-    loadResume();
-  }, [id]);
+    if (resume) addRecentView(resume.id, resume.title || '이력서', resume.personalInfo?.name);
+  }, [resume?.id]);
 
   useEffect(() => {
     if (resume) {
@@ -232,7 +302,11 @@ export default function PreviewPage() {
 
       const setMeta = (property: string, content: string) => {
         let tag = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement;
-        if (!tag) { tag = document.createElement('meta'); tag.setAttribute('property', property); document.head.appendChild(tag); }
+        if (!tag) {
+          tag = document.createElement('meta');
+          tag.setAttribute('property', property);
+          document.head.appendChild(tag);
+        }
         tag.content = content;
       };
       setMeta('og:title', `${name} — 이력서공방`);
@@ -240,7 +314,9 @@ export default function PreviewPage() {
       setMeta('og:url', window.location.href);
       setMeta('og:type', 'profile');
     }
-    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+    return () => {
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
+    };
   }, [resume]);
 
   if (notFound) {
@@ -249,11 +325,25 @@ export default function PreviewPage() {
         <Header />
         <main id="main-content" className="flex-1 flex items-center justify-center" role="main">
           <div className="text-center px-4 animate-fade-in">
-            <svg className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
-            <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">이력서를 불러올 수 없습니다</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">서버가 시작 중이거나 일시적 오류일 수 있습니다</p>
+            <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">
+              이력서를 불러올 수 없습니다
+            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+              서버가 시작 중이거나 일시적 오류일 수 있습니다
+            </p>
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={loadResume}
@@ -289,7 +379,7 @@ export default function PreviewPage() {
             <div className="h-4 bg-slate-100 rounded w-4/6 mb-8" />
             <div className="h-6 bg-slate-200 rounded w-24 mb-4" />
             <div className="space-y-3">
-              {[1,2,3].map(i => (
+              {[1, 2, 3].map((i) => (
                 <div key={i}>
                   <div className="h-5 bg-slate-100 rounded w-3/4 mb-1" />
                   <div className="h-3 bg-slate-50 rounded w-full" />
@@ -324,7 +414,14 @@ export default function PreviewPage() {
                 aria-label="편집"
                 title="편집"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
               </button>
               {/* Reading time indicator */}
               <span className="text-slate-300 hidden sm:inline">|</span>
@@ -340,47 +437,186 @@ export default function PreviewPage() {
             {/* Desktop action buttons — grouped */}
             <div className="hidden sm:flex items-center gap-1.5">
               {/* Primary: AI 기능 */}
-              <button onClick={() => navigate(`/resumes/${id}/review`)} className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors">리뷰</button>
-              <button onClick={() => setShowAiAnalysis(true)} className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors">AI 분석</button>
-              <button onClick={() => setShowJdMatch(true)} className="px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition-colors">JD 매칭</button>
-              <button onClick={() => navigate(`/cover-letter?resumeId=${id}`)} className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors" title="이 이력서를 기반으로 자소서 작성">자소서</button>
-              <button onClick={() => navigate(`/interview-prep?resumeId=${id}`)} className="px-3 py-1.5 bg-pink-600 text-white text-xs font-medium rounded-lg hover:bg-pink-700 transition-colors" title="이 이력서 기반 면접 준비">면접준비</button>
-              <button onClick={() => setShowScoreCard(true)} className="px-3 py-1.5 bg-violet-600 text-white text-xs font-medium rounded-lg hover:bg-violet-700 transition-colors" title="점수 공유 카드">점수 공유</button>
-              <button onClick={() => setShowTransform(true)} className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors">변환</button>
-              <button onClick={handlePrint} disabled={printPreparing} className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-70 transition-colors">
+              <button
+                onClick={() => navigate(`/resumes/${id}/review`)}
+                className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors"
+              >
+                리뷰
+              </button>
+              <button
+                onClick={() => setShowAiAnalysis(true)}
+                className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+              >
+                AI 분석
+              </button>
+              <button
+                onClick={() => setShowJdMatch(true)}
+                className="px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition-colors"
+              >
+                JD 매칭
+              </button>
+              <button
+                onClick={() => navigate(`/cover-letter?resumeId=${id}`)}
+                className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                title="이 이력서를 기반으로 자소서 작성"
+              >
+                자소서
+              </button>
+              <button
+                onClick={() => navigate(`/interview-prep?resumeId=${id}`)}
+                className="px-3 py-1.5 bg-pink-600 text-white text-xs font-medium rounded-lg hover:bg-pink-700 transition-colors"
+                title="이 이력서 기반 면접 준비"
+              >
+                면접준비
+              </button>
+              <button
+                onClick={() => setShowScoreCard(true)}
+                className="px-3 py-1.5 bg-violet-600 text-white text-xs font-medium rounded-lg hover:bg-violet-700 transition-colors"
+                title="점수 공유 카드"
+              >
+                점수 공유
+              </button>
+              <button
+                onClick={() => setShowTransform(true)}
+                className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                변환
+              </button>
+              <button
+                onClick={handlePrint}
+                disabled={printPreparing}
+                className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-70 transition-colors"
+              >
                 {printPreparing ? '준비 중...' : 'PDF'}
               </button>
 
               {/* Secondary: 더보기 드롭다운 */}
               <div className="relative">
                 <button
-                  onClick={() => setShowMoreMenu(v => !v)}
+                  onClick={() => setShowMoreMenu((v) => !v)}
                   className="px-2.5 py-1.5 text-slate-600 bg-slate-100 text-xs font-medium rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-1"
                 >
                   더보기
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </button>
                 {showMoreMenu && (
                   <div className="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 py-1 animate-scale-in">
-                    <button onClick={() => { handleCopyLink(); setShowMoreMenu(false); }} className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" /></svg>
+                    <button
+                      onClick={() => {
+                        handleCopyLink();
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                    >
+                      <svg
+                        className="w-4 h-4 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101"
+                        />
+                      </svg>
                       링크 복사
                     </button>
-                    <button onClick={() => { setShowShareMenu(true); setShowMoreMenu(false); }} className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316" /></svg>
+                    <button
+                      onClick={() => {
+                        setShowShareMenu(true);
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                    >
+                      <svg
+                        className="w-4 h-4 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8.684 13.342a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316"
+                        />
+                      </svg>
                       SNS 공유
                     </button>
-                    <button onClick={() => { setShowQr(true); setShowMoreMenu(false); }} className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h2M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                    <button
+                      onClick={() => {
+                        setShowQr(true);
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                    >
+                      <svg
+                        className="w-4 h-4 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h2M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                        />
+                      </svg>
                       QR 코드
                     </button>
                     <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
-                    <button onClick={() => { setShowAttachments(true); setShowMoreMenu(false); }} className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                    <button
+                      onClick={() => {
+                        setShowAttachments(true);
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                    >
+                      <svg
+                        className="w-4 h-4 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                        />
+                      </svg>
                       첨부파일
                     </button>
-                    <button onClick={() => { setShowVersions(true); setShowMoreMenu(false); }} className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <button
+                      onClick={() => {
+                        setShowVersions(true);
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                    >
+                      <svg
+                        className="w-4 h-4 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
                       버전 관리
                     </button>
                   </div>
@@ -391,12 +627,16 @@ export default function PreviewPage() {
               {resume.visibility === 'public' && <BookmarkButton resumeId={id!} />}
               {(() => {
                 const currentUser = getUser();
-                const isOtherUser = currentUser && resume.userId && currentUser.id !== resume.userId;
+                const isOtherUser =
+                  currentUser && resume.userId && currentUser.id !== resume.userId;
                 if (!isOtherUser) return null;
                 return (
                   <>
                     <FollowButton userId={resume.userId!} />
-                    <SendMessageButton userId={resume.userId!} userName={resume.personalInfo.name || '사용자'} />
+                    <SendMessageButton
+                      userId={resume.userId!}
+                      userName={resume.personalInfo.name || '사용자'}
+                    />
                   </>
                 );
               })()}
@@ -405,13 +645,18 @@ export default function PreviewPage() {
 
           {/* Theme selector — visual thumbnail strip */}
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-2.5 flex items-center gap-2 overflow-x-auto scrollbar-none">
-            {resumeThemes.map(t => {
+            {resumeThemes.map((t) => {
               const currentUser = getUser();
-              const isAdminUser = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
-              const locked = t.premium && !isAdminUser && (!currentUser?.plan || currentUser.plan === 'free');
+              const isAdminUser =
+                currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+              const locked =
+                t.premium && !isAdminUser && (!currentUser?.plan || currentUser.plan === 'free');
               const colors = accentColorMap[t.accentColor] || accentColorMap.slate;
               const isSelected = themeId === t.id;
-              const hasColorHeader = t.headerStyle.includes('bg-gradient') || t.headerStyle.includes('bg-[') || t.headerStyle.includes('bg-slate-900');
+              const hasColorHeader =
+                t.headerStyle.includes('bg-gradient') ||
+                t.headerStyle.includes('bg-[') ||
+                t.headerStyle.includes('bg-slate-900');
 
               return (
                 <button
@@ -419,27 +664,36 @@ export default function PreviewPage() {
                   onClick={() => !locked && setThemeId(t.id)}
                   disabled={locked}
                   className={`flex-shrink-0 flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all duration-200 border-2 ${
-                    locked ? 'opacity-40 cursor-not-allowed border-transparent' :
-                    isSelected
-                      ? `border-blue-500 bg-blue-50 shadow-sm ring-1 ${colors.ring}`
-                      : 'border-transparent hover:border-slate-200 hover:bg-slate-50'
+                    locked
+                      ? 'opacity-40 cursor-not-allowed border-transparent'
+                      : isSelected
+                        ? `border-blue-500 bg-blue-50 shadow-sm ring-1 ${colors.ring}`
+                        : 'border-transparent hover:border-slate-200 hover:bg-slate-50'
                   }`}
                   title={locked ? '프로 플랜 전용' : t.description}
                 >
                   {/* Mini preview swatch */}
                   <div className="w-14 h-10 rounded-md overflow-hidden border border-slate-200 bg-white relative">
                     {/* Header bar preview */}
-                    <div className={`h-3.5 w-full ${
-                      hasColorHeader
-                        ? t.headerStyle.includes('from-purple') ? 'bg-gradient-to-r from-purple-500 via-pink-400 to-orange-400'
-                        : t.headerStyle.includes('from-indigo') ? 'bg-gradient-to-r from-indigo-500 via-blue-400 to-cyan-400'
-                        : t.headerStyle.includes('from-pink') ? 'bg-gradient-to-r from-pink-200 via-purple-200 to-blue-200'
-                        : t.headerStyle.includes('bg-[#0d1117]') ? 'bg-[#0d1117]'
-                        : t.headerStyle.includes('bg-[#1a1a2e]') ? 'bg-[#1a1a2e]'
-                        : t.headerStyle.includes('bg-slate-900') ? 'bg-slate-800'
-                        : colors.dot
-                        : colors.bgLight
-                    }`} />
+                    <div
+                      className={`h-3.5 w-full ${
+                        hasColorHeader
+                          ? t.headerStyle.includes('from-purple')
+                            ? 'bg-gradient-to-r from-purple-500 via-pink-400 to-orange-400'
+                            : t.headerStyle.includes('from-indigo')
+                              ? 'bg-gradient-to-r from-indigo-500 via-blue-400 to-cyan-400'
+                              : t.headerStyle.includes('from-pink')
+                                ? 'bg-gradient-to-r from-pink-200 via-purple-200 to-blue-200'
+                                : t.headerStyle.includes('bg-[#0d1117]')
+                                  ? 'bg-[#0d1117]'
+                                  : t.headerStyle.includes('bg-[#1a1a2e]')
+                                    ? 'bg-[#1a1a2e]'
+                                    : t.headerStyle.includes('bg-slate-900')
+                                      ? 'bg-slate-800'
+                                      : colors.dot
+                          : colors.bgLight
+                      }`}
+                    />
                     {/* Body lines preview */}
                     <div className="px-1.5 pt-1 space-y-0.5">
                       <div className={`h-0.5 w-full rounded-full ${colors.dot} opacity-60`} />
@@ -447,11 +701,15 @@ export default function PreviewPage() {
                       <div className="h-0.5 w-5/6 rounded-full bg-slate-200" />
                     </div>
                     {/* Accent dot */}
-                    <div className={`absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full ${colors.dot}`} />
+                    <div
+                      className={`absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full ${colors.dot}`}
+                    />
                   </div>
                   <div className="flex items-center gap-1">
                     <span className={`w-2 h-2 rounded-full ${colors.dot}`} />
-                    <span className={`text-[10px] leading-none whitespace-nowrap ${isSelected ? 'font-semibold text-blue-700' : 'text-slate-500'}`}>
+                    <span
+                      className={`text-[10px] leading-none whitespace-nowrap ${isSelected ? 'font-semibold text-blue-700' : 'text-slate-500'}`}
+                    >
                       {t.name}
                     </span>
                     {locked && <span className="text-[10px]">🔒</span>}
@@ -483,20 +741,29 @@ export default function PreviewPage() {
               { value: "'Georgia', serif", label: 'Georgia (영문)' },
               { value: "'Times New Roman', serif", label: 'Times (영문)' },
             ];
-            const isOwner = (() => { const u = getUser(); return u && resume && (u.id === resume.userId || u.role === 'admin' || u.role === 'superadmin'); })();
+            const isOwner = (() => {
+              const u = getUser();
+              return (
+                u &&
+                resume &&
+                (u.id === resume.userId || u.role === 'admin' || u.role === 'superadmin')
+              );
+            })();
             if (!isOwner) return null;
             return (
               <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-3 flex flex-wrap items-center gap-3">
                 {/* Color presets */}
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] text-slate-400 mr-0.5">색상</span>
-                  {PRESET_COLORS.map(c => (
+                  {PRESET_COLORS.map((c) => (
                     <button
                       key={c.hex || 'default'}
                       onClick={() => setCustomAccentHex(c.hex)}
                       title={c.label}
                       className={`w-5 h-5 rounded-full border-2 transition-transform hover:scale-110 ${
-                        customAccentHex === c.hex ? 'border-slate-900 dark:border-slate-100 scale-110' : 'border-transparent'
+                        customAccentHex === c.hex
+                          ? 'border-slate-900 dark:border-slate-100 scale-110'
+                          : 'border-transparent'
                       }`}
                       style={{ background: c.hex || '#94a3b8' }}
                     />
@@ -505,7 +772,7 @@ export default function PreviewPage() {
                     <input
                       type="color"
                       value={customAccentHex || '#6366f1'}
-                      onChange={e => setCustomAccentHex(e.target.value)}
+                      onChange={(e) => setCustomAccentHex(e.target.value)}
                       className="w-5 h-5 rounded cursor-pointer border border-slate-200 p-0 overflow-hidden"
                       style={{ padding: '1px' }}
                     />
@@ -526,11 +793,13 @@ export default function PreviewPage() {
                   <span className="text-[10px] text-slate-400">폰트</span>
                   <select
                     value={customFont}
-                    onChange={e => setCustomFont(e.target.value)}
+                    onChange={(e) => setCustomFont(e.target.value)}
                     className="text-[11px] px-2 py-0.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 focus:ring-1 focus:ring-blue-400"
                   >
-                    {FONTS.map(f => (
-                      <option key={f.value} value={f.value}>{f.label}</option>
+                    {FONTS.map((f) => (
+                      <option key={f.value} value={f.value}>
+                        {f.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -561,14 +830,20 @@ export default function PreviewPage() {
                   resumeId={id!}
                   currentSlug={resume.slug}
                   ownerName={resume.personalInfo.name}
-                  onSlugUpdated={(newSlug) => setResume(prev => prev ? { ...prev, slug: newSlug } : prev)}
+                  onSlugUpdated={(newSlug) =>
+                    setResume((prev) => (prev ? { ...prev, slug: newSlug } : prev))
+                  }
                 />
               );
             })()}
 
             <CompletenessBar resume={resume} />
             <ResumeAuditPanel resume={resume} />
-            <Suspense fallback={<div className="h-24 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />}>
+            <Suspense
+              fallback={
+                <div className="h-24 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />
+              }
+            >
               <ResumeScoreboard resume={resume} />
               <SalaryEstimate resume={resume} />
               <AtsScorePanel resume={resume} />
@@ -597,13 +872,18 @@ export default function PreviewPage() {
                 aria-label="축소"
                 title="축소"
               >
-                <svg className="w-4 h-4 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-4 h-4 text-slate-600 dark:text-slate-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
                 </svg>
               </button>
               <select
                 value={fitToWidth ? 'fit' : zoomLevel}
-                onChange={e => {
+                onChange={(e) => {
                   if (e.target.value === 'fit') {
                     setFitToWidth(true);
                   } else {
@@ -614,8 +894,10 @@ export default function PreviewPage() {
                 className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-transparent border-none focus:ring-0 cursor-pointer px-1 py-0.5 text-center"
                 aria-label="확대 비율"
               >
-                {ZOOM_LEVELS.map(z => (
-                  <option key={z} value={z}>{z}%</option>
+                {ZOOM_LEVELS.map((z) => (
+                  <option key={z} value={z}>
+                    {z}%
+                  </option>
                 ))}
                 <option value="fit">맞춤</option>
               </select>
@@ -626,8 +908,18 @@ export default function PreviewPage() {
                 aria-label="확대"
                 title="확대"
               >
-                <svg className="w-4 h-4 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <svg
+                  className="w-4 h-4 text-slate-600 dark:text-slate-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
               </button>
             </div>
@@ -643,7 +935,12 @@ export default function PreviewPage() {
                 title="너비에 맞추기"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                  />
                 </svg>
               </button>
               <button
@@ -654,11 +951,21 @@ export default function PreviewPage() {
               >
                 {isFullscreen ? (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 ) : (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                    />
                   </svg>
                 )}
               </button>
@@ -694,7 +1001,7 @@ export default function PreviewPage() {
             {!fitToWidth && zoomLevel >= 100 && (
               <div className="no-print absolute inset-0 pointer-events-none" aria-hidden="true">
                 {/* A4 page height ~297mm, show indicator every 297mm * (zoomLevel/100) */}
-                {[1, 2, 3].map(page => (
+                {[1, 2, 3].map((page) => (
                   <div
                     key={page}
                     className="absolute left-0 right-0 border-t-2 border-dashed border-red-300/60"
@@ -712,7 +1019,11 @@ export default function PreviewPage() {
           <div className="max-w-[210mm] mx-auto mt-3 px-1">
             <ResumeStats resume={resume} />
           </div>
-          <Suspense fallback={<div className="max-w-[210mm] mx-auto mt-6 h-32 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />}>
+          <Suspense
+            fallback={
+              <div className="max-w-[210mm] mx-auto mt-6 h-32 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />
+            }
+          >
             <div className="max-w-[210mm] mx-auto mt-6">
               <CommentSection resumeId={id!} isPublic={resume.visibility === 'public'} />
             </div>
@@ -725,7 +1036,7 @@ export default function PreviewPage() {
           <div className="flex items-center justify-around px-2 py-2 gap-1">
             <div className="relative" ref={shareMenuRef}>
               <button
-                onClick={() => setShowShareMenu(v => !v)}
+                onClick={() => setShowShareMenu((v) => !v)}
                 className="flex flex-col items-center gap-0.5 px-2 py-1 text-slate-600 rounded-lg active:bg-slate-100 transition-colors"
               >
                 <span className="text-base">🔗</span>
@@ -733,16 +1044,28 @@ export default function PreviewPage() {
               </button>
               {showShareMenu && (
                 <div className="absolute bottom-full left-0 mb-2 w-44 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg z-50">
-                  <button onClick={handleCopyLink} className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 rounded-t-xl">
+                  <button
+                    onClick={handleCopyLink}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 rounded-t-xl"
+                  >
                     🔗 링크 복사
                   </button>
-                  <button onClick={handleShareKakao} className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+                  <button
+                    onClick={handleShareKakao}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
+                  >
                     💬 KakaoTalk
                   </button>
-                  <button onClick={handleShareLinkedIn} className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+                  <button
+                    onClick={handleShareLinkedIn}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
+                  >
                     💼 LinkedIn
                   </button>
-                  <button onClick={handleShareEmail} className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 rounded-b-xl">
+                  <button
+                    onClick={handleShareEmail}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 rounded-b-xl"
+                  >
                     📧 Email
                   </button>
                 </div>
@@ -815,7 +1138,9 @@ export default function PreviewPage() {
           <VersionPanel
             resumeId={id}
             onClose={() => setShowVersions(false)}
-            onRestore={() => { fetchResume(id).then(setResume); }}
+            onRestore={() => {
+              queryClient.invalidateQueries({ queryKey: ['resume', id] });
+            }}
           />
         </Suspense>
       )}

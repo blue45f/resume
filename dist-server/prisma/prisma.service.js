@@ -13,19 +13,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PrismaService = void 0;
 const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
+const adapter_pg_1 = require("@prisma/adapter-pg");
 let PrismaService = PrismaService_1 = class PrismaService extends client_1.PrismaClient {
     logger = new common_1.Logger(PrismaService_1.name);
     isConnected = false;
     constructor() {
+        const url = process.env.DATABASE_URL;
+        if (!url) {
+            throw new Error('DATABASE_URL environment variable is required');
+        }
         super({
             log: process.env.NODE_ENV !== 'production'
                 ? [{ emit: 'event', level: 'query' }]
                 : [{ emit: 'event', level: 'warn' }, { emit: 'event', level: 'error' }],
-            datasources: {
-                db: {
-                    url: process.env.DATABASE_URL,
-                },
-            },
+            adapter: new adapter_pg_1.PrismaPg({ connectionString: url }),
         });
         if (process.env.NODE_ENV !== 'production') {
             this.$on('query', (e) => {

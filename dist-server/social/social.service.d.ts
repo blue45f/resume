@@ -12,20 +12,8 @@ export declare class SocialService {
     unfollow(followerId: string, followingId: string): Promise<{
         followed: boolean;
     }>;
-    getFollowers(userId: string): Promise<{
-        followedAt: Date;
-        id: string;
-        email: string;
-        name: string;
-        avatar: string;
-    }[]>;
-    getFollowing(userId: string): Promise<{
-        followedAt: Date;
-        id: string;
-        email: string;
-        name: string;
-        avatar: string;
-    }[]>;
+    getFollowers(userId: string): Promise<any>;
+    getFollowing(userId: string): Promise<any>;
     isFollowing(followerId: string, followingId: string): Promise<boolean>;
     sendScout(senderId: string, data: {
         receiverId: string;
@@ -33,62 +21,12 @@ export declare class SocialService {
         company: string;
         position: string;
         message: string;
-    }): Promise<{
-        id: string;
-        createdAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        message: string;
-        read: boolean;
-        status: string;
-        senderId: string;
-        receiverId: string;
-    }>;
-    getReceivedScouts(userId: string): Promise<({
-        sender: {
-            id: string;
-            email: string;
-            name: string;
-        };
-    } & {
-        id: string;
-        createdAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        message: string;
-        read: boolean;
-        status: string;
-        senderId: string;
-        receiverId: string;
-    })[]>;
+    }): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ScoutMessagePayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
+    getReceivedScouts(userId: string): Promise<$Public.PrismaPromise<T>>;
     markScoutRead(id: string, userId: string): Promise<{
         success: boolean;
     }>;
-    getSentScouts(userId: string): Promise<({
-        sender: {
-            id: string;
-            email: string;
-            name: string;
-        };
-        receiver: {
-            id: string;
-            email: string;
-            name: string;
-        };
-    } & {
-        id: string;
-        createdAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        message: string;
-        read: boolean;
-        status: string;
-        senderId: string;
-        receiverId: string;
-    })[]>;
+    getSentScouts(userId: string): Promise<$Public.PrismaPromise<T>>;
     respondToScout(id: string, userId: string, status: string): Promise<{
         success: boolean;
     }>;
@@ -102,42 +40,23 @@ export declare class SocialService {
         results: ({
             receiverId: string;
             success: boolean;
-            id: string;
+            id: any;
         } | {
             receiverId: string;
             success: boolean;
             id?: undefined;
         })[];
     }>;
-    sendMessage(senderId: string, receiverId: string, content: string): Promise<{
-        id: string;
-        createdAt: Date;
-        content: string;
-        read: boolean;
-        senderId: string;
-        receiverId: string;
-    }>;
+    sendMessage(senderId: string, receiverId: string, content: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$DirectMessagePayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
     getConversations(userId: string): Promise<{
-        partner: {
-            id: string;
-            email: string;
-            name: string;
-            avatar: string;
-        };
+        partner: any;
         lastMessage: {
-            content: string;
-            createdAt: Date;
+            content: any;
+            createdAt: any;
             isMine: boolean;
         };
-        unreadCount: number;
+        unreadCount: $Public.PrismaPromise<T>;
     }[]>;
-    getMessages(userId: string, partnerId: string): Promise<{
-        id: string;
-        createdAt: Date;
-        content: string;
-        read: boolean;
-        senderId: string;
-        receiverId: string;
-    }[]>;
+    getMessages(userId: string, partnerId: string): Promise<$Public.PrismaPromise<T>>;
     getUnreadMessageCount(userId: string): Promise<number>;
 }

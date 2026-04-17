@@ -7,81 +7,11 @@ export declare class TemplatesController {
     private readonly localTransformService;
     private readonly resumesService;
     constructor(templatesService: TemplatesService, localTransformService: LocalTransformService, resumesService: ResumesService);
-    findAll(): Promise<{
-        description: string;
-        id: string;
-        name: string;
-        createdAt: Date;
-        userId: string | null;
-        visibility: string;
-        updatedAt: Date;
-        category: string;
-        prompt: string;
-        layout: string;
-        usageCount: number;
-        rating: number | null;
-        isDefault: boolean;
-    }[]>;
-    findPublicTemplates(category?: string): Promise<{
-        description: string;
-        id: string;
-        name: string;
-        createdAt: Date;
-        userId: string | null;
-        visibility: string;
-        updatedAt: Date;
-        category: string;
-        prompt: string;
-        layout: string;
-        usageCount: number;
-        rating: number | null;
-        isDefault: boolean;
-    }[]>;
-    findOne(id: string): Promise<{
-        description: string;
-        id: string;
-        name: string;
-        createdAt: Date;
-        userId: string | null;
-        visibility: string;
-        updatedAt: Date;
-        category: string;
-        prompt: string;
-        layout: string;
-        usageCount: number;
-        rating: number | null;
-        isDefault: boolean;
-    }>;
-    create(dto: CreateTemplateDto, req: any): Promise<{
-        description: string;
-        id: string;
-        name: string;
-        createdAt: Date;
-        userId: string | null;
-        visibility: string;
-        updatedAt: Date;
-        category: string;
-        prompt: string;
-        layout: string;
-        usageCount: number;
-        rating: number | null;
-        isDefault: boolean;
-    }>;
-    update(id: string, dto: UpdateTemplateDto, req: any): Promise<{
-        description: string;
-        id: string;
-        name: string;
-        createdAt: Date;
-        userId: string | null;
-        visibility: string;
-        updatedAt: Date;
-        category: string;
-        prompt: string;
-        layout: string;
-        usageCount: number;
-        rating: number | null;
-        isDefault: boolean;
-    }>;
+    findAll(): Promise<$Public.PrismaPromise<T>>;
+    findPublicTemplates(category?: string): Promise<$Public.PrismaPromise<T>>;
+    findOne(id: string): Promise<any>;
+    create(dto: CreateTemplateDto, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$TemplatePayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
+    update(id: string, dto: UpdateTemplateDto, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$TemplatePayload<ExtArgs>, T, "update", GlobalOmitOptions>>;
     remove(id: string, req: any): Promise<{
         success: boolean;
     }>;
@@ -91,7 +21,7 @@ export declare class TemplatesController {
     localTransform(resumeId: string, dto: LocalTransformDto): Promise<{
         text: string;
         method: string;
-        templateName: string;
+        templateName: any;
         preset?: undefined;
     } | {
         text: string;

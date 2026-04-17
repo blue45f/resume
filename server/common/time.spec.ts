@@ -4,7 +4,6 @@
  * src/lib/time.ts의 timeAgo 함수를 테스트합니다.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { timeAgo } = require('../../src/shared/lib/time');
 
 describe('timeAgo', () => {

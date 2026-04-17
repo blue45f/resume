@@ -4,17 +4,8 @@ export declare class ForbiddenWordsController {
     constructor(service: ForbiddenWordsService);
     private isAdmin;
     findAll(category?: string, search?: string, page?: string, limit?: string, req?: any): Promise<{
-        items: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            category: string;
-            word: string;
-            severity: string;
-            isActive: boolean;
-            createdBy: string | null;
-        }[];
-        total: number;
+        items: any;
+        total: any;
         page: number;
         limit: number;
         totalPages: number;
@@ -23,10 +14,7 @@ export declare class ForbiddenWordsController {
         total: number;
     };
     getStats(req: any): {};
-    getCategories(req: any): never[] | Promise<{
-        category: string;
-        count: number;
-    }[]>;
+    getCategories(req: any): Promise<any> | never[];
     check(body: {
         text: string;
     }): Promise<{
@@ -38,16 +26,7 @@ export declare class ForbiddenWordsController {
         word: string;
         category?: string;
         severity?: string;
-    }, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        category: string;
-        word: string;
-        severity: string;
-        isActive: boolean;
-        createdBy: string | null;
-    }> | {
+    }, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ForbiddenWordPayload<ExtArgs>, T, "create", GlobalOmitOptions>> | {
         error: string;
     };
     createBulk(body: {
@@ -65,16 +44,7 @@ export declare class ForbiddenWordsController {
         category?: string;
         severity?: string;
         isActive?: boolean;
-    }, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        category: string;
-        word: string;
-        severity: string;
-        isActive: boolean;
-        createdBy: string | null;
-    }> | {
+    }, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ForbiddenWordPayload<ExtArgs>, T, "update", GlobalOmitOptions>> | {
         error: string;
     };
     removeBulk(body: {

@@ -5,7 +5,6 @@
  * src/lib/plans.ts는 프론트엔드 코드이지만 순수 함수로만 구성되어 있으므로
  * 동일한 로직을 직접 임포트하여 테스트합니다.
  */ // ts-jest의 tsconfig가 server/**만 포함하므로 직접 require로 로드
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const plans = require('../../src/lib/plans');
 const { PLANS, RECRUITER_PLANS, getPlansForUserType, getPlan, canAccess, formatPrice } = plans;
 describe('plans utility', ()=>{

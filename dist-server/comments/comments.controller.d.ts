@@ -3,24 +3,8 @@ import { CreateCommentDto } from './dto/comment.dto';
 export declare class CommentsController {
     private readonly service;
     constructor(service: CommentsService);
-    findAll(resumeId: string): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        resumeId: string;
-        content: string;
-        authorName: string;
-        parentId: string | null;
-    }[]>;
-    create(resumeId: string, dto: CreateCommentDto, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        resumeId: string;
-        content: string;
-        authorName: string;
-        parentId: string | null;
-    }>;
+    findAll(resumeId: string): Promise<$Public.PrismaPromise<T>>;
+    create(resumeId: string, dto: CreateCommentDto, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CommentPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
     remove(commentId: string, req: any): Promise<{
         success: boolean;
     }>;

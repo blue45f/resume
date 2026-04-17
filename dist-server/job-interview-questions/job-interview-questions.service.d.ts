@@ -33,47 +33,8 @@ export declare class JobInterviewQuestionsService {
     private prisma;
     private llm;
     constructor(prisma: PrismaService, llm: LlmService);
-    list(query: ListJobInterviewQuestionsQuery, userId?: string | null): Promise<{
-        myVote: boolean;
-        _count: {
-            votes: number;
-        };
-        author: {
-            id: string;
-            name: string;
-            avatar: string;
-        } | null;
-        id: string;
-        companyName: string;
-        createdAt: Date;
-        updatedAt: Date;
-        category: string;
-        position: string;
-        difficulty: string;
-        authorId: string | null;
-        question: string;
-        jobPostId: string | null;
-        sampleAnswer: string;
-        upvotes: number;
-        curatedJobId: string | null;
-        source: string;
-    }[]>;
-    create(userId: string, data: CreateJobInterviewQuestionDto): Promise<{
-        id: string;
-        companyName: string;
-        createdAt: Date;
-        updatedAt: Date;
-        category: string;
-        position: string;
-        difficulty: string;
-        authorId: string | null;
-        question: string;
-        jobPostId: string | null;
-        sampleAnswer: string;
-        upvotes: number;
-        curatedJobId: string | null;
-        source: string;
-    }>;
+    list(query: ListJobInterviewQuestionsQuery, userId?: string | null): Promise<any>;
+    create(userId: string, data: CreateJobInterviewQuestionDto): Promise<any>;
     toggleUpvote(questionId: string, userId: string): Promise<{
         upvoted: boolean;
     }>;
@@ -81,12 +42,7 @@ export declare class JobInterviewQuestionsService {
         success: boolean;
     }>;
     aiGenerate(userId: string | null, dto: AiGenerateDto): Promise<{
-        questions: {
-            question: string;
-            sampleAnswer: string;
-            category: string;
-            difficulty: any;
-        }[];
+        questions: $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>;
         persisted: boolean;
         provider: string;
         model: string;

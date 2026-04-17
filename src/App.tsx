@@ -7,6 +7,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { ToastContainer } from '@/components/Toast';
 import OfflineBanner from '@/components/OfflineBanner';
 import CookieConsent from '@/components/CookieConsent';
+import TooltipProvider from '@/components/TooltipProvider';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
 import AuthCallbackPage from '@/pages/AuthCallbackPage';
@@ -21,15 +22,17 @@ import { fetchMe } from '@/lib/auth';
 
 // Lazy import with auto-retry on chunk load failure (배포 후 해시 변경 대응)
 function lazyRetry(fn: () => Promise<any>) {
-  return lazy(() => fn().catch(() => {
-    // 청크 로드 실패 시 새로고침 (배포로 인한 해시 변경)
-    if (!sessionStorage.getItem('chunk-retry')) {
-      sessionStorage.setItem('chunk-retry', '1');
-      window.location.reload();
-    }
-    sessionStorage.removeItem('chunk-retry');
-    return fn();
-  }));
+  return lazy(() =>
+    fn().catch(() => {
+      // 청크 로드 실패 시 새로고침 (배포로 인한 해시 변경)
+      if (!sessionStorage.getItem('chunk-retry')) {
+        sessionStorage.setItem('chunk-retry', '1');
+        window.location.reload();
+      }
+      sessionStorage.removeItem('chunk-retry');
+      return fn();
+    }),
+  );
 }
 
 // Lazy-loaded pages (non-critical path)
@@ -105,85 +108,487 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-    {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-    <ErrorBoundary>
-      <OfflineBanner />
-      <BrowserRouter>
-        <ScrollReset />
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium">
-          본문으로 건너뛰기
-        </a>
-        <AnnouncementBanner />
-        <div className="min-h-screen flex flex-col overflow-x-hidden" style={{ background: 'var(--color-surface-sunken)' }}>
-          <Routes>
-            {/* Critical path - eager loaded */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      <ErrorBoundary>
+        <TooltipProvider>
+          <OfflineBanner />
+          <BrowserRouter>
+            <ScrollReset />
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium"
+            >
+              본문으로 건너뛰기
+            </a>
+            <AnnouncementBanner />
+            <div
+              className="min-h-screen flex flex-col overflow-x-hidden"
+              style={{ background: 'var(--color-surface-sunken)' }}
+            >
+              <Routes>
+                {/* Critical path - eager loaded */}
+                <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-            {/* Lazy-loaded routes */}
-            <Route path="/auto-generate" element={<Suspense fallback={<PageLoader />}><AutoGeneratePage /></Suspense>} />
-            <Route path="/resumes/new" element={<Suspense fallback={<PageLoader />}><NewResumePage /></Suspense>} />
-            <Route path="/resumes/:id/edit" element={<Suspense fallback={<PageLoader />}><EditResumePage /></Suspense>} />
-            <Route path="/resumes/:id/preview" element={<Suspense fallback={<PageLoader />}><PreviewPage /></Suspense>} />
-            <Route path="/resumes/:id/review" element={<Suspense fallback={<PageLoader />}><ResumeReviewPage /></Suspense>} />
-            <Route path="/templates" element={<Suspense fallback={<PageLoader />}><TemplatesPage /></Suspense>} />
-            <Route path="/tags" element={<Suspense fallback={<PageLoader />}><TagsPage /></Suspense>} />
-            <Route path="/applications" element={<Suspense fallback={<PageLoader />}><AuthGuard><ApplicationsPage /></AuthGuard></Suspense>} />
-            <Route path="/explore" element={<Suspense fallback={<PageLoader />}><ExplorePage /></Suspense>} />
-            <Route path="/about" element={<Suspense fallback={<PageLoader />}><AboutPage /></Suspense>} />
-            <Route path="/tutorial" element={<Suspense fallback={<PageLoader />}><TutorialPage /></Suspense>} />
-            <Route path="/terms" element={<Suspense fallback={<PageLoader />}><TermsPage /></Suspense>} />
-            <Route path="/cover-letter" element={<Suspense fallback={<PageLoader />}><CoverLetterPage /></Suspense>} />
-            <Route path="/my-cover-letters" element={<Suspense fallback={<PageLoader />}><AuthGuard><MyCoverLettersPage /></AuthGuard></Suspense>} />
-            <Route path="/compare" element={<Suspense fallback={<PageLoader />}><ComparePage /></Suspense>} />
-            <Route path="/translate" element={<Suspense fallback={<PageLoader />}><TranslatePage /></Suspense>} />
-            <Route path="/pricing" element={<Suspense fallback={<PageLoader />}><PricingPage /></Suspense>} />
-            <Route path="/payment" element={<Suspense fallback={<PageLoader />}><PaymentPage /></Suspense>} />
-            <Route path="/payment/success" element={<Suspense fallback={<PageLoader />}><PaymentResultPage /></Suspense>} />
-            <Route path="/payment/fail" element={<Suspense fallback={<PageLoader />}><PaymentResultPage /></Suspense>} />
-            <Route path="/settings" element={<Suspense fallback={<PageLoader />}><AuthGuard><SettingsPage /></AuthGuard></Suspense>} />
-            <Route path="/bookmarks" element={<Suspense fallback={<PageLoader />}><AuthGuard><BookmarksPage /></AuthGuard></Suspense>} />
-            <Route path="/messages" element={<Suspense fallback={<PageLoader />}><AuthGuard><MessagesPage /></AuthGuard></Suspense>} />
-            <Route path="/scouts" element={<Suspense fallback={<PageLoader />}><AuthGuard><ScoutsPage /></AuthGuard></Suspense>} />
-            <Route path="/jobs/new" element={<Suspense fallback={<PageLoader />}><JobPostPage /></Suspense>} />
-            <Route path="/jobs" element={<Suspense fallback={<PageLoader />}><JobsPage /></Suspense>} />
-            <Route path="/recruiter" element={<Suspense fallback={<PageLoader />}><AuthGuard><RecruiterDashboardPage /></AuthGuard></Suspense>} />
-            <Route path="/interview-prep" element={<Suspense fallback={<PageLoader />}><InterviewPrepPage /></Suspense>} />
-            <Route path="/mock-interview" element={<Suspense fallback={<PageLoader />}><MockInterviewPage /></Suspense>} />
-            <Route path="/social/follows" element={<Suspense fallback={<PageLoader />}><AuthGuard><FollowListPage /></AuthGuard></Suspense>} />
-            <Route path="/feedback" element={<Suspense fallback={<PageLoader />}><FeedbackPage /></Suspense>} />
-            <Route path="/sitemap" element={<Suspense fallback={<PageLoader />}><SitemapPage /></Suspense>} />
-            <Route path="/stats" element={<Suspense fallback={<PageLoader />}><StatsPage /></Suspense>} />
-            <Route path="/help" element={<Suspense fallback={<PageLoader />}><HelpPage /></Suspense>} />
-            <Route path="/notifications" element={<Suspense fallback={<PageLoader />}><AuthGuard><NotificationsPage /></AuthGuard></Suspense>} />
-            <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AuthGuard><AdminPage /></AuthGuard></Suspense>} />
-            <Route path="/r/:code" element={<Suspense fallback={<PageLoader />}><ShortLinkPage /></Suspense>} />
-            <Route path="/@:username/:slug" element={<Suspense fallback={<PageLoader />}><ProfileResumePage /></Suspense>} />
-            <Route path="/u/:username" element={<Suspense fallback={<PageLoader />}><PortfolioPage /></Suspense>} />
-            <Route path="/company/:name" element={<Suspense fallback={<PageLoader />}><CompanyPage /></Suspense>} />
-            <Route path="/community" element={<Suspense fallback={<PageLoader />}><CommunityPage /></Suspense>} />
-            <Route path="/community/write" element={<Suspense fallback={<PageLoader />}><AuthGuard><CommunityWritePage /></AuthGuard></Suspense>} />
-            <Route path="/community/:id" element={<Suspense fallback={<PageLoader />}><CommunityPostPage /></Suspense>} />
-            <Route path="/community/:id/edit" element={<Suspense fallback={<PageLoader />}><AuthGuard><CommunityWritePage /></AuthGuard></Suspense>} />
-            <Route path="/coaches" element={<Suspense fallback={<PageLoader />}><CoachesPage /></Suspense>} />
-            <Route path="/coaches/:id" element={<Suspense fallback={<PageLoader />}><CoachDetailPage /></Suspense>} />
-            <Route path="/coaching/sessions" element={<Suspense fallback={<PageLoader />}><AuthGuard><CoachingSessionsPage /></AuthGuard></Suspense>} />
-            <Route path="/coach/profile" element={<Suspense fallback={<PageLoader />}><AuthGuard><CoachProfileEditPage /></AuthGuard></Suspense>} />
-            <Route path="/coach/dashboard" element={<Suspense fallback={<PageLoader />}><AuthGuard><CoachDashboardPage /></AuthGuard></Suspense>} />
-            <Route path="/notices" element={<Suspense fallback={<PageLoader />}><NoticePage /></Suspense>} />
-            <Route path="/notices/:id" element={<Suspense fallback={<PageLoader />}><NoticePage /></Suspense>} />
-            <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />
-          </Routes>
-        </div>
-        <MobileBottomNav />
-        <QuickActions />
-        <ScrollToTop />
-        <KeyboardShortcuts />
-        <CookieConsent />
-        <ToastContainer />
-      </BrowserRouter>
-    </ErrorBoundary>
+                {/* Lazy-loaded routes */}
+                <Route
+                  path="/auto-generate"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AutoGeneratePage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/resumes/new"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <NewResumePage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/resumes/:id/edit"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <EditResumePage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/resumes/:id/preview"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <PreviewPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/resumes/:id/review"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ResumeReviewPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/templates"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <TemplatesPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/tags"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <TagsPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/applications"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <ApplicationsPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/explore"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ExplorePage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/about"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AboutPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/tutorial"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <TutorialPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/terms"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <TermsPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/cover-letter"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <CoverLetterPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/my-cover-letters"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <MyCoverLettersPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/compare"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ComparePage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/translate"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <TranslatePage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/pricing"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <PricingPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/payment"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <PaymentPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/payment/success"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <PaymentResultPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/payment/fail"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <PaymentResultPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <SettingsPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/bookmarks"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <BookmarksPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/messages"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <MessagesPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/scouts"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <ScoutsPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/jobs/new"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <JobPostPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/jobs"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <JobsPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/recruiter"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <RecruiterDashboardPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/interview-prep"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <InterviewPrepPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/mock-interview"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <MockInterviewPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/social/follows"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <FollowListPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/feedback"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <FeedbackPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/sitemap"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <SitemapPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/stats"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <StatsPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/help"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <HelpPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/notifications"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <NotificationsPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <AdminPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/r/:code"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ShortLinkPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/@:username/:slug"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ProfileResumePage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/u/:username"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <PortfolioPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/company/:name"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <CompanyPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/community"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <CommunityPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/community/write"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <CommunityWritePage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/community/:id"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <CommunityPostPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/community/:id/edit"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <CommunityWritePage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/coaches"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <CoachesPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/coaches/:id"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <CoachDetailPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/coaching/sessions"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <CoachingSessionsPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/coach/profile"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <CoachProfileEditPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/coach/dashboard"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <CoachDashboardPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/notices"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <NoticePage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/notices/:id"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <NoticePage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="*"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <NotFoundPage />
+                    </Suspense>
+                  }
+                />
+              </Routes>
+            </div>
+            <MobileBottomNav />
+            <QuickActions />
+            <ScrollToTop />
+            <KeyboardShortcuts />
+            <CookieConsent />
+            <ToastContainer />
+          </BrowserRouter>
+        </TooltipProvider>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 }

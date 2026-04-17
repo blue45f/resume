@@ -4,101 +4,11 @@ export declare class JobsService {
     private prisma;
     private config;
     constructor(prisma: PrismaService, config: SystemConfigService);
-    findAll(status?: string, query?: string): Promise<({
-        user: {
-            id: string;
-            name: string;
-            avatar: string;
-            companyName: string | null;
-        };
-    } & {
-        description: string;
-        id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
-        skills: string;
-        company: string;
-        position: string;
-        type: string;
-        status: string;
-        salary: string;
-        location: string;
-        requirements: string;
-        benefits: string;
-    })[]>;
-    findOne(id: string): Promise<{
-        user: {
-            id: string;
-            email: string;
-            name: string;
-            avatar: string;
-            companyName: string | null;
-        };
-    } & {
-        description: string;
-        id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
-        skills: string;
-        company: string;
-        position: string;
-        type: string;
-        status: string;
-        salary: string;
-        location: string;
-        requirements: string;
-        benefits: string;
-    }>;
-    findByUser(userId: string): Promise<{
-        description: string;
-        id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
-        skills: string;
-        company: string;
-        position: string;
-        type: string;
-        status: string;
-        salary: string;
-        location: string;
-        requirements: string;
-        benefits: string;
-    }[]>;
-    create(userId: string, data: any): Promise<{
-        description: string;
-        id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
-        skills: string;
-        company: string;
-        position: string;
-        type: string;
-        status: string;
-        salary: string;
-        location: string;
-        requirements: string;
-        benefits: string;
-    }>;
-    update(id: string, userId: string, data: any): Promise<{
-        description: string;
-        id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
-        skills: string;
-        company: string;
-        position: string;
-        type: string;
-        status: string;
-        salary: string;
-        location: string;
-        requirements: string;
-        benefits: string;
-    }>;
+    findAll(status?: string, query?: string): Promise<$Public.PrismaPromise<T>>;
+    findOne(id: string): Promise<any>;
+    findByUser(userId: string): Promise<$Public.PrismaPromise<T>>;
+    create(userId: string, data: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$JobPostPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
+    update(id: string, userId: string, data: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$JobPostPayload<ExtArgs>, T, "update", GlobalOmitOptions>>;
     remove(id: string, userId: string, role?: string): Promise<{
         success: boolean;
     }>;
@@ -110,86 +20,20 @@ export declare class JobsService {
         location?: string;
         jobCategory?: string;
         q?: string;
-    }): Promise<{
-        description: string;
-        url: string;
-        id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        category: string;
-        location: string;
-        isActive: boolean;
-        logoEmoji: string;
-        logoUrl: string;
-        badgeText: string;
-        gradientFrom: string;
-        gradientTo: string;
-        matchKeywords: string;
-        companySize: string;
-        jobTypes: string;
-        careerLevel: string;
-        jobCategory: string;
-        order: number;
-        clickCount: number;
-    }[]>;
+    }): Promise<$Public.PrismaPromise<T>>;
     recordExternalLinkClick(id: string): Promise<{
-        url: string;
+        url: any;
     }>;
     createExternalLink(data: any, user: {
         id?: string;
         role?: string;
         userType?: string;
-    }): Promise<{
-        description: string;
-        url: string;
-        id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        category: string;
-        location: string;
-        isActive: boolean;
-        logoEmoji: string;
-        logoUrl: string;
-        badgeText: string;
-        gradientFrom: string;
-        gradientTo: string;
-        matchKeywords: string;
-        companySize: string;
-        jobTypes: string;
-        careerLevel: string;
-        jobCategory: string;
-        order: number;
-        clickCount: number;
-    }>;
+    }): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ExternalJobLinkPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
     updateExternalLink(id: string, data: any, user: {
         id?: string;
         role?: string;
         userType?: string;
-    }): Promise<{
-        description: string;
-        url: string;
-        id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        category: string;
-        location: string;
-        isActive: boolean;
-        logoEmoji: string;
-        logoUrl: string;
-        badgeText: string;
-        gradientFrom: string;
-        gradientTo: string;
-        matchKeywords: string;
-        companySize: string;
-        jobTypes: string;
-        careerLevel: string;
-        jobCategory: string;
-        order: number;
-        clickCount: number;
-    }>;
+    }): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ExternalJobLinkPayload<ExtArgs>, T, "update", GlobalOmitOptions>>;
     deleteExternalLink(id: string, user: {
         id?: string;
         role?: string;
@@ -207,140 +51,20 @@ export declare class JobsService {
         page?: number;
         limit?: number;
     }): Promise<{
-        items: ({
-            author: {
-                id: string;
-                name: string;
-                companyName: string | null;
-            } | null;
-        } & {
-            summary: string;
-            education: string;
-            id: string;
-            createdAt: Date;
-            viewCount: number;
-            updatedAt: Date;
-            skills: string;
-            company: string;
-            position: string;
-            department: string;
-            status: string;
-            salary: string;
-            location: string;
-            requirements: string;
-            benefits: string;
-            companySize: string;
-            clickCount: number;
-            companyLogo: string;
-            jobType: string;
-            experienceLevel: string;
-            industry: string;
-            sourceUrl: string;
-            sourceSite: string;
-            deadline: Date | null;
-            isRolling: boolean;
-            authorId: string | null;
-        })[];
-        total: number;
+        items: any;
+        total: any;
         page: number;
         limit: number;
         totalPages: number;
     }>;
-    getCuratedJob(id: string): Promise<{
-        author: {
-            id: string;
-            name: string;
-            companyName: string | null;
-        } | null;
-    } & {
-        summary: string;
-        education: string;
-        id: string;
-        createdAt: Date;
-        viewCount: number;
-        updatedAt: Date;
-        skills: string;
-        company: string;
-        position: string;
-        department: string;
-        status: string;
-        salary: string;
-        location: string;
-        requirements: string;
-        benefits: string;
-        companySize: string;
-        clickCount: number;
-        companyLogo: string;
-        jobType: string;
-        experienceLevel: string;
-        industry: string;
-        sourceUrl: string;
-        sourceSite: string;
-        deadline: Date | null;
-        isRolling: boolean;
-        authorId: string | null;
-    }>;
-    createCuratedJob(data: any, userId: string, userRole: string, userType: string): Promise<{
-        summary: string;
-        education: string;
-        id: string;
-        createdAt: Date;
-        viewCount: number;
-        updatedAt: Date;
-        skills: string;
-        company: string;
-        position: string;
-        department: string;
-        status: string;
-        salary: string;
-        location: string;
-        requirements: string;
-        benefits: string;
-        companySize: string;
-        clickCount: number;
-        companyLogo: string;
-        jobType: string;
-        experienceLevel: string;
-        industry: string;
-        sourceUrl: string;
-        sourceSite: string;
-        deadline: Date | null;
-        isRolling: boolean;
-        authorId: string | null;
-    }>;
-    updateCuratedJob(id: string, data: any, userId: string, userRole: string, userType?: string): Promise<{
-        summary: string;
-        education: string;
-        id: string;
-        createdAt: Date;
-        viewCount: number;
-        updatedAt: Date;
-        skills: string;
-        company: string;
-        position: string;
-        department: string;
-        status: string;
-        salary: string;
-        location: string;
-        requirements: string;
-        benefits: string;
-        companySize: string;
-        clickCount: number;
-        companyLogo: string;
-        jobType: string;
-        experienceLevel: string;
-        industry: string;
-        sourceUrl: string;
-        sourceSite: string;
-        deadline: Date | null;
-        isRolling: boolean;
-        authorId: string | null;
-    }>;
+    getCuratedJob(id: string): Promise<any>;
+    createCuratedJob(data: any, userId: string, userRole: string, userType: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CuratedJobPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
+    updateCuratedJob(id: string, data: any, userId: string, userRole: string, userType?: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CuratedJobPayload<ExtArgs>, T, "update", GlobalOmitOptions>>;
     deleteCuratedJob(id: string, userId: string, userRole: string, userType?: string): Promise<{
         success: boolean;
     }>;
     getJobStats(location?: string, type?: string, skill?: string): Promise<{
-        total: number;
+        total: any;
         byCompany: {
             name: string;
             count: number;
@@ -363,6 +87,6 @@ export declare class JobsService {
         }[];
     }>;
     recordCuratedJobClick(id: string): Promise<{
-        sourceUrl: string;
+        sourceUrl: any;
     }>;
 }

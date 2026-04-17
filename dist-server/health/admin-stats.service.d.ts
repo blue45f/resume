@@ -4,27 +4,27 @@ export declare class AdminStatsService {
     constructor(prisma: PrismaService);
     getStats(): Promise<{
         users: {
-            total: number;
-            today: number;
-            week: number;
-            month: number;
+            total: any;
+            today: any;
+            week: any;
+            month: any;
         };
         resumes: {
-            total: number;
-            today: number;
-            week: number;
-            public: number;
+            total: any;
+            today: any;
+            week: any;
+            public: any;
         };
         content: {
-            templates: number;
-            tags: number;
-            comments: number;
-            versions: number;
+            templates: any;
+            tags: any;
+            comments: any;
+            versions: any;
         };
         activity: {
-            applications: number;
-            transforms: number;
-            totalViews: number;
+            applications: any;
+            transforms: any;
+            totalViews: any;
         };
         coaching: {
             totalCoaches: any;
@@ -33,12 +33,6 @@ export declare class AdminStatsService {
             totalCommission: number;
             byStatus: Record<string, number>;
         };
-        recentUsers: {
-            id: string;
-            name: string;
-            email: string;
-            provider: string;
-            createdAt: string;
-        }[];
+        recentUsers: any;
     }>;
 }

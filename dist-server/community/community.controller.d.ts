@@ -6,129 +6,25 @@ export declare class CommunityController {
     private useCloudinary;
     constructor(service: CommunityService, config: ConfigService);
     getPosts(category?: string, search?: string, page?: string, limit?: string, showHidden?: string, sort?: string, req?: any): Promise<{
-        items: ({
-            user: {
-                id: string;
-                name: string;
-                username: string;
-                avatar: string;
-            } | null;
-            _count: {
-                comments: number;
-                likes: number;
-            };
-        } & {
-            id: string;
-            createdAt: Date;
-            userId: string | null;
-            title: string;
-            viewCount: number;
-            updatedAt: Date;
-            attachments: import("@prisma/client/runtime/library").JsonValue;
-            category: string;
-            content: string;
-            likeCount: number;
-            isPinned: boolean;
-            isHidden: boolean;
-        })[];
-        total: number;
+        items: any;
+        total: any;
         page: number;
         limit: number;
         totalPages: number;
     }>;
-    getPost(id: string, req: any): Promise<{
-        liked: boolean;
-        user: {
-            id: string;
-            name: string;
-            username: string;
-            avatar: string;
-        } | null;
-        comments: ({} & {
-            id: string;
-            createdAt: Date;
-            userId: string | null;
-            updatedAt: Date;
-            content: string;
-            authorName: string | null;
-            parentId: string | null;
-            postId: string;
-        })[];
-        _count: {
-            comments: number;
-            likes: number;
-        };
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        title: string;
-        viewCount: number;
-        updatedAt: Date;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
-        category: string;
-        content: string;
-        likeCount: number;
-        isPinned: boolean;
-        isHidden: boolean;
-    } | null>;
+    getPost(id: string, req: any): Promise<any>;
     create(body: {
         title: string;
         content: string;
         category: string;
         attachments?: any[];
-    }, req: any): Promise<{
-        user: {
-            id: string;
-            name: string;
-            username: string;
-            avatar: string;
-        } | null;
-    } & {
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        title: string;
-        viewCount: number;
-        updatedAt: Date;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
-        category: string;
-        content: string;
-        likeCount: number;
-        isPinned: boolean;
-        isHidden: boolean;
-    }> | {
+    }, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CommunityPostPayload<ExtArgs>, T, "create", GlobalOmitOptions>> | {
         error: string;
     };
-    update(id: string, body: any, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        title: string;
-        viewCount: number;
-        updatedAt: Date;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
-        category: string;
-        content: string;
-        likeCount: number;
-        isPinned: boolean;
-        isHidden: boolean;
-    }> | {
+    update(id: string, body: any, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CommunityPostPayload<ExtArgs>, T, "update", GlobalOmitOptions>> | {
         error: string;
     };
-    delete(id: string, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        title: string;
-        viewCount: number;
-        updatedAt: Date;
-        attachments: import("@prisma/client/runtime/library").JsonValue;
-        category: string;
-        content: string;
-        likeCount: number;
-        isPinned: boolean;
-        isHidden: boolean;
-    }> | {
+    delete(id: string, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CommunityPostPayload<ExtArgs>, T, "delete", GlobalOmitOptions>> | {
         error: string;
     };
     toggleLike(id: string, req: any): Promise<{
@@ -136,40 +32,13 @@ export declare class CommunityController {
     }> | {
         error: string;
     };
-    getComments(id: string): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        updatedAt: Date;
-        content: string;
-        authorName: string | null;
-        parentId: string | null;
-        postId: string;
-    }[]>;
+    getComments(id: string): Promise<$Public.PrismaPromise<T>>;
     addComment(id: string, body: {
         content: string;
         authorName?: string;
         parentId?: string;
-    }, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        updatedAt: Date;
-        content: string;
-        authorName: string | null;
-        parentId: string | null;
-        postId: string;
-    }>;
-    deleteComment(id: string, commentId: string, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        updatedAt: Date;
-        content: string;
-        authorName: string | null;
-        parentId: string | null;
-        postId: string;
-    }> | {
+    }, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CommunityCommentPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
+    deleteComment(id: string, commentId: string, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CommunityCommentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>> | {
         error: string;
     };
     uploadAttachment(file: Express.Multer.File, req: any): Promise<{

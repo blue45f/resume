@@ -191,7 +191,8 @@ const ko: TranslationKeys = {
   'home.subtitle': 'AI가 도와주는 이력서 작성',
   'home.myResumes': '내 이력서',
   'home.welcome': '이력서를 스마트하게 관리하세요',
-  'home.welcomeDesc': 'AI가 도와주는 이력서 작성. 15가지 테마로 미리보기하고, ATS 호환성을 검사하고, 다양한 양식으로 변환하세요.',
+  'home.welcomeDesc':
+    'AI가 도와주는 이력서 작성. 15가지 테마로 미리보기하고, ATS 호환성을 검사하고, 다양한 양식으로 변환하세요.',
   'home.directWrite': '직접 작성',
   'home.aiGenerate': 'AI 자동 생성',
   'home.explore': '둘러보기',
@@ -299,7 +300,8 @@ const en: TranslationKeys = {
   'home.subtitle': 'AI-powered resume builder',
   'home.myResumes': 'My Resumes',
   'home.welcome': 'Manage your resume smartly',
-  'home.welcomeDesc': 'AI-powered resume writing. Preview with 15 themes, check ATS compatibility, and convert to various formats.',
+  'home.welcomeDesc':
+    'AI-powered resume writing. Preview with 15 themes, check ATS compatibility, and convert to various formats.',
   'home.directWrite': 'Write directly',
   'home.aiGenerate': 'AI Generate',
   'home.explore': 'Explore',
@@ -407,7 +409,8 @@ const ja: TranslationKeys = {
   'home.subtitle': 'AI搭載の履歴書作成ツール',
   'home.myResumes': 'マイ履歴書',
   'home.welcome': '履歴書をスマートに管理',
-  'home.welcomeDesc': 'AIが履歴書作成をサポート。15種類のテーマでプレビュー、ATS互換性チェック、多様な形式に変換。',
+  'home.welcomeDesc':
+    'AIが履歴書作成をサポート。15種類のテーマでプレビュー、ATS互換性チェック、多様な形式に変換。',
   'home.directWrite': '直接作成',
   'home.aiGenerate': 'AI自動生成',
   'home.explore': '探す',
@@ -464,7 +467,7 @@ const ja: TranslationKeys = {
 
 const translations: Record<Locale, TranslationKeys> = { ko, en, ja };
 
-let currentLocale: Locale = getLocale();
+const currentLocale: Locale = getLocale();
 
 export function t(key: keyof TranslationKeys): string {
   return translations[currentLocale]?.[key] || translations.ko[key] || key;

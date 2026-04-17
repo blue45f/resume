@@ -2,24 +2,9 @@ import { PrismaService } from '../prisma/prisma.service';
 export declare class ApplicationsService {
     private prisma;
     constructor(prisma: PrismaService);
-    findAll(userId: string): Promise<{
-        url: string | null;
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        visibility: string;
-        updatedAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        status: string;
-        appliedDate: string | null;
-        notes: string | null;
-        salary: string | null;
-        location: string | null;
-    }[]>;
+    findAll(userId: string): Promise<$Public.PrismaPromise<T>>;
     getStats(userId: string): Promise<{
-        total: number;
+        total: any;
         byStatus: Record<string, number>;
     }>;
     create(data: {
@@ -32,22 +17,7 @@ export declare class ApplicationsService {
         salary?: string;
         location?: string;
         resumeId?: string;
-    }, userId: string): Promise<{
-        url: string | null;
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        visibility: string;
-        updatedAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        status: string;
-        appliedDate: string | null;
-        notes: string | null;
-        salary: string | null;
-        location: string | null;
-    }>;
+    }, userId: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$JobApplicationPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
     update(id: string, data: Partial<{
         company: string;
         position: string;
@@ -57,55 +27,11 @@ export declare class ApplicationsService {
         salary?: string;
         location?: string;
         resumeId?: string;
-    }>, userId: string): Promise<{
-        url: string | null;
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        visibility: string;
-        updatedAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        status: string;
-        appliedDate: string | null;
-        notes: string | null;
-        salary: string | null;
-        location: string | null;
-    }>;
+    }>, userId: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$JobApplicationPayload<ExtArgs>, T, "update", GlobalOmitOptions>>;
     remove(id: string, userId: string): Promise<{
         success: boolean;
     }>;
-    findOne(id: string): Promise<{
-        url: string | null;
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        visibility: string;
-        updatedAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        status: string;
-        appliedDate: string | null;
-        notes: string | null;
-        salary: string | null;
-        location: string | null;
-    } | null>;
-    getComments(applicationId: string): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        content: string;
-        applicationId: string;
-        authorName: string;
-    }[]>;
-    addComment(applicationId: string, content: string, userId?: string): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        content: string;
-        applicationId: string;
-        authorName: string;
-    }>;
+    findOne(id: string): Promise<any>;
+    getComments(applicationId: string): Promise<$Public.PrismaPromise<T>>;
+    addComment(applicationId: string, content: string, userId?: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ApplicationCommentPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
 }

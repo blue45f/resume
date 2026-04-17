@@ -12,81 +12,19 @@ export declare class SocialController {
     }> | {
         error: string;
     };
-    getFollowers(req: any): never[] | Promise<{
-        followedAt: Date;
-        id: string;
-        email: string;
-        name: string;
-        avatar: string;
-    }[]>;
-    getFollowing(req: any): never[] | Promise<{
-        followedAt: Date;
-        id: string;
-        email: string;
-        name: string;
-        avatar: string;
-    }[]>;
+    getFollowers(req: any): Promise<any> | never[];
+    getFollowing(req: any): Promise<any> | never[];
     sendScout(body: {
         receiverId: string;
         resumeId?: string;
         company: string;
         position: string;
         message: string;
-    }, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        message: string;
-        read: boolean;
-        status: string;
-        senderId: string;
-        receiverId: string;
-    }> | {
+    }, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ScoutMessagePayload<ExtArgs>, T, "create", GlobalOmitOptions>> | {
         error: string;
     };
-    getScouts(req: any): never[] | Promise<({
-        sender: {
-            id: string;
-            email: string;
-            name: string;
-        };
-    } & {
-        id: string;
-        createdAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        message: string;
-        read: boolean;
-        status: string;
-        senderId: string;
-        receiverId: string;
-    })[]>;
-    getSentScouts(req: any): never[] | Promise<({
-        sender: {
-            id: string;
-            email: string;
-            name: string;
-        };
-        receiver: {
-            id: string;
-            email: string;
-            name: string;
-        };
-    } & {
-        id: string;
-        createdAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        message: string;
-        read: boolean;
-        status: string;
-        senderId: string;
-        receiverId: string;
-    })[]>;
+    getScouts(req: any): Promise<$Public.PrismaPromise<T>> | never[];
+    getSentScouts(req: any): Promise<$Public.PrismaPromise<T>> | never[];
     sendBulkScout(body: {
         targetIds: string[];
         message: string;
@@ -97,7 +35,7 @@ export declare class SocialController {
         results: ({
             receiverId: string;
             success: boolean;
-            id: string;
+            id: any;
         } | {
             receiverId: string;
             success: boolean;
@@ -119,38 +57,19 @@ export declare class SocialController {
         success: boolean;
     };
     getConversations(req: any): never[] | Promise<{
-        partner: {
-            id: string;
-            email: string;
-            name: string;
-            avatar: string;
-        };
+        partner: any;
         lastMessage: {
-            content: string;
-            createdAt: Date;
+            content: any;
+            createdAt: any;
             isMine: boolean;
         };
-        unreadCount: number;
+        unreadCount: $Public.PrismaPromise<T>;
     }[]>;
     getUnreadCount(req: any): Promise<{
         count: number;
     }>;
-    getMessages(partnerId: string, req: any): never[] | Promise<{
-        id: string;
-        createdAt: Date;
-        content: string;
-        read: boolean;
-        senderId: string;
-        receiverId: string;
-    }[]>;
-    sendMessage(receiverId: string, content: string, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        content: string;
-        read: boolean;
-        senderId: string;
-        receiverId: string;
-    }> | {
+    getMessages(partnerId: string, req: any): Promise<$Public.PrismaPromise<T>> | never[];
+    sendMessage(receiverId: string, content: string, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$DirectMessagePayload<ExtArgs>, T, "create", GlobalOmitOptions>> | {
         error: string;
     };
 }

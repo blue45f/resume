@@ -5,18 +5,8 @@ export declare class TagsController {
     private readonly tagsService;
     private readonly resumesService;
     constructor(tagsService: TagsService, resumesService: ResumesService);
-    findAll(): Promise<{
-        id: string;
-        name: string;
-        color: string;
-        resumeCount: number;
-    }[]>;
-    create(dto: CreateTagDto, req: any): Promise<{
-        id: string;
-        name: string;
-        userId: string | null;
-        color: string;
-    }>;
+    findAll(): Promise<any>;
+    create(dto: CreateTagDto, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$TagPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
     remove(id: string, req: any): Promise<{
         success: boolean;
     }>;

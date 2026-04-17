@@ -6,24 +6,8 @@ export declare class CommentsService {
     private notificationsService;
     private forbiddenWords;
     constructor(prisma: PrismaService, notificationsService: NotificationsService, forbiddenWords: ForbiddenWordsService);
-    findByResume(resumeId: string): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        resumeId: string;
-        content: string;
-        authorName: string;
-        parentId: string | null;
-    }[]>;
-    create(resumeId: string, content: string, userId?: string, authorName?: string, parentId?: string): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string | null;
-        resumeId: string;
-        content: string;
-        authorName: string;
-        parentId: string | null;
-    }>;
+    findByResume(resumeId: string): Promise<$Public.PrismaPromise<T>>;
+    create(resumeId: string, content: string, userId?: string, authorName?: string, parentId?: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CommentPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
     remove(id: string, userId?: string, role?: string): Promise<{
         success: boolean;
     }>;

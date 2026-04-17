@@ -3,9 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ErrorRetry from '@/components/ErrorRetry';
-import { API_URL } from '@/lib/config';
 import { timeAgo } from '@/lib/time';
 import { getUser } from '@/lib/auth';
+import { useJobs } from '@/hooks/useResources';
 
 // ── Company Review System (localStorage-based) ─────────────────────────────
 
@@ -13,11 +13,11 @@ interface CompanyReview {
   id: string;
   companyName: string;
   position: string;
-  rating: number;         // 1~5 overall
-  culture: number;        // 1~5
-  worklife: number;       // 1~5
-  growth: number;         // 1~5
-  salary: number;         // 1~5
+  rating: number; // 1~5 overall
+  culture: number; // 1~5
+  worklife: number; // 1~5
+  growth: number; // 1~5
+  salary: number; // 1~5
   pros: string;
   cons: string;
   recommend: boolean;
@@ -31,8 +31,10 @@ const REVIEWS_KEY = 'company-reviews';
 function getReviews(companyName: string): CompanyReview[] {
   try {
     const all = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]') as CompanyReview[];
-    return all.filter(r => r.companyName === companyName);
-  } catch { return []; }
+    return all.filter((r) => r.companyName === companyName);
+  } catch {
+    return [];
+  }
 }
 
 function saveReview(review: CompanyReview) {
@@ -42,12 +44,20 @@ function saveReview(review: CompanyReview) {
   } catch {}
 }
 
-function StarRating({ value, onChange, size = 'md' }: { value: number; onChange?: (v: number) => void; size?: 'sm' | 'md' }) {
+function StarRating({
+  value,
+  onChange,
+  size = 'md',
+}: {
+  value: number;
+  onChange?: (v: number) => void;
+  size?: 'sm' | 'md';
+}) {
   const [hovered, setHovered] = useState(0);
   const sz = size === 'sm' ? 'w-4 h-4' : 'w-6 h-6';
   return (
     <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map(star => (
+      {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}
           type="button"
@@ -86,10 +96,14 @@ function ReviewCard({ review }: { review: CompanyReview }) {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <StarRating value={review.rating} size="sm" />
-            <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{review.rating}.0</span>
+            <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+              {review.rating}.0
+            </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            {review.position || '미기재'} · {review.anonymous ? '익명' : (review.reviewerName || '익명')} · {timeAgo(review.createdAt)}
+            {review.position || '미기재'} ·{' '}
+            {review.anonymous ? '익명' : review.reviewerName || '익명'} ·{' '}
+            {timeAgo(review.createdAt)}
           </p>
         </div>
         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
@@ -108,7 +122,9 @@ function ReviewCard({ review }: { review: CompanyReview }) {
 
       {review.pros && (
         <div className="mb-2">
-          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mr-1.5">장점</span>
+          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mr-1.5">
+            장점
+          </span>
           <span className="text-xs text-slate-700 dark:text-slate-300">{review.pros}</span>
         </div>
       )}
@@ -123,8 +139,16 @@ function ReviewCard({ review }: { review: CompanyReview }) {
 }
 
 const DEFAULT_REVIEW_FORM = {
-  rating: 0, culture: 0, worklife: 0, growth: 0, salary: 0,
-  position: '', pros: '', cons: '', recommend: true, anonymous: true,
+  rating: 0,
+  culture: 0,
+  worklife: 0,
+  growth: 0,
+  salary: 0,
+  position: '',
+  pros: '',
+  cons: '',
+  recommend: true,
+  anonymous: true,
 };
 
 function CompanyReviewSection({ companyName }: { companyName: string }) {
@@ -140,13 +164,16 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
 
   const avgRatings = useMemo(() => {
     if (!reviews.length) return null;
-    const sum = reviews.reduce((acc, r) => ({
-      rating: acc.rating + r.rating,
-      culture: acc.culture + r.culture,
-      worklife: acc.worklife + r.worklife,
-      growth: acc.growth + r.growth,
-      salary: acc.salary + r.salary,
-    }), { rating: 0, culture: 0, worklife: 0, growth: 0, salary: 0 });
+    const sum = reviews.reduce(
+      (acc, r) => ({
+        rating: acc.rating + r.rating,
+        culture: acc.culture + r.culture,
+        worklife: acc.worklife + r.worklife,
+        growth: acc.growth + r.growth,
+        salary: acc.salary + r.salary,
+      }),
+      { rating: 0, culture: 0, worklife: 0, growth: 0, salary: 0 },
+    );
     const n = reviews.length;
     return {
       rating: +(sum.rating / n).toFixed(1),
@@ -158,8 +185,14 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
   }, [reviews]);
 
   const handleSubmit = useCallback(() => {
-    if (form.rating === 0) { alert('전체 평점을 선택해주세요'); return; }
-    if (!form.pros.trim() && !form.cons.trim()) { alert('장점 또는 단점을 작성해주세요'); return; }
+    if (form.rating === 0) {
+      alert('전체 평점을 선택해주세요');
+      return;
+    }
+    if (!form.pros.trim() && !form.cons.trim()) {
+      alert('장점 또는 단점을 작성해주세요');
+      return;
+    }
     setSubmitting(true);
     const review: CompanyReview = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -175,25 +208,28 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
       recommend: form.recommend,
       anonymous: form.anonymous,
       createdAt: new Date().toISOString(),
-      reviewerName: form.anonymous ? undefined : (user?.name || '익명'),
+      reviewerName: form.anonymous ? undefined : user?.name || '익명',
     };
     saveReview(review);
-    setReviews(prev => [review, ...prev]);
+    setReviews((prev) => [review, ...prev]);
     setForm(DEFAULT_REVIEW_FORM);
     setShowForm(false);
     setSubmitting(false);
   }, [form, companyName, user]);
 
-  const recommendRate = reviews.length > 0
-    ? Math.round((reviews.filter(r => r.recommend).length / reviews.length) * 100)
-    : null;
+  const recommendRate =
+    reviews.length > 0
+      ? Math.round((reviews.filter((r) => r.recommend).length / reviews.length) * 100)
+      : null;
 
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <span>⭐</span> 직원 리뷰
-          {reviews.length > 0 && <span className="text-sm font-normal text-slate-400">({reviews.length}개)</span>}
+          {reviews.length > 0 && (
+            <span className="text-sm font-normal text-slate-400">({reviews.length}개)</span>
+          )}
         </h3>
         <button
           onClick={() => setShowForm(!showForm)}
@@ -212,18 +248,24 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
               <StarRating value={Math.round(avgRatings.rating)} size="sm" />
               <p className="text-xs text-slate-400 mt-1">{reviews.length}개의 리뷰</p>
               {recommendRate !== null && (
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">{recommendRate}% 추천</p>
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
+                  {recommendRate}% 추천
+                </p>
               )}
             </div>
             <div className="flex-1 w-full grid grid-cols-2 sm:grid-cols-4 gap-3">
               {Object.entries(RATING_LABELS).map(([key, label]) => (
                 <div key={key} className="text-center">
                   <p className="text-[10px] text-slate-500 mb-1">{label}</p>
-                  <p className="text-lg font-bold text-slate-800 dark:text-slate-200">{avgRatings[key as keyof typeof avgRatings]}</p>
+                  <p className="text-lg font-bold text-slate-800 dark:text-slate-200">
+                    {avgRatings[key as keyof typeof avgRatings]}
+                  </p>
                   <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 mt-1">
                     <div
                       className="bg-amber-400 h-1.5 rounded-full"
-                      style={{ width: `${(avgRatings[key as keyof typeof avgRatings] / 5) * 100}%` }}
+                      style={{
+                        width: `${(avgRatings[key as keyof typeof avgRatings] / 5) * 100}%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -240,15 +282,22 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">전체 평점 *</label>
-              <StarRating value={form.rating} onChange={v => setForm(prev => ({ ...prev, rating: v }))} />
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+                전체 평점 *
+              </label>
+              <StarRating
+                value={form.rating}
+                onChange={(v) => setForm((prev) => ({ ...prev, rating: v }))}
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">직책 (선택)</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+                직책 (선택)
+              </label>
               <input
                 type="text"
                 value={form.position}
-                onChange={e => setForm(prev => ({ ...prev, position: e.target.value }))}
+                onChange={(e) => setForm((prev) => ({ ...prev, position: e.target.value }))}
                 placeholder="예: 프론트엔드 개발자"
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
@@ -258,30 +307,36 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {Object.entries(RATING_LABELS).map(([key, label]) => (
               <div key={key}>
-                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">{label}</label>
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+                  {label}
+                </label>
                 <StarRating
                   value={form[key as keyof typeof form] as number}
-                  onChange={v => setForm(prev => ({ ...prev, [key]: v }))}
+                  onChange={(v) => setForm((prev) => ({ ...prev, [key]: v }))}
                 />
               </div>
             ))}
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">장점</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+              장점
+            </label>
             <textarea
               value={form.pros}
-              onChange={e => setForm(prev => ({ ...prev, pros: e.target.value }))}
+              onChange={(e) => setForm((prev) => ({ ...prev, pros: e.target.value }))}
               placeholder="이 회사의 좋은 점을 알려주세요"
               rows={2}
               className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">단점</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+              단점
+            </label>
             <textarea
               value={form.cons}
-              onChange={e => setForm(prev => ({ ...prev, cons: e.target.value }))}
+              onChange={(e) => setForm((prev) => ({ ...prev, cons: e.target.value }))}
               placeholder="아쉬운 점을 알려주세요"
               rows={2}
               className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
@@ -294,7 +349,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
                 <input
                   type="checkbox"
                   checked={form.recommend}
-                  onChange={e => setForm(prev => ({ ...prev, recommend: e.target.checked }))}
+                  onChange={(e) => setForm((prev) => ({ ...prev, recommend: e.target.checked }))}
                   className="rounded"
                 />
                 이 회사 추천
@@ -303,7 +358,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
                 <input
                   type="checkbox"
                   checked={form.anonymous}
-                  onChange={e => setForm(prev => ({ ...prev, anonymous: e.target.checked }))}
+                  onChange={(e) => setForm((prev) => ({ ...prev, anonymous: e.target.checked }))}
                   className="rounded"
                 />
                 익명으로 작성
@@ -325,11 +380,15 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
         <div className="text-center py-8 imp-card">
           <p className="text-4xl mb-2">💬</p>
           <p className="text-sm text-slate-500 dark:text-slate-400">아직 리뷰가 없습니다</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">이 회사에 지원한 경험이 있으면 리뷰를 남겨주세요</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+            이 회사에 지원한 경험이 있으면 리뷰를 남겨주세요
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
-          {reviews.map(review => <ReviewCard key={review.id} review={review} />)}
+          {reviews.map((review) => (
+            <ReviewCard key={review.id} review={review} />
+          ))}
         </div>
       )}
     </div>
@@ -351,7 +410,10 @@ interface JobPost {
 }
 
 const JOB_TYPES: Record<string, string> = {
-  fulltime: '정규직', contract: '계약직', parttime: '파트타임', intern: '인턴',
+  fulltime: '정규직',
+  contract: '계약직',
+  parttime: '파트타임',
+  intern: '인턴',
 };
 
 function parseSalaryToNumber(salary: string): number | null {
@@ -361,8 +423,12 @@ function parseSalaryToNumber(salary: string): number | null {
 }
 
 function detectIndustry(jobs: JobPost[]): string {
-  const text = jobs.map(j => `${j.skills} ${j.description} ${j.position}`).join(' ').toLowerCase();
-  if (/react|node|python|java|개발|프론트|백엔드|devops|cloud|aws|데이터|ai|ml/.test(text)) return 'IT/소프트웨어';
+  const text = jobs
+    .map((j) => `${j.skills} ${j.description} ${j.position}`)
+    .join(' ')
+    .toLowerCase();
+  if (/react|node|python|java|개발|프론트|백엔드|devops|cloud|aws|데이터|ai|ml/.test(text))
+    return 'IT/소프트웨어';
   if (/금융|은행|보험|투자|핀테크/.test(text)) return '금융';
   if (/제조|생산|공장|설비/.test(text)) return '제조';
   if (/마케팅|광고|홍보|pr/.test(text)) return '마케팅';
@@ -373,46 +439,39 @@ function detectIndustry(jobs: JobPost[]): string {
 export default function CompanyPage() {
   const { name } = useParams<{ name: string }>();
   const companyName = decodeURIComponent(name || '');
-  const [allJobs, setAllJobs] = useState<JobPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
+  const { data, isLoading: loading, error: queryError, refetch } = useJobs();
+  const allJobs: JobPost[] = (data as JobPost[] | undefined) ?? [];
+  const error = !!queryError;
   const loadJobs = () => {
-    setError(false);
-    setLoading(true);
-    fetch(`${API_URL}/api/jobs`)
-      .then(r => r.ok ? r.json() : [])
-      .then(setAllJobs)
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+    refetch();
   };
 
   useEffect(() => {
     document.title = `${companyName} — 회사 정보 — 이력서공방`;
-    loadJobs();
-    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+    return () => {
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
+    };
   }, [companyName]);
 
   const companyJobs = useMemo(
-    () => allJobs.filter(j => j.company === companyName),
-    [allJobs, companyName]
+    () => allJobs.filter((j) => j.company === companyName),
+    [allJobs, companyName],
   );
-  const activeJobs = useMemo(
-    () => companyJobs.filter(j => j.status === 'active'),
-    [companyJobs]
-  );
+  const activeJobs = useMemo(() => companyJobs.filter((j) => j.status === 'active'), [companyJobs]);
 
   const locations = useMemo(() => {
     const locs = new Set<string>();
-    companyJobs.forEach(j => { if (j.location) locs.add(j.location); });
+    companyJobs.forEach((j) => {
+      if (j.location) locs.add(j.location);
+    });
     return Array.from(locs);
   }, [companyJobs]);
 
   const allSkills = useMemo(() => {
     const skillMap = new Map<string, number>();
-    companyJobs.forEach(j => {
+    companyJobs.forEach((j) => {
       if (j.skills) {
-        j.skills.split(',').forEach(s => {
+        j.skills.split(',').forEach((s) => {
           const trimmed = s.trim();
           if (trimmed) skillMap.set(trimmed, (skillMap.get(trimmed) || 0) + 1);
         });
@@ -423,7 +482,7 @@ export default function CompanyPage() {
 
   const salaryStats = useMemo(() => {
     const salaries = companyJobs
-      .map(j => parseSalaryToNumber(j.salary))
+      .map((j) => parseSalaryToNumber(j.salary))
       .filter((n): n is number => n !== null);
     if (salaries.length === 0) return null;
     const min = Math.min(...salaries);
@@ -434,13 +493,20 @@ export default function CompanyPage() {
 
   const jobTypes = useMemo(() => {
     const types = new Map<string, number>();
-    companyJobs.forEach(j => types.set(j.type, (types.get(j.type) || 0) + 1));
+    companyJobs.forEach((j) => types.set(j.type, (types.get(j.type) || 0) + 1));
     return Array.from(types.entries());
   }, [companyJobs]);
 
   const industry = useMemo(() => detectIndustry(companyJobs), [companyJobs]);
 
-  const estimatedSize = companyJobs.length >= 10 ? '대기업' : companyJobs.length >= 5 ? '중견기업' : companyJobs.length >= 2 ? '중소기업' : '스타트업';
+  const estimatedSize =
+    companyJobs.length >= 10
+      ? '대기업'
+      : companyJobs.length >= 5
+        ? '중견기업'
+        : companyJobs.length >= 2
+          ? '중소기업'
+          : '스타트업';
 
   if (error) {
     return (
@@ -463,7 +529,7 @@ export default function CompanyPage() {
             <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3" />
             <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-2/3" />
             <div className="grid grid-cols-3 gap-4 mt-6">
-              {[1, 2, 3].map(i => (
+              {[1, 2, 3].map((i) => (
                 <div key={i} className="h-24 bg-slate-200 dark:bg-slate-700 rounded-xl" />
               ))}
             </div>
@@ -479,12 +545,29 @@ export default function CompanyPage() {
       <>
         <Header />
         <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <svg className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          <svg
+            className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+            />
           </svg>
-          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-300 mb-2">"{companyName}" 회사 정보를 찾을 수 없습니다</h2>
-          <p className="text-sm text-slate-500 mb-4">해당 회사의 채용 공고가 등록되어 있지 않습니다.</p>
-          <Link to="/jobs" className="px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors">
+          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-300 mb-2">
+            "{companyName}" 회사 정보를 찾을 수 없습니다
+          </h2>
+          <p className="text-sm text-slate-500 mb-4">
+            해당 회사의 채용 공고가 등록되어 있지 않습니다.
+          </p>
+          <Link
+            to="/jobs"
+            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors"
+          >
             채용 공고 보기
           </Link>
         </main>
@@ -498,11 +581,18 @@ export default function CompanyPage() {
   return (
     <>
       <Header />
-      <main id="main-content" className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main
+        id="main-content"
+        className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+      >
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-6">
-          <Link to="/jobs" className="hover:text-blue-600 transition-colors">채용 공고</Link>
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          <Link to="/jobs" className="hover:text-blue-600 transition-colors">
+            채용 공고
+          </Link>
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
           <span className="text-slate-700 dark:text-slate-300">{companyName}</span>
         </nav>
 
@@ -513,15 +603,26 @@ export default function CompanyPage() {
               {companyName.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">{companyName}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+                {companyName}
+              </h1>
               {companyUser?.companyName && companyUser.companyName !== companyName && (
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{companyUser.companyName}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                  {companyUser.companyName}
+                </p>
               )}
               <div className="flex flex-wrap gap-2 mt-3">
-                <span className="px-2.5 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">{industry}</span>
-                <span className="px-2.5 py-1 text-xs font-medium bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 rounded-full">{estimatedSize}</span>
-                {locations.map(loc => (
-                  <span key={loc} className="px-2.5 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-full">
+                <span className="px-2.5 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+                  {industry}
+                </span>
+                <span className="px-2.5 py-1 text-xs font-medium bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 rounded-full">
+                  {estimatedSize}
+                </span>
+                {locations.map((loc) => (
+                  <span
+                    key={loc}
+                    className="px-2.5 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-full"
+                  >
                     {loc}
                   </span>
                 ))}
@@ -533,18 +634,24 @@ export default function CompanyPage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="imp-card p-4 text-center">
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{activeJobs.length}</p>
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              {activeJobs.length}
+            </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">채용 중인 공고</p>
           </div>
           <div className="imp-card p-4 text-center">
-            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{companyJobs.length}</p>
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              {companyJobs.length}
+            </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">전체 공고</p>
           </div>
           <div className="imp-card p-4 text-center">
             {salaryStats ? (
               <>
                 <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                  {salaryStats.avg >= 10000 ? `${(salaryStats.avg / 10000).toFixed(0)}만` : `${salaryStats.avg}만`}
+                  {salaryStats.avg >= 10000
+                    ? `${(salaryStats.avg / 10000).toFixed(0)}만`
+                    : `${salaryStats.avg}만`}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">평균 연봉</p>
               </>
@@ -556,7 +663,9 @@ export default function CompanyPage() {
             )}
           </div>
           <div className="imp-card p-4 text-center">
-            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{allSkills.length}</p>
+            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+              {allSkills.length}
+            </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">요구 기술 수</p>
           </div>
         </div>
@@ -567,12 +676,18 @@ export default function CompanyPage() {
             {/* Job types breakdown */}
             {jobTypes.length > 0 && (
               <div className="imp-card p-4">
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">채용 형태</h3>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                  채용 형태
+                </h3>
                 <div className="space-y-2">
                   {jobTypes.map(([type, count]) => (
                     <div key={type} className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">{JOB_TYPES[type] || type}</span>
-                      <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{count}건</span>
+                      <span className="text-sm text-slate-600 dark:text-slate-400">
+                        {JOB_TYPES[type] || type}
+                      </span>
+                      <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        {count}건
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -582,7 +697,9 @@ export default function CompanyPage() {
             {/* Salary range */}
             {salaryStats && salaryStats.min !== salaryStats.max && (
               <div className="imp-card p-4">
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">연봉 범위</h3>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                  연봉 범위
+                </h3>
                 <div className="relative h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mb-2">
                   <div
                     className="absolute inset-y-0 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full"
@@ -590,8 +707,16 @@ export default function CompanyPage() {
                   />
                 </div>
                 <div className="flex justify-between text-xs text-slate-500">
-                  <span>{salaryStats.min >= 10000 ? `${(salaryStats.min / 10000).toFixed(0)}만원` : `${salaryStats.min}만원`}</span>
-                  <span>{salaryStats.max >= 10000 ? `${(salaryStats.max / 10000).toFixed(0)}만원` : `${salaryStats.max}만원`}</span>
+                  <span>
+                    {salaryStats.min >= 10000
+                      ? `${(salaryStats.min / 10000).toFixed(0)}만원`
+                      : `${salaryStats.min}만원`}
+                  </span>
+                  <span>
+                    {salaryStats.max >= 10000
+                      ? `${(salaryStats.max / 10000).toFixed(0)}만원`
+                      : `${salaryStats.max}만원`}
+                  </span>
                 </div>
               </div>
             )}
@@ -599,7 +724,9 @@ export default function CompanyPage() {
             {/* Tech Stack */}
             {allSkills.length > 0 && (
               <div className="imp-card p-4">
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">기술 스택</h3>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                  기술 스택
+                </h3>
                 <div className="flex flex-wrap gap-1.5">
                   {allSkills.slice(0, 15).map(([skill, count]) => (
                     <span
@@ -608,11 +735,15 @@ export default function CompanyPage() {
                       title={`${count}개 공고에서 요구`}
                     >
                       {skill}
-                      {count > 1 && <span className="ml-1 text-blue-400 dark:text-blue-500">({count})</span>}
+                      {count > 1 && (
+                        <span className="ml-1 text-blue-400 dark:text-blue-500">({count})</span>
+                      )}
                     </span>
                   ))}
                   {allSkills.length > 15 && (
-                    <span className="px-2 py-1 text-xs text-slate-400">+{allSkills.length - 15}개</span>
+                    <span className="px-2 py-1 text-xs text-slate-400">
+                      +{allSkills.length - 15}개
+                    </span>
                   )}
                 </div>
               </div>
@@ -629,10 +760,15 @@ export default function CompanyPage() {
               </div>
               <div className="divide-y divide-slate-100 dark:divide-slate-700">
                 {activeJobs.length === 0 ? (
-                  <div className="p-8 text-center text-sm text-slate-500">현재 채용 중인 포지션이 없습니다</div>
+                  <div className="p-8 text-center text-sm text-slate-500">
+                    현재 채용 중인 포지션이 없습니다
+                  </div>
                 ) : (
-                  activeJobs.map(job => (
-                    <div key={job.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                  activeJobs.map((job) => (
+                    <div
+                      key={job.id}
+                      className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <Link
@@ -644,21 +780,51 @@ export default function CompanyPage() {
                           <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
                             {job.location && (
                               <span className="flex items-center gap-0.5">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                <svg
+                                  className="w-3 h-3"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                </svg>
                                 {job.location}
                               </span>
                             )}
-                            <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded">{JOB_TYPES[job.type] || job.type}</span>
-                            {job.salary && <span className="text-emerald-600 dark:text-emerald-400 font-medium">{job.salary}</span>}
+                            <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded">
+                              {JOB_TYPES[job.type] || job.type}
+                            </span>
+                            {job.salary && (
+                              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                                {job.salary}
+                              </span>
+                            )}
                             <span>{timeAgo(job.createdAt)}</span>
                           </div>
                           {job.skills && (
                             <div className="flex flex-wrap gap-1 mt-2">
-                              {job.skills.split(',').slice(0, 5).map((s, i) => (
-                                <span key={i} className="px-1.5 py-0.5 text-[10px] bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded">
-                                  {s.trim()}
-                                </span>
-                              ))}
+                              {job.skills
+                                .split(',')
+                                .slice(0, 5)
+                                .map((s, i) => (
+                                  <span
+                                    key={i}
+                                    className="px-1.5 py-0.5 text-[10px] bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded"
+                                  >
+                                    {s.trim()}
+                                  </span>
+                                ))}
                             </div>
                           )}
                         </div>

@@ -72,7 +72,9 @@ function loadJSON<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
-  } catch { return fallback; }
+  } catch {
+    return fallback;
+  }
 }
 
 function saveJSON(key: string, data: unknown) {
@@ -199,7 +201,7 @@ function RadarChart({ scores, size = 200 }: { scores: ScoreBreakdown; size?: num
   };
 
   const dataPoints = labels.map((_, i) => getPoint(i, scores[labels[i]]));
-  const polygon = dataPoints.map(p => `${p.x},${p.y}`).join(' ');
+  const polygon = dataPoints.map((p) => `${p.x},${p.y}`).join(' ');
 
   // Grid rings
   const rings = [2, 4, 6, 8, 10];
@@ -207,12 +209,12 @@ function RadarChart({ scores, size = 200 }: { scores: ScoreBreakdown; size?: num
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="mx-auto">
       {/* Grid */}
-      {rings.map(ring => {
+      {rings.map((ring) => {
         const ringPoints = labels.map((_, i) => getPoint(i, ring));
         return (
           <polygon
             key={ring}
-            points={ringPoints.map(p => `${p.x},${p.y}`).join(' ')}
+            points={ringPoints.map((p) => `${p.x},${p.y}`).join(' ')}
             fill="none"
             stroke="currentColor"
             strokeWidth="0.5"
@@ -226,8 +228,12 @@ function RadarChart({ scores, size = 200 }: { scores: ScoreBreakdown; size?: num
         return (
           <line
             key={i}
-            x1={center} y1={center} x2={p.x} y2={p.y}
-            stroke="currentColor" strokeWidth="0.5"
+            x1={center}
+            y1={center}
+            x2={p.x}
+            y2={p.y}
+            stroke="currentColor"
+            strokeWidth="0.5"
             className="text-slate-200 dark:text-slate-600"
           />
         );
@@ -249,7 +255,8 @@ function RadarChart({ scores, size = 200 }: { scores: ScoreBreakdown; size?: num
         return (
           <text
             key={label}
-            x={p.x} y={p.y}
+            x={p.x}
+            y={p.y}
             textAnchor="middle"
             dominantBaseline="middle"
             className="text-xs fill-slate-600 dark:fill-slate-300 font-medium"
@@ -281,16 +288,27 @@ function CircularTimer({
   const isWarning = progress < 0.2;
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div
+      className="relative inline-flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
       <svg width={size} height={size} className="-rotate-90">
         <circle
-          cx={size / 2} cy={size / 2} r={r}
-          fill="none" stroke="currentColor" strokeWidth="6"
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="6"
           className="text-slate-200 dark:text-slate-700"
         />
         <circle
-          cx={size / 2} cy={size / 2} r={r}
-          fill="none" strokeWidth="6" strokeLinecap="round"
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          strokeWidth="6"
+          strokeLinecap="round"
           stroke={isWarning ? '#ef4444' : '#3b82f6'}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
@@ -298,7 +316,9 @@ function CircularTimer({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`text-2xl font-mono font-bold ${isWarning ? 'text-red-500' : 'text-slate-800 dark:text-slate-100'}`}>
+        <span
+          className={`text-2xl font-mono font-bold ${isWarning ? 'text-red-500' : 'text-slate-800 dark:text-slate-100'}`}
+        >
           {formatTime(remaining)}
         </span>
         <span className="text-xs text-slate-400">남은 시간</span>
@@ -316,7 +336,9 @@ export default function InterviewPrepPage() {
   const [jobRole, setJobRole] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [difficulty, setDifficulty] = useState<Difficulty>('intermediate');
-  const [jobPosts, setJobPosts] = useState<{ id: string; company: string; position: string; description?: string; skills?: string }[]>([]);
+  const [jobPosts, setJobPosts] = useState<
+    { id: string; company: string; position: string; description?: string; skills?: string }[]
+  >([]);
   const [showJobSelect, setShowJobSelect] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<Category>('전체');
   const [jobFieldFilter, setJobFieldFilter] = useState<JobField>('전체');
@@ -330,16 +352,22 @@ export default function InterviewPrepPage() {
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
 
   // Favorites
-  const [favorites, setFavorites] = useState<Set<string>>(new Set(loadJSON<string[]>(FAVORITES_KEY, [])));
+  const [favorites, setFavorites] = useState<Set<string>>(
+    new Set(loadJSON<string[]>(FAVORITES_KEY, [])),
+  );
 
   // Custom questions
-  const [customQuestions, setCustomQuestions] = useState<Question[]>(loadJSON(CUSTOM_QUESTIONS_KEY, []));
+  const [customQuestions, setCustomQuestions] = useState<Question[]>(
+    loadJSON(CUSTOM_QUESTIONS_KEY, []),
+  );
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customQuestionText, setCustomQuestionText] = useState('');
   const [customQuestionCategory, setCustomQuestionCategory] = useState<Category>('기술');
 
   // Answer history
-  const [answerHistory] = useState<Record<string, { answer: string; date: string }[]>>(loadJSON(ANSWER_HISTORY_KEY, {}));
+  const [answerHistory] = useState<Record<string, { answer: string; date: string }[]>>(
+    loadJSON(ANSWER_HISTORY_KEY, {}),
+  );
   const [showHistoryFor, setShowHistoryFor] = useState<string | null>(null);
 
   // Timer (for list mode)
@@ -374,7 +402,7 @@ export default function InterviewPrepPage() {
     }
     let cancelled = false;
     fetchResume(selectedResumeId)
-      .then(r => {
+      .then((r) => {
         if (!cancelled) setSelectedResumeDetail(r);
       })
       .catch(() => {
@@ -386,7 +414,7 @@ export default function InterviewPrepPage() {
   }, [selectedResumeId]);
 
   const recommendationContext = useMemo(() => {
-    const latestExperience = selectedResumeDetail?.experiences?.find(e => e.company?.trim());
+    const latestExperience = selectedResumeDetail?.experiences?.find((e) => e.company?.trim());
     const companyFromResume = latestExperience?.company?.trim() || '';
     const positionFromResume = latestExperience?.position?.trim() || '';
     return {
@@ -397,19 +425,26 @@ export default function InterviewPrepPage() {
 
   useEffect(() => {
     document.title = '면접 준비 — 이력서공방';
-    fetchResumes().then(setResumes).catch(() => {});
-    fetch(`${API_URL}/api/jobs`).then(r => r.ok ? r.json() : []).then(d => {
-      const items = Array.isArray(d) ? d : d.items || d.data || [];
-      setJobPosts(items.slice(0, 30));
-    }).catch(() => {});
-    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+    fetchResumes()
+      .then(setResumes)
+      .catch(() => {});
+    fetch(`${API_URL}/api/jobs`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => {
+        const items = Array.isArray(d) ? d : d.items || d.data || [];
+        setJobPosts(items.slice(0, 30));
+      })
+      .catch(() => {});
+    return () => {
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
+    };
   }, []);
 
   // List mode timer
   useEffect(() => {
     if (timerActive) {
       timerRef.current = setInterval(() => {
-        setTimerSeconds(prev => {
+        setTimerSeconds((prev) => {
           if (prev >= timerDuration) {
             setTimerActive(false);
             toast('시간이 종료되었습니다!', 'warning');
@@ -422,14 +457,16 @@ export default function InterviewPrepPage() {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [timerActive, timerDuration]);
 
   // Mock timer
   useEffect(() => {
     if (mockTimerActive) {
       mockTimerRef.current = setInterval(() => {
-        setMockTimerSeconds(prev => {
+        setMockTimerSeconds((prev) => {
           if (prev >= mockTimerDuration) {
             setMockTimerActive(false);
             toast('시간이 종료되었습니다! 답변을 제출해주세요.', 'warning');
@@ -442,7 +479,9 @@ export default function InterviewPrepPage() {
       clearInterval(mockTimerRef.current);
       mockTimerRef.current = null;
     }
-    return () => { if (mockTimerRef.current) clearInterval(mockTimerRef.current); };
+    return () => {
+      if (mockTimerRef.current) clearInterval(mockTimerRef.current);
+    };
   }, [mockTimerActive, mockTimerDuration]);
 
   const difficultyLabels: Record<Difficulty, string> = {
@@ -461,7 +500,8 @@ export default function InterviewPrepPage() {
   const jobFields: JobField[] = ['전체', '개발', '디자인', '기획', '마케팅', '데이터', '기타'];
 
   const classifyCategory = (q: string): Category => {
-    if (/기술|코드|구현|아키텍처|설계|프레임워크|언어|알고리즘|데이터|시스템/.test(q)) return '기술';
+    if (/기술|코드|구현|아키텍처|설계|프레임워크|언어|알고리즘|데이터|시스템/.test(q))
+      return '기술';
     if (/경험|했던|상황|프로젝트에서|팀에서|갈등|실패|성공/.test(q)) return '행동';
     if (/만약|가정|어떻게.*할|상황이.*라면|대처/.test(q)) return '상황';
     if (/가치관|동기|목표|장단점|성격|왜.*지원|비전/.test(q)) return '인성';
@@ -480,7 +520,10 @@ export default function InterviewPrepPage() {
   // ── Question Generation ──
 
   const handleGenerate = useCallback(async () => {
-    if (!selectedResumeId) { toast('이력서를 선택해주세요', 'warning'); return; }
+    if (!selectedResumeId) {
+      toast('이력서를 선택해주세요', 'warning');
+      return;
+    }
     setLoading(true);
     setQuestions([]);
     setRevealedIdx(new Set());
@@ -490,24 +533,43 @@ export default function InterviewPrepPage() {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const res = await fetch(`${API_URL}/api/resumes/${selectedResumeId}/transform/interview`, {
-        method: 'POST', headers,
-        body: JSON.stringify({ jobRole: jobRole || undefined, difficulty, jobDescription: jobDescription || undefined }),
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          jobRole: jobRole || undefined,
+          difficulty,
+          jobDescription: jobDescription || undefined,
+        }),
       });
       if (!res.ok) throw new Error('생성에 실패했습니다');
       const data = await res.json();
       const text = data.text || data.data?.text || '';
-      const parsed: Question[] = text.split(/\d+[\.\)]\s/).filter(Boolean).map((q: string) => {
-        const parts = q.split(/모범\s*답변|샘플\s*답변|답변\s*예시/i);
-        const question = parts[0]?.trim() || q.trim();
-        return {
-          question,
-          answer: parts[1]?.trim() || '',
-          category: classifyCategory(question),
-          jobField: classifyJobField(question),
-          difficulty,
-        };
-      });
-      const combined = parsed.length > 0 ? parsed : [{ question: text, answer: '', category: '기술' as Category, jobField: '기타' as JobField, difficulty }];
+      const parsed: Question[] = text
+        .split(/\d+[\.\)]\s/)
+        .filter(Boolean)
+        .map((q: string) => {
+          const parts = q.split(/모범\s*답변|샘플\s*답변|답변\s*예시/i);
+          const question = parts[0]?.trim() || q.trim();
+          return {
+            question,
+            answer: parts[1]?.trim() || '',
+            category: classifyCategory(question),
+            jobField: classifyJobField(question),
+            difficulty,
+          };
+        });
+      const combined =
+        parsed.length > 0
+          ? parsed
+          : [
+              {
+                question: text,
+                answer: '',
+                category: '기술' as Category,
+                jobField: '기타' as JobField,
+                difficulty,
+              },
+            ];
       // Append custom questions
       setQuestions([...combined, ...customQuestions]);
       setViewMode('list');
@@ -522,9 +584,10 @@ export default function InterviewPrepPage() {
   // ── Helpers ──
 
   const toggleReveal = (idx: number) => {
-    setRevealedIdx(prev => {
+    setRevealedIdx((prev) => {
       const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
       return next;
     });
   };
@@ -535,7 +598,10 @@ export default function InterviewPrepPage() {
     saveJSON(STORAGE_KEY, updated);
 
     // Save to history
-    const history = loadJSON<Record<string, { answer: string; date: string }[]>>(ANSWER_HISTORY_KEY, {});
+    const history = loadJSON<Record<string, { answer: string; date: string }[]>>(
+      ANSWER_HISTORY_KEY,
+      {},
+    );
     if (!history[questionKey]) history[questionKey] = [];
     history[questionKey].unshift({ answer, date: new Date().toISOString() });
     if (history[questionKey].length > 10) history[questionKey] = history[questionKey].slice(0, 10);
@@ -545,12 +611,14 @@ export default function InterviewPrepPage() {
     toast('답변이 저장되었습니다', 'success');
   };
 
-  const getQuestionKey = (q: Question, idx: number) => `${selectedResumeId}-${idx}-${q.question.slice(0, 30)}`;
+  const getQuestionKey = (q: Question, idx: number) =>
+    `${selectedResumeId}-${idx}-${q.question.slice(0, 30)}`;
 
   const toggleFavorite = (questionKey: string) => {
-    setFavorites(prev => {
+    setFavorites((prev) => {
       const next = new Set(prev);
-      if (next.has(questionKey)) next.delete(questionKey); else next.add(questionKey);
+      if (next.has(questionKey)) next.delete(questionKey);
+      else next.add(questionKey);
       saveJSON(FAVORITES_KEY, [...next]);
       return next;
     });
@@ -574,27 +642,36 @@ export default function InterviewPrepPage() {
 
     // Add to current questions if already generated
     if (questions.length > 0) {
-      setQuestions(prev => [...prev, q]);
+      setQuestions((prev) => [...prev, q]);
     }
   };
 
   const filteredQuestions = useMemo(() => {
     let filtered = questions;
-    if (categoryFilter !== '전체') filtered = filtered.filter(q => q.category === categoryFilter);
-    if (jobFieldFilter !== '전체') filtered = filtered.filter(q => q.jobField === jobFieldFilter);
+    if (categoryFilter !== '전체') filtered = filtered.filter((q) => q.category === categoryFilter);
+    if (jobFieldFilter !== '전체') filtered = filtered.filter((q) => q.jobField === jobFieldFilter);
     return filtered;
   }, [questions, categoryFilter, jobFieldFilter]);
 
   const answeredCount = questions.filter((q, i) => userAnswers[getQuestionKey(q, i)]).length;
 
-  const startTimer = () => { setTimerSeconds(0); setTimerActive(true); };
-  const stopTimer = () => { setTimerActive(false); setTimerSeconds(0); };
+  const startTimer = () => {
+    setTimerSeconds(0);
+    setTimerActive(true);
+  };
+  const stopTimer = () => {
+    setTimerActive(false);
+    setTimerSeconds(0);
+  };
   const timerProgress = timerDuration > 0 ? (timerSeconds / timerDuration) * 100 : 0;
 
   // ── Mock Interview Functions ──
 
   const startMockInterview = () => {
-    if (questions.length === 0) { toast('먼저 질문을 생성해주세요', 'warning'); return; }
+    if (questions.length === 0) {
+      toast('먼저 질문을 생성해주세요', 'warning');
+      return;
+    }
     setViewMode('mock');
     setMockCurrentIdx(0);
     setMockAnswer('');
@@ -607,7 +684,10 @@ export default function InterviewPrepPage() {
   };
 
   const handleMockSubmitAnswer = async () => {
-    if (!mockAnswer.trim()) { toast('답변을 입력해주세요', 'warning'); return; }
+    if (!mockAnswer.trim()) {
+      toast('답변을 입력해주세요', 'warning');
+      return;
+    }
     setMockTimerActive(false);
     setMockEvaluating(true);
 
@@ -623,12 +703,15 @@ export default function InterviewPrepPage() {
       );
       setMockCurrentEval(evaluation);
       setMockShowFeedback(true);
-      setMockResults(prev => [...prev, {
-        questionIdx: mockCurrentIdx,
-        userAnswer: mockAnswer,
-        evaluation,
-        timeSpent,
-      }]);
+      setMockResults((prev) => [
+        ...prev,
+        {
+          questionIdx: mockCurrentIdx,
+          userAnswer: mockAnswer,
+          evaluation,
+          timeSpent,
+        },
+      ]);
     } catch {
       toast('평가에 실패했습니다', 'error');
     } finally {
@@ -653,20 +736,23 @@ export default function InterviewPrepPage() {
   };
 
   const handleSkipQuestion = () => {
-    setMockResults(prev => [...prev, {
-      questionIdx: mockCurrentIdx,
-      userAnswer: '(건너뜀)',
-      evaluation: {
-        score: 0,
-        breakdown: { 관련성: 0, 구체성: 0, 구조: 0, 표현력: 0 },
-        strengths: [],
-        improvements: ['질문을 건너뛰었습니다'],
-        modelAnswer: '',
-        highlightGood: [],
-        highlightWeak: [],
+    setMockResults((prev) => [
+      ...prev,
+      {
+        questionIdx: mockCurrentIdx,
+        userAnswer: '(건너뜀)',
+        evaluation: {
+          score: 0,
+          breakdown: { 관련성: 0, 구체성: 0, 구조: 0, 표현력: 0 },
+          strengths: [],
+          improvements: ['질문을 건너뛰었습니다'],
+          modelAnswer: '',
+          highlightGood: [],
+          highlightWeak: [],
+        },
+        timeSpent: mockTimerSeconds,
       },
-      timeSpent: mockTimerSeconds,
-    }]);
+    ]);
     handleMockNextQuestion();
   };
 
@@ -681,10 +767,13 @@ export default function InterviewPrepPage() {
   // ── Report Generation ──
 
   const generateReport = (results: QuestionResult[]) => {
-    const validResults = results.filter(r => r.evaluation.score > 0);
-    const overallScore = validResults.length > 0
-      ? Math.round((validResults.reduce((s, r) => s + r.evaluation.score, 0) / validResults.length) * 10) / 10
-      : 0;
+    const validResults = results.filter((r) => r.evaluation.score > 0);
+    const overallScore =
+      validResults.length > 0
+        ? Math.round(
+            (validResults.reduce((s, r) => s + r.evaluation.score, 0) / validResults.length) * 10,
+          ) / 10
+        : 0;
 
     const avgBreakdown: ScoreBreakdown = { 관련성: 0, 구체성: 0, 구조: 0, 표현력: 0 };
     if (validResults.length > 0) {
@@ -694,10 +783,10 @@ export default function InterviewPrepPage() {
         avgBreakdown.구조 += r.evaluation.breakdown.구조;
         avgBreakdown.표현력 += r.evaluation.breakdown.표현력;
       }
-      avgBreakdown.관련성 = Math.round(avgBreakdown.관련성 / validResults.length * 10) / 10;
-      avgBreakdown.구체성 = Math.round(avgBreakdown.구체성 / validResults.length * 10) / 10;
-      avgBreakdown.구조 = Math.round(avgBreakdown.구조 / validResults.length * 10) / 10;
-      avgBreakdown.표현력 = Math.round(avgBreakdown.표현력 / validResults.length * 10) / 10;
+      avgBreakdown.관련성 = Math.round((avgBreakdown.관련성 / validResults.length) * 10) / 10;
+      avgBreakdown.구체성 = Math.round((avgBreakdown.구체성 / validResults.length) * 10) / 10;
+      avgBreakdown.구조 = Math.round((avgBreakdown.구조 / validResults.length) * 10) / 10;
+      avgBreakdown.표현력 = Math.round((avgBreakdown.표현력 / validResults.length) * 10) / 10;
     }
 
     const report: InterviewReport = {
@@ -738,7 +827,7 @@ export default function InterviewPrepPage() {
   // ── Highlight helper ──
   const highlightText = (text: string, goodPhrases: string[], weakPhrases: string[]) => {
     if (!goodPhrases.length && !weakPhrases.length) return <span>{text}</span>;
-    let result = text;
+    const result = text;
     const segments: { text: string; type: 'good' | 'weak' | 'normal' }[] = [];
 
     // Simple approach: split and tag
@@ -780,8 +869,24 @@ export default function InterviewPrepPage() {
     return (
       <span>
         {segments.map((seg, i) => {
-          if (seg.type === 'good') return <mark key={i} className="bg-green-200 dark:bg-green-800/50 text-green-800 dark:text-green-200 rounded px-0.5">{seg.text}</mark>;
-          if (seg.type === 'weak') return <mark key={i} className="bg-orange-200 dark:bg-orange-800/50 text-orange-800 dark:text-orange-200 rounded px-0.5">{seg.text}</mark>;
+          if (seg.type === 'good')
+            return (
+              <mark
+                key={i}
+                className="bg-green-200 dark:bg-green-800/50 text-green-800 dark:text-green-200 rounded px-0.5"
+              >
+                {seg.text}
+              </mark>
+            );
+          if (seg.type === 'weak')
+            return (
+              <mark
+                key={i}
+                className="bg-orange-200 dark:bg-orange-800/50 text-orange-800 dark:text-orange-200 rounded px-0.5"
+              >
+                {seg.text}
+              </mark>
+            );
           return <span key={i}>{seg.text}</span>;
         })}
       </span>
@@ -818,9 +923,11 @@ export default function InterviewPrepPage() {
                 <div
                   key={i}
                   className={`w-2 h-2 rounded-full transition-colors ${
-                    i < mockCurrentIdx ? 'bg-green-500'
-                    : i === mockCurrentIdx ? 'bg-blue-500'
-                    : 'bg-slate-300 dark:bg-slate-600'
+                    i < mockCurrentIdx
+                      ? 'bg-green-500'
+                      : i === mockCurrentIdx
+                        ? 'bg-blue-500'
+                        : 'bg-slate-300 dark:bg-slate-600'
                   }`}
                 />
               ))}
@@ -833,21 +940,22 @@ export default function InterviewPrepPage() {
           <div className="w-full max-w-3xl space-y-8">
             {/* Timer */}
             <div className="flex justify-center">
-              <CircularTimer
-                seconds={mockTimerSeconds}
-                duration={mockTimerDuration}
-                size={140}
-              />
+              <CircularTimer seconds={mockTimerSeconds} duration={mockTimerDuration} size={140} />
             </div>
 
             {/* Question */}
             <div className="text-center">
-              <span className={`inline-block text-xs px-2 py-1 rounded-lg mb-3 ${
-                currentQ?.category === '기술' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' :
-                currentQ?.category === '행동' ? 'bg-green-100 dark:bg-green-900/30 text-green-600' :
-                currentQ?.category === '상황' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600' :
-                'bg-orange-100 dark:bg-orange-900/30 text-orange-600'
-              }`}>
+              <span
+                className={`inline-block text-xs px-2 py-1 rounded-lg mb-3 ${
+                  currentQ?.category === '기술'
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                    : currentQ?.category === '행동'
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-600'
+                      : currentQ?.category === '상황'
+                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
+                        : 'bg-orange-100 dark:bg-orange-900/30 text-orange-600'
+                }`}
+              >
                 {currentQ?.category || '일반'}
               </span>
               <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">
@@ -861,36 +969,54 @@ export default function InterviewPrepPage() {
                 {/* Score */}
                 <div className="flex items-center justify-center gap-6">
                   <div className="text-center">
-                    <div className={`text-5xl font-bold ${
-                      mockCurrentEval.score >= 8 ? 'text-green-500' :
-                      mockCurrentEval.score >= 6 ? 'text-blue-500' :
-                      mockCurrentEval.score >= 4 ? 'text-orange-500' : 'text-red-500'
-                    }`}>
+                    <div
+                      className={`text-5xl font-bold ${
+                        mockCurrentEval.score >= 8
+                          ? 'text-green-500'
+                          : mockCurrentEval.score >= 6
+                            ? 'text-blue-500'
+                            : mockCurrentEval.score >= 4
+                              ? 'text-orange-500'
+                              : 'text-red-500'
+                      }`}
+                    >
                       {mockCurrentEval.score}
                     </div>
                     <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">/ 10점</div>
                   </div>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-                    {(Object.entries(mockCurrentEval.breakdown) as [string, number][]).map(([key, val]) => (
-                      <div key={key} className="flex items-center gap-2">
-                        <span className="text-xs text-slate-500 dark:text-slate-400 w-12">{key}</span>
-                        <div className="w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full">
-                          <div
-                            className="h-1.5 bg-blue-500 rounded-full transition-all"
-                            style={{ width: `${val * 10}%` }}
-                          />
+                    {(Object.entries(mockCurrentEval.breakdown) as [string, number][]).map(
+                      ([key, val]) => (
+                        <div key={key} className="flex items-center gap-2">
+                          <span className="text-xs text-slate-500 dark:text-slate-400 w-12">
+                            {key}
+                          </span>
+                          <div className="w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full">
+                            <div
+                              className="h-1.5 bg-blue-500 rounded-full transition-all"
+                              style={{ width: `${val * 10}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                            {val}
+                          </span>
                         </div>
-                        <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{val}</span>
-                      </div>
-                    ))}
+                      ),
+                    )}
                   </div>
                 </div>
 
                 {/* User's answer with highlights */}
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-                  <h4 className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">내 답변</h4>
+                  <h4 className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+                    내 답변
+                  </h4>
                   <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                    {highlightText(mockAnswer, mockCurrentEval.highlightGood, mockCurrentEval.highlightWeak)}
+                    {highlightText(
+                      mockAnswer,
+                      mockCurrentEval.highlightGood,
+                      mockCurrentEval.highlightWeak,
+                    )}
                   </p>
                 </div>
 
@@ -898,27 +1024,51 @@ export default function InterviewPrepPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="bg-green-50 dark:bg-green-900/10 rounded-xl p-4 border border-green-200 dark:border-green-800/50">
                     <h4 className="text-xs font-medium text-green-600 dark:text-green-400 mb-2 flex items-center gap-1">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
                       강점
                     </h4>
                     <ul className="space-y-1">
                       {mockCurrentEval.strengths.map((s, i) => (
-                        <li key={i} className="text-sm text-green-700 dark:text-green-300">- {s}</li>
+                        <li key={i} className="text-sm text-green-700 dark:text-green-300">
+                          - {s}
+                        </li>
                       ))}
                     </ul>
                   </div>
                   <div className="bg-orange-50 dark:bg-orange-900/10 rounded-xl p-4 border border-orange-200 dark:border-orange-800/50">
                     <h4 className="text-xs font-medium text-orange-600 dark:text-orange-400 mb-2 flex items-center gap-1">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
                       </svg>
                       개선점
                     </h4>
                     <ul className="space-y-1">
                       {mockCurrentEval.improvements.map((s, i) => (
-                        <li key={i} className="text-sm text-orange-700 dark:text-orange-300">- {s}</li>
+                        <li key={i} className="text-sm text-orange-700 dark:text-orange-300">
+                          - {s}
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -928,7 +1078,9 @@ export default function InterviewPrepPage() {
                 {mockCurrentEval.modelAnswer && (
                   <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-200 dark:border-blue-800/50">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-xs font-medium text-blue-600 dark:text-blue-400">모범 답변</h4>
+                      <h4 className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                        모범 답변
+                      </h4>
                       <button
                         onClick={() => {
                           setMockAnswer(mockCurrentEval!.modelAnswer);
@@ -962,7 +1114,7 @@ export default function InterviewPrepPage() {
                   <textarea
                     ref={mockTextareaRef}
                     value={mockAnswer}
-                    onChange={e => setMockAnswer(e.target.value)}
+                    onChange={(e) => setMockAnswer(e.target.value)}
                     rows={8}
                     placeholder="답변을 입력하세요... (실제 면접처럼 구체적으로 작성해보세요)"
                     className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none leading-relaxed"
@@ -971,8 +1123,18 @@ export default function InterviewPrepPage() {
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-xs text-slate-400">{mockAnswer.length}자</span>
                     <span className="text-xs text-slate-400 flex items-center gap-1">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                        />
                       </svg>
                       음성 입력 (준비 중)
                     </span>
@@ -996,12 +1158,25 @@ export default function InterviewPrepPage() {
                     {mockEvaluating ? (
                       <>
                         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                          />
                         </svg>
                         AI 평가 중...
                       </>
-                    ) : '답변 제출'}
+                    ) : (
+                      '답변 제출'
+                    )}
                   </button>
                 </div>
               </>
@@ -1017,7 +1192,7 @@ export default function InterviewPrepPage() {
   // ══════════════════════════════════════════════
   if (viewMode === 'report' && currentReport) {
     const { overallScore, grade, categoryScores, results } = currentReport;
-    const validResults = results.filter(r => r.evaluation.score > 0);
+    const validResults = results.filter((r) => r.evaluation.score > 0);
     const skippedCount = results.length - validResults.length;
 
     // Find strongest and weakest
@@ -1034,7 +1209,8 @@ export default function InterviewPrepPage() {
             <div className="bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-10 text-center text-white">
               <h1 className="text-2xl font-bold mb-2">면접 연습 리포트</h1>
               <p className="text-blue-200 text-sm">
-                {new Date(currentReport.date).toLocaleDateString('ko-KR')} | {currentReport.jobRole} | {difficultyLabels[currentReport.difficulty]}
+                {new Date(currentReport.date).toLocaleDateString('ko-KR')} | {currentReport.jobRole}{' '}
+                | {difficultyLabels[currentReport.difficulty]}
               </p>
 
               {/* Grade */}
@@ -1052,7 +1228,9 @@ export default function InterviewPrepPage() {
 
             {/* Radar chart */}
             <div className="px-6 py-8 border-b border-slate-200 dark:border-slate-700">
-              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 text-center">영역별 점수</h3>
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 text-center">
+                영역별 점수
+              </h3>
               <RadarChart scores={categoryScores} size={240} />
             </div>
 
@@ -1060,36 +1238,60 @@ export default function InterviewPrepPage() {
             <div className="px-6 py-6 border-b border-slate-200 dark:border-slate-700">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-green-50 dark:bg-green-900/10 rounded-xl p-4 border border-green-200 dark:border-green-800/50">
-                  <h4 className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">가장 강한 영역</h4>
-                  <p className="text-lg font-bold text-green-700 dark:text-green-300">{strongest[0]}</p>
-                  <p className="text-sm text-green-600 dark:text-green-400">{strongest[1]} / 10점</p>
+                  <h4 className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">
+                    가장 강한 영역
+                  </h4>
+                  <p className="text-lg font-bold text-green-700 dark:text-green-300">
+                    {strongest[0]}
+                  </p>
+                  <p className="text-sm text-green-600 dark:text-green-400">
+                    {strongest[1]} / 10점
+                  </p>
                 </div>
                 <div className="bg-orange-50 dark:bg-orange-900/10 rounded-xl p-4 border border-orange-200 dark:border-orange-800/50">
-                  <h4 className="text-sm font-medium text-orange-600 dark:text-orange-400 mb-1">보완이 필요한 영역</h4>
-                  <p className="text-lg font-bold text-orange-700 dark:text-orange-300">{weakest[0]}</p>
-                  <p className="text-sm text-orange-600 dark:text-orange-400">{weakest[1]} / 10점</p>
+                  <h4 className="text-sm font-medium text-orange-600 dark:text-orange-400 mb-1">
+                    보완이 필요한 영역
+                  </h4>
+                  <p className="text-lg font-bold text-orange-700 dark:text-orange-300">
+                    {weakest[0]}
+                  </p>
+                  <p className="text-sm text-orange-600 dark:text-orange-400">
+                    {weakest[1]} / 10점
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Per-question results */}
             <div className="px-6 py-6 border-b border-slate-200 dark:border-slate-700">
-              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">질문별 결과</h3>
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">
+                질문별 결과
+              </h3>
               <div className="space-y-3">
                 {results.map((r, i) => {
                   const q = questions[r.questionIdx];
                   return (
-                    <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                        r.evaluation.score >= 8 ? 'bg-green-100 text-green-600 dark:bg-green-900/30' :
-                        r.evaluation.score >= 6 ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30' :
-                        r.evaluation.score >= 4 ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30' :
-                        'bg-red-100 text-red-600 dark:bg-red-900/30'
-                      }`}>
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700"
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                          r.evaluation.score >= 8
+                            ? 'bg-green-100 text-green-600 dark:bg-green-900/30'
+                            : r.evaluation.score >= 6
+                              ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30'
+                              : r.evaluation.score >= 4
+                                ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30'
+                                : 'bg-red-100 text-red-600 dark:bg-red-900/30'
+                        }`}
+                      >
                         {r.evaluation.score > 0 ? r.evaluation.score : '-'}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-slate-700 dark:text-slate-300 truncate">{q?.question || `질문 ${r.questionIdx + 1}`}</p>
+                        <p className="text-sm text-slate-700 dark:text-slate-300 truncate">
+                          {q?.question || `질문 ${r.questionIdx + 1}`}
+                        </p>
                         <p className="text-xs text-slate-400 mt-0.5">
                           {r.evaluation.score > 0
                             ? `소요 시간: ${formatTime(r.timeSpent)}`
@@ -1097,7 +1299,9 @@ export default function InterviewPrepPage() {
                         </p>
                       </div>
                       {r.evaluation.score > 0 && (
-                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${gradeColors[computeGrade(r.evaluation.score)]}`}>
+                        <span
+                          className={`text-xs font-bold px-2 py-1 rounded-lg ${gradeColors[computeGrade(r.evaluation.score)]}`}
+                        >
                           {computeGrade(r.evaluation.score)}
                         </span>
                       )}
@@ -1132,14 +1336,23 @@ export default function InterviewPrepPage() {
             {/* Saved reports history */}
             {savedReports.length > 0 && (
               <div className="px-6 py-6 border-t border-slate-200 dark:border-slate-700">
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">이전 연습 기록</h3>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                  이전 연습 기록
+                </h3>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {savedReports.slice(0, 10).map((r, i) => (
-                    <div key={i} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 text-sm">
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 text-sm"
+                    >
                       <div className="flex items-center gap-3">
-                        <span className={`text-lg font-bold ${gradeColors[r.grade]}`}>{r.grade}</span>
+                        <span className={`text-lg font-bold ${gradeColors[r.grade]}`}>
+                          {r.grade}
+                        </span>
                         <div>
-                          <span className="text-slate-700 dark:text-slate-300">{r.overallScore}점</span>
+                          <span className="text-slate-700 dark:text-slate-300">
+                            {r.overallScore}점
+                          </span>
                           <span className="text-slate-400 mx-1">|</span>
                           <span className="text-slate-500 dark:text-slate-400">{r.jobRole}</span>
                         </div>
@@ -1165,31 +1378,56 @@ export default function InterviewPrepPage() {
   return (
     <>
       <Header />
-      <main id="main-content" className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+      <main
+        id="main-content"
+        className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+        role="main"
+      >
         <div className="mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">면접 준비</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">AI가 이력서 기반으로 예상 면접 질문과 모범 답변을 생성합니다</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+            면접 준비
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            AI가 이력서 기반으로 예상 면접 질문과 모범 답변을 생성합니다
+          </p>
         </div>
 
         {/* Setup */}
         <div className="imp-card p-6 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">이력서 선택 *</label>
-              <select value={selectedResumeId} onChange={e => setSelectedResumeId(e.target.value)}
-                className="w-full px-3 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                이력서 선택 *
+              </label>
+              <select
+                value={selectedResumeId}
+                onChange={(e) => setSelectedResumeId(e.target.value)}
+                className="w-full px-3 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
+              >
                 <option value="">이력서를 선택하세요</option>
-                {resumes.map(r => <option key={r.id} value={r.id}>{r.title || '제목 없음'}</option>)}
+                {resumes.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.title || '제목 없음'}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">지원 직무 (선택)</label>
-              <input value={jobRole} onChange={e => setJobRole(e.target.value)} placeholder="예: 프론트엔드 개발자"
-                className="w-full px-3 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                지원 직무 (선택)
+              </label>
+              <input
+                value={jobRole}
+                onChange={(e) => setJobRole(e.target.value)}
+                placeholder="예: 프론트엔드 개발자"
+                className="w-full px-3 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
+              />
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">채용공고 / JD (선택)</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                  채용공고 / JD (선택)
+                </label>
                 {jobPosts.length > 0 && (
                   <button
                     type="button"
@@ -1202,27 +1440,37 @@ export default function InterviewPrepPage() {
               </div>
               {showJobSelect && (
                 <div className="mb-2 max-h-40 overflow-y-auto border border-slate-200 dark:border-slate-600 rounded-xl divide-y divide-slate-100 dark:divide-slate-700">
-                  {jobPosts.map(job => (
+                  {jobPosts.map((job) => (
                     <button
                       key={job.id}
                       type="button"
                       onClick={() => {
-                        const jd = [job.position, job.description, job.skills ? `요구기술: ${job.skills}` : ''].filter(Boolean).join('\n');
+                        const jd = [
+                          job.position,
+                          job.description,
+                          job.skills ? `요구기술: ${job.skills}` : '',
+                        ]
+                          .filter(Boolean)
+                          .join('\n');
                         setJobDescription(jd);
                         setJobRole(job.position);
                         setShowJobSelect(false);
                       }}
                       className="w-full text-left px-3 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
                     >
-                      <span className="text-xs font-medium text-slate-800 dark:text-slate-200">{job.company}</span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 ml-1.5">{job.position}</span>
+                      <span className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                        {job.company}
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 ml-1.5">
+                        {job.position}
+                      </span>
                     </button>
                   ))}
                 </div>
               )}
               <textarea
                 value={jobDescription}
-                onChange={e => setJobDescription(e.target.value)}
+                onChange={(e) => setJobDescription(e.target.value)}
                 placeholder="채용공고 내용이나 자격요건을 붙여넣으면 맞춤 질문이 생성됩니다"
                 rows={3}
                 className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 resize-none"
@@ -1232,9 +1480,11 @@ export default function InterviewPrepPage() {
 
           {/* Difficulty selector */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">난이도</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+              난이도
+            </label>
             <div className="grid grid-cols-3 gap-2">
-              {(Object.keys(difficultyLabels) as Difficulty[]).map(d => (
+              {(Object.keys(difficultyLabels) as Difficulty[]).map((d) => (
                 <button
                   key={d}
                   onClick={() => setDifficulty(d)}
@@ -1244,8 +1494,12 @@ export default function InterviewPrepPage() {
                       : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
                   }`}
                 >
-                  <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{difficultyLabels[d]}</span>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{difficultyDescriptions[d]}</p>
+                  <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                    {difficultyLabels[d]}
+                  </span>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {difficultyDescriptions[d]}
+                  </p>
                 </button>
               ))}
             </div>
@@ -1253,11 +1507,16 @@ export default function InterviewPrepPage() {
 
           {/* Timer option */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">모의 면접 타이머</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+              모의 면접 타이머
+            </label>
             <div className="flex items-center gap-3">
               <select
                 value={mockTimerDuration}
-                onChange={e => { setMockTimerDuration(Number(e.target.value)); setTimerDuration(Number(e.target.value)); }}
+                onChange={(e) => {
+                  setMockTimerDuration(Number(e.target.value));
+                  setTimerDuration(Number(e.target.value));
+                }}
                 className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
               >
                 <option value={60}>1분</option>
@@ -1274,12 +1533,19 @@ export default function InterviewPrepPage() {
             {showCustomInput ? (
               <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-200">커스텀 질문 추가</label>
-                  <button onClick={() => setShowCustomInput(false)} className="text-xs text-slate-400 hover:text-slate-600">닫기</button>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                    커스텀 질문 추가
+                  </label>
+                  <button
+                    onClick={() => setShowCustomInput(false)}
+                    className="text-xs text-slate-400 hover:text-slate-600"
+                  >
+                    닫기
+                  </button>
                 </div>
                 <textarea
                   value={customQuestionText}
-                  onChange={e => setCustomQuestionText(e.target.value)}
+                  onChange={(e) => setCustomQuestionText(e.target.value)}
                   placeholder="연습하고 싶은 면접 질문을 입력하세요..."
                   rows={2}
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
@@ -1287,12 +1553,21 @@ export default function InterviewPrepPage() {
                 <div className="flex items-center gap-3">
                   <select
                     value={customQuestionCategory}
-                    onChange={e => setCustomQuestionCategory(e.target.value as Category)}
+                    onChange={(e) => setCustomQuestionCategory(e.target.value as Category)}
                     className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs dark:bg-slate-900 dark:text-slate-100"
                   >
-                    {categories.filter(c => c !== '전체').map(c => <option key={c} value={c}>{c}</option>)}
+                    {categories
+                      .filter((c) => c !== '전체')
+                      .map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
                   </select>
-                  <button onClick={addCustomQuestion} className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                  <button
+                    onClick={addCustomQuestion}
+                    className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                  >
                     추가
                   </button>
                 </div>
@@ -1308,24 +1583,45 @@ export default function InterviewPrepPage() {
                 className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
                 커스텀 질문 추가
               </button>
             )}
           </div>
 
-          <button onClick={handleGenerate} disabled={loading || !selectedResumeId}
-            className="w-full py-3 min-h-[48px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all duration-200 shadow-sm">
+          <button
+            onClick={handleGenerate}
+            disabled={loading || !selectedResumeId}
+            className="w-full py-3 min-h-[48px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all duration-200 shadow-sm"
+          >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
                 </svg>
                 AI 생성 중...
               </span>
-            ) : '면접 질문 생성'}
+            ) : (
+              '면접 질문 생성'
+            )}
           </button>
         </div>
 
@@ -1345,7 +1641,9 @@ export default function InterviewPrepPage() {
             {/* Header with tracker, mock button, filters, timer */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">예상 질문 ({questions.length}개)</h2>
+                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  예상 질문 ({questions.length}개)
+                </h2>
                 <span className="text-xs px-2 py-1 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg font-medium">
                   {answeredCount}/{questions.length} 완료
                 </span>
@@ -1357,9 +1655,24 @@ export default function InterviewPrepPage() {
                   onClick={startMockInterview}
                   className="flex items-center gap-1.5 text-xs px-4 py-2 bg-neutral-900 dark:bg-white text-white rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all font-medium shadow-sm"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   모의 면접 시작
                 </button>
@@ -1370,26 +1683,58 @@ export default function InterviewPrepPage() {
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
                       <div className="relative w-6 h-6">
                         <svg className="w-6 h-6 -rotate-90" viewBox="0 0 24 24">
-                          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-200 dark:text-orange-900" />
-                          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2"
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            className="text-orange-200 dark:text-orange-900"
+                          />
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
                             className="text-orange-500"
                             strokeDasharray={`${(1 - timerProgress / 100) * 62.83} 62.83`}
                             strokeLinecap="round"
                           />
                         </svg>
                       </div>
-                      <span className={`text-sm font-mono font-bold ${timerSeconds > timerDuration * 0.8 ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                      <span
+                        className={`text-sm font-mono font-bold ${timerSeconds > timerDuration * 0.8 ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}
+                      >
                         {formatTime(timerDuration - timerSeconds)}
                       </span>
                     </div>
-                    <button onClick={stopTimer} className="text-xs px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                    <button
+                      onClick={stopTimer}
+                      className="text-xs px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                    >
                       중지
                     </button>
                   </>
                 ) : (
-                  <button onClick={startTimer} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-xl hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors font-medium">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <button
+                    onClick={startTimer}
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-xl hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors font-medium"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                     타이머 시작
                   </button>
@@ -1401,7 +1746,7 @@ export default function InterviewPrepPage() {
             <div className="flex flex-wrap gap-4">
               {/* Category filter */}
               <div className="flex flex-wrap gap-1.5">
-                {categories.map(cat => (
+                {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setCategoryFilter(cat)}
@@ -1414,7 +1759,7 @@ export default function InterviewPrepPage() {
                     {cat}
                     {cat !== '전체' && (
                       <span className="ml-1 opacity-70">
-                        ({questions.filter(q => q.category === cat).length})
+                        ({questions.filter((q) => q.category === cat).length})
                       </span>
                     )}
                   </button>
@@ -1422,7 +1767,7 @@ export default function InterviewPrepPage() {
               </div>
               {/* Job field filter */}
               <div className="flex flex-wrap gap-1.5">
-                {jobFields.map(jf => (
+                {jobFields.map((jf) => (
                   <button
                     key={jf}
                     onClick={() => setJobFieldFilter(jf)}
@@ -1442,7 +1787,9 @@ export default function InterviewPrepPage() {
             <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5">
               <div
                 className="bg-green-500 h-1.5 rounded-full transition-all duration-500"
-                style={{ width: `${questions.length > 0 ? (answeredCount / questions.length) * 100 : 0}%` }}
+                style={{
+                  width: `${questions.length > 0 ? (answeredCount / questions.length) * 100 : 0}%`,
+                }}
               />
             </div>
 
@@ -1457,14 +1804,20 @@ export default function InterviewPrepPage() {
               return (
                 <div key={originalIdx} className="imp-card p-4 animate-fade-in-up">
                   <div className="flex items-start gap-3">
-                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
-                      savedAnswer
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-600'
-                        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
-                    }`}>{originalIdx + 1}</span>
+                    <span
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
+                        savedAnswer
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-600'
+                          : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                      }`}
+                    >
+                      {originalIdx + 1}
+                    </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 leading-relaxed">{q.question}</p>
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 leading-relaxed">
+                          {q.question}
+                        </p>
                         <div className="flex items-center gap-1 shrink-0">
                           {/* Favorite button */}
                           <button
@@ -1476,8 +1829,18 @@ export default function InterviewPrepPage() {
                             }`}
                             title={isFavorite ? '즐겨찾기 해제' : '즐겨찾기'}
                           >
-                            <svg className="w-4 h-4" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            <svg
+                              className="w-4 h-4"
+                              fill={isFavorite ? 'currentColor' : 'none'}
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                              />
                             </svg>
                           </button>
                           {/* Tags */}
@@ -1497,12 +1860,17 @@ export default function InterviewPrepPage() {
                       {/* Model answer */}
                       {q.answer && (
                         <div className="mt-2">
-                          <button onClick={() => toggleReveal(originalIdx)} className="text-xs text-blue-600 dark:text-blue-400 hover:underline py-1">
+                          <button
+                            onClick={() => toggleReveal(originalIdx)}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline py-1"
+                          >
                             {revealedIdx.has(originalIdx) ? '모범 답변 숨기기' : '모범 답변 보기'}
                           </button>
                           {revealedIdx.has(originalIdx) && (
                             <div className="mt-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg animate-fade-in">
-                              <p className="text-sm text-green-800 dark:text-green-300 whitespace-pre-wrap leading-relaxed">{q.answer}</p>
+                              <p className="text-sm text-green-800 dark:text-green-300 whitespace-pre-wrap leading-relaxed">
+                                {q.answer}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -1512,21 +1880,33 @@ export default function InterviewPrepPage() {
                       {history.length > 0 && (
                         <div className="mt-2">
                           <button
-                            onClick={() => setShowHistoryFor(showHistoryFor === questionKey ? null : questionKey)}
+                            onClick={() =>
+                              setShowHistoryFor(showHistoryFor === questionKey ? null : questionKey)
+                            }
                             className="text-xs text-purple-600 dark:text-purple-400 hover:underline py-1"
                           >
-                            이전 답변 ({history.length}개) {showHistoryFor === questionKey ? '숨기기' : '보기'}
+                            이전 답변 ({history.length}개){' '}
+                            {showHistoryFor === questionKey ? '숨기기' : '보기'}
                           </button>
                           {showHistoryFor === questionKey && (
                             <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
                               {history.map((h, hi) => (
-                                <div key={hi} className="p-2 bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800/50 rounded-lg">
+                                <div
+                                  key={hi}
+                                  className="p-2 bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800/50 rounded-lg"
+                                >
                                   <div className="flex items-center justify-between mb-1">
                                     <span className="text-xs text-purple-500 dark:text-purple-400">
-                                      {new Date(h.date).toLocaleDateString('ko-KR')} {new Date(h.date).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                                      {new Date(h.date).toLocaleDateString('ko-KR')}{' '}
+                                      {new Date(h.date).toLocaleTimeString('ko-KR', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}
                                     </span>
                                   </div>
-                                  <p className="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{h.answer}</p>
+                                  <p className="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
+                                    {h.answer}
+                                  </p>
                                 </div>
                               ))}
                             </div>
@@ -1548,8 +1928,11 @@ export default function InterviewPrepPage() {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => {
-                                  const el = document.getElementById(`answer-${originalIdx}`) as HTMLTextAreaElement;
-                                  if (el && el.value.trim()) handleSaveAnswer(questionKey, el.value.trim());
+                                  const el = document.getElementById(
+                                    `answer-${originalIdx}`,
+                                  ) as HTMLTextAreaElement;
+                                  if (el && el.value.trim())
+                                    handleSaveAnswer(questionKey, el.value.trim());
                                   else toast('답변을 입력해주세요', 'warning');
                                 }}
                                 className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
@@ -1567,7 +1950,9 @@ export default function InterviewPrepPage() {
                         ) : savedAnswer ? (
                           <div className="p-3 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/50 rounded-lg">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs font-medium text-blue-600 dark:text-blue-400">내 답변</span>
+                              <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                                내 답변
+                              </span>
                               <button
                                 onClick={() => setEditingIdx(originalIdx)}
                                 className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
@@ -1575,7 +1960,9 @@ export default function InterviewPrepPage() {
                                 수정
                               </button>
                             </div>
-                            <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">{savedAnswer}</p>
+                            <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                              {savedAnswer}
+                            </p>
                           </div>
                         ) : (
                           <button

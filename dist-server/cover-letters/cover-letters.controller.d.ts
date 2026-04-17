@@ -2,72 +2,14 @@ import { CoverLettersService } from './cover-letters.service';
 export declare class CoverLettersController {
     private readonly service;
     constructor(service: CoverLettersService);
-    findAll(req: any): never[] | Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        content: string;
-        applicationId: string | null;
-        tone: string;
-    }[]>;
-    findOne(id: string, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        content: string;
-        jobDescription: string;
-        applicationId: string | null;
-        tone: string;
-    }>;
-    create(body: any, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        content: string;
-        jobDescription: string;
-        applicationId: string | null;
-        tone: string;
-    }> | {
+    findAll(req: any): Promise<$Public.PrismaPromise<T>> | never[];
+    findOne(id: string, req: any): Promise<any>;
+    create(body: any, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CoverLetterPayload<ExtArgs>, T, "create", GlobalOmitOptions>> | {
         error: string;
     };
-    update(id: string, body: any, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        content: string;
-        jobDescription: string;
-        applicationId: string | null;
-        tone: string;
-    }>;
+    update(id: string, body: any, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CoverLetterPayload<ExtArgs>, T, "update", GlobalOmitOptions>>;
     remove(id: string, req: any): Promise<{
         success: boolean;
     }>;
-    getByResume(resumeId: string, req: any): never[] | Promise<{
-        id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
-        resumeId: string | null;
-        company: string;
-        position: string;
-        content: string;
-        jobDescription: string;
-        applicationId: string | null;
-        tone: string;
-    }[]>;
+    getByResume(resumeId: string, req: any): Promise<$Public.PrismaPromise<T>> | never[];
 }

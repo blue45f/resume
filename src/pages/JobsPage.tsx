@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import * as RadixDialog from '@radix-ui/react-dialog';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ErrorRetry from '@/components/ErrorRetry';
@@ -60,21 +61,29 @@ function toggleSavedJob(jobId: string): boolean {
 /*  Salary utilities                                                    */
 /* ------------------------------------------------------------------ */
 const MARKET_AVG_SALARY: Record<string, number> = {
-  fulltime: 5000, contract: 4200, parttime: 2500, intern: 2400,
+  fulltime: 5000,
+  contract: 4200,
+  parttime: 2500,
+  intern: 2400,
 };
 
 function parseSalaryRange(salary: string): { min: number; max: number } | null {
   if (!salary) return null;
   const nums = salary.match(/\d[\d,]*/g);
   if (!nums || nums.length === 0) return null;
-  const values = nums.map(n => parseInt(n.replace(/,/g, ''), 10));
+  const values = nums.map((n) => parseInt(n.replace(/,/g, ''), 10));
   // Normalize: if values are < 100 they are in 만원 units already, otherwise convert
-  const normalized = values.map(v => (v > 10000 ? Math.round(v / 10000) : v > 100 ? Math.round(v / 100) : v));
+  const normalized = values.map((v) =>
+    v > 10000 ? Math.round(v / 10000) : v > 100 ? Math.round(v / 100) : v,
+  );
   if (normalized.length === 1) return { min: normalized[0], max: normalized[0] };
   return { min: Math.min(...normalized), max: Math.max(...normalized) };
 }
 
-function getSalaryComparisonBadge(salary: string, jobType: string): { text: string; color: string } | null {
+function getSalaryComparisonBadge(
+  salary: string,
+  jobType: string,
+): { text: string; color: string } | null {
   const range = parseSalaryRange(salary);
   if (!range) return null;
   const avg = MARKET_AVG_SALARY[jobType] || 4500;
@@ -85,21 +94,27 @@ function getSalaryComparisonBadge(salary: string, jobType: string): { text: stri
   if (diffPct > 0) {
     return {
       text: `시장 평균 대비 +${diffPct}%`,
-      color: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+      color:
+        'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
     };
   }
   return {
     text: `시장 평균 대비 ${diffPct}%`,
-    color: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+    color:
+      'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800',
   };
 }
 
 /* Salary contribution modal */
 function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [form, setForm] = useState({ company: '', position: '', salary: '', experience: '3', anonymous: true });
+  const [form, setForm] = useState({
+    company: '',
+    position: '',
+    salary: '',
+    experience: '3',
+    anonymous: true,
+  });
   const [submitted, setSubmitted] = useState(false);
-
-  if (!open) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,77 +131,171 @@ function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="imp-card shadow-xl w-full max-w-md mx-4 p-6 animate-fade-in" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">급여 정보 제공하기</h3>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
-            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        {submitted ? (
-          <div className="text-center py-8">
-            <span className="text-4xl">🙏</span>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mt-3">감사합니다!</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">익명으로 안전하게 반영됩니다.</p>
-            <button onClick={onClose} className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700">닫기</button>
+    <RadixDialog.Root
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) onClose();
+      }}
+    >
+      <RadixDialog.Portal>
+        <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/40 animate-fade-in" />
+        <RadixDialog.Content
+          aria-describedby={undefined}
+          className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md imp-card shadow-xl p-6 animate-fade-in max-h-[90vh] overflow-y-auto focus:outline-none"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <RadixDialog.Title className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+              급여 정보 제공하기
+            </RadixDialog.Title>
+            <RadixDialog.Close asChild>
+              <button
+                className="p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                aria-label="닫기"
+              >
+                <svg
+                  className="w-5 h-5 text-neutral-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </RadixDialog.Close>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">모든 정보는 익명으로 처리되며, 급여 통계에만 활용됩니다.</p>
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">회사명</label>
-              <input required value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="예: 네이버" />
+          {submitted ? (
+            <div className="text-center py-8">
+              <span className="text-4xl">🙏</span>
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mt-3">
+                감사합니다!
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                익명으로 안전하게 반영됩니다.
+              </p>
+              <button
+                onClick={onClose}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700"
+              >
+                닫기
+              </button>
             </div>
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">포지션</label>
-              <input required value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="예: 프론트엔드 개발자" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                모든 정보는 익명으로 처리되며, 급여 통계에만 활용됩니다.
+              </p>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">연봉 (만원)</label>
-                <input required type="number" value={form.salary} onChange={e => setForm(f => ({ ...f, salary: e.target.value }))} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="5000" />
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  회사명
+                </label>
+                <input
+                  required
+                  value={form.company}
+                  onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="예: 네이버"
+                />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">경력 (년)</label>
-                <input type="number" min={0} max={30} value={form.experience} onChange={e => setForm(f => ({ ...f, experience: e.target.value }))} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  포지션
+                </label>
+                <input
+                  required
+                  value={form.position}
+                  onChange={(e) => setForm((f) => ({ ...f, position: e.target.value }))}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="예: 프론트엔드 개발자"
+                />
               </div>
-            </div>
-            <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 cursor-pointer">
-              <input type="checkbox" checked={form.anonymous} onChange={e => setForm(f => ({ ...f, anonymous: e.target.checked }))} className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-              익명으로 제출
-            </label>
-            <button type="submit" className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
-              제출하기
-            </button>
-          </form>
-        )}
-      </div>
-    </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    연봉 (만원)
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    value={form.salary}
+                    onChange={(e) => setForm((f) => ({ ...f, salary: e.target.value }))}
+                    className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="5000"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    경력 (년)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={30}
+                    value={form.experience}
+                    onChange={(e) => setForm((f) => ({ ...f, experience: e.target.value }))}
+                    className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.anonymous}
+                  onChange={(e) => setForm((f) => ({ ...f, anonymous: e.target.checked }))}
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                익명으로 제출
+              </label>
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                제출하기
+              </button>
+            </form>
+          )}
+        </RadixDialog.Content>
+      </RadixDialog.Portal>
+    </RadixDialog.Root>
   );
 }
-
 
 /* ------------------------------------------------------------------ */
 /*  External Job Site Links (API-backed, multi-filter)                 */
 /* ------------------------------------------------------------------ */
 interface ExternalLink {
-  id: string; name: string; url: string; logoEmoji: string; badgeText: string;
-  description: string; gradientFrom: string; gradientTo: string;
-  category: string; companySize: string; careerLevel: string;
-  location: string; jobCategory: string; jobTypes: string; clickCount: number;
+  id: string;
+  name: string;
+  url: string;
+  logoEmoji: string;
+  badgeText: string;
+  description: string;
+  gradientFrom: string;
+  gradientTo: string;
+  category: string;
+  companySize: string;
+  careerLevel: string;
+  location: string;
+  jobCategory: string;
+  jobTypes: string;
+  clickCount: number;
   matchKeywords: string;
 }
 
 /** 외부 링크의 matchKeywords와 내부 공고 company가 매칭되면 해당 공고 목록 반환 */
 function findMatchedJobs(link: ExternalLink, internalJobs: JobPost[]): JobPost[] {
   if (!link.matchKeywords) return [];
-  const keywords = link.matchKeywords.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
-  return internalJobs.filter(job => {
+  const keywords = link.matchKeywords
+    .split(',')
+    .map((k) => k.trim().toLowerCase())
+    .filter(Boolean);
+  return internalJobs.filter((job) => {
     const company = (job.company || job.user?.companyName || '').toLowerCase();
-    return keywords.some(kw => company.includes(kw) || kw.includes(company.split(' ')[0]));
+    return keywords.some((kw) => company.includes(kw) || kw.includes(company.split(' ')[0]));
   });
 }
 
@@ -244,7 +353,13 @@ const LOCATION_EXT_OPTIONS = [
   { key: 'global', label: '해외/글로벌' },
 ];
 
-function ExtLinkForm({ initial, onSave }: { initial: ExternalLink | null; onSave: (data: any) => void }) {
+function ExtLinkForm({
+  initial,
+  onSave,
+}: {
+  initial: ExternalLink | null;
+  onSave: (data: any) => void;
+}) {
   const [form, setForm] = useState({
     name: initial?.name || '',
     url: initial?.url || '',
@@ -258,53 +373,107 @@ function ExtLinkForm({ initial, onSave }: { initial: ExternalLink | null; onSave
     jobCategory: initial?.jobCategory || 'all',
     location: initial?.location || 'all',
   });
-  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+  const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
   return (
     <div className="p-5 space-y-3">
       <div>
         <label className="text-xs font-medium text-slate-600 dark:text-slate-400">사이트명 *</label>
-        <input value={form.name} onChange={e => set('name', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="네이버 채용" required />
+        <input
+          value={form.name}
+          onChange={(e) => set('name', e.target.value)}
+          className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+          placeholder="네이버 채용"
+          required
+        />
       </div>
       <div>
         <label className="text-xs font-medium text-slate-600 dark:text-slate-400">URL *</label>
-        <input value={form.url} onChange={e => set('url', e.target.value)} type="url" className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="https://..." required />
+        <input
+          value={form.url}
+          onChange={(e) => set('url', e.target.value)}
+          type="url"
+          className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+          placeholder="https://..."
+          required
+        />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-medium text-slate-600 dark:text-slate-400">이모지</label>
-          <input value={form.logoEmoji} onChange={e => set('logoEmoji', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" />
+          <input
+            value={form.logoEmoji}
+            onChange={(e) => set('logoEmoji', e.target.value)}
+            className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+          />
         </div>
         <div>
-          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">뱃지 텍스트</label>
-          <input value={form.badgeText} onChange={e => set('badgeText', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="인기" />
+          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+            뱃지 텍스트
+          </label>
+          <input
+            value={form.badgeText}
+            onChange={(e) => set('badgeText', e.target.value)}
+            className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+            placeholder="인기"
+          />
         </div>
       </div>
       <div>
         <label className="text-xs font-medium text-slate-600 dark:text-slate-400">설명</label>
-        <input value={form.description} onChange={e => set('description', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="간단 설명" />
+        <input
+          value={form.description}
+          onChange={(e) => set('description', e.target.value)}
+          className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+          placeholder="간단 설명"
+        />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-medium text-slate-600 dark:text-slate-400">기업규모</label>
-          <select value={form.companySize} onChange={e => set('companySize', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg">
-            {COMPANY_SIZE_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+          <select
+            value={form.companySize}
+            onChange={(e) => set('companySize', e.target.value)}
+            className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+          >
+            {COMPANY_SIZE_OPTIONS.map((o) => (
+              <option key={o.key} value={o.key}>
+                {o.label}
+              </option>
+            ))}
           </select>
         </div>
         <div>
           <label className="text-xs font-medium text-slate-600 dark:text-slate-400">직종</label>
-          <select value={form.jobCategory} onChange={e => set('jobCategory', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg">
-            {JOB_CATEGORY_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+          <select
+            value={form.jobCategory}
+            onChange={(e) => set('jobCategory', e.target.value)}
+            className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+          >
+            {JOB_CATEGORY_OPTIONS.map((o) => (
+              <option key={o.key} value={o.key}>
+                {o.label}
+              </option>
+            ))}
           </select>
         </div>
       </div>
-      <button onClick={() => onSave(form)} className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors">
+      <button
+        onClick={() => onSave(form)}
+        className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
+      >
         {initial ? '수정' : '등록'}
       </button>
     </div>
   );
 }
 
-function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPost[]; onDirectApply: (job: JobPost) => void }) {
+function ExternalJobLinks({
+  internalJobs,
+  onDirectApply,
+}: {
+  internalJobs: JobPost[];
+  onDirectApply: (job: JobPost) => void;
+}) {
   const [links, setLinks] = useState<ExternalLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [companySize, setCompanySize] = useState('all');
@@ -315,7 +484,9 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
   const [q, setQ] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [expanded, setExpanded] = useState(false);
-  const [matchModal, setMatchModal] = useState<{ link: ExternalLink; jobs: JobPost[] } | null>(null);
+  const [matchModal, setMatchModal] = useState<{ link: ExternalLink; jobs: JobPost[] } | null>(
+    null,
+  );
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingLink, setEditingLink] = useState<ExternalLink | null>(null);
   const { canDo } = usePermissions();
@@ -333,15 +504,22 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
     if (location !== 'all') params.set('location', location);
     if (q) params.set('q', q);
     fetch(`${API_URL}/api/jobs/external-links/list?${params}`)
-      .then(r => r.json())
-      .then(data => { setLinks(Array.isArray(data) ? data : []); setLoading(false); })
+      .then((r) => r.json())
+      .then((data) => {
+        setLinks(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   };
 
-  useEffect(() => { loadLinks(); }, [companySize, careerLevel, jobCategory, jobType, location, q]);
+  useEffect(() => {
+    loadLinks();
+  }, [companySize, careerLevel, jobCategory, jobType, location, q]);
 
   const handleClick = async (link: ExternalLink) => {
-    fetch(`${API_URL}/api/jobs/external-links/${link.id}/click`, { method: 'POST' }).catch(() => {});
+    fetch(`${API_URL}/api/jobs/external-links/${link.id}/click`, { method: 'POST' }).catch(
+      () => {},
+    );
     window.open(link.url, '_blank', 'noopener,noreferrer');
   };
 
@@ -357,10 +535,15 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
   const handleSaveLink = async (data: any) => {
     const token = localStorage.getItem('token');
     const isEdit = !!editingLink;
-    const url = isEdit ? `${API_URL}/api/jobs/external-links/${editingLink!.id}` : `${API_URL}/api/jobs/external-links`;
+    const url = isEdit
+      ? `${API_URL}/api/jobs/external-links/${editingLink!.id}`
+      : `${API_URL}/api/jobs/external-links`;
     const res = await fetch(url, {
       method: isEdit ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify(data),
     });
     if (res.ok) {
@@ -380,157 +563,312 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
       method: 'DELETE',
       headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     });
-    if (res.ok) { toast('삭제되었습니다', 'success'); loadLinks(); }
-    else { toast('삭제 권한이 없습니다', 'error'); }
+    if (res.ok) {
+      toast('삭제되었습니다', 'success');
+      loadLinks();
+    } else {
+      toast('삭제 권한이 없습니다', 'error');
+    }
   };
 
   const visible = expanded ? links : links.slice(0, 8);
 
   const filterBtnClass = (active: boolean) =>
     `px-2.5 py-1 text-[11px] font-medium rounded-full whitespace-nowrap transition-colors ${
-      active ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+      active
+        ? 'bg-blue-600 text-white'
+        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
     }`;
 
   return (
     <div className="mb-6 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800/60 dark:to-blue-900/20 rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
       {/* Match Modal */}
-      {matchModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setMatchModal(null)}>
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md animate-fade-in" onClick={e => e.stopPropagation()}>
-            {/* Modal Header */}
-            <div className="p-5 border-b border-slate-100 dark:border-slate-700">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm" style={{ background: `linear-gradient(135deg, ${matchModal.link.gradientFrom}, ${matchModal.link.gradientTo})` }}>
-                  {matchModal.link.logoEmoji}
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{matchModal.link.name}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{matchModal.link.description}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 mt-3 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800">
-                <span className="text-emerald-600 dark:text-emerald-400 text-sm">✅</span>
-                <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                  이력서공방에 <span className="font-bold">{matchModal.jobs.length}개</span>의 직접 지원 가능한 공고가 있습니다!
-                </p>
-              </div>
-            </div>
-
-            {/* Internal Jobs */}
-            <div className="p-5 space-y-3 max-h-64 overflow-y-auto">
-              {matchModal.jobs.map(job => (
-                <div key={job.id} className="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{job.position}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{job.company} · {JOB_TYPES[job.type] || job.type}</p>
-                    {job.salary && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">{job.salary}</p>}
+      <RadixDialog.Root
+        open={!!matchModal}
+        onOpenChange={(o) => {
+          if (!o) setMatchModal(null);
+        }}
+      >
+        <RadixDialog.Portal>
+          <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/50 animate-fade-in" />
+          <RadixDialog.Content
+            aria-describedby={undefined}
+            className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-fade-in focus:outline-none"
+          >
+            {matchModal && (
+              <>
+                <RadixDialog.Title className="sr-only">외부 사이트 매칭</RadixDialog.Title>
+                {/* Modal Header */}
+                <div className="p-5 border-b border-slate-100 dark:border-slate-700">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm"
+                      style={{
+                        background: `linear-gradient(135deg, ${matchModal.link.gradientFrom}, ${matchModal.link.gradientTo})`,
+                      }}
+                    >
+                      {matchModal.link.logoEmoji}
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                        {matchModal.link.name}
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {matchModal.link.description}
+                      </p>
+                    </div>
                   </div>
+                  <div className="flex items-center gap-2 mt-3 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800">
+                    <span className="text-emerald-600 dark:text-emerald-400 text-sm">✅</span>
+                    <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                      이력서공방에 <span className="font-bold">{matchModal.jobs.length}개</span>의
+                      직접 지원 가능한 공고가 있습니다!
+                    </p>
+                  </div>
+                </div>
+
+                {/* Internal Jobs */}
+                <div className="p-5 space-y-3 max-h-64 overflow-y-auto">
+                  {matchModal.jobs.map((job) => (
+                    <div
+                      key={job.id}
+                      className="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
+                          {job.position}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {job.company} · {JOB_TYPES[job.type] || job.type}
+                        </p>
+                        {job.salary && (
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
+                            {job.salary}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => {
+                          setMatchModal(null);
+                          onDirectApply(job);
+                        }}
+                        className="shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
+                      >
+                        지원하기
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="p-4 border-t border-slate-100 dark:border-slate-700 flex gap-2">
                   <button
-                    onClick={() => { setMatchModal(null); onDirectApply(job); }}
-                    className="shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
+                    onClick={() => {
+                      handleClick(matchModal.link);
+                      setMatchModal(null);
+                    }}
+                    className="flex-1 py-2 text-xs text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                   >
-                    지원하기
+                    외부 사이트로 이동 →
+                  </button>
+                  <button
+                    onClick={() => setMatchModal(null)}
+                    className="px-4 py-2 text-xs bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                  >
+                    닫기
                   </button>
                 </div>
-              ))}
-            </div>
-
-            {/* Footer */}
-            <div className="p-4 border-t border-slate-100 dark:border-slate-700 flex gap-2">
-              <button
-                onClick={() => { handleClick(matchModal.link); setMatchModal(null); }}
-                className="flex-1 py-2 text-xs text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-              >
-                외부 사이트로 이동 →
-              </button>
-              <button onClick={() => setMatchModal(null)} className="px-4 py-2 text-xs bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
-                닫기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              </>
+            )}
+          </RadixDialog.Content>
+        </RadixDialog.Portal>
+      </RadixDialog.Root>
 
       {/* Add/Edit Link Form Modal */}
-      {showAddForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => { setShowAddForm(false); setEditingLink(null); }}>
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto animate-fade-in" onClick={e => e.stopPropagation()}>
-            <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">{editingLink ? '바로가기 수정' : '바로가기 등록'}</h3>
-              <button onClick={() => { setShowAddForm(false); setEditingLink(null); }} className="text-slate-400 hover:text-slate-600">✕</button>
+      <RadixDialog.Root
+        open={showAddForm}
+        onOpenChange={(o) => {
+          if (!o) {
+            setShowAddForm(false);
+            setEditingLink(null);
+          }
+        }}
+      >
+        <RadixDialog.Portal>
+          <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/40 animate-fade-in" />
+          <RadixDialog.Content
+            aria-describedby={undefined}
+            className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-fade-in focus:outline-none"
+          >
+            <div className="px-5 py-4 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
+              <RadixDialog.Title className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                {editingLink ? '바로가기 수정' : '바로가기 등록'}
+              </RadixDialog.Title>
+              <RadixDialog.Close asChild>
+                <button className="text-neutral-400 hover:text-neutral-600" aria-label="닫기">
+                  ✕
+                </button>
+              </RadixDialog.Close>
             </div>
             <ExtLinkForm initial={editingLink} onSave={handleSaveLink} />
-          </div>
-        </div>
-      )}
+          </RadixDialog.Content>
+        </RadixDialog.Portal>
+      </RadixDialog.Root>
 
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-base">🔗</span>
-          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">주요 채용 사이트 바로가기</span>
-          <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full">{links.length}개</span>
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            주요 채용 사이트 바로가기
+          </span>
+          <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full">
+            {links.length}개
+          </span>
         </div>
         <div className="flex items-center gap-2">
           {canCreate && (
-            <button onClick={() => { setEditingLink(null); setShowAddForm(true); }} className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+            <button
+              onClick={() => {
+                setEditingLink(null);
+                setShowAddForm(true);
+              }}
+              className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            >
               + 등록
             </button>
           )}
-          <button onClick={() => setExpanded(e => !e)} className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1 transition-colors">
+          <button
+            onClick={() => setExpanded((e) => !e)}
+            className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1 transition-colors"
+          >
             {expanded ? '접기' : '전체보기'}
-            <svg className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <svg
+              className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
         </div>
       </div>
 
       {/* Search */}
-      <form onSubmit={e => { e.preventDefault(); setQ(searchInput); }} className="flex gap-2 mb-3">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setQ(searchInput);
+        }}
+        className="flex gap-2 mb-3"
+      >
         <input
-          type="search" value={searchInput} onChange={e => setSearchInput(e.target.value)}
+          type="search"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           placeholder="사이트명, 직종 검색..."
           className="flex-1 px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         />
-        <button type="submit" className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">검색</button>
-        {q && <button type="button" onClick={() => { setQ(''); setSearchInput(''); }} className="px-2 py-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors">✕</button>}
+        <button
+          type="submit"
+          className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          검색
+        </button>
+        {q && (
+          <button
+            type="button"
+            onClick={() => {
+              setQ('');
+              setSearchInput('');
+            }}
+            className="px-2 py-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors"
+          >
+            ✕
+          </button>
+        )}
       </form>
 
       {/* Filters */}
       <div className="space-y-2 mb-4">
         {/* 기업 규모 */}
         <div className="flex gap-1.5 flex-wrap">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">기업규모</span>
-          {COMPANY_SIZE_OPTIONS.map(o => (
-            <button key={o.key} onClick={() => setCompanySize(o.key)} className={filterBtnClass(companySize === o.key)}>{o.label}</button>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
+            기업규모
+          </span>
+          {COMPANY_SIZE_OPTIONS.map((o) => (
+            <button
+              key={o.key}
+              onClick={() => setCompanySize(o.key)}
+              className={filterBtnClass(companySize === o.key)}
+            >
+              {o.label}
+            </button>
           ))}
         </div>
         {/* 직종 */}
         <div className="flex gap-1.5 flex-wrap">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">직종</span>
-          {JOB_CATEGORY_OPTIONS.map(o => (
-            <button key={o.key} onClick={() => setJobCategory(o.key)} className={filterBtnClass(jobCategory === o.key)}>{o.label}</button>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
+            직종
+          </span>
+          {JOB_CATEGORY_OPTIONS.map((o) => (
+            <button
+              key={o.key}
+              onClick={() => setJobCategory(o.key)}
+              className={filterBtnClass(jobCategory === o.key)}
+            >
+              {o.label}
+            </button>
           ))}
         </div>
         {/* 경력 + 고용형태 */}
         <div className="flex gap-1.5 flex-wrap">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">경력</span>
-          {CAREER_LEVEL_EXT_OPTIONS.map(o => (
-            <button key={o.key} onClick={() => setCareerLevel(o.key)} className={filterBtnClass(careerLevel === o.key)}>{o.label}</button>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
+            경력
+          </span>
+          {CAREER_LEVEL_EXT_OPTIONS.map((o) => (
+            <button
+              key={o.key}
+              onClick={() => setCareerLevel(o.key)}
+              className={filterBtnClass(careerLevel === o.key)}
+            >
+              {o.label}
+            </button>
           ))}
         </div>
         <div className="flex gap-1.5 flex-wrap">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">고용</span>
-          {JOB_TYPE_EXT_OPTIONS.map(o => (
-            <button key={o.key} onClick={() => setJobType(o.key)} className={filterBtnClass(jobType === o.key)}>{o.label}</button>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
+            고용
+          </span>
+          {JOB_TYPE_EXT_OPTIONS.map((o) => (
+            <button
+              key={o.key}
+              onClick={() => setJobType(o.key)}
+              className={filterBtnClass(jobType === o.key)}
+            >
+              {o.label}
+            </button>
           ))}
         </div>
         {/* 지역 */}
         <div className="flex gap-1.5 flex-wrap">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">지역</span>
-          {LOCATION_EXT_OPTIONS.map(o => (
-            <button key={o.key} onClick={() => setLocation(o.key)} className={filterBtnClass(location === o.key)}>{o.label}</button>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
+            지역
+          </span>
+          {LOCATION_EXT_OPTIONS.map((o) => (
+            <button
+              key={o.key}
+              onClick={() => setLocation(o.key)}
+              className={filterBtnClass(location === o.key)}
+            >
+              {o.label}
+            </button>
           ))}
         </div>
       </div>
@@ -543,10 +881,12 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
           ))}
         </div>
       ) : visible.length === 0 ? (
-        <div className="text-center py-6 text-sm text-slate-400 dark:text-slate-500">조건에 맞는 채용 사이트가 없습니다</div>
+        <div className="text-center py-6 text-sm text-slate-400 dark:text-slate-500">
+          조건에 맞는 채용 사이트가 없습니다
+        </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {visible.map(link => {
+          {visible.map((link) => {
             const matched = findMatchedJobs(link, internalJobs);
             const hasMatch = matched.length > 0;
             return (
@@ -567,36 +907,97 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
                 )}
                 <div
                   className="w-9 h-9 rounded-lg flex items-center justify-center text-lg shrink-0 shadow-sm"
-                  style={{ background: `linear-gradient(135deg, ${link.gradientFrom}, ${link.gradientTo})` }}
+                  style={{
+                    background: `linear-gradient(135deg, ${link.gradientFrom}, ${link.gradientTo})`,
+                  }}
                 >
                   {link.logoEmoji}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className={`text-xs font-bold leading-tight transition-colors ${hasMatch ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}>
+                    <span
+                      className={`text-xs font-bold leading-tight transition-colors ${hasMatch ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}
+                    >
                       {link.name}
                     </span>
-                    {link.badgeText && <span className="px-1 py-0.5 text-[9px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">{link.badgeText}</span>}
+                    {link.badgeText && (
+                      <span className="px-1 py-0.5 text-[9px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">
+                        {link.badgeText}
+                      </span>
+                    )}
                   </div>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">{link.description}</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">
+                    {link.description}
+                  </p>
                   {hasMatch && (
-                    <p className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">✅ 이력서공방에서 직접 지원 가능</p>
+                    <p className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                      ✅ 이력서공방에서 직접 지원 가능
+                    </p>
                   )}
                 </div>
                 <div className="ml-auto shrink-0 flex items-center gap-0.5">
                   {canEdit && (
-                    <span onClick={e => { e.stopPropagation(); setEditingLink(link); setShowAddForm(true); }} className="p-1 text-slate-300 hover:text-blue-500 cursor-pointer rounded transition-colors" title="수정">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingLink(link);
+                        setShowAddForm(true);
+                      }}
+                      className="p-1 text-slate-300 hover:text-blue-500 cursor-pointer rounded transition-colors"
+                      title="수정"
+                    >
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
                     </span>
                   )}
                   {canDelete && (
-                    <span onClick={e => { e.stopPropagation(); handleDeleteLink(link); }} className="p-1 text-slate-300 hover:text-red-500 cursor-pointer rounded transition-colors" title="삭제">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteLink(link);
+                      }}
+                      className="p-1 text-slate-300 hover:text-red-500 cursor-pointer rounded transition-colors"
+                      title="삭제"
+                    >
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
                     </span>
                   )}
                   {!hasMatch && !canEdit && !canDelete && (
-                    <svg className="w-3 h-3 text-slate-300 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <svg
+                      className="w-3 h-3 text-slate-300 group-hover:text-blue-400 transition-colors"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
                     </svg>
                   )}
                 </div>
@@ -606,7 +1007,10 @@ function ExternalJobLinks({ internalJobs, onDirectApply }: { internalJobs: JobPo
         </div>
       )}
       {links.length > 8 && (
-        <button onClick={() => setExpanded(e => !e)} className="w-full mt-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+        <button
+          onClick={() => setExpanded((e) => !e)}
+          className="w-full mt-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        >
           {expanded ? `▲ 접기` : `▼ ${links.length - 8}개 더 보기`}
         </button>
       )}
@@ -659,24 +1063,40 @@ interface CuratedJob {
 }
 
 const EXP_LABELS: Record<string, string> = {
-  junior: '신입', mid: '경력 3~7년', senior: '시니어 7년+', any: '경력무관',
+  junior: '신입',
+  mid: '경력 3~7년',
+  senior: '시니어 7년+',
+  any: '경력무관',
 };
 
 const SIZE_LABELS: Record<string, string> = {
-  conglomerate: '대기업', midsize: '중견기업', public: '공기업', government: '공무원', medium: '중소기업', startup: '스타트업',
+  conglomerate: '대기업',
+  midsize: '중견기업',
+  public: '공기업',
+  government: '공무원',
+  medium: '중소기업',
+  startup: '스타트업',
 };
 
 const INDUSTRY_LABELS: Record<string, string> = {
-  it: 'IT/SW', semiconductor: '반도체', automotive: '자동차', fintech: '핀테크',
-  ecommerce: '이커머스', energy: '에너지', construction: '건설', transportation: '교통',
-  manufacturing: '제조', government: '공공', healthcare: '의료/보건',
+  it: 'IT/SW',
+  semiconductor: '반도체',
+  automotive: '자동차',
+  fintech: '핀테크',
+  ecommerce: '이커머스',
+  energy: '에너지',
+  construction: '건설',
+  transportation: '교통',
+  manufacturing: '제조',
+  government: '공공',
+  healthcare: '의료/보건',
 };
 
 function usePermissions() {
   const [perms, setPerms] = useState<Record<string, string>>({});
   useEffect(() => {
     fetch(`${API_URL}/api/system-config/permissions`)
-      .then(r => r.json())
+      .then((r) => r.json())
       .then(setPerms)
       .catch(() => {});
   }, []);
@@ -684,7 +1104,7 @@ function usePermissions() {
   const canDo = (contentType: string, action: string): boolean => {
     const user = getUser();
     const key = `perm.${contentType}.${action}`;
-    const allowed = (perms[key] || 'admin').split(',').map(r => r.trim());
+    const allowed = (perms[key] || 'admin').split(',').map((r) => r.trim());
     if (allowed.includes('all')) return true;
     if (!user) return false;
     const isAdmin = user.role === 'admin' || user.role === 'superadmin';
@@ -699,17 +1119,52 @@ function usePermissions() {
 }
 
 function getDday(deadline: string | null, isRolling: boolean): { text: string; color: string } {
-  if (isRolling) return { text: '상시채용', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' };
-  if (!deadline) return { text: '상시채용', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' };
+  if (isRolling)
+    return {
+      text: '상시채용',
+      color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+    };
+  if (!deadline)
+    return {
+      text: '상시채용',
+      color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+    };
   const diff = Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000);
-  if (diff < 0) return { text: '마감', color: 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400' };
-  if (diff === 0) return { text: '오늘마감', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' };
-  if (diff <= 3) return { text: `D-${diff}`, color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' };
-  if (diff <= 7) return { text: `D-${diff}`, color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' };
-  return { text: `D-${diff}`, color: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' };
+  if (diff < 0)
+    return {
+      text: '마감',
+      color: 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400',
+    };
+  if (diff === 0)
+    return {
+      text: '오늘마감',
+      color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+    };
+  if (diff <= 3)
+    return {
+      text: `D-${diff}`,
+      color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+    };
+  if (diff <= 7)
+    return {
+      text: `D-${diff}`,
+      color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
+    };
+  return {
+    text: `D-${diff}`,
+    color: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
+  };
 }
 
-function CuratedJobForm({ initial, onSave, onClose }: { initial: CuratedJob | null; onSave: (data: any) => void; onClose: () => void }) {
+function CuratedJobForm({
+  initial,
+  onSave,
+  onClose,
+}: {
+  initial: CuratedJob | null;
+  onSave: (data: any) => void;
+  onClose: () => void;
+}) {
   const [form, setForm] = useState({
     company: initial?.company || '',
     companyLogo: initial?.companyLogo || '',
@@ -731,121 +1186,297 @@ function CuratedJobForm({ initial, onSave, onClose }: { initial: CuratedJob | nu
     deadline: initial?.deadline ? initial.deadline.slice(0, 10) : '',
     isRolling: initial?.isRolling || false,
   });
-  const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
+  const set = (k: string, v: any) => setForm((f) => ({ ...f, [k]: v }));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto animate-fade-in" onClick={e => e.stopPropagation()}>
-        <div className="sticky top-0 bg-white dark:bg-slate-900 px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between z-10">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{initial ? '채용 정보 수정' : '채용 정보 등록'}</h3>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400">✕</button>
-        </div>
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">회사명 *</label>
-              <input value={form.company} onChange={e => set('company', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="삼성전자" required />
+    <RadixDialog.Root
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose();
+      }}
+    >
+      <RadixDialog.Portal>
+        <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/40 animate-fade-in" />
+        <RadixDialog.Content
+          aria-describedby={undefined}
+          className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-2xl bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-fade-in focus:outline-none"
+        >
+          <div className="sticky top-0 bg-white dark:bg-neutral-900 px-6 py-4 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between z-10">
+            <RadixDialog.Title className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+              {initial ? '채용 정보 수정' : '채용 정보 등록'}
+            </RadixDialog.Title>
+            <RadixDialog.Close asChild>
+              <button
+                className="p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-400"
+                aria-label="닫기"
+              >
+                ✕
+              </button>
+            </RadixDialog.Close>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  회사명 *
+                </label>
+                <input
+                  value={form.company}
+                  onChange={(e) => set('company', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="삼성전자"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  회사 이모지
+                </label>
+                <input
+                  value={form.companyLogo}
+                  onChange={(e) => set('companyLogo', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+                  placeholder="📱"
+                />
+              </div>
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">회사 이모지</label>
-              <input value={form.companyLogo} onChange={e => set('companyLogo', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="📱" />
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                포지션 *
+              </label>
+              <input
+                value={form.position}
+                onChange={(e) => set('position', e.target.value)}
+                className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="2026 상반기 신입 공채"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  부서/직군
+                </label>
+                <input
+                  value={form.department}
+                  onChange={(e) => set('department', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+                  placeholder="SW/HW/경영"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  근무지
+                </label>
+                <input
+                  value={form.location}
+                  onChange={(e) => set('location', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+                  placeholder="서울 강남구"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                한줄 요약
+              </label>
+              <textarea
+                value={form.summary}
+                onChange={(e) => set('summary', e.target.value)}
+                rows={2}
+                className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg resize-none"
+                placeholder="채용 공고 한줄 요약"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                자격 요건
+              </label>
+              <textarea
+                value={form.requirements}
+                onChange={(e) => set('requirements', e.target.value)}
+                rows={2}
+                className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg resize-none"
+                placeholder="학사 이상, 관련 경력 3년+"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                복리후생
+              </label>
+              <textarea
+                value={form.benefits}
+                onChange={(e) => set('benefits', e.target.value)}
+                rows={2}
+                className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg resize-none"
+                placeholder="성과급, 사택, 건강검진"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  기술스택 (콤마 구분)
+                </label>
+                <input
+                  value={form.skills}
+                  onChange={(e) => set('skills', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+                  placeholder="React,TypeScript,Java"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  급여
+                </label>
+                <input
+                  value={form.salary}
+                  onChange={(e) => set('salary', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+                  placeholder="5,000~8,000만원"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  고용형태
+                </label>
+                <select
+                  value={form.jobType}
+                  onChange={(e) => set('jobType', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+                >
+                  <option value="fulltime">정규직</option>
+                  <option value="contract">계약직</option>
+                  <option value="intern">인턴</option>
+                  <option value="parttime">파트타임</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  경력
+                </label>
+                <select
+                  value={form.experienceLevel}
+                  onChange={(e) => set('experienceLevel', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+                >
+                  <option value="any">무관</option>
+                  <option value="junior">신입</option>
+                  <option value="mid">경력</option>
+                  <option value="senior">시니어</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  기업규모
+                </label>
+                <select
+                  value={form.companySize}
+                  onChange={(e) => set('companySize', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+                >
+                  <option value="">선택</option>
+                  <option value="conglomerate">대기업</option>
+                  <option value="midsize">중견기업</option>
+                  <option value="public">공기업</option>
+                  <option value="government">공무원</option>
+                  <option value="medium">중소기업</option>
+                  <option value="startup">스타트업</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  학력
+                </label>
+                <input
+                  value={form.education}
+                  onChange={(e) => set('education', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+                  placeholder="학사 이상"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  산업
+                </label>
+                <input
+                  value={form.industry}
+                  onChange={(e) => set('industry', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+                  placeholder="it, fintech, manufacturing"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  원본 링크 *
+                </label>
+                <input
+                  value={form.sourceUrl}
+                  onChange={(e) => set('sourceUrl', e.target.value)}
+                  type="url"
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://..."
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  출처 사이트명
+                </label>
+                <input
+                  value={form.sourceSite}
+                  onChange={(e) => set('sourceSite', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
+                  placeholder="삼성커리어스"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  마감일
+                </label>
+                <input
+                  value={form.deadline}
+                  onChange={(e) => set('deadline', e.target.value)}
+                  type="date"
+                  disabled={form.isRolling}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg disabled:opacity-50"
+                />
+              </div>
+              <label className="flex items-center gap-2 mt-5 text-sm text-slate-600 dark:text-slate-400 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.isRolling}
+                  onChange={(e) => set('isRolling', e.target.checked)}
+                  className="rounded border-slate-300 text-blue-600"
+                />
+                상시채용
+              </label>
             </div>
           </div>
-          <div>
-            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">포지션 *</label>
-            <input value={form.position} onChange={e => set('position', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="2026 상반기 신입 공채" required />
+          <div className="sticky bottom-0 bg-white dark:bg-slate-900 px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700"
+            >
+              취소
+            </button>
+            <button
+              onClick={() => onSave(form)}
+              className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700"
+            >
+              {initial ? '수정' : '등록'}
+            </button>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">부서/직군</label>
-              <input value={form.department} onChange={e => set('department', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="SW/HW/경영" />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">근무지</label>
-              <input value={form.location} onChange={e => set('location', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="서울 강남구" />
-            </div>
-          </div>
-          <div>
-            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">한줄 요약</label>
-            <textarea value={form.summary} onChange={e => set('summary', e.target.value)} rows={2} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg resize-none" placeholder="채용 공고 한줄 요약" />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">자격 요건</label>
-            <textarea value={form.requirements} onChange={e => set('requirements', e.target.value)} rows={2} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg resize-none" placeholder="학사 이상, 관련 경력 3년+" />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">복리후생</label>
-            <textarea value={form.benefits} onChange={e => set('benefits', e.target.value)} rows={2} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg resize-none" placeholder="성과급, 사택, 건강검진" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">기술스택 (콤마 구분)</label>
-              <input value={form.skills} onChange={e => set('skills', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="React,TypeScript,Java" />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">급여</label>
-              <input value={form.salary} onChange={e => set('salary', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="5,000~8,000만원" />
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">고용형태</label>
-              <select value={form.jobType} onChange={e => set('jobType', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg">
-                <option value="fulltime">정규직</option><option value="contract">계약직</option><option value="intern">인턴</option><option value="parttime">파트타임</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">경력</label>
-              <select value={form.experienceLevel} onChange={e => set('experienceLevel', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg">
-                <option value="any">무관</option><option value="junior">신입</option><option value="mid">경력</option><option value="senior">시니어</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">기업규모</label>
-              <select value={form.companySize} onChange={e => set('companySize', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg">
-                <option value="">선택</option><option value="conglomerate">대기업</option><option value="midsize">중견기업</option><option value="public">공기업</option><option value="government">공무원</option><option value="medium">중소기업</option><option value="startup">스타트업</option>
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">학력</label>
-              <input value={form.education} onChange={e => set('education', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="학사 이상" />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">산업</label>
-              <input value={form.industry} onChange={e => set('industry', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="it, fintech, manufacturing" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">원본 링크 *</label>
-              <input value={form.sourceUrl} onChange={e => set('sourceUrl', e.target.value)} type="url" className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="https://..." required />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">출처 사이트명</label>
-              <input value={form.sourceSite} onChange={e => set('sourceSite', e.target.value)} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg" placeholder="삼성커리어스" />
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">마감일</label>
-              <input value={form.deadline} onChange={e => set('deadline', e.target.value)} type="date" disabled={form.isRolling} className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg disabled:opacity-50" />
-            </div>
-            <label className="flex items-center gap-2 mt-5 text-sm text-slate-600 dark:text-slate-400 cursor-pointer">
-              <input type="checkbox" checked={form.isRolling} onChange={e => set('isRolling', e.target.checked)} className="rounded border-slate-300 text-blue-600" />
-              상시채용
-            </label>
-          </div>
-        </div>
-        <div className="sticky bottom-0 bg-white dark:bg-slate-900 px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700">취소</button>
-          <button onClick={() => onSave(form)} className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700">
-            {initial ? '수정' : '등록'}
-          </button>
-        </div>
-      </div>
-    </div>
+        </RadixDialog.Content>
+      </RadixDialog.Portal>
+    </RadixDialog.Root>
   );
 }
 
@@ -867,7 +1498,9 @@ function CuratedJobsTab() {
   const canEdit = canDo('curatedJobs', 'edit');
   const canDelete = canDo('curatedJobs', 'delete');
 
-  useEffect(() => { loadJobs(); }, [expFilter, typeFilter, sizeFilter, q, page]);
+  useEffect(() => {
+    loadJobs();
+  }, [expFilter, typeFilter, sizeFilter, q, page]);
 
   const loadJobs = () => {
     setLoading(true);
@@ -879,8 +1512,12 @@ function CuratedJobsTab() {
     params.set('page', String(page));
     params.set('limit', '20');
     fetch(`${API_URL}/api/jobs/curated/list?${params}`)
-      .then(r => r.json())
-      .then(data => { setJobs(data.items || []); setTotal(data.total || 0); setLoading(false); })
+      .then((r) => r.json())
+      .then((data) => {
+        setJobs(data.items || []);
+        setTotal(data.total || 0);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   };
 
@@ -907,10 +1544,15 @@ function CuratedJobsTab() {
   const handleSave = async (data: any) => {
     const token = localStorage.getItem('token');
     const isEdit = !!editingJob;
-    const url = isEdit ? `${API_URL}/api/jobs/curated/${editingJob!.id}` : `${API_URL}/api/jobs/curated`;
+    const url = isEdit
+      ? `${API_URL}/api/jobs/curated/${editingJob!.id}`
+      : `${API_URL}/api/jobs/curated`;
     const res = await fetch(url, {
       method: isEdit ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify(data),
     });
     if (res.ok) {
@@ -925,7 +1567,9 @@ function CuratedJobsTab() {
 
   const filterBtn = (active: boolean) =>
     `px-2.5 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
-      active ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+      active
+        ? 'bg-blue-600 text-white'
+        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
     }`;
 
   return (
@@ -935,7 +1579,10 @@ function CuratedJobsTab() {
         <CuratedJobForm
           initial={editingJob}
           onSave={handleSave}
-          onClose={() => { setShowForm(false); setEditingJob(null); }}
+          onClose={() => {
+            setShowForm(false);
+            setEditingJob(null);
+          }}
         />
       )}
 
@@ -943,43 +1590,113 @@ function CuratedJobsTab() {
       {canCreate && (
         <div className="flex justify-end mb-3">
           <button
-            onClick={() => { setEditingJob(null); setShowForm(true); }}
+            onClick={() => {
+              setEditingJob(null);
+              setShowForm(true);
+            }}
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
             채용 정보 등록
           </button>
         </div>
       )}
 
       {/* Search */}
-      <form onSubmit={e => { e.preventDefault(); setQ(searchInput); setPage(1); }} className="flex gap-2 mb-4">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setQ(searchInput);
+          setPage(1);
+        }}
+        className="flex gap-2 mb-4"
+      >
         <input
-          type="search" value={searchInput} onChange={e => setSearchInput(e.target.value)}
+          type="search"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           placeholder="회사명, 포지션, 기술스택 검색..."
           className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
         />
-        <button type="submit" className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">검색</button>
+        <button
+          type="submit"
+          className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
+        >
+          검색
+        </button>
       </form>
 
       {/* Filters */}
       <div className="space-y-2 mb-5">
         <div className="flex gap-1.5 flex-wrap">
           <span className="text-[10px] text-slate-400 self-center w-10 shrink-0">경력</span>
-          {[{ k: 'all', l: '전체' }, { k: 'junior', l: '신입' }, { k: 'mid', l: '경력' }, { k: 'senior', l: '시니어' }, { k: 'any', l: '무관' }].map(o => (
-            <button key={o.k} onClick={() => { setExpFilter(o.k); setPage(1); }} className={filterBtn(expFilter === o.k)}>{o.l}</button>
+          {[
+            { k: 'all', l: '전체' },
+            { k: 'junior', l: '신입' },
+            { k: 'mid', l: '경력' },
+            { k: 'senior', l: '시니어' },
+            { k: 'any', l: '무관' },
+          ].map((o) => (
+            <button
+              key={o.k}
+              onClick={() => {
+                setExpFilter(o.k);
+                setPage(1);
+              }}
+              className={filterBtn(expFilter === o.k)}
+            >
+              {o.l}
+            </button>
           ))}
         </div>
         <div className="flex gap-1.5 flex-wrap">
           <span className="text-[10px] text-slate-400 self-center w-10 shrink-0">고용</span>
-          {[{ k: 'all', l: '전체' }, { k: 'fulltime', l: '정규직' }, { k: 'contract', l: '계약직' }, { k: 'intern', l: '인턴' }].map(o => (
-            <button key={o.k} onClick={() => { setTypeFilter(o.k); setPage(1); }} className={filterBtn(typeFilter === o.k)}>{o.l}</button>
+          {[
+            { k: 'all', l: '전체' },
+            { k: 'fulltime', l: '정규직' },
+            { k: 'contract', l: '계약직' },
+            { k: 'intern', l: '인턴' },
+          ].map((o) => (
+            <button
+              key={o.k}
+              onClick={() => {
+                setTypeFilter(o.k);
+                setPage(1);
+              }}
+              className={filterBtn(typeFilter === o.k)}
+            >
+              {o.l}
+            </button>
           ))}
         </div>
         <div className="flex gap-1.5 flex-wrap">
           <span className="text-[10px] text-slate-400 self-center w-10 shrink-0">기업</span>
-          {[{ k: 'all', l: '전체' }, { k: 'conglomerate', l: '대기업' }, { k: 'midsize', l: '중견기업' }, { k: 'public', l: '공기업' }, { k: 'government', l: '공무원' }, { k: 'medium', l: '중소기업' }, { k: 'startup', l: '스타트업' }].map(o => (
-            <button key={o.k} onClick={() => { setSizeFilter(o.k); setPage(1); }} className={filterBtn(sizeFilter === o.k)}>{o.l}</button>
+          {[
+            { k: 'all', l: '전체' },
+            { k: 'conglomerate', l: '대기업' },
+            { k: 'midsize', l: '중견기업' },
+            { k: 'public', l: '공기업' },
+            { k: 'government', l: '공무원' },
+            { k: 'medium', l: '중소기업' },
+            { k: 'startup', l: '스타트업' },
+          ].map((o) => (
+            <button
+              key={o.k}
+              onClick={() => {
+                setSizeFilter(o.k);
+                setPage(1);
+              }}
+              className={filterBtn(sizeFilter === o.k)}
+            >
+              {o.l}
+            </button>
           ))}
         </div>
       </div>
@@ -990,7 +1707,10 @@ function CuratedJobsTab() {
       {loading ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-36 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+            <div
+              key={i}
+              className="h-36 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse"
+            />
           ))}
         </div>
       ) : jobs.length === 0 ? (
@@ -1000,10 +1720,13 @@ function CuratedJobsTab() {
         </div>
       ) : (
         <div className="space-y-3">
-          {jobs.map(job => {
+          {jobs.map((job) => {
             const dday = getDday(job.deadline, job.isRolling);
             const expanded = expandedId === job.id;
-            const skills = job.skills.split(',').map(s => s.trim()).filter(Boolean);
+            const skills = job.skills
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean);
 
             const isExpired = dday.text === '마감';
 
@@ -1029,7 +1752,9 @@ function CuratedJobsTab() {
                       {/* Top row: company + d-day */}
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">{job.company}</span>
+                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+                            {job.company}
+                          </span>
                           {job.companySize && SIZE_LABELS[job.companySize] && (
                             <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">
                               {SIZE_LABELS[job.companySize]}
@@ -1041,7 +1766,9 @@ function CuratedJobsTab() {
                             </span>
                           )}
                         </div>
-                        <span className={`shrink-0 px-2 py-0.5 text-[10px] font-bold rounded-full ${dday.color}`}>
+                        <span
+                          className={`shrink-0 px-2 py-0.5 text-[10px] font-bold rounded-full ${dday.color}`}
+                        >
                           {dday.text}
                         </span>
                       </div>
@@ -1080,12 +1807,17 @@ function CuratedJobsTab() {
                           {skills.slice(0, 5).map((sk, i) => {
                             const c = SKILL_COLORS[i % SKILL_COLORS.length];
                             return (
-                              <span key={sk} className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${c.bg} ${c.text}`}>
+                              <span
+                                key={sk}
+                                className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${c.bg} ${c.text}`}
+                              >
                                 {sk}
                               </span>
                             );
                           })}
-                          {skills.length > 5 && <span className="text-[10px] text-slate-400">+{skills.length - 5}</span>}
+                          {skills.length > 5 && (
+                            <span className="text-[10px] text-slate-400">+{skills.length - 5}</span>
+                          )}
                         </div>
                       )}
 
@@ -1105,8 +1837,18 @@ function CuratedJobsTab() {
                       className="text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
                     >
                       {expanded ? '접기' : '상세보기'}
-                      <svg className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      <svg
+                        className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
                       </svg>
                     </button>
 
@@ -1115,13 +1857,48 @@ function CuratedJobsTab() {
                         조회 {job.viewCount} · {job.sourceSite}
                       </span>
                       {canEdit && (
-                        <button onClick={() => { setEditingJob(job); setShowForm(true); }} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" title="수정">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        <button
+                          onClick={() => {
+                            setEditingJob(job);
+                            setShowForm(true);
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                          title="수정"
+                        >
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
                         </button>
                       )}
                       {canDelete && (
-                        <button onClick={() => handleDelete(job)} className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title="삭제">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        <button
+                          onClick={() => handleDelete(job)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          title="삭제"
+                        >
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
                         </button>
                       )}
                       <button
@@ -1129,8 +1906,18 @@ function CuratedJobsTab() {
                         className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-xl transition-colors"
                       >
                         지원하기
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -1143,25 +1930,37 @@ function CuratedJobsTab() {
                     {job.requirements && (
                       <div>
                         <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
-                          <span className="w-4 h-4 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded flex items-center justify-center text-[10px]">✓</span>
+                          <span className="w-4 h-4 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded flex items-center justify-center text-[10px]">
+                            ✓
+                          </span>
                           자격 요건
                         </h4>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">{job.requirements}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">
+                          {job.requirements}
+                        </p>
                       </div>
                     )}
                     {job.benefits && (
                       <div>
                         <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
-                          <span className="w-4 h-4 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded flex items-center justify-center text-[10px]">★</span>
+                          <span className="w-4 h-4 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded flex items-center justify-center text-[10px]">
+                            ★
+                          </span>
                           복리후생
                         </h4>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{job.benefits}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                          {job.benefits}
+                        </p>
                       </div>
                     )}
                     {job.department && (
                       <div>
-                        <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">부서/직군</h4>
-                        <p className="text-xs text-slate-600 dark:text-slate-400">{job.department}</p>
+                        <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                          부서/직군
+                        </h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
+                          {job.department}
+                        </p>
                       </div>
                     )}
                     <div className="pt-2">
@@ -1170,8 +1969,18 @@ function CuratedJobsTab() {
                         className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
                       >
                         {job.sourceSite}에서 지원하기
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -1222,12 +2031,14 @@ function CuratedJobsTab() {
       {/* Pagination */}
       {total > 20 && (
         <div className="flex justify-center gap-2 mt-6">
-          {Array.from({ length: Math.ceil(total / 20) }, (_, i) => i + 1).map(p => (
+          {Array.from({ length: Math.ceil(total / 20) }, (_, i) => i + 1).map((p) => (
             <button
               key={p}
               onClick={() => setPage(p)}
               className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${
-                page === p ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                page === p
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
               }`}
             >
               {p}
@@ -1240,7 +2051,10 @@ function CuratedJobsTab() {
 }
 
 const JOB_TYPES: Record<string, string> = {
-  fulltime: '정규직', contract: '계약직', parttime: '파트타임', intern: '인턴',
+  fulltime: '정규직',
+  contract: '계약직',
+  parttime: '파트타임',
+  intern: '인턴',
 };
 
 const SKILL_COLORS = [
@@ -1259,23 +2073,39 @@ function getSkillColor(index: number) {
 /** Calculate match score between user skills and job required skills */
 function calculateMatchScore(userSkills: Set<string>, jobSkills: string): number {
   if (!jobSkills || userSkills.size === 0) return 0;
-  const required = jobSkills.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const required = jobSkills
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
   if (required.length === 0) return 0;
-  const matched = required.filter(s => userSkills.has(s));
+  const matched = required.filter((s) => userSkills.has(s));
   return Math.round((matched.length / required.length) * 100);
 }
 
 function MatchBadge({ score }: { score: number }) {
   if (score <= 0) return null;
   let colorClass = '';
-  if (score >= 80) colorClass = 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800';
-  else if (score >= 60) colorClass = 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
-  else if (score >= 30) colorClass = 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800';
-  else colorClass = 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800';
+  if (score >= 80)
+    colorClass =
+      'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800';
+  else if (score >= 60)
+    colorClass =
+      'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
+  else if (score >= 30)
+    colorClass =
+      'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800';
+  else
+    colorClass =
+      'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800';
 
   return (
-    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold rounded-md border ${colorClass}`} title="매칭률">
-      <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+    <span
+      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold rounded-md border ${colorClass}`}
+      title="매칭률"
+    >
+      <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+      </svg>
       {score}%
     </span>
   );
@@ -1312,22 +2142,24 @@ export default function JobsPage() {
 
   const handleApplySuccess = useCallback((jobId: string) => {
     addAppliedJob(jobId);
-    setAppliedJobs(prev => new Set(prev).add(jobId));
+    setAppliedJobs((prev) => new Set(prev).add(jobId));
     setApplyModalJob(null);
   }, []);
 
   // Load user's resume skills for match scoring
   useEffect(() => {
     if (user) {
-      fetchResumes().then(setUserResumes).catch(() => {});
+      fetchResumes()
+        .then(setUserResumes)
+        .catch(() => {});
     }
   }, []);
 
   const userSkills = useMemo((): Set<string> => {
     const skills = new Set<string>();
-    userResumes.forEach(r => {
-      r.skills?.forEach(sk => {
-        sk.items.split(',').forEach(item => {
+    userResumes.forEach((r) => {
+      r.skills?.forEach((sk) => {
+        sk.items.split(',').forEach((item) => {
           const trimmed = item.trim().toLowerCase();
           if (trimmed) skills.add(trimmed);
         });
@@ -1339,7 +2171,9 @@ export default function JobsPage() {
   useEffect(() => {
     document.title = '채용 공고 — 이력서공방';
     loadJobs();
-    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+    return () => {
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
+    };
   }, []);
 
   const loadJobs = (query?: string) => {
@@ -1347,7 +2181,7 @@ export default function JobsPage() {
     setLoading(true);
     const qs = query ? `?q=${encodeURIComponent(query)}` : '';
     fetch(`${API_URL}/api/jobs${qs}`)
-      .then(r => r.ok ? r.json() : [])
+      .then((r) => (r.ok ? r.json() : []))
       .then(setJobs)
       .catch(() => setError(true))
       .finally(() => setLoading(false));
@@ -1371,21 +2205,35 @@ export default function JobsPage() {
   }, []);
 
   const filteredJobs = useMemo(() => {
-    let result = typeFilter === 'all' ? jobs : jobs.filter(j => j.type === typeFilter);
-    if (showSavedOnly) result = result.filter(j => savedJobs.has(j.id));
+    let result = typeFilter === 'all' ? jobs : jobs.filter((j) => j.type === typeFilter);
+    if (showSavedOnly) result = result.filter((j) => savedJobs.has(j.id));
     if (levelFilter !== 'all') {
       const JUNIOR_KW = ['신입', '주니어', 'junior', '1~3', '0~3', '1년', '2년', '3년'];
-      const SENIOR_KW = ['시니어', '선임', '수석', '책임', 'senior', '리드', 'lead', '7년', '8년', '9년', '10년'];
-      result = result.filter(j => {
+      const SENIOR_KW = [
+        '시니어',
+        '선임',
+        '수석',
+        '책임',
+        'senior',
+        '리드',
+        'lead',
+        '7년',
+        '8년',
+        '9년',
+        '10년',
+      ];
+      result = result.filter((j) => {
         const text = `${j.position} ${j.description}`.toLowerCase();
-        if (levelFilter === 'junior') return JUNIOR_KW.some(kw => text.includes(kw));
-        if (levelFilter === 'senior') return SENIOR_KW.some(kw => text.includes(kw));
+        if (levelFilter === 'junior') return JUNIOR_KW.some((kw) => text.includes(kw));
+        if (levelFilter === 'senior') return SENIOR_KW.some((kw) => text.includes(kw));
         // mid: not junior and not senior
-        return !JUNIOR_KW.some(kw => text.includes(kw)) && !SENIOR_KW.some(kw => text.includes(kw));
+        return (
+          !JUNIOR_KW.some((kw) => text.includes(kw)) && !SENIOR_KW.some((kw) => text.includes(kw))
+        );
       });
     }
     if (salaryFilterEnabled) {
-      result = result.filter(j => {
+      result = result.filter((j) => {
         const range = parseSalaryRange(j.salary);
         if (!range) return true; // Keep jobs without salary info
         return range.max >= salaryMin && range.min <= salaryMax;
@@ -1393,15 +2241,21 @@ export default function JobsPage() {
     }
     return result;
   }, [jobs, typeFilter, showSavedOnly, savedJobs, salaryFilterEnabled, salaryMin, salaryMax]);
-  const selected = filteredJobs.find(j => j.id === selectedId);
+  const selected = filteredJobs.find((j) => j.id === selectedId);
 
   return (
     <>
       <Header />
-      <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+      <main
+        id="main-content"
+        className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+        role="main"
+      >
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">채용</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+              채용
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             <JobAlert jobs={jobs} />
@@ -1414,7 +2268,7 @@ export default function JobsPage() {
             { id: 'curated' as JobTab, label: '채용 정보', icon: '📋', desc: '공기업·대기업 채용' },
             { id: 'internal' as JobTab, label: '채용 공고', icon: '📝', desc: '직접 등록 공고' },
             { id: 'links' as JobTab, label: '바로가기', icon: '🔗', desc: '기업 채용사이트' },
-          ].map(tab => (
+          ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -1440,334 +2294,569 @@ export default function JobsPage() {
 
         {/* Tab: Internal Jobs (direct postings) */}
         {activeTab === 'internal' && (
-        <>
-        {(isRecruiter || user?.role === 'admin' || user?.role === 'superadmin') && (
-          <div className="flex justify-end mb-3">
-            <Link to="/jobs/new" className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              공고 등록
-            </Link>
-          </div>
-        )}
-        {/* Search */}
-        <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-          <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="포지션, 회사, 기술로 검색..." className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500" />
-          <button type="submit" className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">검색</button>
-        </form>
-
-        {/* Job type filter */}
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-          {[{ key: 'all', label: '전체' }, { key: 'fulltime', label: '정규직' }, { key: 'contract', label: '계약직' }, { key: 'parttime', label: '파트타임' }, { key: 'intern', label: '인턴' }].map(opt => (
-            <button
-              key={opt.key}
-              onClick={() => { setTypeFilter(opt.key); setShowSavedOnly(false); setSelectedId(null); setMobileDetailOpen(false); }}
-              className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
-                !showSavedOnly && typeFilter === opt.key
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-          <button
-            onClick={() => { setShowSavedOnly(!showSavedOnly); setSelectedId(null); setMobileDetailOpen(false); }}
-            className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors flex items-center gap-1 ${
-              showSavedOnly
-                ? 'bg-amber-500 text-white'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
-          >
-            <svg className="w-3 h-3" fill={showSavedOnly ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-            </svg>
-            저장한 공고
-            {savedJobs.size > 0 && <span className="ml-0.5 font-bold">{savedJobs.size}</span>}
-          </button>
-        </div>
-
-
-        {/* Experience level filter */}
-        <div className="flex gap-2 mb-4">
-          {([
-            { key: 'all', label: '전 경력' },
-            { key: 'junior', label: '신입/주니어' },
-            { key: 'mid', label: '미드급' },
-            { key: 'senior', label: '시니어/선임' },
-          ] as const).map(opt => (
-            <button
-              key={opt.key}
-              onClick={() => { setLevelFilter(opt.key); setSelectedId(null); }}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${
-                levelFilter === opt.key
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Salary filter & contribute */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="flex-1 imp-card p-3">
-            <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={salaryFilterEnabled}
-                  onChange={e => setSalaryFilterEnabled(e.target.checked)}
-                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                />
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                급여 필터
-              </label>
-              {salaryFilterEnabled && (
-                <span className="text-[10px] text-slate-400">{salaryMin.toLocaleString()} ~ {salaryMax.toLocaleString()}만원</span>
-              )}
-            </div>
-            {salaryFilterEnabled && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-slate-400 w-8">최소</span>
-                  <input
-                    type="range" min={0} max={15000} step={500} value={salaryMin}
-                    onChange={e => { const v = Number(e.target.value); setSalaryMin(Math.min(v, salaryMax)); }}
-                    className="flex-1 accent-blue-500"
-                  />
-                  <span className="text-xs text-slate-600 dark:text-slate-400 w-16 text-right">{salaryMin.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-slate-400 w-8">최대</span>
-                  <input
-                    type="range" min={1000} max={20000} step={500} value={salaryMax}
-                    onChange={e => { const v = Number(e.target.value); setSalaryMax(Math.max(v, salaryMin)); }}
-                    className="flex-1 accent-blue-500"
-                  />
-                  <span className="text-xs text-slate-600 dark:text-slate-400 w-16 text-right">{salaryMax.toLocaleString()}</span>
-                </div>
+          <>
+            {(isRecruiter || user?.role === 'admin' || user?.role === 'superadmin') && (
+              <div className="flex justify-end mb-3">
+                <Link
+                  to="/jobs/new"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  공고 등록
+                </Link>
               </div>
             )}
-          </div>
-          <button
-            onClick={() => setShowSalaryContribute(true)}
-            className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium rounded-xl border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            급여 정보 제공하기
-          </button>
-        </div>
+            {/* Search */}
+            <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="포지션, 회사, 기술로 검색..."
+                className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="submit"
+                className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                검색
+              </button>
+            </form>
 
-        <SalaryContributeModal open={showSalaryContribute} onClose={() => setShowSalaryContribute(false)} />
-
-        {/* 🎯 내 이력서 기반 추천 공고 */}
-        {user && isPersonal && userSkills.size > 0 && !loading && !error && (() => {
-          const topMatches = [...filteredJobs]
-            .map(j => ({ job: j, score: calculateMatchScore(userSkills, j.skills || '') }))
-            .filter(m => m.score >= 30)
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 3);
-          if (topMatches.length === 0) return null;
-          return (
-            <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-base">🎯</span>
-                <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">내 이력서 스킬 기반 추천 공고</h3>
-                <span className="ml-auto text-xs text-blue-600 dark:text-blue-400">{userSkills.size}개 스킬 분석</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {topMatches.map(({ job: j, score }) => (
-                  <button
-                    key={j.id}
-                    onClick={() => handleSelectJob(j.id)}
-                    className={`text-left p-3 rounded-xl border bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 ${
-                      selectedId === j.id ? 'border-blue-500 ring-1 ring-blue-400' : 'border-blue-100 dark:border-blue-900/50 hover:border-blue-300 dark:hover:border-blue-700'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-2 flex-1">{j.position}</span>
-                      <span className="flex-shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-md">{score}%</span>
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{j.company}</p>
-                    {j.salary && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium truncate">{j.salary}</p>}
-                  </button>
-                ))}
-              </div>
+            {/* Job type filter */}
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+              {[
+                { key: 'all', label: '전체' },
+                { key: 'fulltime', label: '정규직' },
+                { key: 'contract', label: '계약직' },
+                { key: 'parttime', label: '파트타임' },
+                { key: 'intern', label: '인턴' },
+              ].map((opt) => (
+                <button
+                  key={opt.key}
+                  onClick={() => {
+                    setTypeFilter(opt.key);
+                    setShowSavedOnly(false);
+                    setSelectedId(null);
+                    setMobileDetailOpen(false);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
+                    !showSavedOnly && typeFilter === opt.key
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+              <button
+                onClick={() => {
+                  setShowSavedOnly(!showSavedOnly);
+                  setSelectedId(null);
+                  setMobileDetailOpen(false);
+                }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors flex items-center gap-1 ${
+                  showSavedOnly
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                <svg
+                  className="w-3 h-3"
+                  fill={showSavedOnly ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                  />
+                </svg>
+                저장한 공고
+                {savedJobs.size > 0 && <span className="ml-0.5 font-bold">{savedJobs.size}</span>}
+              </button>
             </div>
-          );
-        })()}
 
-        {error ? (
-          <ErrorRetry onRetry={() => loadJobs(search)} />
-        ) : loading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-1 space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 animate-pulse">
-                  <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-2" />
-                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-3" />
-                  <div className="flex gap-2">
-                    <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-16" />
-                    <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-12" />
-                  </div>
-                </div>
+            {/* Experience level filter */}
+            <div className="flex gap-2 mb-4">
+              {(
+                [
+                  { key: 'all', label: '전 경력' },
+                  { key: 'junior', label: '신입/주니어' },
+                  { key: 'mid', label: '미드급' },
+                  { key: 'senior', label: '시니어/선임' },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.key}
+                  onClick={() => {
+                    setLevelFilter(opt.key);
+                    setSelectedId(null);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${
+                    levelFilter === opt.key
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
-            <div className="lg:col-span-2 hidden lg:block">
-              <div className="p-6 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 animate-pulse">
-                <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mb-3" />
-                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-4" />
-                <div className="space-y-2">
-                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-full" />
-                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-5/6" />
-                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-4/6" />
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : filteredJobs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <svg className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.193 23.193 0 0112 15c-3.183 0-6.22-.64-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">채용공고가 없습니다</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md">
-              {search ? `"${search}"에 대한 검색 결과가 없습니다.` : typeFilter !== 'all' ? `${JOB_TYPES[typeFilter]} 공고가 아직 없습니다.` : '등록된 채용 공고가 없습니다.'}
-            </p>
-            {(search || typeFilter !== 'all') && (
-              <button
-                onClick={() => { setSearch(''); setTypeFilter('all'); loadJobs(); }}
-                className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
-              >
-                필터 초기화
-              </button>
-            )}
-          </div>
-        ) : (
-          <>
-            {/* Mobile: full-screen detail overlay */}
-            {mobileDetailOpen && selected && (
-              <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 overflow-y-auto lg:hidden">
-                <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-                  <button
-                    onClick={() => setMobileDetailOpen(false)}
-                    className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{selected.position}</h2>
-                </div>
-                <div className="p-4">
-                  <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} appliedJobs={appliedJobs} savedJobs={savedJobs} onToggleSave={handleToggleSave} onQuickApply={handleQuickApply} userResumes={userResumes} />
-                </div>
-              </div>
-            )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Job list */}
-              <div className="lg:col-span-1 space-y-2 max-h-[calc(100vh-16rem)] overflow-y-auto lg:pr-1">
-                {filteredJobs.map(j => (
-                  <button
-                    key={j.id}
-                    onClick={() => handleSelectJob(j.id)}
-                    className={`w-full text-left p-4 rounded-xl border transition-all duration-200 ${
-                      selectedId === j.id
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
-                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-sm hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{j.position}</h3>
-                        {appliedJobs.has(j.id) && (
-                          <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-md border border-green-200 dark:border-green-800">
-                            지원 완료
-                          </span>
-                        )}
-                        {user && userSkills.size > 0 && j.skills && (
-                          <MatchBadge score={calculateMatchScore(userSkills, j.skills)} />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          onClick={e => handleToggleSave(j.id, e)}
-                          className={`p-1 rounded-lg transition-colors ${
-                            savedJobs.has(j.id)
-                              ? 'text-amber-500 hover:text-amber-600'
-                              : 'text-slate-300 dark:text-slate-600 hover:text-amber-400'
-                          }`}
-                          aria-label={savedJobs.has(j.id) ? '저장 취소' : '공고 저장'}
-                        >
-                          <svg className="w-4 h-4" fill={savedJobs.has(j.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                          </svg>
-                        </button>
-                        <span className="text-xs text-slate-400 dark:text-slate-500">{timeAgo(j.createdAt)}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-0.5">
-                      <p className="text-xs text-slate-600 dark:text-slate-400">{j.company}</p>
-                      <Link
-                        to={`/company/${encodeURIComponent(j.company)}`}
-                        onClick={e => e.stopPropagation()}
-                        className="text-[10px] text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 hover:underline shrink-0"
-                      >
-                        회사 정보
-                      </Link>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-400">
-                      {j.location && (
-                        <span className="flex items-center gap-0.5">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                          {j.location}
-                        </span>
-                      )}
-                      <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded">{JOB_TYPES[j.type] || j.type}</span>
-                      {j.salary && <span className="text-emerald-600 dark:text-emerald-400 font-medium">{j.salary}</span>}
-                      {j.salary && (() => {
-                        const badge = getSalaryComparisonBadge(j.salary, j.type);
-                        return badge ? <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded border ${badge.color}`}>{badge.text}</span> : null;
-                      })()}
-                    </div>
-                    {j.skills && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {j.skills.split(',').slice(0, 4).map((s, i) => {
-                          const c = getSkillColor(i);
-                          return (
-                            <span key={i} className={`px-1.5 py-0.5 text-xs ${c.bg} ${c.text} rounded`}>{s.trim()}</span>
-                          );
-                        })}
-                        {j.skills.split(',').length > 4 && (
-                          <span className="px-1.5 py-0.5 text-xs text-slate-400">+{j.skills.split(',').length - 4}</span>
-                        )}
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              {/* Desktop detail panel */}
-              <div className="lg:col-span-2 hidden lg:block">
-                {selected ? (
-                  <div className="imp-card p-6 sticky top-20">
-                    <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} appliedJobs={appliedJobs} savedJobs={savedJobs} onToggleSave={handleToggleSave} onQuickApply={handleQuickApply} userResumes={userResumes} />
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-64 text-slate-400 imp-card">
-                    <svg className="w-12 h-12 mb-3 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.193 23.193 0 0112 15c-3.183 0-6.22-.64-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            {/* Salary filter & contribute */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              <div className="flex-1 imp-card p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={salaryFilterEnabled}
+                      onChange={(e) => setSalaryFilterEnabled(e.target.checked)}
+                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
-                    <p className="text-sm">채용 공고를 선택하세요</p>
+                    급여 필터
+                  </label>
+                  {salaryFilterEnabled && (
+                    <span className="text-[10px] text-slate-400">
+                      {salaryMin.toLocaleString()} ~ {salaryMax.toLocaleString()}만원
+                    </span>
+                  )}
+                </div>
+                {salaryFilterEnabled && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-400 w-8">최소</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={15000}
+                        step={500}
+                        value={salaryMin}
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          setSalaryMin(Math.min(v, salaryMax));
+                        }}
+                        className="flex-1 accent-blue-500"
+                      />
+                      <span className="text-xs text-slate-600 dark:text-slate-400 w-16 text-right">
+                        {salaryMin.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-400 w-8">최대</span>
+                      <input
+                        type="range"
+                        min={1000}
+                        max={20000}
+                        step={500}
+                        value={salaryMax}
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          setSalaryMax(Math.max(v, salaryMin));
+                        }}
+                        className="flex-1 accent-blue-500"
+                      />
+                      <span className="text-xs text-slate-600 dark:text-slate-400 w-16 text-right">
+                        {salaryMax.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
+              <button
+                onClick={() => setShowSalaryContribute(true)}
+                className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium rounded-xl border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                급여 정보 제공하기
+              </button>
             </div>
+
+            <SalaryContributeModal
+              open={showSalaryContribute}
+              onClose={() => setShowSalaryContribute(false)}
+            />
+
+            {/* 🎯 내 이력서 기반 추천 공고 */}
+            {user &&
+              isPersonal &&
+              userSkills.size > 0 &&
+              !loading &&
+              !error &&
+              (() => {
+                const topMatches = [...filteredJobs]
+                  .map((j) => ({ job: j, score: calculateMatchScore(userSkills, j.skills || '') }))
+                  .filter((m) => m.score >= 30)
+                  .sort((a, b) => b.score - a.score)
+                  .slice(0, 3);
+                if (topMatches.length === 0) return null;
+                return (
+                  <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-base">🎯</span>
+                      <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+                        내 이력서 스킬 기반 추천 공고
+                      </h3>
+                      <span className="ml-auto text-xs text-blue-600 dark:text-blue-400">
+                        {userSkills.size}개 스킬 분석
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {topMatches.map(({ job: j, score }) => (
+                        <button
+                          key={j.id}
+                          onClick={() => handleSelectJob(j.id)}
+                          className={`text-left p-3 rounded-xl border bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 ${
+                            selectedId === j.id
+                              ? 'border-blue-500 ring-1 ring-blue-400'
+                              : 'border-blue-100 dark:border-blue-900/50 hover:border-blue-300 dark:hover:border-blue-700'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-2 flex-1">
+                              {j.position}
+                            </span>
+                            <span className="flex-shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-md">
+                              {score}%
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                            {j.company}
+                          </p>
+                          {j.salary && (
+                            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium truncate">
+                              {j.salary}
+                            </p>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+            {error ? (
+              <ErrorRetry onRetry={() => loadJobs(search)} />
+            ) : loading ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-1 space-y-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 animate-pulse"
+                    >
+                      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-2" />
+                      <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-3" />
+                      <div className="flex gap-2">
+                        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-16" />
+                        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-12" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="lg:col-span-2 hidden lg:block">
+                  <div className="p-6 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 animate-pulse">
+                    <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mb-3" />
+                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-4" />
+                    <div className="space-y-2">
+                      <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-full" />
+                      <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-5/6" />
+                      <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-4/6" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : filteredJobs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <svg
+                  className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M21 13.255A23.193 23.193 0 0112 15c-3.183 0-6.22-.64-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  채용공고가 없습니다
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md">
+                  {search
+                    ? `"${search}"에 대한 검색 결과가 없습니다.`
+                    : typeFilter !== 'all'
+                      ? `${JOB_TYPES[typeFilter]} 공고가 아직 없습니다.`
+                      : '등록된 채용 공고가 없습니다.'}
+                </p>
+                {(search || typeFilter !== 'all') && (
+                  <button
+                    onClick={() => {
+                      setSearch('');
+                      setTypeFilter('all');
+                      loadJobs();
+                    }}
+                    className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                  >
+                    필터 초기화
+                  </button>
+                )}
+              </div>
+            ) : (
+              <>
+                {/* Mobile: full-screen detail overlay */}
+                {mobileDetailOpen && selected && (
+                  <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 overflow-y-auto lg:hidden">
+                    <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                      <button
+                        onClick={() => setMobileDetailOpen(false)}
+                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        <svg
+                          className="w-5 h-5 text-slate-600 dark:text-slate-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 19l-7-7 7-7"
+                          />
+                        </svg>
+                      </button>
+                      <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate">
+                        {selected.position}
+                      </h2>
+                    </div>
+                    <div className="p-4">
+                      <JobDetailPanel
+                        job={selected}
+                        isPersonal={isPersonal}
+                        userSkills={userSkills}
+                        allJobs={jobs}
+                        onSelectJob={handleSelectJob}
+                        appliedJobs={appliedJobs}
+                        savedJobs={savedJobs}
+                        onToggleSave={handleToggleSave}
+                        onQuickApply={handleQuickApply}
+                        userResumes={userResumes}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {/* Job list */}
+                  <div className="lg:col-span-1 space-y-2 max-h-[calc(100vh-16rem)] overflow-y-auto lg:pr-1">
+                    {filteredJobs.map((j) => (
+                      <button
+                        key={j.id}
+                        onClick={() => handleSelectJob(j.id)}
+                        className={`w-full text-left p-4 rounded-xl border transition-all duration-200 ${
+                          selectedId === j.id
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
+                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-sm hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">
+                              {j.position}
+                            </h3>
+                            {appliedJobs.has(j.id) && (
+                              <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-md border border-green-200 dark:border-green-800">
+                                지원 완료
+                              </span>
+                            )}
+                            {user && userSkills.size > 0 && j.skills && (
+                              <MatchBadge score={calculateMatchScore(userSkills, j.skills)} />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={(e) => handleToggleSave(j.id, e)}
+                              className={`p-1 rounded-lg transition-colors ${
+                                savedJobs.has(j.id)
+                                  ? 'text-amber-500 hover:text-amber-600'
+                                  : 'text-slate-300 dark:text-slate-600 hover:text-amber-400'
+                              }`}
+                              aria-label={savedJobs.has(j.id) ? '저장 취소' : '공고 저장'}
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill={savedJobs.has(j.id) ? 'currentColor' : 'none'}
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                                />
+                              </svg>
+                            </button>
+                            <span className="text-xs text-slate-400 dark:text-slate-500">
+                              {timeAgo(j.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <p className="text-xs text-slate-600 dark:text-slate-400">{j.company}</p>
+                          <Link
+                            to={`/company/${encodeURIComponent(j.company)}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-[10px] text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 hover:underline shrink-0"
+                          >
+                            회사 정보
+                          </Link>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-400">
+                          {j.location && (
+                            <span className="flex items-center gap-0.5">
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                              </svg>
+                              {j.location}
+                            </span>
+                          )}
+                          <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded">
+                            {JOB_TYPES[j.type] || j.type}
+                          </span>
+                          {j.salary && (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                              {j.salary}
+                            </span>
+                          )}
+                          {j.salary &&
+                            (() => {
+                              const badge = getSalaryComparisonBadge(j.salary, j.type);
+                              return badge ? (
+                                <span
+                                  className={`px-1.5 py-0.5 text-[10px] font-medium rounded border ${badge.color}`}
+                                >
+                                  {badge.text}
+                                </span>
+                              ) : null;
+                            })()}
+                        </div>
+                        {j.skills && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {j.skills
+                              .split(',')
+                              .slice(0, 4)
+                              .map((s, i) => {
+                                const c = getSkillColor(i);
+                                return (
+                                  <span
+                                    key={i}
+                                    className={`px-1.5 py-0.5 text-xs ${c.bg} ${c.text} rounded`}
+                                  >
+                                    {s.trim()}
+                                  </span>
+                                );
+                              })}
+                            {j.skills.split(',').length > 4 && (
+                              <span className="px-1.5 py-0.5 text-xs text-slate-400">
+                                +{j.skills.split(',').length - 4}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Desktop detail panel */}
+                  <div className="lg:col-span-2 hidden lg:block">
+                    {selected ? (
+                      <div className="imp-card p-6 sticky top-20">
+                        <JobDetailPanel
+                          job={selected}
+                          isPersonal={isPersonal}
+                          userSkills={userSkills}
+                          allJobs={jobs}
+                          onSelectJob={handleSelectJob}
+                          appliedJobs={appliedJobs}
+                          savedJobs={savedJobs}
+                          onToggleSave={handleToggleSave}
+                          onQuickApply={handleQuickApply}
+                          userResumes={userResumes}
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-64 text-slate-400 imp-card">
+                        <svg
+                          className="w-12 h-12 mb-3 text-slate-300 dark:text-slate-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M21 13.255A23.193 23.193 0 0112 15c-3.183 0-6.22-.64-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <p className="text-sm">채용 공고를 선택하세요</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </>
-        )}
-        </>
         )}
         {/* Quick Apply Modal */}
         {applyModalJob && (
@@ -1787,7 +2876,12 @@ export default function JobsPage() {
 /* ------------------------------------------------------------------ */
 /*  Quick Apply Modal                                                   */
 /* ------------------------------------------------------------------ */
-function QuickApplyModal({ job, resumes, onClose, onSuccess }: {
+function QuickApplyModal({
+  job,
+  resumes,
+  onClose,
+  onSuccess,
+}: {
   job: JobPost;
   resumes: ResumeSummary[];
   onClose: () => void;
@@ -1825,109 +2919,196 @@ function QuickApplyModal({ job, resumes, onClose, onSuccess }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={onClose}>
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">이력서로 즉시 지원</h2>
-            <p className="text-xs text-slate-500 mt-0.5">{job.company} - {job.position}</p>
-          </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
-        </div>
-
-        {!user ? (
-          <div className="p-6 text-center">
-            <svg className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">로그인 후 즉시 지원할 수 있습니다.</p>
-            <Link to="/login" className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors">
-              로그인하기
-            </Link>
-          </div>
-        ) : resumes.length === 0 ? (
-          <div className="p-6 text-center">
-            <svg className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">먼저 이력서를 작성해주세요.</p>
-            <Link to="/resumes/new" className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors">
-              이력서 작성하기
-            </Link>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="p-5 space-y-4">
+    <RadixDialog.Root
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose();
+      }}
+    >
+      <RadixDialog.Portal>
+        <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/40 animate-fade-in" />
+        <RadixDialog.Content className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-800 rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto focus:outline-none">
+          <div className="flex items-center justify-between p-5 border-b border-neutral-200 dark:border-neutral-700">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">지원할 이력서 선택</label>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {resumes.map(r => (
-                  <label
-                    key={r.id}
-                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
-                      selectedResumeId === r.id
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                        : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="resume"
-                      value={r.id}
-                      checked={selectedResumeId === r.id}
-                      onChange={() => setSelectedResumeId(r.id)}
-                      className="text-blue-600 focus:ring-blue-500"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{r.title || '제목 없음'}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{r.personalInfo?.name || ''}</p>
-                    </div>
-                  </label>
-                ))}
+              <RadixDialog.Title className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+                이력서로 즉시 지원
+              </RadixDialog.Title>
+              <RadixDialog.Description className="text-xs text-neutral-500 mt-0.5">
+                {job.company} - {job.position}
+              </RadixDialog.Description>
+            </div>
+            <RadixDialog.Close asChild>
+              <button
+                className="p-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                aria-label="닫기"
+              >
+                <svg
+                  className="w-5 h-5 text-neutral-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </RadixDialog.Close>
+          </div>
+
+          {!user ? (
+            <div className="p-6 text-center">
+              <svg
+                className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                로그인 후 즉시 지원할 수 있습니다.
+              </p>
+              <Link
+                to="/login"
+                className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                로그인하기
+              </Link>
+            </div>
+          ) : resumes.length === 0 ? (
+            <div className="p-6 text-center">
+              <svg
+                className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                먼저 이력서를 작성해주세요.
+              </p>
+              <Link
+                to="/resumes/new"
+                className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                이력서 작성하기
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  지원할 이력서 선택
+                </label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {resumes.map((r) => (
+                    <label
+                      key={r.id}
+                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                        selectedResumeId === r.id
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="resume"
+                        value={r.id}
+                        checked={selectedResumeId === r.id}
+                        onChange={() => setSelectedResumeId(r.id)}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
+                          {r.title || '제목 없음'}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                          {r.personalInfo?.name || ''}
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                커버레터 <span className="text-xs font-normal text-slate-400">(선택사항)</span>
-              </label>
-              <textarea
-                value={coverLetter}
-                onChange={e => setCoverLetter(e.target.value)}
-                rows={4}
-                placeholder="간단한 자기소개나 지원 동기를 적어주세요..."
-                className="w-full px-3 py-2.5 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  커버레터 <span className="text-xs font-normal text-slate-400">(선택사항)</span>
+                </label>
+                <textarea
+                  value={coverLetter}
+                  onChange={(e) => setCoverLetter(e.target.value)}
+                  rows={4}
+                  placeholder="간단한 자기소개나 지원 동기를 적어주세요..."
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                />
+              </div>
 
-            <button
-              type="submit"
-              disabled={submitting || !selectedResumeId}
-              className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-            >
-              {submitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  지원 중...
-                </>
-              ) : (
-                '지원하기'
-              )}
-            </button>
-          </form>
-        )}
-      </div>
-    </div>
+              <button
+                type="submit"
+                disabled={submitting || !selectedResumeId}
+                className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                {submitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    지원 중...
+                  </>
+                ) : (
+                  '지원하기'
+                )}
+              </button>
+            </form>
+          )}
+        </RadixDialog.Content>
+      </RadixDialog.Portal>
+    </RadixDialog.Root>
   );
 }
 
 /* Extracted detail panel for reuse in desktop and mobile */
-function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, appliedJobs, savedJobs, onToggleSave, onQuickApply }: { job: JobPost; isPersonal: boolean; userSkills: Set<string>; allJobs: JobPost[]; onSelectJob: (id: string) => void; appliedJobs: Set<string>; savedJobs: Set<string>; onToggleSave: (id: string, e: React.MouseEvent) => void; onQuickApply: (job: JobPost) => void; userResumes: ResumeSummary[] }) {
-  const matchScore = userSkills.size > 0 && job.skills ? calculateMatchScore(userSkills, job.skills) : 0;
-  const jobSkillsList = job.skills ? job.skills.split(',').map(s => s.trim()) : [];
-  const matchedSkills = jobSkillsList.filter(s => userSkills.has(s.toLowerCase()));
-  const missingSkills = jobSkillsList.filter(s => !userSkills.has(s.toLowerCase()));
+function JobDetailPanel({
+  job,
+  isPersonal,
+  userSkills,
+  allJobs,
+  onSelectJob,
+  appliedJobs,
+  savedJobs,
+  onToggleSave,
+  onQuickApply,
+}: {
+  job: JobPost;
+  isPersonal: boolean;
+  userSkills: Set<string>;
+  allJobs: JobPost[];
+  onSelectJob: (id: string) => void;
+  appliedJobs: Set<string>;
+  savedJobs: Set<string>;
+  onToggleSave: (id: string, e: React.MouseEvent) => void;
+  onQuickApply: (job: JobPost) => void;
+  userResumes: ResumeSummary[];
+}) {
+  const matchScore =
+    userSkills.size > 0 && job.skills ? calculateMatchScore(userSkills, job.skills) : 0;
+  const jobSkillsList = job.skills ? job.skills.split(',').map((s) => s.trim()) : [];
+  const matchedSkills = jobSkillsList.filter((s) => userSkills.has(s.toLowerCase()));
+  const missingSkills = jobSkillsList.filter((s) => !userSkills.has(s.toLowerCase()));
 
   return (
     <>
@@ -1937,7 +3118,7 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{job.position}</h2>
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={e => onToggleSave(job.id, e)}
+              onClick={(e) => onToggleSave(job.id, e)}
               className={`p-1.5 rounded-lg border transition-colors ${
                 savedJobs.has(job.id)
                   ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-500'
@@ -1945,42 +3126,86 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
               }`}
               aria-label={savedJobs.has(job.id) ? '저장 취소' : '공고 저장'}
             >
-              <svg className="w-4 h-4" fill={savedJobs.has(job.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              <svg
+                className="w-4 h-4"
+                fill={savedJobs.has(job.id) ? 'currentColor' : 'none'}
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                />
               </svg>
             </button>
-          {matchScore > 0 && (
-            <div className={`px-3 py-1.5 rounded-xl text-center ${
-              matchScore >= 80 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
-              matchScore >= 60 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' :
-              matchScore >= 30 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
-              'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-            }`}>
-              <div className="text-lg font-bold">{matchScore}%</div>
-              <div className="text-[10px] font-medium">매칭률</div>
-            </div>
-          )}
+            {matchScore > 0 && (
+              <div
+                className={`px-3 py-1.5 rounded-xl text-center ${
+                  matchScore >= 80
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                    : matchScore >= 60
+                      ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                      : matchScore >= 30
+                        ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
+                        : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                }`}
+              >
+                <div className="text-lg font-bold">{matchScore}%</div>
+                <div className="text-[10px] font-medium">매칭률</div>
+              </div>
+            )}
           </div>
         </div>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{job.company}</p>
         <div className="flex flex-wrap gap-3 mt-3 text-xs text-slate-500 dark:text-slate-400">
           {job.location && (
             <span className="flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
               {job.location}
             </span>
           )}
           {job.salary && (
             <span className="flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
               {job.salary}
             </span>
           )}
-          {job.salary && (() => {
-            const badge = getSalaryComparisonBadge(job.salary, job.type);
-            return badge ? <span className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border ${badge.color}`}>{badge.text}</span> : null;
-          })()}
-          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-lg font-medium">{JOB_TYPES[job.type] || job.type}</span>
+          {job.salary &&
+            (() => {
+              const badge = getSalaryComparisonBadge(job.salary, job.type);
+              return badge ? (
+                <span
+                  className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border ${badge.color}`}
+                >
+                  {badge.text}
+                </span>
+              ) : null;
+            })()}
+          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-lg font-medium">
+            {JOB_TYPES[job.type] || job.type}
+          </span>
           <span>{timeAgo(job.createdAt)}</span>
         </div>
       </div>
@@ -1994,7 +3219,9 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
           <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             요구 기술
             {userSkills.size > 0 && matchedSkills.length > 0 && (
-              <span className="ml-2 text-xs font-normal text-slate-400">({matchedSkills.length}/{jobSkillsList.length} 보유)</span>
+              <span className="ml-2 text-xs font-normal text-slate-400">
+                ({matchedSkills.length}/{jobSkillsList.length} 보유)
+              </span>
             )}
           </h4>
           <div className="flex flex-wrap gap-1.5">
@@ -2002,15 +3229,30 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
               const isMatched = userSkills.has(s.trim().toLowerCase());
               if (userSkills.size > 0) {
                 return (
-                  <span key={i} className={`px-2.5 py-1 text-xs font-medium rounded-lg flex items-center gap-1 ${
-                    isMatched
-                      ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-700'
-                      : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800'
-                  }`}>
+                  <span
+                    key={i}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-lg flex items-center gap-1 ${
+                      isMatched
+                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-700'
+                        : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800'
+                    }`}
+                  >
                     {isMatched ? (
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
                     ) : (
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
                     )}
                     {s.trim()}
                   </span>
@@ -2018,13 +3260,19 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
               }
               const c = getSkillColor(i);
               return (
-                <span key={i} className={`px-2.5 py-1 text-xs font-medium ${c.bg} ${c.text} rounded-lg`}>{s.trim()}</span>
+                <span
+                  key={i}
+                  className={`px-2.5 py-1 text-xs font-medium ${c.bg} ${c.text} rounded-lg`}
+                >
+                  {s.trim()}
+                </span>
               );
             })}
           </div>
           {userSkills.size > 0 && missingSkills.length > 0 && (
             <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
-              {missingSkills.map(s => s.trim()).join(', ')} 기술을 이력서에 추가하면 매칭률이 올라갑니다
+              {missingSkills.map((s) => s.trim()).join(', ')} 기술을 이력서에 추가하면 매칭률이
+              올라갑니다
             </p>
           )}
         </div>
@@ -2034,7 +3282,9 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
       {job.description && (
         <div className="mb-5">
           <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">상세 설명</h4>
-          <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">{job.description}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">
+            {job.description}
+          </p>
         </div>
       )}
 
@@ -2044,7 +3294,13 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
           <>
             {appliedJobs.has(job.id) ? (
               <div className="flex-1 py-2.5 text-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium rounded-xl flex items-center justify-center gap-1.5">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
                 지원 완료
               </div>
             ) : (
@@ -2082,7 +3338,14 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
           to={`/company/${encodeURIComponent(job.company)}`}
           className="px-4 py-2.5 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm rounded-xl hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors flex items-center gap-1"
         >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+            />
+          </svg>
           회사 정보 보기
         </Link>
       </div>

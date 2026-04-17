@@ -2,47 +2,8 @@ import { JobInterviewQuestionsService, CreateJobInterviewQuestionDto, AiGenerate
 export declare class JobInterviewQuestionsController {
     private readonly service;
     constructor(service: JobInterviewQuestionsService);
-    list(company: string | undefined, position: string | undefined, jobPostId: string | undefined, curatedJobId: string | undefined, limit: string | undefined, req: any): Promise<{
-        myVote: boolean;
-        _count: {
-            votes: number;
-        };
-        author: {
-            id: string;
-            name: string;
-            avatar: string;
-        } | null;
-        id: string;
-        companyName: string;
-        createdAt: Date;
-        updatedAt: Date;
-        category: string;
-        position: string;
-        difficulty: string;
-        authorId: string | null;
-        question: string;
-        jobPostId: string | null;
-        sampleAnswer: string;
-        upvotes: number;
-        curatedJobId: string | null;
-        source: string;
-    }[]>;
-    create(body: CreateJobInterviewQuestionDto, req: any): Promise<{
-        id: string;
-        companyName: string;
-        createdAt: Date;
-        updatedAt: Date;
-        category: string;
-        position: string;
-        difficulty: string;
-        authorId: string | null;
-        question: string;
-        jobPostId: string | null;
-        sampleAnswer: string;
-        upvotes: number;
-        curatedJobId: string | null;
-        source: string;
-    }>;
+    list(company: string | undefined, position: string | undefined, jobPostId: string | undefined, curatedJobId: string | undefined, limit: string | undefined, req: any): Promise<any>;
+    create(body: CreateJobInterviewQuestionDto, req: any): Promise<any>;
     upvote(id: string, req: any): Promise<{
         upvoted: boolean;
     }>;
@@ -50,12 +11,7 @@ export declare class JobInterviewQuestionsController {
         success: boolean;
     }>;
     aiGenerate(body: AiGenerateDto, req: any): Promise<{
-        questions: {
-            question: string;
-            sampleAnswer: string;
-            category: string;
-            difficulty: any;
-        }[];
+        questions: $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>;
         persisted: boolean;
         provider: string;
         model: string;

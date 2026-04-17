@@ -10,19 +10,28 @@ import { AppModule } from '../server/app.module';
 
 const USERS = {
   normal: { email: 'int-normal@test.local', password: 'NormalPass123!', name: '일반유저' },
-  recruiter: { email: 'int-recruiter@test.local', password: 'RecruiterPass123!', name: '채용담당자', userType: 'recruiter' },
+  recruiter: {
+    email: 'int-recruiter@test.local',
+    password: 'RecruiterPass123!',
+    name: '채용담당자',
+    userType: 'recruiter',
+  },
   admin: { email: 'int-admin@test.local', password: 'AdminPass123!', name: '관리자' },
 };
 
 describe('통합 테스트', () => {
   let app: INestApplication;
-  let tokens: Record<string, string> = {};
+  const tokens: Record<string, string> = {};
 
   const api = () => request(app.getHttpServer());
-  const authGet = (role: keyof typeof USERS, url: string) => api().get(url).set('Authorization', `Bearer ${tokens[role]}`);
-  const authPost = (role: keyof typeof USERS, url: string) => api().post(url).set('Authorization', `Bearer ${tokens[role]}`);
-  const authPut = (role: keyof typeof USERS, url: string) => api().put(url).set('Authorization', `Bearer ${tokens[role]}`);
-  const authDelete = (role: keyof typeof USERS, url: string) => api().delete(url).set('Authorization', `Bearer ${tokens[role]}`);
+  const authGet = (role: keyof typeof USERS, url: string) =>
+    api().get(url).set('Authorization', `Bearer ${tokens[role]}`);
+  const authPost = (role: keyof typeof USERS, url: string) =>
+    api().post(url).set('Authorization', `Bearer ${tokens[role]}`);
+  const authPut = (role: keyof typeof USERS, url: string) =>
+    api().put(url).set('Authorization', `Bearer ${tokens[role]}`);
+  const authDelete = (role: keyof typeof USERS, url: string) =>
+    api().delete(url).set('Authorization', `Bearer ${tokens[role]}`);
 
   beforeAll(async () => {
     const mod = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -34,13 +43,19 @@ describe('통합 테스트', () => {
     // 테스트 계정 등록 + 로그인
     for (const [key, user] of Object.entries(USERS)) {
       const regRes = await api().post('/api/auth/register').send(user);
-      const loginRes = await api().post('/api/auth/login').send({ email: user.email, password: user.password });
+      const loginRes = await api()
+        .post('/api/auth/login')
+        .send({ email: user.email, password: user.password });
       tokens[key] = loginRes.body?.token || regRes.body?.token || '';
-      console.log(`[INT] ${key}: reg=${regRes.status} login=${loginRes.status} token=${tokens[key] ? 'ok' : 'EMPTY'}`);
+      console.log(
+        `[INT] ${key}: reg=${regRes.status} login=${loginRes.status} token=${tokens[key] ? 'ok' : 'EMPTY'}`,
+      );
     }
   }, 30000);
 
-  afterAll(async () => { await app.close(); });
+  afterAll(async () => {
+    await app.close();
+  });
 
   // ═══════════════════════════════════════════
   // 1. 공개 API (비로그인)
@@ -109,11 +124,13 @@ describe('통합 테스트', () => {
     let resumeId: string;
 
     it('이력서 생성', async () => {
-      const res = await authPost('normal', '/api/resumes').send({
-        title: '통합테스트 이력서',
-        personalInfo: { name: '테스터', email: 'test@t.com', summary: '테스트용 이력서' },
-        skills: [{ category: 'FE', items: 'React,TypeScript' }],
-      }).expect(201);
+      const res = await authPost('normal', '/api/resumes')
+        .send({
+          title: '통합테스트 이력서',
+          personalInfo: { name: '테스터', email: 'test@t.com', summary: '테스트용 이력서' },
+          skills: [{ category: 'FE', items: 'React,TypeScript' }],
+        })
+        .expect(201);
       resumeId = res.body.id;
       expect(resumeId).toBeDefined();
     });
@@ -154,11 +171,13 @@ describe('통합 테스트', () => {
     });
 
     it('커뮤니티 글 작성', async () => {
-      const res = await authPost('normal', '/api/community').send({
-        title: '통합테스트 게시글',
-        content: '테스트 내용입니다. 충분히 긴 내용.',
-        category: 'free',
-      }).expect(201);
+      const res = await authPost('normal', '/api/community')
+        .send({
+          title: '통합테스트 게시글',
+          content: '테스트 내용입니다. 충분히 긴 내용.',
+          category: 'free',
+        })
+        .expect(201);
       expect(res.body.id).toBeDefined();
       // 정리
       await authDelete('normal', `/api/community/${res.body.id}`);
@@ -166,7 +185,9 @@ describe('통합 테스트', () => {
 
     it('쪽지 전송 (자신에게 → 실패)', async () => {
       const meRes = await authGet('normal', '/api/auth/me').expect(200);
-      await authPost('normal', `/api/social/messages/${meRes.body.id}`).send({ content: '자신에게' }).expect(403);
+      await authPost('normal', `/api/social/messages/${meRes.body.id}`)
+        .send({ content: '자신에게' })
+        .expect(403);
     });
 
     it('대시보드 조회', async () => {
@@ -187,7 +208,9 @@ describe('통합 테스트', () => {
     });
 
     it('금칙어 검사', async () => {
-      const res = await authPost('normal', '/api/forbidden-words/check').send({ text: '정상 텍스트' }).expect(201);
+      const res = await authPost('normal', '/api/forbidden-words/check')
+        .send({ text: '정상 텍스트' })
+        .expect(201);
       expect(res.body.blocked).toBe(false);
     });
 
@@ -201,14 +224,16 @@ describe('통합 테스트', () => {
   // ═══════════════════════════════════════════
   describe('채용담당자', () => {
     it('채용공고 작성', async () => {
-      const res = await authPost('recruiter', '/api/jobs').send({
-        company: '테스트기업',
-        position: 'FE 개발자',
-        location: '서울',
-        description: '테스트 채용공고',
-        type: 'full_time',
-        skills: 'React,TypeScript',
-      }).expect(201);
+      const res = await authPost('recruiter', '/api/jobs')
+        .send({
+          company: '테스트기업',
+          position: 'FE 개발자',
+          location: '서울',
+          description: '테스트 채용공고',
+          type: 'full_time',
+          skills: 'React,TypeScript',
+        })
+        .expect(201);
       expect(res.body.id).toBeDefined();
       await authDelete('recruiter', `/api/jobs/${res.body.id}`);
     });
@@ -279,11 +304,16 @@ describe('통합 테스트', () => {
     });
 
     it('틀린 비밀번호 → 401', async () => {
-      await api().post('/api/auth/login').send({ email: USERS.normal.email, password: 'wrong' }).expect(401);
+      await api()
+        .post('/api/auth/login')
+        .send({ email: USERS.normal.email, password: 'wrong' })
+        .expect(401);
     });
 
     it('존재하지 않는 이메일 → 실패', async () => {
-      const res = await api().post('/api/auth/login').send({ email: 'noexist@test.local', password: 'pass' });
+      const res = await api()
+        .post('/api/auth/login')
+        .send({ email: 'noexist@test.local', password: 'pass' });
       expect([401, 429]).toContain(res.status);
     });
   });
@@ -295,11 +325,13 @@ describe('통합 테스트', () => {
     let postId: string;
 
     it('게시글 작성', async () => {
-      const res = await authPost('normal', '/api/community').send({
-        title: 'E2E 커뮤니티 테스트',
-        content: '통합 테스트용 게시글 내용입니다.',
-        category: 'free',
-      }).expect(201);
+      const res = await authPost('normal', '/api/community')
+        .send({
+          title: 'E2E 커뮤니티 테스트',
+          content: '통합 테스트용 게시글 내용입니다.',
+          category: 'free',
+        })
+        .expect(201);
       postId = res.body.id;
     });
 
@@ -314,9 +346,11 @@ describe('통합 테스트', () => {
     });
 
     it('댓글 작성', async () => {
-      const res = await authPost('normal', `/api/community/${postId}/comments`).send({
-        content: '통합 테스트 댓글',
-      }).expect(201);
+      const res = await authPost('normal', `/api/community/${postId}/comments`)
+        .send({
+          content: '통합 테스트 댓글',
+        })
+        .expect(201);
       expect(res.body.id).toBeDefined();
     });
 
@@ -449,7 +483,9 @@ describe('통합 테스트', () => {
     });
 
     it('POST /api/resumes/:id/share — 공유 링크 생성', async () => {
-      const res = await authPost('normal', `/api/resumes/${resumeId}/share`).send({ expiresInHours: 24 });
+      const res = await authPost('normal', `/api/resumes/${resumeId}/share`).send({
+        expiresInHours: 24,
+      });
       expect([200, 201]).toContain(res.status);
       if (res.status === 200 || res.status === 201) {
         expect(res.body.token || res.body.id).toBeDefined();
@@ -481,7 +517,9 @@ describe('통합 테스트', () => {
 
     it('POST /api/resumes/:id/transform — 변환 (standard)', async () => {
       // 실제 경로는 /api/templates/local-transform/:resumeId
-      const res = await authPost('normal', `/api/templates/local-transform/${resumeId}`).send({ preset: 'standard' });
+      const res = await authPost('normal', `/api/templates/local-transform/${resumeId}`).send({
+        preset: 'standard',
+      });
       expect([200, 201, 400, 403, 404]).toContain(res.status);
       if (res.status === 200 || res.status === 201) {
         expect(res.body.text || res.body.method).toBeDefined();
@@ -596,14 +634,18 @@ describe('통합 테스트', () => {
   // ═══════════════════════════════════════════
   describe('금칙어', () => {
     it('POST /api/forbidden-words/check — 정상', async () => {
-      const res = await authPost('normal', '/api/forbidden-words/check').send({ text: '정상적인 텍스트 입니다' });
+      const res = await authPost('normal', '/api/forbidden-words/check').send({
+        text: '정상적인 텍스트 입니다',
+      });
       expect([200, 201]).toContain(res.status);
       expect(res.body.blocked).toBe(false);
     });
 
     it('POST /api/forbidden-words/check — 차단', async () => {
       // 금칙어가 등록되어 있지 않을 수 있으므로 결과 유연 처리
-      const res = await authPost('normal', '/api/forbidden-words/check').send({ text: 'fuck shit asshole bitch' });
+      const res = await authPost('normal', '/api/forbidden-words/check').send({
+        text: 'fuck shit asshole bitch',
+      });
       expect([200, 201]).toContain(res.status);
       expect(typeof res.body.blocked).toBe('boolean');
     });
@@ -642,7 +684,9 @@ describe('통합 테스트', () => {
   describe('시스템 설정', () => {
     it('GET /api/system-config/content/homepage — 홈페이지 콘텐츠', async () => {
       const res = await api().get('/api/system-config/content/homepage').expect(200);
-      expect(res.body === null || typeof res.body === 'object' || typeof res.body === 'string').toBe(true);
+      expect(
+        res.body === null || typeof res.body === 'object' || typeof res.body === 'string',
+      ).toBe(true);
     });
 
     it('GET /api/system-config/public — 공개 설정', async () => {
