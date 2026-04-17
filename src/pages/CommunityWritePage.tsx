@@ -1,8 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Header from '@/components/Header';
 import { getUser } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
+
+const postSchema = z.object({
+  title: z.string().min(2, '제목을 2자 이상 입력하세요').max(100, '제목은 100자 이내여야 합니다'),
+  content: z.string().min(10, '내용을 10자 이상 입력하세요').max(10000, '내용은 10000자 이내여야 합니다'),
+  category: z.string().min(1),
+});
+
+type PostForm = z.infer<typeof postSchema>;
 
 const CATEGORIES = [
   { id: 'notice', label: '공지사항', icon: '📢', adminOnly: true },

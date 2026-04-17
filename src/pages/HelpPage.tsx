@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { API_URL } from '@/lib/config';
 
 interface FAQItem {
   q: string;
@@ -33,13 +35,21 @@ export default function HelpPage() {
   const [category, setCategory] = useState('전체');
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
+  const { data: dynamicFaq } = useQuery<FAQItem[]>({
+    queryKey: ['help-faq'],
+    queryFn: () => fetch(`${API_URL}/api/system-config/content/help_faq`).then(r => r.ok ? r.json() : null),
+    staleTime: 5 * 60_000,
+  });
+
+  const faqData = dynamicFaq?.length ? dynamicFaq : FAQ_DATA;
+
   useEffect(() => {
     document.title = '도움말 — 이력서공방';
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
   }, []);
 
   const filtered = useMemo(() => {
-    return FAQ_DATA.filter(item => {
+    return faqData.filter(item => {
       const matchCat = category === '전체' || item.category === category;
       const matchSearch = !search.trim() || item.q.toLowerCase().includes(search.toLowerCase()) || item.a.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchSearch;

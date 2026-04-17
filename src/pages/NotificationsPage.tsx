@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
@@ -59,8 +60,13 @@ function getDateGroup(dateStr: string): string {
 const GROUP_ORDER = ['오늘', '어제', '이번 주', '이번 달', '이전'];
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: notifications = [], isLoading: loading } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: apiFetchNotifications,
+    enabled: !!getToken(),
+    staleTime: 30_000,
+  });
   const [filter, setFilter] = useState<FilterTab>('all');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
@@ -68,49 +74,39 @@ export default function NotificationsPage() {
   const navigate = useNavigate();
   const user = getUser();
 
-  useEffect(() => {
-    document.title = '알림 — 이력서공방';
-    if (!getToken()) { setLoading(false); return; }
-    apiFetchNotifications()
-      .then(setNotifications)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
-  }, []);
-
   const markAllRead = useCallback(async () => {
     await markAllNotificationsRead();
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
     toast('모든 알림을 읽음 처리했습니다', 'success');
-  }, []);
+  }, [queryClient]);
 
   const handleMarkRead = useCallback(async (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     await markNotificationRead(id).catch(() => {});
-  }, []);
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+  }, [queryClient]);
 
   const handleDelete = useCallback(async (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
     setExpandedAction(null);
     await deleteNotification(id).catch(() => {});
-  }, []);
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+  }, [queryClient]);
 
   const handleBulkDelete = useCallback(async () => {
     if (!selectedIds.size) return;
     const ids = [...selectedIds];
-    setNotifications(prev => prev.filter(n => !selectedIds.has(n.id)));
     setSelectedIds(new Set());
     setSelectMode(false);
     await deleteNotificationsBulk(ids).catch(() => {});
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
     toast(`${ids.length}개 알림이 삭제되었습니다`, 'success');
-  }, [selectedIds]);
+  }, [selectedIds, queryClient]);
 
   const handleBulkMarkRead = useCallback(async () => {
-    setNotifications(prev => prev.map(n => selectedIds.has(n.id) ? { ...n, read: true } : n));
     for (const id of selectedIds) await markNotificationRead(id).catch(() => {});
     setSelectedIds(new Set());
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
     toast('선택한 알림을 읽음 처리했습니다', 'success');
-  }, [selectedIds]);
+  }, [selectedIds, queryClient]);
 
   const filtered = useMemo(() => {
     switch (filter) {
