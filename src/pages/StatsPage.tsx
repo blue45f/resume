@@ -93,7 +93,7 @@ function JobStatsSection() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+      <div className="flex flex-wrap gap-2 imp-card p-3">
         <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100">
           <option value="">전체 지역</option>
           {data.byLocation.map(l => <option key={l.name} value={l.name}>{l.name} ({l.count})</option>)}
