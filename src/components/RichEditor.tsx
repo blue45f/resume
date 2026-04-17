@@ -16,7 +16,7 @@ interface Props {
 }
 
 export default function RichEditor({ value, onChange, placeholder, className, maxLength, onAiImprove }: Props) {
-  const [showAiButton, setShowAiButton] = useState(false);
+  const [, setShowAiButton] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const aiButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -46,7 +46,7 @@ export default function RichEditor({ value, onChange, placeholder, className, ma
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[80px] px-3 py-2',
       },
-      handleKeyDown: (_view, event) => {
+      handleKeyDown: (_view, _event) => {
         // Markdown shortcuts handled by StarterKit's inputRules
         // Additional Ctrl shortcuts
         return false;

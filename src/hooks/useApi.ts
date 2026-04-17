@@ -31,9 +31,11 @@ export function useApiMutation<T, V = any>(url: string, method = 'POST', invalid
   });
 }
 
-export function useNotifications() {
-  return useApiQuery<any[]>(['notifications'], '/api/notifications', { staleTime: 30_000 });
-}
+// Backward-compat re-exports. Canonical sources:
+//   useNotifications    → @/features/notifications
+//   useCommunityPosts   → @/features/community
+export { useNotifications } from '@/features/notifications/api/useNotifications';
+export { useCommunityPosts } from '@/features/community/api/useCommunityPosts';
 
 export function useSiteStats() {
   return useApiQuery<any>(['site-stats'], '/api/health/stats', { staleTime: 60_000 });
@@ -41,12 +43,6 @@ export function useSiteStats() {
 
 export function useResumes() {
   return useApiQuery<any>(['resumes'], '/api/resumes', { staleTime: 30_000 });
-}
-
-export function useCommunityPosts(page = 1, category?: string) {
-  const params = new URLSearchParams({ page: String(page), limit: '20' });
-  if (category && category !== 'all') params.set('category', category);
-  return useApiQuery<any>(['community', page, category], `/api/community?${params}`, { staleTime: 30_000 });
 }
 
 export function useJobStats(location?: string, type?: string, skill?: string) {

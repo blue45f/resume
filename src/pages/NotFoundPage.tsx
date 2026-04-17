@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { useRecentViews } from '@/hooks/useRecentViews';
+import { useRecentViews } from '@/features/recent-views/model/useRecentViews';
 
 export default function NotFoundPage() {
   const { views: recentViews } = useRecentViews();

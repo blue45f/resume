@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from '@/components/Toast';
 import { updateResumeSlug } from '@/lib/api';
 import { getUser } from '@/lib/auth';
-import { API_URL } from '@/lib/config';
 
 interface Props {
   resumeId: string;

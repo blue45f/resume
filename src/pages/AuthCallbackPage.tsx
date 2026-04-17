@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { handleAuthCallback, getUser } from '@/lib/auth';
+import { handleAuthCallback } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
 
 type UserType = 'personal' | 'recruiter' | 'company';

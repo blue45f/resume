@@ -1,0 +1,6 @@
+packages:
+  - "."
+  # Future:
+  # - "packages/client"
+  # - "packages/server"
+  # - "packages/shared"

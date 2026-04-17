@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { CardGridSkeleton } from '@/components/Skeleton';
 import ErrorRetry from '@/components/ErrorRetry';
 import EmptyState from '@/components/EmptyState';
 import type { ResumeSummary, Tag } from '@/types/resume';
@@ -99,7 +98,7 @@ function getAvatarColor(name: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-import { useRecentViews } from '@/hooks/useRecentViews';
+import { useRecentViews } from '@/features/recent-views/model/useRecentViews';
 
 export default function ExplorePage() {
   const [params, setParams] = useSearchParams();
@@ -597,7 +596,11 @@ export default function ExplorePage() {
         {error ? (
           <ErrorRetry onRetry={() => search()} />
         ) : loading ? (
-          <div aria-busy="true" aria-label="검색 결과 불러오는 중"><CardGridSkeleton count={6} /></div>
+          <div aria-busy="true" aria-label="검색 결과 불러오는 중" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="skeleton-card p-5 h-44" />
+            ))}
+          </div>
         ) : !result || result.data.length === 0 ? (
           (query || tag) ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -906,13 +909,16 @@ export default function ExplorePage() {
             {/* 인기 이력서 */}
             {!query && !tag && page === 1 && result.data.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">인기 이력서</h3>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-gradient-to-r from-blue-500 to-cyan-500 text-white">HOT</span>
+                  인기 이력서
+                </h3>
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
                   {[...result.data].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)).slice(0, 5).map(r => (
                     <Link
                       key={`trending-${r.id}`}
                       to={`/resumes/${r.id}/preview`}
-                      className="card-hover shrink-0 w-48 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700"
+                      className="gradient-border-hot lift-hover shrink-0 w-48 p-3 bg-white dark:bg-slate-800 rounded-xl"
                     >
                       <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{r.title || '제목 없음'}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{r.personalInfo?.name}</p>
@@ -1006,7 +1012,7 @@ export default function ExplorePage() {
                   <Link
                     key={resume.id}
                     to={`/resumes/${resume.id}/preview`}
-                    className="imp-card p-5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
+                    className="imp-card lift-hover p-5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
                   >
                     {/* Theme color bar */}
                     <div className={`h-1 -mx-5 -mt-5 mb-4 rounded-t-2xl bg-gradient-to-r ${THEME_COLORS[themeIdx]}`} />

@@ -1,5 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FeatureGate from '@/components/FeatureGate';
@@ -9,6 +12,37 @@ import type { ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
 
 type PageMode = 'generate' | 'feedback';
+
+const generateSchema = z.object({
+  company: z
+    .string()
+    .min(1, '회사명을 입력해주세요')
+    .max(100, '회사명은 최대 100자까지 입력 가능합니다'),
+  position: z
+    .string()
+    .min(1, '포지션을 입력해주세요')
+    .max(100, '포지션은 최대 100자까지 입력 가능합니다'),
+  jobDescription: z
+    .string()
+    .min(10, '채용 공고는 최소 10자 이상이어야 합니다')
+    .max(10000, '채용 공고는 최대 10,000자까지 입력 가능합니다'),
+});
+
+type GenerateFormValues = z.infer<typeof generateSchema>;
+
+const feedbackSchema = z.object({
+  content: z
+    .string()
+    .min(10, '자기소개서는 최소 10자 이상이어야 합니다')
+    .max(10000, '자기소개서는 최대 10,000자까지 입력 가능합니다'),
+  jobDescription: z
+    .string()
+    .max(3000, '채용 공고는 최대 3,000자까지 입력 가능합니다')
+    .optional()
+    .or(z.literal('')),
+});
+
+type FeedbackFormValues = z.infer<typeof feedbackSchema>;
 
 const TONES = [
   { value: 'formal' as const, label: '격식체', desc: '공식적·전문적' },
@@ -132,25 +166,51 @@ export default function CoverLetterPage() {
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   // Support ?resumeId=xxx from PreviewPage "자소서" button
   const [selectedResumeId, setSelectedResumeId] = useState(searchParams.get('resumeId') || '');
-  const [jobDescription, setJobDescription] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [position, setPosition] = useState(searchParams.get('position') || '');
   const [tone, setTone] = useState<'formal' | 'friendly' | 'confident'>('formal');
   const [result, setResult] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [feedback, setFeedback] = useState<FeedbackResult | null>(null);
   const [analyzingFeedback, setAnalyzingFeedback] = useState(false);
 
   // Feedback mode
-  const [feedbackText, setFeedbackText] = useState('');
-  const [feedbackJobDesc, setFeedbackJobDesc] = useState('');
   const [feedbackResult, setFeedbackResult] = useState<FeedbackResult | null>(null);
 
   // Section mode
   const [usesSections, setUsesSections] = useState(false);
   const [sections, setSections] = useState<Record<string, string>>({});
   const [sectionLimits, setSectionLimits] = useState<Record<string, number>>({});
+
+  // Generate form
+  const {
+    register: registerGenerate,
+    handleSubmit: handleSubmitGenerate,
+    watch: watchGenerate,
+    formState: { errors: generateErrors, isSubmitting: isGenerating },
+  } = useForm<GenerateFormValues>({
+    resolver: zodResolver(generateSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      company: '',
+      position: searchParams.get('position') || '',
+      jobDescription: '',
+    },
+  });
+  const companyName = watchGenerate('company');
+  const position = watchGenerate('position');
+  const jobDescription = watchGenerate('jobDescription');
+
+  // Feedback form
+  const {
+    register: registerFeedback,
+    handleSubmit: handleSubmitFeedback,
+    watch: watchFeedback,
+    formState: { errors: feedbackErrors, isSubmitting: isAnalyzingFeedbackForm },
+  } = useForm<FeedbackFormValues>({
+    resolver: zodResolver(feedbackSchema),
+    mode: 'onBlur',
+    defaultValues: { content: '', jobDescription: '' },
+  });
+  const feedbackText = watchFeedback('content');
 
   useEffect(() => { fetchResumes().then(setResumes).catch(() => {}); }, []);
 

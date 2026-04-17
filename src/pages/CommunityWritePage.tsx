@@ -141,10 +141,21 @@ export default function CommunityWritePage() {
   const navigate = useNavigate();
   const user = getUser();
 
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [category, setCategory] = useState('free');
-  const [saving, setSaving] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<PostForm>({
+    resolver: zodResolver(postSchema),
+    defaultValues: { title: '', content: '', category: 'free' },
+  });
+
+  const title = watch('title');
+  const content = watch('content');
+  const category = watch('category');
+
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(false);
   const [attachments, setAttachments] = useState<{ url: string; name: string; size: number; type: string }[]>([]);
@@ -159,18 +170,22 @@ export default function CommunityWritePage() {
     fetch(`${API_URL}/api/health/drafts/community_post`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
       .then(d => {
-        if (d?.title) setTitle(d.title);
-        if (d?.content) setContent(d.content);
-        if (d?.category) setCategory(d.category);
+        if (d?.title) setValue('title', d.title);
+        if (d?.content) setValue('content', d.content);
+        if (d?.category) setValue('category', d.category);
       })
       .catch(() => {});
-  }, [isEdit, user?.id]);
+  }, [isEdit, user?.id, setValue]);
 
   // 서버 Draft 자동 저장 (3초 디바운스)
   useEffect(() => {
     if (isEdit || !user) return;
+    const sub = watch((values) => {
+      // no-op: subscription body handled via timer below
+      void values;
+    });
     const timer = setTimeout(() => {
-      if (title.trim() || content.trim()) {
+      if ((title?.trim() || content?.trim())) {
         const token = localStorage.getItem('token');
         if (!token) return;
         fetch(`${API_URL}/api/health/drafts/community_post`, {
@@ -180,8 +195,8 @@ export default function CommunityWritePage() {
         }).then(() => { setDraftSaved(true); setTimeout(() => setDraftSaved(false), 2000); }).catch(() => {});
       }
     }, 3000);
-    return () => clearTimeout(timer);
-  }, [title, content, category, isEdit, user?.id]);
+    return () => { clearTimeout(timer); sub.unsubscribe(); };
+  }, [title, content, category, isEdit, user?.id, watch]);
 
   const clearDraft = () => {
     const token = localStorage.getItem('token');
@@ -197,14 +212,14 @@ export default function CommunityWritePage() {
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           if (data) {
-            setTitle(data.title || '');
-            setContent(data.content || '');
-            setCategory(data.category || 'free');
+            setValue('title', data.title || '');
+            setValue('content', data.content || '');
+            setValue('category', data.category || 'free');
             setAttachments(Array.isArray(data.attachments) ? data.attachments : []);
           }
         });
     }
-  }, [id, isEdit, user, navigate]);
+  }, [id, isEdit, user, navigate, setValue]);
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -234,46 +249,47 @@ export default function CommunityWritePage() {
   const applyAction = useCallback((action: ToolbarAction) => {
     const ta = textareaRef.current;
     if (!ta) return;
+    const currentContent = content || '';
     const start = ta.selectionStart;
     const end = ta.selectionEnd;
-    const selected = content.slice(start, end);
-    let newContent = content;
+    const selected = currentContent.slice(start, end);
+    let newContent = currentContent;
     let newCursorStart = start;
     let newCursorEnd = end;
 
     if (action.block) {
-      newContent = content.slice(0, start) + action.block + content.slice(end);
+      newContent = currentContent.slice(0, start) + action.block + currentContent.slice(end);
       newCursorStart = newCursorEnd = start + action.block.length;
     } else if (action.prefix) {
-      const before = content.slice(0, start);
+      const before = currentContent.slice(0, start);
       const lineStart = before.lastIndexOf('\n') + 1;
-      const lineContent = content.slice(lineStart, end);
+      const lineContent = currentContent.slice(lineStart, end);
       const prefixed = lineContent.split('\n').map(l =>
         l.startsWith(action.prefix!) ? l.slice(action.prefix!.length) : action.prefix + l,
       ).join('\n');
-      newContent = content.slice(0, lineStart) + prefixed + content.slice(end);
+      newContent = currentContent.slice(0, lineStart) + prefixed + currentContent.slice(end);
       newCursorStart = lineStart;
       newCursorEnd = lineStart + prefixed.length;
     } else if (action.wrap) {
       const [pre, post] = action.wrap;
       if (selected) {
-        newContent = content.slice(0, start) + pre + selected + post + content.slice(end);
+        newContent = currentContent.slice(0, start) + pre + selected + post + currentContent.slice(end);
         newCursorStart = start + pre.length;
         newCursorEnd = start + pre.length + selected.length;
       } else {
         const placeholder = '텍스트';
-        newContent = content.slice(0, start) + pre + placeholder + post + content.slice(end);
+        newContent = currentContent.slice(0, start) + pre + placeholder + post + currentContent.slice(end);
         newCursorStart = start + pre.length;
         newCursorEnd = start + pre.length + placeholder.length;
       }
     }
 
-    setContent(newContent);
+    setValue('content', newContent, { shouldValidate: true, shouldDirty: true });
     requestAnimationFrame(() => {
       ta.focus();
       ta.setSelectionRange(newCursorStart, newCursorEnd);
     });
-  }, [content]);
+  }, [content, setValue]);
 
   // ── Keyboard shortcuts ─────────────────────────────────────────────────
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -282,19 +298,20 @@ export default function CommunityWritePage() {
       if (e.key === 'i') { e.preventDefault(); applyAction({ label: 'Italic', icon: 'I', title: '', wrap: ['*', '*'] }); }
       if (e.key === 'k') { e.preventDefault(); applyAction({ label: 'Code', icon: '', title: '', wrap: ['`', '`'] }); }
     }
+    const currentContent = content || '';
     // Auto-indent list continuation
     if (e.key === 'Enter') {
       const ta = e.currentTarget;
       const start = ta.selectionStart;
-      const before = content.slice(0, start);
+      const before = currentContent.slice(0, start);
       const lineStart = before.lastIndexOf('\n') + 1;
       const currentLine = before.slice(lineStart);
       const listMatch = currentLine.match(/^(- |\* |\d+\. )/);
       if (listMatch) {
         e.preventDefault();
         const prefix = listMatch[1];
-        const newContent = content.slice(0, start) + '\n' + prefix + content.slice(ta.selectionEnd);
-        setContent(newContent);
+        const newContent = currentContent.slice(0, start) + '\n' + prefix + currentContent.slice(ta.selectionEnd);
+        setValue('content', newContent, { shouldValidate: true, shouldDirty: true });
         requestAnimationFrame(() => {
           ta.setSelectionRange(start + 1 + prefix.length, start + 1 + prefix.length);
         });
@@ -306,19 +323,13 @@ export default function CommunityWritePage() {
       const ta = e.currentTarget;
       const start = ta.selectionStart;
       const end = ta.selectionEnd;
-      const newContent = content.slice(0, start) + '  ' + content.slice(end);
-      setContent(newContent);
+      const newContent = currentContent.slice(0, start) + '  ' + currentContent.slice(end);
+      setValue('content', newContent, { shouldValidate: true, shouldDirty: true });
       requestAnimationFrame(() => { ta.setSelectionRange(start + 2, start + 2); });
     }
-  }, [content, applyAction]);
+  }, [content, applyAction, setValue]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) { setError('제목을 입력해주세요.'); return; }
-    if (!content.trim()) { setError('내용을 입력해주세요.'); return; }
-    if (content.trim().length < 10) { setError('내용을 10자 이상 입력해주세요.'); return; }
-
-    setSaving(true);
+  const onSubmit = async (values: PostForm) => {
     setError('');
 
     const token = localStorage.getItem('token');
@@ -328,7 +339,12 @@ export default function CommunityWritePage() {
     const r = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ title: title.trim(), content: content.trim(), category, attachments }),
+      body: JSON.stringify({
+        title: values.title.trim(),
+        content: values.content.trim(),
+        category: values.category,
+        attachments,
+      }),
     });
 
     if (r.ok) {
@@ -338,10 +354,11 @@ export default function CommunityWritePage() {
     } else {
       setError('저장에 실패했습니다. 다시 시도해주세요.');
     }
-    setSaving(false);
   };
 
-  const charCount = content.replace(/\s/g, '').length;
+  const charCount = (content || '').replace(/\s/g, '').length;
+  const titleRegister = register('title');
+  const contentRegister = register('content');
 
   return (
     <>
@@ -369,7 +386,7 @@ export default function CommunityWritePage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Category */}
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">카테고리</label>
@@ -378,7 +395,7 @@ export default function CommunityWritePage() {
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => setCategory(cat.id)}
+                  onClick={() => setValue('category', cat.id, { shouldValidate: true, shouldDirty: true })}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-xl border transition-all ${
                     category === cat.id
                       ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 font-medium'
@@ -396,13 +413,17 @@ export default function CommunityWritePage() {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">제목</label>
             <input
               type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
+              {...titleRegister}
               placeholder="제목을 입력하세요"
               maxLength={100}
               className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
             />
-            <div className="text-right text-xs text-slate-400 mt-1">{title.length}/100</div>
+            <div className="flex items-center justify-between mt-1">
+              {errors.title?.message ? (
+                <span className="text-xs text-red-500">{errors.title.message}</span>
+              ) : <span />}
+              <div className="text-right text-xs text-slate-400">{(title || '').length}/100</div>
+            </div>
           </div>
 
           {/* Editor */}
@@ -451,9 +472,11 @@ export default function CommunityWritePage() {
               />
             ) : (
               <textarea
-                ref={textareaRef}
-                value={content}
-                onChange={e => setContent(e.target.value)}
+                {...contentRegister}
+                ref={(el) => {
+                  contentRegister.ref(el);
+                  textareaRef.current = el;
+                }}
                 onKeyDown={handleKeyDown}
                 placeholder={`내용을 마크다운으로 작성하세요 (최소 10자)\n\n**굵게** *기울임* \`코드\`\n## 제목\n- 목록 항목\n> 인용문`}
                 rows={18}
@@ -471,6 +494,9 @@ export default function CommunityWritePage() {
               </span>
             </div>
           </div>
+          {errors.content?.message && (
+            <div className="text-xs text-red-500 -mt-2">{errors.content.message}</div>
+          )}
 
           {/* Attachments */}
           <div>
@@ -567,10 +593,10 @@ export default function CommunityWritePage() {
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={isSubmitting}
               className="px-6 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm"
             >
-              {saving ? '저장 중...' : isEdit ? '수정하기' : '게시하기'}
+              {isSubmitting ? '저장 중...' : isEdit ? '수정하기' : '게시하기'}
             </button>
           </div>
         </form>

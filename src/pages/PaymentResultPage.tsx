@@ -5,7 +5,6 @@ import Header from '@/components/Header';
 export default function PaymentResultPage() {
   const [params] = useSearchParams();
   const success = !params.has('fail');
-  const planId = params.get('planId') || '';
 
   useEffect(() => {
     document.title = success ? '결제 완료 — 이력서공방' : '결제 실패 — 이력서공방';

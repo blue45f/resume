@@ -1,9 +1,7 @@
-import { getUser } from '@/lib/auth';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import EmptyState from '@/components/EmptyState';
 import { fetchBookmarks, removeBookmark } from '@/lib/api';
 import { toast } from '@/components/Toast';
 import { CardGridSkeleton } from '@/components/Skeleton';

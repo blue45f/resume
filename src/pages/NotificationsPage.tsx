@@ -13,7 +13,7 @@ import {
   deleteNotification,
   deleteNotificationsBulk,
 } from '@/lib/api';
-import { getToken, getUser } from '@/lib/auth';
+import { getToken } from '@/lib/auth';
 import { toast } from '@/components/Toast';
 
 interface Notification {
@@ -72,7 +72,6 @@ export default function NotificationsPage() {
   const [selectMode, setSelectMode] = useState(false);
   const [expandedAction, setExpandedAction] = useState<string | null>(null);
   const navigate = useNavigate();
-  const user = getUser();
 
   const markAllRead = useCallback(async () => {
     await markAllNotificationsRead();

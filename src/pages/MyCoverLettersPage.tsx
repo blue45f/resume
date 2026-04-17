@@ -1,4 +1,3 @@
-import { getUser } from '@/lib/auth';
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';

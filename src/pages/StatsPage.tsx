@@ -43,14 +43,6 @@ function CountUp({ target, duration = 1500 }: { target: number; duration?: numbe
   return <>{count.toLocaleString()}</>;
 }
 
-interface JobStats {
-  total: number;
-  byCompany: { name: string; count: number }[];
-  byLocation: { name: string; count: number }[];
-  byType: { name: string; count: number }[];
-  bySkill: { name: string; count: number }[];
-  byMonth: { month: string; count: number }[];
-}
 
 function JobStatsSection() {
   const [filterLocation, setFilterLocation] = useState('');
@@ -168,7 +160,7 @@ function JobStatsSection() {
             채용 요구 기술 TOP 20
           </h3>
           <div className="flex flex-wrap gap-2">
-            {data.bySkill.map((s, i) => {
+            {data.bySkill.map((s: any) => {
               const maxCount = data.bySkill[0]?.count || 1;
               const opacity = 0.4 + (s.count / maxCount) * 0.6;
               return (

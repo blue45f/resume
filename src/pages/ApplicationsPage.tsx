@@ -1,4 +1,3 @@
-import { getUser } from '@/lib/auth';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -666,7 +665,6 @@ export default function ApplicationsPage() {
                     <div className="space-y-0.5">
                       {dayApps.slice(0, 3).map((app, i) => {
                         const isInterview = (app as any)._isInterview;
-                        const statusInfo = STATUSES.find(s => s.value === app.status) || STATUSES[0];
                         return (
                           <div
                             key={`${app.id}-${i}`}
@@ -779,7 +777,7 @@ export default function ApplicationsPage() {
                         {months.map(m => {
                           const count = monthlyMap[m];
                           const heightPct = max > 0 ? (count / max) * 100 : 0;
-                          const [y, mo] = m.split('-');
+                          const [, mo] = m.split('-');
                           return (
                             <div key={m} className="flex-1 flex flex-col items-center gap-1">
                               <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">{count}</span>

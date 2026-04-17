@@ -489,13 +489,18 @@ export default function HomePage() {
         {resumes.length === 0 ? (
           <div className="py-12 sm:py-20 animate-fade-in">
             {/* Hero section */}
-            <div className="relative text-center mb-16">
+            <div className="relative text-center mb-16 overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-6 pb-10 rounded-3xl mesh-gradient-light">
+              {/* Ambient SVG blur blobs */}
+              <div className="mesh-blob mesh-blob-blue animate-float-soft" style={{ width: 360, height: 360, top: -80, left: -60 }} aria-hidden="true" />
+              <div className="mesh-blob mesh-blob-cyan animate-float-soft-slow" style={{ width: 280, height: 280, top: 40, right: -80 }} aria-hidden="true" />
+              <div className="mesh-blob mesh-blob-slate animate-float-soft" style={{ width: 220, height: 220, bottom: -60, left: '30%', opacity: 0.35 }} aria-hidden="true" />
+
               <div className="relative">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 rounded-full text-xs font-medium mb-8 animate-fade-in">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm text-neutral-600 dark:text-neutral-300 rounded-full text-xs font-medium mb-8 animate-fade-in border border-neutral-200/60 dark:border-neutral-700/60">
                   <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                   AI 기반 이력서 관리 플랫폼
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-neutral-900 dark:text-neutral-50 mb-6 tracking-tight leading-[1.1]">
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-neutral-900 dark:text-neutral-50 mb-6 tracking-[-0.03em] leading-[1.05]">
                   커리어의 시작,{' '}
                   <span className="text-blue-600 dark:text-blue-400">
                     AI와 함께
@@ -503,7 +508,7 @@ export default function HomePage() {
                   <br className="hidden sm:block" />
                   스마트하게
                 </h1>
-                <p className="text-lg sm:text-xl text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto leading-relaxed mb-10">
+                <p className="text-lg sm:text-xl text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto leading-relaxed mb-10 tracking-tight">
                   5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기까지.
                   <br className="hidden sm:block" />
                   서류 합격률을 높이는 데이터 기반 이력서 플랫폼
@@ -511,14 +516,14 @@ export default function HomePage() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
                   <Link
                     to="/resumes/new"
-                    className="imp-btn inline-flex items-center gap-2 px-8 py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all duration-200 text-base shadow-md hover:shadow-lg"
+                    className="imp-btn animate-cta-float inline-flex items-center gap-2 px-8 py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all duration-200 text-base shadow-md hover:shadow-xl"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                     무료로 시작하기
                   </Link>
                   <Link
                     to="/explore"
-                    className="imp-btn inline-flex items-center gap-2 px-6 py-3.5 bg-transparent text-neutral-600 dark:text-neutral-300 font-medium rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200 text-base"
+                    className="imp-btn inline-flex items-center gap-2 px-6 py-3.5 bg-white/60 dark:bg-neutral-900/40 backdrop-blur-sm text-neutral-600 dark:text-neutral-300 font-medium rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 hover:bg-white dark:hover:bg-neutral-800 transition-all duration-200 text-base"
                   >
                     이력서 탐색
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>

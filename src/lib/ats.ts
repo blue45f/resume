@@ -228,12 +228,6 @@ export function analyzeAtsCompatibility(resume: Resume): AtsResult {
   // ============================================================
   // SECTION HEADINGS CHECK (NEW)
   // ============================================================
-  const hasSufficientSections = (
-    resume.experiences.length > 0 ||
-    resume.educations.length > 0 ||
-    resume.skills.length > 0 ||
-    resume.projects.length > 0
-  );
   const sectionCount = [
     resume.experiences.length > 0,
     resume.educations.length > 0,

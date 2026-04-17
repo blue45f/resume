@@ -80,7 +80,6 @@ const RATING_LABELS: Record<string, string> = {
 };
 
 function ReviewCard({ review }: { review: CompanyReview }) {
-  const avg = ((review.culture + review.worklife + review.growth + review.salary) / 4).toFixed(1);
   return (
     <div className="imp-card p-4">
       <div className="flex items-start justify-between mb-3">

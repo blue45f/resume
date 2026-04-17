@@ -1,4 +1,4 @@
-import { forwardRef, memo, useMemo } from 'react';
+import { forwardRef, memo } from 'react';
 import type { Resume, Skill as SkillType, SectionId } from '@/types/resume';
 import { DEFAULT_SECTION_ORDER } from '@/types/resume';
 import SafeHtml from '@/components/SafeHtml';

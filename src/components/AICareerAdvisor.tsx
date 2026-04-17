@@ -38,7 +38,6 @@ function summarizeResume(resume: Resume): string {
 function generateLocalResponse(question: string, resume: Resume): string {
   const skills = resume.skills.flatMap(s => s.items.split(',').map(i => i.trim().toLowerCase()));
   const expYears = resume.experiences.length;
-  const hasAdvancedDegree = resume.educations.some(e => e.degree.includes('석사') || e.degree.includes('박사'));
   const certCount = resume.certifications.length;
   const q = question.toLowerCase();
 

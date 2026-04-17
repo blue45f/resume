@@ -53,23 +53,12 @@ function analyzeResume(resume: Resume, other: Resume): { strengths: string[]; we
   return { strengths: strengths.slice(0, 6), weaknesses: weaknesses.slice(0, 6) };
 }
 
-/** Calculate section-level match percentage */
-function sectionMatchPercent(leftVal: number, rightVal: number): { left: number; right: number } {
-  const max = Math.max(leftVal, rightVal, 1);
-  return {
-    left: Math.round((leftVal / max) * 100),
-    right: Math.round((rightVal / max) * 100),
-  };
-}
-
 export default function ComparePage() {
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [leftId, setLeftId] = useState('');
   const [rightId, setRightId] = useState('');
   const [left, setLeft] = useState<Resume | null>(null);
   const [right, setRight] = useState<Resume | null>(null);
-  const [loading, setLoading] = useState(false);
-
   useEffect(() => { fetchResumes().then(setResumes).catch(() => {}); }, []);
 
   useEffect(() => {
@@ -123,7 +112,6 @@ export default function ComparePage() {
 
   const CompareBar = ({ label, leftVal, rightVal }: { label: string; leftVal: number; rightVal: number }) => {
     const max = Math.max(leftVal, rightVal, 1);
-    const pct = sectionMatchPercent(leftVal, rightVal);
     return (
       <div className="py-2.5 sm:py-2">
         <div className="flex items-center justify-between mb-1.5 sm:hidden">

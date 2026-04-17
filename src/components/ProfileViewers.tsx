@@ -15,13 +15,6 @@ interface ViewerStats {
   lastWeek: number;
 }
 
-const VIEWER_LABELS: Record<string, string> = {
-  recruiter: '채용담당자가 이력서를 조회했습니다',
-  company: '기업 관계자가 이력서를 조회했습니다',
-  personal: '다른 사용자가 이력서를 조회했습니다',
-  anonymous: '누군가 이력서를 조회했습니다',
-};
-
 const VIEWER_ICONS: Record<string, string> = {
   recruiter: '👤',
   company: '🏢',

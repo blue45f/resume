@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 /** Static skill relationship map - zero LLM cost */
 const SKILL_RELATIONS: Record<string, string[]> = {

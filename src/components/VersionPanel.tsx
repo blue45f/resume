@@ -180,7 +180,7 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
   const [diffBaseId, setDiffBaseId] = useState<string | null>(null);
   const [diffTargetId, setDiffTargetId] = useState<string | null>(null);
   const [diffBaseSnapshot, setDiffBaseSnapshot] = useState<Record<string, unknown> | null>(null);
-  const [diffTargetSnapshot, setDiffTargetSnapshot] = useState<Record<string, unknown> | null>(null);
+  const [, setDiffTargetSnapshot] = useState<Record<string, unknown> | null>(null);
   const [diffLoading, setDiffLoading] = useState(false);
   const [diffs, setDiffs] = useState<DiffItem[]>([]);
 

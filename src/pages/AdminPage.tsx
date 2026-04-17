@@ -2180,11 +2180,6 @@ const EXT_LOCATIONS = [
   { key: 'busan', label: '부산' }, { key: 'daegu', label: '대구' }, { key: 'remote', label: '재택' },
   { key: 'nationwide', label: '전국가능' }, { key: 'global', label: '글로벌' },
 ];
-const EXT_JOB_TYPES = [
-  { key: 'all', label: '전체' }, { key: 'fulltime', label: '정규직' }, { key: 'contract', label: '계약직' },
-  { key: 'parttime', label: '파트타임' }, { key: 'intern', label: '인턴' }, { key: 'freelance', label: '프리랜서' },
-];
-
 function AdminExtLinksTab() {
   const [links, setLinks] = useState<ExtLink[]>([]);
   const [loading, setLoading] = useState(true);
@@ -2578,7 +2573,6 @@ function AdminForbiddenWordsTab() {
   const [stats, setStats] = useState<{ total: number; active: number; blocked: number; warned: number } | null>(null);
 
   // Form
-  const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState<'single' | 'bulk'>('single');
   const [newWord, setNewWord] = useState('');
   const [bulkWords, setBulkWords] = useState('');

@@ -14,7 +14,6 @@ export default function Header() {
   const [theme, setThemeState] = useState(getTheme());
   const [locale, setLocaleState] = useState(getLocale());
   const [showSearch, setShowSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [switching, setSwitching] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -166,10 +165,10 @@ export default function Header() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-1" aria-label={t('a11y.mainMenu')}>
+          <nav className="hidden lg:flex items-center gap-0.5 flex-nowrap" aria-label={t('a11y.mainMenu')}>
             {/* Mode badge */}
             {user && (
-              <span className={`mr-1 px-2 py-0.5 text-[10px] font-bold rounded-full border ${
+              <span className={`mr-1 px-2 py-0.5 text-[10px] font-bold rounded-full border whitespace-nowrap hidden xl:inline-flex items-center ${
                 isRecruiter
                   ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800'
                   : 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800'
@@ -181,24 +180,24 @@ export default function Header() {
             {/* ── 채용담당자 메뉴 ── */}
             {isRecruiter ? (
               <>
-                <Link to="/explore" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/explore' ? 'text-purple-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/explore" className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname === '/explore' ? 'text-purple-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   인재탐색
                 </Link>
-                <Link to="/jobs" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname.startsWith('/jobs') ? 'text-purple-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/jobs" className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname.startsWith('/jobs') ? 'text-purple-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   채용공고
                 </Link>
-                <Link to="/scouts" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/scouts' ? 'text-purple-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/scouts" className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname === '/scouts' ? 'text-purple-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   스카우트
                 </Link>
-                <Link to="/recruiter" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/recruiter' ? 'text-purple-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/recruiter" className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname === '/recruiter' ? 'text-purple-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   대시보드
                 </Link>
-                <Link to="/community" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname.startsWith('/community') ? 'text-purple-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/community" className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap hidden xl:inline-block ${location.pathname.startsWith('/community') ? 'text-purple-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   커뮤니티
                 </Link>
                 {/* Recruiter More */}
                 <div className="relative group">
-                  <button className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-2 py-1 rounded" aria-haspopup="true" aria-label={t('common.more')}>
+                  <button className="text-xs lg:text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-1.5 lg:px-2 py-1 rounded whitespace-nowrap" aria-haspopup="true" aria-label={t('common.more')}>
                     {t('common.more')} <span aria-hidden="true">▾</span>
                   </button>
                   <div role="menu" aria-label={t('common.more')} className="absolute left-0 top-full mt-1 w-44 glass-dropdown rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 py-1">
@@ -217,24 +216,24 @@ export default function Header() {
             ) : (
               /* ── 구직자 메뉴 ── */
               <>
-                <Link to="/" className={`nav-link-animated text-sm rounded px-2 py-1 ${isHome ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/" className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${isHome ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   내 이력서
                 </Link>
-                <Link to="/explore" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/explore' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/explore" className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname === '/explore' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   탐색
                 </Link>
-                <Link to="/jobs" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname.startsWith('/jobs') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/jobs" className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname.startsWith('/jobs') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   채용정보
                 </Link>
-                <Link to="/applications" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname === '/applications' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/applications" className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname === '/applications' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   지원현황
                 </Link>
-                <Link to="/community" className={`nav-link-animated text-sm rounded px-2 py-1 ${location.pathname.startsWith('/community') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                <Link to="/community" className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap hidden xl:inline-block ${location.pathname.startsWith('/community') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}>
                   커뮤니티
                 </Link>
                 {/* Jobseeker More */}
                 <div className="relative group">
-                  <button className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-2 py-1 rounded" aria-haspopup="true" aria-label={t('common.more')}>
+                  <button className="text-xs lg:text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-1.5 lg:px-2 py-1 rounded whitespace-nowrap" aria-haspopup="true" aria-label={t('common.more')}>
                     {t('common.more')} <span aria-hidden="true">▾</span>
                   </button>
                   <div role="menu" aria-label={t('common.more')} className="absolute left-0 top-full mt-1 w-44 glass-dropdown rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 py-1">
@@ -265,25 +264,25 @@ export default function Header() {
             )}
 
             {(user?.role === 'admin' || user?.role === 'superadmin') && (
-              <Link to="/admin" className={`text-sm rounded px-2 py-1 ${location.pathname === '/admin' ? 'text-red-600 font-medium' : 'text-red-500 hover:text-red-700 dark:text-red-400'}`}>
+              <Link to="/admin" className={`text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname === '/admin' ? 'text-red-600 font-medium' : 'text-red-500 hover:text-red-700 dark:text-red-400'}`}>
                 {t('nav.admin')}
               </Link>
             )}
             <button
               onClick={() => setShowSearch(true)}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
               aria-label="검색"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-              <span className="hidden sm:inline">검색</span>
-              <kbd className="hidden sm:inline-flex items-center px-1 py-0.5 text-[9px] border border-slate-300 dark:border-slate-600 rounded font-mono">⌘K</kbd>
+              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <span className="hidden xl:inline">검색</span>
+              <kbd className="hidden xl:inline-flex items-center px-1 py-0.5 text-[9px] border border-slate-300 dark:border-slate-600 rounded font-mono">⌘K</kbd>
             </button>
             {isRecruiter ? (
-              <Link to="/jobs/new" className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-colors">
+              <Link to="/jobs/new" className="px-2 lg:px-2.5 py-1.5 text-xs font-medium rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-colors whitespace-nowrap">
                 공고 등록
               </Link>
             ) : (
-              <Link to="/resumes/new" className="px-2.5 py-1.5 btn-gradient text-xs font-medium rounded-lg">
+              <Link to="/resumes/new" className="px-2 lg:px-2.5 py-1.5 btn-gradient text-xs font-medium rounded-lg whitespace-nowrap">
                 {t('nav.newResume')}
               </Link>
             )}
@@ -299,7 +298,7 @@ export default function Header() {
             <select
               value={locale}
               onChange={e => { setLocale(e.target.value as any); setLocaleState(e.target.value as any); }}
-              className="text-xs px-1 py-0.5 border border-slate-200 dark:border-slate-600 rounded bg-transparent text-slate-500 dark:text-slate-400 cursor-pointer"
+              className="text-xs px-1 py-0.5 border border-slate-200 dark:border-slate-600 rounded bg-transparent text-slate-500 dark:text-slate-400 cursor-pointer hidden xl:inline-block"
               aria-label="언어"
             >
               {LOCALES.map(l => (
@@ -311,7 +310,7 @@ export default function Header() {
                 <button
                   ref={profileTriggerRef}
                   onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                  className={`text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1 transition-colors duration-200 flex items-center gap-1.5 border ${
+                  className={`text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-1.5 lg:px-2 py-1 transition-colors duration-200 flex items-center gap-1 lg:gap-1.5 border whitespace-nowrap max-w-[140px] lg:max-w-none ${
                     isRecruiter
                       ? 'text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40'
                       : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border-transparent hover:border-slate-200 dark:hover:border-slate-600'
@@ -320,8 +319,8 @@ export default function Header() {
                   aria-expanded={profileMenuOpen}
                   aria-label={t('a11y.profileMenu')}
                 >
-                  {user.name || user.email}
-                  <span className="text-xs" aria-hidden="true">▾</span>
+                  <span className="truncate">{user.name || user.email}</span>
+                  <span className="text-xs flex-shrink-0" aria-hidden="true">▾</span>
                 </button>
                 {profileMenuOpen && (
                   <div ref={profileMenuRef} role="menu" aria-label={t('a11y.profileMenu')} className="absolute right-0 top-full mt-1 w-56 glass-dropdown rounded-xl shadow-lg z-50 py-1">
@@ -369,7 +368,7 @@ export default function Header() {
                 )}
               </div>
             ) : (
-              <Link to="/login" className="text-sm text-blue-600 hover:text-blue-800 px-2 py-1">{t('common.login')}</Link>
+              <Link to="/login" className="text-xs lg:text-sm text-blue-600 hover:text-blue-800 px-1.5 lg:px-2 py-1 whitespace-nowrap">{t('common.login')}</Link>
             )}
           </nav>
 

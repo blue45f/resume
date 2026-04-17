@@ -1,5 +1,5 @@
 import type { Resume } from '@/types/resume';
-import { findDuplicates, type SimilarityIssue } from '@/lib/similarity';
+import { findDuplicates } from '@/lib/similarity';
 
 interface Props {
   resume: Resume;

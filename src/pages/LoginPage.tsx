@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getSocialLoginUrl } from '@/lib/auth';
-import { t } from '@/lib/i18n';
 
 function GoogleIcon() {
   return (
@@ -139,11 +138,26 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left decorative panel - hidden on mobile */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-neutral-900 dark:bg-neutral-950">
-        {/* Decorative circles */}
-        <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/3 w-40 h-40 bg-purple-400/15 rounded-full blur-2xl" />
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden mesh-gradient-dark">
+        {/* Ambient blur blobs — blue/cyan only */}
+        <div className="mesh-blob mesh-blob-blue animate-float-soft" style={{ width: 420, height: 420, top: -100, left: -80 }} aria-hidden="true" />
+        <div className="mesh-blob mesh-blob-cyan animate-float-soft-slow" style={{ width: 360, height: 360, bottom: -80, right: -60 }} aria-hidden="true" />
+        <div className="mesh-blob mesh-blob-blue animate-float-soft-slow" style={{ width: 200, height: 200, top: '45%', left: '35%', opacity: 0.35 }} aria-hidden="true" />
+
+        {/* Floating geometric shapes — subtle */}
+        <div
+          className="absolute top-24 right-24 w-14 h-14 rounded-2xl border border-white/20 rotate-12 animate-float-soft"
+          style={{ backdropFilter: 'blur(2px)' }}
+          aria-hidden="true"
+        />
+        <div
+          className="absolute bottom-32 left-24 w-10 h-10 rounded-full border border-cyan-200/30 animate-float-soft-slow"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute top-1/3 right-16 w-6 h-6 bg-white/15 rounded-md rotate-45 animate-float-soft"
+          aria-hidden="true"
+        />
 
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16">
           {/* Logo badge */}
@@ -157,7 +171,7 @@ export default function LoginPage() {
             AI로 완성하는<br />
             <span className="text-white/80">나만의 이력서</span>
           </h2>
-          <p className="text-indigo-100 text-base leading-relaxed mb-10 max-w-md">
+          <p className="text-blue-100 text-base leading-relaxed mb-10 max-w-md">
             5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기까지.<br />경력 관리의 새로운 기준을 경험하세요.
           </p>
           {/* Stats */}
@@ -169,7 +183,7 @@ export default function LoginPage() {
             ].map((stat, i) => (
               <div key={i} className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
                 <div className="text-xl font-extrabold text-white">{stat.num}</div>
-                <div className="text-xs text-indigo-200 mt-0.5">{stat.label}</div>
+                <div className="text-xs text-blue-100/90 mt-0.5">{stat.label}</div>
               </div>
             ))}
           </div>

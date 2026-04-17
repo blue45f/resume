@@ -32,7 +32,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
   const [targetLanguage, setTargetLanguage] = useState('ko');
   const [jobDescription, setJobDescription] = useState('');
   const [llmProviders, setLlmProviders] = useState<LlmProvider[]>([]);
-  const [selectedProvider, setSelectedProvider] = useState('');
+  const [, setSelectedProvider] = useState('');
 
   // Common state
   const [result, setResult] = useState('');

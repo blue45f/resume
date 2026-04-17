@@ -1,4 +1,3 @@
-import { getUser } from '@/lib/auth';
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -96,7 +95,7 @@ export default function MessagesPage() {
   const [messageReactions, setMessageReactions] = useState<Record<string, string[]>>({});
   const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
-  const [showFileUpload, setShowFileUpload] = useState(false);
+  const [, setShowFileUpload] = useState(false);
   const [attachedFile, setAttachedFile] = useState<{ name: string; size: string; type: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);

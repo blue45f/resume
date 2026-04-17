@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { FormSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
-import { API_URL } from '@/lib/config';
 import { timeAgo } from '@/lib/time';
 
 interface FeedbackItem {
@@ -33,16 +35,44 @@ const STATUS_CONFIG = {
   closed: { label: '종료', color: 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500' },
 };
 
+const feedbackSchema = z.object({
+  type: z.enum(['bug', 'feature', 'opinion', 'question']),
+  title: z
+    .string()
+    .min(2, '제목은 최소 2자 이상이어야 합니다')
+    .max(100, '제목은 최대 100자까지 입력 가능합니다'),
+  content: z
+    .string()
+    .min(10, '내용은 최소 10자 이상이어야 합니다')
+    .max(2000, '내용은 최대 2000자까지 입력 가능합니다'),
+});
+
+type FeedbackFormValues = z.infer<typeof feedbackSchema>;
+
 export default function FeedbackPage() {
   const [items, setItems] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
-  const [formType, setFormType] = useState<'bug' | 'feature' | 'opinion' | 'question'>('opinion');
-  const [formTitle, setFormTitle] = useState('');
-  const [formContent, setFormContent] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const user = getUser();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<FeedbackFormValues>({
+    resolver: zodResolver(feedbackSchema),
+    defaultValues: {
+      type: 'opinion',
+      title: '',
+      content: '',
+    },
+  });
+
+  const formType = watch('type');
 
   useEffect(() => {
     document.title = '피드백 — 이력서공방';
@@ -59,18 +89,13 @@ export default function FeedbackPage() {
     setLoading(false);
   };
 
-  const handleSubmit = async () => {
-    if (!formTitle.trim() || !formContent.trim()) {
-      toast('제목과 내용을 입력해주세요', 'error');
-      return;
-    }
-    setSubmitting(true);
+  const onSubmit = async (data: FeedbackFormValues) => {
     try {
       const newItem: FeedbackItem = {
         id: Date.now().toString(),
-        type: formType,
-        title: formTitle.trim(),
-        content: formContent.trim(),
+        type: data.type,
+        title: data.title.trim(),
+        content: data.content.trim(),
         status: 'open',
         votes: 0,
         authorName: user?.name || '익명',
@@ -80,12 +105,11 @@ export default function FeedbackPage() {
       const updated = [newItem, ...items];
       localStorage.setItem('feedback-items', JSON.stringify(updated));
       setItems(updated);
-      setFormTitle('');
-      setFormContent('');
+      reset();
       setShowForm(false);
       toast('피드백이 등록되었습니다', 'success');
-    } finally {
-      setSubmitting(false);
+    } catch {
+      toast('피드백 등록에 실패했습니다', 'error');
     }
   };
 
@@ -118,39 +142,47 @@ export default function FeedbackPage() {
 
         {/* 글쓰기 폼 */}
         {showForm && (
-          <div className="mb-6 imp-card p-4 sm:p-6 animate-fade-in">
+          <form onSubmit={handleSubmit(onSubmit)} className="mb-6 imp-card p-4 sm:p-6 animate-fade-in">
             <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">새 피드백</h2>
             <div className="flex gap-2 mb-3">
               {(Object.entries(TYPE_CONFIG) as [string, any][]).map(([key, cfg]) => (
                 <button
+                  type="button"
                   key={key}
-                  onClick={() => setFormType(key as any)}
+                  onClick={() => setValue('type', key as FeedbackFormValues['type'], { shouldValidate: true })}
                   className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${formType === key ? cfg.color + ' font-medium' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}
                 >
                   {cfg.icon} {cfg.label}
                 </button>
               ))}
             </div>
+            {errors.type && (
+              <p className="text-xs text-red-500 mt-1 mb-2">{errors.type.message}</p>
+            )}
             <input
-              value={formTitle}
-              onChange={e => setFormTitle(e.target.value)}
+              {...register('title')}
               placeholder="제목"
-              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 mb-3 focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
             />
+            {errors.title && (
+              <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>
+            )}
             <textarea
-              value={formContent}
-              onChange={e => setFormContent(e.target.value)}
+              {...register('content')}
               placeholder="내용을 자세히 작성해주세요..."
               rows={4}
-              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 mb-3 focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 mt-3 focus:ring-2 focus:ring-blue-500 resize-none"
             />
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">취소</button>
-              <button onClick={handleSubmit} disabled={submitting} className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors">
-                {submitting ? '등록 중...' : '등록'}
+            {errors.content && (
+              <p className="text-xs text-red-500 mt-1">{errors.content.message}</p>
+            )}
+            <div className="flex justify-end gap-2 mt-3">
+              <button type="button" onClick={() => { reset(); setShowForm(false); }} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">취소</button>
+              <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                {isSubmitting ? '등록 중...' : '등록'}
               </button>
             </div>
-          </div>
+          </form>
         )}
 
         {/* 필터 */}

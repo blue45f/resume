@@ -12,7 +12,7 @@ function getGradeEmoji(grade: string): string {
   return { S: '🏆', A: '⭐', B: '✅', C: '📈', D: '💪' }[grade] || '📄';
 }
 
-function getGradeMessage(grade: string, pct: number): string {
+function getGradeMessage(grade: string, _pct: number): string {
   if (grade === 'S') return `상위 5% 수준의 완성도! 채용 담당자가 주목할 이력서입니다.`;
   if (grade === 'A') return `높은 완성도! 대부분의 지원자보다 잘 작성된 이력서입니다.`;
   if (grade === 'B') return `양호한 수준. 몇 가지만 보완하면 A등급이 가능합니다.`;

@@ -1,0 +1,11 @@
+echo "Running TypeScript type check..."
+pnpm exec tsc -b --noEmit || {
+  echo "TypeScript type check failed. Commit aborted."
+  exit 1
+}
+
+echo "Running lint-staged..."
+npx lint-staged || {
+  echo "lint-staged failed. Commit aborted."
+  exit 1
+}

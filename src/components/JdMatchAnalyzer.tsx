@@ -40,10 +40,6 @@ interface JdHistoryEntry {
   date: string;
 }
 
-interface CoverLetterResult {
-  content: string;
-}
-
 function getHeaders() {
   const token = localStorage.getItem('token');
   const h: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -667,7 +663,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
 }
 
 /** Fallback local cover letter generator */
-function generateLocalCoverLetter(resume: Resume, jd: string, points: string[]): string {
+function generateLocalCoverLetter(resume: Resume, _jd: string, points: string[]): string {
   const name = resume.personalInfo.name || '지원자';
   const skills = resume.skills.map(s => s.items).join(', ');
   const expSummary = resume.experiences.map(e => `${e.company}에서 ${e.position}으로 근무`).join(', ');

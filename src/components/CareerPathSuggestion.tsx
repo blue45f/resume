@@ -23,8 +23,6 @@ function analyzeCareerPaths(resume: Resume): CareerNode {
   const currentSkills = new Set(
     resume.skills.flatMap(s => s.items.split(',').map(i => i.trim().toLowerCase()))
   );
-  const expYears = resume.experiences.length;
-
   // Detect current role from most recent experience or skills
   const lastExp = resume.experiences[0];
   const positionLower = lastExp?.position?.toLowerCase() || '';

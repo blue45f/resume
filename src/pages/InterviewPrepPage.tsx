@@ -1406,7 +1406,7 @@ export default function InterviewPrepPage() {
             </div>
 
             {/* Question cards */}
-            {filteredQuestions.map((q, filteredIdx) => {
+            {filteredQuestions.map((q) => {
               const originalIdx = questions.indexOf(q);
               const questionKey = getQuestionKey(q, originalIdx);
               const savedAnswer = userAnswers[questionKey] || '';

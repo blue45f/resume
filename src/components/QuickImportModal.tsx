@@ -29,7 +29,7 @@ export default function QuickImportModal({ onClose, onSuccess }: Props) {
         method: 'POST', headers, body: JSON.stringify({ text }),
       });
       if (!previewRes.ok) throw new Error('텍스트 분석에 실패했습니다');
-      const preview = await previewRes.json();
+      await previewRes.json();
 
       // Step 2: Create resume from parsed data
       const createRes = await fetch(`${API_URL}/api/auto-generate/create`, {

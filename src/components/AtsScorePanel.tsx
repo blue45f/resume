@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Resume } from '@/types/resume';
 import { analyzeAtsCompatibility } from '@/lib/ats';
-import type { AtsCheckItem, KeywordDensity } from '@/lib/ats';
+import type { AtsCheckItem } from '@/lib/ats';
 
 interface Props {
   resume: Resume;

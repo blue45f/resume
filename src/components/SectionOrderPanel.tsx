@@ -1,7 +1,6 @@
 import { useRef, useState, useCallback } from 'react';
 import type { SectionId } from '@/types/resume';
 import { DEFAULT_SECTION_ORDER } from '@/types/resume';
-import { t } from '@/lib/i18n';
 
 const SECTION_LABELS: Record<SectionId, string> = {
   experience: '경력',

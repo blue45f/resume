@@ -1,19 +1,9 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { queryClient } from '@/lib/queryClient';
 import ErrorBoundary from '@/components/ErrorBoundary';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 3 * 60_000,
-      gcTime: 10 * 60_000,
-      retry: 1,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-    },
-  },
-});
 import { ToastContainer } from '@/components/Toast';
 import OfflineBanner from '@/components/OfflineBanner';
 import CookieConsent from '@/components/CookieConsent';
@@ -109,6 +99,7 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+    {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     <ErrorBoundary>
       <OfflineBanner />
       <BrowserRouter>

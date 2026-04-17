@@ -860,7 +860,6 @@ function CuratedJobsTab() {
   const [showForm, setShowForm] = useState(false);
   const [editingJob, setEditingJob] = useState<CuratedJob | null>(null);
   const { canDo } = usePermissions();
-  const user = getUser();
   const canCreate = canDo('curatedJobs', 'create');
   const canEdit = canDo('curatedJobs', 'edit');
   const canDelete = canDo('curatedJobs', 'delete');
@@ -1885,7 +1884,7 @@ function QuickApplyModal({ job, resumes, onClose, onSuccess }: {
 }
 
 /* Extracted detail panel for reuse in desktop and mobile */
-function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, appliedJobs, savedJobs, onToggleSave, onQuickApply, userResumes }: { job: JobPost; isPersonal: boolean; userSkills: Set<string>; allJobs: JobPost[]; onSelectJob: (id: string) => void; appliedJobs: Set<string>; savedJobs: Set<string>; onToggleSave: (id: string, e: React.MouseEvent) => void; onQuickApply: (job: JobPost) => void; userResumes: ResumeSummary[] }) {
+function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, appliedJobs, savedJobs, onToggleSave, onQuickApply }: { job: JobPost; isPersonal: boolean; userSkills: Set<string>; allJobs: JobPost[]; onSelectJob: (id: string) => void; appliedJobs: Set<string>; savedJobs: Set<string>; onToggleSave: (id: string, e: React.MouseEvent) => void; onQuickApply: (job: JobPost) => void; userResumes: ResumeSummary[] }) {
   const matchScore = userSkills.size > 0 && job.skills ? calculateMatchScore(userSkills, job.skills) : 0;
   const jobSkillsList = job.skills ? job.skills.split(',').map(s => s.trim()) : [];
   const matchedSkills = jobSkillsList.filter(s => userSkills.has(s.toLowerCase()));

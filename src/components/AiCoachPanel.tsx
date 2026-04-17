@@ -258,7 +258,7 @@ interface Props {
   onApplyFix?: (section: string, field: string, value: string) => void;
 }
 
-export default function AiCoachPanel({ resumeId, data, activeTab, onApplyFix }: Props) {
+export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
   const [open, setOpen] = useState(false);
   const [tips, setTips] = useState<CoachTip[]>([]);
   const [scores, setScores] = useState<SectionScore[]>([]);
