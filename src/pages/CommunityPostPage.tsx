@@ -564,7 +564,7 @@ export default function CommunityPostPage() {
 
           {/* Comment form */}
           <form onSubmit={handleComment} className="mb-6">
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden focus-within:border-indigo-400 dark:focus-within:border-indigo-600 transition-colors">
+            <div className="imp-card overflow-hidden focus-within:border-indigo-400 dark:focus-within:border-indigo-600 transition-colors">
               {/* Anon name field for non-logged-in users */}
               {!user && (
                 <div className="px-4 pt-3 pb-2 border-b border-slate-100 dark:border-slate-700">
@@ -625,7 +625,7 @@ export default function CommunityPostPage() {
               return (
                 <div key={node.id}>
                   <div className={`${isRoot
-                    ? 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4'
+                    ? 'imp-card p-4'
                     : 'bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 rounded-xl p-3'
                   }`}>
                     <div className="flex items-start justify-between gap-2">
@@ -735,7 +735,7 @@ export default function CommunityPostPage() {
             };
 
             return !tree.length ? (
-              <div className="text-center py-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
+              <div className="text-center py-10 imp-card">
                 <div className="text-3xl mb-2">💬</div>
                 <p className="text-slate-400 text-sm">첫 번째 댓글을 작성해보세요!</p>
               </div>

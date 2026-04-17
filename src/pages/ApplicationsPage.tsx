@@ -313,7 +313,7 @@ export default function ApplicationsPage() {
         </div>
 
         {/* Statistics Bar */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-5">
+        <div className="imp-card p-4 mb-5">
           <div className="flex flex-wrap items-center gap-3">
             <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 mr-2">
               전체 <span className="text-lg text-blue-600 dark:text-blue-400">{apps.length}</span>건
@@ -438,7 +438,7 @@ export default function ApplicationsPage() {
 
         {/* Add Form */}
         {showForm && (
-          <form ref={formRef} onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 mb-6 animate-fade-in-up">
+          <form ref={formRef} onSubmit={handleSubmit} className="imp-card p-5 mb-6 animate-fade-in-up">
             <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">새 지원 추가</h3>
 
             {/* Required fields */}
@@ -607,7 +607,7 @@ export default function ApplicationsPage() {
           </div>
         ) : viewMode === 'calendar' ? (
           /* Calendar View */
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="imp-card overflow-hidden">
             {/* Calendar header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-700">
               <button
@@ -862,7 +862,7 @@ export default function ApplicationsPage() {
               const isExpanded = expandedId === app.id;
 
               return (
-                <div key={app.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-all duration-200 animate-fade-in-up">
+                <div key={app.id} className="imp-card overflow-hidden hover:shadow-md transition-all duration-200 animate-fade-in-up">
                   {/* Main row */}
                   <div className="p-4">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">

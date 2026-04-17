@@ -298,7 +298,7 @@ export default function CommunityPage() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="제목 또는 내용 검색..."
-                className="w-full pl-9 pr-20 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+                className="w-full pl-9 pr-20 py-2.5 imp-card text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
               />
               {search && (
                 <button
@@ -321,7 +321,7 @@ export default function CommunityPage() {
           <select
             value={sortBy}
             onChange={e => handleSortChange(e.target.value)}
-            className="px-3 py-2.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-600 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer"
+            className="px-3 py-2.5 text-xs imp-card text-slate-600 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer"
           >
             {SORT_OPTIONS.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -345,7 +345,7 @@ export default function CommunityPage() {
         {loading ? (
           <div className="space-y-2">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 animate-pulse">
+              <div key={i} className="imp-card p-4 animate-pulse">
                 <div className="flex items-start gap-3">
                   <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded-lg w-16 shrink-0" />
                   <div className="flex-1 space-y-2 min-w-0">
@@ -361,7 +361,7 @@ export default function CommunityPage() {
             ))}
           </div>
         ) : posts.length === 0 ? (
-          <div className="text-center py-16 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
+          <div className="text-center py-16 imp-card">
             <div className="text-4xl mb-3">📭</div>
             <p className="text-slate-500 dark:text-slate-400 font-medium">
               {search ? `"${search}"에 대한 게시글이 없습니다` : '게시글이 없습니다'}

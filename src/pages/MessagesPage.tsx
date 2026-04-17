@@ -293,7 +293,7 @@ export default function MessagesPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[500px]">
           {/* Conversations list */}
-          <div className={`lg:col-span-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col ${
+          <div className={`lg:col-span-1 imp-card overflow-hidden flex flex-col ${
             selectedPartnerId ? 'hidden lg:flex' : 'flex'
           }`}>
             <div className="p-3 border-b border-slate-100 dark:border-slate-700 space-y-2">
@@ -403,7 +403,7 @@ export default function MessagesPage() {
           </div>
 
           {/* Chat */}
-          <div className={`lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col ${
+          <div className={`lg:col-span-2 imp-card flex flex-col ${
             selectedPartnerId ? 'flex' : 'hidden lg:flex'
           }`}>
             {selectedPartnerId ? (
