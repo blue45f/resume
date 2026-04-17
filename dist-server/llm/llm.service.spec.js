@@ -164,7 +164,7 @@ describe('LlmService', ()=>{
                 templateType: 'standard'
             };
             const result = await service.transform('resume-1', dto);
-            expect(mockResumesService.findOne).toHaveBeenCalledWith('resume-1');
+            expect(mockResumesService.findOne).toHaveBeenCalledWith('resume-1', undefined);
             expect(result.text).toBe('Generated text');
             expect(result.provider).toBe('gemini');
             expect(result.id).toBe('trans-1');

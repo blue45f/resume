@@ -113,8 +113,10 @@ export declare class AuthService {
         companyName?: string;
         companyTitle?: string;
         isOpenToWork?: boolean;
-        openToWorkRoles?: string;
+        openToWorkRoles?: string | string[];
         username?: string;
+        marketingOptIn?: boolean;
+        llmOptIn?: boolean;
     }): Promise<{
         id: string;
         email: string;

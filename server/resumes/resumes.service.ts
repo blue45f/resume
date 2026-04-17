@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateResumeDto } from './dto/create-resume.dto';
@@ -42,7 +47,12 @@ export class ResumesService {
   ) {}
 
   /** 이력서 열람 알림 — 소유자가 다를 때만 1시간 쿨타임으로 알림 생성 */
-  private async sendViewNotification(resumeId: string, resumeTitle: string, ownerId: string, viewerId?: string): Promise<void> {
+  private async sendViewNotification(
+    resumeId: string,
+    resumeTitle: string,
+    ownerId: string,
+    viewerId?: string,
+  ): Promise<void> {
     if (!ownerId) return;
     try {
       // 중복 알림 방지: 최근 1시간 내 같은 이력서 열람 알림이 있으면 건너뜀
@@ -87,10 +97,28 @@ export class ResumesService {
       this.prisma.resume.findMany({
         where,
         select: {
-          id: true, title: true, slug: true, userId: true,
-          viewCount: true, visibility: true, createdAt: true, updatedAt: true,
+          id: true,
+          title: true,
+          slug: true,
+          userId: true,
+          viewCount: true,
+          visibility: true,
+          createdAt: true,
+          updatedAt: true,
           personalInfo: {
-            select: { name: true, email: true, phone: true, address: true, website: true, github: true, summary: true, photo: true, birthYear: true, links: true, military: true },
+            select: {
+              name: true,
+              email: true,
+              phone: true,
+              address: true,
+              website: true,
+              github: true,
+              summary: true,
+              photo: true,
+              birthYear: true,
+              links: true,
+              military: true,
+            },
           },
           tags: { include: { tag: true } },
           skills: { select: { id: true, category: true, items: true } },
@@ -118,10 +146,28 @@ export class ResumesService {
       this.prisma.resume.findMany({
         where,
         select: {
-          id: true, title: true, slug: true, userId: true,
-          viewCount: true, visibility: true, createdAt: true, updatedAt: true,
+          id: true,
+          title: true,
+          slug: true,
+          userId: true,
+          viewCount: true,
+          visibility: true,
+          createdAt: true,
+          updatedAt: true,
           personalInfo: {
-            select: { name: true, email: true, phone: true, address: true, website: true, github: true, summary: true, photo: true, birthYear: true, links: true, military: true },
+            select: {
+              name: true,
+              email: true,
+              phone: true,
+              address: true,
+              website: true,
+              github: true,
+              summary: true,
+              photo: true,
+              birthYear: true,
+              links: true,
+              military: true,
+            },
           },
           tags: { include: { tag: true } },
           skills: { select: { id: true, category: true, items: true } },
@@ -142,7 +188,13 @@ export class ResumesService {
     };
   }
 
-  async searchPublic(opts: { query?: string; tag?: string; sort?: string; page: number; limit: number }) {
+  async searchPublic(opts: {
+    query?: string;
+    tag?: string;
+    sort?: string;
+    page: number;
+    limit: number;
+  }) {
     opts.page = Math.max(1, opts.page);
     opts.limit = Math.min(Math.max(1, opts.limit), 100);
     const where: any = { visibility: 'public' };
@@ -162,9 +214,8 @@ export class ResumesService {
       where.tags = { some: { tag: { name: opts.tag } } };
     }
 
-    const orderBy = opts.sort === 'views'
-      ? { viewCount: 'desc' as const }
-      : { updatedAt: 'desc' as const };
+    const orderBy =
+      opts.sort === 'views' ? { viewCount: 'desc' as const } : { updatedAt: 'desc' as const };
 
     const [resumes, total] = await Promise.all([
       this.prisma.resume.findMany({
@@ -205,7 +256,9 @@ export class ResumesService {
       throw new NotFoundException('이력서를 찾을 수 없습니다');
     }
     // 조회수 증가 (비동기, 에러 무시)
-    this.prisma.resume.update({ where: { id: resume.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
+    this.prisma.resume
+      .update({ where: { id: resume.id }, data: { viewCount: { increment: 1 } } })
+      .catch(() => {});
     return this.formatFull(resume);
   }
 
@@ -219,7 +272,9 @@ export class ResumesService {
       include: FULL_INCLUDE,
     });
     if (!resume) return null;
-    this.prisma.resume.update({ where: { id: resume.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
+    this.prisma.resume
+      .update({ where: { id: resume.id }, data: { viewCount: { increment: 1 } } })
+      .catch(() => {});
     return this.formatFull(resume);
   }
 
@@ -237,7 +292,9 @@ export class ResumesService {
 
     // 조회수 증가 + 열람 알림: 소유자가 아닌 경우에만
     if (!userId || resume.userId !== userId) {
-      this.prisma.resume.update({ where: { id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
+      this.prisma.resume
+        .update({ where: { id }, data: { viewCount: { increment: 1 } } })
+        .catch(() => {});
       if (resume.userId && resume.visibility === 'public') {
         this.sendViewNotification(id, resume.title, resume.userId, userId).catch(() => {});
       }
@@ -261,7 +318,9 @@ export class ResumesService {
 
   async setVisibility(id: string, visibility: string, userId?: string, role?: string) {
     if (!['public', 'private', 'link-only'].includes(visibility)) {
-      throw new BadRequestException('유효하지 않은 공개 설정입니다. public, private, link-only 중 하나를 선택하세요');
+      throw new BadRequestException(
+        '유효하지 않은 공개 설정입니다. public, private, link-only 중 하나를 선택하세요',
+      );
     }
     await this.verifyOwnership(id, userId, role);
     await this.prisma.resume.update({ where: { id }, data: { visibility } });
@@ -287,13 +346,15 @@ export class ResumesService {
   }
 
   private generateSlug(title: string): string {
-    return (title || 'untitled')
-      .replace(/[^\w가-힣\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-      .toLowerCase()
-      .slice(0, 60) || 'untitled';
+    return (
+      (title || 'untitled')
+        .replace(/[^\w가-힣\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+        .toLowerCase()
+        .slice(0, 60) || 'untitled'
+    );
   }
 
   async create(dto: CreateResumeDto, userId?: string) {
@@ -303,71 +364,116 @@ export class ResumesService {
         title: dto.title || '',
         slug,
         userId: userId || null,
-        personalInfo: dto.personalInfo ? { create: {
-          ...dto.personalInfo,
-          links: dto.personalInfo.links ? JSON.stringify(dto.personalInfo.links) : '[]',
-        } } : undefined,
-        experiences: dto.experiences?.length ? {
-          create: dto.experiences.map((e, i) => ({
-            company: e.company || '', position: e.position || '',
-            department: e.department || '',
-            startDate: e.startDate || '', endDate: e.endDate || '',
-            current: e.current || false, description: e.description || '',
-            achievements: e.achievements || '', techStack: e.techStack || '',
-            sortOrder: e.sortOrder ?? i,
-          })),
-        } : undefined,
-        educations: dto.educations?.length ? {
-          create: dto.educations.map((e, i) => ({
-            school: e.school || '', degree: e.degree || '', field: e.field || '',
-            gpa: e.gpa || '',
-            startDate: e.startDate || '', endDate: e.endDate || '',
-            description: e.description || '', sortOrder: e.sortOrder ?? i,
-          })),
-        } : undefined,
-        skills: dto.skills?.length ? {
-          create: dto.skills.map((s, i) => ({
-            category: s.category || '', items: s.items || '', sortOrder: s.sortOrder ?? i,
-          })),
-        } : undefined,
-        projects: dto.projects?.length ? {
-          create: dto.projects.map((p, i) => ({
-            name: p.name || '', company: p.company || '', role: p.role || '',
-            startDate: p.startDate || '', endDate: p.endDate || '',
-            description: p.description || '', techStack: p.techStack || '',
-            link: p.link || '', sortOrder: p.sortOrder ?? i,
-          })),
-        } : undefined,
-        certifications: dto.certifications?.length ? {
-          create: dto.certifications.map((c, i) => ({
-            name: c.name || '', issuer: c.issuer || '',
-            issueDate: c.issueDate || '', expiryDate: c.expiryDate || '',
-            credentialId: c.credentialId || '', description: c.description || '',
-            sortOrder: c.sortOrder ?? i,
-          })),
-        } : undefined,
-        languages: dto.languages?.length ? {
-          create: dto.languages.map((l, i) => ({
-            name: l.name || '', testName: l.testName || '',
-            score: l.score || '', testDate: l.testDate || '',
-            sortOrder: l.sortOrder ?? i,
-          })),
-        } : undefined,
-        awards: dto.awards?.length ? {
-          create: dto.awards.map((a, i) => ({
-            name: a.name || '', issuer: a.issuer || '',
-            awardDate: a.awardDate || '', description: a.description || '',
-            sortOrder: a.sortOrder ?? i,
-          })),
-        } : undefined,
-        activities: dto.activities?.length ? {
-          create: dto.activities.map((a, i) => ({
-            name: a.name || '', organization: a.organization || '',
-            role: a.role || '', startDate: a.startDate || '',
-            endDate: a.endDate || '', description: a.description || '',
-            sortOrder: a.sortOrder ?? i,
-          })),
-        } : undefined,
+        personalInfo: dto.personalInfo
+          ? {
+              create: {
+                ...dto.personalInfo,
+                links: dto.personalInfo.links ? JSON.stringify(dto.personalInfo.links) : '[]',
+              },
+            }
+          : undefined,
+        experiences: dto.experiences?.length
+          ? {
+              create: dto.experiences.map((e, i) => ({
+                company: e.company || '',
+                position: e.position || '',
+                department: e.department || '',
+                startDate: e.startDate || '',
+                endDate: e.endDate || '',
+                current: e.current || false,
+                description: e.description || '',
+                achievements: e.achievements || '',
+                techStack: e.techStack || '',
+                sortOrder: e.sortOrder ?? i,
+              })),
+            }
+          : undefined,
+        educations: dto.educations?.length
+          ? {
+              create: dto.educations.map((e, i) => ({
+                school: e.school || '',
+                degree: e.degree || '',
+                field: e.field || '',
+                gpa: e.gpa || '',
+                startDate: e.startDate || '',
+                endDate: e.endDate || '',
+                description: e.description || '',
+                sortOrder: e.sortOrder ?? i,
+              })),
+            }
+          : undefined,
+        skills: dto.skills?.length
+          ? {
+              create: dto.skills.map((s, i) => ({
+                category: s.category || '',
+                items: s.items || '',
+                sortOrder: s.sortOrder ?? i,
+              })),
+            }
+          : undefined,
+        projects: dto.projects?.length
+          ? {
+              create: dto.projects.map((p, i) => ({
+                name: p.name || '',
+                company: p.company || '',
+                role: p.role || '',
+                startDate: p.startDate || '',
+                endDate: p.endDate || '',
+                description: p.description || '',
+                techStack: p.techStack || '',
+                link: p.link || '',
+                sortOrder: p.sortOrder ?? i,
+              })),
+            }
+          : undefined,
+        certifications: dto.certifications?.length
+          ? {
+              create: dto.certifications.map((c, i) => ({
+                name: c.name || '',
+                issuer: c.issuer || '',
+                issueDate: c.issueDate || '',
+                expiryDate: c.expiryDate || '',
+                credentialId: c.credentialId || '',
+                description: c.description || '',
+                sortOrder: c.sortOrder ?? i,
+              })),
+            }
+          : undefined,
+        languages: dto.languages?.length
+          ? {
+              create: dto.languages.map((l, i) => ({
+                name: l.name || '',
+                testName: l.testName || '',
+                score: l.score || '',
+                testDate: l.testDate || '',
+                sortOrder: l.sortOrder ?? i,
+              })),
+            }
+          : undefined,
+        awards: dto.awards?.length
+          ? {
+              create: dto.awards.map((a, i) => ({
+                name: a.name || '',
+                issuer: a.issuer || '',
+                awardDate: a.awardDate || '',
+                description: a.description || '',
+                sortOrder: a.sortOrder ?? i,
+              })),
+            }
+          : undefined,
+        activities: dto.activities?.length
+          ? {
+              create: dto.activities.map((a, i) => ({
+                name: a.name || '',
+                organization: a.organization || '',
+                role: a.role || '',
+                startDate: a.startDate || '',
+                endDate: a.endDate || '',
+                description: a.description || '',
+                sortOrder: a.sortOrder ?? i,
+              })),
+            }
+          : undefined,
       },
       include: FULL_INCLUDE,
     });
@@ -395,60 +501,85 @@ export class ResumesService {
       }
 
       await replaceCollection(tx, tx.experience, id, dto.experiences, (e, i) => ({
-        company: e.company || '', position: e.position || '',
+        company: e.company || '',
+        position: e.position || '',
         department: e.department || '',
-        startDate: e.startDate || '', endDate: e.endDate || '',
-        current: e.current || false, description: e.description || '',
-        achievements: e.achievements || '', techStack: e.techStack || '',
+        startDate: e.startDate || '',
+        endDate: e.endDate || '',
+        current: e.current || false,
+        description: e.description || '',
+        achievements: e.achievements || '',
+        techStack: e.techStack || '',
         sortOrder: e.sortOrder ?? i,
       }));
 
       await replaceCollection(tx, tx.education, id, dto.educations, (e, i) => ({
-        school: e.school || '', degree: e.degree || '', field: e.field || '',
+        school: e.school || '',
+        degree: e.degree || '',
+        field: e.field || '',
         gpa: e.gpa || '',
-        startDate: e.startDate || '', endDate: e.endDate || '',
-        description: e.description || '', sortOrder: e.sortOrder ?? i,
+        startDate: e.startDate || '',
+        endDate: e.endDate || '',
+        description: e.description || '',
+        sortOrder: e.sortOrder ?? i,
       }));
 
       await replaceCollection(tx, tx.skill, id, dto.skills, (s, i) => ({
-        category: s.category || '', items: s.items || '', sortOrder: s.sortOrder ?? i,
+        category: s.category || '',
+        items: s.items || '',
+        sortOrder: s.sortOrder ?? i,
       }));
 
       await replaceCollection(tx, tx.project, id, dto.projects, (p, i) => ({
-        name: p.name || '', company: p.company || '', role: p.role || '',
-        startDate: p.startDate || '', endDate: p.endDate || '',
-        description: p.description || '', techStack: p.techStack || '',
-        link: p.link || '', sortOrder: p.sortOrder ?? i,
+        name: p.name || '',
+        company: p.company || '',
+        role: p.role || '',
+        startDate: p.startDate || '',
+        endDate: p.endDate || '',
+        description: p.description || '',
+        techStack: p.techStack || '',
+        link: p.link || '',
+        sortOrder: p.sortOrder ?? i,
       }));
 
       await replaceCollection(tx, tx.certification, id, dto.certifications, (c, i) => ({
-        name: c.name || '', issuer: c.issuer || '',
-        issueDate: c.issueDate || '', expiryDate: c.expiryDate || '',
-        credentialId: c.credentialId || '', description: c.description || '',
+        name: c.name || '',
+        issuer: c.issuer || '',
+        issueDate: c.issueDate || '',
+        expiryDate: c.expiryDate || '',
+        credentialId: c.credentialId || '',
+        description: c.description || '',
         sortOrder: c.sortOrder ?? i,
       }));
 
       await replaceCollection(tx, tx.language, id, dto.languages, (l, i) => ({
-        name: l.name || '', testName: l.testName || '',
-        score: l.score || '', testDate: l.testDate || '',
+        name: l.name || '',
+        testName: l.testName || '',
+        score: l.score || '',
+        testDate: l.testDate || '',
         sortOrder: l.sortOrder ?? i,
       }));
 
       await replaceCollection(tx, tx.award, id, dto.awards, (a, i) => ({
-        name: a.name || '', issuer: a.issuer || '',
-        awardDate: a.awardDate || '', description: a.description || '',
+        name: a.name || '',
+        issuer: a.issuer || '',
+        awardDate: a.awardDate || '',
+        description: a.description || '',
         sortOrder: a.sortOrder ?? i,
       }));
 
       await replaceCollection(tx, tx.activity, id, dto.activities, (a, i) => ({
-        name: a.name || '', organization: a.organization || '',
-        role: a.role || '', startDate: a.startDate || '',
-        endDate: a.endDate || '', description: a.description || '',
+        name: a.name || '',
+        organization: a.organization || '',
+        role: a.role || '',
+        startDate: a.startDate || '',
+        endDate: a.endDate || '',
+        description: a.description || '',
         sortOrder: a.sortOrder ?? i,
       }));
     });
 
-    return this.findOne(id);
+    return this.findOne(id, userId);
   }
 
   async transferOwnership(id: string, newUserId: string) {
@@ -478,7 +609,9 @@ export class ResumesService {
           }
         }
       }
-    } catch { /* Cloudinary 미설정 시 무시 */ }
+    } catch {
+      /* Cloudinary 미설정 시 무시 */
+    }
 
     await this.prisma.resume.delete({ where: { id } });
     return { success: true };
@@ -488,27 +621,47 @@ export class ResumesService {
     const source = await this.prisma.resume.findUnique({ where: { id }, include: FULL_INCLUDE });
     if (!source) throw new NotFoundException('이력서를 찾을 수 없습니다');
     const f = this.formatFull(source);
-    return this.create({
-      title: `${f.title} (복사본)`,
-      personalInfo: f.personalInfo, experiences: f.experiences,
-      educations: f.educations, skills: f.skills, projects: f.projects,
-      certifications: f.certifications, languages: f.languages,
-      awards: f.awards, activities: f.activities,
-    }, userId);
+    return this.create(
+      {
+        title: `${f.title} (복사본)`,
+        personalInfo: f.personalInfo,
+        experiences: f.experiences,
+        educations: f.educations,
+        skills: f.skills,
+        projects: f.projects,
+        certifications: f.certifications,
+        languages: f.languages,
+        awards: f.awards,
+        activities: f.activities,
+      },
+      userId,
+    );
   }
 
   private async saveVersionSnapshot(resumeId: string) {
-    const current = await this.prisma.resume.findUnique({ where: { id: resumeId }, include: FULL_INCLUDE });
+    const current = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      include: FULL_INCLUDE,
+    });
     if (!current) return;
-    const lastVersion = await this.prisma.resumeVersion.findFirst({ where: { resumeId }, orderBy: { versionNumber: 'desc' } });
+    const lastVersion = await this.prisma.resumeVersion.findFirst({
+      where: { resumeId },
+      orderBy: { versionNumber: 'desc' },
+    });
     await this.prisma.resumeVersion.create({
-      data: { resumeId, versionNumber: (lastVersion?.versionNumber ?? 0) + 1, snapshot: JSON.stringify(this.formatFull(current)) },
+      data: {
+        resumeId,
+        versionNumber: (lastVersion?.versionNumber ?? 0) + 1,
+        snapshot: JSON.stringify(this.formatFull(current)),
+      },
     });
   }
 
   /** 조회수 증가 (다운로드/내보내기 시 사용) */
   incrementViewCount(id: string) {
-    this.prisma.resume.update({ where: { id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
+    this.prisma.resume
+      .update({ where: { id }, data: { viewCount: { increment: 1 } } })
+      .catch(() => {});
   }
 
   // --- Bookmark ---
@@ -530,7 +683,7 @@ export class ResumesService {
       include: { resume: { include: { personalInfo: { select: { name: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
-    return bookmarks.map(b => ({
+    return bookmarks.map((b) => ({
       id: b.id,
       resumeId: b.resume.id,
       title: b.resume.title,
@@ -545,7 +698,10 @@ export class ResumesService {
   }
 
   /** 스킬 추천 목록 조회 — { skill: { count, endorsed } } */
-  async getEndorsements(resumeId: string, viewerId?: string): Promise<Record<string, { count: number; endorsed: boolean }>> {
+  async getEndorsements(
+    resumeId: string,
+    viewerId?: string,
+  ): Promise<Record<string, { count: number; endorsed: boolean }>> {
     const rows = await this.prisma.skillEndorsement.findMany({ where: { resumeId } });
     const result: Record<string, { count: number; endorsed: boolean }> = {};
     for (const row of rows) {
@@ -557,7 +713,11 @@ export class ResumesService {
   }
 
   /** 스킬 추천 토글 (없으면 추가, 있으면 삭제) */
-  async toggleEndorse(resumeId: string, userId: string, skill: string): Promise<{ endorsed: boolean; count: number }> {
+  async toggleEndorse(
+    resumeId: string,
+    userId: string,
+    skill: string,
+  ): Promise<{ endorsed: boolean; count: number }> {
     const existing = await this.prisma.skillEndorsement.findUnique({
       where: { resumeId_userId_skill: { resumeId, userId, skill } },
     });
@@ -575,20 +735,50 @@ export class ResumesService {
   private formatSummary(resume: any) {
     const pi = resume.personalInfo;
     return {
-      id: resume.id, title: resume.title, slug: resume.slug || '', userId: resume.userId || '', viewCount: resume.viewCount || 0, visibility: resume.visibility || 'private',
+      id: resume.id,
+      title: resume.title,
+      slug: resume.slug || '',
+      userId: resume.userId || '',
+      viewCount: resume.viewCount || 0,
+      visibility: resume.visibility || 'private',
       isOpenToWork: resume.user?.isOpenToWork || false,
       openToWorkRoles: resume.user?.openToWorkRoles || '',
       personalInfo: pi
         ? {
-            name: pi.name, email: pi.email, phone: pi.phone, address: pi.address,
-            website: pi.website, github: pi.github || '', summary: pi.summary, photo: pi.photo || '',
+            name: pi.name,
+            email: pi.email,
+            phone: pi.phone,
+            address: pi.address,
+            website: pi.website,
+            github: pi.github || '',
+            summary: pi.summary,
+            photo: pi.photo || '',
             birthYear: pi.birthYear || '',
-            links: pi.links ? (typeof pi.links === 'string' ? JSON.parse(pi.links || '[]') : pi.links) : [],
+            links: pi.links
+              ? typeof pi.links === 'string'
+                ? JSON.parse(pi.links || '[]')
+                : pi.links
+              : [],
             military: pi.military || '',
           }
-        : { name: '', email: '', phone: '', address: '', website: '', github: '', summary: '', photo: '', birthYear: '', links: [], military: '' },
-      tags: resume.tags?.map((t: any) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })) ?? [],
-      skills: resume.skills?.map((s: any) => ({ id: s.id, category: s.category, items: s.items })) ?? [],
+        : {
+            name: '',
+            email: '',
+            phone: '',
+            address: '',
+            website: '',
+            github: '',
+            summary: '',
+            photo: '',
+            birthYear: '',
+            links: [],
+            military: '',
+          },
+      tags:
+        resume.tags?.map((t: any) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })) ??
+        [],
+      skills:
+        resume.skills?.map((s: any) => ({ id: s.id, category: s.category, items: s.items })) ?? [],
       createdAt: resume.createdAt.toISOString(),
       updatedAt: resume.updatedAt.toISOString(),
     };
@@ -596,18 +786,64 @@ export class ResumesService {
 
   private formatFull(resume: any) {
     const pick = (arr: any[], fields: string[]) =>
-      arr?.map((item: any) => Object.fromEntries(fields.map(f => [f, item[f]]))) ?? [];
+      arr?.map((item: any) => Object.fromEntries(fields.map((f) => [f, item[f]]))) ?? [];
 
     return {
       ...this.formatSummary(resume),
-      experiences: pick(resume.experiences, ['id', 'company', 'position', 'department', 'startDate', 'endDate', 'current', 'description', 'achievements', 'techStack']),
-      educations: pick(resume.educations, ['id', 'school', 'degree', 'field', 'gpa', 'startDate', 'endDate', 'description']),
+      experiences: pick(resume.experiences, [
+        'id',
+        'company',
+        'position',
+        'department',
+        'startDate',
+        'endDate',
+        'current',
+        'description',
+        'achievements',
+        'techStack',
+      ]),
+      educations: pick(resume.educations, [
+        'id',
+        'school',
+        'degree',
+        'field',
+        'gpa',
+        'startDate',
+        'endDate',
+        'description',
+      ]),
       skills: pick(resume.skills, ['id', 'category', 'items']),
-      projects: pick(resume.projects, ['id', 'name', 'company', 'role', 'startDate', 'endDate', 'description', 'techStack', 'link']),
-      certifications: pick(resume.certifications, ['id', 'name', 'issuer', 'issueDate', 'expiryDate', 'credentialId', 'description']),
+      projects: pick(resume.projects, [
+        'id',
+        'name',
+        'company',
+        'role',
+        'startDate',
+        'endDate',
+        'description',
+        'techStack',
+        'link',
+      ]),
+      certifications: pick(resume.certifications, [
+        'id',
+        'name',
+        'issuer',
+        'issueDate',
+        'expiryDate',
+        'credentialId',
+        'description',
+      ]),
       languages: pick(resume.languages, ['id', 'name', 'testName', 'score', 'testDate']),
       awards: pick(resume.awards, ['id', 'name', 'issuer', 'awardDate', 'description']),
-      activities: pick(resume.activities, ['id', 'name', 'organization', 'role', 'startDate', 'endDate', 'description']),
+      activities: pick(resume.activities, [
+        'id',
+        'name',
+        'organization',
+        'role',
+        'startDate',
+        'endDate',
+        'description',
+      ]),
     };
   }
 }

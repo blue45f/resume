@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  Req,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Req, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { TemplatesService } from './templates.service';
 import { LocalTransformService } from './local-transform.service';
@@ -75,8 +65,9 @@ export class TemplatesController {
   async localTransform(
     @Param('resumeId') resumeId: string,
     @Body() dto: LocalTransformDto,
+    @Req() req: any,
   ) {
-    const resume = await this.resumesService.findOne(resumeId);
+    const resume = await this.resumesService.findOne(resumeId, req.user?.id);
 
     if (dto.templateId) {
       const template = await this.templatesService.findOne(dto.templateId);

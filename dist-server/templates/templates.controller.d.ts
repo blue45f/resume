@@ -88,7 +88,7 @@ export declare class TemplatesController {
     seed(): Promise<{
         message: string;
     }>;
-    localTransform(resumeId: string, dto: LocalTransformDto): Promise<{
+    localTransform(resumeId: string, dto: LocalTransformDto, req: any): Promise<{
         text: string;
         method: string;
         templateName: string;

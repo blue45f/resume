@@ -51,8 +51,8 @@ let TemplatesController = class TemplatesController {
     seed() {
         return this.templatesService.seed();
     }
-    async localTransform(resumeId, dto) {
-        const resume = await this.resumesService.findOne(resumeId);
+    async localTransform(resumeId, dto, req) {
+        const resume = await this.resumesService.findOne(resumeId, req.user?.id);
         if (dto.templateId) {
             const template = await this.templatesService.findOne(dto.templateId);
             const layout = JSON.parse(template.layout || '{}');
@@ -138,8 +138,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: '로컬 변환 (LLM 불필요 - 프리셋/템플릿 기반 구조 변환)' }),
     __param(0, (0, common_1.Param)('resumeId')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, template_dto_1.LocalTransformDto]),
+    __metadata("design:paramtypes", [String, template_dto_1.LocalTransformDto, Object]),
     __metadata("design:returntype", Promise)
 ], TemplatesController.prototype, "localTransform", null);
 __decorate([

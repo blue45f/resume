@@ -7,6 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../server/app.module';
+import { PrismaService } from '../server/prisma/prisma.service';
 
 const USERS = {
   normal: { email: 'int-normal@test.local', password: 'NormalPass123!', name: '일반유저' },
@@ -39,6 +40,11 @@ describe('통합 테스트', () => {
     app.setGlobalPrefix('api');
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
     await app.init();
+
+    // Clean slate: remove stale test users so password/id match across runs
+    const prisma = app.get(PrismaService);
+    const emails = Object.values(USERS).map((u) => u.email);
+    await prisma.user.deleteMany({ where: { email: { in: emails } } }).catch(() => undefined);
 
     // 테스트 계정 등록 + 로그인
     for (const [key, user] of Object.entries(USERS)) {

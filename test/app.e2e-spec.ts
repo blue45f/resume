@@ -2,11 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../server/app.module';
+import { PrismaService } from '../server/prisma/prisma.service';
 
 const E2E_USER = { email: 'e2e-test@test.local', password: 'TestPass123!', name: 'E2E테스터' };
 
 describe('Resume Platform E2E (상세)', () => {
   let app: INestApplication;
+  let prisma: PrismaService;
   let resumeId: string;
   let token: string;
 
@@ -18,10 +20,17 @@ describe('Resume Platform E2E (상세)', () => {
       new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true }),
     );
     await app.init();
+    prisma = app.get(PrismaService);
+
+    // Clean slate — remove stale test user + test tags so password/id match across runs
+    await prisma.user.deleteMany({ where: { email: E2E_USER.email } }).catch(() => undefined);
+    await prisma.tag
+      .deleteMany({ where: { name: { in: ['태그A', '태그B', '태그C', '중복태그'] } } })
+      .catch(() => undefined);
 
     const raw = () => request(app.getHttpServer());
     const regRes = await raw().post('/api/auth/register').send(E2E_USER);
-    console.log('[E2E] Register:', regRes.status, regRes.body?.token ? 'token ok' : 'no token');
+    console.log('[E2E] Register:', regRes.status, JSON.stringify(regRes.body).slice(0, 1500));
     const res = await raw()
       .post('/api/auth/login')
       .send({ email: E2E_USER.email, password: E2E_USER.password });

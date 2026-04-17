@@ -98,8 +98,8 @@ let LlmService = LlmService_1 = class LlmService {
             isDefault: name === this.defaultProvider,
         }));
     }
-    async transform(resumeId, dto) {
-        const resume = await this.resumesService.findOne(resumeId);
+    async transform(resumeId, dto, userId) {
+        const resume = await this.resumesService.findOne(resumeId, userId);
         const systemPrompt = this.buildSystemPrompt(dto);
         const userMessage = this.buildUserMessage(resume);
         const result = await this.generateWithFallback(systemPrompt, userMessage);

@@ -50,7 +50,10 @@ export class AuthService {
 
     const [timestamp, nonce, hmac] = parts;
     const payload = `${timestamp}.${nonce}`;
-    const expected = createHmac('sha256', this.stateSecret).update(payload).digest('hex').slice(0, 16);
+    const expected = createHmac('sha256', this.stateSecret)
+      .update(payload)
+      .digest('hex')
+      .slice(0, 16);
 
     // Timing-safe comparison to prevent timing attacks
     const hmacBuf = Buffer.from(hmac, 'utf8');
@@ -110,7 +113,13 @@ export class AuthService {
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: redirectUri, grant_type: 'authorization_code' }),
+      body: JSON.stringify({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      }),
     });
     const tokenData = await tokenRes.json();
     if (!tokenData.access_token) throw new UnauthorizedException('Google 인증 실패');
@@ -213,16 +222,26 @@ export class AuthService {
   }
 
   async getAllUsers(search?: string) {
-    const where = search ? {
-      OR: [
-        { name: { contains: search, mode: 'insensitive' as const } },
-        { email: { contains: search, mode: 'insensitive' as const } },
-      ],
-    } : {};
+    const where = search
+      ? {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' as const } },
+            { email: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {};
 
     return this.prisma.user.findMany({
       where,
-      select: { id: true, name: true, email: true, provider: true, role: true, plan: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        provider: true,
+        role: true,
+        plan: true,
+        createdAt: true,
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -238,8 +257,13 @@ export class AuthService {
       this.prisma.follow.count({ where: { followerId: userId } }),
     ]);
     return {
-      id: user.id, email: user.email, name: user.name, avatar: user.avatar,
-      provider: user.provider, role: user.role || 'user', plan: user.plan || 'free',
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatar: user.avatar,
+      provider: user.provider,
+      role: user.role || 'user',
+      plan: user.plan || 'free',
       userType: user.userType || 'personal',
       companyName: user.companyName || '',
       companyTitle: user.companyTitle || '',
@@ -262,9 +286,19 @@ export class AuthService {
       this.prisma.resume.findMany({
         where: { userId: user.id, visibility: 'public' },
         include: {
-          personalInfo: { select: { name: true, summary: true, github: true, website: true, photo: true } },
+          personalInfo: {
+            select: { name: true, summary: true, github: true, website: true, photo: true },
+          },
           skills: { select: { category: true, items: true } },
-          experiences: { select: { company: true, position: true, startDate: true, endDate: true, current: true } },
+          experiences: {
+            select: {
+              company: true,
+              position: true,
+              startDate: true,
+              endDate: true,
+              current: true,
+            },
+          },
           tags: { include: { tag: true } },
         },
         orderBy: { viewCount: 'desc' },
@@ -277,9 +311,15 @@ export class AuthService {
     const totalViews = publicResumes.reduce((s, r) => s + (r.viewCount || 0), 0);
     const totalExp = publicResumes.reduce((s, r) => s + r.experiences.length, 0);
     const allSkills: string[] = [];
-    publicResumes.forEach(r => r.skills.forEach((sk: any) => {
-      (sk.items as string).split(',').map((s: string) => s.trim()).filter(Boolean).forEach((s: string) => allSkills.push(s));
-    }));
+    publicResumes.forEach((r) =>
+      r.skills.forEach((sk: any) => {
+        (sk.items as string)
+          .split(',')
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+          .forEach((s: string) => allSkills.push(s));
+      }),
+    );
     const uniqueSkills = [...new Set(allSkills)].slice(0, 20);
 
     return {
@@ -314,7 +354,11 @@ export class AuthService {
         photo: r.personalInfo?.photo || '',
         experiences: r.experiences,
         tags: r.tags.map((t: any) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })),
-        topSkills: (r.skills[0]?.items || '').split(',').map((s: string) => s.trim()).filter(Boolean).slice(0, 5),
+        topSkills: (r.skills[0]?.items || '')
+          .split(',')
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+          .slice(0, 5),
       })),
     };
   }
@@ -337,7 +381,13 @@ export class AuthService {
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: redirectUri, grant_type: 'authorization_code' }),
+      body: JSON.stringify({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      }),
     });
     const tokenData = await tokenRes.json();
     if (!tokenData.access_token) throw new UnauthorizedException('Google 인증 실패');
@@ -419,7 +469,12 @@ export class AuthService {
     };
   }
 
-  async linkSocialAccount(userId: string, provider: string, providerId: string, avatar?: string): Promise<void> {
+  async linkSocialAccount(
+    userId: string,
+    provider: string,
+    providerId: string,
+    avatar?: string,
+  ): Promise<void> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
 
@@ -461,7 +516,11 @@ export class AuthService {
           // 기존 계정에 소셜 프로바이더 연결
           user = await this.prisma.user.update({
             where: { id: user.id },
-            data: { provider: profile.provider, providerId: profile.providerId, avatar: profile.avatar || user.avatar },
+            data: {
+              provider: profile.provider,
+              providerId: profile.providerId,
+              avatar: profile.avatar || user.avatar,
+            },
           });
         }
       }
@@ -483,7 +542,8 @@ export class AuthService {
   }
 
   private getCallbackUrl(provider: string): string {
-    const apiUrl = this.config.get('API_URL') || `http://localhost:${this.config.get('PORT') || 3001}`;
+    const apiUrl =
+      this.config.get('API_URL') || `http://localhost:${this.config.get('PORT') || 3001}`;
     return `${apiUrl}/api/auth/${provider}/callback`;
   }
 
@@ -491,7 +551,14 @@ export class AuthService {
     return this.frontendUrl;
   }
 
-  async register(email: string, password: string, name: string, userType?: string, companyName?: string, companyTitle?: string): Promise<string> {
+  async register(
+    email: string,
+    password: string,
+    name: string,
+    userType?: string,
+    companyName?: string,
+    companyTitle?: string,
+  ): Promise<string> {
     if (!email || !password || !name) {
       throw new UnauthorizedException('이메일, 비밀번호, 이름은 필수입니다');
     }
@@ -529,7 +596,11 @@ export class AuthService {
     return this.jwt.sign({ sub: user.id, role: user.role || 'user' });
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
     if (!newPassword || newPassword.length < 8) {
       throw new UnauthorizedException('새 비밀번호는 8자 이상이어야 합니다');
     }
@@ -547,7 +618,20 @@ export class AuthService {
     await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
   }
 
-  async updateProfile(userId: string, data: { userType?: string; name?: string; companyName?: string; companyTitle?: string; isOpenToWork?: boolean; openToWorkRoles?: string; username?: string }) {
+  async updateProfile(
+    userId: string,
+    data: {
+      userType?: string;
+      name?: string;
+      companyName?: string;
+      companyTitle?: string;
+      isOpenToWork?: boolean;
+      openToWorkRoles?: string | string[];
+      username?: string;
+      marketingOptIn?: boolean;
+      llmOptIn?: boolean;
+    },
+  ) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
 
@@ -569,15 +653,22 @@ export class AuthService {
       const clean = data.username.toLowerCase().replace(/[^a-z0-9_-]/g, '');
       if (clean.length < 3) throw new Error('사용자명은 3자 이상이어야 합니다');
       // Check uniqueness
-      const existing = await this.prisma.user.findFirst({ where: { username: clean, NOT: { id: userId } } });
+      const existing = await this.prisma.user.findFirst({
+        where: { username: clean, NOT: { id: userId } },
+      });
       if (existing) throw new Error('이미 사용 중인 사용자명입니다');
       updateData.username = clean;
     }
 
     const updated = await this.prisma.user.update({ where: { id: userId }, data: updateData });
     return {
-      id: updated.id, email: updated.email, name: updated.name, avatar: updated.avatar,
-      provider: updated.provider, role: updated.role || 'user', plan: updated.plan || 'free',
+      id: updated.id,
+      email: updated.email,
+      name: updated.name,
+      avatar: updated.avatar,
+      provider: updated.provider,
+      role: updated.role || 'user',
+      plan: updated.plan || 'free',
       userType: updated.userType || 'personal',
       companyName: updated.companyName || '',
       companyTitle: updated.companyTitle || '',

@@ -26,7 +26,7 @@ export declare class LlmService {
         available: boolean;
         isDefault: boolean;
     }[];
-    transform(resumeId: string, dto: TransformResumeDto): Promise<{
+    transform(resumeId: string, dto: TransformResumeDto, userId?: string): Promise<{
         id: string;
         text: string;
         tokensUsed: number;

@@ -14,7 +14,17 @@ export declare class AttachmentsController {
         downloadUrl: any;
         createdAt: any;
     }>;
-    findAll(resumeId: string, req: any): Promise<any>;
+    findAll(resumeId: string, req: any): Promise<{
+        id: any;
+        resumeId: any;
+        originalName: any;
+        mimeType: any;
+        size: any;
+        category: any;
+        description: any;
+        downloadUrl: any;
+        createdAt: any;
+    }[]>;
     download(id: string, req: any, res: Response): Promise<void>;
     remove(id: string, req: any): Promise<{
         success: boolean;

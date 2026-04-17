@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Param,
-  Body,
-  Req,
-  Sse,
-  MessageEvent,
-} from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, Req, Sse, MessageEvent } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Observable } from 'rxjs';
@@ -35,7 +26,7 @@ export class LlmController {
     if (req.user?.id) {
       await this.usageService.checkAndLog(req.user.id, 'ai_transform');
     }
-    return this.llmService.transform(resumeId, dto);
+    return this.llmService.transform(resumeId, dto, req.user?.id);
   }
 
   @Post('stream')
@@ -116,39 +107,34 @@ export class LlmController {
   @Post('feedback')
   @ApiOperation({ summary: 'AI 이력서 피드백 (점수 + 강점 + 개선점)' })
   @Throttle({ default: { limit: 3, ttl: 60000 } })
-  analyzeFeedback(
-    @Param('resumeId') resumeId: string,
-    @Body() dto: FeedbackDto,
-  ) {
+  analyzeFeedback(@Param('resumeId') resumeId: string, @Body() dto: FeedbackDto) {
     return this.llmService.analyzeFeedback(resumeId, dto.provider);
   }
 
   @Post('job-match')
   @ApiOperation({ summary: 'AI JD 매칭 분석' })
   @Throttle({ default: { limit: 3, ttl: 60000 } })
-  analyzeJobMatch(
-    @Param('resumeId') resumeId: string,
-    @Body() dto: JobMatchDto,
-  ) {
+  analyzeJobMatch(@Param('resumeId') resumeId: string, @Body() dto: JobMatchDto) {
     return this.llmService.analyzeJobMatch(resumeId, dto.jobDescription, dto.provider);
   }
 
   @Post('interview')
   @ApiOperation({ summary: 'AI 면접 질문 생성' })
   @Throttle({ default: { limit: 3, ttl: 60000 } })
-  generateInterview(
-    @Param('resumeId') resumeId: string,
-    @Body() dto: InterviewDto,
-  ) {
-    return this.llmService.generateInterviewQuestions(resumeId, dto.jobRole, dto.provider, dto.jobDescription, dto.difficulty);
+  generateInterview(@Param('resumeId') resumeId: string, @Body() dto: InterviewDto) {
+    return this.llmService.generateInterviewQuestions(
+      resumeId,
+      dto.jobRole,
+      dto.provider,
+      dto.jobDescription,
+      dto.difficulty,
+    );
   }
 
   @Post('inline-assist')
   @ApiOperation({ summary: 'AI 인라인 문장 개선' })
   @Throttle({ default: { limit: 10, ttl: 60000 } })
-  inlineAssist(
-    @Body() dto: InlineAssistDto,
-  ) {
+  inlineAssist(@Body() dto: InlineAssistDto) {
     return this.llmService.inlineAssist(dto.text, dto.type, dto.provider);
   }
 }

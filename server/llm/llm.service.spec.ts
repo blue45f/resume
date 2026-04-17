@@ -117,8 +117,9 @@ describe('LlmService', () => {
       groqProvider.generate.mockRejectedValue(new Error('quota exceeded limit'));
       anthropicProvider.generate.mockRejectedValue(new Error('rate limit reached'));
 
-      await expect(service.generateWithFallback('system', 'user'))
-        .rejects.toThrow(BadRequestException);
+      await expect(service.generateWithFallback('system', 'user')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('비 rate-limit 에러도 다음 프로바이더로 fallback', async () => {
@@ -144,7 +145,7 @@ describe('LlmService', () => {
       const dto = { templateType: 'standard' as const };
       const result = await service.transform('resume-1', dto);
 
-      expect(mockResumesService.findOne).toHaveBeenCalledWith('resume-1');
+      expect(mockResumesService.findOne).toHaveBeenCalledWith('resume-1', undefined);
       expect(result.text).toBe('Generated text');
       expect(result.provider).toBe('gemini');
       expect(result.id).toBe('trans-1');
@@ -191,8 +192,7 @@ describe('LlmService', () => {
         templateType: 'custom' as const,
         customPrompt: 'x'.repeat(2001),
       };
-      await expect(service.transform('resume-1', dto))
-        .rejects.toThrow(BadRequestException);
+      await expect(service.transform('resume-1', dto)).rejects.toThrow(BadRequestException);
     });
 
     it('영어 타겟 → IMPORTANT: Write in English 포함', async () => {
@@ -331,7 +331,9 @@ describe('LlmService', () => {
     });
 
     it('JD가 20자 미만 → BadRequestException', async () => {
-      await expect(service.analyzeJobMatch('resume-1', '짧은 JD')).rejects.toThrow(BadRequestException);
+      await expect(service.analyzeJobMatch('resume-1', '짧은 JD')).rejects.toThrow(
+        BadRequestException,
+      );
       await expect(service.analyzeJobMatch('resume-1', '짧은 JD')).rejects.toThrow('20자 이상');
     });
 
@@ -341,7 +343,9 @@ describe('LlmService', () => {
 
     it('JD가 3000자 초과 → BadRequestException', async () => {
       const longJd = 'x'.repeat(3001);
-      await expect(service.analyzeJobMatch('resume-1', longJd)).rejects.toThrow(BadRequestException);
+      await expect(service.analyzeJobMatch('resume-1', longJd)).rejects.toThrow(
+        BadRequestException,
+      );
       await expect(service.analyzeJobMatch('resume-1', longJd)).rejects.toThrow('3000자 이내');
     });
 
@@ -353,8 +357,12 @@ describe('LlmService', () => {
         provider: 'gemini',
       });
 
-      await expect(service.analyzeJobMatch('resume-1', validJd)).rejects.toThrow(BadRequestException);
-      await expect(service.analyzeJobMatch('resume-1', validJd)).rejects.toThrow('파싱할 수 없습니다');
+      await expect(service.analyzeJobMatch('resume-1', validJd)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.analyzeJobMatch('resume-1', validJd)).rejects.toThrow(
+        '파싱할 수 없습니다',
+      );
     });
   });
 
@@ -422,7 +430,9 @@ describe('LlmService', () => {
         provider: 'gemini',
       });
 
-      await expect(service.generateInterviewQuestions('resume-1')).rejects.toThrow(BadRequestException);
+      await expect(service.generateInterviewQuestions('resume-1')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 

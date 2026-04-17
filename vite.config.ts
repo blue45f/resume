@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import path from 'path'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -39,7 +39,11 @@ export default defineConfig({
         //   utils          ~30 kB (date-fns/dayjs + lodash)
         //   index          variable (app code)
         manualChunks(id: string) {
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) {
+          if (
+            id.includes('node_modules/react') ||
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/react-router')
+          ) {
             return 'react-vendor';
           }
           if (id.includes('node_modules/@tiptap') || id.includes('node_modules/prosemirror')) {
@@ -70,7 +74,14 @@ export default defineConfig({
           if (id.includes('node_modules/lucide') || id.includes('node_modules/@heroicons')) {
             return 'icons';
           }
-          if (id.includes('node_modules/date-fns') || id.includes('node_modules/dayjs') || id.includes('node_modules/lodash')) {
+          if (id.includes('node_modules/swiper')) {
+            return 'swiper';
+          }
+          if (
+            id.includes('node_modules/date-fns') ||
+            id.includes('node_modules/dayjs') ||
+            id.includes('node_modules/lodash')
+          ) {
             return 'utils';
           }
           // Catch-all: group remaining large node_modules into a vendor chunk
@@ -81,4 +92,4 @@ export default defineConfig({
       },
     },
   },
-})
+});

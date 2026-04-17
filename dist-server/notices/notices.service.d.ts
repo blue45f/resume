@@ -19,9 +19,9 @@ export declare class NoticesService {
             content: string;
             title: string;
             viewCount: number;
+            type: string;
             startAt: Date | null;
             endAt: Date | null;
-            type: string;
             isPinned: boolean;
             authorId: string | null;
             isPopup: boolean;
@@ -39,9 +39,9 @@ export declare class NoticesService {
         content: string;
         title: string;
         viewCount: number;
+        type: string;
         startAt: Date | null;
         endAt: Date | null;
-        type: string;
         isPinned: boolean;
         authorId: string | null;
         isPopup: boolean;
@@ -77,9 +77,9 @@ export declare class NoticesService {
         content: string;
         title: string;
         viewCount: number;
+        type: string;
         startAt: Date | null;
         endAt: Date | null;
-        type: string;
         isPinned: boolean;
         authorId: string | null;
         isPopup: boolean;
@@ -97,9 +97,9 @@ export declare class NoticesService {
         content: string;
         title: string;
         viewCount: number;
+        type: string;
         startAt: Date | null;
         endAt: Date | null;
-        type: string;
         isPinned: boolean;
         authorId: string | null;
         isPopup: boolean;
@@ -117,9 +117,9 @@ export declare class NoticesService {
         content: string;
         title: string;
         viewCount: number;
+        type: string;
         startAt: Date | null;
         endAt: Date | null;
-        type: string;
         isPinned: boolean;
         authorId: string | null;
         isPopup: boolean;
@@ -132,9 +132,9 @@ export declare class NoticesService {
         content: string;
         title: string;
         viewCount: number;
+        type: string;
         startAt: Date | null;
         endAt: Date | null;
-        type: string;
         isPinned: boolean;
         authorId: string | null;
         isPopup: boolean;
@@ -169,9 +169,9 @@ export declare class NoticesService {
         content: string;
         title: string;
         viewCount: number;
+        type: string;
         startAt: Date | null;
         endAt: Date | null;
-        type: string;
         isPinned: boolean;
         authorId: string | null;
         isPopup: boolean;

@@ -19,6 +19,8 @@ class RegisterDto {
     userType;
     companyName;
     companyTitle;
+    marketingOptIn;
+    llmOptIn;
 }
 exports.RegisterDto = RegisterDto;
 __decorate([
@@ -60,6 +62,18 @@ __decorate([
     (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], RegisterDto.prototype, "companyTitle", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '마케팅 수신 동의 (선택)' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], RegisterDto.prototype, "marketingOptIn", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '국외 이전 동의 (LLM 사용 허용, 선택)' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], RegisterDto.prototype, "llmOptIn", void 0);
 class LoginDto {
     email;
     password;
@@ -101,6 +115,10 @@ class UpdateProfileDto {
     companyName;
     companyTitle;
     username;
+    isOpenToWork;
+    openToWorkRoles;
+    marketingOptIn;
+    llmOptIn;
 }
 exports.UpdateProfileDto = UpdateProfileDto;
 __decorate([
@@ -139,3 +157,28 @@ __decorate([
     (0, class_validator_1.MaxLength)(30),
     __metadata("design:type", String)
 ], UpdateProfileDto.prototype, "username", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateProfileDto.prototype, "isOpenToWork", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    __metadata("design:type", Array)
+], UpdateProfileDto.prototype, "openToWorkRoles", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateProfileDto.prototype, "marketingOptIn", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateProfileDto.prototype, "llmOptIn", void 0);

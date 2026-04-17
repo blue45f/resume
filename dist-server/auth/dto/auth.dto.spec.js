@@ -104,6 +104,43 @@ describe('RegisterDto', ()=>{
             userType: 'company'
         });
     });
+    // PIPA 동의 필드 테스트
+    it('marketingOptIn true → 통과', async ()=>{
+        await expectValid(_authdto.RegisterDto, {
+            ...validData,
+            marketingOptIn: true
+        });
+    });
+    it('marketingOptIn false → 통과', async ()=>{
+        await expectValid(_authdto.RegisterDto, {
+            ...validData,
+            marketingOptIn: false
+        });
+    });
+    it('llmOptIn false (국외 이전 거부) → 통과', async ()=>{
+        await expectValid(_authdto.RegisterDto, {
+            ...validData,
+            llmOptIn: false
+        });
+    });
+    it('llmOptIn true → 통과', async ()=>{
+        await expectValid(_authdto.RegisterDto, {
+            ...validData,
+            llmOptIn: true
+        });
+    });
+    it('marketingOptIn이 boolean이 아니면 실패', async ()=>{
+        await expectInvalid(_authdto.RegisterDto, {
+            ...validData,
+            marketingOptIn: 'yes'
+        }, 'marketingOptIn');
+    });
+    it('llmOptIn이 boolean이 아니면 실패', async ()=>{
+        await expectInvalid(_authdto.RegisterDto, {
+            ...validData,
+            llmOptIn: 1
+        }, 'llmOptIn');
+    });
 });
 // --- LoginDto ---
 describe('LoginDto', ()=>{

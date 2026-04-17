@@ -71,16 +71,21 @@ export class LlmService {
     if (groqProvider.isAvailable) this.providers.set('groq', groqProvider);
     if (anthropicProvider.isAvailable) this.providers.set('anthropic', anthropicProvider);
     if (n8nProvider.isAvailable) this.providers.set('n8n', n8nProvider);
-    if (openAiCompatibleProvider.isAvailable) this.providers.set('openai-compatible', openAiCompatibleProvider);
+    if (openAiCompatibleProvider.isAvailable)
+      this.providers.set('openai-compatible', openAiCompatibleProvider);
 
     // Default priority: gemini (free) > groq (free) > n8n > openai-compatible > anthropic (paid)
     this.defaultProvider =
       this.config.get<string>('LLM_DEFAULT_PROVIDER') ||
-      (geminiProvider.isAvailable ? 'gemini' :
-       groqProvider.isAvailable ? 'groq' :
-       n8nProvider.isAvailable ? 'n8n' :
-       openAiCompatibleProvider.isAvailable ? 'openai-compatible' :
-       'anthropic');
+      (geminiProvider.isAvailable
+        ? 'gemini'
+        : groqProvider.isAvailable
+          ? 'groq'
+          : n8nProvider.isAvailable
+            ? 'n8n'
+            : openAiCompatibleProvider.isAvailable
+              ? 'openai-compatible'
+              : 'anthropic');
 
     this.logger.log(
       `LLM providers: [${[...this.providers.keys()].join(', ')}] | default: ${this.defaultProvider}`,
@@ -95,8 +100,8 @@ export class LlmService {
     }));
   }
 
-  async transform(resumeId: string, dto: TransformResumeDto) {
-    const resume = await this.resumesService.findOne(resumeId);
+  async transform(resumeId: string, dto: TransformResumeDto, userId?: string) {
+    const resume = await this.resumesService.findOne(resumeId, userId);
     const systemPrompt = this.buildSystemPrompt(dto);
     const userMessage = this.buildUserMessage(resume);
 
@@ -189,7 +194,6 @@ export class LlmService {
    * 비정형 텍스트로부터 이력서 자동 생성
    */
   async autoGenerate(rawText: string, instruction?: string, _provider?: string) {
-
     const systemPrompt = `당신은 이력서 데이터 파싱 전문가입니다. 사용자가 제공하는 비정형 텍스트(경력 메모, LinkedIn 복사, 이전 이력서, 자유 형식 등)를 분석하여 구조화된 이력서 JSON 데이터를 생성해주세요.
 
 반드시 아래 JSON 형식으로만 응답하세요. 설명이나 마크다운 없이 순수 JSON만 출력하세요.
@@ -292,16 +296,22 @@ export class LlmService {
   /**
    * Rate limit/에러 시 다음 무료 프로바이더로 자동 fallback
    */
-  async generateWithFallback(systemPrompt: string, userMessage: string, preferredProvider?: string): Promise<import('./llm-provider.interface').LlmResponse> {
+  async generateWithFallback(
+    systemPrompt: string,
+    userMessage: string,
+    preferredProvider?: string,
+  ): Promise<import('./llm-provider.interface').LlmResponse> {
     const tried = new Set<string>();
     const errors: string[] = [];
     const order = preferredProvider
-      ? [preferredProvider, ...this.FREE_PROVIDER_PRIORITY.filter(p => p !== preferredProvider)]
+      ? [preferredProvider, ...this.FREE_PROVIDER_PRIORITY.filter((p) => p !== preferredProvider)]
       : this.FREE_PROVIDER_PRIORITY;
 
     // 등록된 프로바이더가 없으면 즉시 에러
     if (this.providers.size === 0) {
-      throw new BadRequestException('LLM 프로바이더가 설정되지 않았습니다. 관리자에게 API 키 설정을 요청해주세요.');
+      throw new BadRequestException(
+        'LLM 프로바이더가 설정되지 않았습니다. 관리자에게 API 키 설정을 요청해주세요.',
+      );
     }
 
     for (const name of order) {
@@ -410,7 +420,12 @@ export class LlmService {
       throw new BadRequestException('AI 분석 결과를 파싱할 수 없습니다. 다시 시도해주세요.');
     }
 
-    return { feedback: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
+    return {
+      feedback: parsed,
+      tokensUsed: result.tokensUsed,
+      provider: result.provider,
+      model: result.model,
+    };
   }
 
   /** AI JD 매칭 분석 */
@@ -454,16 +469,34 @@ export class LlmService {
       throw new BadRequestException('AI 분석 결과를 파싱할 수 없습니다.');
     }
 
-    return { analysis: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
+    return {
+      analysis: parsed,
+      tokensUsed: result.tokensUsed,
+      provider: result.provider,
+      model: result.model,
+    };
   }
 
   /** AI 면접 질문 생성 */
-  async generateInterviewQuestions(resumeId: string, jobRole?: string, provider?: string, jobDescription?: string, difficulty?: string) {
+  async generateInterviewQuestions(
+    resumeId: string,
+    jobRole?: string,
+    provider?: string,
+    jobDescription?: string,
+    difficulty?: string,
+  ) {
     const resume = await this.resumesService.findOne(resumeId);
 
     const roleContext = jobRole ? `지원 직무: ${jobRole}\n` : '';
-    const jdContext = jobDescription ? `\n채용공고/자격요건:\n${jobDescription.slice(0, 2000)}\n\n위 채용공고의 요구사항에 맞춤화된 질문을 생성하세요.\n` : '';
-    const diffContext = difficulty === 'beginner' ? '신입/주니어 수준의 기초적인 질문을 생성하세요.\n' : difficulty === 'advanced' ? '시니어/리드 수준의 심화 질문을 생성하세요.\n' : '';
+    const jdContext = jobDescription
+      ? `\n채용공고/자격요건:\n${jobDescription.slice(0, 2000)}\n\n위 채용공고의 요구사항에 맞춤화된 질문을 생성하세요.\n`
+      : '';
+    const diffContext =
+      difficulty === 'beginner'
+        ? '신입/주니어 수준의 기초적인 질문을 생성하세요.\n'
+        : difficulty === 'advanced'
+          ? '시니어/리드 수준의 심화 질문을 생성하세요.\n'
+          : '';
 
     const systemPrompt = `당신은 기술 면접관입니다. 이력서를 분석하여 예상 면접 질문과 모범 답변을 JSON으로 생성해주세요.
 ${roleContext}${jdContext}${diffContext}
@@ -494,7 +527,12 @@ ${roleContext}${jdContext}${diffContext}
       throw new BadRequestException('AI 분석 결과를 파싱할 수 없습니다.');
     }
 
-    return { interview: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
+    return {
+      interview: parsed,
+      tokensUsed: result.tokensUsed,
+      provider: result.provider,
+      model: result.model,
+    };
   }
 
   /** AI 인라인 문장 개선 */

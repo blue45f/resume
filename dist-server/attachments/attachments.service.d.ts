@@ -16,16 +16,26 @@ export declare class AttachmentsService {
         downloadUrl: any;
         createdAt: any;
     }>;
-    findAll(resumeId: string, userId?: string, role?: string): Promise<any>;
-    getFileData(id: string, userId?: string): Promise<{
-        redirectUrl: any;
+    findAll(resumeId: string, userId?: string, role?: string): Promise<{
+        id: any;
+        resumeId: any;
         originalName: any;
         mimeType: any;
+        size: any;
+        category: any;
+        description: any;
+        downloadUrl: any;
+        createdAt: any;
+    }[]>;
+    getFileData(id: string, userId?: string): Promise<{
+        redirectUrl: string;
+        originalName: string;
+        mimeType: string;
         data?: undefined;
     } | {
         data: Buffer<ArrayBuffer> | null;
-        originalName: any;
-        mimeType: any;
+        originalName: string;
+        mimeType: string;
         redirectUrl?: undefined;
     }>;
     remove(id: string, userId?: string, role?: string): Promise<{

@@ -32,7 +32,7 @@ let LlmController = class LlmController {
         if (req.user?.id) {
             await this.usageService.checkAndLog(req.user.id, 'ai_transform');
         }
-        return this.llmService.transform(resumeId, dto);
+        return this.llmService.transform(resumeId, dto, req.user?.id);
     }
     transformStream(resumeId, dto) {
         return new rxjs_1.Observable((subscriber) => {

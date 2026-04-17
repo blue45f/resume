@@ -443,7 +443,7 @@ let ResumesService = class ResumesService {
                 sortOrder: a.sortOrder ?? i,
             }));
         });
-        return this.findOne(id);
+        return this.findOne(id, userId);
     }
     async transferOwnership(id, newUserId) {
         const resume = await this.prisma.resume.findUnique({ where: { id } });

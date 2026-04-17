@@ -12,7 +12,11 @@ async function expectValid<T extends object>(cls: new () => T, data: Partial<T>)
   expect(errors).toHaveLength(0);
 }
 
-async function expectInvalid<T extends object>(cls: new () => T, data: Partial<T>, property: string) {
+async function expectInvalid<T extends object>(
+  cls: new () => T,
+  data: Partial<T>,
+  property: string,
+) {
   const dto = createDto(cls, data);
   const errors = await validate(dto);
   expect(errors.length).toBeGreaterThan(0);
@@ -67,7 +71,11 @@ describe('RegisterDto', () => {
   });
 
   it('이름 없으면 실패', async () => {
-    await expectInvalid(RegisterDto, { email: 'test@example.com', password: 'password123' }, 'name');
+    await expectInvalid(
+      RegisterDto,
+      { email: 'test@example.com', password: 'password123' },
+      'name',
+    );
   });
 
   it('userType이 허용 값이 아니면 실패', async () => {
@@ -80,6 +88,39 @@ describe('RegisterDto', () => {
 
   it('userType "company" → 통과', async () => {
     await expectValid(RegisterDto, { ...validData, userType: 'company' });
+  });
+
+  // PIPA 동의 필드 테스트
+  it('marketingOptIn true → 통과', async () => {
+    await expectValid(RegisterDto, { ...validData, marketingOptIn: true });
+  });
+
+  it('marketingOptIn false → 통과', async () => {
+    await expectValid(RegisterDto, { ...validData, marketingOptIn: false });
+  });
+
+  it('llmOptIn false (국외 이전 거부) → 통과', async () => {
+    await expectValid(RegisterDto, { ...validData, llmOptIn: false });
+  });
+
+  it('llmOptIn true → 통과', async () => {
+    await expectValid(RegisterDto, { ...validData, llmOptIn: true });
+  });
+
+  it('marketingOptIn이 boolean이 아니면 실패', async () => {
+    await expectInvalid(
+      RegisterDto,
+      { ...validData, marketingOptIn: 'yes' as unknown as boolean },
+      'marketingOptIn',
+    );
+  });
+
+  it('llmOptIn이 boolean이 아니면 실패', async () => {
+    await expectInvalid(
+      RegisterDto,
+      { ...validData, llmOptIn: 1 as unknown as boolean },
+      'llmOptIn',
+    );
   });
 });
 
@@ -119,7 +160,11 @@ describe('ChangePasswordDto', () => {
   });
 
   it('currentPassword 빈 문자열이면 실패', async () => {
-    await expectInvalid(ChangePasswordDto, { ...validData, currentPassword: '' }, 'currentPassword');
+    await expectInvalid(
+      ChangePasswordDto,
+      { ...validData, currentPassword: '' },
+      'currentPassword',
+    );
   });
 
   it('currentPassword 없으면 실패', async () => {
@@ -131,7 +176,11 @@ describe('ChangePasswordDto', () => {
   });
 
   it('newPassword 100자 초과이면 실패', async () => {
-    await expectInvalid(ChangePasswordDto, { ...validData, newPassword: 'a'.repeat(101) }, 'newPassword');
+    await expectInvalid(
+      ChangePasswordDto,
+      { ...validData, newPassword: 'a'.repeat(101) },
+      'newPassword',
+    );
   });
 
   it('newPassword 없으면 실패', async () => {
@@ -139,7 +188,11 @@ describe('ChangePasswordDto', () => {
   });
 
   it('currentPassword 200자 초과이면 실패', async () => {
-    await expectInvalid(ChangePasswordDto, { ...validData, currentPassword: 'a'.repeat(201) }, 'currentPassword');
+    await expectInvalid(
+      ChangePasswordDto,
+      { ...validData, currentPassword: 'a'.repeat(201) },
+      'currentPassword',
+    );
   });
 });
 

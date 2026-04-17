@@ -5,6 +5,8 @@ export declare class RegisterDto {
     userType?: string;
     companyName?: string;
     companyTitle?: string;
+    marketingOptIn?: boolean;
+    llmOptIn?: boolean;
 }
 export declare class LoginDto {
     email: string;
@@ -20,4 +22,8 @@ export declare class UpdateProfileDto {
     companyName?: string;
     companyTitle?: string;
     username?: string;
+    isOpenToWork?: boolean;
+    openToWorkRoles?: string[];
+    marketingOptIn?: boolean;
+    llmOptIn?: boolean;
 }
