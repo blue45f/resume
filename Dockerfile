@@ -2,16 +2,14 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-RUN npm install -g pnpm@9.14.4 2>/dev/null || true
-
-COPY package.json pnpm-lock.yaml* package-lock.json* ./
+COPY package.json ./
 COPY prisma ./prisma/
-RUN pnpm install --frozen-lockfile 2>/dev/null || npm install
+RUN npm install --legacy-peer-deps
 
 COPY tsconfig.server.json nest-cli.json ./
 COPY server ./server/
 RUN npx prisma generate
-RUN npm run build:server
+RUN npx nest build
 
 # ── Production stage ──
 FROM node:20-alpine
