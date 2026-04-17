@@ -11,7 +11,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 29개 데이터 모델 | 36개 페이지 | 75개 컴포넌트 | 15개 이력서 테마 | 772 테스트 (41 suites) | 멀티 LLM 지원
+> 31개 데이터 모델 | 45개 페이지 | 94개 컴포넌트 | 15개 이력서 테마 | 874 테스트 (44 suites) | 멀티 LLM 지원 | React Query + Zod
 
 ---
 
@@ -21,7 +21,7 @@
                         이력서공방 아키텍처
   ┌──────────────────────────────────────────────────────┐
   │                    Frontend (React 19)               │
-  │  36 Pages / 75 Components / Tiptap Editor / MSW      │
+  │  45 Pages / 94 Components / Tiptap Editor / React Query│
   │  Vite 8 + TailwindCSS 4 + React Router 7             │
   └──────────────┬───────────────────────────────────────┘
                  │ REST API (JSON)

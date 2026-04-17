@@ -15,7 +15,11 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:3001',
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        timeout: 30000,
+      },
     },
   },
   build: {
@@ -40,6 +44,12 @@ export default defineConfig({
           }
           if (id.includes('node_modules/@tiptap') || id.includes('node_modules/prosemirror')) {
             return 'tiptap';
+          }
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3')) {
+            return 'charts';
+          }
+          if (id.includes('node_modules/@tanstack/react-query')) {
+            return 'react-query';
           }
           if (id.includes('node_modules/dompurify') || id.includes('node_modules/sanitize')) {
             return 'sanitize';

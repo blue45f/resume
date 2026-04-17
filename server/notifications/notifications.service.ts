@@ -48,6 +48,16 @@ export class NotificationsService {
     });
   }
 
+  async deleteOne(userId: string, id: string) {
+    await this.prisma.notification.deleteMany({ where: { id, userId } });
+    return { success: true };
+  }
+
+  async deleteBulk(userId: string, ids: string[]) {
+    const { count } = await this.prisma.notification.deleteMany({ where: { id: { in: ids }, userId } });
+    return { success: true, deleted: count };
+  }
+
   async cleanupOld() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);

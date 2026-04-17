@@ -140,7 +140,7 @@ export class LlmController {
     @Param('resumeId') resumeId: string,
     @Body() dto: InterviewDto,
   ) {
-    return this.llmService.generateInterviewQuestions(resumeId, dto.jobRole, dto.provider);
+    return this.llmService.generateInterviewQuestions(resumeId, dto.jobRole, dto.provider, dto.jobDescription, dto.difficulty);
   }
 
   @Post('inline-assist')

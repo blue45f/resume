@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JobsService } from './jobs.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 const mockJob = {
@@ -36,7 +37,11 @@ describe('JobsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [JobsService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        JobsService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: SystemConfigService, useValue: { checkPermission: jest.fn().mockResolvedValue(true), getPermissions: jest.fn().mockResolvedValue({}) } },
+      ],
     }).compile();
     service = module.get(JobsService);
     jest.clearAllMocks();
@@ -301,6 +306,30 @@ describe('JobsService', () => {
     it('일반 사용자(role=user)가 타인 공고 삭제 → ForbiddenException', async () => {
       mockPrisma.jobPost.findUnique.mockResolvedValue(mockJob);
       await expect(service.remove('j1', 'u2', 'user')).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('getJobStats', () => {
+    it('통계 반환 (기업별, 지역별, 유형별)', async () => {
+      mockPrisma.jobPost.findMany.mockResolvedValue([
+        { company: '네이버', position: 'FE', location: '서울 분당', type: 'full_time', skills: 'React,TypeScript', salary: '5000', createdAt: new Date() },
+        { company: '네이버', position: 'BE', location: '서울 분당', type: 'full_time', skills: 'Java,Spring', salary: '6000', createdAt: new Date() },
+        { company: '카카오', position: 'FE', location: '서울 판교', type: 'contract', skills: 'React,Vue', salary: '4500', createdAt: new Date() },
+      ]);
+      const result = await service.getJobStats();
+      expect(result.total).toBe(3);
+      expect(result.byCompany[0].name).toBe('네이버');
+      expect(result.byCompany[0].count).toBe(2);
+      expect(result.byLocation.length).toBeGreaterThan(0);
+      expect(result.byType.length).toBeGreaterThan(0);
+      expect(result.bySkill.length).toBeGreaterThan(0);
+    });
+
+    it('빈 결과', async () => {
+      mockPrisma.jobPost.findMany.mockResolvedValue([]);
+      const result = await service.getJobStats();
+      expect(result.total).toBe(0);
+      expect(result.byCompany).toEqual([]);
     });
   });
 });

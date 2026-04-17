@@ -113,23 +113,11 @@ export default function CareerInsights() {
     Promise.all([
       fetch(`${API_URL}/api/jobs?limit=200`).then(r => r.ok ? r.json() : []).catch(() => []),
       fetchResumes().catch(() => []),
-      fetch('https://news.google.com/rss/search?q=%EC%B1%84%EC%9A%A9+%EC%B7%A8%EC%97%85+%EC%9D%B4%EB%A0%A5%EC%84%9C&hl=ko&gl=KR&ceid=KR:ko')
-        .then(r => r.text())
-        .then(xml => {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(xml, 'text/xml');
-          const items = doc.querySelectorAll('item');
-          const parsed: NewsItem[] = [];
-          items.forEach((item, i) => {
-            if (i >= 6) return;
-            const title = item.querySelector('title')?.textContent || '';
-            const link = item.querySelector('link')?.textContent || '';
-            const source = item.querySelector('source')?.textContent || '';
-            const pubDate = item.querySelector('pubDate')?.textContent || '';
-            parsed.push({ id: String(i), title, url: link, source, pubDate });
-          });
-          return parsed;
-        })
+      fetch(`${API_URL}/api/health/news-rss`)
+        .then(r => r.ok ? r.json() : [])
+        .then((items: any[]) => items.slice(0, 6).map((item: any, i: number) => ({
+          id: String(i), title: item.title || '', url: item.url || '', source: item.source || '', pubDate: item.pubDate || '',
+        })))
         .catch(() => []),
     ]).then(([jobData, resumeData, newsData]) => {
       setJobs(jobData);

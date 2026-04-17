@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { API_URL } from '@/lib/config';
 import { Link, useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+
 
 const TYPE_INFO: Record<string, { label: string; color: string; icon: string }> = {
   GENERAL: { label: '공지', icon: '📢', color: 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300' },
@@ -59,9 +60,15 @@ function NoticeList() {
     <>
       <Header />
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">공지사항</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">서비스 공지 및 업데이트를 확인하세요</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">공지사항</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">서비스 공지 및 업데이트를 확인하세요</p>
+          </div>
+          <Link to="/community?category=notice" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
+            커뮤니티 공지 보기
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </Link>
         </div>
 
         {/* Type tabs */}

@@ -1,5 +1,7 @@
 import { Controller, Get, Post, Delete, Body, Param, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { CacheTTL } from '../common/interceptors/cache.interceptor';
+import { Public } from '../auth/auth.guard';
 import { ResumesService } from '../resumes/resumes.service';
 import { TagsService } from './tags.service';
 import { CreateTagDto } from './dto/tag.dto';
@@ -13,6 +15,8 @@ export class TagsController {
   ) {}
 
   @Get()
+  @Public()
+  @CacheTTL(120)
   @ApiOperation({ summary: '태그 목록 조회' })
   findAll() {
     return this.tagsService.findAll();

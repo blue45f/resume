@@ -1,27 +1,29 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
 
 @Injectable()
 export class CommentsService {
   constructor(
     private prisma: PrismaService,
     private notificationsService: NotificationsService,
+    private forbiddenWords: ForbiddenWordsService,
   ) {}
 
   async findByResume(resumeId: string) {
-    // Only allow comments on public resumes
     const resume = await this.prisma.resume.findUnique({ where: { id: resumeId } });
     if (!resume || resume.visibility !== 'public') {
       throw new NotFoundException('공개 이력서를 찾을 수 없습니다');
     }
     return this.prisma.comment.findMany({
       where: { resumeId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
     });
   }
 
-  async create(resumeId: string, content: string, userId?: string, authorName?: string) {
+  async create(resumeId: string, content: string, userId?: string, authorName?: string, parentId?: string) {
+    await this.forbiddenWords.validateOrThrow(content);
     const resume = await this.prisma.resume.findUnique({ where: { id: resumeId } });
     if (!resume || resume.visibility !== 'public') {
       throw new NotFoundException('공개 이력서에만 의견을 남길 수 있습니다');
@@ -42,11 +44,20 @@ export class CommentsService {
     }
 
     const comment = await this.prisma.comment.create({
-      data: { resumeId, userId, authorName: name, content: cleanContent },
+      data: { resumeId, userId, authorName: name, content: cleanContent, parentId: parentId || null },
     });
 
-    // Notify resume owner
-    if (resume.userId && resume.userId !== userId) {
+    if (parentId) {
+      const parent = await this.prisma.comment.findUnique({ where: { id: parentId }, select: { userId: true } });
+      if (parent?.userId && parent.userId !== userId) {
+        await this.notificationsService.create(
+          parent.userId,
+          'comment',
+          `${name}님이 내 의견에 답글을 달았습니다.`,
+          `/resumes/${resumeId}/preview`,
+        ).catch(() => {});
+      }
+    } else if (resume.userId && resume.userId !== userId) {
       await this.notificationsService.create(
         resume.userId,
         'comment',

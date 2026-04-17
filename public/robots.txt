@@ -5,4 +5,4 @@ Disallow: /settings
 Disallow: /auth/callback
 Disallow: /payment
 
-Sitemap: https://resume-silk-three.vercel.app/sitemap.xml
+Sitemap: https://resume-gongbang.vercel.app/api/health/sitemap.xml

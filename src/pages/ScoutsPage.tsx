@@ -9,6 +9,7 @@ import { fetchScouts, followUser, markScoutRead, fetchSentScouts, respondToScout
 import { getUser } from '@/lib/auth';
 import { timeAgo } from '@/lib/time';
 import { toast } from '@/components/Toast';
+import SendMessageButton from '@/components/SendMessageButton';
 
 
 interface Scout {
@@ -655,6 +656,11 @@ export default function ScoutsPage() {
                         {tab === 'sent' ? (s.receiver?.name || '익명') : s.sender.name}
                       </span>
                       <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        <SendMessageButton
+                          targetUserId={tab === 'sent' ? s.receiver?.id : s.sender.id}
+                          targetUserName={tab === 'sent' ? s.receiver?.name : s.sender.name}
+                          variant="mini"
+                        />
                         {getStatusBadge(s.status)}
                         <span className="text-xs text-slate-400">{timeAgo(s.createdAt)}</span>
                       </div>
@@ -686,9 +692,16 @@ export default function ScoutsPage() {
                 <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                        {tab === 'sent' ? (selected.receiver?.name || '익명') : selected.sender.name}
-                      </h2>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                          {tab === 'sent' ? (selected.receiver?.name || '익명') : selected.sender.name}
+                        </h2>
+                        <SendMessageButton
+                          targetUserId={tab === 'sent' ? selected.receiver?.id : selected.sender.id}
+                          targetUserName={tab === 'sent' ? selected.receiver?.name : selected.sender.name}
+                          variant="mini"
+                        />
+                      </div>
                       <p className="text-sm text-slate-500 dark:text-slate-400">
                         {tab === 'sent' ? (selected.receiver?.email || '') : selected.sender.email}
                       </p>

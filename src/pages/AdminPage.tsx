@@ -46,7 +46,7 @@ interface Stats {
   revenue?: { thisMonth: number; lastMonth: number };
 }
 
-type TabId = 'stats' | 'users' | 'content' | 'moderation' | 'settings' | 'plans' | 'banners' | 'notices' | 'community' | 'extlinks' | 'permissions';
+type TabId = 'stats' | 'users' | 'content' | 'moderation' | 'settings' | 'plans' | 'banners' | 'notices' | 'community' | 'extlinks' | 'permissions' | 'forbidden-words';
 
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -66,6 +66,7 @@ export default function AdminPage() {
     { id: 'extlinks', label: '채용링크', icon: '🔗' },
     { id: 'content', label: '콘텐츠', icon: '📝' },
     { id: 'permissions', label: '권한 관리', icon: '🔐' },
+    { id: 'forbidden-words', label: '금칙어', icon: '🚫' },
     { id: 'moderation', label: '신고 관리', icon: '🛡' },
     { id: 'settings', label: '시스템', icon: '⚙', superOnly: true },
     { id: 'plans', label: '요금제', icon: '💰' },
@@ -174,6 +175,7 @@ export default function AdminPage() {
             {activeTab === 'community' && <AdminCommunityTab />}
             {activeTab === 'extlinks' && <AdminExtLinksTab />}
             {activeTab === 'permissions' && <AdminPermissionsTab />}
+            {activeTab === 'forbidden-words' && <AdminForbiddenWordsTab />}
             {activeTab === 'users' && (
               <div className="space-y-6 animate-fade-in-up">
                 {stats.recentUsers && stats.recentUsers.length > 0 && (
@@ -2541,6 +2543,397 @@ function AdminPermissionsTab() {
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────── Forbidden Words Tab ─────────────────────────── */
+
+interface ForbiddenWord {
+  id: string;
+  word: string;
+  category: string;
+  severity: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+const FORBIDDEN_CATEGORIES = [
+  { value: 'general', label: '일반' },
+  { value: 'profanity', label: '욕설' },
+  { value: 'discrimination', label: '차별' },
+  { value: 'spam', label: '스팸' },
+  { value: 'adult', label: '성인' },
+  { value: 'fraud', label: '사기' },
+];
+
+function AdminForbiddenWordsTab() {
+  const [words, setWords] = useState<ForbiddenWord[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [filterCat, setFilterCat] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<{ total: number; active: number; blocked: number; warned: number } | null>(null);
+
+  // Form
+  const [showForm, setShowForm] = useState(false);
+  const [formMode, setFormMode] = useState<'single' | 'bulk'>('single');
+  const [newWord, setNewWord] = useState('');
+  const [bulkWords, setBulkWords] = useState('');
+  const [newCategory, setNewCategory] = useState('general');
+  const [newSeverity, setNewSeverity] = useState('block');
+  const [submitting, setSubmitting] = useState(false);
+
+  // Selection
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  // Edit
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editWord, setEditWord] = useState('');
+  const [editCat, setEditCat] = useState('');
+  const [editSev, setEditSev] = useState('');
+
+  // Test
+  const [testText, setTestText] = useState('');
+  const [testResult, setTestResult] = useState<{ blocked: boolean; matched: string[]; warnings: string[] } | null>(null);
+
+  const token = localStorage.getItem('token');
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: '30' });
+      if (search) params.set('search', search);
+      if (filterCat !== 'all') params.set('category', filterCat);
+      const r = await fetch(`${API_URL}/api/forbidden-words?${params}`, { headers });
+      if (r.ok) {
+        const data = await r.json();
+        setWords(data.items || []);
+        setTotal(data.total || 0);
+      }
+    } catch {} finally { setLoading(false); }
+  };
+
+  const loadStats = async () => {
+    try {
+      const r = await fetch(`${API_URL}/api/forbidden-words/stats`, { headers });
+      if (r.ok) setStats(await r.json());
+    } catch {}
+  };
+
+  useEffect(() => { load(); }, [page, filterCat]);
+  useEffect(() => { loadStats(); }, []);
+  useEffect(() => { const t = setTimeout(() => { setPage(1); load(); }, 300); return () => clearTimeout(t); }, [search]);
+
+  const handleCreate = async () => {
+    if (formMode === 'single' && !newWord.trim()) return;
+    if (formMode === 'bulk' && !bulkWords.trim()) return;
+    setSubmitting(true);
+    try {
+      if (formMode === 'single') {
+        const r = await fetch(`${API_URL}/api/forbidden-words`, {
+          method: 'POST', headers, body: JSON.stringify({ word: newWord.trim(), category: newCategory, severity: newSeverity }),
+        });
+        if (r.ok) { setNewWord(''); toast('금칙어가 등록되었습니다', 'success'); load(); loadStats(); }
+        else { const data = await r.json(); toast(data.message || '등록 실패', 'error'); }
+      } else {
+        const wordList = bulkWords.split('\n').map(w => w.trim()).filter(Boolean);
+        if (!wordList.length) return;
+        const r = await fetch(`${API_URL}/api/forbidden-words/bulk`, {
+          method: 'POST', headers, body: JSON.stringify({ words: wordList, category: newCategory, severity: newSeverity }),
+        });
+        if (r.ok) {
+          const data = await r.json();
+          toast(`${data.created}개 등록, ${data.skipped}개 중복 건너뜀`, 'success');
+          setBulkWords(''); load(); loadStats();
+        }
+      }
+    } catch { toast('등록 중 오류가 발생했습니다', 'error'); }
+    finally { setSubmitting(false); }
+  };
+
+  const handleUpdate = async (id: string) => {
+    const r = await fetch(`${API_URL}/api/forbidden-words/${id}`, {
+      method: 'PATCH', headers, body: JSON.stringify({ word: editWord, category: editCat, severity: editSev }),
+    });
+    if (r.ok) { setEditing(null); toast('수정되었습니다', 'success'); load(); loadStats(); }
+  };
+
+  const handleToggleActive = async (id: string, isActive: boolean) => {
+    await fetch(`${API_URL}/api/forbidden-words/${id}`, {
+      method: 'PATCH', headers, body: JSON.stringify({ isActive: !isActive }),
+    });
+    load(); loadStats();
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+    await fetch(`${API_URL}/api/forbidden-words/${id}`, { method: 'DELETE', headers });
+    load(); loadStats();
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selected.size || !confirm(`${selected.size}개 금칙어를 삭제하시겠습니까?`)) return;
+    await fetch(`${API_URL}/api/forbidden-words/bulk`, {
+      method: 'DELETE', headers, body: JSON.stringify({ ids: [...selected] }),
+    });
+    setSelected(new Set()); load(); loadStats();
+  };
+
+  const handleTest = async () => {
+    if (!testText.trim()) return;
+    const r = await fetch(`${API_URL}/api/forbidden-words/check`, {
+      method: 'POST', headers, body: JSON.stringify({ text: testText }),
+    });
+    if (r.ok) setTestResult(await r.json());
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === words.length) setSelected(new Set());
+    else setSelected(new Set(words.map(w => w.id)));
+  };
+
+  const totalPages = Math.ceil(total / 30);
+
+  return (
+    <div className="space-y-6 animate-fade-in-up">
+      {/* Stats */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: '전체', value: stats.total, color: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' },
+            { label: '활성', value: stats.active, color: 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' },
+            { label: '차단', value: stats.blocked, color: 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400' },
+            { label: '경고', value: stats.warned, color: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400' },
+          ].map(s => (
+            <div key={s.label} className={`${s.color} rounded-xl p-3 text-center`}>
+              <p className="text-2xl font-bold">{s.value}</p>
+              <p className="text-xs mt-0.5">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Test panel */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+          <span className="w-1.5 h-4 bg-blue-500 rounded" />
+          금칙어 테스트
+        </h3>
+        <div className="flex gap-2">
+          <input
+            value={testText}
+            onChange={e => { setTestText(e.target.value); setTestResult(null); }}
+            placeholder="텍스트를 입력하여 금칙어 포함 여부를 검사합니��..."
+            className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button onClick={handleTest} className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors shrink-0">
+            검사
+          </button>
+        </div>
+        {testResult && (
+          <div className={`mt-2 p-2.5 rounded-lg text-sm ${
+            testResult.blocked
+              ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+              : testResult.warnings.length
+                ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
+                : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+          }`}>
+            {testResult.blocked
+              ? `차단됨 — 금칙어 감지: ${testResult.matched.join(', ')}`
+              : testResult.warnings.length
+                ? `경고 — 주의 단어: ${testResult.warnings.join(', ')}`
+                : '통과 — 금칙어가 감지되지 않았습니다'}
+          </div>
+        )}
+      </div>
+
+      {/* Add form */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+            <span className="w-1.5 h-4 bg-indigo-500 rounded" />
+            금칙어 등록
+          </h3>
+          <div className="flex gap-1">
+            <button onClick={() => setFormMode('single')} className={`px-3 py-1 text-xs rounded-lg transition-colors ${formMode === 'single' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}>
+              단일 등록
+            </button>
+            <button onClick={() => setFormMode('bulk')} className={`px-3 py-1 text-xs rounded-lg transition-colors ${formMode === 'bulk' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}>
+              일괄 등록
+            </button>
+          </div>
+        </div>
+        <div className="space-y-2">
+          {formMode === 'single' ? (
+            <input
+              value={newWord}
+              onChange={e => setNewWord(e.target.value)}
+              placeholder="금칙어 입���..."
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              onKeyDown={e => e.key === 'Enter' && handleCreate()}
+            />
+          ) : (
+            <textarea
+              value={bulkWords}
+              onChange={e => setBulkWords(e.target.value)}
+              placeholder="금칙어를 한 줄에 하나씩 입력..."
+              rows={4}
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+            />
+          )}
+          <div className="flex flex-wrap gap-2 items-center">
+            <select value={newCategory} onChange={e => setNewCategory(e.target.value)} className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100">
+              {FORBIDDEN_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+            <select value={newSeverity} onChange={e => setNewSeverity(e.target.value)} className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100">
+              <option value="block">차단 (등록 불가)</option>
+              <option value="warn">경고 (허용)</option>
+            </select>
+            <button onClick={handleCreate} disabled={submitting} className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors ml-auto">
+              {submitting ? '등록 중...' : formMode === 'single' ? '등록' : '일괄 등록'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters + list */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-700">
+          <div className="flex flex-wrap gap-2 items-center">
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="금칙어 검색..."
+              className="flex-1 min-w-[150px] px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <select value={filterCat} onChange={e => { setFilterCat(e.target.value); setPage(1); }} className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100">
+              <option value="all">전체 카테��리</option>
+              {FORBIDDEN_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+            {selected.size > 0 && (
+              <button onClick={handleBulkDelete} className="px-3 py-1.5 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700 transition-colors">
+                {selected.size}개 삭제
+              </button>
+            )}
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-10 text-slate-400 text-sm">불러오는 중...</div>
+        ) : words.length === 0 ? (
+          <div className="text-center py-10 text-slate-400 text-sm">
+            {search || filterCat !== 'all' ? '검색 결과가 없습니다' : '등록된 금칙어가 없습니다'}
+          </div>
+        ) : (
+          <>
+            {/* Table header */}
+            <div className="hidden sm:grid grid-cols-[40px_1fr_100px_80px_80px_100px] gap-2 px-4 py-2 text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase border-b border-slate-100 dark:border-slate-700">
+              <div>
+                <input type="checkbox" checked={selected.size === words.length && words.length > 0} onChange={toggleSelectAll} className="rounded" />
+              </div>
+              <div>금칙어</div>
+              <div>카테고리</div>
+              <div>심각도</div>
+              <div>상태</div>
+              <div>관리</div>
+            </div>
+
+            {/* Rows */}
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
+              {words.map(w => (
+                <div key={w.id} className={`px-4 py-2.5 ${selected.has(w.id) ? 'bg-indigo-50 dark:bg-indigo-900/10' : ''}`}>
+                  {editing === w.id ? (
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <input value={editWord} onChange={e => setEditWord(e.target.value)} className="flex-1 min-w-[120px] px-2 py-1 text-sm border border-indigo-300 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none" />
+                      <select value={editCat} onChange={e => setEditCat(e.target.value)} className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100">
+                        {FORBIDDEN_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                      </select>
+                      <select value={editSev} onChange={e => setEditSev(e.target.value)} className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100">
+                        <option value="block">차단</option>
+                        <option value="warn">경고</option>
+                      </select>
+                      <button onClick={() => handleUpdate(w.id)} className="px-3 py-1 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700">저장</button>
+                      <button onClick={() => setEditing(null)} className="px-3 py-1 text-xs text-slate-500 hover:text-slate-700">취소</button>
+                    </div>
+                  ) : (
+                    <div className="sm:grid grid-cols-[40px_1fr_100px_80px_80px_100px] gap-2 items-center">
+                      <div>
+                        <input type="checkbox" checked={selected.has(w.id)} onChange={() => toggleSelect(w.id)} className="rounded" />
+                      </div>
+                      <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{w.word}</div>
+                      <div>
+                        <span className="px-2 py-0.5 text-[10px] rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
+                          {FORBIDDEN_CATEGORIES.find(c => c.value === w.category)?.label || w.category}
+                        </span>
+                      </div>
+                      <div>
+                        <span className={`px-2 py-0.5 text-[10px] rounded-full font-medium ${
+                          w.severity === 'block'
+                            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                            : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                        }`}>
+                          {w.severity === 'block' ? '차단' : '경고'}
+                        </span>
+                      </div>
+                      <div>
+                        <button
+                          onClick={() => handleToggleActive(w.id, w.isActive)}
+                          className={`px-2 py-0.5 text-[10px] rounded-full font-medium transition-colors ${
+                            w.isActive
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                              : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
+                          }`}
+                        >
+                          {w.isActive ? '활성' : '비활성'}
+                        </button>
+                      </div>
+                      <div className="flex gap-1 mt-1 sm:mt-0">
+                        <button
+                          onClick={() => { setEditing(w.id); setEditWord(w.word); setEditCat(w.category); setEditSev(w.severity); }}
+                          className="px-2 py-1 text-[10px] text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors"
+                        >
+                          수정
+                        </button>
+                        <button
+                          onClick={() => handleDelete(w.id)}
+                          className="px-2 py-1 text-[10px] text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 p-3 border-t border-slate-100 dark:border-slate-700">
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 text-xs rounded-lg bg-slate-100 dark:bg-slate-700 disabled:opacity-50 hover:bg-slate-200 transition-colors">
+                  이전
+                </button>
+                <span className="text-xs text-slate-500">{page} / {totalPages}</span>
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1 text-xs rounded-lg bg-slate-100 dark:bg-slate-700 disabled:opacity-50 hover:bg-slate-200 transition-colors">
+                  다음
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

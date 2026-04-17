@@ -1003,11 +1003,18 @@ function CuratedJobsTab() {
             const expanded = expandedId === job.id;
             const skills = job.skills.split(',').map(s => s.trim()).filter(Boolean);
 
+            const isExpired = dday.text === '마감';
+
             return (
               <div
                 key={job.id}
-                className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200 overflow-hidden"
+                className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200 overflow-hidden ${isExpired ? 'opacity-60 relative' : ''}`}
               >
+                {isExpired && (
+                  <div className="absolute top-3 right-3 z-10 px-3 py-1 bg-slate-700/80 text-white text-xs font-bold rounded-full backdrop-blur-sm">
+                    마감됨
+                  </div>
+                )}
                 {/* Card Header */}
                 <div className="p-4 sm:p-5">
                   <div className="flex gap-3">

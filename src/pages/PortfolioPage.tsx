@@ -6,6 +6,7 @@ import { API_URL } from '@/lib/config';
 import { getUser } from '@/lib/auth';
 import FollowButton from '@/components/FollowButton';
 import ShareMenu from '@/components/ShareMenu';
+import SendMessageButton from '@/components/SendMessageButton';
 
 interface PortfolioResume {
   id: string;
@@ -209,7 +210,10 @@ export default function PortfolioPage() {
                   description={`이력서공방에서 확인하세요`}
                 />
                 {!isOwn && user.id && (
-                  <FollowButton targetUserId={user.id} />
+                  <>
+                    <SendMessageButton targetUserId={user.id} targetUserName={user.name} variant="button" />
+                    <FollowButton targetUserId={user.id} />
+                  </>
                 )}
                 {isOwn && (
                   <Link

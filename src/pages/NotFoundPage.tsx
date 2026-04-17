@@ -2,8 +2,10 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { useRecentViews } from '@/hooks/useRecentViews';
 
 export default function NotFoundPage() {
+  const { views: recentViews } = useRecentViews();
   useEffect(() => {
     document.title = '페이지를 찾을 수 없습니다 — 이력서공방';
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
@@ -37,6 +39,18 @@ export default function NotFoundPage() {
               이력서 탐색
             </Link>
           </div>
+          {recentViews.length > 0 && (
+            <div className="mt-8 max-w-md animate-fade-in">
+              <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">최근 본 이력서</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {recentViews.slice(0, 4).map(v => (
+                  <Link key={v.id} to={`/resumes/${v.id}/preview`} className="px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-indigo-300 transition-colors">
+                    {v.name || v.title}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
       <Footer />

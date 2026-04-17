@@ -40,6 +40,7 @@ import BookmarkButton from '@/components/BookmarkButton';
 import FollowButton from '@/components/FollowButton';
 import SendMessageButton from '@/components/SendMessageButton';
 import QrCodeModal from '@/components/QrCodeModal';
+import { addRecentView } from '@/hooks/useRecentViews';
 import ExportPanel from '@/components/ExportPanel';
 import PublicLinkSettings from '@/components/PublicLinkSettings';
 import ShareStats from '@/components/ShareStats';
@@ -108,7 +109,7 @@ export default function PreviewPage() {
 
   const reactToPrint = useReactToPrint({
     contentRef,
-    documentTitle: resume?.title || '이력서',
+    documentTitle: resume ? `${resume.personalInfo?.name || resume.title || '이력서'}_${new Date().toISOString().slice(0, 10)}` : '이력서',
   });
 
   const handlePrint = useCallback(() => {
@@ -213,7 +214,10 @@ export default function PreviewPage() {
     if (!id) return;
     setNotFound(false);
     fetchResume(id)
-      .then(setResume)
+      .then(r => {
+        setResume(r);
+        if (r) addRecentView(r.id, r.title || '이력서', r.personalInfo?.name);
+      })
       .catch(() => setNotFound(true));
   };
 
@@ -223,7 +227,19 @@ export default function PreviewPage() {
 
   useEffect(() => {
     if (resume) {
-      document.title = `${resume.personalInfo.name || resume.title || '이력서'} — 이력서공방`;
+      const name = resume.personalInfo.name || resume.title || '이력서';
+      const desc = (resume.personalInfo.summary || '').replace(/<[^>]*>/g, '').slice(0, 150);
+      document.title = `${name} — 이력서공방`;
+
+      const setMeta = (property: string, content: string) => {
+        let tag = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement;
+        if (!tag) { tag = document.createElement('meta'); tag.setAttribute('property', property); document.head.appendChild(tag); }
+        tag.content = content;
+      };
+      setMeta('og:title', `${name} — 이력서공방`);
+      setMeta('og:description', desc || 'AI 기반 이력서 관리 플랫폼');
+      setMeta('og:url', window.location.href);
+      setMeta('og:type', 'profile');
     }
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
   }, [resume]);
@@ -329,6 +345,7 @@ export default function PreviewPage() {
               <button onClick={() => setShowAiAnalysis(true)} className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors">AI 분석</button>
               <button onClick={() => setShowJdMatch(true)} className="px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition-colors">JD 매칭</button>
               <button onClick={() => navigate(`/cover-letter?resumeId=${id}`)} className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors" title="이 이력서를 기반으로 자소서 작성">자소서</button>
+              <button onClick={() => navigate(`/interview-prep?resumeId=${id}`)} className="px-3 py-1.5 bg-pink-600 text-white text-xs font-medium rounded-lg hover:bg-pink-700 transition-colors" title="이 이력서 기반 면접 준비">면접준비</button>
               <button onClick={() => setShowScoreCard(true)} className="px-3 py-1.5 bg-violet-600 text-white text-xs font-medium rounded-lg hover:bg-violet-700 transition-colors" title="점수 공유 카드">점수 공유</button>
               <button onClick={() => setShowTransform(true)} className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors">변환</button>
               <button onClick={handlePrint} disabled={printPreparing} className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-70 transition-colors">
@@ -668,10 +685,12 @@ export default function PreviewPage() {
                 customAccentHex={customAccentHex || undefined}
                 customFont={customFont || undefined}
               />
-              {resume.skills.length > 0 && (
-                <SkillEndorsement resumeId={id!} skills={resume.skills} />
-              )}
             </div>
+            {resume.skills.length > 0 && (
+              <div className="max-w-[210mm] mx-auto px-1">
+                <SkillEndorsement resumeId={id!} skills={resume.skills} />
+              </div>
+            )}
             {/* Page break indicators */}
             {!fitToWidth && zoomLevel >= 100 && (
               <div className="no-print absolute inset-0 pointer-events-none" aria-hidden="true">

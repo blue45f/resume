@@ -280,13 +280,13 @@ export default function LoginPage() {
                     {([
                       { value: 'personal', label: '개인', icon: (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                      ), desc: '구직자' },
+                      ), desc: '구직자', features: ['이력서 작성/관리', 'AI 분석 & ATS', '채용정보 열람'] },
                       { value: 'recruiter', label: '리크루터', icon: (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                      ), desc: '채용 담당' },
+                      ), desc: '채용 담당', features: ['인재 탐색/스카우트', '채용공고 등록', '지원자 관리'] },
                       { value: 'company', label: '기업', icon: (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                      ), desc: '기업 회원' },
+                      ), desc: '기업 회원', features: ['채용 대시보드', '팀 스카우트 관리', '기업 브랜딩'] },
                     ] as const).map(tp => (
                       <button
                         key={tp.value}
@@ -300,9 +300,30 @@ export default function LoginPage() {
                       >
                         <span className={`flex justify-center mb-1 ${userType === tp.value ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}>{tp.icon}</span>
                         <span className="text-xs font-medium text-slate-900 dark:text-slate-100">{tp.label}</span>
-                        <span className="text-xs text-slate-400 block">{tp.desc}</span>
+                        <span className="text-[10px] text-slate-400 block">{tp.desc}</span>
                       </button>
                     ))}
+                  </div>
+                  {/* 회원 유형별 기능 안내 */}
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <p className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 mb-1.5 uppercase tracking-wider">
+                      {userType === 'personal' ? '구직자' : userType === 'recruiter' ? '리크루터' : '기업'} 주요 기능
+                    </p>
+                    <ul className="space-y-1">
+                      {(userType === 'personal'
+                        ? ['이력서 작성 및 AI 분석', 'ATS 점수 확인 & JD 매칭', '채용정보 열람 및 지원 관리', '커뮤니티 참여 & 면접 준비']
+                        : userType === 'recruiter'
+                          ? ['인재 탐색 및 이력서 검색', '스카우트 메시지 발송', '채용공고 등록 및 관리', '지원자 파이프라인 관리']
+                          : ['채용 대시보드 & 분석', '팀 단위 스카우트 관리', '기업 브랜딩 페이지', '채용공고 대량 등록']
+                      ).map(f => (
+                        <li key={f} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                          <svg className="w-3 h-3 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                   {userType !== 'personal' && (
                     <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)}
@@ -344,6 +365,27 @@ export default function LoginPage() {
                   </button>
                 </div>
                 {passwordError && <p id="password-error" className="mt-1 text-xs text-red-500" role="alert">{passwordError}</p>}
+                {isRegister && password.length > 0 && (() => {
+                  const hasLen = password.length >= 8;
+                  const hasUpper = /[A-Z]/.test(password);
+                  const hasNumber = /\d/.test(password);
+                  const hasSpecial = /[!@#$%^&*]/.test(password);
+                  const score = [hasLen, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
+                  const labels = ['매우 약함', '약함', '보통', '강함', '매우 강함'];
+                  const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-emerald-500', 'bg-emerald-600'];
+                  return (
+                    <div className="mt-1.5">
+                      <div className="flex gap-1 mb-1">
+                        {[0,1,2,3].map(i => (
+                          <div key={i} className={`h-1 flex-1 rounded-full ${i < score ? colors[score] : 'bg-slate-200 dark:bg-slate-700'}`} />
+                        ))}
+                      </div>
+                      <p className={`text-[10px] ${score <= 1 ? 'text-red-500' : score <= 2 ? 'text-yellow-500' : 'text-emerald-500'}`}>
+                        {labels[score]} — {!hasLen ? '8자 이상' : !hasUpper ? '대문자 포함' : !hasNumber ? '숫자 포함' : !hasSpecial ? '특수문자 포함' : '안전한 비밀번호'}
+                      </p>
+                    </div>
+                  );
+                })()}
                 {isRegister && password && (
                   <div className="mt-2">
                     <div className="flex gap-1 mb-1">
@@ -360,7 +402,11 @@ export default function LoginPage() {
               </div>
 
               {!isRegister && (
-                <div className="flex justify-end">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" defaultChecked className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500" />
+                    <span className="text-xs text-slate-500 dark:text-slate-400">로그인 상태 유지</span>
+                  </label>
                   <Link to="/forgot-password" className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">
                     비밀번호 찾기
                   </Link>

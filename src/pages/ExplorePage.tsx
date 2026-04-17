@@ -9,6 +9,7 @@ import type { ResumeSummary, Tag } from '@/types/resume';
 import { fetchTags } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import BookmarkButton from '@/components/BookmarkButton';
+import SendMessageButton from '@/components/SendMessageButton';
 import { API_URL } from '@/lib/config';
 import { timeAgo } from '@/lib/time';
 import { fetchResumes } from '@/lib/api';
@@ -98,10 +99,13 @@ function getAvatarColor(name: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
+import { useRecentViews } from '@/hooks/useRecentViews';
+
 export default function ExplorePage() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const [result, setResult] = useState<SearchResult | null>(null);
+  const { views: recentViews, clearViews } = useRecentViews();
   const [activeTab, setActiveTab] = useState<'resumes' | 'people' | 'community'>('resumes');
   const [communityPosts, setCommunityPosts] = useState<any[]>([]);
   const [communityLoading, setCommunityLoading] = useState(false);
@@ -880,6 +884,25 @@ export default function ExplorePage() {
         ) : (
           /* ===== 이력서 탭 ===== */
           <>
+            {/* 최근 본 이력서 */}
+            {!query && !tag && page === 1 && recentViews.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">최근 본 이력서</h3>
+                  <button onClick={clearViews} className="text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">지우기</button>
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                  {recentViews.map(v => (
+                    <Link key={`recent-${v.id}`} to={`/resumes/${v.id}/preview`}
+                      className="shrink-0 w-40 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-300 transition-colors">
+                      <p className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">{v.title || '이력서'}</p>
+                      <p className="text-[10px] text-slate-400 truncate mt-0.5">{v.name || '익명'}</p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* 인기 이력서 */}
             {!query && !tag && page === 1 && result.data.length > 0 && (
               <div className="mb-6">
@@ -951,9 +974,10 @@ export default function ExplorePage() {
                             </span>
                           ))}
                           {skillNames.slice(0, 4).map(s => (
-                            <span key={s} className="px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">
+                            <button key={s} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSearchInput(s); }}
+                              className="px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                               {s}
-                            </span>
+                            </button>
                           ))}
                         </div>
                       </div>
@@ -996,9 +1020,14 @@ export default function ExplorePage() {
                       </div>
                       <BookmarkButton resumeId={resume.id} size="sm" />
                     </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-1 ml-4">
-                      {resume.personalInfo?.name || '이름 미입력'}
-                    </p>
+                    <div className="flex items-center gap-1.5 mb-1 ml-4">
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        {resume.personalInfo?.name || '이름 미입력'}
+                      </p>
+                      {resume.userId && (
+                        <SendMessageButton targetUserId={resume.userId} targetUserName={resume.personalInfo?.name} variant="mini" />
+                      )}
+                    </div>
                     {resume.personalInfo?.summary && (
                       <p className="text-xs text-slate-400 line-clamp-2 mb-2">
                         {resume.personalInfo.summary.replace(/<[^>]*>/g, '')}
@@ -1009,9 +1038,13 @@ export default function ExplorePage() {
                     {skillNames.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-2">
                         {skillNames.slice(0, 4).map(s => (
-                          <span key={s} className="px-1.5 py-0.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded">
+                          <button
+                            key={s}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSearchInput(s); }}
+                            className="px-1.5 py-0.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors cursor-pointer"
+                          >
                             {s}
-                          </span>
+                          </button>
                         ))}
                         {skillNames.length > 4 && (
                           <span className="px-1.5 py-0.5 text-xs text-slate-400">+{skillNames.length - 4}</span>
@@ -1030,16 +1063,24 @@ export default function ExplorePage() {
                       </div>
                     )}
 
-                    {/* Footer: view count + relative time */}
+                    {/* Footer: stats + relative time */}
                     <div className="flex items-center justify-between mt-2 text-xs text-slate-400 dark:text-slate-500">
-                      <span>{timeAgo(resume.updatedAt)}</span>
+                      <div className="flex items-center gap-2.5">
+                        <span>{timeAgo(resume.updatedAt)}</span>
+                        {skillNames.length > 0 && (
+                          <span className="flex items-center gap-0.5" title={`${skillNames.length}개 기술`}>
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                            {skillNames.length}
+                          </span>
+                        )}
+                      </div>
                       {resume.viewCount != null && resume.viewCount > 0 && (
                         <span className="flex items-center gap-1">
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
-                          {resume.viewCount}
+                          {resume.viewCount.toLocaleString()}
                         </span>
                       )}
                     </div>

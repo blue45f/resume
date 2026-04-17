@@ -1,13 +1,17 @@
+import { API_URL } from '@/lib/config';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getUser } from '@/lib/auth';
+import SendMessageButton from '@/components/SendMessageButton';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+
 
 const CATEGORIES = [
   { id: 'all', label: '전체', icon: '📋' },
+  { id: 'scrapped', label: '스크랩', icon: '🔖' },
+  { id: 'notice', label: '공지사항', icon: '📢' },
   { id: 'free', label: '자유', icon: '💬' },
   { id: 'tips', label: '취업팁', icon: '💡' },
   { id: 'resume', label: '이력서피드백', icon: '📄' },
@@ -23,6 +27,7 @@ const SORT_OPTIONS = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
+  notice: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   free: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
   tips: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
   resume: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
@@ -56,7 +61,10 @@ function timeAgo(date: string) {
 }
 
 function isHot(post: Post) {
-  return post.likeCount >= 10 || post.viewCount >= 100 || (post._count?.comments ?? 0) >= 5;
+  const ageHours = (Date.now() - new Date(post.createdAt).getTime()) / 3600000;
+  const decay = Math.max(0.2, 1 - ageHours / 168);
+  const score = (post.likeCount * 3 + (post._count?.comments ?? 0) * 2 + post.viewCount * 0.1) * decay;
+  return score >= 8;
 }
 
 function isNew(post: Post) {
@@ -95,6 +103,25 @@ export default function CommunityPage() {
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
+
+    if (category === 'scrapped') {
+      try {
+        const scrappedIds: string[] = JSON.parse(localStorage.getItem('scrapped-posts') || '[]');
+        if (scrappedIds.length === 0) { setPosts([]); setTotal(0); setTotalPages(1); setLoading(false); return; }
+        const r = await fetch(`${API_URL}/api/community?limit=100`);
+        if (r.ok) {
+          const data = await r.json();
+          const all = data.items || [];
+          const filtered = all.filter((p: any) => scrappedIds.includes(p.id));
+          setPosts(filtered);
+          setTotal(filtered.length);
+          setTotalPages(1);
+        }
+      } catch {}
+      setLoading(false);
+      return;
+    }
+
     const params = new URLSearchParams();
     if (category && category !== 'all') params.set('category', category);
     if (search) params.set('search', search);
@@ -241,7 +268,7 @@ export default function CommunityPage() {
         )}
 
         {/* Category tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none scroll-smooth">
           {CATEGORIES.map(cat => (
             <button
               key={cat.id}
@@ -399,8 +426,8 @@ export default function CommunityPage() {
                           <span className="text-xs text-indigo-500 dark:text-indigo-400 shrink-0">[{commentCount}]</span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 line-clamp-1">
-                        {post.content}
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                        {post.content.replace(/<[^>]*>/g, '').replace(/[#*`~>\-]/g, '').slice(0, 150)}
                       </p>
                     </div>
 
@@ -425,13 +452,16 @@ export default function CommunityPage() {
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-slate-400">
                         {post.user?.avatar ? (
-                          <img src={post.user.avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
+                          <img src={post.user.avatar} alt={`${post.user.name || '사용자'} 프로필`} className="w-4 h-4 rounded-full object-cover" />
                         ) : (
                           <div className="w-4 h-4 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-[8px] font-bold text-indigo-600 dark:text-indigo-400">
                             {(post.user?.name || '익')[0]}
                           </div>
                         )}
                         <span className="hidden sm:inline truncate max-w-[60px]">{post.user?.name || '익명'}</span>
+                        {post.user?.id && (
+                          <SendMessageButton targetUserId={post.user.id} targetUserName={post.user.name} variant="mini" />
+                        )}
                         <span className="hidden sm:inline">·</span>
                         <span>{timeAgo(post.createdAt)}</span>
                       </div>

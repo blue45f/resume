@@ -8,8 +8,27 @@ export class SystemConfigController {
   constructor(private readonly service: SystemConfigService) {}
 
   @Get('public')
+  @Public()
   getPublic() {
     return this.service.getPublicConfig();
+  }
+
+  @Get('content/:key')
+  @Public()
+  async getContent(@Req() req: any, @Body() body: any) {
+    const key = (req.params as any).key;
+    const val = await this.service.get(`content_${key}`);
+    if (!val) return null;
+    try { return JSON.parse(val); } catch { return val; }
+  }
+
+  @Patch('content/:key')
+  async setContent(@Req() req: any, @Body() body: any) {
+    if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') throw new ForbiddenException();
+    const key = (req.params as any).key;
+    const value = typeof body === 'string' ? body : JSON.stringify(body);
+    await this.service.set(`content_${key}`, value);
+    return { success: true };
   }
 
   @Get('permissions')

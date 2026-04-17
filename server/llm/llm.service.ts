@@ -458,14 +458,15 @@ export class LlmService {
   }
 
   /** AI 면접 질문 생성 */
-  async generateInterviewQuestions(resumeId: string, jobRole?: string, provider?: string) {
-    // 자동 fallback 사용 (provider 무시)
+  async generateInterviewQuestions(resumeId: string, jobRole?: string, provider?: string, jobDescription?: string, difficulty?: string) {
     const resume = await this.resumesService.findOne(resumeId);
 
     const roleContext = jobRole ? `지원 직무: ${jobRole}\n` : '';
+    const jdContext = jobDescription ? `\n채용공고/자격요건:\n${jobDescription.slice(0, 2000)}\n\n위 채용공고의 요구사항에 맞춤화된 질문을 생성하세요.\n` : '';
+    const diffContext = difficulty === 'beginner' ? '신입/주니어 수준의 기초적인 질문을 생성하세요.\n' : difficulty === 'advanced' ? '시니어/리드 수준의 심화 질문을 생성하세요.\n' : '';
 
     const systemPrompt = `당신은 기술 면접관입니다. 이력서를 분석하여 예상 면접 질문과 모범 답변을 JSON으로 생성해주세요.
-${roleContext}
+${roleContext}${jdContext}${diffContext}
 반드시 아래 JSON 형식으로만 응답하세요:
 {
   "questions": [

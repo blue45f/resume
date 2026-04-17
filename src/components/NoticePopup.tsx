@@ -1,3 +1,4 @@
+import { API_URL } from '@/lib/config';
 import { useEffect, useState } from 'react';
 
 interface Notice {
@@ -7,7 +8,7 @@ interface Notice {
   type: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+
 const DISMISSED_KEY = 'dismissed_notices';
 const TODAY_KEY = 'dismissed_notices_today';
 

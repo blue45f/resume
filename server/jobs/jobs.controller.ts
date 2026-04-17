@@ -17,6 +17,13 @@ export class JobsController {
     return this.service.findAll(status || 'active', query);
   }
 
+  @Get('stats')
+  @Public()
+  @ApiOperation({ summary: '채용 통계' })
+  async getStats(@Query('location') location?: string, @Query('type') type?: string, @Query('skill') skill?: string) {
+    return this.service.getJobStats(location, type, skill);
+  }
+
   @Get('my')
   @ApiOperation({ summary: '내 채용 공고' })
   findMy(@Req() req: any) {

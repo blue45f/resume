@@ -18,6 +18,23 @@ const mockPrisma = {
   template: {
     count: jest.fn(),
   },
+  communityPost: {
+    count: jest.fn().mockResolvedValue(0),
+  },
+  communityComment: {
+    count: jest.fn().mockResolvedValue(0),
+  },
+  curatedJob: {
+    count: jest.fn().mockResolvedValue(0),
+  },
+  systemConfig: {
+    findFirst: jest.fn().mockResolvedValue(null),
+  },
+  draft: {
+    findUnique: jest.fn().mockResolvedValue(null),
+    upsert: jest.fn(),
+    deleteMany: jest.fn(),
+  },
 };
 
 const mockConfig = {
@@ -107,19 +124,19 @@ describe('HealthController', () => {
   // GET /api/health/stats — 공개 사이트 통계
   // ──────────────────────────────────────────────────
   describe('publicStats (GET /health/stats)', () => {
-    it('사용자수, 이력서수, 조회수, 템플릿수 반환', async () => {
+    it('사용자수, 이력서수, 조회수, 템플릿수, 커뮤니티, 채용 반환', async () => {
       mockPrisma.user.count.mockResolvedValue(100);
       mockPrisma.resume.count.mockResolvedValue(250);
       mockPrisma.resume.aggregate.mockResolvedValue({ _sum: { viewCount: 5000 } });
       mockPrisma.template.count.mockResolvedValue(26);
 
       const result = await controller.publicStats();
-      expect(result).toEqual({
-        users: { total: 100 },
-        resumes: { total: 250 },
-        activity: { totalViews: 5000 },
-        content: { templates: 26 },
-      });
+      expect(result.users.total).toBe(100);
+      expect(result.resumes.total).toBe(250);
+      expect(result.activity.totalViews).toBe(5000);
+      expect(result.content.templates).toBe(26);
+      expect(result.community).toBeDefined();
+      expect(result.jobs).toBeDefined();
     });
 
     it('조회수 null → 0으로 기본값 처리', async () => {
@@ -208,13 +225,15 @@ describe('HealthController', () => {
       expect(result.version).toMatch(/^\d+\.\d+\.\d+/);
     });
 
-    it('반환 객체에 불필요한 필드 없음', () => {
+    it('반환 객체에 필수 필드 포함', () => {
       const result = controller.ping();
       const keys = Object.keys(result);
       expect(keys).toContain('status');
       expect(keys).toContain('timestamp');
       expect(keys).toContain('version');
-      expect(keys).toHaveLength(3);
+      expect(keys).toContain('uptime');
+      expect(keys).toContain('env');
+      expect(keys).toHaveLength(5);
     });
   });
 
@@ -238,9 +257,14 @@ describe('HealthController', () => {
       expect(json).not.toContain('secret');
     });
 
-    it('반환 구조가 정확히 users, resumes, activity, content', async () => {
+    it('반환 구조에 users, resumes, activity, content, community, jobs 포함', async () => {
       const result = await controller.publicStats();
-      expect(Object.keys(result)).toEqual(['users', 'resumes', 'activity', 'content']);
+      expect(result).toHaveProperty('users');
+      expect(result).toHaveProperty('resumes');
+      expect(result).toHaveProperty('activity');
+      expect(result).toHaveProperty('content');
+      expect(result).toHaveProperty('community');
+      expect(result).toHaveProperty('jobs');
     });
 
     it('각 값이 숫자형', async () => {
@@ -345,6 +369,37 @@ describe('HealthController', () => {
       expect(result.providers.google).toBe(false);
       expect(result.providers.github).toBe(false);
       expect(result.providers.kakao).toBe(false);
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // Draft API 테스트
+  // ──────────────────────────────────────────────────
+  describe('Draft API', () => {
+    const mockReq = { user: { id: 'test-user' }, params: { type: 'community_post' } };
+
+    it('임시저장 조회 (없으면 null)', async () => {
+      mockPrisma.draft.findUnique.mockResolvedValue(null);
+      const result = await controller.getDraft('community_post', mockReq);
+      expect(result).toBeNull();
+    });
+
+    it('임시저장 조회 (JSON 파싱)', async () => {
+      mockPrisma.draft.findUnique.mockResolvedValue({ content: '{"title":"테스트"}' });
+      const result = await controller.getDraft('community_post', mockReq);
+      expect(result).toEqual({ title: '테스트' });
+    });
+
+    it('임시저장 저장', async () => {
+      mockPrisma.draft.upsert.mockResolvedValue({});
+      const result = await controller.saveDraft('community_post', { title: '임시' }, mockReq);
+      expect(result.success).toBe(true);
+    });
+
+    it('임시저장 삭제', async () => {
+      mockPrisma.draft.deleteMany.mockResolvedValue({ count: 1 });
+      const result = await controller.deleteDraft('community_post', mockReq);
+      expect(result.success).toBe(true);
     });
   });
 });

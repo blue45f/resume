@@ -203,4 +203,22 @@ describe('NotificationsService', () => {
       );
     });
   });
+
+  describe('deleteOne', () => {
+    it('특정 알림 삭제', async () => {
+      mockPrisma.notification.deleteMany.mockResolvedValue({ count: 1 });
+      const result = await service.deleteOne('user-1', 'n1');
+      expect(result.success).toBe(true);
+      expect(mockPrisma.notification.deleteMany).toHaveBeenCalledWith({ where: { id: 'n1', userId: 'user-1' } });
+    });
+  });
+
+  describe('deleteBulk', () => {
+    it('여러 알림 일괄 삭제', async () => {
+      mockPrisma.notification.deleteMany.mockResolvedValue({ count: 3 });
+      const result = await service.deleteBulk('user-1', ['n1', 'n2', 'n3']);
+      expect(result.success).toBe(true);
+      expect(result.deleted).toBe(3);
+    });
+  });
 });

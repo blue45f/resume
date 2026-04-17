@@ -17,6 +17,7 @@ import RecentActivity from '@/components/RecentActivity';
 import HiringTrends from '@/components/HiringTrends';
 import CareerInsights from '@/components/CareerInsights';
 import OnboardingBanner from '@/components/OnboardingBanner';
+import ProfileCompleteness from '@/components/ProfileCompleteness';
 import ProfileWizard from '@/components/ProfileWizard';
 import BannerSlider from '@/components/BannerSlider';
 import NoticePopup from '@/components/NoticePopup';
@@ -25,6 +26,34 @@ import { t } from '@/lib/i18n';
 import { getUser } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
 import ShareMenu from '@/components/ShareMenu';
+
+interface HomeContent {
+  highlights?: { title: string; desc: string; bg: string }[];
+  features?: { icon: string; title: string; desc: string; color: string }[];
+  testimonials?: { text: string; author: string; stars: number }[];
+  socialProofTitle?: string;
+}
+
+const DEFAULT_HIGHLIGHTS = [
+  { title: 'AI 분석 5종 세트', desc: 'ATS 통과율 검사, JD 매칭도 분석, 예상 면접 질문까지 - 서류 합격률을 높이는 데이터 기반 인사이트', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+  { title: '26개 직종별 템플릿', desc: '개발자, 디자이너, 마케터 등 직종에 최적화된 레이아웃과 15종 테마로 프로페셔널한 이력서 완성', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+  { title: '완전 무료로 시작', desc: '오픈소스 LLM 활용으로 비용 부담 없이 시작하세요. 핵심 기능 모두 무료, 숨겨진 비용 없음', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+];
+
+const DEFAULT_FEATURES = [
+  { icon: '✨', title: 'AI 이력서 작성', desc: '직종별 최적화된 문구를 AI가 자동 생성', color: 'from-indigo-500 to-purple-600' },
+  { icon: '📊', title: 'ATS 점수 분석', desc: '채용 시스템 호환성을 실시간으로 분석', color: 'from-blue-500 to-cyan-600' },
+  { icon: '🎨', title: '전문 템플릿', desc: '디자이너가 제작한 고품질 이력서 템플릿', color: 'from-emerald-500 to-teal-600' },
+  { icon: '🔗', title: '이력서 공유', desc: '고유 URL로 이력서를 간편하게 공유', color: 'from-amber-500 to-orange-600' },
+  { icon: '📧', title: '자기소개서', desc: 'AI가 회사/포지션에 맞는 자소서 작성', color: 'from-pink-500 to-rose-600' },
+  { icon: '📈', title: '커리어 분석', desc: '업계 트렌드와 연봉 데이터 인사이트', color: 'from-violet-500 to-indigo-600' },
+];
+
+const DEFAULT_TESTIMONIALS = [
+  { text: 'AI가 자동으로 써준 이력서로 취업에 성공했어요!', author: '소프트웨어 개발자', stars: 5 },
+  { text: '템플릿이 너무 예뻐서 면접관에게 칭찬받았습니다.', author: 'UX 디자이너', stars: 5 },
+  { text: 'ATS 분석 기능 덕분에 서류 통과율이 높아졌어요.', author: '마케터', stars: 5 },
+];
 
 
 function CommunityWidget() {
@@ -39,6 +68,7 @@ function CommunityWidget() {
   if (!posts.length) return null;
 
   const CAT_COLORS: Record<string, string> = {
+    notice: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     free: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
     tips: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
     resume: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
@@ -46,7 +76,7 @@ function CommunityWidget() {
     question: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   };
   const CAT_LABELS: Record<string, string> = {
-    free: '자유', tips: '취업팁', resume: '이력서피드백', 'cover-letter': '자소서', question: '질문',
+    notice: '공지', free: '자유', tips: '취업팁', resume: '이력서피드백', 'cover-letter': '자소서', question: '질문',
   };
 
   return (
@@ -288,6 +318,7 @@ export default function HomePage() {
   const [bookmarks, setBookmarks] = useState<{ id: string; resumeId: string; title: string; name: string }[]>([]);
   const [serverError, setServerError] = useState(false);
   const [wizardResume, setWizardResume] = useState<Resume | null>(null);
+  const [homeContent, setHomeContent] = useState<HomeContent>({});
   const navigate = useNavigate();
   const user = getUser();
 
@@ -338,6 +369,18 @@ export default function HomePage() {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, []);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/system-config/content/homepage`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setHomeContent(d); })
+      .catch(() => {});
+  }, []);
+
+  const highlights = homeContent.highlights?.length ? homeContent.highlights : DEFAULT_HIGHLIGHTS;
+  const features = homeContent.features?.length ? homeContent.features : DEFAULT_FEATURES;
+  const testimonials = homeContent.testimonials?.length ? homeContent.testimonials : DEFAULT_TESTIMONIALS;
+  const socialProofTitle = homeContent.socialProofTitle || '이미 수천 명이 선택했습니다';
 
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`"${title || '제목 없음'}" 이력서를 삭제하시겠습니까?`)) return;
@@ -530,29 +573,10 @@ export default function HomePage() {
 
             {/* Feature highlights */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-3xl mx-auto mb-10">
-              {[
-                {
-                  icon: (<svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>),
-                  title: 'AI 분석 5종 세트',
-                  desc: 'ATS 통과율 검사, JD 매칭도 분석, 예상 면접 질문까지 - 서류 합격률을 높이는 데이터 기반 인사이트',
-                  bg: 'bg-blue-50 dark:bg-blue-900/20',
-                },
-                {
-                  icon: (<svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg>),
-                  title: '26개 직종별 템플릿',
-                  desc: '개발자, 디자이너, 마케터 등 직종에 최적화된 레이아웃과 15종 테마로 프로페셔널한 이력서 완성',
-                  bg: 'bg-purple-50 dark:bg-purple-900/20',
-                },
-                {
-                  icon: (<svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>),
-                  title: '완전 무료로 시작',
-                  desc: '오픈소스 LLM 활용으로 비용 부담 없이 시작하세요. 핵심 기능 모두 무료, 숨겨진 비용 없음',
-                  bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-                },
-              ].map(f => (
+              {highlights.map((f, i) => (
                 <div key={f.title} className={`${f.bg} rounded-xl p-5 text-center animate-fade-in-up hover:-translate-y-1 transition-transform duration-200`}>
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm mb-3">
-                    {f.icon}
+                    {['🤖', '📋', '💰'][i] || '✨'}
                   </div>
                   <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1.5">{f.title}</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{f.desc}</p>
@@ -569,14 +593,7 @@ export default function HomePage() {
 
             {/* Features Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-12 reveal">
-              {[
-                { icon: '✨', title: 'AI 이력서 작성', desc: '직종별 최적화된 문구를 AI가 자동 생성', color: 'from-indigo-500 to-purple-600' },
-                { icon: '📊', title: 'ATS 점수 분석', desc: '채용 시스템 호환성을 실시간으로 분석', color: 'from-blue-500 to-cyan-600' },
-                { icon: '🎨', title: '전문 템플릿', desc: '디자이너가 제작한 고품질 이력서 템플릿', color: 'from-emerald-500 to-teal-600' },
-                { icon: '🔗', title: '이력서 공유', desc: '고유 URL로 이력서를 간편하게 공유', color: 'from-amber-500 to-orange-600' },
-                { icon: '📧', title: '자기소개서', desc: 'AI가 회사/포지션에 맞는 자소서 작성', color: 'from-pink-500 to-rose-600' },
-                { icon: '📈', title: '커리어 분석', desc: '업계 트렌드와 연봉 데이터 인사이트', color: 'from-violet-500 to-indigo-600' },
-              ].map((feat, i) => (
+              {features.map((feat, i) => (
                 <div key={i} className={`reveal stagger-${i + 1} group p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-transparent hover:shadow-lg transition-all duration-300 cursor-default`}>
                   <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${feat.color} flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform duration-300`}>
                     {feat.icon}
@@ -589,13 +606,9 @@ export default function HomePage() {
 
             {/* Social Proof */}
             <div className="mt-14 reveal">
-              <h2 className="text-xl font-bold text-center text-slate-800 dark:text-slate-200 mb-8">이미 수천 명이 선택했습니다</h2>
+              <h2 className="text-xl font-bold text-center text-slate-800 dark:text-slate-200 mb-8">{socialProofTitle}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {[
-                  { text: 'AI가 자동으로 써준 이력서로 취업에 성공했어요!', author: '소프트웨어 개발자', stars: 5 },
-                  { text: '템플릿이 너무 예뻐서 면접관에게 칭찬받았습니다.', author: 'UX 디자이너', stars: 5 },
-                  { text: 'ATS 분석 기능 덕분에 서류 통과율이 높아졌어요.', author: '마케터', stars: 5 },
-                ].map((review, i) => (
+                {testimonials.map((review, i) => (
                   <div key={i} className={`reveal stagger-${i + 1} p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700`}>
                     <div className="flex gap-0.5 mb-2">
                       {Array.from({ length: review.stars }).map((_, j) => (
@@ -617,6 +630,7 @@ export default function HomePage() {
               </h1>
             </div>
 
+            <ProfileCompleteness />
             <OnboardingBanner />
 
             {wizardResume && resumes.length > 0 && (

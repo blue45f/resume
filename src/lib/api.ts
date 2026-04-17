@@ -424,6 +424,10 @@ export const markAllNotificationsRead = () =>
   request<{ success: boolean }>(`${BASE}/notifications/read-all`, { method: 'POST' });
 export const markNotificationRead = (id: string) =>
   request<any>(`${BASE}/notifications/${id}/read`, { method: 'PATCH' });
+export const deleteNotification = (id: string) =>
+  request<{ success: boolean }>(`${BASE}/notifications/${id}`, { method: 'DELETE' });
+export const deleteNotificationsBulk = (ids: string[]) =>
+  request<{ success: boolean; deleted: number }>(`${BASE}/notifications/delete-bulk`, { method: 'POST', body: JSON.stringify({ ids }) });
 
 // Cover Letter Create
 export const createCoverLetter = (data: any) =>

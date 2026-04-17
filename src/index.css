@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+/* ── Mobile readability + touch ── */
+@media (max-width: 639px) {
+  html { font-size: 15px; -webkit-text-size-adjust: 100%; }
+  main { padding-left: 1rem; padding-right: 1rem; }
+  h1 { font-size: 1.35rem !important; }
+  .mobile-bottom-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  * { -webkit-touch-callout: none; }
+  input, textarea, select { font-size: 16px !important; }
+  .no-select { user-select: none; -webkit-user-select: none; }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  html { font-size: 15.5px; }
+}
+
 @keyframes slideIn {
   from { transform: translateY(100%); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -50,6 +66,7 @@ body {
 }
 
 @media print {
+  @page { margin: 10mm 15mm; size: A4; }
   body {
     background: white !important;
     color: #0f172a !important;
@@ -138,14 +155,23 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 .page-enter { animation: pageEnter 0.25s ease-out both; }
+main[role="main"] { animation: pageEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) both; }
+
+/* Dark mode smooth transition */
+html { transition: background-color 0.3s ease, color 0.3s ease; }
+body, main, header, footer, nav { transition: background-color 0.3s ease, border-color 0.3s ease; }
 
 /* Card hover micro-interactions */
-.card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-.card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px -5px rgba(0,0,0,0.1); }
-.dark .card-hover:hover { box-shadow: 0 8px 25px -5px rgba(0,0,0,0.3); }
+.card-hover { transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease, border-color 0.2s ease; }
+.card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -8px rgba(99,102,241,0.15); border-color: rgb(165 180 252) !important; }
+.dark .card-hover:hover { box-shadow: 0 12px 28px -8px rgba(99,102,241,0.25); border-color: rgb(99 102 241 / 0.4) !important; }
+.card-hover:active { transform: translateY(-1px); }
 
 /* Button press effect */
-.btn-press:active { transform: scale(0.97); }
+.btn-press:active { transform: scale(0.97); transition: transform 0.1s ease; }
+
+/* Focus visible ring for accessibility */
+.focus-ring:focus-visible { outline: 2px solid rgb(99 102 241); outline-offset: 2px; border-radius: 0.75rem; }
 
 /* Shimmer loading effect (smoother) */
 @keyframes shimmer {

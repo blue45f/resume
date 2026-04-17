@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CommentsService } from './comments.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 const mockPrisma = {
@@ -14,6 +15,11 @@ const mockNotifications = {
   create: jest.fn(),
 };
 
+const mockForbiddenWords = {
+  validateOrThrow: jest.fn().mockResolvedValue({ blocked: false, matched: [], warnings: [] }),
+  checkContent: jest.fn().mockResolvedValue({ blocked: false, matched: [], warnings: [] }),
+};
+
 describe('CommentsService', () => {
   let service: CommentsService;
 
@@ -23,6 +29,7 @@ describe('CommentsService', () => {
         CommentsService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationsService, useValue: mockNotifications },
+        { provide: ForbiddenWordsService, useValue: mockForbiddenWords },
       ],
     }).compile();
     service = module.get(CommentsService);

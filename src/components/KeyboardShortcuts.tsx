@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 
 const shortcuts = [
-  { keys: ['Ctrl/⌘', 'S'], description: '이력서 저장', category: '편집' },
-  { keys: ['Ctrl/⌘', 'P'], description: 'PDF 인쇄', category: '미리보기' },
+  { keys: ['⌘/Ctrl', 'K'], description: '글로벌 검색', category: '탐색' },
+  { keys: ['⌘/Ctrl', 'S'], description: '이력서 저장', category: '편집' },
+  { keys: ['⌘/Ctrl', 'P'], description: 'PDF 인쇄', category: '미리보기' },
+  { keys: ['⌘/Ctrl', 'Enter'], description: '댓글/쪽지 전송', category: '일반' },
   { keys: ['\u2190', '\u2192'], description: '탭 이동', category: '편집' },
   { keys: ['N'], description: '새 이력서 (홈에서)', category: '탐색' },
   { keys: ['E'], description: '탐색 페이지', category: '탐색' },

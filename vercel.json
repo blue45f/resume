@@ -2,11 +2,6 @@
   "buildCommand": "npx vite build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "build": {
-    "env": {
-      "VITE_API_URL": "https://resume-api-mm0o.onrender.com"
-    }
-  },
   "rewrites": [
     { "source": "/((?!api).*)", "destination": "/index.html" }
   ],

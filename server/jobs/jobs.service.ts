@@ -291,6 +291,50 @@ export class JobsService {
     return { success: true };
   }
 
+  async getJobStats(location?: string, type?: string, skill?: string) {
+    const where: any = { status: 'active' };
+    if (location) where.location = { contains: location, mode: 'insensitive' };
+    if (type) where.type = type;
+
+    const jobs = await this.prisma.jobPost.findMany({ where, select: { company: true, position: true, location: true, type: true, skills: true, salary: true, createdAt: true } });
+
+    const companyCount: Record<string, number> = {};
+    const locationCount: Record<string, number> = {};
+    const typeCount: Record<string, number> = {};
+    const skillCount: Record<string, number> = {};
+    const monthlyCount: Record<string, number> = {};
+
+    for (const job of jobs) {
+      if (job.company) companyCount[job.company] = (companyCount[job.company] || 0) + 1;
+      if (job.location) {
+        const loc = job.location.split(' ')[0];
+        locationCount[loc] = (locationCount[loc] || 0) + 1;
+      }
+      if (job.type) typeCount[job.type] = (typeCount[job.type] || 0) + 1;
+      if (job.skills) {
+        for (const s of job.skills.split(',').map((s: string) => s.trim()).filter(Boolean)) {
+          if (!skill || s.toLowerCase().includes(skill.toLowerCase())) {
+            skillCount[s] = (skillCount[s] || 0) + 1;
+          }
+        }
+      }
+      const month = new Date(job.createdAt).toISOString().slice(0, 7);
+      monthlyCount[month] = (monthlyCount[month] || 0) + 1;
+    }
+
+    const toRanked = (obj: Record<string, number>, limit = 10) =>
+      Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, limit).map(([name, count]) => ({ name, count }));
+
+    return {
+      total: jobs.length,
+      byCompany: toRanked(companyCount),
+      byLocation: toRanked(locationCount),
+      byType: toRanked(typeCount),
+      bySkill: toRanked(skillCount, 20),
+      byMonth: Object.entries(monthlyCount).sort().map(([month, count]) => ({ month, count })),
+    };
+  }
+
   async recordCuratedJobClick(id: string) {
     const job = await this.prisma.curatedJob.findUnique({ where: { id } });
     if (!job) throw new NotFoundException();

@@ -10,4 +10,8 @@ export class CreateCommentDto {
   @IsString()
   @MaxLength(50)
   authorName?: string;
+
+  @IsOptional()
+  @IsString()
+  parentId?: string;
 }

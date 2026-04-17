@@ -1,3 +1,4 @@
+import { API_URL } from '@/lib/config';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -6,9 +7,10 @@ import { getUser } from '@/lib/auth';
 import { toast } from '@/components/Toast';
 import SendMessageButton from '@/components/SendMessageButton';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+
 
 const CATEGORY_INFO: Record<string, { label: string; icon: string; color: string }> = {
+  notice: { label: '공지사항', icon: '📢', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
   free: { label: '자유', icon: '💬', color: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300' },
   tips: { label: '취업팁', icon: '💡', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
   resume: { label: '이력서피드백', icon: '📄', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
@@ -21,8 +23,36 @@ interface Comment {
   content: string;
   authorName?: string;
   userId?: string;
+  parentId?: string | null;
   createdAt: string;
 }
+
+interface CommentNode extends Comment {
+  children: CommentNode[];
+}
+
+function buildCommentTree(flat: Comment[]): CommentNode[] {
+  const map = new Map<string, CommentNode>();
+  const roots: CommentNode[] = [];
+  for (const c of flat) map.set(c.id, { ...c, children: [] });
+  for (const c of flat) {
+    const node = map.get(c.id)!;
+    if (c.parentId && map.has(c.parentId)) {
+      map.get(c.parentId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  return roots;
+}
+
+function countDescendants(node: CommentNode): number {
+  let n = 0;
+  for (const child of node.children) { n += 1 + countDescendants(child); }
+  return n;
+}
+
+const MAX_REPLY_DEPTH = 8;
 
 interface Attachment {
   url: string;
@@ -142,8 +172,24 @@ export default function CommunityPostPage() {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [submittingReply, setSubmittingReply] = useState(false);
   const commentRef = useRef<HTMLTextAreaElement>(null);
   const commentSectionRef = useRef<HTMLElement>(null);
+  const [scrapped, setScrapped] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('scrapped-posts') || '[]').includes(id); } catch { return false; }
+  });
+
+  const toggleScrap = () => {
+    try {
+      const saved: string[] = JSON.parse(localStorage.getItem('scrapped-posts') || '[]');
+      const updated = scrapped ? saved.filter(s => s !== id) : [...saved, id].slice(-50);
+      localStorage.setItem('scrapped-posts', JSON.stringify(updated));
+      setScrapped(!scrapped);
+      toast(scrapped ? '스크랩이 해제되었습니다' : '게시글을 스크랩했습니다', 'success');
+    } catch {}
+  };
 
   const fetchPost = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -230,6 +276,30 @@ export default function CommunityPostPage() {
     });
     if (r.ok) fetchPost();
     else toast('삭제에 실패했습니다', 'error');
+  };
+
+  const handleReply = async (e: React.FormEvent, parentId: string) => {
+    e.preventDefault();
+    if (!replyText.trim() || !replyingTo) return;
+    setSubmittingReply(true);
+    const token = localStorage.getItem('token');
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (token) (headers as any).Authorization = `Bearer ${token}`;
+    const body: any = { content: replyText.trim(), parentId };
+    if (!user && anonName) body.authorName = anonName;
+    const r = await fetch(`${API_URL}/api/community/${id}/comments`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+    if (r.ok) {
+      setReplyText('');
+      setReplyingTo(null);
+      fetchPost();
+    } else {
+      toast('답글 등록에 실패했습니다', 'error');
+    }
+    setSubmittingReply(false);
   };
 
   const handleDeletePost = async () => {
@@ -439,7 +509,7 @@ export default function CommunityPostPage() {
                       : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-red-200 hover:text-red-500 dark:hover:border-red-800 dark:hover:text-red-400'
                   }`}
                 >
-                  <svg className={`w-4 h-4 transition-transform duration-150 ${liking ? 'scale-90' : 'hover:scale-110'}`} fill={post.liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`w-4 h-4 transition-transform duration-200 ${liking ? 'scale-125' : ''} ${post.liked ? 'animate-bounce' : 'hover:scale-110'}`} fill={post.liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" style={post.liked ? { animationDuration: '0.3s', animationIterationCount: '1' } : undefined}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
                   <span>좋아요 {post.likeCount}</span>
@@ -455,14 +525,32 @@ export default function CommunityPostPage() {
                 </button>
               </div>
 
-              {/* Share */}
-              <button
-                onClick={handleShare}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                공유
-              </button>
+              <div className="flex items-center gap-1">
+                {/* Scrap */}
+                <button
+                  onClick={toggleScrap}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm transition-colors ${
+                    scrapped
+                      ? 'text-amber-500'
+                      : 'text-slate-400 hover:text-amber-500'
+                  }`}
+                  title={scrapped ? '스크랩 해제' : '스크랩'}
+                >
+                  <svg className="w-4 h-4" fill={scrapped ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                  {scrapped ? '스크랩됨' : '스크랩'}
+                </button>
+
+                {/* Share */}
+                <button
+                  onClick={handleShare}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                  공유
+                </button>
+              </div>
             </div>
           </div>
         </article>
@@ -527,51 +615,140 @@ export default function CommunityPostPage() {
           </form>
 
           {/* Comment list */}
-          {!post.comments?.length ? (
-            <div className="text-center py-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
-              <div className="text-3xl mb-2">💬</div>
-              <p className="text-slate-400 text-sm">첫 번째 댓글을 작성해보세요!</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {post.comments.map((comment, idx) => (
-                <div
-                  key={comment.id}
-                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 animate-fade-in-up"
-                  style={{ animationDelay: `${idx * 30}ms` }}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300 shrink-0">
-                          {(comment.authorName || '익')[0]}
-                        </div>
-                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                          {comment.authorName || '익명'}
-                          {comment.userId && comment.userId === post.user?.id && (
-                            <span className="ml-1.5 text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full font-semibold">작성자</span>
+          {(() => {
+            const tree = buildCommentTree(post.comments || []);
+
+            const renderCommentNode = (node: CommentNode, depth: number) => {
+              const isRoot = depth === 0;
+              const descendantCount = countDescendants(node);
+
+              return (
+                <div key={node.id}>
+                  <div className={`${isRoot
+                    ? 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4'
+                    : 'bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 rounded-xl p-3'
+                  }`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          {!isRoot && (
+                            <svg className="w-3 h-3 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                           )}
-                        </span>
-                        <span className="text-xs text-slate-400">{timeAgo(comment.createdAt)}</span>
+                          <div className={`${isRoot ? 'w-6 h-6' : 'w-5 h-5'} rounded-full ${
+                            isRoot ? 'bg-slate-200 dark:bg-slate-600' : 'bg-indigo-100 dark:bg-indigo-900/30'
+                          } flex items-center justify-center text-${isRoot ? '[10px]' : '[9px]'} font-bold ${
+                            isRoot ? 'text-slate-600 dark:text-slate-300' : 'text-indigo-600 dark:text-indigo-400'
+                          } shrink-0`}>
+                            {(node.authorName || '익')[0]}
+                          </div>
+                          <span className={`${isRoot ? 'text-sm' : 'text-xs'} font-medium ${isRoot ? 'text-slate-900 dark:text-slate-100' : 'text-slate-800 dark:text-slate-200'}`}>
+                            {node.authorName || '익명'}
+                            {node.userId && node.userId === post.user?.id && (
+                              <span className={`ml-1.5 ${isRoot ? 'text-[10px]' : 'text-[9px]'} bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full font-semibold`}>작성자</span>
+                            )}
+                          </span>
+                          {node.userId && (
+                            <SendMessageButton targetUserId={node.userId} targetUserName={node.authorName} variant="mini" />
+                          )}
+                          <span className={`${isRoot ? 'text-xs' : 'text-[10px]'} text-slate-400`}>{timeAgo(node.createdAt)}</span>
+                        </div>
+                        <p className={`${isRoot ? 'text-sm pl-8' : 'text-xs pl-7'} text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed`}>
+                          {node.content}
+                        </p>
+                        <div className={`flex items-center gap-3 ${isRoot ? 'pl-8' : 'pl-7'} mt-2`}>
+                          {user && depth < MAX_REPLY_DEPTH && (
+                            <button
+                              onClick={() => {
+                                if (replyingTo?.id === node.id) {
+                                  setReplyingTo(null);
+                                  setReplyText('');
+                                } else {
+                                  setReplyingTo({ id: node.id, authorName: node.authorName || '익명' });
+                                  setReplyText('');
+                                }
+                              }}
+                              className="text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors flex items-center gap-1"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                              {replyingTo?.id === node.id ? '취소' : `답글${descendantCount > 0 ? ` (${descendantCount})` : ''}`}
+                            </button>
+                          )}
+                          {!user && descendantCount > 0 && (
+                            <span className="text-xs text-slate-400">답글 {descendantCount}개</span>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed pl-8">
-                        {comment.content}
-                      </p>
+                      {(user?.id === node.userId || isAdmin) && (
+                        <button
+                          onClick={() => handleDeleteComment(node.id)}
+                          className="shrink-0 text-xs text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1"
+                          aria-label="댓글 삭제"
+                        >
+                          <svg className={`${isRoot ? 'w-3.5 h-3.5' : 'w-3 h-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      )}
                     </div>
-                    {(user?.id === comment.userId || isAdmin) && (
-                      <button
-                        onClick={() => handleDeleteComment(comment.id)}
-                        className="shrink-0 text-xs text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1"
-                        aria-label="댓글 삭제"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
-                    )}
                   </div>
+
+                  {/* Reply form */}
+                  {replyingTo?.id === node.id && (
+                    <div className="ml-6 mt-1 border-l-2 border-indigo-200 dark:border-indigo-800 pl-3">
+                      <form onSubmit={(e) => handleReply(e, node.id)} className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl overflow-hidden">
+                        <div className="px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 border-b border-indigo-100 dark:border-indigo-800/50 flex items-center gap-1.5">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                          <span className="font-medium">{replyingTo.authorName}</span>님에게 답글
+                        </div>
+                        <textarea
+                          value={replyText}
+                          onChange={e => setReplyText(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                              e.preventDefault();
+                              if (replyText.trim()) handleReply(e as any, node.id);
+                            }
+                          }}
+                          placeholder="답글을 입력하세요... (⌘+Enter로 등록)"
+                          rows={2}
+                          autoFocus
+                          className="w-full px-3 py-2 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none"
+                        />
+                        <div className="px-3 py-2 bg-indigo-100/50 dark:bg-indigo-900/30 flex items-center justify-end gap-2">
+                          <button type="button" onClick={() => { setReplyingTo(null); setReplyText(''); }} className="px-3 py-1 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 transition-colors">
+                            취소
+                          </button>
+                          <button type="submit" disabled={!replyText.trim() || submittingReply} className="px-3 py-1 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                            {submittingReply ? '등록 중...' : '답글 등록'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  {/* Recursive children */}
+                  {node.children.length > 0 && (
+                    <div className="ml-6 mt-1 space-y-1 border-l-2 border-indigo-100 dark:border-indigo-900/30 pl-3">
+                      {node.children.map(child => renderCommentNode(child, depth + 1))}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            };
+
+            return !tree.length ? (
+              <div className="text-center py-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
+                <div className="text-3xl mb-2">💬</div>
+                <p className="text-slate-400 text-sm">첫 번째 댓글을 작성해보세요!</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {tree.map((node, idx) => (
+                  <div key={node.id} className="animate-fade-in-up" style={{ animationDelay: `${idx * 30}ms` }}>
+                    {renderCommentNode(node, 0)}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </section>
 
         {/* Back link */}

@@ -180,12 +180,18 @@ const ResumeThumbnail = memo(function ResumeThumbnail({ resume, themeId, onClick
       </div>
 
       {/* Hover action overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-indigo-600/85 via-indigo-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4 gap-3">
+      <div className="absolute inset-0 bg-gradient-to-t from-indigo-600/85 via-indigo-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4 gap-2 flex-wrap">
         <span className="text-white text-xs font-semibold bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/30">
           편집
         </span>
         <span className="text-white text-xs font-semibold bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/30">
           미리보기
+        </span>
+        <span className="text-white text-[10px] font-medium bg-white/15 backdrop-blur-sm px-2 py-1 rounded-full border border-white/20">
+          자소서
+        </span>
+        <span className="text-white text-[10px] font-medium bg-white/15 backdrop-blur-sm px-2 py-1 rounded-full border border-white/20">
+          면접
         </span>
       </div>
 

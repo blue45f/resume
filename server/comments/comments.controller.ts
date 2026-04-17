@@ -25,7 +25,7 @@ export class CommentsController {
     @Body() dto: CreateCommentDto,
     @Req() req: any,
   ) {
-    return this.service.create(resumeId, dto.content, req.user?.id, dto.authorName);
+    return this.service.create(resumeId, dto.content, req.user?.id, dto.authorName, dto.parentId);
   }
 
   @Delete(':commentId')

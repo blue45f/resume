@@ -46,11 +46,12 @@ export class CommunityController {
     @Query('page') page = '1',
     @Query('limit') limit = '20',
     @Query('showHidden') showHidden?: string,
+    @Query('sort') sort = 'recent',
     @Req() req?: any,
   ) {
     const isAdmin = req?.user?.role === 'admin' || req?.user?.role === 'superadmin';
     const includeHidden = isAdmin && showHidden === 'true';
-    return this.service.getPosts(category, search, parseInt(page), parseInt(limit), includeHidden);
+    return this.service.getPosts(category, search, parseInt(page), parseInt(limit), includeHidden, sort);
   }
 
   @Get(':id')
@@ -102,10 +103,10 @@ export class CommunityController {
   @ApiOperation({ summary: '댓글 작성' })
   addComment(
     @Param('id') id: string,
-    @Body() body: { content: string; authorName?: string },
+    @Body() body: { content: string; authorName?: string; parentId?: string },
     @Req() req: any,
   ) {
-    return this.service.addComment(id, req.user?.id, body.content, body.authorName);
+    return this.service.addComment(id, req.user?.id, body.content, body.authorName, body.parentId);
   }
 
   @Delete(':id/comments/:commentId')

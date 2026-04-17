@@ -1,6 +1,7 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { SanitizeMiddleware } from './common/middleware/sanitize.middleware';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
@@ -25,14 +26,15 @@ import { BannersModule } from './banners/banners.module';
 import { NoticesModule } from './notices/notices.module';
 import { SystemConfigModule } from './system-config/system-config.module';
 import { CommunityModule } from './community/community.module';
+import { ForbiddenWordsModule } from './forbidden-words/forbidden-words.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([
-      { name: 'short', ttl: 1000, limit: 30 },
-      { name: 'medium', ttl: 60000, limit: 300 },
-      { name: 'long', ttl: 3600000, limit: 3000 },
+      { name: 'short', ttl: 1000, limit: 120 },
+      { name: 'medium', ttl: 60000, limit: 1200 },
+      { name: 'long', ttl: 3600000, limit: 10000 },
     ]),
     AuthModule,
     PrismaModule,
@@ -54,9 +56,10 @@ import { CommunityModule } from './community/community.module';
     NoticesModule,
     SystemConfigModule,
     CommunityModule,
+    ForbiddenWordsModule,
   ],
   providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: CustomThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
   ],
 })

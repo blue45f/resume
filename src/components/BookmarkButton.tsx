@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { toast } from '@/components/Toast';
 import { API_URL } from '@/lib/config';
 
@@ -9,7 +9,7 @@ interface Props {
   size?: 'sm' | 'md';
 }
 
-export default function BookmarkButton({ resumeId, initialBookmarked = false, size = 'md' }: Props) {
+export default memo(function BookmarkButton({ resumeId, initialBookmarked = false, size = 'md' }: Props) {
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [loading, setLoading] = useState(false);
 
@@ -60,4 +60,4 @@ export default function BookmarkButton({ resumeId, initialBookmarked = false, si
       </svg>
     </button>
   );
-}
+});

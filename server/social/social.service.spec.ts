@@ -2,9 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SocialService } from './social.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
 import { ForbiddenException } from '@nestjs/common';
 
 const mockNotifications = { create: jest.fn() };
+const mockForbiddenWords = { validateOrThrow: jest.fn().mockResolvedValue({ blocked: false, matched: [], warnings: [] }) };
 
 const mockPrisma = {
   follow: { create: jest.fn(), deleteMany: jest.fn(), findMany: jest.fn(), findFirst: jest.fn() },
@@ -22,6 +24,7 @@ describe('SocialService', () => {
         SocialService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationsService, useValue: mockNotifications },
+        { provide: ForbiddenWordsService, useValue: mockForbiddenWords },
       ],
     }).compile();
     service = module.get(SocialService);

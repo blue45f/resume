@@ -1,3 +1,4 @@
+import { API_URL } from '@/lib/config';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,7 +11,7 @@ interface Banner {
   bgColor: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+
 
 export default function BannerSlider() {
   const [banners, setBanners] = useState<Banner[]>([]);

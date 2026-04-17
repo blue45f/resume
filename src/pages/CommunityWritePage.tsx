@@ -5,12 +5,13 @@ import { getUser } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
 
 const CATEGORIES = [
+  { id: 'notice', label: '공지사항', icon: '📢', adminOnly: true },
   { id: 'free', label: '자유', icon: '💬' },
   { id: 'tips', label: '취업팁', icon: '💡' },
   { id: 'resume', label: '이력서피드백', icon: '📄' },
   { id: 'cover-letter', label: '자소서', icon: '✍️' },
   { id: 'question', label: '질문', icon: '❓' },
-];
+] as const;
 
 // ── Markdown renderer for preview ────────────────────────────────────────────
 function renderMarkdown(text: string): string {
@@ -137,6 +138,44 @@ export default function CommunityWritePage() {
   const [preview, setPreview] = useState(false);
   const [attachments, setAttachments] = useState<{ url: string; name: string; size: number; type: string }[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
+
+  // 서버 Draft 로드
+  useEffect(() => {
+    if (isEdit || !user) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    fetch(`${API_URL}/api/health/drafts/community_post`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.title) setTitle(d.title);
+        if (d?.content) setContent(d.content);
+        if (d?.category) setCategory(d.category);
+      })
+      .catch(() => {});
+  }, [isEdit, user?.id]);
+
+  // 서버 Draft 자동 저장 (3초 디바운스)
+  useEffect(() => {
+    if (isEdit || !user) return;
+    const timer = setTimeout(() => {
+      if (title.trim() || content.trim()) {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        fetch(`${API_URL}/api/health/drafts/community_post`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ title, content, category }),
+        }).then(() => { setDraftSaved(true); setTimeout(() => setDraftSaved(false), 2000); }).catch(() => {});
+      }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [title, content, category, isEdit, user?.id]);
+
+  const clearDraft = () => {
+    const token = localStorage.getItem('token');
+    if (token) fetch(`${API_URL}/api/health/drafts/community_post`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -283,6 +322,7 @@ export default function CommunityWritePage() {
 
     if (r.ok) {
       const data = await r.json();
+      clearDraft();
       navigate(`/community/${isEdit ? id : data.id}`);
     } else {
       setError('저장에 실패했습니다. 다시 시도해주세요.');
@@ -298,9 +338,17 @@ export default function CommunityWritePage() {
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-8">
         {/* Page header */}
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-            {isEdit ? '게시글 수정' : '글쓰기'}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+              {isEdit ? '게시글 수정' : '글쓰기'}
+            </h1>
+            {draftSaved && !isEdit && (
+              <span className="text-[10px] text-emerald-500 animate-fade-in flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                자동 저장됨
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
             <span className="hidden sm:inline">Ctrl+B 굵게</span>
             <span className="hidden sm:inline">·</span>
@@ -315,7 +363,7 @@ export default function CommunityWritePage() {
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">카테고리</label>
             <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map(cat => (
+              {CATEGORIES.filter(cat => !('adminOnly' in cat && cat.adminOnly) || user?.role === 'admin' || user?.role === 'superadmin').map(cat => (
                 <button
                   key={cat.id}
                   type="button"

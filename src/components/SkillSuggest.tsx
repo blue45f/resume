@@ -98,14 +98,14 @@ export function SkillSuggestDropdown({ currentItems, onAdd }: { currentItems: st
   const lastSkill = existing[existing.length - 1] || '';
 
   return (
-    <div className="mt-1.5 p-2.5 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg animate-fade-in">
-      <div className="flex items-center justify-between mb-1.5">
-        <p className="text-xs text-purple-700 dark:text-purple-300">
+    <div className="mt-1.5 p-2.5 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg animate-fade-in w-full overflow-hidden">
+      <div className="flex items-start justify-between gap-2 mb-1.5">
+        <p className="text-xs text-purple-700 dark:text-purple-300 flex-1 min-w-0 break-words">
           <span className="font-medium">{lastSkill}</span>을(를) 입력하셨습니다. 관련 기술도 추가하시겠습니까?
         </p>
         <button
           onClick={() => setDismissed(true)}
-          className="p-0.5 text-purple-400 hover:text-purple-600 transition-colors"
+          className="p-0.5 text-purple-400 hover:text-purple-600 transition-colors shrink-0"
           aria-label="닫기"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -121,7 +121,7 @@ export function SkillSuggestDropdown({ currentItems, onAdd }: { currentItems: st
             onClick={() => onAdd(skill)}
             className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-700 rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
           >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
             {skill}
@@ -149,12 +149,12 @@ export function CompanyRoleSuggest({ company, onSelect }: { company: string; onS
   if (dismissed || roles.length === 0 || company.trim().length < 2) return null;
 
   return (
-    <div className="mt-1 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg animate-fade-in">
-      <div className="flex items-center justify-between mb-1">
-        <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">{company}의 일반적인 직위:</p>
+    <div className="mt-1 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg animate-fade-in w-full overflow-hidden">
+      <div className="flex items-start justify-between gap-2 mb-1">
+        <p className="text-xs text-blue-700 dark:text-blue-300 font-medium flex-1 min-w-0 truncate">{company}의 일반적인 직위:</p>
         <button
           onClick={() => setDismissed(true)}
-          className="p-0.5 text-blue-400 hover:text-blue-600 transition-colors"
+          className="p-0.5 text-blue-400 hover:text-blue-600 transition-colors shrink-0"
           aria-label="닫기"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -204,7 +204,7 @@ export function InlineContentTip({ text, section }: { text: string; section: 'ex
   if (!tip) return null;
 
   return (
-    <div className="mt-1.5 p-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg animate-fade-in">
+    <div className="mt-1.5 p-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg animate-fade-in w-full overflow-hidden">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
           <div className="flex items-center gap-1.5 mb-1">

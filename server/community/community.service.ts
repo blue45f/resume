@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
 
 @Injectable()
 export class CommunityService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly forbiddenWords: ForbiddenWordsService,
   ) {}
 
-  async getPosts(category?: string, search?: string, page = 1, limit = 20, showHidden = false) {
+  async getPosts(category?: string, search?: string, page = 1, limit = 20, showHidden = false, sort = 'recent') {
     const where: any = {};
     if (!showHidden) where.isHidden = false;
     if (category && category !== 'all') where.category = category;
@@ -23,7 +25,13 @@ export class CommunityService {
     const [items, total] = await Promise.all([
       this.prisma.communityPost.findMany({
         where,
-        orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+        orderBy: [
+          { isPinned: 'desc' },
+          ...(sort === 'popular' ? [{ likeCount: 'desc' as const }, { viewCount: 'desc' as const }] :
+              sort === 'views' ? [{ viewCount: 'desc' as const }] :
+              sort === 'comments' ? [] :
+              [{ createdAt: 'desc' as const }]),
+        ],
         skip: (page - 1) * limit,
         take: limit,
         include: {
@@ -70,6 +78,7 @@ export class CommunityService {
   }
 
   async createPost(userId: string, body: { title: string; content: string; category: string; attachments?: any[] }) {
+    await this.forbiddenWords.validateOrThrow(body.title, body.content);
     return this.prisma.communityPost.create({
       data: {
         title: body.title,
@@ -134,15 +143,28 @@ export class CommunityService {
     });
   }
 
-  async addComment(postId: string, userId: string | undefined, content: string, authorName?: string) {
+  async addComment(postId: string, userId: string | undefined, content: string, authorName?: string, parentId?: string) {
+    await this.forbiddenWords.validateOrThrow(content);
     const comment = await this.prisma.communityComment.create({
-      data: { postId, userId: userId || null, content, authorName: authorName || null },
+      data: { postId, userId: userId || null, content, authorName: authorName || null, parentId: parentId || null },
     });
 
-    // 게시글 작성자에게 알림 (자신의 댓글 제외)
     const post = await this.prisma.communityPost.findUnique({ where: { id: postId }, select: { userId: true, title: true } });
-    if (post?.userId && post.userId !== userId) {
-      const commenterName = authorName || '익명';
+    const commenterName = authorName || '익명';
+
+    if (parentId) {
+      // Notify the parent comment's author (if different from the replier)
+      const parent = await this.prisma.communityComment.findUnique({ where: { id: parentId }, select: { userId: true } });
+      if (parent?.userId && parent.userId !== userId) {
+        await this.notifications.create(
+          parent.userId,
+          'comment',
+          `${commenterName}님이 내 댓글에 답글을 달았습니다.`,
+          `/community/${postId}`,
+        ).catch(() => {});
+      }
+    } else if (post?.userId && post.userId !== userId) {
+      // Notify post author of new top-level comment
       await this.notifications.create(
         post.userId,
         'comment',

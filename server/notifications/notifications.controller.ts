@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Param, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, Req, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 
@@ -41,6 +41,20 @@ export class NotificationsController {
   markRead(@Param('id') id: string, @Req() req: any) {
     if (!req.user?.id) return { success: false };
     return this.service.markAsRead(req.user.id, id);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '알림 삭제' })
+  deleteOne(@Param('id') id: string, @Req() req: any) {
+    if (!req.user?.id) return { success: false };
+    return this.service.deleteOne(req.user.id, id);
+  }
+
+  @Post('delete-bulk')
+  @ApiOperation({ summary: '알림 일괄 삭제' })
+  deleteBulk(@Body() body: { ids: string[] }, @Req() req: any) {
+    if (!req.user?.id) return { success: false };
+    return this.service.deleteBulk(req.user.id, body.ids);
   }
 
   @Delete('cleanup')

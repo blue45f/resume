@@ -1,6 +1,19 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ErrorBoundary from '@/components/ErrorBoundary';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 3 * 60_000,
+      gcTime: 10 * 60_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+  },
+});
 import { ToastContainer } from '@/components/Toast';
 import OfflineBanner from '@/components/OfflineBanner';
 import CookieConsent from '@/components/CookieConsent';
@@ -70,12 +83,20 @@ const CommunityPostPage = lazyRetry(() => import('@/pages/CommunityPostPage'));
 const CommunityWritePage = lazyRetry(() => import('@/pages/CommunityWritePage'));
 const NoticePage = lazyRetry(() => import('@/pages/NoticePage'));
 const NotFoundPage = lazyRetry(() => import('@/pages/NotFoundPage'));
+const HelpPage = lazyRetry(() => import('@/pages/HelpPage'));
+const StatsPage = lazyRetry(() => import('@/pages/StatsPage'));
 const PortfolioPage = lazyRetry(() => import('@/pages/PortfolioPage'));
 
 function PageLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center animate-fade-in">
+      <div className="flex flex-col items-center gap-3">
+        <div className="relative">
+          <div className="w-10 h-10 border-4 border-indigo-200 dark:border-indigo-800 rounded-full" />
+          <div className="absolute inset-0 w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+        <p className="text-xs text-slate-400 dark:text-slate-500 animate-pulse">로딩 중...</p>
+      </div>
     </div>
   );
 }
@@ -87,6 +108,7 @@ export default function App() {
   }, []);
 
   return (
+    <QueryClientProvider client={queryClient}>
     <ErrorBoundary>
       <OfflineBanner />
       <BrowserRouter>
@@ -134,6 +156,8 @@ export default function App() {
             <Route path="/social/follows" element={<Suspense fallback={<PageLoader />}><AuthGuard><FollowListPage /></AuthGuard></Suspense>} />
             <Route path="/feedback" element={<Suspense fallback={<PageLoader />}><FeedbackPage /></Suspense>} />
             <Route path="/sitemap" element={<Suspense fallback={<PageLoader />}><SitemapPage /></Suspense>} />
+            <Route path="/stats" element={<Suspense fallback={<PageLoader />}><StatsPage /></Suspense>} />
+            <Route path="/help" element={<Suspense fallback={<PageLoader />}><HelpPage /></Suspense>} />
             <Route path="/notifications" element={<Suspense fallback={<PageLoader />}><AuthGuard><NotificationsPage /></AuthGuard></Suspense>} />
             <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AuthGuard><AdminPage /></AuthGuard></Suspense>} />
             <Route path="/r/:code" element={<Suspense fallback={<PageLoader />}><ShortLinkPage /></Suspense>} />
@@ -157,5 +181,6 @@ export default function App() {
         <ToastContainer />
       </BrowserRouter>
     </ErrorBoundary>
+    </QueryClientProvider>
   );
 }

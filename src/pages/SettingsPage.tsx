@@ -64,8 +64,10 @@ interface SectionProps {
   danger?: boolean;
 }
 
-function CollapsibleSection({ id, icon, title, open, onToggle, children, danger }: SectionProps) {
+function CollapsibleSection({ id, icon, title, open, onToggle, children, danger, hidden }: SectionProps & { hidden?: boolean }) {
   const contentRef = useRef<HTMLDivElement>(null);
+
+  if (hidden) return null;
 
   return (
     <section
@@ -110,17 +112,17 @@ function CollapsibleSection({ id, icon, title, open, onToggle, children, danger 
 
 /* ── 빠른 탐색 ───────────────────────────────────── */
 const NAV_ITEMS = [
-  { id: 'sec-profile', label: '프로필' },
-  { id: 'sec-usertype', label: '유형' },
-  { id: 'sec-opento', label: '구직' },
-  { id: 'sec-subscription', label: '구독' },
-  { id: 'sec-activity', label: '활동' },
-  { id: 'sec-social', label: '소셜' },
-  { id: 'sec-password', label: '비밀번호' },
-  { id: 'sec-notifications', label: '알림' },
-  { id: 'sec-theme', label: '테마' },
-  { id: 'sec-data', label: '데이터' },
-  { id: 'sec-danger', label: '삭제' },
+  { id: 'sec-profile', label: '프로필', keywords: '이름 이메일 아바타 프로필 사진 닉네임 username' },
+  { id: 'sec-usertype', label: '유형', keywords: '채용 구직 담당자 개인 기업 회사 모드' },
+  { id: 'sec-opento', label: '구직', keywords: '구직 중 open to work 포지션 역할' },
+  { id: 'sec-subscription', label: '구독', keywords: '요금제 플랜 구독 무료 프리미엄 결제' },
+  { id: 'sec-activity', label: '활동', keywords: '최근 활동 이력 기록 로그' },
+  { id: 'sec-social', label: '소셜', keywords: '팔로워 팔로잉 소셜 연결 친구' },
+  { id: 'sec-password', label: '비밀번호', keywords: '비밀번호 변경 보안 암호 password' },
+  { id: 'sec-notifications', label: '알림', keywords: '알림 설정 이메일 스카우트 댓글 푸시' },
+  { id: 'sec-theme', label: '테마', keywords: '테마 다크 라이트 모드 색상 dark light' },
+  { id: 'sec-data', label: '데이터', keywords: '데이터 내보내기 다운로드 백업 export' },
+  { id: 'sec-danger', label: '삭제', keywords: '계정 삭제 탈퇴 회원탈퇴 계정삭제' },
 ];
 
 /* ══════════════════════════════════════════════════ */
@@ -159,6 +161,7 @@ export default function SettingsPage() {
   });
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [settingsSearch, setSettingsSearch] = useState('');
 
   /* ── 초기화 ── */
   useEffect(() => {
@@ -181,6 +184,13 @@ export default function SettingsPage() {
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
+  };
+
+  const isSectionVisible = (id: string) => {
+    if (!settingsSearch.trim()) return true;
+    const q = settingsSearch.toLowerCase();
+    const item = NAV_ITEMS.find(n => n.id === id);
+    return item ? (item.label.toLowerCase().includes(q) || item.keywords.toLowerCase().includes(q)) : true;
   };
 
   const scrollTo = (id: string) => {
@@ -333,9 +343,43 @@ export default function SettingsPage() {
           </button>
         </div>
 
+        {/* 설정 검색 */}
+        <div className="relative mb-4">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            value={settingsSearch}
+            onChange={e => {
+              setSettingsSearch(e.target.value);
+              if (e.target.value.trim()) {
+                const q = e.target.value.toLowerCase();
+                const matching = NAV_ITEMS.filter(n =>
+                  n.label.toLowerCase().includes(q) || n.keywords.toLowerCase().includes(q)
+                );
+                setOpenSections(new Set(matching.map(n => n.id)));
+              }
+            }}
+            placeholder="설정 검색... (예: 비밀번호, 테마, 알림)"
+            className="w-full pl-10 pr-8 py-2.5 text-sm border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+          />
+          {settingsSearch && (
+            <button onClick={() => setSettingsSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+
         {/* 빠른 탐색 */}
         <div className="flex gap-1.5 mb-6 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
-          {NAV_ITEMS.filter(n => n.id !== 'sec-password' || user.provider === 'local').map(item => (
+          {NAV_ITEMS.filter(n => n.id !== 'sec-password' || user.provider === 'local').filter(n => {
+            if (!settingsSearch.trim()) return true;
+            const q = settingsSearch.toLowerCase();
+            return n.label.toLowerCase().includes(q) || n.keywords.toLowerCase().includes(q);
+          }).map(item => (
             <button
               key={item.id}
               onClick={() => scrollTo(item.id)}
@@ -826,6 +870,19 @@ export default function SettingsPage() {
             계정 영구 삭제
           </button>
         </CollapsibleSection>
+
+        {/* 검색 결과 없음 */}
+        {settingsSearch.trim() && NAV_ITEMS.every(n => !isSectionVisible(n.id)) && (
+          <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+            <div className="text-3xl mb-3">🔍</div>
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              "{settingsSearch}"에 해당하는 설정을 찾을 수 없습니다
+            </p>
+            <button onClick={() => setSettingsSearch('')} className="mt-3 text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
+              검색 초기화
+            </button>
+          </div>
+        )}
 
       </main>
       <Footer />

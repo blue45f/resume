@@ -1,7 +1,7 @@
 {
   "name": "resume-platform",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.1.0",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -12,8 +12,11 @@
     "dev:server": "nest start --watch -b swc",
     "build": "vite build && nest build",
     "build:client": "vite build",
+    "build:client:dev": "vite build --mode development",
+    "build:client:prod": "vite build --mode production",
     "build:server": "nest build",
     "start:server": "node dist-server/main.js",
+    "deploy:gcp": "gcloud run deploy resume-api --source . --region asia-northeast3 --allow-unauthenticated --set-env-vars NODE_ENV=production",
     "lint": "eslint .",
     "format": "prettier --write \"server/**/*.ts\" \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"server/**/*.ts\" \"src/**/*.{ts,tsx}\"",
@@ -32,6 +35,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
+    "@hookform/resolvers": "^5.2.2",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
@@ -40,6 +44,7 @@
     "@nestjs/swagger": "^11.0.0",
     "@nestjs/throttler": "^6.5.0",
     "@prisma/client": "^6.9.0",
+    "@tanstack/react-query": "^5.99.0",
     "@tiptap/extension-character-count": "^3.22.1",
     "@tiptap/extension-link": "^3.22.0",
     "@tiptap/extension-placeholder": "^3.22.0",
@@ -60,6 +65,7 @@
     "i18next-browser-languagedetector": "^8.2.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-hook-form": "^7.72.1",
     "react-i18next": "^17.0.3",
     "react-router-dom": "^7.13.2",
     "react-to-print": "^3.3.0",
@@ -67,7 +73,8 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sanitize-html": "^2.17.2",
-    "tiptap": "^1.32.2"
+    "tiptap": "^1.32.2",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

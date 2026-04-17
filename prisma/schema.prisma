@@ -47,6 +47,7 @@ model User {
   noticeComments     NoticeComment[]
   noticeHistoryEdits NoticeHistory[]
   curatedJobs        CuratedJob[]
+  drafts             Draft[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -381,12 +382,16 @@ model Comment {
   userId     String?
   authorName String
   content    String
+  parentId   String?  @map("parent_id")
   createdAt  DateTime @default(now())
 
-  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  resume  Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  user    User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
 
   @@index([resumeId])
+  @@index([parentId])
 }
 
 model Bookmark {
@@ -678,12 +683,16 @@ model CommunityComment {
   userId     String?  @map("user_id")
   content    String
   authorName String?  @map("author_name")
+  parentId   String?  @map("parent_id")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
-  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post    CommunityPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent  CommunityComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies CommunityComment[] @relation("CommentReplies")
 
   @@index([postId])
+  @@index([parentId])
   @@map("community_comments")
 }
 
@@ -761,4 +770,34 @@ model CuratedJob {
   @@index([industry])
   @@index([jobType])
   @@map("curated_jobs")
+}
+
+model ForbiddenWord {
+  id        String   @id @default(uuid())
+  word      String   @unique
+  category  String   @default("general")
+  severity  String   @default("block")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdBy String?  @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([isActive])
+  @@index([category])
+  @@map("forbidden_words")
+}
+
+model Draft {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@map("drafts")
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
@@ -308,10 +309,14 @@ function CircularTimer({
 // ── Main Component ──
 
 export default function InterviewPrepPage() {
+  const [searchParams] = useSearchParams();
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
-  const [selectedResumeId, setSelectedResumeId] = useState('');
+  const [selectedResumeId, setSelectedResumeId] = useState(searchParams.get('resumeId') || '');
   const [jobRole, setJobRole] = useState('');
+  const [jobDescription, setJobDescription] = useState('');
   const [difficulty, setDifficulty] = useState<Difficulty>('intermediate');
+  const [jobPosts, setJobPosts] = useState<{ id: string; company: string; position: string; description?: string; skills?: string }[]>([]);
+  const [showJobSelect, setShowJobSelect] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<Category>('전체');
   const [jobFieldFilter, setJobFieldFilter] = useState<JobField>('전체');
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -362,6 +367,10 @@ export default function InterviewPrepPage() {
   useEffect(() => {
     document.title = '면접 준비 — 이력서공방';
     fetchResumes().then(setResumes).catch(() => {});
+    fetch(`${API_URL}/api/jobs`).then(r => r.ok ? r.json() : []).then(d => {
+      const items = Array.isArray(d) ? d : d.items || d.data || [];
+      setJobPosts(items.slice(0, 30));
+    }).catch(() => {});
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
   }, []);
 
@@ -451,7 +460,7 @@ export default function InterviewPrepPage() {
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const res = await fetch(`${API_URL}/api/resumes/${selectedResumeId}/transform/interview`, {
         method: 'POST', headers,
-        body: JSON.stringify({ jobRole: jobRole || undefined, difficulty }),
+        body: JSON.stringify({ jobRole: jobRole || undefined, difficulty, jobDescription: jobDescription || undefined }),
       });
       if (!res.ok) throw new Error('생성에 실패했습니다');
       const data = await res.json();
@@ -1146,6 +1155,47 @@ export default function InterviewPrepPage() {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">지원 직무 (선택)</label>
               <input value={jobRole} onChange={e => setJobRole(e.target.value)} placeholder="예: 프론트엔드 개발자"
                 className="w-full px-3 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">채용공고 / JD (선택)</label>
+                {jobPosts.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowJobSelect(!showJobSelect)}
+                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                  >
+                    {showJobSelect ? '닫기' : '채용공고에서 선택'}
+                  </button>
+                )}
+              </div>
+              {showJobSelect && (
+                <div className="mb-2 max-h-40 overflow-y-auto border border-slate-200 dark:border-slate-600 rounded-xl divide-y divide-slate-100 dark:divide-slate-700">
+                  {jobPosts.map(job => (
+                    <button
+                      key={job.id}
+                      type="button"
+                      onClick={() => {
+                        const jd = [job.position, job.description, job.skills ? `요구기술: ${job.skills}` : ''].filter(Boolean).join('\n');
+                        setJobDescription(jd);
+                        setJobRole(job.position);
+                        setShowJobSelect(false);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                    >
+                      <span className="text-xs font-medium text-slate-800 dark:text-slate-200">{job.company}</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 ml-1.5">{job.position}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <textarea
+                value={jobDescription}
+                onChange={e => setJobDescription(e.target.value)}
+                placeholder="채용공고 내용이나 자격요건을 붙여넣으면 맞춤 질문이 생성됩니다"
+                rows={3}
+                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 resize-none"
+              />
             </div>
           </div>
 

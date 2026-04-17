@@ -16,8 +16,8 @@ export default class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch() {
-    // 2초 후 자동 복구 시도 (라우트 변경 시 에러 리셋)
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('[ErrorBoundary]', error.message, errorInfo.componentStack?.slice(0, 200));
     setTimeout(() => {
       this.setState({ hasError: false, error: null });
     }, 100);

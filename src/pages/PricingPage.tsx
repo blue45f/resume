@@ -4,24 +4,13 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { PLANS, RECRUITER_PLANS, formatPrice, isMonetizationEnabled } from '@/lib/plans';
 import { getUser } from '@/lib/auth';
+import { API_URL } from '@/lib/config';
 
-const FAQ_ITEMS = [
-  {
-    q: '무료 플랜으로 어디까지 사용할 수 있나요?',
-    a: '무료 플랜에서도 이력서 3개 작성, 월 5회 AI 변환, ATS 검사, 3종 테마를 모두 사용하실 수 있습니다. 비용 걱정 없이 핵심 기능을 모두 체험해보세요.',
-  },
-  {
-    q: '결제 후 환불이 가능한가요?',
-    a: '결제일로부터 7일 이내에 환불을 요청하시면 전액 환불해드립니다. 설정 > 구독 관리에서 직접 취소하거나, 고객 지원에 문의해주세요.',
-  },
-  {
-    q: '플랜을 중간에 변경할 수 있나요?',
-    a: '언제든 업그레이드 또는 다운그레이드가 가능합니다. 업그레이드 시 남은 기간은 일할 계산되어 차액만 결제됩니다.',
-  },
-  {
-    q: '연간 결제와 월간 결제의 차이점은 무엇인가요?',
-    a: '연간 결제 시 월간 대비 약 17% 할인된 가격으로 이용하실 수 있습니다. 장기 사용 계획이 있으시다면 연간 결제를 추천드립니다.',
-  },
+const DEFAULT_FAQ = [
+  { q: '무료 플랜으로 어디까지 사용할 수 있나요?', a: '무료 플랜에서도 이력서 3개 작성, 월 5회 AI 변환, ATS 검사, 3종 테마를 모두 사용하실 수 있습니다. 비용 걱정 없이 핵심 기능을 모두 체험해보세요.' },
+  { q: '결제 후 환불이 가능한가요?', a: '결제일로부터 7일 이내에 환불을 요청하시면 전액 환불해드립니다. 설정 > 구독 관리에서 직접 취소하거나, 고객 지원에 문의해주세요.' },
+  { q: '플랜을 중간에 변경할 수 있나요?', a: '언제든 업그레이드 또는 다운그레이드가 가능합니다. 업그레이드 시 남은 기간은 일할 계산되어 차액만 결제됩니다.' },
+  { q: '연간 결제와 월간 결제의 차이점은 무엇인가요?', a: '연간 결제 시 월간 대비 약 17% 할인된 가격으로 이용하실 수 있습니다. 장기 사용 계획이 있으시다면 연간 결제를 추천드립니다.' },
 ];
 
 export default function PricingPage() {
@@ -37,6 +26,14 @@ export default function PricingPage() {
   useEffect(() => {
     document.title = '요금제 — 이력서공방';
     return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+  }, []);
+
+  const [faqItems, setFaqItems] = useState(DEFAULT_FAQ);
+  useEffect(() => {
+    fetch(`${API_URL}/api/system-config/content/pricing_faq`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.length) setFaqItems(d); })
+      .catch(() => {});
   }, []);
 
   const FeatureRow = ({ label, free, pro, ent }: { label: string; free: string | boolean; pro: string | boolean; ent: string | boolean }) => (
@@ -323,7 +320,7 @@ export default function PricingPage() {
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 text-center mb-2">자주 묻는 질문</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-8">요금제에 대해 궁금한 점을 확인해보세요</p>
           <div className="space-y-3">
-            {FAQ_ITEMS.map((item, i) => (
+            {faqItems.map((item, i) => (
               <div key={i} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden transition-all duration-200">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}

@@ -29,6 +29,17 @@ export class InterviewDto {
   @MaxLength(200, { message: '직무명은 200자 이내여야 합니다' })
   jobRole?: string;
 
+  @ApiPropertyOptional({ description: '채용공고/JD (3000자 이내)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(3000, { message: 'JD는 3000자 이내여야 합니다' })
+  jobDescription?: string;
+
+  @ApiPropertyOptional({ description: '난이도 (beginner/intermediate/advanced)' })
+  @IsOptional()
+  @IsString()
+  difficulty?: string;
+
   @ApiPropertyOptional({ description: 'LLM 프로바이더' })
   @IsOptional()
   @IsString()
