@@ -73,7 +73,7 @@ export default function AuthCallbackPage() {
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
         <div className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 sm:p-8 animate-fade-in-up">
           <div className="text-center mb-6">
-            <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-lg">
+            <div className="w-14 h-14 bg-neutral-900 dark:bg-white rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-lg">
               🎉
             </div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">환영합니다!</h1>
@@ -122,7 +122,7 @@ export default function AuthCallbackPage() {
           <button
             onClick={handleSelectType}
             disabled={saving}
-            className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-50"
+            className="w-full py-3 bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white font-semibold rounded-xl shadow-md transition-all disabled:opacity-50"
           >
             {saving ? '설정 중...' : '시작하기'}
           </button>

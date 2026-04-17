@@ -497,7 +497,7 @@ export default function CoverLetterPage() {
               <button
                 onClick={handleFeedback}
                 disabled={!feedbackText.trim()}
-                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-xl hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                className="w-full py-3 bg-neutral-900 dark:bg-white text-white font-medium rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
               >
                 피드백 분석
               </button>

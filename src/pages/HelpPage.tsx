@@ -61,7 +61,7 @@ export default function HelpPage() {
       <Header />
       <main id="main-content" className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8" role="main">
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 shadow-lg">
+          <div className="w-14 h-14 bg-neutral-900 dark:bg-white rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 shadow-lg">
             ?
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">도움말</h1>

@@ -1314,7 +1314,7 @@ export default function InterviewPrepPage() {
                 {/* Mock interview button */}
                 <button
                   onClick={startMockInterview}
-                  className="flex items-center gap-1.5 text-xs px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-sm"
+                  className="flex items-center gap-1.5 text-xs px-4 py-2 bg-neutral-900 dark:bg-white text-white rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all font-medium shadow-sm"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
