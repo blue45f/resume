@@ -412,7 +412,7 @@ export default function CoverLetterPage() {
                     {error}
                   </div>
                 )}
-                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 min-h-[300px]">
+                <div className="imp-card p-5 min-h-[300px]">
                   {loading ? (
                     <div className="flex flex-col items-center justify-center h-48 gap-3">
                       <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
@@ -451,7 +451,7 @@ export default function CoverLetterPage() {
 
               {/* AI Feedback panel */}
               {(feedback || analyzingFeedback) && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 animate-fade-in-up">
+                <div className="imp-card p-5 animate-fade-in-up">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
                     <span className="w-6 h-6 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center text-xs">🔍</span>
                     AI 피드백 분석
@@ -505,12 +505,12 @@ export default function CoverLetterPage() {
 
             <div>
               {feedbackResult ? (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 animate-fade-in-up">
+                <div className="imp-card p-5 animate-fade-in-up">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">분석 결과</h3>
                   <FeedbackPanel result={feedbackResult} />
                 </div>
               ) : (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center text-center min-h-[400px]">
+                <div className="imp-card p-8 flex flex-col items-center justify-center text-center min-h-[400px]">
                   <div className="text-5xl mb-4">🔍</div>
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">자소서 분석 도구</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">

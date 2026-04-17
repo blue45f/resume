@@ -114,7 +114,7 @@ function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl w-full max-w-md mx-4 p-6 animate-fade-in" onClick={e => e.stopPropagation()}>
+      <div className="imp-card shadow-xl w-full max-w-md mx-4 p-6 animate-fade-in" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">급여 정보 제공하기</h3>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
@@ -1008,7 +1008,7 @@ function CuratedJobsTab() {
             return (
               <div
                 key={job.id}
-                className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200 overflow-hidden ${isExpired ? 'opacity-60 relative' : ''}`}
+                className={`imp-card hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200 overflow-hidden ${isExpired ? 'opacity-60 relative' : ''}`}
               >
                 {isExpired && (
                   <div className="absolute top-3 right-3 z-10 px-3 py-1 bg-slate-700/80 text-white text-xs font-bold rounded-full backdrop-blur-sm">
@@ -1473,7 +1473,7 @@ export default function JobsPage() {
 
         {/* Salary filter & contribute */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="flex-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+          <div className="flex-1 imp-card p-3">
             <div className="flex items-center justify-between mb-2">
               <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 cursor-pointer">
                 <input
@@ -1714,11 +1714,11 @@ export default function JobsPage() {
               {/* Desktop detail panel */}
               <div className="lg:col-span-2 hidden lg:block">
                 {selected ? (
-                  <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 sticky top-20">
+                  <div className="imp-card p-6 sticky top-20">
                     <JobDetailPanel job={selected} isPersonal={isPersonal} userSkills={userSkills} allJobs={jobs} onSelectJob={handleSelectJob} appliedJobs={appliedJobs} savedJobs={savedJobs} onToggleSave={handleToggleSave} onQuickApply={handleQuickApply} userResumes={userResumes} />
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-64 text-slate-400 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <div className="flex flex-col items-center justify-center h-64 text-slate-400 imp-card">
                     <svg className="w-12 h-12 mb-3 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.193 23.193 0 0112 15c-3.183 0-6.22-.64-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>

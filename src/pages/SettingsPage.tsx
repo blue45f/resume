@@ -873,7 +873,7 @@ export default function SettingsPage() {
 
         {/* 검색 결과 없음 */}
         {settingsSearch.trim() && NAV_ITEMS.every(n => !isSectionVisible(n.id)) && (
-          <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <div className="text-center py-12 imp-card">
             <div className="text-3xl mb-3">🔍</div>
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
               "{settingsSearch}"에 해당하는 설정을 찾을 수 없습니다

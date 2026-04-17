@@ -174,7 +174,7 @@ export default function ComparePage() {
         {left && right && (
           <div className="animate-fade-in-up space-y-6">
             {/* Completeness comparison */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+            <div className="imp-card p-5">
               <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">완성도 비교</h3>
               <div className="grid grid-cols-2 gap-3 sm:gap-4 text-center">
                 <div>
@@ -189,7 +189,7 @@ export default function ComparePage() {
             </div>
 
             {/* Section comparison */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+            <div className="imp-card p-5">
               <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">섹션별 비교</h3>
               <div className="space-y-1">
                 {sections.map(s => (
@@ -224,7 +224,7 @@ export default function ComparePage() {
             </div>
 
             {/* Visual diff: Skill comparison */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+            <div className="imp-card p-5">
               <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-4">기술 스택 비교</h3>
               {skillDiff.shared.length > 0 && (
                 <div className="mb-3">
@@ -265,7 +265,7 @@ export default function ComparePage() {
             </div>
 
             {/* Side-by-side section detail comparison */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+            <div className="imp-card p-5">
               <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-4">섹션별 상세 비교</h3>
 
               {/* Experience comparison */}

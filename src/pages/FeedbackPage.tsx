@@ -118,7 +118,7 @@ export default function FeedbackPage() {
 
         {/* 글쓰기 폼 */}
         {showForm && (
-          <div className="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 animate-fade-in">
+          <div className="mb-6 imp-card p-4 sm:p-6 animate-fade-in">
             <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">새 피드백</h2>
             <div className="flex gap-2 mb-3">
               {(Object.entries(TYPE_CONFIG) as [string, any][]).map(([key, cfg]) => (
@@ -180,7 +180,7 @@ export default function FeedbackPage() {
               const typeCfg = TYPE_CONFIG[item.type];
               const statusCfg = STATUS_CONFIG[item.status];
               return (
-                <div key={item.id} className="card-hover bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                <div key={item.id} className="card-hover imp-card p-4">
                   <div className="flex items-start gap-3">
                     <button onClick={() => handleVote(item.id)} className="flex flex-col items-center gap-0.5 pt-1 text-slate-400 hover:text-blue-600 transition-colors shrink-0" title="추천">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>

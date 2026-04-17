@@ -64,7 +64,7 @@ function JobStatsSection() {
   );
 
   if (loading && !data) return (
-    <div className="mt-8 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+    <div className="mt-8 imp-card p-6">
       <div className="animate-pulse space-y-4">
         <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/4" />
         <div className="grid grid-cols-3 gap-4">
@@ -112,7 +112,7 @@ function JobStatsSection() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* By Company */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <div className="imp-card p-5">
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
             <span className="w-1.5 h-4 bg-amber-500 rounded" />
             채용 기업 TOP 10
@@ -137,7 +137,7 @@ function JobStatsSection() {
         </div>
 
         {/* By Location */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <div className="imp-card p-5">
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
             <span className="w-1.5 h-4 bg-blue-500 rounded" />
             지역별 분포
@@ -162,7 +162,7 @@ function JobStatsSection() {
         </div>
 
         {/* By Skill */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 lg:col-span-2">
+        <div className="imp-card p-5 lg:col-span-2">
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
             <span className="w-1.5 h-4 bg-purple-500 rounded" />
             채용 요구 기술 TOP 20
@@ -251,7 +251,7 @@ export default function StatsPage() {
                 { label: '총 조회수', value: stats.activity.totalViews, sub: '', color: 'from-purple-500 to-pink-600', icon: '👀' },
                 { label: '커뮤니티', value: stats.community.posts, sub: `댓글 ${stats.community.comments}개`, color: 'from-amber-500 to-orange-600', icon: '💬' },
               ].map(s => (
-                <div key={s.label} className="relative overflow-hidden bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+                <div key={s.label} className="relative overflow-hidden imp-card p-5">
                   <div className={`absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-br ${s.color} rounded-full opacity-10`} />
                   <span className="text-2xl mb-2 block">{s.icon}</span>
                   <p className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">
@@ -283,7 +283,7 @@ export default function StatsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Popular resumes */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+          <div className="imp-card p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                 <span className="w-1.5 h-4 bg-blue-500 rounded" />
@@ -335,7 +335,7 @@ export default function StatsPage() {
           </div>
 
           {/* Popular skills */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+          <div className="imp-card p-5">
             <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
               <span className="w-1.5 h-4 bg-emerald-500 rounded" />
               인기 기술 스택 TOP 15

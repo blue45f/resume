@@ -80,7 +80,7 @@ function CommunityWidget() {
   };
 
   return (
-    <div className="mb-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+    <div className="mb-6 imp-card overflow-hidden">
       <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-700">
         <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <span className="w-5 h-5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-md flex items-center justify-center text-xs">💬</span>
@@ -158,7 +158,7 @@ function WeeklyGoalWidget() {
   const goalColor = pct >= 100 ? '#10b981' : pct >= 60 ? '#6366f1' : pct >= 30 ? '#f59e0b' : '#ef4444';
 
   return (
-    <div className="mb-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+    <div className="mb-6 imp-card p-5">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
@@ -272,7 +272,7 @@ function useCountUp(target: number, duration = 1200) {
 function AnimatedStat({ value, label }: { value: number; label: string }) {
   const animated = useCountUp(value);
   return (
-    <div className="flex flex-col items-center px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm min-w-[100px]">
+    <div className="flex flex-col items-center px-4 py-3 imp-card shadow-sm min-w-[100px]">
       <strong className="text-lg font-bold text-slate-800 dark:text-slate-200 tabular-nums">
         {value > 0 ? animated.toLocaleString() : '—'}
       </strong>
@@ -825,7 +825,7 @@ export default function HomePage() {
               {sorted.map((resume, index) => (
                 <article
                   key={resume.id}
-                  className={`card-hover bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5 focus-within:ring-2 focus-within:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)} border-l-4 ${resume.visibility === 'public' ? 'border-l-emerald-400' : resume.visibility === 'link-only' ? 'border-l-blue-400' : 'border-l-slate-300'}`}
+                  className={`card-hover imp-card p-4 sm:p-5 focus-within:ring-2 focus-within:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)} border-l-4 ${resume.visibility === 'public' ? 'border-l-emerald-400' : resume.visibility === 'link-only' ? 'border-l-blue-400' : 'border-l-slate-300'}`}
                 >
                   <div className="flex gap-3">
                     {/* Thumbnail preview */}

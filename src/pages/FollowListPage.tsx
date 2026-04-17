@@ -71,11 +71,11 @@ export default function FollowListPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+          <div className="imp-card p-4 text-center">
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{followers.length}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">팔로워</p>
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+          <div className="imp-card p-4 text-center">
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{following.length}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">팔로잉</p>
           </div>
@@ -149,7 +149,7 @@ export default function FollowListPage() {
               return (
                 <div
                   key={u.id}
-                  className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center justify-between hover:shadow-sm transition-shadow"
+                  className="imp-card p-4 flex items-center justify-between hover:shadow-sm transition-shadow"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     {/* Avatar */}

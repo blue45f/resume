@@ -1,25 +1,41 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "TemplatesModule", {
+    enumerable: true,
+    get: function() {
+        return TemplatesModule;
+    }
+});
+const _common = require("@nestjs/common");
+const _templatescontroller = require("./templates.controller");
+const _templatesservice = require("./templates.service");
+const _localtransformservice = require("./local-transform.service");
+const _resumesmodule = require("../resumes/resumes.module");
+function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    else for(var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TemplatesModule = void 0;
-const common_1 = require("@nestjs/common");
-const templates_controller_1 = require("./templates.controller");
-const templates_service_1 = require("./templates.service");
-const local_transform_service_1 = require("./local-transform.service");
-const resumes_module_1 = require("../resumes/resumes.module");
+}
 let TemplatesModule = class TemplatesModule {
 };
-exports.TemplatesModule = TemplatesModule;
-exports.TemplatesModule = TemplatesModule = __decorate([
-    (0, common_1.Module)({
-        imports: [resumes_module_1.ResumesModule],
-        controllers: [templates_controller_1.TemplatesController],
-        providers: [templates_service_1.TemplatesService, local_transform_service_1.LocalTransformService],
-        exports: [templates_service_1.TemplatesService, local_transform_service_1.LocalTransformService],
+TemplatesModule = _ts_decorate([
+    (0, _common.Module)({
+        imports: [
+            _resumesmodule.ResumesModule
+        ],
+        controllers: [
+            _templatescontroller.TemplatesController
+        ],
+        providers: [
+            _templatesservice.TemplatesService,
+            _localtransformservice.LocalTransformService
+        ],
+        exports: [
+            _templatesservice.TemplatesService,
+            _localtransformservice.LocalTransformService
+        ]
     })
 ], TemplatesModule);

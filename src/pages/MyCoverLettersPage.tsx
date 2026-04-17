@@ -227,7 +227,7 @@ export default function MyCoverLettersPage() {
                 {/* Detail */}
                 <div className="lg:col-span-2">
                   {selected ? (
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+                    <div className="imp-card p-5">
                       <div className="flex items-center justify-between mb-4">
                         <div>
                           <h2 className="font-semibold text-slate-900 dark:text-slate-100">{selected.company} — {selected.position}</h2>

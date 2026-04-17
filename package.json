@@ -88,6 +88,8 @@
     "@nestjs/cli": "^11.0.21",
     "@nestjs/schematics": "^11.1.0",
     "@nestjs/testing": "^11.1.19",
+    "@swc/cli": "^0.8.1",
+    "@swc/core": "^1.15.26",
     "@tailwindcss/vite": "^4.2.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/compression": "^1.8.1",

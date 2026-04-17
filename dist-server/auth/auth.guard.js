@@ -1,47 +1,60 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+function _export(target, all) {
+    for(var name in all)Object.defineProperty(target, name, {
+        enumerable: true,
+        get: Object.getOwnPropertyDescriptor(all, name).get
+    });
+}
+_export(exports, {
+    get AuthGuard () {
+        return AuthGuard;
+    },
+    get IS_PUBLIC_KEY () {
+        return IS_PUBLIC_KEY;
+    },
+    get Public () {
+        return Public;
+    }
+});
+const _common = require("@nestjs/common");
+const _jwt = require("@nestjs/jwt");
+const _core = require("@nestjs/core");
+function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    else for(var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
+}
+function _ts_metadata(k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthGuard = exports.Public = exports.IS_PUBLIC_KEY = void 0;
-const common_1 = require("@nestjs/common");
-const jwt_1 = require("@nestjs/jwt");
-const core_1 = require("@nestjs/core");
-exports.IS_PUBLIC_KEY = 'isPublic';
-const common_2 = require("@nestjs/common");
-const Public = () => (0, common_2.SetMetadata)(exports.IS_PUBLIC_KEY, true);
-exports.Public = Public;
+}
+const IS_PUBLIC_KEY = 'isPublic';
+const Public = ()=>(0, _common.SetMetadata)(IS_PUBLIC_KEY, true);
 let AuthGuard = class AuthGuard {
-    jwt;
-    reflector;
-    constructor(jwt, reflector) {
-        this.jwt = jwt;
-        this.reflector = reflector;
-    }
     canActivate(context) {
-        const isPublic = this.reflector.getAllAndOverride(exports.IS_PUBLIC_KEY, [
+        // @Public() 데코레이터가 있으면 인증 스킵
+        const isPublic = this.reflector.getAllAndOverride(IS_PUBLIC_KEY, [
             context.getHandler(),
-            context.getClass(),
+            context.getClass()
         ]);
-        if (isPublic)
-            return true;
+        if (isPublic) return true;
         const request = context.switchToHttp().getRequest();
         const token = this.extractToken(request);
+        // 토큰이 없으면 비로그인 사용자로 처리 (userId = null)
         if (!token) {
             request.user = null;
             return true;
         }
         try {
             const payload = this.jwt.verify(token);
-            request.user = { id: payload.sub, role: payload.role || 'user' };
-        }
-        catch {
+            request.user = {
+                id: payload.sub,
+                role: payload.role || 'user'
+            };
+        } catch  {
             request.user = null;
         }
         return true;
@@ -50,15 +63,21 @@ let AuthGuard = class AuthGuard {
         const auth = request.headers.authorization;
         if (auth && typeof auth === 'string') {
             const parts = auth.split(/\s+/);
-            if (parts.length === 2 && parts[0] === 'Bearer' && parts[1])
-                return parts[1];
+            if (parts.length === 2 && parts[0] === 'Bearer' && parts[1]) return parts[1];
         }
+        // Fallback: httpOnly cookie
         return request.cookies?.token || null;
     }
+    constructor(jwt, reflector){
+        this.jwt = jwt;
+        this.reflector = reflector;
+    }
 };
-exports.AuthGuard = AuthGuard;
-exports.AuthGuard = AuthGuard = __decorate([
-    (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [jwt_1.JwtService,
-        core_1.Reflector])
+AuthGuard = _ts_decorate([
+    (0, _common.Injectable)(),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof _jwt.JwtService === "undefined" ? Object : _jwt.JwtService,
+        typeof _core.Reflector === "undefined" ? Object : _core.Reflector
+    ])
 ], AuthGuard);

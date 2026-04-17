@@ -281,7 +281,7 @@ export default function PricingPage() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
             <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 text-center mb-2">상세 기능 비교</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-8">플랜별 제공 기능을 한눈에 비교해보세요</p>
-            <div className="overflow-x-auto bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="overflow-x-auto imp-card shadow-sm">
               <table className="w-full min-w-[500px]">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-700">
@@ -321,7 +321,7 @@ export default function PricingPage() {
           <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-8">요금제에 대해 궁금한 점을 확인해보세요</p>
           <div className="space-y-3">
             {faqItems.map((item, i) => (
-              <div key={i} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden transition-all duration-200">
+              <div key={i} className="imp-card overflow-hidden transition-all duration-200">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between gap-4 p-4 sm:p-5 text-left hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors"

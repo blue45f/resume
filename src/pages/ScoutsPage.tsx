@@ -354,19 +354,19 @@ export default function ScoutsPage() {
 
         {/* Analytics Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-center">
+          <div className="imp-card p-3 text-center">
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{analytics.total}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">전체 스카우트</p>
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-center">
+          <div className="imp-card p-3 text-center">
             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{analytics.responseRate}%</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">응답률</p>
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-center">
+          <div className="imp-card p-3 text-center">
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">{analytics.successRate}%</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">성공률</p>
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-center">
+          <div className="imp-card p-3 text-center">
             <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{analytics.avgResponseHours > 0 ? `${analytics.avgResponseHours}h` : '-'}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">평균 응답 시간</p>
           </div>
@@ -402,7 +402,7 @@ export default function ScoutsPage() {
 
         {/* Template Manager */}
         {showTemplates && (
-          <div className="mb-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+          <div className="mb-4 imp-card p-4">
             <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">스카우트 메시지 템플릿</h3>
             {templates.length > 0 && (
               <div className="space-y-2 mb-4">
@@ -508,7 +508,7 @@ export default function ScoutsPage() {
 
             {/* Scout Preview */}
             {showPreview && bulkMessage.trim() && (
-              <div className="mb-3 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div className="mb-3 p-4 imp-card">
                 <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">수신자에게 보이는 화면</p>
                 <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-4 border border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-3 mb-3">
@@ -547,7 +547,7 @@ export default function ScoutsPage() {
         {tab === 'bookmarks' ? (
           <div className="space-y-4">
             {/* Add Bookmark */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+            <div className="imp-card p-4">
               <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">관심 후보 추가</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <input
@@ -590,7 +590,7 @@ export default function ScoutsPage() {
             ) : (
               <div className="space-y-2">
                 {bookmarks.map(bm => (
-                  <div key={bm.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center justify-between">
+                  <div key={bm.id} className="imp-card p-4 flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold">
@@ -689,7 +689,7 @@ export default function ScoutsPage() {
             {/* Detail */}
             <div className="lg:col-span-2">
               {selected && !bulkMode ? (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+                <div className="imp-card p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <div className="flex items-center gap-2">

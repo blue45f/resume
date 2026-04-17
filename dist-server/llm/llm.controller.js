@@ -1,33 +1,36 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "LlmController", {
+    enumerable: true,
+    get: function() {
+        return LlmController;
+    }
+});
+const _common = require("@nestjs/common");
+const _swagger = require("@nestjs/swagger");
+const _throttler = require("@nestjs/throttler");
+const _rxjs = require("rxjs");
+const _llmservice = require("./llm.service");
+const _transformresumedto = require("./dto/transform-resume.dto");
+const _analysisdto = require("./dto/analysis.dto");
+const _usageservice = require("../health/usage.service");
+function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    else for(var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
+}
+function _ts_metadata(k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LlmController = void 0;
-const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
-const throttler_1 = require("@nestjs/throttler");
-const rxjs_1 = require("rxjs");
-const llm_service_1 = require("./llm.service");
-const transform_resume_dto_1 = require("./dto/transform-resume.dto");
-const analysis_dto_1 = require("./dto/analysis.dto");
-const usage_service_1 = require("../health/usage.service");
+}
+function _ts_param(paramIndex, decorator) {
+    return function(target, key) {
+        decorator(target, key, paramIndex);
+    };
+}
 let LlmController = class LlmController {
-    llmService;
-    usageService;
-    constructor(llmService, usageService) {
-        this.llmService = llmService;
-        this.usageService = usageService;
-    }
     async transform(resumeId, dto, req) {
         if (req.user?.id) {
             await this.usageService.checkAndLog(req.user.id, 'ai_transform');
@@ -35,46 +38,51 @@ let LlmController = class LlmController {
         return this.llmService.transform(resumeId, dto);
     }
     transformStream(resumeId, dto) {
-        return new rxjs_1.Observable((subscriber) => {
+        return new _rxjs.Observable((subscriber)=>{
             let isAlive = true;
             let generator = null;
-            const cleanup = () => {
+            const cleanup = ()=>{
                 isAlive = false;
-                if (generator?.return)
-                    generator.return(undefined).catch(() => { });
+                if (generator?.return) generator.return(undefined).catch(()=>{});
             };
-            const timeout = setTimeout(() => {
+            const timeout = setTimeout(()=>{
                 if (isAlive) {
                     subscriber.next({
-                        data: JSON.stringify({ type: 'error', message: '스트리밍 타임아웃 (60초)' }),
+                        data: JSON.stringify({
+                            type: 'error',
+                            message: '스트리밍 타임아웃 (60초)'
+                        })
                     });
                     cleanup();
                     subscriber.complete();
                 }
             }, 60000);
-            (async () => {
+            (async ()=>{
                 try {
                     generator = this.llmService.transformStream(resumeId, dto);
-                    for await (const chunk of generator) {
-                        if (!isAlive)
-                            break;
-                        subscriber.next({ data: JSON.stringify(chunk) });
-                    }
-                }
-                catch (error) {
-                    if (isAlive) {
+                    for await (const chunk of generator){
+                        if (!isAlive) break;
                         subscriber.next({
-                            data: JSON.stringify({ type: 'error', message: error.message }),
+                            data: JSON.stringify(chunk)
                         });
                     }
-                }
-                finally {
+                } catch (error) {
+                    if (isAlive) {
+                        subscriber.next({
+                            data: JSON.stringify({
+                                type: 'error',
+                                message: error.message
+                            })
+                        });
+                    }
+                } finally{
                     clearTimeout(timeout);
                     cleanup();
                     subscriber.complete();
                 }
             })();
-            return () => {
+            // 클라이언트 연결 해제 시 cleanup
+            return ()=>{
                 clearTimeout(timeout);
                 cleanup();
             };
@@ -89,6 +97,7 @@ let LlmController = class LlmController {
     getUsage() {
         return this.llmService.getUsageStats();
     }
+    // ===== AI 분석 기능 =====
     analyzeFeedback(resumeId, dto) {
         return this.llmService.analyzeFeedback(resumeId, dto.provider);
     }
@@ -101,94 +110,168 @@ let LlmController = class LlmController {
     inlineAssist(dto) {
         return this.llmService.inlineAssist(dto.text, dto.type, dto.provider);
     }
+    constructor(llmService, usageService){
+        this.llmService = llmService;
+        this.usageService = usageService;
+    }
 };
-exports.LlmController = LlmController;
-__decorate([
-    (0, common_1.Post)(),
-    (0, swagger_1.ApiOperation)({ summary: 'LLM으로 이력서 양식 변환' }),
-    (0, throttler_1.Throttle)({ default: { limit: 5, ttl: 60000 } }),
-    __param(0, (0, common_1.Param)('resumeId')),
-    __param(1, (0, common_1.Body)()),
-    __param(2, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, transform_resume_dto_1.TransformResumeDto, Object]),
-    __metadata("design:returntype", Promise)
+_ts_decorate([
+    (0, _common.Post)(),
+    (0, _swagger.ApiOperation)({
+        summary: 'LLM으로 이력서 양식 변환'
+    }),
+    (0, _throttler.Throttle)({
+        default: {
+            limit: 5,
+            ttl: 60000
+        }
+    }),
+    _ts_param(0, (0, _common.Param)('resumeId')),
+    _ts_param(1, (0, _common.Body)()),
+    _ts_param(2, (0, _common.Req)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String,
+        typeof _transformresumedto.TransformResumeDto === "undefined" ? Object : _transformresumedto.TransformResumeDto,
+        Object
+    ]),
+    _ts_metadata("design:returntype", Promise)
 ], LlmController.prototype, "transform", null);
-__decorate([
-    (0, common_1.Post)('stream'),
-    (0, swagger_1.ApiOperation)({ summary: 'LLM 양식 변환 (스트리밍)' }),
-    (0, throttler_1.Throttle)({ default: { limit: 5, ttl: 60000 } }),
-    (0, common_1.Sse)(),
-    __param(0, (0, common_1.Param)('resumeId')),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, transform_resume_dto_1.TransformResumeDto]),
-    __metadata("design:returntype", rxjs_1.Observable)
+_ts_decorate([
+    (0, _common.Post)('stream'),
+    (0, _swagger.ApiOperation)({
+        summary: 'LLM 양식 변환 (스트리밍)'
+    }),
+    (0, _throttler.Throttle)({
+        default: {
+            limit: 5,
+            ttl: 60000
+        }
+    }),
+    (0, _common.Sse)(),
+    _ts_param(0, (0, _common.Param)('resumeId')),
+    _ts_param(1, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String,
+        typeof _transformresumedto.TransformResumeDto === "undefined" ? Object : _transformresumedto.TransformResumeDto
+    ]),
+    _ts_metadata("design:returntype", typeof _rxjs.Observable === "undefined" ? Object : _rxjs.Observable)
 ], LlmController.prototype, "transformStream", null);
-__decorate([
-    (0, common_1.Get)('history'),
-    (0, swagger_1.ApiOperation)({ summary: 'LLM 변환 이력 조회' }),
-    __param(0, (0, common_1.Param)('resumeId')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Get)('history'),
+    (0, _swagger.ApiOperation)({
+        summary: 'LLM 변환 이력 조회'
+    }),
+    _ts_param(0, (0, _common.Param)('resumeId')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], LlmController.prototype, "getHistory", null);
-__decorate([
-    (0, common_1.Get)('providers'),
-    (0, swagger_1.ApiOperation)({ summary: '사용 가능한 LLM 프로바이더 목록' }),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Get)('providers'),
+    (0, _swagger.ApiOperation)({
+        summary: '사용 가능한 LLM 프로바이더 목록'
+    }),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", []),
+    _ts_metadata("design:returntype", void 0)
 ], LlmController.prototype, "getProviders", null);
-__decorate([
-    (0, common_1.Get)('usage'),
-    (0, swagger_1.ApiOperation)({ summary: 'LLM 사용량 통계' }),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Get)('usage'),
+    (0, _swagger.ApiOperation)({
+        summary: 'LLM 사용량 통계'
+    }),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", []),
+    _ts_metadata("design:returntype", void 0)
 ], LlmController.prototype, "getUsage", null);
-__decorate([
-    (0, common_1.Post)('feedback'),
-    (0, swagger_1.ApiOperation)({ summary: 'AI 이력서 피드백 (점수 + 강점 + 개선점)' }),
-    (0, throttler_1.Throttle)({ default: { limit: 3, ttl: 60000 } }),
-    __param(0, (0, common_1.Param)('resumeId')),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, analysis_dto_1.FeedbackDto]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Post)('feedback'),
+    (0, _swagger.ApiOperation)({
+        summary: 'AI 이력서 피드백 (점수 + 강점 + 개선점)'
+    }),
+    (0, _throttler.Throttle)({
+        default: {
+            limit: 3,
+            ttl: 60000
+        }
+    }),
+    _ts_param(0, (0, _common.Param)('resumeId')),
+    _ts_param(1, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String,
+        typeof _analysisdto.FeedbackDto === "undefined" ? Object : _analysisdto.FeedbackDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], LlmController.prototype, "analyzeFeedback", null);
-__decorate([
-    (0, common_1.Post)('job-match'),
-    (0, swagger_1.ApiOperation)({ summary: 'AI JD 매칭 분석' }),
-    (0, throttler_1.Throttle)({ default: { limit: 3, ttl: 60000 } }),
-    __param(0, (0, common_1.Param)('resumeId')),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, analysis_dto_1.JobMatchDto]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Post)('job-match'),
+    (0, _swagger.ApiOperation)({
+        summary: 'AI JD 매칭 분석'
+    }),
+    (0, _throttler.Throttle)({
+        default: {
+            limit: 3,
+            ttl: 60000
+        }
+    }),
+    _ts_param(0, (0, _common.Param)('resumeId')),
+    _ts_param(1, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String,
+        typeof _analysisdto.JobMatchDto === "undefined" ? Object : _analysisdto.JobMatchDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], LlmController.prototype, "analyzeJobMatch", null);
-__decorate([
-    (0, common_1.Post)('interview'),
-    (0, swagger_1.ApiOperation)({ summary: 'AI 면접 질문 생성' }),
-    (0, throttler_1.Throttle)({ default: { limit: 3, ttl: 60000 } }),
-    __param(0, (0, common_1.Param)('resumeId')),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, analysis_dto_1.InterviewDto]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Post)('interview'),
+    (0, _swagger.ApiOperation)({
+        summary: 'AI 면접 질문 생성'
+    }),
+    (0, _throttler.Throttle)({
+        default: {
+            limit: 3,
+            ttl: 60000
+        }
+    }),
+    _ts_param(0, (0, _common.Param)('resumeId')),
+    _ts_param(1, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String,
+        typeof _analysisdto.InterviewDto === "undefined" ? Object : _analysisdto.InterviewDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], LlmController.prototype, "generateInterview", null);
-__decorate([
-    (0, common_1.Post)('inline-assist'),
-    (0, swagger_1.ApiOperation)({ summary: 'AI 인라인 문장 개선' }),
-    (0, throttler_1.Throttle)({ default: { limit: 10, ttl: 60000 } }),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [analysis_dto_1.InlineAssistDto]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Post)('inline-assist'),
+    (0, _swagger.ApiOperation)({
+        summary: 'AI 인라인 문장 개선'
+    }),
+    (0, _throttler.Throttle)({
+        default: {
+            limit: 10,
+            ttl: 60000
+        }
+    }),
+    _ts_param(0, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof _analysisdto.InlineAssistDto === "undefined" ? Object : _analysisdto.InlineAssistDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], LlmController.prototype, "inlineAssist", null);
-exports.LlmController = LlmController = __decorate([
-    (0, swagger_1.ApiTags)('llm'),
-    (0, common_1.Controller)('resumes/:resumeId/transform'),
-    __metadata("design:paramtypes", [llm_service_1.LlmService,
-        usage_service_1.UsageService])
+LlmController = _ts_decorate([
+    (0, _swagger.ApiTags)('llm'),
+    (0, _common.Controller)('resumes/:resumeId/transform'),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof _llmservice.LlmService === "undefined" ? Object : _llmservice.LlmService,
+        typeof _usageservice.UsageService === "undefined" ? Object : _usageservice.UsageService
+    ])
 ], LlmController);

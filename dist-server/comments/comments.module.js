@@ -1,24 +1,37 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "CommentsModule", {
+    enumerable: true,
+    get: function() {
+        return CommentsModule;
+    }
+});
+const _common = require("@nestjs/common");
+const _commentscontroller = require("./comments.controller");
+const _commentsservice = require("./comments.service");
+const _prismamodule = require("../prisma/prisma.module");
+const _notificationsmodule = require("../notifications/notifications.module");
+function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    else for(var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommentsModule = void 0;
-const common_1 = require("@nestjs/common");
-const comments_controller_1 = require("./comments.controller");
-const comments_service_1 = require("./comments.service");
-const prisma_module_1 = require("../prisma/prisma.module");
-const notifications_module_1 = require("../notifications/notifications.module");
+}
 let CommentsModule = class CommentsModule {
 };
-exports.CommentsModule = CommentsModule;
-exports.CommentsModule = CommentsModule = __decorate([
-    (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, notifications_module_1.NotificationsModule],
-        controllers: [comments_controller_1.CommentsController],
-        providers: [comments_service_1.CommentsService],
+CommentsModule = _ts_decorate([
+    (0, _common.Module)({
+        imports: [
+            _prismamodule.PrismaModule,
+            _notificationsmodule.NotificationsModule
+        ],
+        controllers: [
+            _commentscontroller.CommentsController
+        ],
+        providers: [
+            _commentsservice.CommentsService
+        ]
     })
 ], CommentsModule);

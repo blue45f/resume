@@ -998,7 +998,7 @@ export default function InterviewPrepPage() {
       <>
         <Header />
         <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="imp-card overflow-hidden">
             {/* Report header */}
             <div className="bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-10 text-center text-white">
               <h1 className="text-2xl font-bold mb-2">면접 연습 리포트</h1>
@@ -1141,7 +1141,7 @@ export default function InterviewPrepPage() {
         </div>
 
         {/* Setup */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
+        <div className="imp-card p-6 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">이력서 선택 *</label>
@@ -1414,7 +1414,7 @@ export default function InterviewPrepPage() {
               const history = answerHistory[questionKey] || [];
 
               return (
-                <div key={originalIdx} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 animate-fade-in-up">
+                <div key={originalIdx} className="imp-card p-4 animate-fade-in-up">
                   <div className="flex items-start gap-3">
                     <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
                       savedAnswer

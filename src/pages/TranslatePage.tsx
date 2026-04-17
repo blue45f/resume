@@ -316,7 +316,7 @@ export default function TranslatePage() {
                 <span className="text-xs text-slate-400 dark:text-slate-500">{originalResume.title}</span>
               )}
             </div>
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 min-h-[400px] max-h-[600px] overflow-y-auto">
+            <div className="imp-card p-5 min-h-[400px] max-h-[600px] overflow-y-auto">
               {originalText ? (
                 <pre className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed font-sans">{originalText}</pre>
               ) : (
@@ -383,7 +383,7 @@ export default function TranslatePage() {
                 )}
               </div>
             </div>
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 min-h-[400px] max-h-[600px] overflow-y-auto">
+            <div className="imp-card p-5 min-h-[400px] max-h-[600px] overflow-y-auto">
               {loading ? (
                 <div className="flex flex-col items-center justify-center h-64 gap-3">
                   <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />

@@ -19,12 +19,14 @@ export function useApiQuery<T>(key: string[], url: string, options?: { enabled?:
   });
 }
 
-export function useApiMutation<T, V = any>(url: string, method = 'POST') {
+export function useApiMutation<T, V = any>(url: string, method = 'POST', invalidateKeys?: string[][]) {
   const queryClient = useQueryClient();
   return useMutation<T, Error, V>({
     mutationFn: (variables) => apiFetch<T>(url, { method, body: JSON.stringify(variables) }),
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      if (invalidateKeys) {
+        invalidateKeys.forEach(key => queryClient.invalidateQueries({ queryKey: key }));
+      }
     },
   });
 }

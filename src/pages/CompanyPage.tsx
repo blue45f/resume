@@ -82,7 +82,7 @@ const RATING_LABELS: Record<string, string> = {
 function ReviewCard({ review }: { review: CompanyReview }) {
   const avg = ((review.culture + review.worklife + review.growth + review.salary) / 4).toFixed(1);
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+    <div className="imp-card p-4">
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -206,7 +206,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
 
       {/* Aggregate Rating Display */}
       {avgRatings && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-4">
+        <div className="imp-card p-4 mb-4">
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="text-center shrink-0">
               <div className="text-5xl font-bold text-amber-500">{avgRatings.rating}</div>
@@ -323,7 +323,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
 
       {/* Reviews List */}
       {reviews.length === 0 ? (
-        <div className="text-center py-8 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+        <div className="text-center py-8 imp-card">
           <p className="text-4xl mb-2">💬</p>
           <p className="text-sm text-slate-500 dark:text-slate-400">아직 리뷰가 없습니다</p>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">이 회사에 지원한 경험이 있으면 리뷰를 남겨주세요</p>
@@ -508,7 +508,7 @@ export default function CompanyPage() {
         </nav>
 
         {/* Company Header */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
+        <div className="imp-card p-6 mb-6">
           <div className="flex items-start gap-4">
             <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold shrink-0">
               {companyName.charAt(0)}
@@ -533,15 +533,15 @@ export default function CompanyPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+          <div className="imp-card p-4 text-center">
             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{activeJobs.length}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">채용 중인 공고</p>
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+          <div className="imp-card p-4 text-center">
             <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{companyJobs.length}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">전체 공고</p>
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+          <div className="imp-card p-4 text-center">
             {salaryStats ? (
               <>
                 <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
@@ -556,7 +556,7 @@ export default function CompanyPage() {
               </>
             )}
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+          <div className="imp-card p-4 text-center">
             <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{allSkills.length}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">요구 기술 수</p>
           </div>
@@ -567,7 +567,7 @@ export default function CompanyPage() {
           <div className="lg:col-span-1 space-y-4">
             {/* Job types breakdown */}
             {jobTypes.length > 0 && (
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+              <div className="imp-card p-4">
                 <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">채용 형태</h3>
                 <div className="space-y-2">
                   {jobTypes.map(([type, count]) => (
@@ -582,7 +582,7 @@ export default function CompanyPage() {
 
             {/* Salary range */}
             {salaryStats && salaryStats.min !== salaryStats.max && (
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+              <div className="imp-card p-4">
                 <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">연봉 범위</h3>
                 <div className="relative h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mb-2">
                   <div
@@ -599,7 +599,7 @@ export default function CompanyPage() {
 
             {/* Tech Stack */}
             {allSkills.length > 0 && (
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+              <div className="imp-card p-4">
                 <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">기술 스택</h3>
                 <div className="flex flex-wrap gap-1.5">
                   {allSkills.slice(0, 15).map(([skill, count]) => (
@@ -622,7 +622,7 @@ export default function CompanyPage() {
 
           {/* Right: Job Listings */}
           <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+            <div className="imp-card">
               <div className="p-4 border-b border-slate-200 dark:border-slate-700">
                 <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                   채용 중인 포지션 ({activeJobs.length})

@@ -102,7 +102,7 @@ export default function NotificationsPage() {
   }, [selectedIds, queryClient]);
 
   const handleBulkMarkRead = useCallback(async () => {
-    for (const id of selectedIds) await markNotificationRead(id).catch(() => {});
+    await Promise.all([...selectedIds].map(id => markNotificationRead(id).catch(() => {})));
     setSelectedIds(new Set());
     queryClient.invalidateQueries({ queryKey: ['notifications'] });
     toast('선택한 알림을 읽음 처리했습니다', 'success');
@@ -358,7 +358,7 @@ export default function NotificationsPage() {
 
                             {/* Dropdown */}
                             {isActionOpen && (
-                              <div className="absolute right-3 top-12 z-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg py-1 min-w-[120px] animate-fade-in">
+                              <div className="absolute right-3 top-12 z-10 imp-card shadow-lg py-1 min-w-[120px] animate-fade-in">
                                 {!n.read && (
                                   <button
                                     onClick={() => { handleMarkRead(n.id); setExpandedAction(null); }}

@@ -327,7 +327,7 @@ function WizardMode({
       )}
 
       {/* Step content */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 mb-6">
+      <div className="imp-card p-4 sm:p-6 mb-6">
         {/* Step 0: Job Title Selection */}
         {wizardStep === 0 && (
           <div className="space-y-4">
@@ -1310,7 +1310,7 @@ export default function NewResumePage() {
                           <button
                             key={t.id}
                             onClick={() => handleSelectTemplate(t.id)}
-                            className="text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 group"
+                            className="text-left imp-card p-4 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 group"
                           >
                             <div className="flex items-start justify-between mb-1">
                               <h3 className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm truncate">{t.name}</h3>
@@ -1409,7 +1409,7 @@ export default function NewResumePage() {
                 )}
               </div>
             </div>
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6">
+            <div className="imp-card p-4 sm:p-6">
               {initialData && (
                 <ResumeForm initialData={initialData} onSave={handleSave} saving={saving} />
               )}

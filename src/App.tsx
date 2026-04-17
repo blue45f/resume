@@ -117,7 +117,7 @@ export default function App() {
           본문으로 건너뛰기
         </a>
         <AnnouncementBanner />
-        <div className="min-h-screen flex flex-col bg-slate-50 overflow-x-hidden">
+        <div className="min-h-screen flex flex-col overflow-x-hidden" style={{ background: 'var(--color-surface-sunken)' }}>
           <Routes>
             {/* Critical path - eager loaded */}
             <Route path="/" element={<HomePage />} />

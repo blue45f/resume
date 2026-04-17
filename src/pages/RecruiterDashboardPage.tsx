@@ -116,7 +116,7 @@ export default function RecruiterDashboardPage() {
                 { label: '스카우트 응답률', value: `${scoutResponseRate}%`, icon: '📊', color: 'text-purple-600' },
                 { label: '보낸 스카우트', value: scouts.length, icon: '📨', color: 'text-amber-600' },
               ].map(s => (
-                <div key={s.label} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-center">
+                <div key={s.label} className="imp-card p-4 text-center">
                   <span className="text-lg block mb-1">{s.icon}</span>
                   <span className={`text-2xl font-bold ${s.color} block`}>{s.value}</span>
                   <span className="text-xs text-slate-400">{s.label}</span>
@@ -131,7 +131,7 @@ export default function RecruiterDashboardPage() {
                 {PIPELINE_STAGES.map(stage => {
                   const stCandidates = getPipelineCandidates(stage.key);
                   return (
-                    <div key={stage.key} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                    <div key={stage.key} className="imp-card p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-1.5">
                           <span>{stage.icon}</span>
@@ -177,11 +177,11 @@ export default function RecruiterDashboardPage() {
                 <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">최근 지원자</h2>
               </div>
               {applicants.length === 0 ? (
-                <div className="text-center py-8 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                <div className="text-center py-8 imp-card">
                   <p className="text-sm text-slate-400">아직 지원자가 없습니다</p>
                 </div>
               ) : (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-700">
+                <div className="imp-card divide-y divide-slate-100 dark:divide-slate-700">
                   {applicants.slice(0, 8).map((a: any) => (
                     <div key={a.id} className="flex items-center justify-between p-3 min-h-[56px]">
                       <div className="flex items-center gap-3 min-w-0">
@@ -228,14 +228,14 @@ export default function RecruiterDashboardPage() {
                 <Link to="/explore" className="text-xs text-blue-600 hover:underline">더 보기</Link>
               </div>
               {recommended.length === 0 ? (
-                <div className="text-center py-8 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                <div className="text-center py-8 imp-card">
                   <p className="text-sm text-slate-400">공고의 기술 스택과 일치하는 공개 이력서가 없습니다</p>
                   <p className="text-xs text-slate-400 mt-1">활성 공고에 기술 스택을 추가해보세요</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {recommended.slice(0, 6).map((r: any) => (
-                    <div key={r.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                    <div key={r.id} className="imp-card p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{r.name || '익명'}</p>
@@ -285,14 +285,14 @@ export default function RecruiterDashboardPage() {
                 <Link to="/jobs" className="text-xs text-blue-600 hover:underline">전체 보기</Link>
               </div>
               {jobs.length === 0 ? (
-                <div className="text-center py-8 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                <div className="text-center py-8 imp-card">
                   <p className="text-sm text-slate-400">등록된 공고가 없습니다</p>
                   <Link to="/jobs/new" className="text-sm text-blue-600 hover:underline mt-2 inline-block">첫 공고 등록하기</Link>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {jobs.slice(0, 5).map((j: any) => (
-                    <div key={j.id} className="flex items-center justify-between p-3 min-h-[56px] bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div key={j.id} className="flex items-center justify-between p-3 min-h-[56px] imp-card">
                       <div className="min-w-0">
                         <Link to="/jobs" className="text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-blue-600 truncate block">{j.position}</Link>
                         <span className="text-xs text-slate-400">{j.company} · {timeAgo(j.createdAt)}</span>
@@ -316,7 +316,7 @@ export default function RecruiterDashboardPage() {
                   { label: '스카우트 현황', to: '/scouts', icon: '📨' },
                   { label: '쪽지함', to: '/messages', icon: '💬' },
                 ].map(a => (
-                  <Link key={a.to} to={a.to} className="flex items-center gap-2 p-3 min-h-[44px] bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200 text-sm text-slate-700 dark:text-slate-300">
+                  <Link key={a.to} to={a.to} className="flex items-center gap-2 p-3 min-h-[44px] imp-card hover:shadow-sm transition-all duration-200 text-sm text-slate-700 dark:text-slate-300">
                     <span>{a.icon}</span>
                     {a.label}
                   </Link>

@@ -1,27 +1,32 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "NoticesController", {
+    enumerable: true,
+    get: function() {
+        return NoticesController;
+    }
+});
+const _common = require("@nestjs/common");
+const _swagger = require("@nestjs/swagger");
+const _authguard = require("../auth/auth.guard");
+const _noticesservice = require("./notices.service");
+function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    else for(var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
+}
+function _ts_metadata(k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.NoticesController = void 0;
-const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
-const auth_guard_1 = require("../auth/auth.guard");
-const notices_service_1 = require("./notices.service");
+}
+function _ts_param(paramIndex, decorator) {
+    return function(target, key) {
+        decorator(target, key, paramIndex);
+    };
+}
 let NoticesController = class NoticesController {
-    service;
-    constructor(service) {
-        this.service = service;
-    }
     getPopup() {
         return this.service.getPopup();
     }
@@ -32,130 +37,161 @@ let NoticesController = class NoticesController {
         return this.service.getOne(id);
     }
     create(req, body) {
-        if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin')
-            throw new common_1.ForbiddenException();
+        if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') throw new _common.ForbiddenException();
         return this.service.create(body, req.user.id);
     }
     update(req, id, body) {
-        if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin')
-            throw new common_1.ForbiddenException();
+        if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') throw new _common.ForbiddenException();
         const { reason, ...data } = body;
         return this.service.update(id, data, req.user.id, reason);
     }
     remove(req, id) {
-        if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin')
-            throw new common_1.ForbiddenException();
+        if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') throw new _common.ForbiddenException();
         return this.service.remove(id);
     }
+    // ── Comments ─────────────────────────────────────────────────
     addComment(req, noticeId, body) {
-        if (!req.user?.id)
-            throw new common_1.ForbiddenException('로그인 필요');
+        if (!req.user?.id) throw new _common.ForbiddenException('로그인 필요');
         return this.service.addComment(noticeId, req.user.id, body.content);
     }
     deleteComment(req, _noticeId, commentId) {
-        if (!req.user?.id)
-            throw new common_1.ForbiddenException();
+        if (!req.user?.id) throw new _common.ForbiddenException();
         return this.service.deleteComment(commentId, req.user.id, req.user.role);
     }
     toggleComments(req, id, body) {
-        if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin')
-            throw new common_1.ForbiddenException();
+        if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') throw new _common.ForbiddenException();
         return this.service.toggleComments(id, body.allow);
     }
+    // ── History ───────────────────────────────────────────────────
     getHistory(req, id) {
-        if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin')
-            throw new common_1.ForbiddenException();
+        if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') throw new _common.ForbiddenException();
         return this.service.getHistory(id);
     }
+    constructor(service){
+        this.service = service;
+    }
 };
-exports.NoticesController = NoticesController;
-__decorate([
-    (0, common_1.Get)('popup'),
-    (0, auth_guard_1.Public)(),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Get)('popup'),
+    (0, _authguard.Public)(),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", []),
+    _ts_metadata("design:returntype", void 0)
 ], NoticesController.prototype, "getPopup", null);
-__decorate([
-    (0, common_1.Get)(),
-    (0, auth_guard_1.Public)(),
-    __param(0, (0, common_1.Query)('type')),
-    __param(1, (0, common_1.Query)('page')),
-    __param(2, (0, common_1.Query)('limit')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object, Object]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Get)(),
+    (0, _authguard.Public)(),
+    _ts_param(0, (0, _common.Query)('type')),
+    _ts_param(1, (0, _common.Query)('page')),
+    _ts_param(2, (0, _common.Query)('limit')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String,
+        void 0,
+        void 0
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], NoticesController.prototype, "getAll", null);
-__decorate([
-    (0, common_1.Get)(':id'),
-    (0, auth_guard_1.Public)(),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Get)(':id'),
+    (0, _authguard.Public)(),
+    _ts_param(0, (0, _common.Param)('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], NoticesController.prototype, "getOne", null);
-__decorate([
-    (0, common_1.Post)(),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Post)(),
+    _ts_param(0, (0, _common.Req)()),
+    _ts_param(1, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        Object,
+        Object
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], NoticesController.prototype, "create", null);
-__decorate([
-    (0, common_1.Patch)(':id'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Param)('id')),
-    __param(2, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, Object]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Patch)(':id'),
+    _ts_param(0, (0, _common.Req)()),
+    _ts_param(1, (0, _common.Param)('id')),
+    _ts_param(2, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        Object,
+        String,
+        Object
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], NoticesController.prototype, "update", null);
-__decorate([
-    (0, common_1.Delete)(':id'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Delete)(':id'),
+    _ts_param(0, (0, _common.Req)()),
+    _ts_param(1, (0, _common.Param)('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        Object,
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], NoticesController.prototype, "remove", null);
-__decorate([
-    (0, common_1.Post)(':id/comments'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Param)('id')),
-    __param(2, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, Object]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Post)(':id/comments'),
+    _ts_param(0, (0, _common.Req)()),
+    _ts_param(1, (0, _common.Param)('id')),
+    _ts_param(2, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        Object,
+        String,
+        Object
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], NoticesController.prototype, "addComment", null);
-__decorate([
-    (0, common_1.Delete)(':noticeId/comments/:commentId'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Param)('noticeId')),
-    __param(2, (0, common_1.Param)('commentId')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Delete)(':noticeId/comments/:commentId'),
+    _ts_param(0, (0, _common.Req)()),
+    _ts_param(1, (0, _common.Param)('noticeId')),
+    _ts_param(2, (0, _common.Param)('commentId')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        Object,
+        String,
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], NoticesController.prototype, "deleteComment", null);
-__decorate([
-    (0, common_1.Patch)(':id/toggle-comments'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Param)('id')),
-    __param(2, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, Object]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Patch)(':id/toggle-comments'),
+    _ts_param(0, (0, _common.Req)()),
+    _ts_param(1, (0, _common.Param)('id')),
+    _ts_param(2, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        Object,
+        String,
+        Object
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], NoticesController.prototype, "toggleComments", null);
-__decorate([
-    (0, common_1.Get)(':id/history'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
-    __metadata("design:returntype", void 0)
+_ts_decorate([
+    (0, _common.Get)(':id/history'),
+    _ts_param(0, (0, _common.Req)()),
+    _ts_param(1, (0, _common.Param)('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        Object,
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
 ], NoticesController.prototype, "getHistory", null);
-exports.NoticesController = NoticesController = __decorate([
-    (0, swagger_1.ApiTags)('notices'),
-    (0, common_1.Controller)('notices'),
-    __metadata("design:paramtypes", [notices_service_1.NoticesService])
+NoticesController = _ts_decorate([
+    (0, _swagger.ApiTags)('notices'),
+    (0, _common.Controller)('notices'),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof _noticesservice.NoticesService === "undefined" ? Object : _noticesservice.NoticesService
+    ])
 ], NoticesController);

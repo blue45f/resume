@@ -1,9 +1,11 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const testing_1 = require("@nestjs/testing");
-const cover_letters_service_1 = require("./cover-letters.service");
-const prisma_service_1 = require("../prisma/prisma.service");
-const common_1 = require("@nestjs/common");
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+const _testing = require("@nestjs/testing");
+const _coverlettersservice = require("./cover-letters.service");
+const _prismaservice = require("../prisma/prisma.service");
+const _common = require("@nestjs/common");
 const mockCoverLetter = {
     id: 'cl-1',
     userId: 'user-1',
@@ -15,7 +17,7 @@ const mockCoverLetter = {
     jobDescription: 'React 전문가',
     content: '자기소개서 내용입니다.',
     createdAt: new Date(),
-    updatedAt: new Date(),
+    updatedAt: new Date()
 };
 const mockPrisma = {
     coverLetter: {
@@ -23,85 +25,134 @@ const mockPrisma = {
         findUnique: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
-        delete: jest.fn(),
-    },
+        delete: jest.fn()
+    }
 };
-describe('CoverLettersService', () => {
+describe('CoverLettersService', ()=>{
     let service;
-    beforeEach(async () => {
-        const module = await testing_1.Test.createTestingModule({
-            providers: [cover_letters_service_1.CoverLettersService, { provide: prisma_service_1.PrismaService, useValue: mockPrisma }],
+    beforeEach(async ()=>{
+        const module = await _testing.Test.createTestingModule({
+            providers: [
+                _coverlettersservice.CoverLettersService,
+                {
+                    provide: _prismaservice.PrismaService,
+                    useValue: mockPrisma
+                }
+            ]
         }).compile();
-        service = module.get(cover_letters_service_1.CoverLettersService);
+        service = module.get(_coverlettersservice.CoverLettersService);
         jest.clearAllMocks();
     });
-    describe('findAll', () => {
-        it('사용자의 자소서 목록 반환', async () => {
-            mockPrisma.coverLetter.findMany.mockResolvedValue([mockCoverLetter]);
+    // ──────────────────────────────────────────────────
+    // findAll
+    // ──────────────────────────────────────────────────
+    describe('findAll', ()=>{
+        it('사용자의 자소서 목록 반환', async ()=>{
+            mockPrisma.coverLetter.findMany.mockResolvedValue([
+                mockCoverLetter
+            ]);
             const result = await service.findAll('user-1');
             expect(result).toHaveLength(1);
             expect(result[0].company).toBe('네이버');
         });
-        it('userId로 필터링하고 updatedAt 내림차순 정렬', async () => {
+        it('userId로 필터링하고 updatedAt 내림차순 정렬', async ()=>{
             mockPrisma.coverLetter.findMany.mockResolvedValue([]);
             await service.findAll('user-1');
             expect(mockPrisma.coverLetter.findMany).toHaveBeenCalledWith(expect.objectContaining({
-                where: { userId: 'user-1' },
-                orderBy: { updatedAt: 'desc' },
+                where: {
+                    userId: 'user-1'
+                },
+                orderBy: {
+                    updatedAt: 'desc'
+                }
             }));
         });
-        it('자소서가 없으면 빈 배열', async () => {
+        it('자소서가 없으면 빈 배열', async ()=>{
             mockPrisma.coverLetter.findMany.mockResolvedValue([]);
             const result = await service.findAll('user-1');
             expect(result).toEqual([]);
         });
-        it('반환값에 필요한 필드만 select', async () => {
+        it('반환값에 필요한 필드만 select', async ()=>{
             mockPrisma.coverLetter.findMany.mockResolvedValue([]);
             await service.findAll('user-1');
             expect(mockPrisma.coverLetter.findMany).toHaveBeenCalledWith(expect.objectContaining({
                 select: expect.objectContaining({
-                    id: true, company: true, position: true, tone: true,
-                    content: true, resumeId: true, applicationId: true,
-                    createdAt: true, updatedAt: true,
-                }),
+                    id: true,
+                    company: true,
+                    position: true,
+                    tone: true,
+                    content: true,
+                    resumeId: true,
+                    applicationId: true,
+                    createdAt: true,
+                    updatedAt: true
+                })
             }));
         });
     });
-    describe('findOne', () => {
-        it('소유자가 자소서 조회 성공', async () => {
+    // ──────────────────────────────────────────────────
+    // findOne
+    // ──────────────────────────────────────────────────
+    describe('findOne', ()=>{
+        it('소유자가 자소서 조회 성공', async ()=>{
             mockPrisma.coverLetter.findUnique.mockResolvedValue(mockCoverLetter);
             const result = await service.findOne('cl-1', 'user-1');
             expect(result.id).toBe('cl-1');
             expect(result.company).toBe('네이버');
         });
-        it('다른 사용자 자소서 접근 → ForbiddenException', async () => {
+        it('다른 사용자 자소서 접근 → ForbiddenException', async ()=>{
             mockPrisma.coverLetter.findUnique.mockResolvedValue(mockCoverLetter);
-            await expect(service.findOne('cl-1', 'other-user')).rejects.toThrow(common_1.ForbiddenException);
+            await expect(service.findOne('cl-1', 'other-user')).rejects.toThrow(_common.ForbiddenException);
             await expect(service.findOne('cl-1', 'other-user')).rejects.toThrow('권한이 없습니다');
         });
-        it('없는 자소서 → NotFoundException', async () => {
+        it('없는 자소서 → NotFoundException', async ()=>{
             mockPrisma.coverLetter.findUnique.mockResolvedValue(null);
-            await expect(service.findOne('fake', 'user-1')).rejects.toThrow(common_1.NotFoundException);
+            await expect(service.findOne('fake', 'user-1')).rejects.toThrow(_common.NotFoundException);
             await expect(service.findOne('fake', 'user-1')).rejects.toThrow('자소서를 찾을 수 없습니다');
         });
     });
-    describe('create', () => {
-        it('자소서 생성 성공', async () => {
-            const data = { company: '카카오', position: '백엔드', tone: 'formal', jobDescription: 'JD', content: '내용' };
-            mockPrisma.coverLetter.create.mockResolvedValue({ id: 'cl-2', userId: 'user-1', ...data });
+    // ──────────────────────────────────────────────────
+    // create
+    // ──────────────────────────────────────────────────
+    describe('create', ()=>{
+        it('자소서 생성 성공', async ()=>{
+            const data = {
+                company: '카카오',
+                position: '백엔드',
+                tone: 'formal',
+                jobDescription: 'JD',
+                content: '내용'
+            };
+            mockPrisma.coverLetter.create.mockResolvedValue({
+                id: 'cl-2',
+                userId: 'user-1',
+                ...data
+            });
             const result = await service.create('user-1', data);
             expect(result.id).toBe('cl-2');
             expect(result.company).toBe('카카오');
         });
-        it('userId와 data가 함께 저장', async () => {
-            const data = { company: '라인', position: 'FE', tone: 'casual', jobDescription: 'JD', content: '내용' };
-            mockPrisma.coverLetter.create.mockResolvedValue({ id: 'cl-3', ...data });
+        it('userId와 data가 함께 저장', async ()=>{
+            const data = {
+                company: '라인',
+                position: 'FE',
+                tone: 'casual',
+                jobDescription: 'JD',
+                content: '내용'
+            };
+            mockPrisma.coverLetter.create.mockResolvedValue({
+                id: 'cl-3',
+                ...data
+            });
             await service.create('user-1', data);
             expect(mockPrisma.coverLetter.create).toHaveBeenCalledWith({
-                data: { userId: 'user-1', ...data },
+                data: {
+                    userId: 'user-1',
+                    ...data
+                }
             });
         });
-        it('resumeId와 applicationId 포함 생성', async () => {
+        it('resumeId와 applicationId 포함 생성', async ()=>{
             const data = {
                 resumeId: 'resume-1',
                 applicationId: 'app-1',
@@ -109,80 +160,125 @@ describe('CoverLettersService', () => {
                 position: 'BE',
                 tone: 'formal',
                 jobDescription: 'JD',
-                content: '내용',
+                content: '내용'
             };
-            mockPrisma.coverLetter.create.mockResolvedValue({ id: 'cl-4', ...data });
+            mockPrisma.coverLetter.create.mockResolvedValue({
+                id: 'cl-4',
+                ...data
+            });
             await service.create('user-1', data);
             expect(mockPrisma.coverLetter.create).toHaveBeenCalledWith({
                 data: expect.objectContaining({
                     resumeId: 'resume-1',
-                    applicationId: 'app-1',
-                }),
+                    applicationId: 'app-1'
+                })
             });
         });
     });
-    describe('update', () => {
-        it('소유자가 자소서 수정 성공', async () => {
+    // ──────────────────────────────────────────────────
+    // update
+    // ──────────────────────────────────────────────────
+    describe('update', ()=>{
+        it('소유자가 자소서 수정 성공', async ()=>{
             mockPrisma.coverLetter.findUnique.mockResolvedValue(mockCoverLetter);
-            mockPrisma.coverLetter.update.mockResolvedValue({ ...mockCoverLetter, content: '수정된 내용' });
-            const result = await service.update('cl-1', 'user-1', { content: '수정된 내용' });
+            mockPrisma.coverLetter.update.mockResolvedValue({
+                ...mockCoverLetter,
+                content: '수정된 내용'
+            });
+            const result = await service.update('cl-1', 'user-1', {
+                content: '수정된 내용'
+            });
             expect(result.content).toBe('수정된 내용');
             expect(mockPrisma.coverLetter.update).toHaveBeenCalledWith({
-                where: { id: 'cl-1' },
-                data: { content: '수정된 내용' },
+                where: {
+                    id: 'cl-1'
+                },
+                data: {
+                    content: '수정된 내용'
+                }
             });
         });
-        it('회사명과 포지션 수정', async () => {
+        it('회사명과 포지션 수정', async ()=>{
             mockPrisma.coverLetter.findUnique.mockResolvedValue(mockCoverLetter);
-            mockPrisma.coverLetter.update.mockResolvedValue({ ...mockCoverLetter, company: '구글', position: 'SWE' });
-            const result = await service.update('cl-1', 'user-1', { company: '구글', position: 'SWE' });
+            mockPrisma.coverLetter.update.mockResolvedValue({
+                ...mockCoverLetter,
+                company: '구글',
+                position: 'SWE'
+            });
+            const result = await service.update('cl-1', 'user-1', {
+                company: '구글',
+                position: 'SWE'
+            });
             expect(result.company).toBe('구글');
             expect(result.position).toBe('SWE');
         });
-        it('다른 사용자 자소서 수정 → ForbiddenException', async () => {
+        it('다른 사용자 자소서 수정 → ForbiddenException', async ()=>{
             mockPrisma.coverLetter.findUnique.mockResolvedValue(mockCoverLetter);
-            await expect(service.update('cl-1', 'other-user', { content: 'hack' })).rejects.toThrow(common_1.ForbiddenException);
+            await expect(service.update('cl-1', 'other-user', {
+                content: 'hack'
+            })).rejects.toThrow(_common.ForbiddenException);
             expect(mockPrisma.coverLetter.update).not.toHaveBeenCalled();
         });
-        it('없는 자소서 수정 → NotFoundException', async () => {
+        it('없는 자소서 수정 → NotFoundException', async ()=>{
             mockPrisma.coverLetter.findUnique.mockResolvedValue(null);
-            await expect(service.update('fake', 'user-1', { content: 'x' })).rejects.toThrow(common_1.NotFoundException);
+            await expect(service.update('fake', 'user-1', {
+                content: 'x'
+            })).rejects.toThrow(_common.NotFoundException);
         });
     });
-    describe('remove', () => {
-        it('소유자가 자소서 삭제 성공', async () => {
+    // ──────────────────────────────────────────────────
+    // remove
+    // ──────────────────────────────────────────────────
+    describe('remove', ()=>{
+        it('소유자가 자소서 삭제 성공', async ()=>{
             mockPrisma.coverLetter.findUnique.mockResolvedValue(mockCoverLetter);
             mockPrisma.coverLetter.delete.mockResolvedValue({});
             const result = await service.remove('cl-1', 'user-1');
-            expect(result).toEqual({ success: true });
-            expect(mockPrisma.coverLetter.delete).toHaveBeenCalledWith({ where: { id: 'cl-1' } });
+            expect(result).toEqual({
+                success: true
+            });
+            expect(mockPrisma.coverLetter.delete).toHaveBeenCalledWith({
+                where: {
+                    id: 'cl-1'
+                }
+            });
         });
-        it('다른 사용자 자소서 삭제 → ForbiddenException', async () => {
+        it('다른 사용자 자소서 삭제 → ForbiddenException', async ()=>{
             mockPrisma.coverLetter.findUnique.mockResolvedValue(mockCoverLetter);
-            await expect(service.remove('cl-1', 'other-user')).rejects.toThrow(common_1.ForbiddenException);
+            await expect(service.remove('cl-1', 'other-user')).rejects.toThrow(_common.ForbiddenException);
             expect(mockPrisma.coverLetter.delete).not.toHaveBeenCalled();
         });
-        it('없는 자소서 삭제 → NotFoundException', async () => {
+        it('없는 자소서 삭제 → NotFoundException', async ()=>{
             mockPrisma.coverLetter.findUnique.mockResolvedValue(null);
-            await expect(service.remove('fake', 'user-1')).rejects.toThrow(common_1.NotFoundException);
+            await expect(service.remove('fake', 'user-1')).rejects.toThrow(_common.NotFoundException);
         });
     });
-    describe('getByResume', () => {
-        it('특정 이력서의 자소서 목록 반환', async () => {
-            mockPrisma.coverLetter.findMany.mockResolvedValue([mockCoverLetter]);
+    // ──────────────────────────────────────────────────
+    // getByResume
+    // ──────────────────────────────────────────────────
+    describe('getByResume', ()=>{
+        it('특정 이력서의 자소서 목록 반환', async ()=>{
+            mockPrisma.coverLetter.findMany.mockResolvedValue([
+                mockCoverLetter
+            ]);
             const result = await service.getByResume('resume-1', 'user-1');
             expect(result).toHaveLength(1);
             expect(result[0].resumeId).toBe('resume-1');
         });
-        it('resumeId + userId로 필터링', async () => {
+        it('resumeId + userId로 필터링', async ()=>{
             mockPrisma.coverLetter.findMany.mockResolvedValue([]);
             await service.getByResume('resume-1', 'user-1');
             expect(mockPrisma.coverLetter.findMany).toHaveBeenCalledWith({
-                where: { resumeId: 'resume-1', userId: 'user-1' },
-                orderBy: { updatedAt: 'desc' },
+                where: {
+                    resumeId: 'resume-1',
+                    userId: 'user-1'
+                },
+                orderBy: {
+                    updatedAt: 'desc'
+                }
             });
         });
-        it('해당 이력서에 자소서가 없으면 빈 배열', async () => {
+        it('해당 이력서에 자소서가 없으면 빈 배열', async ()=>{
             mockPrisma.coverLetter.findMany.mockResolvedValue([]);
             const result = await service.getByResume('resume-no', 'user-1');
             expect(result).toEqual([]);

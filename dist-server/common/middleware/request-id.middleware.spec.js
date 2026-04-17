@@ -1,24 +1,36 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const request_id_middleware_1 = require("./request-id.middleware");
-describe('RequestIdMiddleware', () => {
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+const _requestidmiddleware = require("./request-id.middleware");
+describe('RequestIdMiddleware', ()=>{
     let middleware;
-    beforeEach(() => {
-        middleware = new request_id_middleware_1.RequestIdMiddleware();
+    beforeEach(()=>{
+        middleware = new _requestidmiddleware.RequestIdMiddleware();
     });
-    it('기존 request ID가 없으면 새로 생성', () => {
-        const req = { headers: {} };
-        const res = { setHeader: jest.fn() };
+    it('기존 request ID가 없으면 새로 생성', ()=>{
+        const req = {
+            headers: {}
+        };
+        const res = {
+            setHeader: jest.fn()
+        };
         const next = jest.fn();
         middleware.use(req, res, next);
         expect(req.headers['x-request-id']).toBeDefined();
-        expect(req.headers['x-request-id']).toHaveLength(36);
+        expect(req.headers['x-request-id']).toHaveLength(36); // UUID format
         expect(res.setHeader).toHaveBeenCalledWith('x-request-id', expect.any(String));
         expect(next).toHaveBeenCalled();
     });
-    it('기존 request ID가 있으면 유지', () => {
-        const req = { headers: { 'x-request-id': 'existing-id' } };
-        const res = { setHeader: jest.fn() };
+    it('기존 request ID가 있으면 유지', ()=>{
+        const req = {
+            headers: {
+                'x-request-id': 'existing-id'
+            }
+        };
+        const res = {
+            setHeader: jest.fn()
+        };
         const next = jest.fn();
         middleware.use(req, res, next);
         expect(req.headers['x-request-id']).toBe('existing-id');

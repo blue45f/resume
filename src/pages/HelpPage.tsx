@@ -54,7 +54,7 @@ export default function HelpPage() {
       const matchSearch = !search.trim() || item.q.toLowerCase().includes(search.toLowerCase()) || item.a.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchSearch;
     });
-  }, [search, category]);
+  }, [search, category, faqData]);
 
   return (
     <>
@@ -108,7 +108,7 @@ export default function HelpPage() {
             {filtered.map((item, i) => {
               const isOpen = expandedIdx === i;
               return (
-                <div key={i} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                <div key={i} className="imp-card overflow-hidden">
                   <button
                     onClick={() => setExpandedIdx(isOpen ? null : i)}
                     className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors"
@@ -142,7 +142,7 @@ export default function HelpPage() {
             { icon: '📊', label: '전체 통계', to: '/stats' },
             { icon: '💰', label: '요금제', to: '/pricing' },
           ].map(link => (
-            <Link key={link.label} to={link.to} className="flex items-center gap-2.5 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors">
+            <Link key={link.label} to={link.to} className="flex items-center gap-2.5 p-3 imp-card hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors">
               <span className="text-lg">{link.icon}</span>
               <span className="text-sm text-slate-700 dark:text-slate-300">{link.label}</span>
             </Link>

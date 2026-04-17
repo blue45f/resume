@@ -22,7 +22,7 @@ export default function BannerSlider() {
     fetch(`${API_URL}/api/banners/active`)
       .then(r => r.ok ? r.json() : [])
       .then(data => setBanners(Array.isArray(data) ? data : []))
-      .catch(() => {});
+      .catch(err => { console.warn('[BannerSlider] Failed to fetch banners:', err); });
   }, []);
 
   const onSelect = useCallback(() => {
@@ -46,9 +46,10 @@ export default function BannerSlider() {
 
   const getSlideStyle = (banner: Banner): React.CSSProperties => {
     const isCss = (v: string) => v.startsWith('linear-gradient') || v.startsWith('#') || v.startsWith('rgb');
-    const bg = isCss(banner.bgColor) ? banner.bgColor : 'linear-gradient(135deg, #6366f1, #9333ea)';
-    return banner.imageUrl
-      ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${banner.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    const bg = isCss(banner.bgColor) ? banner.bgColor : 'linear-gradient(135deg, #4f46e5, #6366f1)';
+    const safeUrl = banner.imageUrl && /^https?:\/\//.test(banner.imageUrl) ? banner.imageUrl.replace(/["\\]/g, '') : '';
+    return safeUrl
+      ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url("${safeUrl}")`, backgroundSize: 'cover', backgroundPosition: 'center' }
       : { background: bg };
   };
 
