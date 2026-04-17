@@ -12,6 +12,7 @@ export declare class JobsService {
             companyName: string | null;
         };
     } & {
+        description: string;
         id: string;
         createdAt: Date;
         userId: string;
@@ -19,7 +20,6 @@ export declare class JobsService {
         skills: string;
         company: string;
         position: string;
-        description: string;
         type: string;
         status: string;
         salary: string;
@@ -36,6 +36,7 @@ export declare class JobsService {
             companyName: string | null;
         };
     } & {
+        description: string;
         id: string;
         createdAt: Date;
         userId: string;
@@ -43,7 +44,6 @@ export declare class JobsService {
         skills: string;
         company: string;
         position: string;
-        description: string;
         type: string;
         status: string;
         salary: string;
@@ -52,6 +52,7 @@ export declare class JobsService {
         benefits: string;
     }>;
     findByUser(userId: string): Promise<{
+        description: string;
         id: string;
         createdAt: Date;
         userId: string;
@@ -59,7 +60,6 @@ export declare class JobsService {
         skills: string;
         company: string;
         position: string;
-        description: string;
         type: string;
         status: string;
         salary: string;
@@ -68,6 +68,7 @@ export declare class JobsService {
         benefits: string;
     }[]>;
     create(userId: string, data: any): Promise<{
+        description: string;
         id: string;
         createdAt: Date;
         userId: string;
@@ -75,7 +76,6 @@ export declare class JobsService {
         skills: string;
         company: string;
         position: string;
-        description: string;
         type: string;
         status: string;
         salary: string;
@@ -84,6 +84,7 @@ export declare class JobsService {
         benefits: string;
     }>;
     update(id: string, userId: string, data: any): Promise<{
+        description: string;
         id: string;
         createdAt: Date;
         userId: string;
@@ -91,7 +92,6 @@ export declare class JobsService {
         skills: string;
         company: string;
         position: string;
-        description: string;
         type: string;
         status: string;
         salary: string;
@@ -111,17 +111,18 @@ export declare class JobsService {
         jobCategory?: string;
         q?: string;
     }): Promise<{
+        description: string;
         url: string;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
         category: string;
-        description: string;
         location: string;
-        badgeText: string;
+        isActive: boolean;
         logoEmoji: string;
         logoUrl: string;
+        badgeText: string;
         gradientFrom: string;
         gradientTo: string;
         matchKeywords: string;
@@ -129,7 +130,6 @@ export declare class JobsService {
         jobTypes: string;
         careerLevel: string;
         jobCategory: string;
-        isActive: boolean;
         order: number;
         clickCount: number;
     }[]>;
@@ -141,17 +141,18 @@ export declare class JobsService {
         role?: string;
         userType?: string;
     }): Promise<{
+        description: string;
         url: string;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
         category: string;
-        description: string;
         location: string;
-        badgeText: string;
+        isActive: boolean;
         logoEmoji: string;
         logoUrl: string;
+        badgeText: string;
         gradientFrom: string;
         gradientTo: string;
         matchKeywords: string;
@@ -159,7 +160,6 @@ export declare class JobsService {
         jobTypes: string;
         careerLevel: string;
         jobCategory: string;
-        isActive: boolean;
         order: number;
         clickCount: number;
     }>;
@@ -168,17 +168,18 @@ export declare class JobsService {
         role?: string;
         userType?: string;
     }): Promise<{
+        description: string;
         url: string;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
         category: string;
-        description: string;
         location: string;
-        badgeText: string;
+        isActive: boolean;
         logoEmoji: string;
         logoUrl: string;
+        badgeText: string;
         gradientFrom: string;
         gradientTo: string;
         matchKeywords: string;
@@ -186,7 +187,6 @@ export declare class JobsService {
         jobTypes: string;
         careerLevel: string;
         jobCategory: string;
-        isActive: boolean;
         order: number;
         clickCount: number;
     }>;
@@ -214,13 +214,13 @@ export declare class JobsService {
                 companyName: string | null;
             } | null;
         } & {
+            summary: string;
             education: string;
             id: string;
             createdAt: Date;
             viewCount: number;
             updatedAt: Date;
             skills: string;
-            summary: string;
             company: string;
             position: string;
             department: string;
@@ -253,13 +253,13 @@ export declare class JobsService {
             companyName: string | null;
         } | null;
     } & {
+        summary: string;
         education: string;
         id: string;
         createdAt: Date;
         viewCount: number;
         updatedAt: Date;
         skills: string;
-        summary: string;
         company: string;
         position: string;
         department: string;
@@ -281,13 +281,13 @@ export declare class JobsService {
         authorId: string | null;
     }>;
     createCuratedJob(data: any, userId: string, userRole: string, userType: string): Promise<{
+        summary: string;
         education: string;
         id: string;
         createdAt: Date;
         viewCount: number;
         updatedAt: Date;
         skills: string;
-        summary: string;
         company: string;
         position: string;
         department: string;
@@ -309,13 +309,13 @@ export declare class JobsService {
         authorId: string | null;
     }>;
     updateCuratedJob(id: string, data: any, userId: string, userRole: string, userType?: string): Promise<{
+        summary: string;
         education: string;
         id: string;
         createdAt: Date;
         viewCount: number;
         updatedAt: Date;
         skills: string;
-        summary: string;
         company: string;
         position: string;
         department: string;
@@ -338,6 +338,29 @@ export declare class JobsService {
     }>;
     deleteCuratedJob(id: string, userId: string, userRole: string, userType?: string): Promise<{
         success: boolean;
+    }>;
+    getJobStats(location?: string, type?: string, skill?: string): Promise<{
+        total: number;
+        byCompany: {
+            name: string;
+            count: number;
+        }[];
+        byLocation: {
+            name: string;
+            count: number;
+        }[];
+        byType: {
+            name: string;
+            count: number;
+        }[];
+        bySkill: {
+            name: string;
+            count: number;
+        }[];
+        byMonth: {
+            month: string;
+            count: number;
+        }[];
     }>;
     recordCuratedJobClick(id: string): Promise<{
         sourceUrl: string;

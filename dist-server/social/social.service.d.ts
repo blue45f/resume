@@ -1,9 +1,11 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
 export declare class SocialService {
     private prisma;
     private notificationsService;
-    constructor(prisma: PrismaService, notificationsService: NotificationsService);
+    private forbiddenWords;
+    constructor(prisma: PrismaService, notificationsService: NotificationsService, forbiddenWords: ForbiddenWordsService);
     follow(followerId: string, followingId: string): Promise<{
         followed: boolean;
     }>;
@@ -34,6 +36,7 @@ export declare class SocialService {
     }): Promise<{
         id: string;
         createdAt: Date;
+        resumeId: string | null;
         company: string;
         position: string;
         message: string;
@@ -41,7 +44,6 @@ export declare class SocialService {
         status: string;
         senderId: string;
         receiverId: string;
-        resumeId: string | null;
     }>;
     getReceivedScouts(userId: string): Promise<({
         sender: {
@@ -52,6 +54,7 @@ export declare class SocialService {
     } & {
         id: string;
         createdAt: Date;
+        resumeId: string | null;
         company: string;
         position: string;
         message: string;
@@ -59,7 +62,6 @@ export declare class SocialService {
         status: string;
         senderId: string;
         receiverId: string;
-        resumeId: string | null;
     })[]>;
     markScoutRead(id: string, userId: string): Promise<{
         success: boolean;
@@ -78,6 +80,7 @@ export declare class SocialService {
     } & {
         id: string;
         createdAt: Date;
+        resumeId: string | null;
         company: string;
         position: string;
         message: string;
@@ -85,7 +88,6 @@ export declare class SocialService {
         status: string;
         senderId: string;
         receiverId: string;
-        resumeId: string | null;
     })[]>;
     respondToScout(id: string, userId: string, status: string): Promise<{
         success: boolean;
@@ -110,10 +112,10 @@ export declare class SocialService {
     sendMessage(senderId: string, receiverId: string, content: string): Promise<{
         id: string;
         createdAt: Date;
+        content: string;
         read: boolean;
         senderId: string;
         receiverId: string;
-        content: string;
     }>;
     getConversations(userId: string): Promise<{
         partner: {
@@ -132,10 +134,10 @@ export declare class SocialService {
     getMessages(userId: string, partnerId: string): Promise<{
         id: string;
         createdAt: Date;
+        content: string;
         read: boolean;
         senderId: string;
         receiverId: string;
-        content: string;
     }[]>;
     getUnreadMessageCount(userId: string): Promise<number>;
 }

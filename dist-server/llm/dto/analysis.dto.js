@@ -43,6 +43,8 @@ __decorate([
 ], JobMatchDto.prototype, "provider", void 0);
 class InterviewDto {
     jobRole;
+    jobDescription;
+    difficulty;
     provider;
 }
 exports.InterviewDto = InterviewDto;
@@ -53,6 +55,19 @@ __decorate([
     (0, class_validator_1.MaxLength)(200, { message: '직무명은 200자 이내여야 합니다' }),
     __metadata("design:type", String)
 ], InterviewDto.prototype, "jobRole", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '채용공고/JD (3000자 이내)' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(3000, { message: 'JD는 3000자 이내여야 합니다' }),
+    __metadata("design:type", String)
+], InterviewDto.prototype, "jobDescription", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '난이도 (beginner/intermediate/advanced)' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], InterviewDto.prototype, "difficulty", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ description: 'LLM 프로바이더' }),
     (0, class_validator_1.IsOptional)(),

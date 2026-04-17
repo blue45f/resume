@@ -64,6 +64,11 @@ export declare class ResumesController {
             createdAt: string;
         }[];
     }>;
+    getViewers(req: any): Promise<{
+        viewers: never[];
+        thisWeek: number;
+        lastWeek: number;
+    }>;
     getResumeTrend(resumeId: string): Promise<{
         version: number;
         sections: number;

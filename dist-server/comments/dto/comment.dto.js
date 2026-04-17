@@ -14,6 +14,7 @@ const class_validator_1 = require("class-validator");
 class CreateCommentDto {
     content;
     authorName;
+    parentId;
 }
 exports.CreateCommentDto = CreateCommentDto;
 __decorate([
@@ -28,3 +29,8 @@ __decorate([
     (0, class_validator_1.MaxLength)(50),
     __metadata("design:type", String)
 ], CreateCommentDto.prototype, "authorName", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateCommentDto.prototype, "parentId", void 0);

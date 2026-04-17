@@ -28,7 +28,7 @@ let CommentsController = class CommentsController {
         return this.service.findByResume(resumeId);
     }
     create(resumeId, dto, req) {
-        return this.service.create(resumeId, dto.content, req.user?.id, dto.authorName);
+        return this.service.create(resumeId, dto.content, req.user?.id, dto.authorName, dto.parentId);
     }
     remove(commentId, req) {
         return this.service.remove(commentId, req.user?.id, req.user?.role);

@@ -96,7 +96,7 @@ let LlmController = class LlmController {
         return this.llmService.analyzeJobMatch(resumeId, dto.jobDescription, dto.provider);
     }
     generateInterview(resumeId, dto) {
-        return this.llmService.generateInterviewQuestions(resumeId, dto.jobRole, dto.provider);
+        return this.llmService.generateInterviewQuestions(resumeId, dto.jobRole, dto.provider, dto.jobDescription, dto.difficulty);
     }
     inlineAssist(dto) {
         return this.llmService.inlineAssist(dto.text, dto.type, dto.provider);

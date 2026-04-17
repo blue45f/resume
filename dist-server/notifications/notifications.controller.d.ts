@@ -33,6 +33,19 @@ export declare class NotificationsController {
     }> | {
         success: boolean;
     };
+    deleteOne(id: string, req: any): Promise<{
+        success: boolean;
+    }> | {
+        success: boolean;
+    };
+    deleteBulk(body: {
+        ids: string[];
+    }, req: any): Promise<{
+        success: boolean;
+        deleted: number;
+    }> | {
+        success: boolean;
+    };
     cleanup(req: any): Promise<{
         deleted: number;
     }> | {

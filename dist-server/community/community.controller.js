@@ -44,10 +44,10 @@ let CommunityController = class CommunityController {
             cloudinary_1.v2.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret, secure: true });
         }
     }
-    getPosts(category, search, page = '1', limit = '20', showHidden, req) {
+    getPosts(category, search, page = '1', limit = '20', showHidden, sort = 'recent', req) {
         const isAdmin = req?.user?.role === 'admin' || req?.user?.role === 'superadmin';
         const includeHidden = isAdmin && showHidden === 'true';
-        return this.service.getPosts(category, search, parseInt(page), parseInt(limit), includeHidden);
+        return this.service.getPosts(category, search, parseInt(page), parseInt(limit), includeHidden, sort);
     }
     getPost(id, req) {
         return this.service.getPost(id, req.user?.id);
@@ -76,7 +76,7 @@ let CommunityController = class CommunityController {
         return this.service.getComments(id);
     }
     addComment(id, body, req) {
-        return this.service.addComment(id, req.user?.id, body.content, body.authorName);
+        return this.service.addComment(id, req.user?.id, body.content, body.authorName, body.parentId);
     }
     deleteComment(id, commentId, req) {
         if (!req.user?.id)
@@ -125,9 +125,10 @@ __decorate([
     __param(2, (0, common_1.Query)('page')),
     __param(3, (0, common_1.Query)('limit')),
     __param(4, (0, common_1.Query)('showHidden')),
-    __param(5, (0, common_1.Req)()),
+    __param(5, (0, common_1.Query)('sort')),
+    __param(6, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Object, Object, String, Object]),
+    __metadata("design:paramtypes", [String, String, Object, Object, String, Object, Object]),
     __metadata("design:returntype", void 0)
 ], CommunityController.prototype, "getPosts", null);
 __decorate([

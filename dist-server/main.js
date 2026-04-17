@@ -35,7 +35,7 @@ async function bootstrap() {
                     styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
                     fontSrc: ["'self'", 'https://fonts.gstatic.com'],
                     imgSrc: ["'self'", 'data:', 'https:'],
-                    connectSrc: ["'self'"],
+                    connectSrc: ["'self'", 'https://*.run.app', 'https://*.onrender.com', 'https://res.cloudinary.com'],
                     frameAncestors: ["'none'"],
                 },
             }
@@ -46,10 +46,10 @@ async function bootstrap() {
         hsts: isProd ? { maxAge: 63072000, includeSubDomains: true, preload: true } : false,
         hidePoweredBy: true,
         crossOriginOpenerPolicy: { policy: 'same-origin' },
-        crossOriginResourcePolicy: { policy: 'same-origin' },
+        crossOriginResourcePolicy: { policy: 'cross-origin' },
     }));
     app.use((0, cookie_parser_1.default)());
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(s => s.trim()) || [
         'http://localhost:5173',
         'http://localhost:3001',
     ];

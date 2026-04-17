@@ -47,6 +47,16 @@ let NotificationsController = class NotificationsController {
             return { success: false };
         return this.service.markAsRead(req.user.id, id);
     }
+    deleteOne(id, req) {
+        if (!req.user?.id)
+            return { success: false };
+        return this.service.deleteOne(req.user.id, id);
+    }
+    deleteBulk(body, req) {
+        if (!req.user?.id)
+            return { success: false };
+        return this.service.deleteBulk(req.user.id, body.ids);
+    }
     cleanup(req) {
         if (!req.user?.id)
             return { success: false };
@@ -98,6 +108,24 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], NotificationsController.prototype, "markRead", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: '알림 삭제' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "deleteOne", null);
+__decorate([
+    (0, common_1.Post)('delete-bulk'),
+    (0, swagger_1.ApiOperation)({ summary: '알림 일괄 삭제' }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "deleteBulk", null);
 __decorate([
     (0, common_1.Delete)('cleanup'),
     (0, swagger_1.ApiOperation)({ summary: '오래된 읽은 알림 정리 (관리자 전용)' }),

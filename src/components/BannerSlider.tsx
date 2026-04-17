@@ -1,6 +1,7 @@
-import { API_URL } from '@/lib/config';
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useEmblaCarousel from 'embla-carousel-react';
+import { API_URL } from '@/lib/config';
 
 interface Banner {
   id: string;
@@ -11,10 +12,9 @@ interface Banner {
   bgColor: string;
 }
 
-
-
 export default function BannerSlider() {
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [current, setCurrent] = useState(0);
   const navigate = useNavigate();
 
@@ -25,83 +25,80 @@ export default function BannerSlider() {
       .catch(() => {});
   }, []);
 
-  const next = useCallback(() => setCurrent(c => (c + 1) % banners.length), [banners.length]);
-  const prev = useCallback(() => setCurrent(c => (c - 1 + banners.length) % banners.length), [banners.length]);
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCurrent(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
 
   useEffect(() => {
-    if (banners.length <= 1) return;
-    const timer = setInterval(next, 5000);
+    if (!emblaApi) return;
+    emblaApi.on('select', onSelect);
+    onSelect();
+  }, [emblaApi, onSelect]);
+
+  useEffect(() => {
+    if (!emblaApi || banners.length <= 1) return;
+    const timer = setInterval(() => emblaApi.scrollNext(), 5000);
     return () => clearInterval(timer);
-  }, [banners.length, next]);
+  }, [emblaApi, banners.length]);
 
   if (!banners.length) return null;
 
-  const banner = banners[current];
-
-  // bgColor가 Tailwind 클래스명이면 기본 인디고로 fallback
-  const isCssGradient = (v: string) => v.startsWith('linear-gradient') || v.startsWith('#') || v.startsWith('rgb');
-  const bgStyle = isCssGradient(banner.bgColor)
-    ? banner.bgColor
-    : 'linear-gradient(135deg, #6366f1, #9333ea)';
-
-  const slideStyle: React.CSSProperties = banner.imageUrl
-    ? {
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${banner.imageUrl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }
-    : { background: bgStyle };
+  const getSlideStyle = (banner: Banner): React.CSSProperties => {
+    const isCss = (v: string) => v.startsWith('linear-gradient') || v.startsWith('#') || v.startsWith('rgb');
+    const bg = isCss(banner.bgColor) ? banner.bgColor : 'linear-gradient(135deg, #6366f1, #9333ea)';
+    return banner.imageUrl
+      ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${banner.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+      : { background: bg };
+  };
 
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '16px', marginBottom: '2rem', boxShadow: '0 4px 24px rgba(0,0,0,0.12)' }}>
-      <div
-        style={{
-          ...slideStyle,
-          padding: '2.5rem 3rem',
-          minHeight: '160px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          cursor: banner.linkUrl ? 'pointer' : 'default',
-          transition: 'opacity 0.3s ease',
-        }}
-        onClick={() => {
-          if (!banner.linkUrl) return;
-          if (banner.linkUrl.startsWith('http')) { window.open(banner.linkUrl, '_blank'); }
-          else { navigate(banner.linkUrl); }
-        }}
-      >
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)', lineHeight: 1.3 }}>{banner.title}</h2>
-        {banner.subtitle && (
-          <p style={{ margin: '0.5rem 0 0', color: 'rgba(255,255,255,0.92)', fontSize: '0.95rem', textShadow: '0 1px 3px rgba(0,0,0,0.25)' }}>
-            {banner.subtitle}
-          </p>
-        )}
-        {banner.linkUrl && (
-          <span style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#fff', fontSize: '0.8rem', fontWeight: 600, background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)', padding: '4px 12px', borderRadius: '999px', width: 'fit-content' }}>
-            자세히 보기 →
-          </span>
-        )}
+    <div className="relative overflow-hidden rounded-2xl mb-8 shadow-lg">
+      <div ref={emblaRef} className="overflow-hidden">
+        <div className="flex">
+          {banners.map(banner => (
+            <div key={banner.id} className="flex-[0_0_100%] min-w-0">
+              <div
+                style={{ ...getSlideStyle(banner), padding: '2.5rem 3rem', minHeight: '160px' }}
+                className="flex flex-col justify-center cursor-pointer"
+                onClick={() => {
+                  if (!banner.linkUrl) return;
+                  banner.linkUrl.startsWith('http') ? window.open(banner.linkUrl, '_blank') : navigate(banner.linkUrl);
+                }}
+              >
+                <h2 className="text-2xl font-extrabold text-white mb-0 leading-tight" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
+                  {banner.title}
+                </h2>
+                {banner.subtitle && (
+                  <p className="mt-2 text-white/90 text-sm" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.25)' }}>
+                    {banner.subtitle}
+                  </p>
+                )}
+                {banner.linkUrl && (
+                  <span className="mt-3 inline-flex items-center gap-1 text-white text-xs font-semibold bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full w-fit">
+                    자세히 보기 →
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {banners.length > 1 && (
         <>
-          <button
-            onClick={e => { e.stopPropagation(); prev(); }}
-            style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', color: '#fff', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            aria-label="이전"
-          >‹</button>
-          <button
-            onClick={e => { e.stopPropagation(); next(); }}
-            style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', color: '#fff', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            aria-label="다음"
-          >›</button>
-          <div style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '6px' }}>
+          <button onClick={() => emblaApi?.scrollPrev()} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/25 backdrop-blur-sm border border-white/30 rounded-full text-white text-lg flex items-center justify-center hover:bg-white/40 transition-colors" aria-label="이전">
+            ‹
+          </button>
+          <button onClick={() => emblaApi?.scrollNext()} className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/25 backdrop-blur-sm border border-white/30 rounded-full text-white text-lg flex items-center justify-center hover:bg-white/40 transition-colors" aria-label="다음">
+            ›
+          </button>
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
             {banners.map((_, i) => (
               <button
                 key={i}
-                onClick={e => { e.stopPropagation(); setCurrent(i); }}
-                style={{ width: i === current ? '20px' : '8px', height: '8px', borderRadius: '999px', border: 'none', background: i === current ? '#fff' : 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 0, transition: 'all 0.3s ease' }}
+                onClick={() => emblaApi?.scrollTo(i)}
+                className={`h-2 rounded-full transition-all duration-300 ${i === current ? 'w-5 bg-white' : 'w-2 bg-white/50'}`}
                 aria-label={`${i + 1}번째 배너`}
               />
             ))}

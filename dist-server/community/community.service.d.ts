@@ -1,10 +1,12 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
 export declare class CommunityService {
     private readonly prisma;
     private readonly notifications;
-    constructor(prisma: PrismaService, notifications: NotificationsService);
-    getPosts(category?: string, search?: string, page?: number, limit?: number, showHidden?: boolean): Promise<{
+    private readonly forbiddenWords;
+    constructor(prisma: PrismaService, notifications: NotificationsService, forbiddenWords: ForbiddenWordsService);
+    getPosts(category?: string, search?: string, page?: number, limit?: number, showHidden?: boolean, sort?: string): Promise<{
         items: ({
             user: {
                 id: string;
@@ -50,6 +52,7 @@ export declare class CommunityService {
             updatedAt: Date;
             content: string;
             authorName: string | null;
+            parentId: string | null;
             postId: string;
         })[];
         _count: {
@@ -140,15 +143,17 @@ export declare class CommunityService {
         updatedAt: Date;
         content: string;
         authorName: string | null;
+        parentId: string | null;
         postId: string;
     }[]>;
-    addComment(postId: string, userId: string | undefined, content: string, authorName?: string): Promise<{
+    addComment(postId: string, userId: string | undefined, content: string, authorName?: string, parentId?: string): Promise<{
         id: string;
         createdAt: Date;
         userId: string | null;
         updatedAt: Date;
         content: string;
         authorName: string | null;
+        parentId: string | null;
         postId: string;
     }>;
     deleteComment(commentId: string, userId: string, role: string): Promise<{
@@ -158,6 +163,7 @@ export declare class CommunityService {
         updatedAt: Date;
         content: string;
         authorName: string | null;
+        parentId: string | null;
         postId: string;
     }>;
 }

@@ -25,6 +25,9 @@ let JobsController = class JobsController {
     findAll(query, status) {
         return this.service.findAll(status || 'active', query);
     }
+    async getStats(location, type, skill) {
+        return this.service.getJobStats(location, type, skill);
+    }
     findMy(req) {
         if (!req.user?.id)
             return [];
@@ -93,6 +96,17 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], JobsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('stats'),
+    (0, auth_guard_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: '채용 통계' }),
+    __param(0, (0, common_1.Query)('location')),
+    __param(1, (0, common_1.Query)('type')),
+    __param(2, (0, common_1.Query)('skill')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], JobsController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)('my'),
     (0, swagger_1.ApiOperation)({ summary: '내 채용 공고' }),

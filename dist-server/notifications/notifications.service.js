@@ -56,6 +56,14 @@ let NotificationsService = class NotificationsService {
             where: { userId, read: false },
         });
     }
+    async deleteOne(userId, id) {
+        await this.prisma.notification.deleteMany({ where: { id, userId } });
+        return { success: true };
+    }
+    async deleteBulk(userId, ids) {
+        const { count } = await this.prisma.notification.deleteMany({ where: { id: { in: ids }, userId } });
+        return { success: true, deleted: count };
+    }
     async cleanupOld() {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);

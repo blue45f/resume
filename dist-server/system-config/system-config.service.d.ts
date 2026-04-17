@@ -5,8 +5,8 @@ export declare class SystemConfigService {
     getAll(): Promise<{
         id: string;
         updatedAt: Date;
-        key: string;
         value: string;
+        key: string;
         label: string;
     }[]>;
     get(key: string): Promise<string | null>;
@@ -15,8 +15,8 @@ export declare class SystemConfigService {
     set(key: string, value: string): Promise<{
         id: string;
         updatedAt: Date;
-        key: string;
         value: string;
+        key: string;
         label: string;
     }>;
     setMany(configs: {
@@ -25,8 +25,8 @@ export declare class SystemConfigService {
     }[]): Promise<{
         id: string;
         updatedAt: Date;
-        key: string;
         value: string;
+        key: string;
         label: string;
     }[]>;
     getPublicConfig(): Promise<{

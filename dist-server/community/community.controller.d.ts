@@ -5,7 +5,7 @@ export declare class CommunityController {
     private readonly config;
     private useCloudinary;
     constructor(service: CommunityService, config: ConfigService);
-    getPosts(category?: string, search?: string, page?: string, limit?: string, showHidden?: string, req?: any): Promise<{
+    getPosts(category?: string, search?: string, page?: string, limit?: string, showHidden?: string, sort?: string, req?: any): Promise<{
         items: ({
             user: {
                 id: string;
@@ -51,6 +51,7 @@ export declare class CommunityController {
             updatedAt: Date;
             content: string;
             authorName: string | null;
+            parentId: string | null;
             postId: string;
         })[];
         _count: {
@@ -142,11 +143,13 @@ export declare class CommunityController {
         updatedAt: Date;
         content: string;
         authorName: string | null;
+        parentId: string | null;
         postId: string;
     }[]>;
     addComment(id: string, body: {
         content: string;
         authorName?: string;
+        parentId?: string;
     }, req: any): Promise<{
         id: string;
         createdAt: Date;
@@ -154,6 +157,7 @@ export declare class CommunityController {
         updatedAt: Date;
         content: string;
         authorName: string | null;
+        parentId: string | null;
         postId: string;
     }>;
     deleteComment(id: string, commentId: string, req: any): Promise<{
@@ -163,6 +167,7 @@ export declare class CommunityController {
         updatedAt: Date;
         content: string;
         authorName: string | null;
+        parentId: string | null;
         postId: string;
     }> | {
         error: string;

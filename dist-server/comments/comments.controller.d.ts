@@ -10,6 +10,7 @@ export declare class CommentsController {
         resumeId: string;
         content: string;
         authorName: string;
+        parentId: string | null;
     }[]>;
     create(resumeId: string, dto: CreateCommentDto, req: any): Promise<{
         id: string;
@@ -18,6 +19,7 @@ export declare class CommentsController {
         resumeId: string;
         content: string;
         authorName: string;
+        parentId: string | null;
     }>;
     remove(commentId: string, req: any): Promise<{
         success: boolean;

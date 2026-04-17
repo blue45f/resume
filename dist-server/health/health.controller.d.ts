@@ -13,6 +13,8 @@ export declare class HealthController {
         status: string;
         timestamp: string;
         version: string;
+        uptime: number;
+        env: string;
     };
     check(): Promise<{
         status: string;
@@ -43,15 +45,26 @@ export declare class HealthController {
     publicStats(): Promise<{
         users: {
             total: number;
+            today: number;
+            thisWeek: number;
         };
         resumes: {
             total: number;
+            public: number;
+            today: number;
         };
         activity: {
             totalViews: number;
         };
         content: {
             templates: number;
+        };
+        community: {
+            posts: number;
+            comments: number;
+        };
+        jobs: {
+            active: number;
         };
     }>;
     adminStats(req: any): Promise<{
@@ -85,6 +98,16 @@ export declare class HealthController {
             provider: string;
             createdAt: string;
         }[];
+    }>;
+    private newsCache;
+    newsRss(): Promise<any[]>;
+    getAnnouncement(): Promise<any>;
+    getDraft(type: string, req: any): Promise<any>;
+    saveDraft(type: string, body: any, req: any): Promise<{
+        success: boolean;
+    }>;
+    deleteDraft(type: string, req: any): Promise<{
+        success: boolean;
     }>;
     sitemapXml(res: Response): Promise<void>;
 }

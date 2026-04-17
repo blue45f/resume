@@ -13,12 +13,15 @@ exports.CommentsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const notifications_service_1 = require("../notifications/notifications.service");
+const forbidden_words_service_1 = require("../forbidden-words/forbidden-words.service");
 let CommentsService = class CommentsService {
     prisma;
     notificationsService;
-    constructor(prisma, notificationsService) {
+    forbiddenWords;
+    constructor(prisma, notificationsService, forbiddenWords) {
         this.prisma = prisma;
         this.notificationsService = notificationsService;
+        this.forbiddenWords = forbiddenWords;
     }
     async findByResume(resumeId) {
         const resume = await this.prisma.resume.findUnique({ where: { id: resumeId } });
@@ -27,10 +30,11 @@ let CommentsService = class CommentsService {
         }
         return this.prisma.comment.findMany({
             where: { resumeId },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: 'asc' },
         });
     }
-    async create(resumeId, content, userId, authorName) {
+    async create(resumeId, content, userId, authorName, parentId) {
+        await this.forbiddenWords.validateOrThrow(content);
         const resume = await this.prisma.resume.findUnique({ where: { id: resumeId } });
         if (!resume || resume.visibility !== 'public') {
             throw new common_1.NotFoundException('공개 이력서에만 의견을 남길 수 있습니다');
@@ -49,9 +53,15 @@ let CommentsService = class CommentsService {
                 name = user.name || user.email;
         }
         const comment = await this.prisma.comment.create({
-            data: { resumeId, userId, authorName: name, content: cleanContent },
+            data: { resumeId, userId, authorName: name, content: cleanContent, parentId: parentId || null },
         });
-        if (resume.userId && resume.userId !== userId) {
+        if (parentId) {
+            const parent = await this.prisma.comment.findUnique({ where: { id: parentId }, select: { userId: true } });
+            if (parent?.userId && parent.userId !== userId) {
+                await this.notificationsService.create(parent.userId, 'comment', `${name}님이 내 의견에 답글을 달았습니다.`, `/resumes/${resumeId}/preview`).catch(() => { });
+            }
+        }
+        else if (resume.userId && resume.userId !== userId) {
             await this.notificationsService.create(resume.userId, 'comment', `${name}님이 이력서에 의견을 남겼습니다: "${content.slice(0, 50)}..."`, `/resumes/${resumeId}/preview`);
         }
         return comment;
@@ -71,5 +81,6 @@ exports.CommentsService = CommentsService;
 exports.CommentsService = CommentsService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        notifications_service_1.NotificationsService])
+        notifications_service_1.NotificationsService,
+        forbidden_words_service_1.ForbiddenWordsService])
 ], CommentsService);

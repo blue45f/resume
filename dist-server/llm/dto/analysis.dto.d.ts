@@ -7,6 +7,8 @@ export declare class JobMatchDto {
 }
 export declare class InterviewDto {
     jobRole?: string;
+    jobDescription?: string;
+    difficulty?: string;
     provider?: string;
 }
 export declare class InlineAssistDto {

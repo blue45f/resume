@@ -15,6 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TagsController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const cache_interceptor_1 = require("../common/interceptors/cache.interceptor");
+const auth_guard_1 = require("../auth/auth.guard");
 const resumes_service_1 = require("../resumes/resumes.service");
 const tags_service_1 = require("./tags.service");
 const tag_dto_1 = require("./dto/tag.dto");
@@ -46,6 +48,8 @@ let TagsController = class TagsController {
 exports.TagsController = TagsController;
 __decorate([
     (0, common_1.Get)(),
+    (0, auth_guard_1.Public)(),
+    (0, cache_interceptor_1.CacheTTL)(120),
     (0, swagger_1.ApiOperation)({ summary: '태그 목록 조회' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),

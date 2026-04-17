@@ -71,7 +71,7 @@ export declare class LlmService {
         provider: string;
         model: string;
     }>;
-    generateInterviewQuestions(resumeId: string, jobRole?: string, provider?: string): Promise<{
+    generateInterviewQuestions(resumeId: string, jobRole?: string, provider?: string, jobDescription?: string, difficulty?: string): Promise<{
         interview: any;
         tokensUsed: number;
         provider: string;

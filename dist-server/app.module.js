@@ -10,6 +10,7 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const throttler_1 = require("@nestjs/throttler");
+const custom_throttler_guard_1 = require("./common/guards/custom-throttler.guard");
 const core_1 = require("@nestjs/core");
 const sanitize_middleware_1 = require("./common/middleware/sanitize.middleware");
 const request_id_middleware_1 = require("./common/middleware/request-id.middleware");
@@ -34,6 +35,7 @@ const banners_module_1 = require("./banners/banners.module");
 const notices_module_1 = require("./notices/notices.module");
 const system_config_module_1 = require("./system-config/system-config.module");
 const community_module_1 = require("./community/community.module");
+const forbidden_words_module_1 = require("./forbidden-words/forbidden-words.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(request_id_middleware_1.RequestIdMiddleware, sanitize_middleware_1.SanitizeMiddleware).forRoutes('*');
@@ -45,9 +47,9 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({ isGlobal: true }),
             throttler_1.ThrottlerModule.forRoot([
-                { name: 'short', ttl: 1000, limit: 30 },
-                { name: 'medium', ttl: 60000, limit: 300 },
-                { name: 'long', ttl: 3600000, limit: 3000 },
+                { name: 'short', ttl: 1000, limit: 120 },
+                { name: 'medium', ttl: 60000, limit: 1200 },
+                { name: 'long', ttl: 3600000, limit: 10000 },
             ]),
             auth_module_1.AuthModule,
             prisma_module_1.PrismaModule,
@@ -69,9 +71,10 @@ exports.AppModule = AppModule = __decorate([
             notices_module_1.NoticesModule,
             system_config_module_1.SystemConfigModule,
             community_module_1.CommunityModule,
+            forbidden_words_module_1.ForbiddenWordsModule,
         ],
         providers: [
-            { provide: core_1.APP_GUARD, useClass: throttler_1.ThrottlerGuard },
+            { provide: core_1.APP_GUARD, useClass: custom_throttler_guard_1.CustomThrottlerGuard },
             { provide: core_1.APP_GUARD, useClass: auth_guard_1.AuthGuard },
         ],
     })

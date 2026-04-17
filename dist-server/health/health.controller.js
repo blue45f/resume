@@ -38,6 +38,8 @@ let HealthController = class HealthController {
             status: 'ok',
             timestamp: new Date().toISOString(),
             version: pkg.version,
+            uptime: Math.floor(process.uptime()),
+            env: process.env.NODE_ENV || 'development',
         };
     }
     async check() {
@@ -82,17 +84,32 @@ let HealthController = class HealthController {
         return this.usageService.getUsage(req.user.id);
     }
     async publicStats() {
-        const [users, resumes, views, templates] = await Promise.all([
+        const [users, resumes, views, templates, publicResumes, communityPosts, comments, jobs] = await Promise.all([
             this.prisma.user.count(),
             this.prisma.resume.count(),
             this.prisma.resume.aggregate({ _sum: { viewCount: true } }),
             this.prisma.template.count(),
+            this.prisma.resume.count({ where: { visibility: 'public' } }),
+            this.prisma.communityPost.count(),
+            this.prisma.communityComment.count(),
+            this.prisma.curatedJob.count({ where: { status: 'active' } }).catch(() => 0),
+        ]);
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const weekStart = new Date(todayStart);
+        weekStart.setDate(weekStart.getDate() - 7);
+        const [todayUsers, weekUsers, todayResumes] = await Promise.all([
+            this.prisma.user.count({ where: { createdAt: { gte: todayStart } } }),
+            this.prisma.user.count({ where: { createdAt: { gte: weekStart } } }),
+            this.prisma.resume.count({ where: { createdAt: { gte: todayStart } } }),
         ]);
         return {
-            users: { total: users },
-            resumes: { total: resumes },
+            users: { total: users, today: todayUsers, thisWeek: weekUsers },
+            resumes: { total: resumes, public: publicResumes, today: todayResumes },
             activity: { totalViews: views._sum.viewCount || 0 },
             content: { templates },
+            community: { posts: communityPosts, comments },
+            jobs: { active: jobs },
         };
     }
     async adminStats(req) {
@@ -103,8 +120,69 @@ let HealthController = class HealthController {
         }
         return this.statsService.getStats();
     }
+    newsCache = null;
+    async newsRss() {
+        if (this.newsCache && Date.now() - this.newsCache.time < 10 * 60_000) {
+            return this.newsCache.items;
+        }
+        try {
+            const rssUrl = 'https://news.google.com/rss/search?q=%EC%B1%84%EC%9A%A9+%EC%B7%A8%EC%97%85+%EC%9D%B4%EB%A0%A5%EC%84%9C&hl=ko&gl=KR&ceid=KR:ko';
+            const r = await fetch(rssUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ResumeBot/1.0)' }, signal: AbortSignal.timeout(10000) });
+            const xml = await r.text();
+            const items = [];
+            const regex = /<item>[\s\S]*?<title>([\s\S]*?)<\/title>[\s\S]*?<link>([\s\S]*?)<\/link>[\s\S]*?<pubDate>([\s\S]*?)<\/pubDate>[\s\S]*?<source[^>]*>([\s\S]*?)<\/source>[\s\S]*?<\/item>/g;
+            let match;
+            while ((match = regex.exec(xml)) && items.length < 10) {
+                items.push({ title: match[1].trim(), url: match[2].trim(), source: match[4].trim(), pubDate: match[3].trim() });
+            }
+            this.newsCache = { items, time: Date.now() };
+            return items;
+        }
+        catch {
+            return this.newsCache?.items || [];
+        }
+    }
+    async getAnnouncement() {
+        try {
+            const config = await this.prisma.systemConfig.findFirst({ where: { key: 'announcement' } });
+            if (config?.value)
+                return JSON.parse(config.value);
+        }
+        catch { }
+        return null;
+    }
+    async getDraft(type, req) {
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException();
+        const draft = await this.prisma.draft.findUnique({ where: { userId_type: { userId: req.user.id, type } } });
+        if (!draft)
+            return null;
+        try {
+            return JSON.parse(draft.content);
+        }
+        catch {
+            return draft.content;
+        }
+    }
+    async saveDraft(type, body, req) {
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException();
+        const content = JSON.stringify(body);
+        await this.prisma.draft.upsert({
+            where: { userId_type: { userId: req.user.id, type } },
+            update: { content },
+            create: { userId: req.user.id, type, content },
+        });
+        return { success: true };
+    }
+    async deleteDraft(type, req) {
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException();
+        await this.prisma.draft.deleteMany({ where: { userId: req.user.id, type } });
+        return { success: true };
+    }
     async sitemapXml(res) {
-        const BASE = process.env.FRONTEND_URL || 'https://resume-silk-three.vercel.app';
+        const BASE = process.env.FRONTEND_URL || 'https://resume-gongbang.vercel.app';
         const now = new Date().toISOString().split('T')[0];
         const [publicResumes, communityPosts] = await Promise.all([
             this.prisma.resume.findMany({
@@ -136,6 +214,10 @@ let HealthController = class HealthController {
             { loc: `${BASE}/tutorial`, priority: '0.6', changefreq: 'monthly' },
             { loc: `${BASE}/pricing`, priority: '0.6', changefreq: 'weekly' },
             { loc: `${BASE}/notices`, priority: '0.5', changefreq: 'weekly' },
+            { loc: `${BASE}/stats`, priority: '0.5', changefreq: 'daily' },
+            { loc: `${BASE}/cover-letter`, priority: '0.6', changefreq: 'weekly' },
+            { loc: `${BASE}/help`, priority: '0.5', changefreq: 'monthly' },
+            { loc: `${BASE}/feedback`, priority: '0.4', changefreq: 'monthly' },
             { loc: `${BASE}/terms`, priority: '0.3', changefreq: 'monthly' },
         ];
         const resumeUrls = publicResumes
@@ -204,6 +286,52 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], HealthController.prototype, "adminStats", null);
+__decorate([
+    (0, common_1.Get)('news-rss'),
+    (0, auth_guard_1.Public)(),
+    (0, cache_interceptor_1.CacheTTL)(600),
+    (0, swagger_1.ApiOperation)({ summary: '채용 뉴스 (JSON, 10분 캐시)' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "newsRss", null);
+__decorate([
+    (0, common_1.Get)('announcement'),
+    (0, auth_guard_1.Public)(),
+    (0, cache_interceptor_1.CacheTTL)(60),
+    (0, swagger_1.ApiOperation)({ summary: '공지 배너 조회' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "getAnnouncement", null);
+__decorate([
+    (0, common_1.Get)('drafts/:type'),
+    (0, swagger_1.ApiOperation)({ summary: '임시저장 조회' }),
+    __param(0, (0, common_1.Param)('type')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "getDraft", null);
+__decorate([
+    (0, common_1.Put)('drafts/:type'),
+    (0, swagger_1.ApiOperation)({ summary: '임시저장 저장/갱신' }),
+    __param(0, (0, common_1.Param)('type')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "saveDraft", null);
+__decorate([
+    (0, common_1.Delete)('drafts/:type'),
+    (0, swagger_1.ApiOperation)({ summary: '임시저장 삭제' }),
+    __param(0, (0, common_1.Param)('type')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "deleteDraft", null);
 __decorate([
     (0, common_1.Get)('sitemap.xml'),
     (0, auth_guard_1.Public)(),

@@ -35,6 +35,7 @@ export declare class SocialController {
     }, req: any): Promise<{
         id: string;
         createdAt: Date;
+        resumeId: string | null;
         company: string;
         position: string;
         message: string;
@@ -42,7 +43,6 @@ export declare class SocialController {
         status: string;
         senderId: string;
         receiverId: string;
-        resumeId: string | null;
     }> | {
         error: string;
     };
@@ -55,6 +55,7 @@ export declare class SocialController {
     } & {
         id: string;
         createdAt: Date;
+        resumeId: string | null;
         company: string;
         position: string;
         message: string;
@@ -62,7 +63,6 @@ export declare class SocialController {
         status: string;
         senderId: string;
         receiverId: string;
-        resumeId: string | null;
     })[]>;
     getSentScouts(req: any): never[] | Promise<({
         sender: {
@@ -78,6 +78,7 @@ export declare class SocialController {
     } & {
         id: string;
         createdAt: Date;
+        resumeId: string | null;
         company: string;
         position: string;
         message: string;
@@ -85,7 +86,6 @@ export declare class SocialController {
         status: string;
         senderId: string;
         receiverId: string;
-        resumeId: string | null;
     })[]>;
     sendBulkScout(body: {
         targetIds: string[];
@@ -138,18 +138,18 @@ export declare class SocialController {
     getMessages(partnerId: string, req: any): never[] | Promise<{
         id: string;
         createdAt: Date;
+        content: string;
         read: boolean;
         senderId: string;
         receiverId: string;
-        content: string;
     }[]>;
     sendMessage(receiverId: string, content: string, req: any): Promise<{
         id: string;
         createdAt: Date;
+        content: string;
         read: boolean;
         senderId: string;
         receiverId: string;
-        content: string;
     }> | {
         error: string;
     };

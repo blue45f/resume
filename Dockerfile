@@ -2,14 +2,16 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-COPY package.json package-lock.json* pnpm-lock.yaml* ./
+RUN corepack enable && corepack prepare pnpm@9.14.4 --activate
+
+COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma/
-RUN npm install --frozen-lockfile 2>/dev/null || npm install
+RUN pnpm install --frozen-lockfile
 
 COPY tsconfig.server.json nest-cli.json ./
 COPY server ./server/
-RUN npx prisma generate
-RUN npm run build:server
+RUN pnpm exec prisma generate
+RUN pnpm run build:server
 
 # ── Production stage ──
 FROM node:20-alpine

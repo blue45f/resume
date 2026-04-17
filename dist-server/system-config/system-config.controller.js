@@ -25,6 +25,26 @@ let SystemConfigController = class SystemConfigController {
     getPublic() {
         return this.service.getPublicConfig();
     }
+    async getContent(req, body) {
+        const key = req.params.key;
+        const val = await this.service.get(`content_${key}`);
+        if (!val)
+            return null;
+        try {
+            return JSON.parse(val);
+        }
+        catch {
+            return val;
+        }
+    }
+    async setContent(req, body) {
+        if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin')
+            throw new common_2.ForbiddenException();
+        const key = req.params.key;
+        const value = typeof body === 'string' ? body : JSON.stringify(body);
+        await this.service.set(`content_${key}`, value);
+        return { success: true };
+    }
     getPermissions() {
         return this.service.getPermissions();
     }
@@ -47,10 +67,28 @@ let SystemConfigController = class SystemConfigController {
 exports.SystemConfigController = SystemConfigController;
 __decorate([
     (0, common_1.Get)('public'),
+    (0, auth_guard_1.Public)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], SystemConfigController.prototype, "getPublic", null);
+__decorate([
+    (0, common_1.Get)('content/:key'),
+    (0, auth_guard_1.Public)(),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], SystemConfigController.prototype, "getContent", null);
+__decorate([
+    (0, common_1.Patch)('content/:key'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], SystemConfigController.prototype, "setContent", null);
 __decorate([
     (0, common_1.Get)('permissions'),
     (0, auth_guard_1.Public)(),

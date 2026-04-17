@@ -33,6 +33,13 @@ export declare class NotificationsService {
         read: boolean;
     }>;
     getUnreadCount(userId: string): Promise<number>;
+    deleteOne(userId: string, id: string): Promise<{
+        success: boolean;
+    }>;
+    deleteBulk(userId: string, ids: string[]): Promise<{
+        success: boolean;
+        deleted: number;
+    }>;
     cleanupOld(): Promise<{
         deleted: number;
     }>;

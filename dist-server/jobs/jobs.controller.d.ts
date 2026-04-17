@@ -10,6 +10,7 @@ export declare class JobsController {
             companyName: string | null;
         };
     } & {
+        description: string;
         id: string;
         createdAt: Date;
         userId: string;
@@ -17,7 +18,6 @@ export declare class JobsController {
         skills: string;
         company: string;
         position: string;
-        description: string;
         type: string;
         status: string;
         salary: string;
@@ -25,7 +25,31 @@ export declare class JobsController {
         requirements: string;
         benefits: string;
     })[]>;
+    getStats(location?: string, type?: string, skill?: string): Promise<{
+        total: number;
+        byCompany: {
+            name: string;
+            count: number;
+        }[];
+        byLocation: {
+            name: string;
+            count: number;
+        }[];
+        byType: {
+            name: string;
+            count: number;
+        }[];
+        bySkill: {
+            name: string;
+            count: number;
+        }[];
+        byMonth: {
+            month: string;
+            count: number;
+        }[];
+    }>;
     findMy(req: any): never[] | Promise<{
+        description: string;
         id: string;
         createdAt: Date;
         userId: string;
@@ -33,7 +57,6 @@ export declare class JobsController {
         skills: string;
         company: string;
         position: string;
-        description: string;
         type: string;
         status: string;
         salary: string;
@@ -42,17 +65,18 @@ export declare class JobsController {
         benefits: string;
     }[]>;
     getExternalLinks(category?: string, companySize?: string, careerLevel?: string, jobType?: string, location?: string, jobCategory?: string, q?: string): Promise<{
+        description: string;
         url: string;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
         category: string;
-        description: string;
         location: string;
-        badgeText: string;
+        isActive: boolean;
         logoEmoji: string;
         logoUrl: string;
+        badgeText: string;
         gradientFrom: string;
         gradientTo: string;
         matchKeywords: string;
@@ -60,22 +84,22 @@ export declare class JobsController {
         jobTypes: string;
         careerLevel: string;
         jobCategory: string;
-        isActive: boolean;
         order: number;
         clickCount: number;
     }[]>;
     createExternalLink(body: any, req: any): Promise<{
+        description: string;
         url: string;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
         category: string;
-        description: string;
         location: string;
-        badgeText: string;
+        isActive: boolean;
         logoEmoji: string;
         logoUrl: string;
+        badgeText: string;
         gradientFrom: string;
         gradientTo: string;
         matchKeywords: string;
@@ -83,7 +107,6 @@ export declare class JobsController {
         jobTypes: string;
         careerLevel: string;
         jobCategory: string;
-        isActive: boolean;
         order: number;
         clickCount: number;
     }>;
@@ -91,17 +114,18 @@ export declare class JobsController {
         url: string;
     }>;
     updateExternalLink(id: string, body: any, req: any): Promise<{
+        description: string;
         url: string;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
         category: string;
-        description: string;
         location: string;
-        badgeText: string;
+        isActive: boolean;
         logoEmoji: string;
         logoUrl: string;
+        badgeText: string;
         gradientFrom: string;
         gradientTo: string;
         matchKeywords: string;
@@ -109,7 +133,6 @@ export declare class JobsController {
         jobTypes: string;
         careerLevel: string;
         jobCategory: string;
-        isActive: boolean;
         order: number;
         clickCount: number;
     }>;
@@ -124,13 +147,13 @@ export declare class JobsController {
                 companyName: string | null;
             } | null;
         } & {
+            summary: string;
             education: string;
             id: string;
             createdAt: Date;
             viewCount: number;
             updatedAt: Date;
             skills: string;
-            summary: string;
             company: string;
             position: string;
             department: string;
@@ -163,13 +186,13 @@ export declare class JobsController {
             companyName: string | null;
         } | null;
     } & {
+        summary: string;
         education: string;
         id: string;
         createdAt: Date;
         viewCount: number;
         updatedAt: Date;
         skills: string;
-        summary: string;
         company: string;
         position: string;
         department: string;
@@ -191,13 +214,13 @@ export declare class JobsController {
         authorId: string | null;
     }>;
     createCuratedJob(body: any, req: any): Promise<{
+        summary: string;
         education: string;
         id: string;
         createdAt: Date;
         viewCount: number;
         updatedAt: Date;
         skills: string;
-        summary: string;
         company: string;
         position: string;
         department: string;
@@ -219,13 +242,13 @@ export declare class JobsController {
         authorId: string | null;
     }>;
     updateCuratedJob(id: string, body: any, req: any): Promise<{
+        summary: string;
         education: string;
         id: string;
         createdAt: Date;
         viewCount: number;
         updatedAt: Date;
         skills: string;
-        summary: string;
         company: string;
         position: string;
         department: string;
@@ -261,6 +284,7 @@ export declare class JobsController {
             companyName: string | null;
         };
     } & {
+        description: string;
         id: string;
         createdAt: Date;
         userId: string;
@@ -268,7 +292,6 @@ export declare class JobsController {
         skills: string;
         company: string;
         position: string;
-        description: string;
         type: string;
         status: string;
         salary: string;
@@ -277,6 +300,7 @@ export declare class JobsController {
         benefits: string;
     }>;
     create(body: any, req: any): Promise<{
+        description: string;
         id: string;
         createdAt: Date;
         userId: string;
@@ -284,7 +308,6 @@ export declare class JobsController {
         skills: string;
         company: string;
         position: string;
-        description: string;
         type: string;
         status: string;
         salary: string;
@@ -295,6 +318,7 @@ export declare class JobsController {
         error: string;
     };
     update(id: string, body: any, req: any): Promise<{
+        description: string;
         id: string;
         createdAt: Date;
         userId: string;
@@ -302,7 +326,6 @@ export declare class JobsController {
         skills: string;
         company: string;
         position: string;
-        description: string;
         type: string;
         status: string;
         salary: string;

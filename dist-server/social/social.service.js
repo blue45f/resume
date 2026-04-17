@@ -13,12 +13,15 @@ exports.SocialService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const notifications_service_1 = require("../notifications/notifications.service");
+const forbidden_words_service_1 = require("../forbidden-words/forbidden-words.service");
 let SocialService = class SocialService {
     prisma;
     notificationsService;
-    constructor(prisma, notificationsService) {
+    forbiddenWords;
+    constructor(prisma, notificationsService, forbiddenWords) {
         this.prisma = prisma;
         this.notificationsService = notificationsService;
+        this.forbiddenWords = forbiddenWords;
     }
     async follow(followerId, followingId) {
         if (followerId === followingId)
@@ -54,6 +57,7 @@ let SocialService = class SocialService {
     async sendScout(senderId, data) {
         if (data.message.length > 2000)
             throw new common_1.ForbiddenException('스카우트 메시지는 2000자 이내로 입력해주세요');
+        await this.forbiddenWords.validateOrThrow(data.message, data.company, data.position);
         const sender = await this.prisma.user.findUnique({ where: { id: senderId }, select: { name: true, userType: true } });
         if (sender?.userType === 'personal') {
             throw new common_1.ForbiddenException('스카우트 전송은 리크루터 또는 기업 회원만 가능합니다');
@@ -136,6 +140,7 @@ let SocialService = class SocialService {
             throw new common_1.ForbiddenException('메시지를 입력해주세요');
         if (content.length > 1000)
             throw new common_1.ForbiddenException('메시지는 1000자 이내로 입력해주세요');
+        await this.forbiddenWords.validateOrThrow(content);
         const message = await this.prisma.directMessage.create({
             data: { senderId, receiverId, content: content.trim() },
         });
@@ -215,5 +220,6 @@ exports.SocialService = SocialService;
 exports.SocialService = SocialService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        notifications_service_1.NotificationsService])
+        notifications_service_1.NotificationsService,
+        forbidden_words_service_1.ForbiddenWordsService])
 ], SocialService);
