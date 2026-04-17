@@ -174,8 +174,7 @@ export default function RichEditor({ value, onChange, placeholder, className, ma
       {onAiImprove && (
         <BubbleMenu
           editor={editor}
-          tippyOptions={{
-            duration: 150,
+          options={{
             placement: 'top',
           }}
           shouldShow={({ editor }) => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import { API_URL } from '@/lib/config';
@@ -58,7 +58,7 @@ const DEFAULT_FEATURES = [
   { emoji: '🖨️', title: 'PDF/인쇄', desc: '미리보기 페이지에서 브라우저 인쇄 기능으로 깔끔한 PDF 저장.' },
 ];
 
-const ICON_MAP: Record<string, JSX.Element> = {
+const ICON_MAP: Record<string, ReactElement> = {
   '📄': featureIcons.resume, '🤖': featureIcons.ai, '🔗': featureIcons.share, '🕐': featureIcons.version,
   '🏷️': featureIcons.tag, '📎': featureIcons.attach, '🔐': featureIcons.auth, '🖨️': featureIcons.print,
 };

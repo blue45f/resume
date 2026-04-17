@@ -197,7 +197,6 @@ export default function CoverLetterPage() {
   });
   const companyName = watchGenerate('company');
   const position = watchGenerate('position');
-  const jobDescription = watchGenerate('jobDescription');
 
   // Feedback form
   const {
@@ -221,11 +220,9 @@ export default function CoverLetterPage() {
 
   const toneKorean: Record<string, string> = { formal: '격식체', friendly: '친근체', confident: '자신감체' };
 
-  const handleGenerate = useCallback(async () => {
+  const onGenerateSubmit = useCallback(async (values: GenerateFormValues) => {
     if (!selectedResumeId) { toast('이력서를 선택해주세요', 'error'); return; }
-    if (!jobDescription.trim()) { toast('채용 공고를 입력해주세요', 'error'); return; }
 
-    setLoading(true);
     setResult('');
     setError('');
     setFeedback(null);
@@ -246,7 +243,7 @@ export default function CoverLetterPage() {
         headers,
         body: JSON.stringify({
           templateType: 'cover-letter',
-          jobDescription: `[회사: ${companyName}] [포지션: ${position}] [어조: ${toneKorean[tone]}]${sectionContent ? `\n\n[작성된 항목]\n${sectionContent}` : ''}\n\n${jobDescription}`,
+          jobDescription: `[회사: ${values.company}] [포지션: ${values.position}] [어조: ${toneKorean[tone]}]${sectionContent ? `\n\n[작성된 항목]\n${sectionContent}` : ''}\n\n${values.jobDescription}`,
         }),
       });
 
@@ -263,7 +260,7 @@ export default function CoverLetterPage() {
       setTimeout(() => {
         setAnalyzingFeedback(true);
         setTimeout(() => {
-          setFeedback(analyzeCoverLetter(generatedText, jobDescription));
+          setFeedback(analyzeCoverLetter(generatedText, values.jobDescription));
           setAnalyzingFeedback(false);
         }, 800);
       }, 300);
@@ -274,17 +271,15 @@ export default function CoverLetterPage() {
         fetch(`${API_URL}/api/cover-letters`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${saveToken}` },
-          body: JSON.stringify({ resumeId: selectedResumeId, company: companyName, position, tone, jobDescription, content: generatedText }),
+          body: JSON.stringify({ resumeId: selectedResumeId, company: values.company, position: values.position, tone, jobDescription: values.jobDescription, content: generatedText }),
         }).catch(() => {});
       }
     } catch (e: any) {
       const msg = e.message || '생성에 실패했습니다';
       setError(msg);
       toast(msg, 'error');
-    } finally {
-      setLoading(false);
     }
-  }, [selectedResumeId, jobDescription, companyName, position, tone, usesSections, sections]);
+  }, [selectedResumeId, tone, usesSections, sections]);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -308,9 +303,8 @@ export default function CoverLetterPage() {
     setTimeout(() => { printWindow.print(); }, 300);
   };
 
-  const handleFeedback = () => {
-    if (!feedbackText.trim()) { toast('자기소개서를 입력해주세요', 'error'); return; }
-    setFeedbackResult(analyzeCoverLetter(feedbackText, feedbackJobDesc));
+  const onFeedbackSubmit = (values: FeedbackFormValues) => {
+    setFeedbackResult(analyzeCoverLetter(values.content, values.jobDescription || ''));
   };
 
   const charCount = result ? result.replace(/\s/g, '').length : 0;
@@ -345,7 +339,7 @@ export default function CoverLetterPage() {
         {mode === 'generate' && (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Left: Input */}
-            <div className="space-y-5">
+            <form onSubmit={handleSubmitGenerate(onGenerateSubmit)} className="space-y-5" noValidate>
               {/* Resume */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">이력서 선택 <span className="text-red-500">*</span></label>
@@ -359,12 +353,26 @@ export default function CoverLetterPage() {
               {/* Company & Position */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">회사명</label>
-                  <input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="예: 카카오" className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">회사명 <span className="text-red-500">*</span></label>
+                  <input
+                    {...registerGenerate('company')}
+                    placeholder="예: 카카오"
+                    className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${generateErrors.company ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
+                  />
+                  {generateErrors.company && (
+                    <p className="text-xs text-red-500 mt-1">{generateErrors.company.message}</p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">포지션</label>
-                  <input value={position} onChange={e => setPosition(e.target.value)} placeholder="예: 마케터" className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">포지션 <span className="text-red-500">*</span></label>
+                  <input
+                    {...registerGenerate('position')}
+                    placeholder="예: 마케터"
+                    className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${generateErrors.position ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
+                  />
+                  {generateErrors.position && (
+                    <p className="text-xs text-red-500 mt-1">{generateErrors.position.message}</p>
+                  )}
                 </div>
               </div>
 
@@ -433,21 +441,23 @@ export default function CoverLetterPage() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">채용 공고 <span className="text-red-500">*</span></label>
                 <textarea
-                  value={jobDescription}
-                  onChange={e => setJobDescription(e.target.value)}
+                  {...registerGenerate('jobDescription')}
                   placeholder="채용 공고 내용을 붙여넣으세요..."
                   rows={8}
-                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${generateErrors.jobDescription ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
                 />
+                {generateErrors.jobDescription && (
+                  <p className="text-xs text-red-500 mt-1">{generateErrors.jobDescription.message}</p>
+                )}
               </div>
 
               <FeatureGate feature="coverLetter">
                 <button
-                  onClick={handleGenerate}
-                  disabled={loading || !selectedResumeId || !jobDescription.trim()}
+                  type="submit"
+                  disabled={isGenerating || !selectedResumeId}
                   className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow"
                 >
-                  {loading ? (
+                  {isGenerating ? (
                     <span className="flex items-center justify-center gap-2">
                       <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                       생성 중...
@@ -455,7 +465,7 @@ export default function CoverLetterPage() {
                   ) : '자기소개서 생성'}
                 </button>
               </FeatureGate>
-            </div>
+            </form>
 
             {/* Right: Result + Feedback */}
             <div className="space-y-4">
@@ -473,7 +483,7 @@ export default function CoverLetterPage() {
                   </div>
                 )}
                 <div className="imp-card p-5 min-h-[300px]">
-                  {loading ? (
+                  {isGenerating ? (
                     <div className="flex flex-col items-center justify-center h-48 gap-3">
                       <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
                       <p className="text-sm text-slate-500">AI가 자기소개서를 작성 중입니다...</p>
@@ -501,7 +511,7 @@ export default function CoverLetterPage() {
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                       PDF
                     </button>
-                    <button onClick={handleGenerate} disabled={loading} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50">
+                    <button type="button" onClick={handleSubmitGenerate(onGenerateSubmit)} disabled={isGenerating} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                       재생성
                     </button>
@@ -532,36 +542,40 @@ export default function CoverLetterPage() {
         {/* ─── FEEDBACK MODE ─── */}
         {mode === 'feedback' && (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <div className="space-y-4">
+            <form onSubmit={handleSubmitFeedback(onFeedbackSubmit)} className="space-y-4" noValidate>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">자기소개서 붙여넣기 <span className="text-red-500">*</span></label>
-                <div className="text-xs text-slate-400 mb-1.5">{feedbackText.replace(/\s/g, '').length}자 (공백 제외)</div>
+                <div className="text-xs text-slate-400 mb-1.5">{(feedbackText || '').replace(/\s/g, '').length}자 (공백 제외)</div>
                 <textarea
-                  value={feedbackText}
-                  onChange={e => setFeedbackText(e.target.value)}
+                  {...registerFeedback('content')}
                   placeholder="분석할 자기소개서를 여기에 붙여넣으세요..."
                   rows={14}
-                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${feedbackErrors.content ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
                 />
+                {feedbackErrors.content && (
+                  <p className="text-xs text-red-500 mt-1">{feedbackErrors.content.message}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">채용 공고 <span className="text-slate-400 font-normal">(선택, 있으면 키워드 매칭 분석)</span></label>
                 <textarea
-                  value={feedbackJobDesc}
-                  onChange={e => setFeedbackJobDesc(e.target.value)}
+                  {...registerFeedback('jobDescription')}
                   placeholder="채용 공고를 붙여넣으면 키워드 적합성을 분석합니다..."
                   rows={6}
-                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${feedbackErrors.jobDescription ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
                 />
+                {feedbackErrors.jobDescription && (
+                  <p className="text-xs text-red-500 mt-1">{feedbackErrors.jobDescription.message}</p>
+                )}
               </div>
               <button
-                onClick={handleFeedback}
-                disabled={!feedbackText.trim()}
+                type="submit"
+                disabled={isAnalyzingFeedbackForm}
                 className="w-full py-3 bg-neutral-900 dark:bg-white text-white font-medium rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
               >
-                피드백 분석
+                {isAnalyzingFeedbackForm ? '분석 중...' : '피드백 분석'}
               </button>
-            </div>
+            </form>
 
             <div>
               {feedbackResult ? (

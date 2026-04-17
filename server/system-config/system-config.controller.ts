@@ -1,7 +1,7 @@
-import { Controller, Get, Patch, Body, Req } from '@nestjs/common';
+import { Controller, Get, Patch, Body, Req, UseGuards } from '@nestjs/common';
 import { SystemConfigService } from './system-config.service';
-import { ForbiddenException } from '@nestjs/common';
 import { Public } from '../auth/auth.guard';
+import { AdminGuard } from '../common/guards/admin.guard';
 
 @Controller('system-config')
 export class SystemConfigController {
@@ -23,8 +23,8 @@ export class SystemConfigController {
   }
 
   @Patch('content/:key')
+  @UseGuards(AdminGuard)
   async setContent(@Req() req: any, @Body() body: any) {
-    if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') throw new ForbiddenException();
     const key = (req.params as any).key;
     const value = typeof body === 'string' ? body : JSON.stringify(body);
     await this.service.set(`content_${key}`, value);
@@ -38,20 +38,20 @@ export class SystemConfigController {
   }
 
   @Patch('permissions')
-  setPermissions(@Req() req: any, @Body() body: Record<string, string>) {
-    if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') throw new ForbiddenException();
+  @UseGuards(AdminGuard)
+  setPermissions(@Body() body: Record<string, string>) {
     return this.service.setPermissions(body);
   }
 
   @Get()
-  getAll(@Req() req: any) {
-    if (req.user?.role !== 'admin') throw new ForbiddenException();
+  @UseGuards(AdminGuard)
+  getAll() {
     return this.service.getAll();
   }
 
   @Patch()
-  setMany(@Req() req: any, @Body() body: { configs: { key: string; value: string }[] }) {
-    if (req.user?.role !== 'admin') throw new ForbiddenException();
+  @UseGuards(AdminGuard)
+  setMany(@Body() body: { configs: { key: string; value: string }[] }) {
     return this.service.setMany(body.configs);
   }
 }

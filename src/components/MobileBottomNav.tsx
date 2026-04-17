@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactElement } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getUser } from '@/lib/auth';
 
 type NavItem = {
   to: string;
   label: string;
-  icon: (active: boolean) => JSX.Element;
+  icon: (active: boolean) => ReactElement;
   match: (path: string) => boolean;
   highlight?: boolean;
   activeColor?: string;

@@ -1,38 +1,28 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-Object.defineProperty(exports, "AuthModule", {
-    enumerable: true,
-    get: function() {
-        return AuthModule;
-    }
-});
-const _common = require("@nestjs/common");
-const _jwt = require("@nestjs/jwt");
-const _config = require("@nestjs/config");
-const _authcontroller = require("./auth.controller");
-const _authservice = require("./auth.service");
-const _authguard = require("./auth.guard");
-function _ts_decorate(decorators, target, key, desc) {
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for(var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AuthModule = void 0;
+const common_1 = require("@nestjs/common");
+const jwt_1 = require("@nestjs/jwt");
+const config_1 = require("@nestjs/config");
+const auth_controller_1 = require("./auth.controller");
+const auth_service_1 = require("./auth.service");
+const auth_guard_1 = require("./auth.guard");
 let AuthModule = class AuthModule {
 };
-AuthModule = _ts_decorate([
-    (0, _common.Module)({
+exports.AuthModule = AuthModule;
+exports.AuthModule = AuthModule = __decorate([
+    (0, common_1.Module)({
         imports: [
-            _jwt.JwtModule.registerAsync({
-                imports: [
-                    _config.ConfigModule
-                ],
-                inject: [
-                    _config.ConfigService
-                ],
-                useFactory: (config)=>{
+            jwt_1.JwtModule.registerAsync({
+                imports: [config_1.ConfigModule],
+                inject: [config_1.ConfigService],
+                useFactory: (config) => {
                     const secret = config.get('JWT_SECRET');
                     const isProd = config.get('NODE_ENV') === 'production';
                     if (!secret && isProd) {
@@ -40,24 +30,13 @@ AuthModule = _ts_decorate([
                     }
                     return {
                         secret: secret || 'dev-only-jwt-secret-do-not-use-in-production',
-                        signOptions: {
-                            expiresIn: '7d'
-                        }
+                        signOptions: { expiresIn: '7d' },
                     };
-                }
-            })
+                },
+            }),
         ],
-        controllers: [
-            _authcontroller.AuthController
-        ],
-        providers: [
-            _authservice.AuthService,
-            _authguard.AuthGuard
-        ],
-        exports: [
-            _authservice.AuthService,
-            _authguard.AuthGuard,
-            _jwt.JwtModule
-        ]
+        controllers: [auth_controller_1.AuthController],
+        providers: [auth_service_1.AuthService, auth_guard_1.AuthGuard],
+        exports: [auth_service_1.AuthService, auth_guard_1.AuthGuard, jwt_1.JwtModule],
     })
 ], AuthModule);

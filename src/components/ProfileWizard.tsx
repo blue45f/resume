@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type ReactElement } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Resume } from '@/types/resume';
 import { calculateCompleteness } from '@/lib/completeness';
@@ -7,7 +7,7 @@ interface WizardStep {
   key: string;
   label: string;
   tab: string;
-  icon: JSX.Element;
+  icon: ReactElement;
   checkComplete: (resume: Resume) => boolean;
   getMissing: (resume: Resume) => string[];
   whyMatters: string;

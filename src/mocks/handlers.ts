@@ -188,7 +188,7 @@ export const handlers = [
       prompt: body.prompt || '', layout: body.layout || '{}', isDefault: false,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     };
-    db.templates.push(tpl);
+    db.templates.push(tpl as unknown as (typeof db.templates)[number]);
     return HttpResponse.json(tpl, { status: 201 });
   }),
 

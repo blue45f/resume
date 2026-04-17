@@ -88,11 +88,11 @@ function JobStatsSection() {
       <div className="flex flex-wrap gap-2 imp-card p-3">
         <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100">
           <option value="">전체 지역</option>
-          {data.byLocation.map(l => <option key={l.name} value={l.name}>{l.name} ({l.count})</option>)}
+          {data.byLocation.map((l: { name: string; count: number }) => <option key={l.name} value={l.name}>{l.name} ({l.count})</option>)}
         </select>
         <select value={filterType} onChange={e => setFilterType(e.target.value)} className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100">
           <option value="">전체 유형</option>
-          {data.byType.map(t => <option key={t.name} value={t.name}>{TYPE_LABELS[t.name] || t.name} ({t.count})</option>)}
+          {data.byType.map((t: { name: string; count: number }) => <option key={t.name} value={t.name}>{TYPE_LABELS[t.name] || t.name} ({t.count})</option>)}
         </select>
         <input value={filterSkill} onChange={e => setFilterSkill(e.target.value)} placeholder="기술 스택 필터..." className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 flex-1 min-w-[120px]" />
         {(filterLocation || filterType || filterSkill) && (
@@ -110,7 +110,7 @@ function JobStatsSection() {
             채용 기업 TOP 10
           </h3>
           <div className="space-y-2">
-            {data.byCompany.map((c, i) => (
+            {data.byCompany.map((c: { name: string; count: number }, i: number) => (
               <div key={c.name} className="flex items-center gap-3">
                 <span className={`w-5 text-xs font-bold text-right ${i < 3 ? 'text-amber-600' : 'text-slate-400'}`}>{i + 1}</span>
                 <div className="flex-1 min-w-0">
@@ -135,7 +135,7 @@ function JobStatsSection() {
             지역별 분포
           </h3>
           <div className="space-y-2">
-            {data.byLocation.map((l, i) => (
+            {data.byLocation.map((l: { name: string; count: number }, i: number) => (
               <div key={l.name} className="flex items-center gap-3">
                 <span className={`w-5 text-xs font-bold text-right ${i < 3 ? 'text-blue-600' : 'text-slate-400'}`}>{i + 1}</span>
                 <div className="flex-1 min-w-0">

@@ -1,4 +1,4 @@
-import Dialog from '@/components/Dialog';
+import Dialog from '@/shared/ui/Dialog';
 
 interface Props {
   open: boolean;

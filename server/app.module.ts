@@ -27,6 +27,7 @@ import { NoticesModule } from './notices/notices.module';
 import { SystemConfigModule } from './system-config/system-config.module';
 import { CommunityModule } from './community/community.module';
 import { ForbiddenWordsModule } from './forbidden-words/forbidden-words.module';
+import { InterviewModule } from './interview/interview.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { ForbiddenWordsModule } from './forbidden-words/forbidden-words.module';
     SystemConfigModule,
     CommunityModule,
     ForbiddenWordsModule,
+    InterviewModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: CustomThrottlerGuard },

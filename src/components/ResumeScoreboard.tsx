@@ -11,7 +11,7 @@ interface Props {
 function useAnimatedCounter(target: number, duration = 800): number {
   const [value, setValue] = useState(0);
   const startTimeRef = useRef<number | null>(null);
-  const rafRef = useRef<number>();
+  const rafRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     startTimeRef.current = null;

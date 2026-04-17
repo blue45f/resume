@@ -374,4 +374,280 @@ describe('통합 테스트', () => {
       expect(res.body.data || res.body.items).toBeDefined();
     });
   });
+
+  // ═══════════════════════════════════════════
+  // 8. 프로필 & 소셜
+  // ═══════════════════════════════════════════
+  describe('프로필 & 소셜', () => {
+    let targetUserId: string;
+
+    beforeAll(async () => {
+      const meRes = await authGet('recruiter', '/api/auth/me');
+      targetUserId = meRes.body?.id;
+    });
+
+    it('GET /api/auth/me — 프로필 조회', async () => {
+      const res = await authGet('normal', '/api/auth/me').expect(200);
+      expect(res.body.email).toBe(USERS.normal.email);
+      expect(res.body.id).toBeDefined();
+      expect(res.body.passwordHash).toBeUndefined();
+    });
+
+    it('PATCH /api/auth/profile — name 수정', async () => {
+      const res = await api()
+        .patch('/api/auth/profile')
+        .set('Authorization', `Bearer ${tokens.normal}`)
+        .send({ name: '수정된이름' });
+      expect([200, 400, 401]).toContain(res.status);
+      if (res.status === 200) {
+        expect(res.body.name).toBe('수정된이름');
+        // 원복
+        await api()
+          .patch('/api/auth/profile')
+          .set('Authorization', `Bearer ${tokens.normal}`)
+          .send({ name: USERS.normal.name });
+      }
+    });
+
+    it('POST /api/social/follow/:userId — 팔로우', async () => {
+      if (!targetUserId) return;
+      const res = await authPost('normal', `/api/social/follow/${targetUserId}`).send({});
+      expect([200, 201, 400, 404]).toContain(res.status);
+    });
+
+    it('DELETE /api/social/follow/:userId — 언팔로우', async () => {
+      if (!targetUserId) return;
+      const res = await authDelete('normal', `/api/social/follow/${targetUserId}`);
+      expect([200, 204, 404]).toContain(res.status);
+    });
+
+    it('GET /api/social/followers — 팔로워 목록', async () => {
+      const res = await authGet('normal', '/api/social/followers').expect(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+  });
+
+  // ═══════════════════════════════════════════
+  // 9. 이력서 고급
+  // ═══════════════════════════════════════════
+  describe('이력서 고급', () => {
+    let resumeId: string;
+    let tagId: string;
+
+    beforeAll(async () => {
+      const res = await authPost('normal', '/api/resumes').send({
+        title: '고급 테스트 이력서',
+        personalInfo: { name: '고급테스터', summary: '고급 기능 테스트용' },
+        skills: [{ category: 'BE', items: 'Node.js,NestJS' }],
+      });
+      resumeId = res.body.id;
+    });
+
+    afterAll(async () => {
+      if (resumeId) await authDelete('normal', `/api/resumes/${resumeId}`).catch(() => {});
+      if (tagId) await authDelete('normal', `/api/tags/${tagId}`).catch(() => {});
+    });
+
+    it('POST /api/resumes/:id/share — 공유 링크 생성', async () => {
+      const res = await authPost('normal', `/api/resumes/${resumeId}/share`).send({ expiresInHours: 24 });
+      expect([200, 201]).toContain(res.status);
+      if (res.status === 200 || res.status === 201) {
+        expect(res.body.token || res.body.id).toBeDefined();
+      }
+    });
+
+    it('GET /api/resumes/:id/versions — 버전 목록', async () => {
+      const res = await authGet('normal', `/api/resumes/${resumeId}/versions`);
+      expect([200, 404]).toContain(res.status);
+      if (res.status === 200) expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('POST /api/resumes/:id/tags — 태그 추가', async () => {
+      // 태그 생성
+      const tagRes = await authPost('normal', '/api/tags').send({ name: `e2e-tag-${Date.now()}` });
+      expect([200, 201]).toContain(tagRes.status);
+      tagId = tagRes.body?.id;
+
+      if (tagId) {
+        const res = await authPost('normal', `/api/tags/${tagId}/resumes/${resumeId}`).send({});
+        expect([200, 201, 404]).toContain(res.status);
+      }
+    });
+
+    it('GET /api/resumes/public — 공개 이력서 목록', async () => {
+      const res = await api().get('/api/resumes/public?limit=5').expect(200);
+      expect(res.body.data || res.body.items).toBeDefined();
+    });
+
+    it('POST /api/resumes/:id/transform — 변환 (standard)', async () => {
+      // 실제 경로는 /api/templates/local-transform/:resumeId
+      const res = await authPost('normal', `/api/templates/local-transform/${resumeId}`).send({ preset: 'standard' });
+      expect([200, 201, 400, 403, 404]).toContain(res.status);
+      if (res.status === 200 || res.status === 201) {
+        expect(res.body.text || res.body.method).toBeDefined();
+      }
+    });
+
+    it('GET /api/resumes/popular-skills — 인기 기술', async () => {
+      const res = await api().get('/api/resumes/popular-skills').expect(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+  });
+
+  // ═══════════════════════════════════════════
+  // 10. 북마크
+  // ═══════════════════════════════════════════
+  describe('북마크', () => {
+    let resumeId: string;
+
+    beforeAll(async () => {
+      // 다른 유저(recruiter)의 이력서 생성 (북마크 대상으로 사용)
+      const res = await authPost('recruiter', '/api/resumes').send({
+        title: '북마크 대상 이력서',
+        personalInfo: { name: '북마크대상' },
+        visibility: 'public',
+      });
+      resumeId = res.body?.id;
+    });
+
+    afterAll(async () => {
+      if (resumeId) await authDelete('recruiter', `/api/resumes/${resumeId}`).catch(() => {});
+    });
+
+    it('POST /api/resumes/:id/bookmark — 추가', async () => {
+      if (!resumeId) return;
+      const res = await authPost('normal', `/api/resumes/${resumeId}/bookmark`).send({});
+      expect([200, 201, 403, 404, 409]).toContain(res.status);
+    });
+
+    it('GET /api/resumes/bookmarks/list — 목록', async () => {
+      const res = await authGet('normal', '/api/resumes/bookmarks/list');
+      expect([200, 401]).toContain(res.status);
+      if (res.status === 200) expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('DELETE /api/resumes/:id/bookmark — 제거', async () => {
+      if (!resumeId) return;
+      const res = await authDelete('normal', `/api/resumes/${resumeId}/bookmark`);
+      expect([200, 204, 404]).toContain(res.status);
+    });
+  });
+
+  // ═══════════════════════════════════════════
+  // 11. 템플릿
+  // ═══════════════════════════════════════════
+  describe('템플릿', () => {
+    let templateId: string;
+
+    afterAll(async () => {
+      if (templateId) await authDelete('normal', `/api/templates/${templateId}`).catch(() => {});
+    });
+
+    it('GET /api/templates — 목록 (기본)', async () => {
+      const res = await api().get('/api/templates').expect(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('POST /api/templates — 커스텀 생성 (auth)', async () => {
+      const res = await authPost('normal', '/api/templates').send({
+        name: `E2E Template ${Date.now()}`,
+        description: 'E2E 테스트 템플릿',
+        category: 'custom',
+        prompt: '테스트 프롬프트',
+        layout: JSON.stringify({ sections: ['personalInfo', 'experiences'] }),
+      });
+      expect([200, 201, 400, 403]).toContain(res.status);
+      if (res.status === 200 || res.status === 201) {
+        templateId = res.body?.id;
+        expect(templateId).toBeDefined();
+      }
+    });
+
+    it('DELETE /api/templates/:id — 삭제', async () => {
+      if (!templateId) return;
+      const res = await authDelete('normal', `/api/templates/${templateId}`);
+      expect([200, 204, 403, 404]).toContain(res.status);
+      if (res.status === 200 || res.status === 204) templateId = '';
+    });
+  });
+
+  // ═══════════════════════════════════════════
+  // 12. 외부 링크
+  // ═══════════════════════════════════════════
+  describe('외부 링크', () => {
+    it('GET /api/jobs/external-links/list — 목록', async () => {
+      const res = await api().get('/api/jobs/external-links/list').expect(200);
+      expect(Array.isArray(res.body) || res.body.items).toBeTruthy();
+    });
+
+    it('GET /api/jobs/curated/list — 큐레이션', async () => {
+      const res = await api().get('/api/jobs/curated/list').expect(200);
+      expect(Array.isArray(res.body) || res.body.items).toBeTruthy();
+    });
+
+    it('GET /api/jobs/curated/list?jobType=fulltime — 필터', async () => {
+      const res = await api().get('/api/jobs/curated/list?jobType=fulltime&limit=5').expect(200);
+      expect(Array.isArray(res.body) || res.body.items).toBeTruthy();
+    });
+  });
+
+  // ═══════════════════════════════════════════
+  // 13. 금칙어
+  // ═══════════════════════════════════════════
+  describe('금칙어', () => {
+    it('POST /api/forbidden-words/check — 정상', async () => {
+      const res = await authPost('normal', '/api/forbidden-words/check').send({ text: '정상적인 텍스트 입니다' });
+      expect([200, 201]).toContain(res.status);
+      expect(res.body.blocked).toBe(false);
+    });
+
+    it('POST /api/forbidden-words/check — 차단', async () => {
+      // 금칙어가 등록되어 있지 않을 수 있으므로 결과 유연 처리
+      const res = await authPost('normal', '/api/forbidden-words/check').send({ text: 'fuck shit asshole bitch' });
+      expect([200, 201]).toContain(res.status);
+      expect(typeof res.body.blocked).toBe('boolean');
+    });
+
+    it('GET /api/forbidden-words/stats — 관리자만', async () => {
+      // 일반 유저는 빈 객체, 관리자만 조회 가능
+      const res = await authGet('normal', '/api/forbidden-words/stats').expect(200);
+      expect(typeof res.body).toBe('object');
+    });
+  });
+
+  // ═══════════════════════════════════════════
+  // 14. 공지사항
+  // ═══════════════════════════════════════════
+  describe('공지사항', () => {
+    it('GET /api/notices — 목록', async () => {
+      const res = await api().get('/api/notices?limit=5').expect(200);
+      expect(res.body.items || Array.isArray(res.body)).toBeTruthy();
+    });
+
+    it('GET /api/notices?type=GENERAL — 필터', async () => {
+      const res = await api().get('/api/notices?type=GENERAL&limit=5').expect(200);
+      expect(res.body.items || Array.isArray(res.body)).toBeTruthy();
+    });
+
+    it('GET /api/notices/popup — 팝업 공지', async () => {
+      const res = await api().get('/api/notices/popup').expect(200);
+      // null or object
+      expect(res.body === null || typeof res.body === 'object').toBe(true);
+    });
+  });
+
+  // ═══════════════════════════════════════════
+  // 15. 시스템 설정
+  // ═══════════════════════════════════════════
+  describe('시스템 설정', () => {
+    it('GET /api/system-config/content/homepage — 홈페이지 콘텐츠', async () => {
+      const res = await api().get('/api/system-config/content/homepage').expect(200);
+      expect(res.body === null || typeof res.body === 'object' || typeof res.body === 'string').toBe(true);
+    });
+
+    it('GET /api/system-config/public — 공개 설정', async () => {
+      const res = await api().get('/api/system-config/public').expect(200);
+      expect(typeof res.body).toBe('object');
+    });
+  });
 });

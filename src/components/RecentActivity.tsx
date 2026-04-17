@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
@@ -15,7 +15,7 @@ interface Activity {
   isSocial?: boolean;
 }
 
-const ACTIVITY_ICONS: Record<string, JSX.Element> = {
+const ACTIVITY_ICONS: Record<string, ReactElement> = {
   view: (
     <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

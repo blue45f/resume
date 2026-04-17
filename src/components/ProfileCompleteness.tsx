@@ -19,8 +19,10 @@ export default function ProfileCompleteness() {
   useEffect(() => {
     if (!user || !getToken() || dismissed) return;
 
-    fetchResumes().then(resumes => {
-      const resumeList = Array.isArray(resumes) ? resumes : resumes?.data || [];
+    fetchResumes().then((resumes: unknown) => {
+      const resumeList: any[] = Array.isArray(resumes)
+        ? resumes
+        : ((resumes as { data?: unknown[] })?.data as any[]) || [];
       const hasResume = resumeList.length > 0;
       const hasPublicResume = resumeList.some((r: any) => r.visibility === 'public');
 

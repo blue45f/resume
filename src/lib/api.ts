@@ -464,6 +464,33 @@ export const markScoutRead = (id: string) =>
 export const fetchUnreadMessageCount = () =>
   request<{ count: number }>(`${BASE}/social/messages/unread/count`);
 
+// Interview Answers
+export interface InterviewAnswer {
+  id: string;
+  question: string;
+  answer: string;
+  resumeId?: string | null;
+  jobRole?: string | null;
+  createdAt: string;
+}
+
+export const saveInterviewAnswer = (data: {
+  question: string;
+  answer: string;
+  resumeId?: string;
+  jobRole?: string;
+}) =>
+  request<InterviewAnswer>(`${BASE}/interview/answers`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const fetchInterviewAnswers = () =>
+  request<InterviewAnswer[]>(`${BASE}/interview/answers`);
+
+export const deleteInterviewAnswer = (id: string) =>
+  request<{ success: boolean }>(`${BASE}/interview/answers/${id}`, { method: 'DELETE' });
+
 // Scout management
 export const fetchSentScouts = () => request<any[]>(`${BASE}/social/scouts/sent`);
 export const respondToScout = (id: string, status: string) =>

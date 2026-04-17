@@ -8,12 +8,12 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${url}`, { ...options, headers });
   if (!res.ok) throw new Error(`${res.status}`);
   const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  return (text ? JSON.parse(text) : null) as T;
 }
 
-export function useApiQuery<T>(key: string[], url: string, options?: { enabled?: boolean; staleTime?: number }) {
+export function useApiQuery<T>(key: readonly unknown[], url: string, options?: { enabled?: boolean; staleTime?: number }) {
   return useQuery<T>({
-    queryKey: key,
+    queryKey: [...key],
     queryFn: () => apiFetch<T>(url),
     ...options,
   });

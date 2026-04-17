@@ -2,7 +2,7 @@ import { useState, useRef, memo } from 'react';
 import { getUser } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
 import { toast } from '@/components/Toast';
-import Dialog from '@/components/Dialog';
+import Dialog from '@/shared/ui/Dialog';
 
 interface Props {
   targetUserId?: string;

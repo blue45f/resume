@@ -6,7 +6,7 @@ module.exports = {
     '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.server.json' }],
   },
   testEnvironment: 'node',
-  testPathIgnorePatterns: ['/node_modules/', '/dist-server/'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist-server/', '\\.e2e-spec\\.ts$'],
   collectCoverageFrom: [
     'server/**/*.service.ts',
     'server/**/*.guard.ts',

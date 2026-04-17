@@ -1,39 +1,25 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-Object.defineProperty(exports, "SystemConfigModule", {
-    enumerable: true,
-    get: function() {
-        return SystemConfigModule;
-    }
-});
-const _common = require("@nestjs/common");
-const _systemconfigcontroller = require("./system-config.controller");
-const _systemconfigservice = require("./system-config.service");
-const _prismamodule = require("../prisma/prisma.module");
-function _ts_decorate(decorators, target, key, desc) {
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for(var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SystemConfigModule = void 0;
+const common_1 = require("@nestjs/common");
+const system_config_controller_1 = require("./system-config.controller");
+const system_config_service_1 = require("./system-config.service");
+const prisma_module_1 = require("../prisma/prisma.module");
 let SystemConfigModule = class SystemConfigModule {
 };
-SystemConfigModule = _ts_decorate([
-    (0, _common.Global)(),
-    (0, _common.Module)({
-        imports: [
-            _prismamodule.PrismaModule
-        ],
-        controllers: [
-            _systemconfigcontroller.SystemConfigController
-        ],
-        providers: [
-            _systemconfigservice.SystemConfigService
-        ],
-        exports: [
-            _systemconfigservice.SystemConfigService
-        ]
+exports.SystemConfigModule = SystemConfigModule;
+exports.SystemConfigModule = SystemConfigModule = __decorate([
+    (0, common_1.Global)(),
+    (0, common_1.Module)({
+        imports: [prisma_module_1.PrismaModule],
+        controllers: [system_config_controller_1.SystemConfigController],
+        providers: [system_config_service_1.SystemConfigService],
+        exports: [system_config_service_1.SystemConfigService],
     })
 ], SystemConfigModule);

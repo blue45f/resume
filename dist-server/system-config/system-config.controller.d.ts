@@ -10,15 +10,15 @@ export declare class SystemConfigController {
         success: boolean;
     }>;
     getPermissions(): Promise<Record<string, string>>;
-    setPermissions(req: any, body: Record<string, string>): Promise<Record<string, string>>;
-    getAll(req: any): Promise<{
+    setPermissions(body: Record<string, string>): Promise<Record<string, string>>;
+    getAll(): Promise<{
         id: string;
         updatedAt: Date;
-        value: string;
         key: string;
+        value: string;
         label: string;
     }[]>;
-    setMany(req: any, body: {
+    setMany(body: {
         configs: {
             key: string;
             value: string;
@@ -26,8 +26,8 @@ export declare class SystemConfigController {
     }): Promise<{
         id: string;
         updatedAt: Date;
-        value: string;
         key: string;
+        value: string;
         label: string;
     }[]>;
 }

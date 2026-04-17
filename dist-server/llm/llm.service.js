@@ -1,31 +1,25 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-Object.defineProperty(exports, "LlmService", {
-    enumerable: true,
-    get: function() {
-        return LlmService;
-    }
-});
-const _common = require("@nestjs/common");
-const _config = require("@nestjs/config");
-const _prismaservice = require("../prisma/prisma.service");
-const _resumesservice = require("../resumes/resumes.service");
-const _anthropicprovider = require("./providers/anthropic.provider");
-const _geminiprovider = require("./providers/gemini.provider");
-const _groqprovider = require("./providers/groq.provider");
-const _n8nwebhookprovider = require("./providers/n8n-webhook.provider");
-const _openaicompatibleprovider = require("./providers/openai-compatible.provider");
-function _ts_decorate(decorators, target, key, desc) {
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for(var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-function _ts_metadata(k, v) {
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-}
+};
+var LlmService_1;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.LlmService = void 0;
+const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
+const prisma_service_1 = require("../prisma/prisma.service");
+const resumes_service_1 = require("../resumes/resumes.service");
+const anthropic_provider_1 = require("./providers/anthropic.provider");
+const gemini_provider_1 = require("./providers/gemini.provider");
+const groq_provider_1 = require("./providers/groq.provider");
+const n8n_webhook_provider_1 = require("./providers/n8n-webhook.provider");
+const openai_compatible_provider_1 = require("./providers/openai-compatible.provider");
 const TEMPLATE_PROMPTS = {
     standard: `당신은 전문 이력서 작성 전문가입니다. 주어진 이력서 데이터를 깔끔하고 전문적인 한국어 표준 이력서 양식으로 변환해주세요.
 - 경력 사항은 최신순으로 정리
@@ -53,26 +47,61 @@ const TEMPLATE_PROMPTS = {
     designer: `당신은 디자이너 이력서 전문가입니다. 주어진 데이터를 디자이너에 최적화된 이력서로 변환해주세요.
 - 포트폴리오 중심 구성
 - 디자인 프로세스와 방법론 강조
-- 사용자 리서치, A/B 테스트 등 데이터 기반 결과 포함`
+- 사용자 리서치, A/B 테스트 등 데이터 기반 결과 포함`,
 };
-// Max JD length to prevent prompt injection and cost explosion
 const MAX_JD_LENGTH = 3000;
 const MAX_CUSTOM_PROMPT_LENGTH = 2000;
-let LlmService = class LlmService {
+let LlmService = LlmService_1 = class LlmService {
+    config;
+    prisma;
+    resumesService;
+    anthropicProvider;
+    geminiProvider;
+    groqProvider;
+    n8nProvider;
+    openAiCompatibleProvider;
+    logger = new common_1.Logger(LlmService_1.name);
+    providers = new Map();
+    defaultProvider;
+    constructor(config, prisma, resumesService, anthropicProvider, geminiProvider, groqProvider, n8nProvider, openAiCompatibleProvider) {
+        this.config = config;
+        this.prisma = prisma;
+        this.resumesService = resumesService;
+        this.anthropicProvider = anthropicProvider;
+        this.geminiProvider = geminiProvider;
+        this.groqProvider = groqProvider;
+        this.n8nProvider = n8nProvider;
+        this.openAiCompatibleProvider = openAiCompatibleProvider;
+        if (geminiProvider.isAvailable)
+            this.providers.set('gemini', geminiProvider);
+        if (groqProvider.isAvailable)
+            this.providers.set('groq', groqProvider);
+        if (anthropicProvider.isAvailable)
+            this.providers.set('anthropic', anthropicProvider);
+        if (n8nProvider.isAvailable)
+            this.providers.set('n8n', n8nProvider);
+        if (openAiCompatibleProvider.isAvailable)
+            this.providers.set('openai-compatible', openAiCompatibleProvider);
+        this.defaultProvider =
+            this.config.get('LLM_DEFAULT_PROVIDER') ||
+                (geminiProvider.isAvailable ? 'gemini' :
+                    groqProvider.isAvailable ? 'groq' :
+                        n8nProvider.isAvailable ? 'n8n' :
+                            openAiCompatibleProvider.isAvailable ? 'openai-compatible' :
+                                'anthropic');
+        this.logger.log(`LLM providers: [${[...this.providers.keys()].join(', ')}] | default: ${this.defaultProvider}`);
+    }
     getAvailableProviders() {
-        return [
-            ...this.providers.entries()
-        ].map(([name, provider])=>({
-                name,
-                available: provider.isAvailable,
-                isDefault: name === this.defaultProvider
-            }));
+        return [...this.providers.entries()].map(([name, provider]) => ({
+            name,
+            available: provider.isAvailable,
+            isDefault: name === this.defaultProvider,
+        }));
     }
     async transform(resumeId, dto) {
         const resume = await this.resumesService.findOne(resumeId);
         const systemPrompt = this.buildSystemPrompt(dto);
         const userMessage = this.buildUserMessage(resume);
-        // 성능 순 자동 fallback (유저 선택 불필요)
         const result = await this.generateWithFallback(systemPrompt, userMessage);
         const transformation = await this.prisma.llmTransformation.create({
             data: {
@@ -80,12 +109,10 @@ let LlmService = class LlmService {
                 templateType: dto.templateType,
                 targetLanguage: dto.targetLanguage || 'ko',
                 jobDescription: dto.jobDescription,
-                result: JSON.stringify({
-                    text: result.text
-                }),
+                result: JSON.stringify({ text: result.text }),
                 tokensUsed: result.tokensUsed,
-                model: `${result.provider}/${result.model}`
-            }
+                model: `${result.provider}/${result.model}`,
+            },
         });
         return {
             id: transformation.id,
@@ -93,7 +120,7 @@ let LlmService = class LlmService {
             tokensUsed: result.tokensUsed,
             provider: result.provider,
             model: result.model,
-            createdAt: transformation.createdAt.toISOString()
+            createdAt: transformation.createdAt.toISOString(),
         };
     }
     async *transformStream(resumeId, dto) {
@@ -103,11 +130,12 @@ let LlmService = class LlmService {
         const userMessage = this.buildUserMessage(resume);
         let fullText = '';
         let finalChunk = null;
-        for await (const chunk of provider.generateStream(systemPrompt, userMessage)){
+        for await (const chunk of provider.generateStream(systemPrompt, userMessage)) {
             if (chunk.type === 'delta') {
                 fullText += chunk.text || '';
                 yield chunk;
-            } else if (chunk.type === 'done') {
+            }
+            else if (chunk.type === 'done') {
                 finalChunk = chunk;
             }
         }
@@ -117,12 +145,10 @@ let LlmService = class LlmService {
                 templateType: dto.templateType,
                 targetLanguage: dto.targetLanguage || 'ko',
                 jobDescription: dto.jobDescription,
-                result: JSON.stringify({
-                    text: fullText
-                }),
+                result: JSON.stringify({ text: fullText }),
                 tokensUsed: finalChunk?.tokensUsed || 0,
-                model: `${finalChunk?.provider || 'unknown'}/${finalChunk?.model || 'unknown'}`
-            }
+                model: `${finalChunk?.provider || 'unknown'}/${finalChunk?.model || 'unknown'}`,
+            },
         });
         yield {
             type: 'done',
@@ -130,32 +156,26 @@ let LlmService = class LlmService {
             tokensUsed: finalChunk?.tokensUsed || 0,
             provider: finalChunk?.provider,
             model: finalChunk?.model,
-            createdAt: transformation.createdAt.toISOString()
+            createdAt: transformation.createdAt.toISOString(),
         };
     }
     async getTransformationHistory(resumeId) {
         const transformations = await this.prisma.llmTransformation.findMany({
-            where: {
-                resumeId
-            },
-            orderBy: {
-                createdAt: 'desc'
-            },
-            take: 50
+            where: { resumeId },
+            orderBy: { createdAt: 'desc' },
+            take: 50,
         });
-        return transformations.map((t)=>({
-                id: t.id,
-                templateType: t.templateType,
-                targetLanguage: t.targetLanguage,
-                tokensUsed: t.tokensUsed,
-                model: t.model,
-                createdAt: t.createdAt.toISOString(),
-                result: JSON.parse(t.result)
-            }));
+        return transformations.map((t) => ({
+            id: t.id,
+            templateType: t.templateType,
+            targetLanguage: t.targetLanguage,
+            tokensUsed: t.tokensUsed,
+            model: t.model,
+            createdAt: t.createdAt.toISOString(),
+            result: JSON.parse(t.result),
+        }));
     }
-    /**
-   * 비정형 텍스트로부터 이력서 자동 생성
-   */ async autoGenerate(rawText, instruction, _provider) {
+    async autoGenerate(rawText, instruction, _provider) {
         const systemPrompt = `당신은 이력서 데이터 파싱 전문가입니다. 사용자가 제공하는 비정형 텍스트(경력 메모, LinkedIn 복사, 이전 이력서, 자유 형식 등)를 분석하여 구조화된 이력서 JSON 데이터를 생성해주세요.
 
 반드시 아래 JSON 형식으로만 응답하세요. 설명이나 마크다운 없이 순수 JSON만 출력하세요.
@@ -197,113 +217,102 @@ let LlmService = class LlmService {
 - 날짜는 YYYY-MM-DD 형식, 정확하지 않으면 YYYY-MM-01 또는 YYYY-01-01 사용
 - 경력의 성과/업무를 description에 줄바꿈으로 구분하여 상세히 작성
 - title은 "이름의 이력서" 형식으로 자동 생성`;
-        // instruction을 user message에 포함 (system prompt 인젝션 방지)
         let userMessage = rawText;
         if (instruction) {
             userMessage += `\n\n추가 지시사항: ${instruction}`;
         }
         const result = await this.generateWithFallback(systemPrompt, userMessage);
-        // JSON 파싱 시도
         let parsed;
         try {
-            // LLM 응답에서 JSON 블록 추출
             let jsonText = result.text;
             const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-            if (jsonMatch) jsonText = jsonMatch[0];
+            if (jsonMatch)
+                jsonText = jsonMatch[0];
             parsed = JSON.parse(jsonText);
-        } catch  {
-            throw new _common.BadRequestException('LLM 응답을 파싱할 수 없습니다. 다시 시도해주세요.');
+        }
+        catch {
+            throw new common_1.BadRequestException('LLM 응답을 파싱할 수 없습니다. 다시 시도해주세요.');
         }
         return {
             resume: parsed,
             tokensUsed: result.tokensUsed,
             provider: result.provider,
-            model: result.model
+            model: result.model,
         };
     }
     async getUsageStats() {
         const stats = await this.prisma.llmTransformation.aggregate({
-            _sum: {
-                tokensUsed: true
-            },
-            _count: true
+            _sum: { tokensUsed: true },
+            _count: true,
         });
         return {
             totalTransformations: stats._count,
-            totalTokensUsed: stats._sum.tokensUsed || 0
+            totalTokensUsed: stats._sum.tokensUsed || 0,
         };
     }
+    FREE_PROVIDER_PRIORITY = ['gemini', 'groq', 'openai-compatible', 'n8n'];
     getProvider(providerName) {
         const name = providerName || this.defaultProvider;
         const provider = this.providers.get(name);
         if (!provider) {
-            const available = [
-                ...this.providers.keys()
-            ].join(', ');
-            throw new _common.BadRequestException(`LLM 프로바이더 '${name}'을 사용할 수 없습니다. 사용 가능: [${available}]. .env 파일의 API 키 설정을 확인해주세요.`);
+            const available = [...this.providers.keys()].join(', ');
+            throw new common_1.BadRequestException(`LLM 프로바이더 '${name}'을 사용할 수 없습니다. 사용 가능: [${available}]. .env 파일의 API 키 설정을 확인해주세요.`);
         }
         return provider;
     }
-    /**
-   * Rate limit/에러 시 다음 무료 프로바이더로 자동 fallback
-   */ async generateWithFallback(systemPrompt, userMessage, preferredProvider) {
+    async generateWithFallback(systemPrompt, userMessage, preferredProvider) {
         const tried = new Set();
         const errors = [];
-        const order = preferredProvider ? [
-            preferredProvider,
-            ...this.FREE_PROVIDER_PRIORITY.filter((p)=>p !== preferredProvider)
-        ] : this.FREE_PROVIDER_PRIORITY;
-        // 등록된 프로바이더가 없으면 즉시 에러
+        const order = preferredProvider
+            ? [preferredProvider, ...this.FREE_PROVIDER_PRIORITY.filter(p => p !== preferredProvider)]
+            : this.FREE_PROVIDER_PRIORITY;
         if (this.providers.size === 0) {
-            throw new _common.BadRequestException('LLM 프로바이더가 설정되지 않았습니다. 관리자에게 API 키 설정을 요청해주세요.');
+            throw new common_1.BadRequestException('LLM 프로바이더가 설정되지 않았습니다. 관리자에게 API 키 설정을 요청해주세요.');
         }
-        for (const name of order){
-            if (tried.has(name)) continue;
+        for (const name of order) {
+            if (tried.has(name))
+                continue;
             const provider = this.providers.get(name);
-            if (!provider) continue;
+            if (!provider)
+                continue;
             tried.add(name);
             try {
                 this.logger.log(`LLM: trying ${name} (${tried.size}/${this.providers.size})`);
                 return await provider.generate(systemPrompt, userMessage);
-            } catch (err) {
+            }
+            catch (err) {
                 const msg = err?.message || String(err);
                 errors.push(`${name}: ${msg.substring(0, 150)}`);
                 this.logger.warn(`LLM ${name} failed: ${msg.substring(0, 200)}`);
-            // 모든 에러에서 다음 프로바이더로 fallback (rate limit 뿐 아니라 일시적 장애도 대응)
             }
         }
-        // 모든 프로바이더 실패
         this.logger.error(`All LLM providers failed: ${errors.join(' | ')}`);
-        throw new _common.BadRequestException(`AI 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요. (${tried.size}개 프로바이더 시도)`);
+        throw new common_1.BadRequestException(`AI 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요. (${tried.size}개 프로바이더 시도)`);
     }
     buildSystemPrompt(dto) {
         let base;
         if (dto.templateType === 'custom' && dto.customPrompt) {
             if (dto.customPrompt.length > MAX_CUSTOM_PROMPT_LENGTH) {
-                throw new _common.BadRequestException(`커스텀 프롬프트는 ${MAX_CUSTOM_PROMPT_LENGTH}자 이내여야 합니다.`);
+                throw new common_1.BadRequestException(`커스텀 프롬프트는 ${MAX_CUSTOM_PROMPT_LENGTH}자 이내여야 합니다.`);
             }
             base = dto.customPrompt;
-        } else {
+        }
+        else {
             base = TEMPLATE_PROMPTS[dto.templateType] || TEMPLATE_PROMPTS['standard'];
         }
         let prompt = base;
         if (dto.targetLanguage === 'en') {
             prompt += '\n\nIMPORTANT: Write the entire output in English.';
         }
-        // Prompt injection mitigation: JD is placed in user message, not system prompt
-        // System prompt only contains instructions
-        prompt += '\n\n응답은 마크다운 형식으로 작성해주세요. 이력서 내용만 출력하고, 부가 설명은 하지 마세요.';
+        prompt +=
+            '\n\n응답은 마크다운 형식으로 작성해주세요. 이력서 내용만 출력하고, 부가 설명은 하지 마세요.';
         return prompt;
     }
     buildUserMessage(resume) {
         const sanitized = JSON.stringify(resume, null, 2);
         return `다음은 변환할 이력서 원본 데이터입니다:\n\n${sanitized}`;
     }
-    // ==========================================
-    // AI 분석 기능
-    // ==========================================
-    /** AI 이력서 피드백 (점수 + 강점 + 개선점) */ async analyzeFeedback(resumeId, provider) {
-        // 자동 fallback 사용 (provider 무시)
+    async analyzeFeedback(resumeId, provider) {
         const resume = await this.resumesService.findOne(resumeId);
         const systemPrompt = `당신은 채용 전문가이자 이력서 컨설턴트입니다. 주어진 이력서를 분석하여 JSON으로 응답해주세요.
 
@@ -338,24 +347,19 @@ let LlmService = class LlmService {
         try {
             const jsonMatch = result.text.match(/\{[\s\S]*\}/);
             parsed = JSON.parse(jsonMatch ? jsonMatch[0] : result.text);
-        } catch  {
-            throw new _common.BadRequestException('AI 분석 결과를 파싱할 수 없습니다. 다시 시도해주세요.');
         }
-        return {
-            feedback: parsed,
-            tokensUsed: result.tokensUsed,
-            provider: result.provider,
-            model: result.model
-        };
+        catch {
+            throw new common_1.BadRequestException('AI 분석 결과를 파싱할 수 없습니다. 다시 시도해주세요.');
+        }
+        return { feedback: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
     }
-    /** AI JD 매칭 분석 */ async analyzeJobMatch(resumeId, jobDescription, provider) {
+    async analyzeJobMatch(resumeId, jobDescription, provider) {
         if (!jobDescription || jobDescription.length < 20) {
-            throw new _common.BadRequestException('채용공고(JD)를 20자 이상 입력해주세요.');
+            throw new common_1.BadRequestException('채용공고(JD)를 20자 이상 입력해주세요.');
         }
         if (jobDescription.length > MAX_JD_LENGTH) {
-            throw new _common.BadRequestException(`채용공고는 ${MAX_JD_LENGTH}자 이내여야 합니다.`);
+            throw new common_1.BadRequestException(`채용공고는 ${MAX_JD_LENGTH}자 이내여야 합니다.`);
         }
-        // 자동 fallback 사용 (provider 무시)
         const resume = await this.resumesService.findOne(resumeId);
         const systemPrompt = `당신은 채용 전문가입니다. 이력서와 채용공고(JD)를 비교 분석하여 JSON으로 응답해주세요.
 
@@ -380,17 +384,13 @@ let LlmService = class LlmService {
         try {
             const jsonMatch = result.text.match(/\{[\s\S]*\}/);
             parsed = JSON.parse(jsonMatch ? jsonMatch[0] : result.text);
-        } catch  {
-            throw new _common.BadRequestException('AI 분석 결과를 파싱할 수 없습니다.');
         }
-        return {
-            analysis: parsed,
-            tokensUsed: result.tokensUsed,
-            provider: result.provider,
-            model: result.model
-        };
+        catch {
+            throw new common_1.BadRequestException('AI 분석 결과를 파싱할 수 없습니다.');
+        }
+        return { analysis: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
     }
-    /** AI 면접 질문 생성 */ async generateInterviewQuestions(resumeId, jobRole, provider, jobDescription, difficulty) {
+    async generateInterviewQuestions(resumeId, jobRole, provider, jobDescription, difficulty) {
         const resume = await this.resumesService.findOne(resumeId);
         const roleContext = jobRole ? `지원 직무: ${jobRole}\n` : '';
         const jdContext = jobDescription ? `\n채용공고/자격요건:\n${jobDescription.slice(0, 2000)}\n\n위 채용공고의 요구사항에 맞춤화된 질문을 생성하세요.\n` : '';
@@ -418,22 +418,18 @@ ${roleContext}${jdContext}${diffContext}
         try {
             const jsonMatch = result.text.match(/\{[\s\S]*\}/);
             parsed = JSON.parse(jsonMatch ? jsonMatch[0] : result.text);
-        } catch  {
-            throw new _common.BadRequestException('AI 분석 결과를 파싱할 수 없습니다.');
         }
-        return {
-            interview: parsed,
-            tokensUsed: result.tokensUsed,
-            provider: result.provider,
-            model: result.model
-        };
+        catch {
+            throw new common_1.BadRequestException('AI 분석 결과를 파싱할 수 없습니다.');
+        }
+        return { interview: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
     }
-    /** AI 인라인 문장 개선 */ async inlineAssist(text, type, provider) {
+    async inlineAssist(text, type, provider) {
         if (!text || text.trim().length < 2) {
-            throw new _common.BadRequestException('개선할 텍스트를 입력해주세요.');
+            throw new common_1.BadRequestException('개선할 텍스트를 입력해주세요.');
         }
         if (text.length > 2000) {
-            throw new _common.BadRequestException('텍스트는 2000자 이내여야 합니다.');
+            throw new common_1.BadRequestException('텍스트는 2000자 이내여야 합니다.');
         }
         const prompts = {
             improve: `당신은 이력서 작성 전문가입니다. 주어진 문장을 더 전문적이고 임팩트 있게 개선해주세요.
@@ -455,7 +451,7 @@ ${roleContext}${jdContext}${diffContext}
 - Use strong action verbs
 - Keep it concise and impactful
 - ATS-friendly language
-Output only the translated text. No explanations.`
+Output only the translated text. No explanations.`,
         };
         const systemPrompt = prompts[type] || prompts.improve;
         const result = await this.generateWithFallback(systemPrompt, text, provider);
@@ -465,52 +461,19 @@ Output only the translated text. No explanations.`
             type,
             tokensUsed: result.tokensUsed,
             provider: result.provider,
-            model: result.model
+            model: result.model,
         };
     }
-    constructor(config, prisma, resumesService, anthropicProvider, geminiProvider, groqProvider, n8nProvider, openAiCompatibleProvider){
-        this.config = config;
-        this.prisma = prisma;
-        this.resumesService = resumesService;
-        this.anthropicProvider = anthropicProvider;
-        this.geminiProvider = geminiProvider;
-        this.groqProvider = groqProvider;
-        this.n8nProvider = n8nProvider;
-        this.openAiCompatibleProvider = openAiCompatibleProvider;
-        this.logger = new _common.Logger(LlmService.name);
-        this.providers = new Map();
-        // 무료 프로바이더 성능 순 우선순위 (품질 > 속도)
-        // Gemini 2.0 Flash(높은 품질+무료) > Groq Llama 70B(빠른 속도) > OpenRouter > n8n
-        this.FREE_PROVIDER_PRIORITY = [
-            'gemini',
-            'groq',
-            'openai-compatible',
-            'n8n'
-        ];
-        // Register providers
-        if (geminiProvider.isAvailable) this.providers.set('gemini', geminiProvider);
-        if (groqProvider.isAvailable) this.providers.set('groq', groqProvider);
-        if (anthropicProvider.isAvailable) this.providers.set('anthropic', anthropicProvider);
-        if (n8nProvider.isAvailable) this.providers.set('n8n', n8nProvider);
-        if (openAiCompatibleProvider.isAvailable) this.providers.set('openai-compatible', openAiCompatibleProvider);
-        // Default priority: gemini (free) > groq (free) > n8n > openai-compatible > anthropic (paid)
-        this.defaultProvider = this.config.get('LLM_DEFAULT_PROVIDER') || (geminiProvider.isAvailable ? 'gemini' : groqProvider.isAvailable ? 'groq' : n8nProvider.isAvailable ? 'n8n' : openAiCompatibleProvider.isAvailable ? 'openai-compatible' : 'anthropic');
-        this.logger.log(`LLM providers: [${[
-            ...this.providers.keys()
-        ].join(', ')}] | default: ${this.defaultProvider}`);
-    }
 };
-LlmService = _ts_decorate([
-    (0, _common.Injectable)(),
-    _ts_metadata("design:type", Function),
-    _ts_metadata("design:paramtypes", [
-        typeof _config.ConfigService === "undefined" ? Object : _config.ConfigService,
-        typeof _prismaservice.PrismaService === "undefined" ? Object : _prismaservice.PrismaService,
-        typeof _resumesservice.ResumesService === "undefined" ? Object : _resumesservice.ResumesService,
-        typeof _anthropicprovider.AnthropicProvider === "undefined" ? Object : _anthropicprovider.AnthropicProvider,
-        typeof _geminiprovider.GeminiProvider === "undefined" ? Object : _geminiprovider.GeminiProvider,
-        typeof _groqprovider.GroqProvider === "undefined" ? Object : _groqprovider.GroqProvider,
-        typeof _n8nwebhookprovider.N8nWebhookProvider === "undefined" ? Object : _n8nwebhookprovider.N8nWebhookProvider,
-        typeof _openaicompatibleprovider.OpenAiCompatibleProvider === "undefined" ? Object : _openaicompatibleprovider.OpenAiCompatibleProvider
-    ])
+exports.LlmService = LlmService;
+exports.LlmService = LlmService = LlmService_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [config_1.ConfigService,
+        prisma_service_1.PrismaService,
+        resumes_service_1.ResumesService,
+        anthropic_provider_1.AnthropicProvider,
+        gemini_provider_1.GeminiProvider,
+        groq_provider_1.GroqProvider,
+        n8n_webhook_provider_1.N8nWebhookProvider,
+        openai_compatible_provider_1.OpenAiCompatibleProvider])
 ], LlmService);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { z } from 'zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ResumeForm from '@/components/ResumeForm';
@@ -14,6 +15,11 @@ import { API_URL } from '@/lib/config';
 import { getUser } from '@/lib/auth';
 import { getPlan } from '@/lib/plans';
 import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes';
+
+// Zod schema for resume meta (title) validation before save
+const newResumeSchema = z.object({
+  title: z.string().min(1, '제목을 입력하세요').max(100, '제목은 100자 이내로 입력하세요'),
+});
 
 const SECTION_LABELS: Record<string, string> = {
   personalInfo: '인적사항', summary: '자기소개', experiences: '경력',
@@ -758,6 +764,13 @@ export default function NewResumePage() {
   }, []);
 
   const handleSave = async (data: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
+    // Validate meta (title) with Zod before submit
+    const parsed = newResumeSchema.safeParse({ title: data.title });
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0]?.message || '제목을 확인해주세요';
+      toast(firstError, 'error');
+      return;
+    }
     const isDuplicate = existingTitles.includes((data.title || '').toLowerCase());
     if (isDuplicate && !confirm('같은 제목의 이력서가 이미 있습니다. 계속 생성하시겠습니까?')) return;
     setSaving(true);
@@ -832,7 +845,7 @@ export default function NewResumePage() {
     proceedToForm(startMode);
   };
 
-  const proceedToForm = async (mode: 'empty' | 'sample' | 'copy') => {
+  const proceedToForm = async (mode: 'empty' | 'sample' | 'copy' | 'ai-upload' | 'wizard') => {
     if (mode === 'sample') {
       setInitialData(SAMPLE_DATA);
       setStep('form');

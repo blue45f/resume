@@ -66,11 +66,11 @@ function estimateReadingMinutes(resume: Resume): number {
   if (personalInfo.summary) parts.push(personalInfo.summary);
   experiences.forEach(e => { parts.push(e.company, e.position, e.description ?? ''); });
   educations.forEach(e => { parts.push(e.school, e.degree, e.field ?? ''); });
-  skills.forEach(s => { parts.push(s.name); });
+  skills.forEach(s => { parts.push(s.category, s.items); });
   projects.forEach(p => { parts.push(p.name, p.description ?? ''); });
   certifications.forEach(c => { parts.push(c.name); });
   languages.forEach(l => { parts.push(l.name); });
-  awards.forEach(a => { parts.push(a.title, a.description ?? ''); });
+  awards.forEach(a => { parts.push(a.name, a.description ?? ''); });
   activities.forEach(a => { parts.push(a.name, a.description ?? ''); });
   const totalChars = parts.join(' ').length;
   // Korean: ~2 chars/word on average => chars/2 = word count => /200 = minutes

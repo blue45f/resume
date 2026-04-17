@@ -1,54 +1,40 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-Object.defineProperty(exports, "LlmModule", {
-    enumerable: true,
-    get: function() {
-        return LlmModule;
-    }
-});
-const _common = require("@nestjs/common");
-const _llmcontroller = require("./llm.controller");
-const _autogeneratecontroller = require("./auto-generate.controller");
-const _llmservice = require("./llm.service");
-const _usageservice = require("../health/usage.service");
-const _resumesmodule = require("../resumes/resumes.module");
-const _prismamodule = require("../prisma/prisma.module");
-const _anthropicprovider = require("./providers/anthropic.provider");
-const _geminiprovider = require("./providers/gemini.provider");
-const _groqprovider = require("./providers/groq.provider");
-const _n8nwebhookprovider = require("./providers/n8n-webhook.provider");
-const _openaicompatibleprovider = require("./providers/openai-compatible.provider");
-function _ts_decorate(decorators, target, key, desc) {
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for(var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.LlmModule = void 0;
+const common_1 = require("@nestjs/common");
+const llm_controller_1 = require("./llm.controller");
+const auto_generate_controller_1 = require("./auto-generate.controller");
+const llm_service_1 = require("./llm.service");
+const usage_service_1 = require("../health/usage.service");
+const resumes_module_1 = require("../resumes/resumes.module");
+const prisma_module_1 = require("../prisma/prisma.module");
+const anthropic_provider_1 = require("./providers/anthropic.provider");
+const gemini_provider_1 = require("./providers/gemini.provider");
+const groq_provider_1 = require("./providers/groq.provider");
+const n8n_webhook_provider_1 = require("./providers/n8n-webhook.provider");
+const openai_compatible_provider_1 = require("./providers/openai-compatible.provider");
 let LlmModule = class LlmModule {
 };
-LlmModule = _ts_decorate([
-    (0, _common.Module)({
-        imports: [
-            _resumesmodule.ResumesModule,
-            _prismamodule.PrismaModule
-        ],
-        controllers: [
-            _llmcontroller.LlmController,
-            _autogeneratecontroller.AutoGenerateController
-        ],
+exports.LlmModule = LlmModule;
+exports.LlmModule = LlmModule = __decorate([
+    (0, common_1.Module)({
+        imports: [resumes_module_1.ResumesModule, prisma_module_1.PrismaModule],
+        controllers: [llm_controller_1.LlmController, auto_generate_controller_1.AutoGenerateController],
         providers: [
-            _llmservice.LlmService,
-            _usageservice.UsageService,
-            _anthropicprovider.AnthropicProvider,
-            _geminiprovider.GeminiProvider,
-            _groqprovider.GroqProvider,
-            _n8nwebhookprovider.N8nWebhookProvider,
-            _openaicompatibleprovider.OpenAiCompatibleProvider
+            llm_service_1.LlmService,
+            usage_service_1.UsageService,
+            anthropic_provider_1.AnthropicProvider,
+            gemini_provider_1.GeminiProvider,
+            groq_provider_1.GroqProvider,
+            n8n_webhook_provider_1.N8nWebhookProvider,
+            openai_compatible_provider_1.OpenAiCompatibleProvider,
         ],
-        exports: [
-            _llmservice.LlmService
-        ]
+        exports: [llm_service_1.LlmService],
     })
 ], LlmModule);

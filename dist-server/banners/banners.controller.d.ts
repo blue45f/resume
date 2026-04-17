@@ -30,7 +30,7 @@ export declare class BannersController {
         startAt: Date | null;
         endAt: Date | null;
     }[]>;
-    create(req: any, body: any): Promise<{
+    create(body: any): Promise<{
         id: string;
         createdAt: Date;
         title: string;
@@ -44,7 +44,7 @@ export declare class BannersController {
         startAt: Date | null;
         endAt: Date | null;
     }>;
-    reorder(req: any, body: {
+    reorder(body: {
         ids: string[];
     }): Promise<{
         id: string;
@@ -60,7 +60,7 @@ export declare class BannersController {
         startAt: Date | null;
         endAt: Date | null;
     }[]>;
-    update(req: any, id: string, body: any): Promise<{
+    update(id: string, body: any): Promise<{
         id: string;
         createdAt: Date;
         title: string;
@@ -74,7 +74,7 @@ export declare class BannersController {
         startAt: Date | null;
         endAt: Date | null;
     }>;
-    remove(req: any, id: string): Promise<{
+    remove(id: string): Promise<{
         id: string;
         createdAt: Date;
         title: string;

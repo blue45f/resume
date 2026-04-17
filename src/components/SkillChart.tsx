@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useState, type ReactElement } from 'react';
 import type { Resume } from '@/types/resume';
 
 interface Props {
@@ -56,7 +56,7 @@ function RadarChart({ data, maxCount }: { data: SkillData[]; maxCount: number })
   const angleStep = (2 * Math.PI) / n;
 
   // Grid circles
-  const gridLines: JSX.Element[] = [];
+  const gridLines: ReactElement[] = [];
   for (let lv = 1; lv <= levels; lv++) {
     const r = (lv / levels) * maxR;
     const points = Array.from({ length: n }, (_, i) => {

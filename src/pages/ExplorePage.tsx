@@ -130,7 +130,7 @@ export default function ExplorePage() {
   const [searchFocused, setSearchFocused] = useState(false);
   const [industryFilter, setIndustryFilter] = useState('all');
   const searchWrapperRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // 직종 감지 키워드맵
   const INDUSTRY_KEYWORDS: Record<string, { label: string; emoji: string; keywords: string[] }> = {
@@ -291,7 +291,7 @@ export default function ExplorePage() {
     return result.data.filter(r => {
       const skillText = (r.skills || []).map((s: any) => `${s.category || ''} ${s.items || ''}`).join(' ').toLowerCase();
       const titleText = (r.title || '').toLowerCase();
-      const positionText = (r.personalInfo?.title || '').toLowerCase();
+      const positionText = ((r.personalInfo as { title?: string })?.title || '').toLowerCase();
       const combined = `${skillText} ${titleText} ${positionText}`;
       return industry.keywords.some(kw => combined.includes(kw.toLowerCase()));
     });

@@ -90,7 +90,7 @@ export const db = {
       ],
       tags: [] as Tag[],
     },
-  ] as (Resume & { visibility: string; userId: string | null; tags: Tag[] })[],
+  ] as unknown as (Resume & { visibility: string; userId: string | null; tags: Tag[] })[],
 
   tags: [
     { id: id(), name: '개발', color: '#3b82f6', resumeCount: 0 },

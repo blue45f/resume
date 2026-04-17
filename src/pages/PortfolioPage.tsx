@@ -212,7 +212,7 @@ export default function PortfolioPage() {
                 {!isOwn && user.id && (
                   <>
                     <SendMessageButton targetUserId={user.id} targetUserName={user.name} variant="button" />
-                    <FollowButton targetUserId={user.id} />
+                    <FollowButton userId={user.id} />
                   </>
                 )}
                 {isOwn && (

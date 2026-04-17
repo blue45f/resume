@@ -5,7 +5,7 @@
  */
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { timeAgo } = require('../../src/lib/time');
+const { timeAgo } = require('../../src/shared/lib/time');
 
 describe('timeAgo', () => {
   // Date.now()를 고정하여 안정적인 테스트

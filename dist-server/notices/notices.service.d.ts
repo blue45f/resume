@@ -185,11 +185,11 @@ export declare class NoticesService {
     } & {
         id: string;
         createdAt: Date;
-        noticeId: string;
-        editorId: string;
         prevTitle: string;
         prevContent: string;
         prevType: string;
         reason: string;
+        noticeId: string;
+        editorId: string;
     })[]>;
 }

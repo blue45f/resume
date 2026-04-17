@@ -1,6 +1,6 @@
 import { useState, memo } from 'react';
 import { toast } from '@/components/Toast';
-import Tooltip from '@/components/Tooltip';
+import Tooltip from '@/shared/ui/Tooltip';
 import { API_URL } from '@/lib/config';
 
 

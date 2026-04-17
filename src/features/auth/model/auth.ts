@@ -13,6 +13,7 @@ export interface User {
   isOpenToWork?: boolean;
   openToWorkRoles?: string;
   username?: string;
+  createdAt?: string;
 }
 
 export function getToken(): string | null {

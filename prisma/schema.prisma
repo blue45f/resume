@@ -48,6 +48,11 @@ model User {
   noticeHistoryEdits NoticeHistory[]
   curatedJobs        CuratedJob[]
   drafts             Draft[]
+  interviewAnswers   InterviewAnswer[]
+  communityLikes     CommunityLike[]
+  tags               Tag[]
+  templates          Template[]
+  forbiddenWords     ForbiddenWord[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -268,6 +273,7 @@ model Tag {
   name    String          @unique
   color   String          @default("#6366f1")
   userId  String?         @map("user_id") // 생성자 (null = 시스템/시드)
+  user    User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
   resumes TagsOnResumes[]
 
   @@map("tags")
@@ -313,6 +319,8 @@ model Template {
   isDefault   Boolean  @default(false) @map("is_default")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("templates")
 }
@@ -657,6 +665,7 @@ model CommunityLike {
   userId String @map("user_id")
 
   post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
   @@map("community_likes")
@@ -760,7 +769,7 @@ model CuratedJob {
   viewCount     Int      @default(0) @map("view_count")
   clickCount    Int      @default(0) @map("click_count")
   authorId      String?  @map("author_id")
-  author        User?    @relation(fields: [authorId], references: [id])
+  author        User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
 
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
@@ -782,6 +791,8 @@ model ForbiddenWord {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  creator User? @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+
   @@index([isActive])
   @@index([category])
   @@map("forbidden_words")
@@ -800,4 +811,19 @@ model Draft {
   @@unique([userId, type])
   @@index([userId])
   @@map("drafts")
+}
+
+model InterviewAnswer {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  resumeId  String?  @map("resume_id")
+  question  String
+  answer    String
+  jobRole   String?  @map("job_role")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("interview_answers")
 }

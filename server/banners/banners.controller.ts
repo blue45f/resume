@@ -1,5 +1,7 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { BannersService } from './banners.service';
+import { AdminGuard } from '../common/guards/admin.guard';
+import { isAdmin } from '../common/roles';
 
 @Controller('banners')
 export class BannersController {
@@ -12,31 +14,31 @@ export class BannersController {
 
   @Get()
   getAll(@Req() req: any) {
-    if (req.user?.role !== 'admin') return this.service.getActive();
+    if (!isAdmin(req.user?.role)) return this.service.getActive();
     return this.service.getAll();
   }
 
   @Post()
-  create(@Req() req: any, @Body() body: any) {
-    if (req.user?.role !== 'admin') throw new Error('Forbidden');
+  @UseGuards(AdminGuard)
+  create(@Body() body: any) {
     return this.service.create(body);
   }
 
   @Patch('reorder')
-  reorder(@Req() req: any, @Body() body: { ids: string[] }) {
-    if (req.user?.role !== 'admin') throw new Error('Forbidden');
+  @UseGuards(AdminGuard)
+  reorder(@Body() body: { ids: string[] }) {
     return this.service.reorder(body.ids);
   }
 
   @Patch(':id')
-  update(@Req() req: any, @Param('id') id: string, @Body() body: any) {
-    if (req.user?.role !== 'admin') throw new Error('Forbidden');
+  @UseGuards(AdminGuard)
+  update(@Param('id') id: string, @Body() body: any) {
     return this.service.update(id, body);
   }
 
   @Delete(':id')
-  remove(@Req() req: any, @Param('id') id: string) {
-    if (req.user?.role !== 'admin') throw new Error('Forbidden');
+  @UseGuards(AdminGuard)
+  remove(@Param('id') id: string) {
     return this.service.remove(id);
   }
 }

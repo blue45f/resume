@@ -2,16 +2,17 @@
 
 **AI 기반 이력서 관리 플랫폼**
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
 [![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com)
+[![pnpm](https://img.shields.io/badge/pnpm-9.14-F69220?logo=pnpm&logoColor=white)](https://pnpm.io)
 [![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 31개 데이터 모델 | 45개 페이지 | 94개 컴포넌트 | 15개 이력서 테마 | 874 테스트 (44 suites) | 멀티 LLM 지원 | React Query + Zod
+> 42개 데이터 모델 | 46개 페이지 | 97개 컴포넌트 | 22개 NestJS 모듈 | 15개 이력서 테마 | 44 테스트 스위트 | 멀티 LLM 자동 Fallback | FSD Architecture | React Query + Zod
 
 ---
 
@@ -228,9 +229,14 @@ pnpm dev:server   # NestJS 백엔드 (포트 3000)
 
 ```
 resume/
-├── src/                    # 프론트엔드 (React)
-│   ├── components/         # 공통 UI 컴포넌트 (75개)
-│   ├── pages/              # 페이지 컴포넌트 (36개)
+├── src/                    # 프론트엔드 (React, FSD 적용)
+│   ├── app/                # 전역 Provider·라우팅
+│   ├── pages/              # 페이지 컴포넌트 (46개)
+│   ├── features/           # 사용자 시나리오 (auth, community, notifications, recent-views)
+│   ├── entities/           # 도메인 엔티티 (점진적 도입)
+│   ├── shared/             # 도메인 독립 UI·유틸 (ui/, lib/)
+│   ├── components/         # 공통 UI 컴포넌트 (97개, 레거시·마이그레이션 중)
+│   ├── stores/             # Zustand 스토어 (auth, draft, UI)
 │   ├── lib/                # 유틸리티, API 클라이언트, 테마, 플랜
 │   ├── types/              # TypeScript 타입 정의
 │   └── mocks/              # MSW 핸들러 (개발 모드)
@@ -252,7 +258,7 @@ resume/
 │   ├── attachments/        # 첨부파일
 │   └── common/             # 가드, 데코레이터, 필터, 인터셉터
 ├── prisma/
-│   └── schema.prisma       # 29개 모델 정의
+│   └── schema.prisma       # 42개 모델 정의
 ├── docs/                   # API 문서, OAuth 가이드, 역할 가이드
 ├── public/                 # 정적 파일
 └── package.json
@@ -357,7 +363,7 @@ vercel env add VITE_API_URL
 ## 테스트
 
 ```bash
-# 단위 테스트 (772 tests, 41 suites)
+# 단위 테스트 (44 suites)
 pnpm test:unit
 
 # 커버리지 포함
@@ -369,7 +375,16 @@ pnpm test:e2e
 
 ---
 
-## API 문서
+## 문서
+
+### 프로젝트 가이드
+
+- **아키텍처**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — 시스템 구조·FSD·디자인 시스템·상태 관리 전략
+- **개발 환경**: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — 로컬 설정·환경 변수·테스트·빌드·배포
+- **라이브러리**: [docs/LIBRARIES.md](docs/LIBRARIES.md) — 도입 라이브러리 목록 및 선택 이유
+- **컨벤션**: [docs/CONVENTIONS.md](docs/CONVENTIONS.md) — 파일명·폴더 구조·커밋·훅·스키마 규칙
+
+### API
 
 - **Swagger UI** (개발 환경): `http://localhost:3001/api/docs`
 - **API 레퍼런스**: [docs/API.md](docs/API.md)
