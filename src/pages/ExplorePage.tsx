@@ -704,7 +704,7 @@ export default function ExplorePage() {
                   return (
                     <div
                       key={user.userId}
-                      className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 animate-fade-in-up"
+                      className="imp-card p-5 transition-all duration-200 animate-fade-in-up"
                     >
                       {/* User header */}
                       <div className="flex items-center gap-3 mb-3">
@@ -947,7 +947,7 @@ export default function ExplorePage() {
                     <Link
                       key={resume.id}
                       to={`/resumes/${resume.id}/preview`}
-                      className="flex items-center gap-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
+                      className="flex items-center gap-4 imp-card p-4 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
                     >
                       {/* Theme dot */}
                       <div className={`w-2 h-2 rounded-full shrink-0 ${THEME_DOT_COLORS[themeIdx]}`} />
@@ -1006,7 +1006,7 @@ export default function ExplorePage() {
                   <Link
                     key={resume.id}
                     to={`/resumes/${resume.id}/preview`}
-                    className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
+                    className="imp-card p-5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
                   >
                     {/* Theme color bar */}
                     <div className={`h-1 -mx-5 -mt-5 mb-4 rounded-t-2xl bg-gradient-to-r ${THEME_COLORS[themeIdx]}`} />
