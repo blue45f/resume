@@ -12,7 +12,8 @@ const mockPrisma = {
         findFirst: jest.fn()
     },
     resume: {
-        update: jest.fn()
+        update: jest.fn(),
+        findUnique: jest.fn()
     },
     personalInfo: {
         upsert: jest.fn()
@@ -35,6 +36,12 @@ const mockPrisma = {
     },
     $transaction: jest.fn((fn)=>fn(mockPrisma))
 };
+// assertOwnership 기본 통과용 헬퍼 (소유자 없음 = 누구나 접근 가능)
+function mockOwnershipPass(userId = null) {
+    mockPrisma.resume.findUnique.mockResolvedValue({
+        userId
+    });
+}
 const mockSnapshot = JSON.stringify({
     title: '테스트 이력서',
     personalInfo: {
@@ -81,6 +88,7 @@ describe('VersionsService', ()=>{
     });
     describe('findAll', ()=>{
         it('버전 목록 반환 (versionNumber DESC)', async ()=>{
+            mockOwnershipPass();
             mockPrisma.resumeVersion.findMany.mockResolvedValue([
                 {
                     id: 'v2',
@@ -101,13 +109,25 @@ describe('VersionsService', ()=>{
             expect(typeof result[0].createdAt).toBe('string'); // ISO string
         });
         it('빈 버전 목록', async ()=>{
+            mockOwnershipPass();
             mockPrisma.resumeVersion.findMany.mockResolvedValue([]);
             const result = await service.findAll('r1');
             expect(result).toEqual([]);
         });
+        it('다른 사용자의 이력서 버전 조회 → ForbiddenException', async ()=>{
+            mockPrisma.resume.findUnique.mockResolvedValue({
+                userId: 'owner-1'
+            });
+            await expect(service.findAll('r1', 'other-user')).rejects.toThrow(_common.ForbiddenException);
+        });
+        it('존재하지 않는 이력서 → NotFoundException', async ()=>{
+            mockPrisma.resume.findUnique.mockResolvedValue(null);
+            await expect(service.findAll('missing')).rejects.toThrow(_common.NotFoundException);
+        });
     });
     describe('findOne', ()=>{
         it('버전 상세 조회 (snapshot 파싱)', async ()=>{
+            mockOwnershipPass();
             mockPrisma.resumeVersion.findFirst.mockResolvedValue({
                 id: 'v1',
                 resumeId: 'r1',
@@ -120,6 +140,7 @@ describe('VersionsService', ()=>{
             expect(result.snapshot.title).toBe('테스트 이력서');
         });
         it('없는 버전 → NotFoundException', async ()=>{
+            mockOwnershipPass();
             mockPrisma.resumeVersion.findFirst.mockResolvedValue(null);
             await expect(service.findOne('r1', 'fake')).rejects.toThrow(_common.NotFoundException);
         });
@@ -313,6 +334,7 @@ describe('VersionsService', ()=>{
     });
     describe('findAll 정렬', ()=>{
         it('versionNumber 내림차순 정렬 호출', async ()=>{
+            mockOwnershipPass();
             mockPrisma.resumeVersion.findMany.mockResolvedValue([]);
             await service.findAll('r1');
             expect(mockPrisma.resumeVersion.findMany).toHaveBeenCalledWith(expect.objectContaining({
@@ -322,6 +344,7 @@ describe('VersionsService', ()=>{
             }));
         });
         it('createdAt을 ISO 문자열로 변환', async ()=>{
+            mockOwnershipPass();
             const date = new Date('2024-06-15T10:30:00Z');
             mockPrisma.resumeVersion.findMany.mockResolvedValue([
                 {

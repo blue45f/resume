@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import { useScrollRevealAll } from '@/hooks/useScrollReveal';
 import { CardGridSkeleton } from '@/components/Skeleton';
@@ -9,17 +10,22 @@ import Footer from '@/components/Footer';
 import { timeAgo } from '@/lib/time';
 import type { ResumeSummary, Tag, Resume } from '@/types/resume';
 import {
-  fetchResumes,
   deleteResume,
   duplicateResume,
-  fetchTags,
-  fetchBookmarks,
   fetchResume,
   fetchStudyGroups,
   fetchJobInterviewQuestions,
   type StudyGroup,
   type JobInterviewQuestion,
 } from '@/lib/api';
+import {
+  useResumes,
+  useTags,
+  useBookmarks,
+  useSystemContent,
+  useSiteStatsPublic,
+  usePublicGet,
+} from '@/hooks/useResources';
 import ResumeThumbnail from '@/components/ResumeThumbnail';
 import DashboardStats from '@/components/DashboardStats';
 import ProfileViewers from '@/components/ProfileViewers';
@@ -35,7 +41,6 @@ import NoticePopup from '@/components/NoticePopup';
 import WhatsNewModal from '@/components/WhatsNewModal';
 import { t } from '@/lib/i18n';
 import { getUser } from '@/lib/auth';
-import { API_URL } from '@/lib/config';
 import ShareMenu from '@/components/ShareMenu';
 
 interface HomeContent {
@@ -46,18 +51,60 @@ interface HomeContent {
 }
 
 const DEFAULT_HIGHLIGHTS = [
-  { title: 'AI 분석 5종 세트', desc: 'ATS 통과율 검사, JD 매칭도 분석, 예상 면접 질문까지 - 서류 합격률을 높이는 데이터 기반 인사이트', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-  { title: '26개 직종별 템플릿', desc: '개발자, 디자이너, 마케터 등 직종에 최적화된 레이아웃과 15종 테마로 프로페셔널한 이력서 완성', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-  { title: '완전 무료로 시작', desc: '오픈소스 LLM 활용으로 비용 부담 없이 시작하세요. 핵심 기능 모두 무료, 숨겨진 비용 없음', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+  {
+    title: 'AI 분석 5종 세트',
+    desc: 'ATS 통과율 검사, JD 매칭도 분석, 예상 면접 질문까지 - 서류 합격률을 높이는 데이터 기반 인사이트',
+    bg: 'bg-blue-50 dark:bg-blue-900/20',
+  },
+  {
+    title: '26개 직종별 템플릿',
+    desc: '개발자, 디자이너, 마케터 등 직종에 최적화된 레이아웃과 15종 테마로 프로페셔널한 이력서 완성',
+    bg: 'bg-purple-50 dark:bg-purple-900/20',
+  },
+  {
+    title: '완전 무료로 시작',
+    desc: '오픈소스 LLM 활용으로 비용 부담 없이 시작하세요. 핵심 기능 모두 무료, 숨겨진 비용 없음',
+    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+  },
 ];
 
 const DEFAULT_FEATURES = [
-  { icon: '✨', title: 'AI 이력서 작성', desc: '직종별 최적화된 문구를 AI가 자동 생성', color: 'from-indigo-500 to-purple-600' },
-  { icon: '📊', title: 'ATS 점수 분석', desc: '채용 시스템 호환성을 실시간으로 분석', color: 'from-blue-500 to-cyan-600' },
-  { icon: '🎨', title: '전문 템플릿', desc: '디자이너가 제작한 고품질 이력서 템플릿', color: 'from-emerald-500 to-teal-600' },
-  { icon: '🔗', title: '이력서 공유', desc: '고유 URL로 이력서를 간편하게 공유', color: 'from-amber-500 to-orange-600' },
-  { icon: '📧', title: '자기소개서', desc: 'AI가 회사/포지션에 맞는 자소서 작성', color: 'from-pink-500 to-rose-600' },
-  { icon: '📈', title: '커리어 분석', desc: '업계 트렌드와 연봉 데이터 인사이트', color: 'from-violet-500 to-indigo-600' },
+  {
+    icon: '✨',
+    title: 'AI 이력서 작성',
+    desc: '직종별 최적화된 문구를 AI가 자동 생성',
+    color: 'from-indigo-500 to-purple-600',
+  },
+  {
+    icon: '📊',
+    title: 'ATS 점수 분석',
+    desc: '채용 시스템 호환성을 실시간으로 분석',
+    color: 'from-blue-500 to-cyan-600',
+  },
+  {
+    icon: '🎨',
+    title: '전문 템플릿',
+    desc: '디자이너가 제작한 고품질 이력서 템플릿',
+    color: 'from-emerald-500 to-teal-600',
+  },
+  {
+    icon: '🔗',
+    title: '이력서 공유',
+    desc: '고유 URL로 이력서를 간편하게 공유',
+    color: 'from-amber-500 to-orange-600',
+  },
+  {
+    icon: '📧',
+    title: '자기소개서',
+    desc: 'AI가 회사/포지션에 맞는 자소서 작성',
+    color: 'from-pink-500 to-rose-600',
+  },
+  {
+    icon: '📈',
+    title: '커리어 분석',
+    desc: '업계 트렌드와 연봉 데이터 인사이트',
+    color: 'from-violet-500 to-indigo-600',
+  },
 ];
 
 const DEFAULT_TESTIMONIALS = [
@@ -66,15 +113,17 @@ const DEFAULT_TESTIMONIALS = [
   { text: 'ATS 분석 기능 덕분에 서류 통과율이 높아졌어요.', author: '마케터', stars: 5 },
 ];
 
-
 function CommunityWidget() {
-  const [posts, setPosts] = useState<{ id: string; title: string; category: string; likeCount: number; createdAt: string }[]>([]);
-  useEffect(() => {
-    fetch(`${API_URL}/api/community?limit=5&page=1`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.items) setPosts(d.items.slice(0, 5)); })
-      .catch(() => {});
-  }, []);
+  const { data } = usePublicGet<any>(['home-community'], '/api/community?limit=5&page=1', {
+    staleTime: 60_000,
+  });
+  const posts: {
+    id: string;
+    title: string;
+    category: string;
+    likeCount: number;
+    createdAt: string;
+  }[] = data?.items ? data.items.slice(0, 5) : [];
 
   if (!posts.length) return null;
 
@@ -87,32 +136,53 @@ function CommunityWidget() {
     question: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   };
   const CAT_LABELS: Record<string, string> = {
-    notice: '공지', free: '자유', tips: '취업팁', resume: '이력서피드백', 'cover-letter': '자소서', question: '질문',
+    notice: '공지',
+    free: '자유',
+    tips: '취업팁',
+    resume: '이력서피드백',
+    'cover-letter': '자소서',
+    question: '질문',
   };
 
   return (
     <div className="mb-6 imp-card overflow-hidden">
       <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-700">
         <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <span className="w-5 h-5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-md flex items-center justify-center text-xs">💬</span>
+          <span className="w-5 h-5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-md flex items-center justify-center text-xs">
+            💬
+          </span>
           커뮤니티 최신 글
         </h3>
-        <Link to="/community" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">더보기 →</Link>
+        <Link
+          to="/community"
+          className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+        >
+          더보기 →
+        </Link>
       </div>
       <div className="divide-y divide-slate-100 dark:divide-slate-700">
-        {posts.map(post => (
+        {posts.map((post) => (
           <Link
             key={post.id}
             to={`/community/${post.id}`}
             className="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
           >
-            <span className={`shrink-0 text-xs px-1.5 py-0.5 rounded-md font-medium ${CAT_COLORS[post.category] || CAT_COLORS.free}`}>
+            <span
+              className={`shrink-0 text-xs px-1.5 py-0.5 rounded-md font-medium ${CAT_COLORS[post.category] || CAT_COLORS.free}`}
+            >
               {CAT_LABELS[post.category] || '자유'}
             </span>
-            <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 truncate">{post.title}</span>
+            <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 truncate">
+              {post.title}
+            </span>
             <span className="shrink-0 flex items-center gap-1 text-xs text-slate-400">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
               </svg>
               {post.likeCount}
             </span>
@@ -120,7 +190,10 @@ function CommunityWidget() {
         ))}
       </div>
       <div className="px-5 py-2.5 bg-slate-50 dark:bg-slate-700/30 border-t border-slate-100 dark:border-slate-700">
-        <Link to="/community/write" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+        <Link
+          to="/community/write"
+          className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+        >
           + 새 글 작성하기
         </Link>
       </div>
@@ -130,45 +203,34 @@ function CommunityWidget() {
 
 /* ── 면접 크로스 추천 위젯 (스터디 그룹 + 예상 질문) ─────────────── */
 function InterviewDiscoveryWidget() {
-  const [groups, setGroups] = useState<StudyGroup[]>([]);
-  const [questions, setQuestions] = useState<JobInterviewQuestion[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    Promise.allSettled([
-      fetchStudyGroups({ limit: 20 }),
-      fetchJobInterviewQuestions({ limit: 20 }),
-    ])
-      .then(([gRes, qRes]) => {
-        if (cancelled) return;
-        if (gRes.status === 'fulfilled') {
-          const sorted = [...gRes.value.items].sort((a, b) => b.memberCount - a.memberCount);
-          setGroups(sorted.slice(0, 5));
-        }
-        if (qRes.status === 'fulfilled') {
-          const sorted = [...qRes.value].sort(
-            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          );
-          setQuestions(sorted.slice(0, 5));
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const groupsQuery = useQuery({
+    queryKey: ['home-study-groups', { limit: 20 }],
+    queryFn: () => fetchStudyGroups({ limit: 20 }),
+    staleTime: 60_000,
+  });
+  const questionsQuery = useQuery({
+    queryKey: ['home-job-interview-questions', { limit: 20 }],
+    queryFn: () => fetchJobInterviewQuestions({ limit: 20 }),
+    staleTime: 60_000,
+  });
+  const loading = groupsQuery.isLoading || questionsQuery.isLoading;
+  const groups: StudyGroup[] = groupsQuery.data
+    ? [...groupsQuery.data.items].sort((a, b) => b.memberCount - a.memberCount).slice(0, 5)
+    : [];
+  const questions: JobInterviewQuestion[] = questionsQuery.data
+    ? [...questionsQuery.data]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5)
+    : [];
 
   if (loading) {
     return (
       <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[0, 1].map(i => (
+        {[0, 1].map((i) => (
           <div key={i} className="imp-card p-5">
             <div className="h-4 w-32 bg-slate-100 dark:bg-slate-800 rounded animate-pulse mb-3" />
             <div className="space-y-2">
-              {[0, 1, 2].map(j => (
+              {[0, 1, 2].map((j) => (
                 <div
                   key={j}
                   className="h-10 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse"
@@ -202,7 +264,7 @@ function InterviewDiscoveryWidget() {
             </Link>
           </div>
           <ul className="divide-y divide-slate-100 dark:divide-slate-700">
-            {groups.map(g => (
+            {groups.map((g) => (
               <li
                 key={g.id}
                 className="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
@@ -242,7 +304,7 @@ function InterviewDiscoveryWidget() {
             </Link>
           </div>
           <ul className="divide-y divide-slate-100 dark:divide-slate-700">
-            {questions.map(q => (
+            {questions.map((q) => (
               <li
                 key={q.id}
                 className="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
@@ -309,7 +371,8 @@ function WeeklyGoalWidget() {
     setEditingGoal(false);
   };
 
-  const goalColor = pct >= 100 ? '#10b981' : pct >= 60 ? '#6366f1' : pct >= 30 ? '#f59e0b' : '#ef4444';
+  const goalColor =
+    pct >= 100 ? '#10b981' : pct >= 60 ? '#6366f1' : pct >= 30 ? '#f59e0b' : '#ef4444';
 
   return (
     <div className="mb-6 imp-card p-5">
@@ -326,19 +389,36 @@ function WeeklyGoalWidget() {
           <div className="flex items-center gap-2">
             <input
               type="number"
-              min={1} max={50}
+              min={1}
+              max={50}
               value={tempGoal}
-              onChange={e => setTempGoal(Number(e.target.value))}
+              onChange={(e) => setTempGoal(Number(e.target.value))}
               className="w-16 px-2 py-1 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
-              onKeyDown={e => { if (e.key === 'Enter') saveGoal(); if (e.key === 'Escape') setEditingGoal(false); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') saveGoal();
+                if (e.key === 'Escape') setEditingGoal(false);
+              }}
               autoFocus
             />
-            <button onClick={saveGoal} className="text-xs px-2 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">저장</button>
-            <button onClick={() => setEditingGoal(false)} className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg">취소</button>
+            <button
+              onClick={saveGoal}
+              className="text-xs px-2 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            >
+              저장
+            </button>
+            <button
+              onClick={() => setEditingGoal(false)}
+              className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg"
+            >
+              취소
+            </button>
           </div>
         ) : (
           <button
-            onClick={() => { setTempGoal(goal); setEditingGoal(true); }}
+            onClick={() => {
+              setTempGoal(goal);
+              setEditingGoal(true);
+            }}
             className="text-xs text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
           >
             목표 변경
@@ -350,9 +430,18 @@ function WeeklyGoalWidget() {
         {/* Circular progress */}
         <div className="relative shrink-0">
           <svg width="72" height="72" viewBox="0 0 72 72" className="rotate-[-90deg]">
-            <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(148,163,184,0.2)" strokeWidth="6" />
             <circle
-              cx="36" cy="36" r={r}
+              cx="36"
+              cy="36"
+              r={r}
+              fill="none"
+              stroke="rgba(148,163,184,0.2)"
+              strokeWidth="6"
+            />
+            <circle
+              cx="36"
+              cy="36"
+              r={r}
               fill="none"
               stroke={goalColor}
               strokeWidth="6"
@@ -372,10 +461,15 @@ function WeeklyGoalWidget() {
         <div className="flex-1 min-w-0">
           <div className="mb-2">
             {pct >= 100 ? (
-              <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">🎉 이번 주 목표 달성!</p>
+              <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                🎉 이번 주 목표 달성!
+              </p>
             ) : (
               <p className="text-sm text-slate-700 dark:text-slate-300">
-                <strong className="text-indigo-600 dark:text-indigo-400">{Math.max(0, goal - applied)}건</strong> 더 지원하면 목표 달성!
+                <strong className="text-indigo-600 dark:text-indigo-400">
+                  {Math.max(0, goal - applied)}건
+                </strong>{' '}
+                더 지원하면 목표 달성!
               </p>
             )}
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{pct}% 진행됨</p>
@@ -436,16 +530,15 @@ function AnimatedStat({ value, label }: { value: number; label: string }) {
 }
 
 function SiteStatsBar() {
-  const [stats, setStats] = useState<{ users: number; resumes: number; views: number; templates: number } | null>(null);
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/health/stats`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => {
-        if (d) setStats({ users: d.users.total, resumes: d.resumes.total, views: d.activity.totalViews, templates: d.content.templates });
-      })
-      .catch(() => {});
-  }, []);
+  const { data: d } = useSiteStatsPublic();
+  const stats: { users: number; resumes: number; views: number; templates: number } | null = d
+    ? {
+        users: d.users.total,
+        resumes: d.resumes.total,
+        views: d.activity.totalViews,
+        templates: d.content.templates,
+      }
+    : null;
 
   return (
     <div className="flex flex-wrap justify-center gap-3 mt-8">
@@ -458,9 +551,20 @@ function SiteStatsBar() {
 }
 
 export default function HomePage() {
-  const [resumes, setResumes] = useState<ResumeSummary[]>([]);
-  const [tags, setTags] = useState<(Tag & { resumeCount: number })[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const user = getUser();
+  const resumesQuery = useResumes(!!user);
+  const resumes: ResumeSummary[] = (resumesQuery.data as ResumeSummary[] | undefined) ?? [];
+  const tagsQuery = useTags(!!user);
+  const tags: (Tag & { resumeCount: number })[] =
+    (tagsQuery.data as (Tag & { resumeCount: number })[] | undefined) ?? [];
+  const bookmarksQuery = useBookmarks(!!user);
+  const bookmarks =
+    (bookmarksQuery.data as
+      | { id: string; resumeId: string; title: string; name: string }[]
+      | undefined) ?? [];
+  const loading = !!user && (resumesQuery.isLoading || tagsQuery.isLoading);
+  const serverError = !!resumesQuery.error;
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [filterVisibility, setFilterVisibility] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -469,48 +573,28 @@ export default function HomePage() {
   const [showImport, setShowImport] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
-  const [bookmarks, setBookmarks] = useState<{ id: string; resumeId: string; title: string; name: string }[]>([]);
-  const [serverError, setServerError] = useState(false);
-  const [wizardResume, setWizardResume] = useState<Resume | null>(null);
-  const [homeContent, setHomeContent] = useState<HomeContent>({});
   const navigate = useNavigate();
-  const user = getUser();
 
   useScrollRevealAll('.reveal');
 
-  const load = async (signal?: AbortSignal) => {
-    try {
-      setServerError(false);
-      if (!user) {
-        // 비로그인: 이력서 목록 불필요, 랜딩 페이지 표시
-        if (!signal?.aborted) setLoading(false);
-        return;
-      }
-      const [resumeData, tagData] = await Promise.all([fetchResumes(), fetchTags()]);
-      if (signal?.aborted) return;
-      setResumes(resumeData);
-      setTags(tagData);
-      fetchBookmarks().then(setBookmarks).catch(() => {});
-    } catch (err) {
-      if (signal?.aborted) return;
-      setServerError(true);
-    } finally {
-      if (!signal?.aborted) setLoading(false);
-    }
+  const load = () => {
+    queryClient.invalidateQueries({ queryKey: ['resumes'] });
+    queryClient.invalidateQueries({ queryKey: ['tags'] });
+    queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
   };
 
-  useEffect(() => {
-    const ac = new AbortController();
-    load(ac.signal);
-    return () => ac.abort();
-  }, []);
-
   // Load first resume for ProfileWizard
+  const firstResumeId = resumes[0]?.id;
+  const [wizardResume, setWizardResume] = useState<Resume | null>(null);
   useEffect(() => {
-    if (resumes.length > 0 && user) {
-      fetchResume(resumes[0].id).then(setWizardResume).catch(() => {});
+    if (firstResumeId && user) {
+      fetchResume(firstResumeId)
+        .then(setWizardResume)
+        .catch(() => {});
+    } else {
+      setWizardResume(null);
     }
-  }, [resumes.length > 0]);
+  }, [firstResumeId]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -524,17 +608,14 @@ export default function HomePage() {
     return () => document.removeEventListener('keydown', handler);
   }, []);
 
-  useEffect(() => {
-    fetch(`${API_URL}/api/system-config/content/homepage`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setHomeContent(d); })
-      .catch(() => {});
-  }, []);
-
-  const highlights = homeContent.highlights?.length ? homeContent.highlights : DEFAULT_HIGHLIGHTS;
-  const features = homeContent.features?.length ? homeContent.features : DEFAULT_FEATURES;
-  const testimonials = homeContent.testimonials?.length ? homeContent.testimonials : DEFAULT_TESTIMONIALS;
-  const socialProofTitle = homeContent.socialProofTitle || '이미 수천 명이 선택했습니다';
+  const { data: homeContent = {} } = useSystemContent<HomeContent>('homepage');
+  const safeContent: HomeContent = homeContent ?? {};
+  const highlights = safeContent.highlights?.length ? safeContent.highlights : DEFAULT_HIGHLIGHTS;
+  const features = safeContent.features?.length ? safeContent.features : DEFAULT_FEATURES;
+  const testimonials = safeContent.testimonials?.length
+    ? safeContent.testimonials
+    : DEFAULT_TESTIMONIALS;
+  const socialProofTitle = safeContent.socialProofTitle || '이미 수천 명이 선택했습니다';
 
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`"${title || '제목 없음'}" 이력서를 삭제하시겠습니까?`)) return;
@@ -558,7 +639,7 @@ export default function HomePage() {
   };
 
   const toggleSelect = (id: string) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -568,13 +649,15 @@ export default function HomePage() {
 
   const selectAll = () => {
     if (selectedIds.size === filtered.length) setSelectedIds(new Set());
-    else setSelectedIds(new Set(filtered.map(r => r.id)));
+    else setSelectedIds(new Set(filtered.map((r) => r.id)));
   };
 
   const handleBulkDelete = async () => {
     if (!confirm(`선택한 ${selectedIds.size}개의 이력서를 삭제하시겠습니까?`)) return;
     for (const id of selectedIds) {
-      try { await deleteResume(id); } catch {}
+      try {
+        await deleteResume(id);
+      } catch {}
     }
     toast(`${selectedIds.size}개 이력서가 삭제되었습니다`, 'success');
     setSelectedIds(new Set());
@@ -583,9 +666,14 @@ export default function HomePage() {
   };
 
   const filtered = resumes
-    .filter(r => filterTag ? r.tags?.some(t => t.id === filterTag) : true)
-    .filter(r => filterVisibility === 'all' ? true : r.visibility === filterVisibility)
-    .filter(r => !searchQuery || (r.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || (r.personalInfo?.name || '').toLowerCase().includes(searchQuery.toLowerCase()));
+    .filter((r) => (filterTag ? r.tags?.some((t) => t.id === filterTag) : true))
+    .filter((r) => (filterVisibility === 'all' ? true : r.visibility === filterVisibility))
+    .filter(
+      (r) =>
+        !searchQuery ||
+        (r.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (r.personalInfo?.name || '').toLowerCase().includes(searchQuery.toLowerCase()),
+    );
 
   const sorted = [...filtered].sort((a, b) => {
     let cmp = 0;
@@ -608,7 +696,12 @@ export default function HomePage() {
     return (
       <>
         <Header />
-        <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main" aria-busy="true">
+        <main
+          id="main-content"
+          className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+          role="main"
+          aria-busy="true"
+        >
           <div className="h-8 bg-slate-200 rounded w-48 mb-6 animate-pulse" />
           <CardGridSkeleton count={6} />
         </main>
@@ -621,23 +714,55 @@ export default function HomePage() {
       <NoticePopup />
       <WhatsNewModal />
       <Header />
-      <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
-        <Suspense fallback={null}><BannerSlider /></Suspense>
+      <main
+        id="main-content"
+        className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+        role="main"
+      >
+        <Suspense fallback={null}>
+          <BannerSlider />
+        </Suspense>
         {serverError && (
           <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center justify-between animate-fade-in">
             <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <p className="text-sm text-amber-800 dark:text-amber-300">서버가 시작 중입니다. 무료 호스팅 특성상 첫 로딩에 30~60초 소요될 수 있습니다.</p>
+              <svg
+                className="w-5 h-5 text-amber-500 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="text-sm text-amber-800 dark:text-amber-300">
+                서버가 시작 중입니다. 무료 호스팅 특성상 첫 로딩에 30~60초 소요될 수 있습니다.
+              </p>
             </div>
-            <button onClick={() => { setLoading(true); load(); }} className="shrink-0 px-3 py-1 bg-amber-600 text-white text-xs font-medium rounded-lg hover:bg-amber-700 transition-colors">
+            <button
+              onClick={() => {
+                load();
+              }}
+              className="shrink-0 px-3 py-1 bg-amber-600 text-white text-xs font-medium rounded-lg hover:bg-amber-700 transition-colors"
+            >
               재시도
             </button>
           </div>
         )}
         {user && (user.userType === 'recruiter' || user.userType === 'company') && (
           <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center justify-between">
-            <p className="text-sm text-emerald-800 dark:text-emerald-300">🏢 채용 대시보드에서 공고와 스카우트를 관리하세요</p>
-            <Link to="/recruiter" className="shrink-0 px-3 py-1 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors">대시보드</Link>
+            <p className="text-sm text-emerald-800 dark:text-emerald-300">
+              🏢 채용 대시보드에서 공고와 스카우트를 관리하세요
+            </p>
+            <Link
+              to="/recruiter"
+              className="shrink-0 px-3 py-1 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              대시보드
+            </Link>
           </div>
         )}
         {resumes.length === 0 ? (
@@ -645,9 +770,21 @@ export default function HomePage() {
             {/* Hero section */}
             <div className="relative text-center mb-16 overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-6 pb-10 rounded-3xl mesh-gradient-light">
               {/* Ambient SVG blur blobs */}
-              <div className="mesh-blob mesh-blob-blue animate-float-soft" style={{ width: 360, height: 360, top: -80, left: -60 }} aria-hidden="true" />
-              <div className="mesh-blob mesh-blob-cyan animate-float-soft-slow" style={{ width: 280, height: 280, top: 40, right: -80 }} aria-hidden="true" />
-              <div className="mesh-blob mesh-blob-slate animate-float-soft" style={{ width: 220, height: 220, bottom: -60, left: '30%', opacity: 0.35 }} aria-hidden="true" />
+              <div
+                className="mesh-blob mesh-blob-blue animate-float-soft"
+                style={{ width: 360, height: 360, top: -80, left: -60 }}
+                aria-hidden="true"
+              />
+              <div
+                className="mesh-blob mesh-blob-cyan animate-float-soft-slow"
+                style={{ width: 280, height: 280, top: 40, right: -80 }}
+                aria-hidden="true"
+              />
+              <div
+                className="mesh-blob mesh-blob-slate animate-float-soft"
+                style={{ width: 220, height: 220, bottom: -60, left: '30%', opacity: 0.35 }}
+                aria-hidden="true"
+              />
 
               <div className="relative">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm text-neutral-600 dark:text-neutral-300 rounded-full text-xs font-medium mb-8 animate-fade-in border border-neutral-200/60 dark:border-neutral-700/60">
@@ -655,10 +792,7 @@ export default function HomePage() {
                   AI 기반 이력서 관리 플랫폼
                 </div>
                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-neutral-900 dark:text-neutral-50 mb-6 tracking-[-0.03em] leading-[1.05]">
-                  커리어의 시작,{' '}
-                  <span className="text-blue-600 dark:text-blue-400">
-                    AI와 함께
-                  </span>
+                  커리어의 시작, <span className="text-blue-600 dark:text-blue-400">AI와 함께</span>
                   <br className="hidden sm:block" />
                   스마트하게
                 </h1>
@@ -672,7 +806,14 @@ export default function HomePage() {
                     to="/resumes/new"
                     className="imp-btn animate-cta-float inline-flex items-center gap-2 px-8 py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all duration-200 text-base shadow-md hover:shadow-xl"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
                     무료로 시작하기
                   </Link>
                   <Link
@@ -680,7 +821,14 @@ export default function HomePage() {
                     className="imp-btn inline-flex items-center gap-2 px-6 py-3.5 bg-white/60 dark:bg-neutral-900/40 backdrop-blur-sm text-neutral-600 dark:text-neutral-300 font-medium rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 hover:bg-white dark:hover:bg-neutral-800 transition-all duration-200 text-base"
                   >
                     이력서 탐색
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
                   </Link>
                 </div>
               </div>
@@ -691,88 +839,206 @@ export default function HomePage() {
 
             {/* Action cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl md:max-w-3xl mx-auto mb-10 mt-12">
-              <Link to="/resumes/new" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
+              <Link
+                to="/resumes/new"
+                className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
+              >
                 <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  <svg
+                    className="w-5 h-5 text-blue-600 dark:text-blue-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.directWrite')}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">템플릿 선택 후 작성</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {t('home.directWrite')}
+                </span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  템플릿 선택 후 작성
+                </span>
               </Link>
-              <Link to="/auto-generate" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-purple-200 dark:border-purple-800 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
+              <Link
+                to="/auto-generate"
+                className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-purple-200 dark:border-purple-800 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
+              >
                 <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/30 group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                  <svg
+                    className="w-5 h-5 text-purple-600 dark:text-purple-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                    />
+                  </svg>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.aiGenerate')}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">텍스트 붙여넣기만</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {t('home.aiGenerate')}
+                </span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  텍스트 붙여넣기만
+                </span>
               </Link>
-              <button onClick={() => setShowImport(true)} className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-green-200 dark:border-green-800 hover:border-green-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
+              <button
+                onClick={() => setShowImport(true)}
+                className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-green-200 dark:border-green-800 hover:border-green-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
+              >
                 <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30 group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  <svg
+                    className="w-5 h-5 text-green-600 dark:text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.quickImport')}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">텍스트 붙여넣기</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {t('home.quickImport')}
+                </span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  텍스트 붙여넣기
+                </span>
               </button>
-              <Link to="/explore" className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
+              <Link
+                to="/explore"
+                className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
+              >
                 <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                  <svg
+                    className="w-5 h-5 text-slate-600 dark:text-slate-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">{t('home.explore')}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">공개 이력서 탐색</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {t('home.explore')}
+                </span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  공개 이력서 탐색
+                </span>
               </Link>
             </div>
 
             {/* Section divider */}
             <div className="flex items-center gap-4 max-w-xs mx-auto mt-14 mb-10">
               <div className="flex-1 h-px bg-gradient-to-r from-transparent to-slate-200 dark:to-slate-700" />
-              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">주요 기능</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">
+                주요 기능
+              </span>
               <div className="flex-1 h-px bg-gradient-to-l from-transparent to-slate-200 dark:to-slate-700" />
             </div>
 
             {/* Feature highlights */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-3xl mx-auto mb-10">
               {highlights.map((f, i) => (
-                <div key={f.title} className={`${f.bg} rounded-xl p-5 text-center animate-fade-in-up hover:-translate-y-1 transition-transform duration-200`}>
+                <div
+                  key={f.title}
+                  className={`${f.bg} rounded-xl p-5 text-center animate-fade-in-up hover:-translate-y-1 transition-transform duration-200`}
+                >
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm mb-3">
                     {['🤖', '📋', '💰'][i] || '✨'}
                   </div>
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1.5">{f.title}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{f.desc}</p>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1.5">
+                    {f.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    {f.desc}
+                  </p>
                 </div>
               ))}
             </div>
 
             {/* Bottom links */}
             <div className="text-center space-x-4 mt-12">
-              <Link to="/tutorial" className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">사용 가이드 보기 &rarr;</Link>
-              <Link to="/pricing" className="text-sm text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 transition-colors">요금제 보기 &rarr;</Link>
-              <Link to="/jobs" className="text-sm text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors">채용 공고 보기 &rarr;</Link>
+              <Link
+                to="/tutorial"
+                className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
+              >
+                사용 가이드 보기 &rarr;
+              </Link>
+              <Link
+                to="/pricing"
+                className="text-sm text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 transition-colors"
+              >
+                요금제 보기 &rarr;
+              </Link>
+              <Link
+                to="/jobs"
+                className="text-sm text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors"
+              >
+                채용 공고 보기 &rarr;
+              </Link>
             </div>
 
             {/* Features Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-12 reveal">
               {features.map((feat, i) => (
-                <div key={i} className={`reveal stagger-${i + 1} group p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-transparent hover:shadow-lg transition-all duration-300 cursor-default`}>
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${feat.color} flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                <div
+                  key={i}
+                  className={`reveal stagger-${i + 1} group p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-transparent hover:shadow-lg transition-all duration-300 cursor-default`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-xl bg-gradient-to-br ${feat.color} flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform duration-300`}
+                  >
                     {feat.icon}
                   </div>
-                  <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm mb-1">{feat.title}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{feat.desc}</p>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm mb-1">
+                    {feat.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    {feat.desc}
+                  </p>
                 </div>
               ))}
             </div>
 
             {/* Social Proof */}
             <div className="mt-14 reveal">
-              <h2 className="text-xl font-bold text-center text-slate-800 dark:text-slate-200 mb-8">{socialProofTitle}</h2>
+              <h2 className="text-xl font-bold text-center text-slate-800 dark:text-slate-200 mb-8">
+                {socialProofTitle}
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {testimonials.map((review, i) => (
-                  <div key={i} className={`reveal stagger-${i + 1} p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700`}>
+                  <div
+                    key={i}
+                    className={`reveal stagger-${i + 1} p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700`}
+                  >
                     <div className="flex gap-0.5 mb-2">
                       {Array.from({ length: review.stars }).map((_, j) => (
-                        <span key={j} className="text-amber-400 text-sm">★</span>
+                        <span key={j} className="text-amber-400 text-sm">
+                          ★
+                        </span>
                       ))}
                     </div>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 mb-3 leading-relaxed">"{review.text}"</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mb-3 leading-relaxed">
+                      "{review.text}"
+                    </p>
                     <p className="text-xs text-slate-400 font-medium">— {review.author}</p>
                   </div>
                 ))}
@@ -791,10 +1057,7 @@ export default function HomePage() {
             <OnboardingBanner />
 
             {wizardResume && resumes.length > 0 && (
-              <ProfileWizard
-                resume={wizardResume}
-                resumeId={resumes[0].id}
-              />
+              <ProfileWizard resume={wizardResume} resumeId={resumes[0].id} />
             )}
 
             <DashboardStats />
@@ -806,10 +1069,17 @@ export default function HomePage() {
             {user && (!user.plan || user.plan === 'free') && resumes.length >= 2 && (
               <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center justify-between animate-fade-in">
                 <div>
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300">프로 플랜으로 업그레이드</p>
-                  <p className="text-xs text-blue-600 dark:text-blue-400">무제한 AI 변환, 자소서, 번역 기능을 사용하세요</p>
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                    프로 플랜으로 업그레이드
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    무제한 AI 변환, 자소서, 번역 기능을 사용하세요
+                  </p>
                 </div>
-                <Link to="/pricing" className="shrink-0 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                <Link
+                  to="/pricing"
+                  className="shrink-0 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
                   요금제 보기
                 </Link>
               </div>
@@ -817,9 +1087,11 @@ export default function HomePage() {
 
             {bookmarks.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">북마크한 이력서</h3>
+                <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
+                  북마크한 이력서
+                </h3>
                 <div className="flex gap-2 overflow-x-auto pb-2">
-                  {bookmarks.slice(0, 5).map(b => (
+                  {bookmarks.slice(0, 5).map((b) => (
                     <Link
                       key={b.id}
                       to={`/resumes/${b.resumeId}/preview`}
@@ -847,17 +1119,28 @@ export default function HomePage() {
             {/* 내 이력서 섹션 헤딩 */}
             <div className="flex items-center justify-between mb-4 mt-2">
               <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                <span className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md flex items-center justify-center text-xs">📄</span>
+                <span className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md flex items-center justify-center text-xs">
+                  📄
+                </span>
                 내 이력서
                 {resumes.length > 0 && (
-                  <span className="text-sm font-normal text-slate-400 dark:text-slate-500">({resumes.length}개)</span>
+                  <span className="text-sm font-normal text-slate-400 dark:text-slate-500">
+                    ({resumes.length}개)
+                  </span>
                 )}
               </h2>
               <Link
                 to="/resumes/new"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
                 새 이력서
               </Link>
             </div>
@@ -865,13 +1148,25 @@ export default function HomePage() {
             {/* Search and filters */}
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
               <div className="relative flex-1">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
                 <input
                   type="search"
                   role="searchbox"
                   placeholder="이력서 검색..."
                   value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   aria-label="이력서 검색"
                   className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -882,7 +1177,7 @@ export default function HomePage() {
                   { value: 'public', label: '공개', icon: '🌐' },
                   { value: 'link-only', label: '링크', icon: '🔗' },
                   { value: 'private', label: '비공개', icon: '🔒' },
-                ].map(opt => (
+                ].map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => setFilterVisibility(opt.value)}
@@ -900,17 +1195,23 @@ export default function HomePage() {
 
             {/* Tag filter */}
             {tags.length > 0 && (
-              <div className="flex gap-2 mb-4 overflow-x-auto py-1 -my-1 px-1 -mx-1" role="group" aria-label="태그 필터">
+              <div
+                className="flex gap-2 mb-4 overflow-x-auto py-1 -my-1 px-1 -mx-1"
+                role="group"
+                aria-label="태그 필터"
+              >
                 <button
                   onClick={() => setFilterTag(null)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    !filterTag ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    !filterTag
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                   aria-pressed={!filterTag}
                 >
                   전체
                 </button>
-                {tags.map(tag => (
+                {tags.map((tag) => (
                   <button
                     key={tag.id}
                     onClick={() => setFilterTag(filterTag === tag.id ? null : tag.id)}
@@ -936,12 +1237,16 @@ export default function HomePage() {
                 { value: 'updatedAt', label: '최근 수정' },
                 { value: 'title', label: '이름순' },
                 { value: 'viewCount', label: '조회수' },
-              ].map(opt => (
+              ].map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => {
-                    if (sortBy === opt.value) setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
-                    else { setSortBy(opt.value as any); setSortOrder('desc'); }
+                    if (sortBy === opt.value)
+                      setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+                    else {
+                      setSortBy(opt.value as any);
+                      setSortOrder('desc');
+                    }
                   }}
                   className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${
                     sortBy === opt.value
@@ -960,20 +1265,31 @@ export default function HomePage() {
             {/* Bulk actions toolbar */}
             <div className="flex items-center gap-3 mb-4">
               <button
-                onClick={() => { setSelectMode(!selectMode); setSelectedIds(new Set()); }}
+                onClick={() => {
+                  setSelectMode(!selectMode);
+                  setSelectedIds(new Set());
+                }}
                 className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
-                  selectMode ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                  selectMode
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                 }`}
               >
                 {selectMode ? '선택 취소' : '선택'}
               </button>
               {selectMode && (
                 <>
-                  <button onClick={selectAll} className="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200">
+                  <button
+                    onClick={selectAll}
+                    className="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200"
+                  >
                     {selectedIds.size === filtered.length ? '전체 해제' : '전체 선택'}
                   </button>
                   {selectedIds.size > 0 && (
-                    <button onClick={handleBulkDelete} className="text-xs px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200">
+                    <button
+                      onClick={handleBulkDelete}
+                      className="text-xs px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200"
+                    >
                       {selectedIds.size}개 삭제
                     </button>
                   )}
@@ -1015,23 +1331,60 @@ export default function HomePage() {
                         {resume.personalInfo.name || '이름 미입력'}
                       </p>
                       <div className="flex items-center gap-2 mb-2">
-                        <p className="text-xs text-slate-400" title={new Date(resume.updatedAt).toLocaleString('ko-KR')}>
+                        <p
+                          className="text-xs text-slate-400"
+                          title={new Date(resume.updatedAt).toLocaleString('ko-KR')}
+                        >
                           {timeAgo(resume.updatedAt)}
                         </p>
                         {(() => {
-                          const daysSinceUpdate = Math.floor((Date.now() - new Date(resume.updatedAt).getTime()) / 86400000);
-                          if (daysSinceUpdate >= 60) return (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full" title="60일 이상 업데이트되지 않았습니다">
-                              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                              오래된 이력서
-                            </span>
+                          const daysSinceUpdate = Math.floor(
+                            (Date.now() - new Date(resume.updatedAt).getTime()) / 86400000,
                           );
-                          if (daysSinceUpdate >= 30) return (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full" title="30일 이상 업데이트되지 않았습니다">
-                              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                              업데이트 필요
-                            </span>
-                          );
+                          if (daysSinceUpdate >= 60)
+                            return (
+                              <span
+                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full"
+                                title="60일 이상 업데이트되지 않았습니다"
+                              >
+                                <svg
+                                  className="w-2.5 h-2.5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                  />
+                                </svg>
+                                오래된 이력서
+                              </span>
+                            );
+                          if (daysSinceUpdate >= 30)
+                            return (
+                              <span
+                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full"
+                                title="30일 이상 업데이트되지 않았습니다"
+                              >
+                                <svg
+                                  className="w-2.5 h-2.5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                업데이트 필요
+                              </span>
+                            );
                           return null;
                         })()}
                       </div>
@@ -1039,7 +1392,7 @@ export default function HomePage() {
                       {/* Tags */}
                       {resume.tags?.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-3">
-                          {resume.tags.map(tag => (
+                          {resume.tags.map((tag) => (
                             <span
                               key={tag.id}
                               className="px-2 py-0.5 text-xs rounded-full"
@@ -1054,11 +1407,36 @@ export default function HomePage() {
                       {/* Stats row */}
                       <div className="flex items-center gap-3 mb-3 text-xs text-slate-500">
                         <span className="flex items-center gap-1" title="조회수">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
                           {resume.viewCount || 0}
                         </span>
-                        <span className="flex items-center gap-1" title={`공개: ${resume.visibility || 'private'}`}>
-                          {resume.visibility === 'public' ? '🌐 공개' : resume.visibility === 'link-only' ? '🔗 링크' : '🔒 비공개'}
+                        <span
+                          className="flex items-center gap-1"
+                          title={`공개: ${resume.visibility || 'private'}`}
+                        >
+                          {resume.visibility === 'public'
+                            ? '🌐 공개'
+                            : resume.visibility === 'link-only'
+                              ? '🔗 링크'
+                              : '🔒 비공개'}
                         </span>
                       </div>
 
@@ -1070,7 +1448,25 @@ export default function HomePage() {
                           aria-label={`${resume.title} 미리보기`}
                           title="미리보기"
                         >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
                           미리보기
                         </Link>
                         <Link
@@ -1079,7 +1475,19 @@ export default function HomePage() {
                           aria-label={`${resume.title} 편집`}
                           title="편집"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
                         </Link>
                         <button
                           onClick={() => handleDuplicate(resume.id)}
@@ -1087,7 +1495,19 @@ export default function HomePage() {
                           aria-label={`${resume.title} 복제`}
                           title="복제"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                          </svg>
                         </button>
                         <ShareMenu
                           url={`${window.location.origin}/resumes/${resume.id}/preview`}
@@ -1100,7 +1520,19 @@ export default function HomePage() {
                           aria-label={`${resume.title} 삭제`}
                           title="삭제"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
                         </button>
                       </div>
                     </div>
@@ -1115,7 +1547,10 @@ export default function HomePage() {
       {showImport && (
         <QuickImportModal
           onClose={() => setShowImport(false)}
-          onSuccess={(id) => { setShowImport(false); navigate(`/resumes/${id}/edit`); }}
+          onSuccess={(id) => {
+            setShowImport(false);
+            navigate(`/resumes/${id}/edit`);
+          }}
         />
       )}
     </>

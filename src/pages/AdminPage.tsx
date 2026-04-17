@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -74,11 +75,11 @@ type TabId =
   | 'forbidden-words';
 
 export default function AdminPage() {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabId>('stats');
   const user = getUser();
   const navigate = useNavigate();
+  const isAdminUser = !!user && (user.role === 'admin' || user.role === 'superadmin');
 
   const isSuperAdmin = user?.role === 'superadmin';
 
@@ -105,50 +106,53 @@ export default function AdminPage() {
     }
   }, [user]);
 
-  const loadStats = () => {
-    setLoading(true);
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/health/admin/stats`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data) {
-          // Generate mock daily data if API doesn't provide it yet
-          if (!data.dailyUsers) {
-            data.dailyUsers = Array.from({ length: 7 }, () =>
-              Math.floor(Math.random() * (data.users.today * 3 + 5)),
-            );
-            data.dailyUsers[6] = data.users.today;
-          }
-          if (!data.dailyResumes) {
-            data.dailyResumes = Array.from({ length: 7 }, () =>
-              Math.floor(Math.random() * (data.resumes.today * 3 + 5)),
-            );
-            data.dailyResumes[6] = data.resumes.today;
-          }
-          if (!data.topFeatures) {
-            data.topFeatures = [
-              { name: 'AI 변환', count: data.activity.transforms },
-              { name: '이력서 생성', count: data.resumes.total },
-              { name: '템플릿 사용', count: data.content.templates * 10 },
-              { name: '댓글', count: data.content.comments },
-              { name: '공개 공유', count: data.resumes.public },
-            ].sort((a, b) => b.count - a.count);
-          }
-          if (!data.revenue) {
-            data.revenue = { thisMonth: 0, lastMonth: 0 };
-          }
+  const statsQuery = useQuery<Stats | null>({
+    queryKey: ['admin-stats'],
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/health/admin/stats`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data) {
+        // Generate mock daily data if API doesn't provide it yet
+        if (!data.dailyUsers) {
+          data.dailyUsers = Array.from({ length: 7 }, () =>
+            Math.floor(Math.random() * (data.users.today * 3 + 5)),
+          );
+          data.dailyUsers[6] = data.users.today;
         }
-        setStats(data);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  };
+        if (!data.dailyResumes) {
+          data.dailyResumes = Array.from({ length: 7 }, () =>
+            Math.floor(Math.random() * (data.resumes.today * 3 + 5)),
+          );
+          data.dailyResumes[6] = data.resumes.today;
+        }
+        if (!data.topFeatures) {
+          data.topFeatures = [
+            { name: 'AI 변환', count: data.activity.transforms },
+            { name: '이력서 생성', count: data.resumes.total },
+            { name: '템플릿 사용', count: data.content.templates * 10 },
+            { name: '댓글', count: data.content.comments },
+            { name: '공개 공유', count: data.resumes.public },
+          ].sort((a: any, b: any) => b.count - a.count);
+        }
+        if (!data.revenue) {
+          data.revenue = { thisMonth: 0, lastMonth: 0 };
+        }
+      }
+      return data as Stats;
+    },
+    enabled: isAdminUser,
+    staleTime: 60_000,
+  });
+  const stats = statsQuery.data ?? null;
+  const loading = statsQuery.isLoading;
+  const loadStats = () => queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
 
   useEffect(() => {
     document.title = '관리자 대시보드 — 이력서공방';
-    loadStats();
     return () => {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
     };
@@ -881,20 +885,24 @@ function UserManagement() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const perPage = 10;
 
-  const load = () => {
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/auth/admin/users`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => (r.ok ? r.json() : []))
-      .then(setUsers)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  };
-
+  const queryClient = useQueryClient();
+  const usersQuery = useQuery<any[]>({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/auth/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
   useEffect(() => {
-    load();
-  }, []);
+    if (usersQuery.data) setUsers(usersQuery.data);
+    if (!usersQuery.isLoading) setLoading(false);
+  }, [usersQuery.data, usersQuery.isLoading]);
+  const load = () => queryClient.invalidateQueries({ queryKey: ['admin-users'] });
 
   const toggleRole = async (userId: string, currentRole: string) => {
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
@@ -1244,19 +1252,23 @@ function ReportedContentQueue() {
     '기타',
   ];
 
+  const reportsQuery = useQuery<any[]>({
+    queryKey: ['admin-reports'],
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/health/admin/reports`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 30_000,
+  });
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/health/admin/reports`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data) => setItems(Array.isArray(data) ? data : []))
-      .catch(() => {
-        // Demo data when API not yet implemented
-        setItems([]);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+    if (reportsQuery.data) setItems(reportsQuery.data);
+    if (!reportsQuery.isLoading) setLoading(false);
+  }, [reportsQuery.data, reportsQuery.isLoading]);
 
   const handleAction = async (itemId: string, action: 'approve' | 'reject') => {
     const reason = action === 'reject' ? rejectReason[itemId] || REJECT_REASONS[0] : undefined;
@@ -1476,18 +1488,24 @@ function AdminBannersTab() {
   };
   const [form, setForm] = useState({ ...emptyBanner });
 
-  const load = () => {
-    setLoading(true);
-    fetch(`${API_URL}/api/banners`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => (r.ok ? r.json() : []))
-      .then((d) => setBanners(Array.isArray(d) ? d : []))
-      .catch(() => setBanners([]))
-      .finally(() => setLoading(false));
-  };
-
+  const bannersQueryClient = useQueryClient();
+  const bannersQuery = useQuery<Banner[]>({
+    queryKey: ['admin-banners'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/banners`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 60_000,
+  });
   useEffect(() => {
-    load();
-  }, []);
+    if (bannersQuery.data) setBanners(bannersQuery.data);
+    if (!bannersQuery.isLoading) setLoading(false);
+  }, [bannersQuery.data, bannersQuery.isLoading]);
+  const load = () => bannersQueryClient.invalidateQueries({ queryKey: ['admin-banners'] });
 
   const handleSave = async () => {
     const method = editing ? 'PATCH' : 'POST';
@@ -1834,20 +1852,23 @@ function AdminNoticesTab() {
   };
   const [form, setForm] = useState({ ...emptyForm });
 
-  const load = () => {
-    setLoading(true);
-    fetch(`${API_URL}/api/notices?limit=100`, {
-      headers: { Authorization: `Bearer ${token}` } as any,
-    })
-      .then((r) => (r.ok ? r.json() : { items: [] }))
-      .then((d) => setNotices(d.items || []))
-      .catch(() => setNotices([]))
-      .finally(() => setLoading(false));
-  };
-
+  const noticesQueryClient = useQueryClient();
+  const noticesQuery = useQuery<{ items: any[] }>({
+    queryKey: ['admin-notices'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/notices?limit=100`, {
+        headers: { Authorization: `Bearer ${token}` } as any,
+      });
+      if (!res.ok) return { items: [] };
+      return res.json();
+    },
+    staleTime: 30_000,
+  });
   useEffect(() => {
-    load();
-  }, []);
+    if (noticesQuery.data) setNotices(noticesQuery.data.items || []);
+    if (!noticesQuery.isLoading) setLoading(false);
+  }, [noticesQuery.data, noticesQuery.isLoading]);
+  const load = () => noticesQueryClient.invalidateQueries({ queryKey: ['admin-notices'] });
 
   const handleSave = async () => {
     const method = editing ? 'PATCH' : 'POST';
@@ -2186,36 +2207,32 @@ function AdminNoticesTab() {
 // Community Moderation Tab
 // ═══════════════════════════════════════════════════════════
 function AdminCommunityTab() {
-  const [posts, setPosts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
   const [showHidden, setShowHidden] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
   const token = localStorage.getItem('token');
 
-  const fetchPosts = async () => {
-    setLoading(true);
-    const params = new URLSearchParams({ page: String(page), limit: '20' });
-    if (category !== 'all') params.set('category', category);
-    if (search) params.set('search', search);
-    if (showHidden) params.set('showHidden', 'true');
-    const r = await fetch(`${API_URL}/api/community?${params}`, {
-      headers: { Authorization: `Bearer ${token}` } as any,
-    });
-    if (r.ok) {
-      const data = await r.json();
-      setPosts(data.items || []);
-      setTotal(data.total || 0);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchPosts();
-  }, [category, page, showHidden]);
+  const communityQuery = useQuery<{ items: any[]; total: number }>({
+    queryKey: ['admin-community', { category, page, showHidden, search }],
+    queryFn: async () => {
+      const params = new URLSearchParams({ page: String(page), limit: '20' });
+      if (category !== 'all') params.set('category', category);
+      if (search) params.set('search', search);
+      if (showHidden) params.set('showHidden', 'true');
+      const r = await fetch(`${API_URL}/api/community?${params}`, {
+        headers: { Authorization: `Bearer ${token}` } as any,
+      });
+      if (!r.ok) return { items: [], total: 0 };
+      return r.json();
+    },
+    staleTime: 30_000,
+  });
+  const posts: any[] = communityQuery.data?.items ?? [];
+  const total: number = communityQuery.data?.total ?? 0;
+  const loading = communityQuery.isLoading;
+  const fetchPosts = () => communityQuery.refetch();
 
   const deletePost = async (id: string) => {
     if (!confirm('게시글을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
@@ -2225,8 +2242,7 @@ function AdminCommunityTab() {
       headers: { Authorization: `Bearer ${token}` } as any,
     });
     if (r.ok) {
-      setPosts((p) => p.filter((x) => x.id !== id));
-      setTotal((t) => t - 1);
+      fetchPosts();
     }
     setActionId(null);
   };
@@ -2239,8 +2255,7 @@ function AdminCommunityTab() {
       body: JSON.stringify(data),
     });
     if (r.ok) {
-      const updated = await r.json();
-      setPosts((p) => p.map((x) => (x.id === id ? { ...x, ...updated } : x)));
+      fetchPosts();
     }
     setActionId(null);
   };
@@ -2490,18 +2505,23 @@ function SystemSettings() {
   const [sysConfigLoaded, setSysConfigLoaded] = useState(false);
   const token = localStorage.getItem('token');
 
+  const sysConfigQuery = useQuery<any>({
+    queryKey: ['admin-system-config-public'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/system-config/public`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
   useEffect(() => {
-    fetch(`${API_URL}/api/system-config/public`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (d) {
-          setMonetization(d.monetization_enabled === 'true' || d.monetization_enabled === true);
-          if (d.maintenance_mode === 'true' || d.maintenance_mode === true) setMaintenance(true);
-        }
-        setSysConfigLoaded(true);
-      })
-      .catch(() => setSysConfigLoaded(true));
-  }, []);
+    const d = sysConfigQuery.data;
+    if (d) {
+      setMonetization(d.monetization_enabled === 'true' || d.monetization_enabled === true);
+      if (d.maintenance_mode === 'true' || d.maintenance_mode === true) setMaintenance(true);
+    }
+    if (!sysConfigQuery.isLoading) setSysConfigLoaded(true);
+  }, [sysConfigQuery.data, sysConfigQuery.isLoading]);
 
   const toggleSysConfig = async (key: string, value: boolean) => {
     try {
@@ -2818,18 +2838,24 @@ function SystemSettings() {
 // Existing: RecentResumes
 // ═══════════════════════════════════════════════════════════
 function RecentResumes() {
+  const recentResumesQuery = useQuery<{ data: any[] }>({
+    queryKey: ['admin-recent-resumes'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/resumes/public?limit=50`);
+      if (!res.ok) return { data: [] };
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
   const [resumes, setResumes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const perPage = 10;
 
   useEffect(() => {
-    fetch(`${API_URL}/api/resumes/public?limit=50`)
-      .then((r) => (r.ok ? r.json() : { data: [] }))
-      .then((d) => setResumes(d.data || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+    if (recentResumesQuery.data) setResumes(recentResumesQuery.data.data || []);
+    if (!recentResumesQuery.isLoading) setLoading(false);
+  }, [recentResumesQuery.data, recentResumesQuery.isLoading]);
 
   const handleHide = async (id: string) => {
     if (!confirm('이 이력서를 비공개로 변경하시겠습니까?')) return;
@@ -3172,20 +3198,22 @@ function AdminExtLinksTab() {
   const token = localStorage.getItem('token');
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
-  const load = () => {
-    setLoading(true);
-    fetch(`${API_URL}/api/jobs/external-links/list`)
-      .then((r) => r.json())
-      .then((data) => {
-        setLinks(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  };
-
+  const extLinksQueryClient = useQueryClient();
+  const extLinksQuery = useQuery<ExtLink[]>({
+    queryKey: ['admin-ext-links'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/jobs/external-links/list`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 30_000,
+  });
   useEffect(() => {
-    load();
-  }, []);
+    if (extLinksQuery.data) setLinks(extLinksQuery.data);
+    if (!extLinksQuery.isLoading) setLoading(false);
+  }, [extLinksQuery.data, extLinksQuery.isLoading]);
+  const load = () => extLinksQueryClient.invalidateQueries({ queryKey: ['admin-ext-links'] });
 
   const handleSave = async () => {
     if (!editing) return;
@@ -3629,15 +3657,19 @@ function AdminPermissionsTab() {
   const [saving, setSaving] = useState(false);
   const [changed, setChanged] = useState(false);
 
+  const permsQuery = useQuery<Record<string, string>>({
+    queryKey: ['admin-permissions'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/system-config/permissions`);
+      if (!res.ok) return {};
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
   useEffect(() => {
-    fetch(`${API_URL}/api/system-config/permissions`)
-      .then((r) => r.json())
-      .then((data) => {
-        setPerms(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+    if (permsQuery.data) setPerms(permsQuery.data);
+    if (!permsQuery.isLoading) setLoading(false);
+  }, [permsQuery.data, permsQuery.isLoading]);
 
   const getRoles = (contentType: string, action: string): string[] => {
     const key = `perm.${contentType}.${action}`;
@@ -3871,44 +3903,41 @@ function AdminForbiddenWordsTab() {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const load = async () => {
-    setLoading(true);
-    try {
+  const forbiddenWordsQueryClient = useQueryClient();
+  const wordsQuery = useQuery<{ items: any[]; total: number }>({
+    queryKey: ['forbidden-words', { page, filterCat, search }],
+    queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), limit: '30' });
       if (search) params.set('search', search);
       if (filterCat !== 'all') params.set('category', filterCat);
       const r = await fetch(`${API_URL}/api/forbidden-words?${params}`, { headers });
-      if (r.ok) {
-        const data = await r.json();
-        setWords(data.items || []);
-        setTotal(data.total || 0);
-      }
-    } catch {
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadStats = async () => {
-    try {
+      if (!r.ok) return { items: [], total: 0 };
+      return r.json();
+    },
+    staleTime: 30_000,
+  });
+  const statsQueryFW = useQuery<any>({
+    queryKey: ['forbidden-words-stats'],
+    queryFn: async () => {
       const r = await fetch(`${API_URL}/api/forbidden-words/stats`, { headers });
-      if (r.ok) setStats(await r.json());
-    } catch {}
-  };
-
+      if (!r.ok) return null;
+      return r.json();
+    },
+    staleTime: 60_000,
+  });
   useEffect(() => {
-    load();
-  }, [page, filterCat]);
+    if (wordsQuery.data) {
+      setWords(wordsQuery.data.items || []);
+      setTotal(wordsQuery.data.total || 0);
+    }
+    if (!wordsQuery.isLoading) setLoading(false);
+  }, [wordsQuery.data, wordsQuery.isLoading]);
   useEffect(() => {
-    loadStats();
-  }, []);
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setPage(1);
-      load();
-    }, 300);
-    return () => clearTimeout(t);
-  }, [search]);
+    if (statsQueryFW.data) setStats(statsQueryFW.data);
+  }, [statsQueryFW.data]);
+  const load = () => forbiddenWordsQueryClient.invalidateQueries({ queryKey: ['forbidden-words'] });
+  const loadStats = () =>
+    forbiddenWordsQueryClient.invalidateQueries({ queryKey: ['forbidden-words-stats'] });
 
   const handleCreate = async () => {
     if (formMode === 'single' && !newWord.trim()) return;

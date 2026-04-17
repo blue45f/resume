@@ -2,8 +2,36 @@ import { PrismaService } from '../prisma/prisma.service';
 export declare class TemplatesService {
     private prisma;
     constructor(prisma: PrismaService);
-    findAll(): Promise<$Public.PrismaPromise<T>>;
-    findOne(id: string): Promise<any>;
+    findAll(): Promise<{
+        name: string;
+        description: string;
+        id: string;
+        userId: string | null;
+        visibility: string;
+        createdAt: Date;
+        updatedAt: Date;
+        category: string;
+        prompt: string;
+        layout: string;
+        isDefault: boolean;
+        usageCount: number;
+        rating: number | null;
+    }[]>;
+    findOne(id: string): Promise<{
+        name: string;
+        description: string;
+        id: string;
+        userId: string | null;
+        visibility: string;
+        createdAt: Date;
+        updatedAt: Date;
+        category: string;
+        prompt: string;
+        layout: string;
+        isDefault: boolean;
+        usageCount: number;
+        rating: number | null;
+    }>;
     create(data: {
         name: string;
         description?: string;
@@ -11,7 +39,21 @@ export declare class TemplatesService {
         prompt?: string;
         layout?: string;
         isDefault?: boolean;
-    }, userId?: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$TemplatePayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
+    }, userId?: string): Promise<{
+        name: string;
+        description: string;
+        id: string;
+        userId: string | null;
+        visibility: string;
+        createdAt: Date;
+        updatedAt: Date;
+        category: string;
+        prompt: string;
+        layout: string;
+        isDefault: boolean;
+        usageCount: number;
+        rating: number | null;
+    }>;
     update(id: string, data: {
         name?: string;
         description?: string;
@@ -20,11 +62,39 @@ export declare class TemplatesService {
         layout?: string;
         visibility?: string;
         isDefault?: boolean;
-    }, userId?: string, role?: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$TemplatePayload<ExtArgs>, T, "update", GlobalOmitOptions>>;
+    }, userId?: string, role?: string): Promise<{
+        name: string;
+        description: string;
+        id: string;
+        userId: string | null;
+        visibility: string;
+        createdAt: Date;
+        updatedAt: Date;
+        category: string;
+        prompt: string;
+        layout: string;
+        isDefault: boolean;
+        usageCount: number;
+        rating: number | null;
+    }>;
     remove(id: string, userId?: string, role?: string): Promise<{
         success: boolean;
     }>;
-    findPublic(category?: string): Promise<$Public.PrismaPromise<T>>;
+    findPublic(category?: string): Promise<{
+        name: string;
+        description: string;
+        id: string;
+        userId: string | null;
+        visibility: string;
+        createdAt: Date;
+        updatedAt: Date;
+        category: string;
+        prompt: string;
+        layout: string;
+        isDefault: boolean;
+        usageCount: number;
+        rating: number | null;
+    }[]>;
     incrementUsage(id: string): Promise<void>;
     seed(): Promise<{
         message: string;

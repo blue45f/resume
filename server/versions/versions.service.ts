@@ -1,11 +1,33 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class VersionsService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(resumeId: string) {
+  /**
+   * 이력서 소유권 검증 (versions는 이력서 스냅샷 전체를 포함하므로
+   * 공개/비공개와 무관하게 소유자만 접근 가능)
+   */
+  private async assertOwnership(resumeId: string, userId?: string, role?: string) {
+    const isAdmin = role === 'admin' || role === 'superadmin';
+    const resume = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      select: { userId: true },
+    });
+    if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+    if (!isAdmin && resume.userId && resume.userId !== userId) {
+      throw new ForbiddenException('이 이력서의 버전에 접근할 권한이 없습니다');
+    }
+  }
+
+  async findAll(resumeId: string, userId?: string, role?: string) {
+    await this.assertOwnership(resumeId, userId, role);
     const versions = await this.prisma.resumeVersion.findMany({
       where: { resumeId },
       orderBy: { versionNumber: 'desc' },
@@ -22,7 +44,8 @@ export class VersionsService {
     }));
   }
 
-  async findOne(resumeId: string, versionId: string) {
+  async findOne(resumeId: string, versionId: string, userId?: string, role?: string) {
+    await this.assertOwnership(resumeId, userId, role);
     const version = await this.prisma.resumeVersion.findFirst({
       where: { id: versionId, resumeId },
     });
@@ -34,15 +57,16 @@ export class VersionsService {
     };
   }
 
-  async restore(resumeId: string, versionId: string, userId?: string) {
+  async restore(resumeId: string, versionId: string, userId?: string, role?: string) {
     const version = await this.prisma.resumeVersion.findFirst({
       where: { id: versionId, resumeId },
       include: { resume: { select: { userId: true } } },
     });
     if (!version) throw new NotFoundException('버전을 찾을 수 없습니다');
 
-    // 소유권 검증
-    if (version.resume.userId && version.resume.userId !== userId) {
+    // 소유권 검증 (admin은 우회 가능)
+    const isAdmin = role === 'admin' || role === 'superadmin';
+    if (!isAdmin && version.resume.userId && version.resume.userId !== userId) {
       throw new ForbiddenException('이 이력서의 버전을 복원할 권한이 없습니다');
     }
 

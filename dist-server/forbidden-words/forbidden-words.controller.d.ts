@@ -4,8 +4,17 @@ export declare class ForbiddenWordsController {
     constructor(service: ForbiddenWordsService);
     private isAdmin;
     findAll(category?: string, search?: string, page?: string, limit?: string, req?: any): Promise<{
-        items: any;
-        total: any;
+        items: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            category: string;
+            isActive: boolean;
+            word: string;
+            severity: string;
+            createdBy: string | null;
+        }[];
+        total: number;
         page: number;
         limit: number;
         totalPages: number;
@@ -14,7 +23,10 @@ export declare class ForbiddenWordsController {
         total: number;
     };
     getStats(req: any): {};
-    getCategories(req: any): Promise<any> | never[];
+    getCategories(req: any): never[] | Promise<{
+        category: string;
+        count: number;
+    }[]>;
     check(body: {
         text: string;
     }): Promise<{
@@ -26,7 +38,16 @@ export declare class ForbiddenWordsController {
         word: string;
         category?: string;
         severity?: string;
-    }, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ForbiddenWordPayload<ExtArgs>, T, "create", GlobalOmitOptions>> | {
+    }, req: any): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        category: string;
+        isActive: boolean;
+        word: string;
+        severity: string;
+        createdBy: string | null;
+    }> | {
         error: string;
     };
     createBulk(body: {
@@ -44,7 +65,16 @@ export declare class ForbiddenWordsController {
         category?: string;
         severity?: string;
         isActive?: boolean;
-    }, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ForbiddenWordPayload<ExtArgs>, T, "update", GlobalOmitOptions>> | {
+    }, req: any): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        category: string;
+        isActive: boolean;
+        word: string;
+        severity: string;
+        createdBy: string | null;
+    }> | {
         error: string;
     };
     removeBulk(body: {

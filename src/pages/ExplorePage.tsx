@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ErrorRetry from '@/components/ErrorRetry';
 import EmptyState from '@/components/EmptyState';
 import type { ResumeSummary, Tag } from '@/types/resume';
-import { useTags, usePopularSkills, useResumes } from '@/hooks/useResources';
+import { useTags, usePopularSkills, useResumes, usePublicGet } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 import BookmarkButton from '@/components/BookmarkButton';
 import SendMessageButton from '@/components/SendMessageButton';
@@ -125,11 +126,8 @@ import { useRecentViews } from '@/features/recent-views/model/useRecentViews';
 export default function ExplorePage() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
-  const [result, setResult] = useState<SearchResult | null>(null);
   const { views: recentViews, clearViews } = useRecentViews();
   const [activeTab, setActiveTab] = useState<'resumes' | 'people' | 'community'>('resumes');
-  const [communityPosts, setCommunityPosts] = useState<any[]>([]);
-  const [communityLoading, setCommunityLoading] = useState(false);
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(() => {
     try {
       return new Set(JSON.parse(localStorage.getItem('followed-users') || '[]'));
@@ -150,8 +148,6 @@ export default function ExplorePage() {
   const { data: popularSkillsData } = usePopularSkills();
   const popularSkills: { name: string; count: number }[] =
     (popularSkillsData as { name: string; count: number }[] | undefined) ?? [];
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [searchInput, setSearchInput] = useState(params.get('q') || '');
   const [sortBy, setSortBy] = useState<'recent' | 'views'>('recent');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -354,34 +350,29 @@ export default function ExplorePage() {
   const query = params.get('q') || '';
   const tag = params.get('tag') || '';
   const page = parseInt(params.get('page') || '1');
+  const limit = params.get('limit') || '12';
 
-  const search = async (signal?: AbortSignal) => {
-    setLoading(true);
-    setError(false);
-    try {
+  const {
+    data: result,
+    isLoading: loading,
+    isError: error,
+    refetch: refetchSearch,
+  } = useQuery<SearchResult>({
+    queryKey: ['explore-public-resumes', { q: query, tag, page, sort: sortBy, limit }],
+    queryFn: async () => {
       const qs = new URLSearchParams();
       if (query) qs.set('q', query);
       if (tag) qs.set('tag', tag);
       if (sortBy === 'views') qs.set('sort', 'views');
       qs.set('page', String(page));
-      qs.set('limit', params.get('limit') || '12');
-
-      const res = await fetch(`${API_URL}/api/resumes/public?${qs}`, { signal });
-      if (res.ok && !signal?.aborted) setResult(await res.json());
-      else if (!signal?.aborted) setError(true);
-    } catch (err) {
-      if (signal?.aborted) return;
-      setError(true);
-    } finally {
-      if (!signal?.aborted) setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const ac = new AbortController();
-    search(ac.signal);
-    return () => ac.abort();
-  }, [query, tag, page, sortBy, params.get('limit')]);
+      qs.set('limit', limit);
+      const res = await fetch(`${API_URL}/api/resumes/public?${qs}`);
+      if (!res.ok) throw new Error('Failed to fetch public resumes');
+      return res.json();
+    },
+    staleTime: 30_000,
+  });
+  const search = () => refetchSearch();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -426,17 +417,12 @@ export default function ExplorePage() {
     return skills;
   }, [myResumesData]);
 
-  useEffect(() => {
-    if (activeTab !== 'community') return;
-    setCommunityLoading(true);
-    fetch(`${API_URL}/api/community?limit=20&page=1`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (d?.items) setCommunityPosts(d.items);
-      })
-      .catch(() => {})
-      .finally(() => setCommunityLoading(false));
-  }, [activeTab]);
+  const { data: communityData, isLoading: communityLoading } = usePublicGet<any>(
+    ['explore-community'],
+    '/api/community?limit=20&page=1',
+    { enabled: activeTab === 'community', staleTime: 30_000 },
+  );
+  const communityPosts: any[] = communityData?.items ?? [];
 
   const currentUserId = useMemo(() => {
     try {

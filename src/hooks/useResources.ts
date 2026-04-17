@@ -410,3 +410,77 @@ export function useUsage() {
     enabled: hasToken(),
   });
 }
+
+// ── System Content (public content blocks: about, pricing_faq, etc.) ──
+export function useSystemContent<T = any>(key: string, enabled = true) {
+  return useQuery<T | null>({
+    queryKey: ['system-content', key],
+    queryFn: async () => {
+      const { API_URL } = await import('@/lib/config');
+      const res = await fetch(`${API_URL}/api/system-config/content/${key}`);
+      if (!res.ok) return null;
+      return (await res.json()) as T;
+    },
+    staleTime: 5 * 60_000,
+    enabled,
+  });
+}
+
+// ── Site Stats (public) ──────────────────────
+export function useSiteStatsPublic() {
+  return useQuery<any>({
+    queryKey: ['site-stats-public'],
+    queryFn: async () => {
+      const { API_URL } = await import('@/lib/config');
+      const res = await fetch(`${API_URL}/api/health/stats`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
+}
+
+// ── Generic public GET ──────────────────────
+export function usePublicGet<T = any>(
+  key: readonly unknown[],
+  url: string,
+  options?: { enabled?: boolean; staleTime?: number },
+) {
+  return useQuery<T | null>({
+    queryKey: key,
+    queryFn: async () => {
+      const { API_URL } = await import('@/lib/config');
+      const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`;
+      const res = await fetch(fullUrl);
+      if (!res.ok) return null;
+      const text = await res.text();
+      return (text ? JSON.parse(text) : null) as T;
+    },
+    staleTime: options?.staleTime ?? 60_000,
+    enabled: options?.enabled,
+  });
+}
+
+// ── Generic authed GET ─────────────────────
+export function useAuthedGet<T = any>(
+  key: readonly unknown[],
+  url: string,
+  options?: { enabled?: boolean; staleTime?: number; requireAuth?: boolean },
+) {
+  return useQuery<T | null>({
+    queryKey: key,
+    queryFn: async () => {
+      const { API_URL } = await import('@/lib/config');
+      const token = getToken();
+      const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`;
+      const res = await fetch(fullUrl, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) return null;
+      const text = await res.text();
+      return (text ? JSON.parse(text) : null) as T;
+    },
+    staleTime: options?.staleTime ?? 60_000,
+    enabled: (options?.requireAuth === false || hasToken()) && options?.enabled !== false,
+  });
+}

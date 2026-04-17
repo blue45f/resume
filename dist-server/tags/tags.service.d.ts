@@ -2,11 +2,21 @@ import { PrismaService } from '../prisma/prisma.service';
 export declare class TagsService {
     private prisma;
     constructor(prisma: PrismaService);
-    findAll(): Promise<any>;
+    findAll(): Promise<{
+        id: string;
+        name: string;
+        color: string;
+        resumeCount: number;
+    }[]>;
     create(data: {
         name: string;
         color?: string;
-    }, userId?: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$TagPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
+    }, userId?: string): Promise<{
+        name: string;
+        id: string;
+        userId: string | null;
+        color: string;
+    }>;
     remove(id: string, userId?: string, role?: string): Promise<{
         success: boolean;
     }>;

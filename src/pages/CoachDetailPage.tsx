@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
-import { bookCoachingSession, fetchCoach, type CoachProfile } from '@/lib/api';
+import { bookCoachingSession, type CoachProfile } from '@/lib/api';
+import { useCoach } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 import {
   bookingSchema,
@@ -29,9 +30,12 @@ function getDefaultDateTime() {
 export default function CoachDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [coach, setCoach] = useState<CoachProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const coachQuery = useCoach(id);
+  const coach: CoachProfile | null = (coachQuery.data as CoachProfile | undefined) ?? null;
+  const loading = coachQuery.isLoading;
+  const error: string | null = coachQuery.error
+    ? ((coachQuery.error as any)?.message ?? '코치 정보를 불러오지 못했습니다')
+    : null;
   const user = getUser();
 
   const {
@@ -49,26 +53,6 @@ export default function CoachDetailPage() {
   });
 
   const durationValue = watch('duration');
-
-  useEffect(() => {
-    if (!id) return;
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    fetchCoach(id)
-      .then((data) => {
-        if (!cancelled) setCoach(data);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err?.message || '코치 정보를 불러오지 못했습니다');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
 
   useEffect(() => {
     document.title = coach?.user?.name

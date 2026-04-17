@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcryptjs';
@@ -13,10 +9,7 @@ const BCRYPT_ROUNDS = 10;
 export class ShareService {
   constructor(private prisma: PrismaService) {}
 
-  async createLink(
-    resumeId: string,
-    options?: { expiresInHours?: number; password?: string },
-  ) {
+  async createLink(resumeId: string, options?: { expiresInHours?: number; password?: string }) {
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
     });
@@ -92,10 +85,18 @@ export class ShareService {
     }));
   }
 
-  async removeLink(id: string) {
-    const existing = await this.prisma.shareLink.findUnique({ where: { id } });
-    if (!existing)
-      throw new NotFoundException('공유 링크를 찾을 수 없습니다');
+  async removeLink(id: string, userId?: string, role?: string) {
+    const existing = await this.prisma.shareLink.findUnique({
+      where: { id },
+      include: { resume: { select: { userId: true } } },
+    });
+    if (!existing) throw new NotFoundException('공유 링크를 찾을 수 없습니다');
+
+    // 소유권 검증: 이력서 소유자 또는 관리자만 삭제 가능
+    const isAdmin = role === 'admin' || role === 'superadmin';
+    if (!isAdmin && existing.resume?.userId && existing.resume.userId !== userId) {
+      throw new ForbiddenException('이 공유 링크를 삭제할 권한이 없습니다');
+    }
     await this.prisma.shareLink.delete({ where: { id } });
     return { success: true };
   }

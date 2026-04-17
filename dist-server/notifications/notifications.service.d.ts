@@ -2,21 +2,45 @@ import { PrismaService } from '../prisma/prisma.service';
 export declare class NotificationsService {
     private prisma;
     constructor(prisma: PrismaService);
-    getUnread(userId: string): Promise<$Public.PrismaPromise<T>>;
-    getAll(userId: string): Promise<$Public.PrismaPromise<T>>;
+    getUnread(userId: string): Promise<{
+        id: string;
+        userId: string;
+        createdAt: Date;
+        link: string | null;
+        type: string;
+        message: string;
+        read: boolean;
+    }[]>;
+    getAll(userId: string): Promise<{
+        id: string;
+        userId: string;
+        createdAt: Date;
+        link: string | null;
+        type: string;
+        message: string;
+        read: boolean;
+    }[]>;
     markAsRead(userId: string, notificationId?: string): Promise<{
         success: boolean;
     }>;
-    create(userId: string, type: string, message: string, link?: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$NotificationPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
+    create(userId: string, type: string, message: string, link?: string): Promise<{
+        id: string;
+        userId: string;
+        createdAt: Date;
+        link: string | null;
+        type: string;
+        message: string;
+        read: boolean;
+    }>;
     getUnreadCount(userId: string): Promise<number>;
     deleteOne(userId: string, id: string): Promise<{
         success: boolean;
     }>;
     deleteBulk(userId: string, ids: string[]): Promise<{
         success: boolean;
-        deleted: $Public.PrismaPromise<T>;
+        deleted: number;
     }>;
     cleanupOld(): Promise<{
-        deleted: $Public.PrismaPromise<T>;
+        deleted: number;
     }>;
 }

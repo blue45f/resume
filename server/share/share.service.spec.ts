@@ -18,10 +18,7 @@ describe('ShareService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ShareService,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
+      providers: [ShareService, { provide: PrismaService, useValue: mockPrisma }],
     }).compile();
     service = module.get(ShareService);
     jest.clearAllMocks();
@@ -36,8 +33,11 @@ describe('ShareService', () => {
     it('토큰과 URL 생성', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue({ id: 'r1' });
       mockPrisma.shareLink.create.mockResolvedValue({
-        id: 'sl1', token: 'abc123', passwordHash: null,
-        expiresAt: null, createdAt: new Date(),
+        id: 'sl1',
+        token: 'abc123',
+        passwordHash: null,
+        expiresAt: null,
+        createdAt: new Date(),
       });
       const result = await service.createLink('r1');
       expect(result.token).toBe('abc123');
@@ -79,10 +79,41 @@ describe('ShareService', () => {
       await expect(service.removeLink('fake')).rejects.toThrow(NotFoundException);
     });
 
-    it('삭제 성공', async () => {
-      mockPrisma.shareLink.findUnique.mockResolvedValue({ id: 'sl1' });
+    it('소유자 삭제 성공', async () => {
+      mockPrisma.shareLink.findUnique.mockResolvedValue({
+        id: 'sl1',
+        resume: { userId: 'user-1' },
+      });
       mockPrisma.shareLink.delete.mockResolvedValue({});
-      const result = await service.removeLink('sl1');
+      const result = await service.removeLink('sl1', 'user-1');
+      expect(result).toEqual({ success: true });
+    });
+
+    it('타인 삭제 시도 → ForbiddenException', async () => {
+      mockPrisma.shareLink.findUnique.mockResolvedValue({
+        id: 'sl1',
+        resume: { userId: 'user-1' },
+      });
+      await expect(service.removeLink('sl1', 'other-user')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('관리자는 타인 공유 링크도 삭제 가능', async () => {
+      mockPrisma.shareLink.findUnique.mockResolvedValue({
+        id: 'sl1',
+        resume: { userId: 'user-1' },
+      });
+      mockPrisma.shareLink.delete.mockResolvedValue({});
+      const result = await service.removeLink('sl1', 'admin-x', 'admin');
+      expect(result).toEqual({ success: true });
+    });
+
+    it('소유자 없는 이력서의 링크는 누구나 삭제 가능 (레거시)', async () => {
+      mockPrisma.shareLink.findUnique.mockResolvedValue({
+        id: 'sl1',
+        resume: { userId: null },
+      });
+      mockPrisma.shareLink.delete.mockResolvedValue({});
+      const result = await service.removeLink('sl1', 'anyone');
       expect(result).toEqual({ success: true });
     });
   });

@@ -3,7 +3,7 @@ export declare class SystemConfigController {
     private readonly service;
     constructor(service: SystemConfigService);
     getPublic(): Promise<{
-        [k: string]: any;
+        [k: string]: string;
     }>;
     getContent(req: any, body: any): Promise<any>;
     setContent(req: any, body: any): Promise<{
@@ -11,11 +11,23 @@ export declare class SystemConfigController {
     }>;
     getPermissions(): Promise<Record<string, string>>;
     setPermissions(body: Record<string, string>): Promise<Record<string, string>>;
-    getAll(): Promise<$Public.PrismaPromise<T>>;
+    getAll(): Promise<{
+        id: string;
+        updatedAt: Date;
+        key: string;
+        value: string;
+        label: string;
+    }[]>;
     setMany(body: {
         configs: {
             key: string;
             value: string;
         }[];
-    }): Promise<any>;
+    }): Promise<{
+        id: string;
+        updatedAt: Date;
+        key: string;
+        value: string;
+        label: string;
+    }[]>;
 }

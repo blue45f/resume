@@ -54,13 +54,17 @@ let AttachmentsService = class AttachmentsService {
             });
         }
     }
-    async upload(resumeId, file, category, description) {
+    async upload(resumeId, file, category, description, userId, role) {
         const resume = await this.prisma.resume.findUnique({
             where: { id: resumeId },
             include: { attachments: { select: { size: true } } },
         });
         if (!resume)
             throw new common_1.NotFoundException('이력서를 찾을 수 없습니다');
+        const isAdmin = role === 'admin' || role === 'superadmin';
+        if (!isAdmin && resume.userId && resume.userId !== userId) {
+            throw new common_1.ForbiddenException('이 이력서에 파일을 업로드할 권한이 없습니다');
+        }
         if (resume.attachments.length >= MAX_FILES_PER_RESUME) {
             throw new common_1.BadRequestException(`이력서당 최대 ${MAX_FILES_PER_RESUME}개의 파일만 업로드할 수 있습니다`);
         }
@@ -115,7 +119,18 @@ let AttachmentsService = class AttachmentsService {
         });
         return this.format(attachment);
     }
-    async findAll(resumeId) {
+    async findAll(resumeId, userId, role) {
+        const resume = await this.prisma.resume.findUnique({
+            where: { id: resumeId },
+            select: { userId: true, visibility: true },
+        });
+        if (!resume)
+            throw new common_1.NotFoundException('이력서를 찾을 수 없습니다');
+        const isAdmin = role === 'admin' || role === 'superadmin';
+        const isOwner = resume.userId && resume.userId === userId;
+        if (resume.visibility === 'private' && !isOwner && !isAdmin) {
+            throw new common_1.ForbiddenException('이 이력서의 첨부파일에 접근할 권한이 없습니다');
+        }
         const attachments = await this.prisma.attachment.findMany({
             where: { resumeId },
             orderBy: { createdAt: 'desc' },
@@ -145,10 +160,17 @@ let AttachmentsService = class AttachmentsService {
             mimeType: attachment.mimeType,
         };
     }
-    async remove(id) {
-        const attachment = await this.prisma.attachment.findUnique({ where: { id } });
+    async remove(id, userId, role) {
+        const attachment = await this.prisma.attachment.findUnique({
+            where: { id },
+            include: { resume: { select: { userId: true } } },
+        });
         if (!attachment)
             throw new common_1.NotFoundException('파일을 찾을 수 없습니다');
+        const isAdmin = role === 'admin' || role === 'superadmin';
+        if (!isAdmin && attachment.resume.userId && attachment.resume.userId !== userId) {
+            throw new common_1.ForbiddenException('이 파일을 삭제할 권한이 없습니다');
+        }
         await this.deleteFromCloudinary(attachment.filename);
         await this.prisma.attachment.delete({ where: { id } });
         return { success: true };

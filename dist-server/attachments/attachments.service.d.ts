@@ -5,7 +5,7 @@ export declare class AttachmentsService {
     private config;
     private useCloudinary;
     constructor(prisma: PrismaService, config: ConfigService);
-    upload(resumeId: string, file: Express.Multer.File, category: string, description: string): Promise<{
+    upload(resumeId: string, file: Express.Multer.File, category: string, description: string, userId?: string, role?: string): Promise<{
         id: any;
         resumeId: any;
         originalName: any;
@@ -16,7 +16,7 @@ export declare class AttachmentsService {
         downloadUrl: any;
         createdAt: any;
     }>;
-    findAll(resumeId: string): Promise<any>;
+    findAll(resumeId: string, userId?: string, role?: string): Promise<any>;
     getFileData(id: string, userId?: string): Promise<{
         redirectUrl: any;
         originalName: any;
@@ -28,7 +28,7 @@ export declare class AttachmentsService {
         mimeType: any;
         redirectUrl?: undefined;
     }>;
-    remove(id: string): Promise<{
+    remove(id: string, userId?: string, role?: string): Promise<{
         success: boolean;
     }>;
     removeAllByResume(resumeId: string): Promise<void>;

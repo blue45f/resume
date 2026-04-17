@@ -12,8 +12,20 @@ export declare class SocialService {
     unfollow(followerId: string, followingId: string): Promise<{
         followed: boolean;
     }>;
-    getFollowers(userId: string): Promise<any>;
-    getFollowing(userId: string): Promise<any>;
+    getFollowers(userId: string): Promise<{
+        followedAt: Date;
+        name: string;
+        id: string;
+        email: string;
+        avatar: string;
+    }[]>;
+    getFollowing(userId: string): Promise<{
+        followedAt: Date;
+        name: string;
+        id: string;
+        email: string;
+        avatar: string;
+    }[]>;
     isFollowing(followerId: string, followingId: string): Promise<boolean>;
     sendScout(senderId: string, data: {
         receiverId: string;
@@ -21,12 +33,62 @@ export declare class SocialService {
         company: string;
         position: string;
         message: string;
-    }): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ScoutMessagePayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
-    getReceivedScouts(userId: string): Promise<$Public.PrismaPromise<T>>;
+    }): Promise<{
+        id: string;
+        resumeId: string | null;
+        company: string;
+        position: string;
+        status: string;
+        createdAt: Date;
+        message: string;
+        read: boolean;
+        senderId: string;
+        receiverId: string;
+    }>;
+    getReceivedScouts(userId: string): Promise<({
+        sender: {
+            name: string;
+            id: string;
+            email: string;
+        };
+    } & {
+        id: string;
+        resumeId: string | null;
+        company: string;
+        position: string;
+        status: string;
+        createdAt: Date;
+        message: string;
+        read: boolean;
+        senderId: string;
+        receiverId: string;
+    })[]>;
     markScoutRead(id: string, userId: string): Promise<{
         success: boolean;
     }>;
-    getSentScouts(userId: string): Promise<$Public.PrismaPromise<T>>;
+    getSentScouts(userId: string): Promise<({
+        sender: {
+            name: string;
+            id: string;
+            email: string;
+        };
+        receiver: {
+            name: string;
+            id: string;
+            email: string;
+        };
+    } & {
+        id: string;
+        resumeId: string | null;
+        company: string;
+        position: string;
+        status: string;
+        createdAt: Date;
+        message: string;
+        read: boolean;
+        senderId: string;
+        receiverId: string;
+    })[]>;
     respondToScout(id: string, userId: string, status: string): Promise<{
         success: boolean;
     }>;
@@ -40,23 +102,42 @@ export declare class SocialService {
         results: ({
             receiverId: string;
             success: boolean;
-            id: any;
+            id: string;
         } | {
             receiverId: string;
             success: boolean;
             id?: undefined;
         })[];
     }>;
-    sendMessage(senderId: string, receiverId: string, content: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$DirectMessagePayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
+    sendMessage(senderId: string, receiverId: string, content: string): Promise<{
+        id: string;
+        createdAt: Date;
+        content: string;
+        read: boolean;
+        senderId: string;
+        receiverId: string;
+    }>;
     getConversations(userId: string): Promise<{
-        partner: any;
+        partner: {
+            name: string;
+            id: string;
+            email: string;
+            avatar: string;
+        };
         lastMessage: {
-            content: any;
-            createdAt: any;
+            content: string;
+            createdAt: Date;
             isMine: boolean;
         };
-        unreadCount: $Public.PrismaPromise<T>;
+        unreadCount: number;
     }[]>;
-    getMessages(userId: string, partnerId: string): Promise<$Public.PrismaPromise<T>>;
+    getMessages(userId: string, partnerId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        content: string;
+        read: boolean;
+        senderId: string;
+        receiverId: string;
+    }[]>;
     getUnreadMessageCount(userId: string): Promise<number>;
 }

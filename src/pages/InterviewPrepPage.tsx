@@ -3,9 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
-import { fetchResume, fetchResumes } from '@/lib/api';
 import type { Resume, ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
+import { useResume, useResumes, usePublicGet } from '@/hooks/useResources';
 import RelatedGroupsWidget from '@/features/study-groups/ui/RelatedGroupsWidget';
 
 // ── Types ──
@@ -394,24 +394,9 @@ export default function InterviewPrepPage() {
   const [savedReports, setSavedReports] = useState<InterviewReport[]>(loadJSON(REPORTS_KEY, []));
 
   // ── Related study groups (cross-feature recommendation) ──
-  const [selectedResumeDetail, setSelectedResumeDetail] = useState<Resume | null>(null);
-  useEffect(() => {
-    if (!selectedResumeId) {
-      setSelectedResumeDetail(null);
-      return;
-    }
-    let cancelled = false;
-    fetchResume(selectedResumeId)
-      .then((r) => {
-        if (!cancelled) setSelectedResumeDetail(r);
-      })
-      .catch(() => {
-        if (!cancelled) setSelectedResumeDetail(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedResumeId]);
+  const selectedResumeQuery = useResume(selectedResumeId || undefined);
+  const selectedResumeDetail: Resume | null =
+    (selectedResumeQuery.data as Resume | undefined) ?? null;
 
   const recommendationContext = useMemo(() => {
     const latestExperience = selectedResumeDetail?.experiences?.find((e) => e.company?.trim());
@@ -423,22 +408,25 @@ export default function InterviewPrepPage() {
     };
   }, [selectedResumeDetail, jobRole]);
 
+  const resumesQuery = useResumes();
+  const jobsQuery = usePublicGet<any>(['interview-prep-jobs'], '/api/jobs', { staleTime: 60_000 });
+
   useEffect(() => {
     document.title = '면접 준비 — 이력서공방';
-    fetchResumes()
-      .then(setResumes)
-      .catch(() => {});
-    fetch(`${API_URL}/api/jobs`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((d) => {
-        const items = Array.isArray(d) ? d : d.items || d.data || [];
-        setJobPosts(items.slice(0, 30));
-      })
-      .catch(() => {});
     return () => {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
     };
   }, []);
+
+  useEffect(() => {
+    if (resumesQuery.data) setResumes(resumesQuery.data as ResumeSummary[]);
+  }, [resumesQuery.data]);
+  useEffect(() => {
+    const d = jobsQuery.data;
+    if (!d) return;
+    const items = Array.isArray(d) ? d : d.items || d.data || [];
+    setJobPosts(items.slice(0, 30));
+  }, [jobsQuery.data]);
 
   // List mode timer
   useEffect(() => {
@@ -1483,7 +1471,7 @@ export default function InterviewPrepPage() {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
               난이도
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {(Object.keys(difficultyLabels) as Difficulty[]).map((d) => (
                 <button
                   key={d}

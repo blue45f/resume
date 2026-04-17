@@ -13,12 +13,11 @@ import { getPlan } from '@/lib/plans';
 import { getTheme, setTheme } from '@/lib/theme';
 import { API_URL } from '@/lib/config';
 import {
-  fetchDashboard,
-  fetchUsage,
   changePassword as apiChangePassword,
   deleteAccount as apiDeleteAccount,
   updateProfile as apiUpdateProfile,
 } from '@/lib/api';
+import { useDashboard, useUsage } from '@/hooks/useResources';
 
 /* ── Zod 스키마 ───────────────────────────────── */
 const nameSchema = z.object({
@@ -54,34 +53,28 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
 
 /* ── 최근 활동 ───────────────────────────────────── */
 function RecentActivityList() {
-  const [activities, setActivities] = useState<any[]>([]);
+  const { data: dashData } = useDashboard();
 
-  useEffect(() => {
-    const token = getToken();
-    if (!token) return;
-    fetchDashboard()
-      .then((data) => {
-        if (!data) return;
-        const acts: any[] = [];
-        for (const v of data.recentVersions || []) {
-          acts.push({
-            type: 'edit',
-            desc: `이력서 버전 ${v.versionNumber} 저장`,
-            date: v.createdAt,
-          });
-        }
-        for (const r of data.resumes?.slice(0, 3) || []) {
-          acts.push({
-            type: 'resume',
-            desc: `"${r.title}" 조회 ${r.viewCount}회`,
-            date: r.updatedAt,
-          });
-        }
-        acts.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setActivities(acts.slice(0, 8));
-      })
-      .catch(() => {});
-  }, []);
+  const activities: any[] = (() => {
+    if (!dashData) return [];
+    const acts: any[] = [];
+    for (const v of dashData.recentVersions || []) {
+      acts.push({
+        type: 'edit',
+        desc: `이력서 버전 ${v.versionNumber} 저장`,
+        date: v.createdAt,
+      });
+    }
+    for (const r of dashData.resumes?.slice(0, 3) || []) {
+      acts.push({
+        type: 'resume',
+        desc: `"${r.title}" 조회 ${r.viewCount}회`,
+        date: r.updatedAt,
+      });
+    }
+    acts.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return acts.slice(0, 8);
+  })();
 
   if (activities.length === 0)
     return <p className="text-sm text-slate-400 text-center py-4">최근 활동이 없습니다</p>;
@@ -233,7 +226,9 @@ export default function SettingsPage() {
     defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
   });
 
-  const [usage, setUsage] = useState<{ feature: string; count: number }[]>([]);
+  const { data: usageData } = useUsage();
+  const usage: { feature: string; count: number }[] =
+    (usageData as { feature: string; count: number }[] | undefined) ?? [];
   const [userType, setUserType] = useState(user?.userType || 'personal');
   const [switchingType, setSwitchingType] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(getTheme());
@@ -259,13 +254,6 @@ export default function SettingsPage() {
     return () => {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
     };
-  }, []);
-
-  useEffect(() => {
-    if (getToken())
-      fetchUsage()
-        .then(setUsage)
-        .catch(() => {});
   }, []);
 
   /* ── 헬퍼 ── */

@@ -35,11 +35,11 @@ export default function ScrollToTop() {
         />
       )}
 
-      {/* Scroll to top button */}
+      {/* Scroll to top button - bottom offset avoids MobileBottomNav (72px) + QuickActions FAB */}
       {show && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 z-40 w-10 h-10 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center no-print animate-fade-in"
+          className="fixed bottom-[152px] right-4 md:bottom-6 md:right-6 z-40 w-10 h-10 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center no-print animate-fade-in"
           aria-label="맨 위로 스크롤"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

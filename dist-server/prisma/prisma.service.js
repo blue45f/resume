@@ -25,7 +25,10 @@ let PrismaService = PrismaService_1 = class PrismaService extends client_1.Prism
         super({
             log: process.env.NODE_ENV !== 'production'
                 ? [{ emit: 'event', level: 'query' }]
-                : [{ emit: 'event', level: 'warn' }, { emit: 'event', level: 'error' }],
+                : [
+                    { emit: 'event', level: 'warn' },
+                    { emit: 'event', level: 'error' },
+                ],
             adapter: new adapter_pg_1.PrismaPg({ connectionString: url }),
         });
         if (process.env.NODE_ENV !== 'production') {

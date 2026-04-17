@@ -34,8 +34,8 @@ let ShareController = class ShareController {
         await this.resumesService.findOne(resumeId, req.user?.id);
         return this.shareService.getLinksForResume(resumeId);
     }
-    removeLink(id) {
-        return this.shareService.removeLink(id);
+    removeLink(id, req) {
+        return this.shareService.removeLink(id, req.user?.id, req.user?.role);
     }
     getShared(token, password) {
         return this.shareService.getByToken(token, password);
@@ -63,10 +63,11 @@ __decorate([
 ], ShareController.prototype, "getLinks", null);
 __decorate([
     (0, common_1.Delete)('share/:id'),
-    (0, swagger_1.ApiOperation)({ summary: '공유 링크 삭제' }),
+    (0, swagger_1.ApiOperation)({ summary: '공유 링크 삭제 (이력서 소유자 전용)' }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], ShareController.prototype, "removeLink", null);
 __decorate([

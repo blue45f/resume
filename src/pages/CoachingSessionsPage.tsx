@@ -1,33 +1,53 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import {
-  fetchMyCoachingSessions,
   updateCoachingSessionStatus,
   reviewCoachingSession,
   type CoachingSession,
   type CoachingSessionStatus,
   type MySessionsResponse,
 } from '@/lib/api';
+import { useMyCoachingSessions } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 
 type TabKey = 'client' | 'coach';
 
 const STATUS_LABEL: Record<CoachingSessionStatus, { label: string; className: string }> = {
-  requested: { label: '요청됨', className: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' },
-  confirmed: { label: '확정', className: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
-  completed: { label: '완료', className: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' },
-  cancelled: { label: '취소', className: 'bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400' },
-  refunded:  { label: '환불', className: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400' },
+  requested: {
+    label: '요청됨',
+    className: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
+  },
+  confirmed: {
+    label: '확정',
+    className: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
+  },
+  completed: {
+    label: '완료',
+    className: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+  },
+  cancelled: {
+    label: '취소',
+    className: 'bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400',
+  },
+  refunded: {
+    label: '환불',
+    className: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
+  },
 };
 
 function formatDate(iso: string) {
   try {
     const d = new Date(iso);
     return d.toLocaleString('ko-KR', {
-      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   } catch {
     return iso;
@@ -35,9 +55,14 @@ function formatDate(iso: string) {
 }
 
 export default function CoachingSessionsPage() {
-  const [data, setData] = useState<MySessionsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const sessionsQuery = useMyCoachingSessions();
+  const data: MySessionsResponse | null =
+    (sessionsQuery.data as MySessionsResponse | undefined) ?? null;
+  const loading = sessionsQuery.isLoading;
+  const error: string | null = sessionsQuery.error
+    ? (sessionsQuery.error as any)?.message || '세션을 불러오지 못했습니다'
+    : null;
   const [tab, setTab] = useState<TabKey>('client');
   const [reviewOpen, setReviewOpen] = useState<string | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
@@ -47,18 +72,14 @@ export default function CoachingSessionsPage() {
   const user = getUser();
 
   const load = () => {
-    setLoading(true);
-    setError(null);
-    fetchMyCoachingSessions()
-      .then(res => setData(res))
-      .catch(err => setError(err?.message || '세션을 불러오지 못했습니다'))
-      .finally(() => setLoading(false));
+    queryClient.invalidateQueries({ queryKey: ['coaching-sessions', 'my'] });
   };
 
   useEffect(() => {
     document.title = '내 코칭 세션 — 이력서공방';
-    load();
-    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+    return () => {
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
+    };
   }, []);
 
   const hasCoachTab = useMemo(
@@ -112,14 +133,25 @@ export default function CoachingSessionsPage() {
   return (
     <>
       <Header />
-      <main id="main-content" className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+      <main
+        id="main-content"
+        className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+        role="main"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">내 코칭 세션</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">예약하거나 진행 중인 세션을 관리하세요</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+              내 코칭 세션
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              예약하거나 진행 중인 세션을 관리하세요
+            </p>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/coaches" className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 shadow-sm">
+            <Link
+              to="/coaches"
+              className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 shadow-sm"
+            >
               + 코치 찾기
             </Link>
           </div>
@@ -153,7 +185,7 @@ export default function CoachingSessionsPage() {
 
         {loading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="imp-card p-5 animate-pulse">
                 <div className="h-4 w-2/3 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
                 <div className="h-3 w-1/3 bg-slate-200 dark:bg-slate-700 rounded" />
@@ -163,7 +195,9 @@ export default function CoachingSessionsPage() {
         ) : error ? (
           <div className="imp-card p-8 text-center">
             <p className="text-sm text-red-500 mb-3">{error}</p>
-            <button onClick={load} className="text-xs text-blue-600 hover:text-blue-800">다시 시도</button>
+            <button onClick={load} className="text-xs text-blue-600 hover:text-blue-800">
+              다시 시도
+            </button>
           </div>
         ) : !sessions || sessions.length === 0 ? (
           <div className="imp-card p-10 text-center">
@@ -177,18 +211,24 @@ export default function CoachingSessionsPage() {
                 : '코치 프로필을 공개하면 요청이 들어옵니다'}
             </p>
             {tab === 'client' ? (
-              <Link to="/coaches" className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-rose-500 hover:bg-rose-600 text-white">
+              <Link
+                to="/coaches"
+                className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-rose-500 hover:bg-rose-600 text-white"
+              >
                 코치 찾기
               </Link>
             ) : (
-              <Link to="/coach/profile" className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-rose-500 hover:bg-rose-600 text-white">
+              <Link
+                to="/coach/profile"
+                className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-rose-500 hover:bg-rose-600 text-white"
+              >
                 코치 프로필 설정
               </Link>
             )}
           </div>
         ) : (
           <ul className="space-y-3">
-            {sessions.map(session => (
+            {sessions.map((session) => (
               <SessionRow
                 key={session.id}
                 session={session}
@@ -233,19 +273,30 @@ interface SessionRowProps {
 }
 
 function SessionRow({
-  session, role, onChangeStatus, onOpenReview, reviewOpen, onCloseReview,
-  reviewRating, setReviewRating, reviewText, setReviewText, submitting, onSubmitReview,
+  session,
+  role,
+  onChangeStatus,
+  onOpenReview,
+  reviewOpen,
+  onCloseReview,
+  reviewRating,
+  setReviewRating,
+  reviewText,
+  setReviewText,
+  submitting,
+  onSubmitReview,
 }: SessionRowProps) {
   const badge = STATUS_LABEL[session.status] || STATUS_LABEL.requested;
   const coachName = session.coach?.user?.name || '코치';
   const clientName = session.client?.name || '고객';
-  const counterpart = role === 'client'
-    ? { name: coachName, avatar: session.coach?.user?.avatar, label: '코치' }
-    : { name: clientName, avatar: session.client?.avatar, label: '고객' };
+  const counterpart =
+    role === 'client'
+      ? { name: coachName, avatar: session.coach?.user?.avatar, label: '코치' }
+      : { name: clientName, avatar: session.client?.avatar, label: '고객' };
 
   const canCoachConfirm = role === 'coach' && session.status === 'requested';
   const canCoachComplete = role === 'coach' && session.status === 'confirmed';
-  const canCancel = (session.status === 'requested' || session.status === 'confirmed');
+  const canCancel = session.status === 'requested' || session.status === 'confirmed';
   const canClientReview = role === 'client' && session.status === 'completed';
 
   // 24시간 이내 취소 여부: 환불 불가 정책 적용 대상
@@ -262,7 +313,11 @@ function SessionRow({
       <div className="flex flex-col sm:flex-row sm:items-start gap-4">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {counterpart.avatar ? (
-            <img src={counterpart.avatar} alt={counterpart.name} className="w-12 h-12 rounded-full object-cover bg-slate-100 dark:bg-slate-700" />
+            <img
+              src={counterpart.avatar}
+              alt={counterpart.name}
+              className="w-12 h-12 rounded-full object-cover bg-slate-100 dark:bg-slate-700"
+            />
           ) : (
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-400 to-pink-600 flex items-center justify-center text-white font-bold shadow-sm">
               {initials}
@@ -270,12 +325,21 @@ function SessionRow({
           )}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">{counterpart.label}</span>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{counterpart.name}</h3>
-              <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${badge.className}`}>{badge.label}</span>
+              <span className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                {counterpart.label}
+              </span>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                {counterpart.name}
+              </h3>
+              <span
+                className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${badge.className}`}
+              >
+                {badge.label}
+              </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              {formatDate(session.scheduledAt)} · {session.duration}분 · {session.totalPrice.toLocaleString()}원
+              {formatDate(session.scheduledAt)} · {session.duration}분 ·{' '}
+              {session.totalPrice.toLocaleString()}원
             </p>
             {session.note && (
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 line-clamp-2 bg-slate-50 dark:bg-slate-800/50 rounded-md px-2.5 py-1.5">
@@ -294,8 +358,15 @@ function SessionRow({
             )}
             {session.status === 'completed' && session.rating && (
               <div className="mt-2 flex items-center gap-1 text-xs text-amber-500">
-                <span aria-hidden="true">{'★'.repeat(session.rating)}{'☆'.repeat(Math.max(0, 5 - session.rating))}</span>
-                {session.review && <span className="text-slate-500 dark:text-slate-400 ml-2 truncate max-w-[240px]">"{session.review}"</span>}
+                <span aria-hidden="true">
+                  {'★'.repeat(session.rating)}
+                  {'☆'.repeat(Math.max(0, 5 - session.rating))}
+                </span>
+                {session.review && (
+                  <span className="text-slate-500 dark:text-slate-400 ml-2 truncate max-w-[240px]">
+                    "{session.review}"
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -351,9 +422,11 @@ function SessionRow({
       {/* Review form */}
       {reviewOpen && (
         <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/60 animate-fade-in">
-          <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-2">리뷰 작성</h4>
+          <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-2">
+            리뷰 작성
+          </h4>
           <div className="mb-3 flex items-center gap-1">
-            {[1, 2, 3, 4, 5].map(n => (
+            {[1, 2, 3, 4, 5].map((n) => (
               <button
                 key={n}
                 type="button"
@@ -364,11 +437,13 @@ function SessionRow({
                 ★
               </button>
             ))}
-            <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">{reviewRating}점</span>
+            <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
+              {reviewRating}점
+            </span>
           </div>
           <textarea
             value={reviewText}
-            onChange={e => setReviewText(e.target.value)}
+            onChange={(e) => setReviewText(e.target.value)}
             rows={3}
             maxLength={1000}
             placeholder="코칭 세션은 어떠셨나요? (선택 사항)"

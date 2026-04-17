@@ -7,19 +7,97 @@ export declare class CommunityService {
     private readonly forbiddenWords;
     constructor(prisma: PrismaService, notifications: NotificationsService, forbiddenWords: ForbiddenWordsService);
     getPosts(category?: string, search?: string, page?: number, limit?: number, showHidden?: boolean, sort?: string): Promise<{
-        items: any;
-        total: any;
+        items: ({
+            user: {
+                name: string;
+                id: string;
+                username: string;
+                avatar: string;
+            } | null;
+            _count: {
+                comments: number;
+                likes: number;
+            };
+        } & {
+            id: string;
+            userId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            content: string;
+            attachments: import("@prisma/client/runtime/client").JsonValue;
+            category: string;
+            title: string;
+            viewCount: number;
+            likeCount: number;
+            isPinned: boolean;
+            isHidden: boolean;
+        })[];
+        total: number;
         page: number;
         limit: number;
         totalPages: number;
     }>;
-    getPost(id: string, viewerId?: string): Promise<any>;
+    getPost(id: string, viewerId?: string): Promise<{
+        liked: boolean;
+        comments: ({} & {
+            id: string;
+            userId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            authorName: string | null;
+            content: string;
+            parentId: string | null;
+            postId: string;
+        })[];
+        user: {
+            name: string;
+            id: string;
+            username: string;
+            avatar: string;
+        } | null;
+        _count: {
+            comments: number;
+            likes: number;
+        };
+        id: string;
+        userId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        content: string;
+        attachments: import("@prisma/client/runtime/client").JsonValue;
+        category: string;
+        title: string;
+        viewCount: number;
+        likeCount: number;
+        isPinned: boolean;
+        isHidden: boolean;
+    } | null>;
     createPost(userId: string, body: {
         title: string;
         content: string;
         category: string;
         attachments?: any[];
-    }): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CommunityPostPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
+    }): Promise<{
+        user: {
+            name: string;
+            id: string;
+            username: string;
+            avatar: string;
+        } | null;
+    } & {
+        id: string;
+        userId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        content: string;
+        attachments: import("@prisma/client/runtime/client").JsonValue;
+        category: string;
+        title: string;
+        viewCount: number;
+        likeCount: number;
+        isPinned: boolean;
+        isHidden: boolean;
+    }>;
     updatePost(id: string, userId: string, role: string, body: {
         title?: string;
         content?: string;
@@ -27,12 +105,65 @@ export declare class CommunityService {
         isPinned?: boolean;
         isHidden?: boolean;
         attachments?: any[];
-    }): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CommunityPostPayload<ExtArgs>, T, "update", GlobalOmitOptions>>;
-    deletePost(id: string, userId: string, role: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CommunityPostPayload<ExtArgs>, T, "delete", GlobalOmitOptions>>;
+    }): Promise<{
+        id: string;
+        userId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        content: string;
+        attachments: import("@prisma/client/runtime/client").JsonValue;
+        category: string;
+        title: string;
+        viewCount: number;
+        likeCount: number;
+        isPinned: boolean;
+        isHidden: boolean;
+    }>;
+    deletePost(id: string, userId: string, role: string): Promise<{
+        id: string;
+        userId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        content: string;
+        attachments: import("@prisma/client/runtime/client").JsonValue;
+        category: string;
+        title: string;
+        viewCount: number;
+        likeCount: number;
+        isPinned: boolean;
+        isHidden: boolean;
+    }>;
     toggleLike(postId: string, userId: string): Promise<{
         liked: boolean;
     }>;
-    getComments(postId: string): Promise<$Public.PrismaPromise<T>>;
-    addComment(postId: string, userId: string | undefined, content: string, authorName?: string, parentId?: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CommunityCommentPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
-    deleteComment(commentId: string, userId: string, role: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CommunityCommentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>>;
+    getComments(postId: string): Promise<{
+        id: string;
+        userId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        authorName: string | null;
+        content: string;
+        parentId: string | null;
+        postId: string;
+    }[]>;
+    addComment(postId: string, userId: string | undefined, content: string, authorName?: string, parentId?: string): Promise<{
+        id: string;
+        userId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        authorName: string | null;
+        content: string;
+        parentId: string | null;
+        postId: string;
+    }>;
+    deleteComment(commentId: string, userId: string, role: string): Promise<{
+        id: string;
+        userId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        authorName: string | null;
+        content: string;
+        parentId: string | null;
+        postId: string;
+    }>;
 }

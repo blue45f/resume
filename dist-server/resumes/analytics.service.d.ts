@@ -4,25 +4,40 @@ export declare class AnalyticsService {
     constructor(prisma: PrismaService);
     getUserDashboard(userId: string): Promise<{
         summary: {
-            totalResumes: any;
-            publicResumes: any;
-            totalViews: any;
-            totalTransforms: any;
-            recentEdits: $Public.PrismaPromise<T>;
+            totalResumes: number;
+            publicResumes: number;
+            totalViews: number;
+            totalTransforms: number;
+            recentEdits: number;
         };
-        resumes: any;
-        recentVersions: any;
+        resumes: {
+            id: string;
+            title: string;
+            viewCount: number;
+            visibility: string;
+            updatedAt: string;
+        }[];
+        recentVersions: {
+            id: string;
+            versionNumber: number;
+            resumeId: string;
+            createdAt: string;
+        }[];
     }>;
-    getResumeTrend(resumeId: string): Promise<any>;
+    getResumeTrend(resumeId: string): Promise<{
+        version: number;
+        sections: number;
+        createdAt: string;
+    }[]>;
     getResumeAnalytics(resumeId: string): Promise<{
-        viewCount: any;
-        commentCount: any;
-        bookmarkCount: any;
-        shareCount: any;
-        versionCount: any;
-        visibility: any;
-        createdAt: any;
-        updatedAt: any;
+        viewCount: number;
+        commentCount: number;
+        bookmarkCount: number;
+        shareCount: number;
+        versionCount: number;
+        visibility: string;
+        createdAt: string;
+        updatedAt: string;
     } | null>;
     getPopularSkills(limit?: number): Promise<{
         name: string;

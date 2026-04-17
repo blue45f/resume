@@ -14,7 +14,7 @@ export declare class ShareController {
         createdAt: any;
     }>;
     getLinks(resumeId: string, req: any): Promise<any>;
-    removeLink(id: string): Promise<{
+    removeLink(id: string, req: any): Promise<{
         success: boolean;
     }>;
     getShared(token: string, password?: string): Promise<any>;

@@ -122,10 +122,17 @@ let ShareService = class ShareService {
             createdAt: l.createdAt.toISOString(),
         }));
     }
-    async removeLink(id) {
-        const existing = await this.prisma.shareLink.findUnique({ where: { id } });
+    async removeLink(id, userId, role) {
+        const existing = await this.prisma.shareLink.findUnique({
+            where: { id },
+            include: { resume: { select: { userId: true } } },
+        });
         if (!existing)
             throw new common_1.NotFoundException('공유 링크를 찾을 수 없습니다');
+        const isAdmin = role === 'admin' || role === 'superadmin';
+        if (!isAdmin && existing.resume?.userId && existing.resume.userId !== userId) {
+            throw new common_1.ForbiddenException('이 공유 링크를 삭제할 권한이 없습니다');
+        }
         await this.prisma.shareLink.delete({ where: { id } });
         return { success: true };
     }

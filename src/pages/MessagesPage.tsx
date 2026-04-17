@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
@@ -10,6 +11,7 @@ import EmptyState from '@/components/EmptyState';
 import { toast } from '@/components/Toast';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
+import { useConversations, useMessages } from '@/hooks/useResources';
 
 const replyComposeSchema = z.object({
   content: z.string().max(2000, '메시지는 2000자 이내로 입력해주세요'),
@@ -90,16 +92,23 @@ function savePinned(pinned: Set<string>) {
 }
 
 export default function MessagesPage() {
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(searchParams.get('to'));
-  const [messages, setMessages] = useState<Message[]>([]);
+  const conversationsQuery = useConversations();
+  const conversations: Conversation[] =
+    (conversationsQuery.data as Conversation[] | undefined) ?? [];
+  const messagesQuery = useMessages(selectedPartnerId ?? undefined);
+  const messages: Message[] = ((messagesQuery.data as Message[] | undefined) ?? []).map((m) => ({
+    ...m,
+    read: true,
+  }));
   const replyForm = useForm<ReplyComposeValues>({
     resolver: zodResolver(replyComposeSchema),
     defaultValues: { content: '' },
   });
   const newMessage = replyForm.watch('content') ?? '';
-  const [loading, setLoading] = useState(true);
+  const loading = conversationsQuery.isLoading;
   const [search, setSearch] = useState('');
   const [messageSearch, setMessageSearch] = useState('');
   const [showMessageSearch, setShowMessageSearch] = useState(false);
@@ -119,19 +128,10 @@ export default function MessagesPage() {
 
   useEffect(() => {
     document.title = '쪽지 — 이력서공방';
-    loadConversations();
     return () => {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
     };
   }, []);
-
-  // Auto-open conversation from ?to= URL param
-  useEffect(() => {
-    const toId = searchParams.get('to');
-    if (toId && !loading) {
-      loadMessages(toId);
-    }
-  }, [loading]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -152,24 +152,11 @@ export default function MessagesPage() {
     return h;
   };
 
-  const loadConversations = () => {
-    fetch(`${API_URL}/api/social/messages`, { headers: getHeaders() })
-      .then((r) => (r.ok ? r.json() : []))
-      .then(setConversations)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  };
-
   const loadMessages = (partnerId: string) => {
     setSelectedPartnerId(partnerId);
     setShowMessageSearch(false);
     setMessageSearch('');
-    fetch(`${API_URL}/api/social/messages/${partnerId}`, { headers: getHeaders() })
-      .then((r) => (r.ok ? r.json() : []))
-      .then((msgs: Message[]) => {
-        setMessages(msgs.map((m) => ({ ...m, read: true })));
-      })
-      .catch(() => {});
+    queryClient.invalidateQueries({ queryKey: ['messages', partnerId] });
   };
 
   const onSend = async (data: ReplyComposeValues) => {
@@ -188,8 +175,8 @@ export default function MessagesPage() {
       });
       replyForm.reset();
       setAttachedFile(null);
-      loadMessages(selectedPartnerId);
-      loadConversations();
+      queryClient.invalidateQueries({ queryKey: ['messages', selectedPartnerId] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
       // Show typing indicator briefly
       setTimeout(() => setIsTyping(true), 1000);
     } catch {
@@ -199,7 +186,6 @@ export default function MessagesPage() {
 
   const handleBack = () => {
     setSelectedPartnerId(null);
-    setMessages([]);
     setShowMessageSearch(false);
     setMessageSearch('');
   };

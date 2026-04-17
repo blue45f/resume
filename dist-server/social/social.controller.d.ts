@@ -12,19 +12,81 @@ export declare class SocialController {
     }> | {
         error: string;
     };
-    getFollowers(req: any): Promise<any> | never[];
-    getFollowing(req: any): Promise<any> | never[];
+    getFollowers(req: any): never[] | Promise<{
+        followedAt: Date;
+        name: string;
+        id: string;
+        email: string;
+        avatar: string;
+    }[]>;
+    getFollowing(req: any): never[] | Promise<{
+        followedAt: Date;
+        name: string;
+        id: string;
+        email: string;
+        avatar: string;
+    }[]>;
     sendScout(body: {
         receiverId: string;
         resumeId?: string;
         company: string;
         position: string;
         message: string;
-    }, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ScoutMessagePayload<ExtArgs>, T, "create", GlobalOmitOptions>> | {
+    }, req: any): Promise<{
+        id: string;
+        resumeId: string | null;
+        company: string;
+        position: string;
+        status: string;
+        createdAt: Date;
+        message: string;
+        read: boolean;
+        senderId: string;
+        receiverId: string;
+    }> | {
         error: string;
     };
-    getScouts(req: any): Promise<$Public.PrismaPromise<T>> | never[];
-    getSentScouts(req: any): Promise<$Public.PrismaPromise<T>> | never[];
+    getScouts(req: any): never[] | Promise<({
+        sender: {
+            name: string;
+            id: string;
+            email: string;
+        };
+    } & {
+        id: string;
+        resumeId: string | null;
+        company: string;
+        position: string;
+        status: string;
+        createdAt: Date;
+        message: string;
+        read: boolean;
+        senderId: string;
+        receiverId: string;
+    })[]>;
+    getSentScouts(req: any): never[] | Promise<({
+        sender: {
+            name: string;
+            id: string;
+            email: string;
+        };
+        receiver: {
+            name: string;
+            id: string;
+            email: string;
+        };
+    } & {
+        id: string;
+        resumeId: string | null;
+        company: string;
+        position: string;
+        status: string;
+        createdAt: Date;
+        message: string;
+        read: boolean;
+        senderId: string;
+        receiverId: string;
+    })[]>;
     sendBulkScout(body: {
         targetIds: string[];
         message: string;
@@ -35,7 +97,7 @@ export declare class SocialController {
         results: ({
             receiverId: string;
             success: boolean;
-            id: any;
+            id: string;
         } | {
             receiverId: string;
             success: boolean;
@@ -57,19 +119,38 @@ export declare class SocialController {
         success: boolean;
     };
     getConversations(req: any): never[] | Promise<{
-        partner: any;
+        partner: {
+            name: string;
+            id: string;
+            email: string;
+            avatar: string;
+        };
         lastMessage: {
-            content: any;
-            createdAt: any;
+            content: string;
+            createdAt: Date;
             isMine: boolean;
         };
-        unreadCount: $Public.PrismaPromise<T>;
+        unreadCount: number;
     }[]>;
     getUnreadCount(req: any): Promise<{
         count: number;
     }>;
-    getMessages(partnerId: string, req: any): Promise<$Public.PrismaPromise<T>> | never[];
-    sendMessage(receiverId: string, content: string, req: any): Promise<$Result.GetResult<import(".prisma/client").Prisma.$DirectMessagePayload<ExtArgs>, T, "create", GlobalOmitOptions>> | {
+    getMessages(partnerId: string, req: any): never[] | Promise<{
+        id: string;
+        createdAt: Date;
+        content: string;
+        read: boolean;
+        senderId: string;
+        receiverId: string;
+    }[]>;
+    sendMessage(receiverId: string, content: string, req: any): Promise<{
+        id: string;
+        createdAt: Date;
+        content: string;
+        read: boolean;
+        senderId: string;
+        receiverId: string;
+    }> | {
         error: string;
     };
 }

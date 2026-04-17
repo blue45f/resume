@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { API_URL } from '@/lib/config';
 import { getUser } from '@/lib/auth';
 import FollowButton from '@/components/FollowButton';
 import ShareMenu from '@/components/ShareMenu';
 import SendMessageButton from '@/components/SendMessageButton';
+import { usePublicGet } from '@/hooks/useResources';
 
 interface PortfolioResume {
   id: string;
@@ -18,7 +18,13 @@ interface PortfolioResume {
   github: string;
   website: string;
   photo: string;
-  experiences: { company: string; position: string; startDate: string; endDate: string; current: boolean }[];
+  experiences: {
+    company: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+  }[];
   tags: { id: string; name: string; color: string }[];
   topSkills: string[];
 }
@@ -60,7 +66,11 @@ function calcYearsExp(experiences: PortfolioResume['experiences']): number {
   if (!experiences.length) return 0;
   const totalDays = experiences.reduce((sum, e) => {
     const start = new Date(e.startDate + '-01').getTime();
-    const end = e.current ? Date.now() : (e.endDate ? new Date(e.endDate + '-01').getTime() : Date.now());
+    const end = e.current
+      ? Date.now()
+      : e.endDate
+        ? new Date(e.endDate + '-01').getTime()
+        : Date.now();
     return sum + Math.max(0, (end - start) / 86400000);
   }, 0);
   return Math.floor(totalDays / 365);
@@ -69,28 +79,24 @@ function calcYearsExp(experiences: PortfolioResume['experiences']): number {
 export default function PortfolioPage() {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
-  const [data, setData] = useState<PortfolioData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
   const currentUser = getUser();
-
-  useEffect(() => {
-    if (!username) return;
-    fetch(`${API_URL}/api/auth/u/${username}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => {
-        if (!d) { setNotFound(true); }
-        else { setData(d); }
-        setLoading(false);
-      })
-      .catch(() => { setNotFound(true); setLoading(false); });
-  }, [username]);
+  const {
+    data,
+    isLoading: loading,
+    isError,
+  } = usePublicGet<PortfolioData>(['portfolio', username], `/api/auth/u/${username}`, {
+    enabled: !!username,
+    staleTime: 60_000,
+  });
+  const notFound = !loading && (isError || !data);
 
   useEffect(() => {
     if (data) {
       document.title = `${data.user.name || data.user.username}의 포트폴리오 — 이력서공방`;
     }
-    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+    return () => {
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
+    };
   }, [data]);
 
   if (loading) {
@@ -107,12 +113,12 @@ export default function PortfolioPage() {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              {[1, 2, 3].map(i => (
+              {[1, 2, 3].map((i) => (
                 <div key={i} className="h-20 bg-slate-200 dark:bg-slate-700 rounded-xl" />
               ))}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[1, 2].map(i => (
+              {[1, 2].map((i) => (
                 <div key={i} className="h-40 bg-slate-200 dark:bg-slate-700 rounded-xl" />
               ))}
             </div>
@@ -130,11 +136,16 @@ export default function PortfolioPage() {
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center px-4 animate-fade-in">
             <div className="text-6xl mb-4">🔍</div>
-            <h1 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">포트폴리오를 찾을 수 없습니다</h1>
+            <h1 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+              포트폴리오를 찾을 수 없습니다
+            </h1>
             <p className="text-slate-500 dark:text-slate-400 mb-6">
               @{username} 사용자가 존재하지 않거나, 공개된 이력서가 없습니다.
             </p>
-            <button onClick={() => navigate(-1)} className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors">
+            <button
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+            >
               돌아가기
             </button>
           </div>
@@ -167,7 +178,9 @@ export default function PortfolioPage() {
                   />
                 ) : (
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-md">
-                    <span className="text-3xl font-bold text-white">{(user.name || user.username || 'U')[0].toUpperCase()}</span>
+                    <span className="text-3xl font-bold text-white">
+                      {(user.name || user.username || 'U')[0].toUpperCase()}
+                    </span>
                   </div>
                 )}
                 {user.isOpenToWork && (
@@ -189,7 +202,9 @@ export default function PortfolioPage() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">@{user.username}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                  @{user.username}
+                </p>
                 {(user.companyName || user.companyTitle) && (
                   <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">
                     {[user.companyTitle, user.companyName].filter(Boolean).join(' @ ')}
@@ -211,7 +226,11 @@ export default function PortfolioPage() {
                 />
                 {!isOwn && user.id && (
                   <>
-                    <SendMessageButton targetUserId={user.id} targetUserName={user.name} variant="button" />
+                    <SendMessageButton
+                      targetUserId={user.id}
+                      targetUserName={user.name}
+                      variant="button"
+                    />
                     <FollowButton userId={user.id} />
                   </>
                 )}
@@ -233,12 +252,24 @@ export default function PortfolioPage() {
                 { label: '팔로워', value: stats.followerCount, icon: '👥' },
                 { label: '팔로잉', value: stats.followingCount, icon: '🤝' },
                 { label: '총 조회수', value: stats.totalViews, icon: '👀' },
-                { label: '경력 연수', value: totalYears > 0 ? `${totalYears}년` : '-', icon: '💼', raw: true },
-              ].map(s => (
-                <div key={s.label} className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-center">
+                {
+                  label: '경력 연수',
+                  value: totalYears > 0 ? `${totalYears}년` : '-',
+                  icon: '💼',
+                  raw: true,
+                },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-center"
+                >
                   <div className="text-lg mb-0.5">{s.icon}</div>
                   <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                    {s.raw ? s.value : (typeof s.value === 'number' ? s.value.toLocaleString() : s.value)}
+                    {s.raw
+                      ? s.value
+                      : typeof s.value === 'number'
+                        ? s.value.toLocaleString()
+                        : s.value}
                   </div>
                   <div className="text-[10px] text-slate-500 dark:text-slate-400">{s.label}</div>
                 </div>
@@ -255,7 +286,7 @@ export default function PortfolioPage() {
                 <span>⚡</span> 보유 기술
               </h2>
               <div className="flex flex-wrap gap-2">
-                {topSkills.map(skill => (
+                {topSkills.map((skill) => (
                   <span
                     key={skill}
                     className="px-3 py-1 text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-full hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
@@ -289,7 +320,11 @@ export default function PortfolioPage() {
                     {/* Header */}
                     <div className="flex items-start gap-3 mb-3">
                       {resume.photo ? (
-                        <img src={resume.photo} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                        <img
+                          src={resume.photo}
+                          alt=""
+                          className="w-10 h-10 rounded-full object-cover shrink-0"
+                        />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center shrink-0">
                           <span className="text-indigo-600 dark:text-indigo-400 text-sm font-bold">
@@ -308,7 +343,25 @@ export default function PortfolioPage() {
                         )}
                       </div>
                       <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500 flex items-center gap-0.5">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
                         {resume.viewCount || 0}
                       </span>
                     </div>
@@ -323,8 +376,11 @@ export default function PortfolioPage() {
                     {/* Skills */}
                     {resume.topSkills.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-3">
-                        {resume.topSkills.map(skill => (
-                          <span key={skill} className="px-2 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-full">
+                        {resume.topSkills.map((skill) => (
+                          <span
+                            key={skill}
+                            className="px-2 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-full"
+                          >
                             {skill}
                           </span>
                         ))}
@@ -334,13 +390,19 @@ export default function PortfolioPage() {
                     {/* Tags + time */}
                     <div className="flex items-center justify-between">
                       <div className="flex flex-wrap gap-1">
-                        {resume.tags?.slice(0, 2).map(tag => (
-                          <span key={tag.id} className="px-1.5 py-0.5 text-[10px] rounded-full" style={{ backgroundColor: `${tag.color}20`, color: tag.color }}>
+                        {resume.tags?.slice(0, 2).map((tag) => (
+                          <span
+                            key={tag.id}
+                            className="px-1.5 py-0.5 text-[10px] rounded-full"
+                            style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
+                          >
                             {tag.name}
                           </span>
                         ))}
                       </div>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500">{timeAgo(resume.updatedAt)}</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                        {timeAgo(resume.updatedAt)}
+                      </span>
                     </div>
                   </Link>
                 ))}

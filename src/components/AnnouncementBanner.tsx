@@ -44,8 +44,8 @@ export default function AnnouncementBanner() {
     }
 
     fetch(`${API_URL}/api/health/announcement`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
         if (data?.message && localStorage.getItem('announcement-dismissed') !== data.id) {
           setAnnouncement(data);
         }
@@ -70,7 +70,9 @@ export default function AnnouncementBanner() {
       }
     }, interval);
 
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [announcement, dismissed]);
 
   // Pause on hover
@@ -118,13 +120,17 @@ export default function AnnouncementBanner() {
         style={{ width: `${progress}%` }}
       />
 
-      <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-center gap-2">
-        {typeIcon && <span className="shrink-0 text-base" aria-hidden="true">{typeIcon}</span>}
-        <span className="text-center leading-snug">{announcement.message}</span>
+      <div className="max-w-6xl mx-auto pl-4 pr-10 py-2.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+        {typeIcon && (
+          <span className="shrink-0 text-base" aria-hidden="true">
+            {typeIcon}
+          </span>
+        )}
+        <span className="text-center leading-snug text-xs sm:text-sm">{announcement.message}</span>
         {announcement.link && (
           <a
             href={announcement.link}
-            className="shrink-0 underline font-semibold hover:opacity-80 transition-opacity whitespace-nowrap"
+            className="shrink-0 underline font-semibold hover:opacity-80 transition-opacity whitespace-nowrap text-xs sm:text-sm"
           >
             {announcement.linkText || '자세히 보기'}
           </a>
@@ -132,11 +138,16 @@ export default function AnnouncementBanner() {
       </div>
       <button
         onClick={handleDismiss}
-        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-white/20 transition-colors"
+        className="absolute right-1 top-1/2 -translate-y-1/2 p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg hover:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
         aria-label="공지 닫기"
       >
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2.5}
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
     </div>

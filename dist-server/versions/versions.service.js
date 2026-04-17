@@ -17,7 +17,20 @@ let VersionsService = class VersionsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async findAll(resumeId) {
+    async assertOwnership(resumeId, userId, role) {
+        const isAdmin = role === 'admin' || role === 'superadmin';
+        const resume = await this.prisma.resume.findUnique({
+            where: { id: resumeId },
+            select: { userId: true },
+        });
+        if (!resume)
+            throw new common_1.NotFoundException('이력서를 찾을 수 없습니다');
+        if (!isAdmin && resume.userId && resume.userId !== userId) {
+            throw new common_1.ForbiddenException('이 이력서의 버전에 접근할 권한이 없습니다');
+        }
+    }
+    async findAll(resumeId, userId, role) {
+        await this.assertOwnership(resumeId, userId, role);
         const versions = await this.prisma.resumeVersion.findMany({
             where: { resumeId },
             orderBy: { versionNumber: 'desc' },
@@ -33,7 +46,8 @@ let VersionsService = class VersionsService {
             createdAt: v.createdAt.toISOString(),
         }));
     }
-    async findOne(resumeId, versionId) {
+    async findOne(resumeId, versionId, userId, role) {
+        await this.assertOwnership(resumeId, userId, role);
         const version = await this.prisma.resumeVersion.findFirst({
             where: { id: versionId, resumeId },
         });
@@ -45,14 +59,15 @@ let VersionsService = class VersionsService {
             createdAt: version.createdAt.toISOString(),
         };
     }
-    async restore(resumeId, versionId, userId) {
+    async restore(resumeId, versionId, userId, role) {
         const version = await this.prisma.resumeVersion.findFirst({
             where: { id: versionId, resumeId },
             include: { resume: { select: { userId: true } } },
         });
         if (!version)
             throw new common_1.NotFoundException('버전을 찾을 수 없습니다');
-        if (version.resume.userId && version.resume.userId !== userId) {
+        const isAdmin = role === 'admin' || role === 'superadmin';
+        if (!isAdmin && version.resume.userId && version.resume.userId !== userId) {
             throw new common_1.ForbiddenException('이 이력서의 버전을 복원할 권한이 없습니다');
         }
         let snapshot;

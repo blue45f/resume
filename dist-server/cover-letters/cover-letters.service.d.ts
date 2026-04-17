@@ -2,8 +2,30 @@ import { PrismaService } from '../prisma/prisma.service';
 export declare class CoverLettersService {
     private prisma;
     constructor(prisma: PrismaService);
-    findAll(userId: string): Promise<$Public.PrismaPromise<T>>;
-    findOne(id: string, userId: string): Promise<any>;
+    findAll(userId: string): Promise<{
+        id: string;
+        resumeId: string | null;
+        company: string;
+        position: string;
+        createdAt: Date;
+        updatedAt: Date;
+        applicationId: string | null;
+        content: string;
+        tone: string;
+    }[]>;
+    findOne(id: string, userId: string): Promise<{
+        id: string;
+        userId: string;
+        resumeId: string | null;
+        company: string;
+        position: string;
+        createdAt: Date;
+        updatedAt: Date;
+        applicationId: string | null;
+        content: string;
+        tone: string;
+        jobDescription: string;
+    }>;
     create(userId: string, data: {
         resumeId?: string;
         applicationId?: string;
@@ -12,14 +34,50 @@ export declare class CoverLettersService {
         tone: string;
         jobDescription: string;
         content: string;
-    }): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CoverLetterPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
+    }): Promise<{
+        id: string;
+        userId: string;
+        resumeId: string | null;
+        company: string;
+        position: string;
+        createdAt: Date;
+        updatedAt: Date;
+        applicationId: string | null;
+        content: string;
+        tone: string;
+        jobDescription: string;
+    }>;
     update(id: string, userId: string, data: {
         content?: string;
         company?: string;
         position?: string;
-    }): Promise<$Result.GetResult<import(".prisma/client").Prisma.$CoverLetterPayload<ExtArgs>, T, "update", GlobalOmitOptions>>;
+    }): Promise<{
+        id: string;
+        userId: string;
+        resumeId: string | null;
+        company: string;
+        position: string;
+        createdAt: Date;
+        updatedAt: Date;
+        applicationId: string | null;
+        content: string;
+        tone: string;
+        jobDescription: string;
+    }>;
     remove(id: string, userId: string): Promise<{
         success: boolean;
     }>;
-    getByResume(resumeId: string, userId: string): Promise<$Public.PrismaPromise<T>>;
+    getByResume(resumeId: string, userId: string): Promise<{
+        id: string;
+        userId: string;
+        resumeId: string | null;
+        company: string;
+        position: string;
+        createdAt: Date;
+        updatedAt: Date;
+        applicationId: string | null;
+        content: string;
+        tone: string;
+        jobDescription: string;
+    }[]>;
 }

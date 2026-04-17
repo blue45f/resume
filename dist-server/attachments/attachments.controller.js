@@ -22,13 +22,15 @@ let AttachmentsController = class AttachmentsController {
     constructor(attachmentsService) {
         this.attachmentsService = attachmentsService;
     }
-    upload(resumeId, file, category, description) {
+    upload(resumeId, file, category, description, req) {
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
         if (!file)
             throw new common_1.BadRequestException('파일이 없습니다');
-        return this.attachmentsService.upload(resumeId, file, category, description);
+        return this.attachmentsService.upload(resumeId, file, category, description, req.user.id, req.user.role);
     }
-    findAll(resumeId) {
-        return this.attachmentsService.findAll(resumeId);
+    findAll(resumeId, req) {
+        return this.attachmentsService.findAll(resumeId, req.user?.id, req.user?.role);
     }
     async download(id, req, res) {
         const result = await this.attachmentsService.getFileData(id, req.user?.id);
@@ -45,30 +47,34 @@ let AttachmentsController = class AttachmentsController {
         res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(originalName)}`);
         res.send(data);
     }
-    remove(id) {
-        return this.attachmentsService.remove(id);
+    remove(id, req) {
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        return this.attachmentsService.remove(id, req.user.id, req.user.role);
     }
 };
 exports.AttachmentsController = AttachmentsController;
 __decorate([
     (0, common_1.Post)('resumes/:resumeId/attachments'),
-    (0, swagger_1.ApiOperation)({ summary: '파일 업로드' }),
+    (0, swagger_1.ApiOperation)({ summary: '파일 업로드 (소유자 전용)' }),
     (0, swagger_1.ApiConsumes)('multipart/form-data'),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
     __param(0, (0, common_1.Param)('resumeId')),
     __param(1, (0, common_1.UploadedFile)()),
     __param(2, (0, common_1.Body)('category')),
     __param(3, (0, common_1.Body)('description')),
+    __param(4, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object, String, String]),
+    __metadata("design:paramtypes", [String, Object, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], AttachmentsController.prototype, "upload", null);
 __decorate([
     (0, common_1.Get)('resumes/:resumeId/attachments'),
     (0, swagger_1.ApiOperation)({ summary: '이력서 첨부파일 목록' }),
     __param(0, (0, common_1.Param)('resumeId')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], AttachmentsController.prototype, "findAll", null);
 __decorate([
@@ -83,10 +89,11 @@ __decorate([
 ], AttachmentsController.prototype, "download", null);
 __decorate([
     (0, common_1.Delete)('attachments/:id'),
-    (0, swagger_1.ApiOperation)({ summary: '파일 삭제' }),
+    (0, swagger_1.ApiOperation)({ summary: '파일 삭제 (소유자 전용)' }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], AttachmentsController.prototype, "remove", null);
 exports.AttachmentsController = AttachmentsController = __decorate([

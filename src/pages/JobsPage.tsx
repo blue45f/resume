@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -474,8 +475,6 @@ function ExternalJobLinks({
   internalJobs: JobPost[];
   onDirectApply: (job: JobPost) => void;
 }) {
-  const [links, setLinks] = useState<ExternalLink[]>([]);
-  const [loading, setLoading] = useState(true);
   const [companySize, setCompanySize] = useState('all');
   const [careerLevel, setCareerLevel] = useState('all');
   const [jobCategory, setJobCategory] = useState('all');
@@ -494,27 +493,26 @@ function ExternalJobLinks({
   const canEdit = canDo('externalLinks', 'edit');
   const canDelete = canDo('externalLinks', 'delete');
 
-  const loadLinks = () => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (companySize !== 'all') params.set('companySize', companySize);
-    if (careerLevel !== 'all') params.set('careerLevel', careerLevel);
-    if (jobCategory !== 'all') params.set('jobCategory', jobCategory);
-    if (jobType !== 'all') params.set('jobType', jobType);
-    if (location !== 'all') params.set('location', location);
-    if (q) params.set('q', q);
-    fetch(`${API_URL}/api/jobs/external-links/list?${params}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setLinks(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    loadLinks();
-  }, [companySize, careerLevel, jobCategory, jobType, location, q]);
+  const linksQuery = useQuery<ExternalLink[]>({
+    queryKey: ['external-links', { companySize, careerLevel, jobCategory, jobType, location, q }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (companySize !== 'all') params.set('companySize', companySize);
+      if (careerLevel !== 'all') params.set('careerLevel', careerLevel);
+      if (jobCategory !== 'all') params.set('jobCategory', jobCategory);
+      if (jobType !== 'all') params.set('jobType', jobType);
+      if (location !== 'all') params.set('location', location);
+      if (q) params.set('q', q);
+      const res = await fetch(`${API_URL}/api/jobs/external-links/list?${params}`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 30_000,
+  });
+  const links = linksQuery.data ?? [];
+  const loading = linksQuery.isLoading;
+  const loadLinks = () => linksQuery.refetch();
 
   const handleClick = async (link: ExternalLink) => {
     fetch(`${API_URL}/api/jobs/external-links/${link.id}/click`, { method: 'POST' }).catch(
@@ -1093,13 +1091,16 @@ const INDUSTRY_LABELS: Record<string, string> = {
 };
 
 function usePermissions() {
-  const [perms, setPerms] = useState<Record<string, string>>({});
-  useEffect(() => {
-    fetch(`${API_URL}/api/system-config/permissions`)
-      .then((r) => r.json())
-      .then(setPerms)
-      .catch(() => {});
-  }, []);
+  const { data: permsData } = useQuery<Record<string, string>>({
+    queryKey: ['system-permissions'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/system-config/permissions`);
+      if (!res.ok) return {};
+      return res.json();
+    },
+    staleTime: 5 * 60_000,
+  });
+  const perms = permsData ?? {};
 
   const canDo = (contentType: string, action: string): boolean => {
     const user = getUser();
@@ -1312,7 +1313,7 @@ function CuratedJobForm({
                 placeholder="성과급, 사택, 건강검진"
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
                   기술스택 (콤마 구분)
@@ -1336,7 +1337,7 @@ function CuratedJobForm({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
                   고용형태
@@ -1481,9 +1482,6 @@ function CuratedJobForm({
 }
 
 function CuratedJobsTab() {
-  const [jobs, setJobs] = useState<CuratedJob[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [expFilter, setExpFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -1498,28 +1496,26 @@ function CuratedJobsTab() {
   const canEdit = canDo('curatedJobs', 'edit');
   const canDelete = canDo('curatedJobs', 'delete');
 
-  useEffect(() => {
-    loadJobs();
-  }, [expFilter, typeFilter, sizeFilter, q, page]);
-
-  const loadJobs = () => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (expFilter !== 'all') params.set('experienceLevel', expFilter);
-    if (typeFilter !== 'all') params.set('jobType', typeFilter);
-    if (sizeFilter !== 'all') params.set('companySize', sizeFilter);
-    if (q) params.set('q', q);
-    params.set('page', String(page));
-    params.set('limit', '20');
-    fetch(`${API_URL}/api/jobs/curated/list?${params}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setJobs(data.items || []);
-        setTotal(data.total || 0);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  };
+  const jobsQuery = useQuery<{ items: CuratedJob[]; total: number }>({
+    queryKey: ['curated-jobs', { expFilter, typeFilter, sizeFilter, q, page }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (expFilter !== 'all') params.set('experienceLevel', expFilter);
+      if (typeFilter !== 'all') params.set('jobType', typeFilter);
+      if (sizeFilter !== 'all') params.set('companySize', sizeFilter);
+      if (q) params.set('q', q);
+      params.set('page', String(page));
+      params.set('limit', '20');
+      const res = await fetch(`${API_URL}/api/jobs/curated/list?${params}`);
+      if (!res.ok) return { items: [], total: 0 };
+      return res.json();
+    },
+    staleTime: 30_000,
+  });
+  const jobs: CuratedJob[] = jobsQuery.data?.items ?? [];
+  const total: number = jobsQuery.data?.total ?? 0;
+  const loading = jobsQuery.isLoading;
+  const loadJobs = () => jobsQuery.refetch();
 
   const handleClick = (job: CuratedJob) => {
     fetch(`${API_URL}/api/jobs/curated/${job.id}/click`, { method: 'POST' }).catch(() => {});
@@ -2115,14 +2111,11 @@ type JobTab = 'curated' | 'internal' | 'links';
 
 export default function JobsPage() {
   const [activeTab, setActiveTab] = useState<JobTab>('curated');
-  const [jobs, setJobs] = useState<JobPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [activeQuery, setActiveQuery] = useState('');
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [userResumes, setUserResumes] = useState<ResumeSummary[]>([]);
   const [salaryMin, setSalaryMin] = useState(0);
   const [salaryMax, setSalaryMax] = useState(20000);
   const [salaryFilterEnabled, setSalaryFilterEnabled] = useState(false);
@@ -2147,13 +2140,12 @@ export default function JobsPage() {
   }, []);
 
   // Load user's resume skills for match scoring
-  useEffect(() => {
-    if (user) {
-      fetchResumes()
-        .then(setUserResumes)
-        .catch(() => {});
-    }
-  }, []);
+  const userResumesQuery = useQuery<ResumeSummary[]>({
+    queryKey: ['resumes'],
+    queryFn: fetchResumes,
+    enabled: !!user,
+  });
+  const userResumes: ResumeSummary[] = userResumesQuery.data ?? [];
 
   const userSkills = useMemo((): Set<string> => {
     const skills = new Set<string>();
@@ -2170,26 +2162,32 @@ export default function JobsPage() {
 
   useEffect(() => {
     document.title = '채용 공고 — 이력서공방';
-    loadJobs();
     return () => {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
     };
   }, []);
 
+  const internalJobsQuery = useQuery<JobPost[]>({
+    queryKey: ['internal-jobs', activeQuery],
+    queryFn: async () => {
+      const qs = activeQuery ? `?q=${encodeURIComponent(activeQuery)}` : '';
+      const res = await fetch(`${API_URL}/api/jobs${qs}`);
+      if (!res.ok) throw new Error('Failed to fetch jobs');
+      return res.json();
+    },
+    staleTime: 30_000,
+  });
+  const jobs: JobPost[] = internalJobsQuery.data ?? [];
+  const loading = internalJobsQuery.isLoading;
+  const error = !!internalJobsQuery.error;
   const loadJobs = (query?: string) => {
-    setError(false);
-    setLoading(true);
-    const qs = query ? `?q=${encodeURIComponent(query)}` : '';
-    fetch(`${API_URL}/api/jobs${qs}`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then(setJobs)
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+    if (query !== undefined) setActiveQuery(query);
+    else internalJobsQuery.refetch();
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    loadJobs(search);
+    setActiveQuery(search);
   };
 
   const handleSelectJob = (id: string) => {

@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import CameraInterview from '@/features/interview-prep/ui/CameraInterview';
-import { fetchJobInterviewQuestions } from '@/lib/api';
+import { useJobInterviewQuestions } from '@/hooks/useResources';
 
 /**
  * MockInterviewPage
@@ -103,9 +103,7 @@ export default function MockInterviewPage() {
   const position = searchParams.get('position') || '';
 
   const [jobQuestions, setJobQuestions] = useState<string[] | null>(null);
-  const [question, setQuestion] = useState<string>(() =>
-    presetQuestion || pickRandomQuestion(),
-  );
+  const [question, setQuestion] = useState<string>(() => presetQuestion || pickRandomQuestion());
   const [maxSec, setMaxSec] = useState<number | undefined>(60);
   const [pendingBlob, setPendingBlob] = useState<Blob | null>(null);
   const [pendingDuration, setPendingDuration] = useState<number>(0);
@@ -114,30 +112,28 @@ export default function MockInterviewPage() {
   const [sessionKey, setSessionKey] = useState<number>(0);
 
   useEffect(() => {
-    document.title = company && position
-      ? `${company} ${position} 모의 면접 - Resume`
-      : '카메라 모의 면접 - Resume';
+    document.title =
+      company && position
+        ? `${company} ${position} 모의 면접 - Resume`
+        : '카메라 모의 면접 - Resume';
   }, [company, position]);
 
   // Load questions tied to a specific job post / curated job
+  const jobQuestionsQuery = useJobInterviewQuestions(
+    jobPostId || curatedJobId ? { jobPostId, curatedJobId, limit: 50 } : {},
+  );
   useEffect(() => {
     if (!jobPostId && !curatedJobId) return;
-    let cancelled = false;
-    fetchJobInterviewQuestions({ jobPostId, curatedJobId, limit: 50 })
-      .then(list => {
-        if (cancelled) return;
-        const pool = list.map(q => q.question).filter(Boolean);
-        setJobQuestions(pool);
-        // Prefer the preset question from URL, else pick a random one from fetched pool
-        if (!presetQuestion && pool.length > 0) {
-          setQuestion(pickFromPool(pool));
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setJobQuestions([]);
-      });
-    return () => { cancelled = true; };
-  }, [jobPostId, curatedJobId, presetQuestion]);
+    if (jobQuestionsQuery.data) {
+      const pool = jobQuestionsQuery.data.map((q) => q.question).filter(Boolean);
+      setJobQuestions(pool);
+      if (!presetQuestion && pool.length > 0) {
+        setQuestion(pickFromPool(pool));
+      }
+    } else if (jobQuestionsQuery.isError) {
+      setJobQuestions([]);
+    }
+  }, [jobPostId, curatedJobId, presetQuestion, jobQuestionsQuery.data, jobQuestionsQuery.isError]);
 
   const handleRecordingComplete = useCallback((blob: Blob, duration: number) => {
     setPendingBlob(blob);
@@ -183,11 +179,14 @@ export default function MockInterviewPage() {
     setSessionKey((k) => k + 1);
   }, [jobQuestions]);
 
-  const handleDeleteSaved = useCallback((id: string) => {
-    const next = saved.filter((s) => s.id !== id);
-    setSaved(next);
-    persistSaved(next);
-  }, [saved]);
+  const handleDeleteSaved = useCallback(
+    (id: string) => {
+      const next = saved.filter((s) => s.id !== id);
+      setSaved(next);
+      persistSaved(next);
+    },
+    [saved],
+  );
 
   const totalBytes = useMemo(
     () => saved.reduce((sum, s) => sum + (s.fileSizeBytes || 0), 0),
@@ -217,7 +216,8 @@ export default function MockInterviewPage() {
             </p>
           ) : (
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              질문을 읽고 카메라로 답변을 녹화하세요. 영상은 브라우저에 잠시 보관되며 메모만 로컬에 저장됩니다.
+              질문을 읽고 카메라로 답변을 녹화하세요. 영상은 브라우저에 잠시 보관되며 메모만 로컬에
+              저장됩니다.
             </p>
           )}
         </div>
@@ -290,9 +290,12 @@ export default function MockInterviewPage() {
               답변을 되돌아보며 메모하기
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-              녹화 시간 {formatDuration(pendingDuration)} · 용량 {(pendingBlob.size / 1024 / 1024).toFixed(2)} MB
+              녹화 시간 {formatDuration(pendingDuration)} · 용량{' '}
+              {(pendingBlob.size / 1024 / 1024).toFixed(2)} MB
             </p>
-            <label htmlFor="mock-note" className="sr-only">메모</label>
+            <label htmlFor="mock-note" className="sr-only">
+              메모
+            </label>
             <textarea
               id="mock-note"
               value={note}
@@ -317,7 +320,8 @@ export default function MockInterviewPage() {
                 저장 안 함
               </button>
               <p className="ml-auto text-[11px] text-slate-400 dark:text-slate-500">
-                영상 파일은 &quot;다운로드&quot; 버튼으로 저장해주세요 (브라우저에는 보관되지 않습니다).
+                영상 파일은 &quot;다운로드&quot; 버튼으로 저장해주세요 (브라우저에는 보관되지
+                않습니다).
               </p>
             </div>
           </section>
@@ -349,7 +353,8 @@ export default function MockInterviewPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                        {formatDate(s.createdAt)} · {formatDuration(s.durationSec)} · {(s.fileSizeBytes / 1024 / 1024).toFixed(2)} MB
+                        {formatDate(s.createdAt)} · {formatDuration(s.durationSec)} ·{' '}
+                        {(s.fileSizeBytes / 1024 / 1024).toFixed(2)} MB
                       </p>
                       <p className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
                         {s.question}

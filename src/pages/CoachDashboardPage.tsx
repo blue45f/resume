@@ -1,19 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import {
-  fetchMyCoachingSessions,
-  type CoachingSession,
-  type MySessionsResponse,
-} from '@/lib/api';
+import { type CoachingSession, type MySessionsResponse } from '@/lib/api';
+import { useMyCoachingSessions } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 
 function formatDate(iso: string) {
   try {
     const d = new Date(iso);
     return d.toLocaleString('ko-KR', {
-      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   } catch {
     return iso;
@@ -40,13 +41,20 @@ function formatRelative(iso: string) {
 export default function CoachDashboardPage() {
   const navigate = useNavigate();
   const user = getUser();
-  const [data, setData] = useState<MySessionsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const isCoach = !!user && user.userType === 'coach';
+  const sessionsQuery = useMyCoachingSessions();
+  const data: MySessionsResponse | null =
+    (sessionsQuery.data as MySessionsResponse | undefined) ?? null;
+  const loading = isCoach && sessionsQuery.isLoading;
+  const error: string | null = sessionsQuery.error
+    ? (sessionsQuery.error as any)?.message || '데이터를 불러오지 못했습니다'
+    : null;
 
   useEffect(() => {
     document.title = '코치 대시보드 — 이력서공방';
-    return () => { document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'; };
+    return () => {
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
+    };
   }, []);
 
   useEffect(() => {
@@ -58,13 +66,6 @@ export default function CoachDashboardPage() {
       navigate('/coach/profile');
       return;
     }
-    let cancelled = false;
-    setLoading(true);
-    fetchMyCoachingSessions()
-      .then(res => { if (!cancelled) setData(res); })
-      .catch(err => { if (!cancelled) setError(err?.message || '데이터를 불러오지 못했습니다'); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -73,31 +74,34 @@ export default function CoachDashboardPage() {
   const stats = useMemo(() => {
     const total = coachSessions.length;
     const now = new Date();
-    const thisMonth = coachSessions.filter(s => {
+    const thisMonth = coachSessions.filter((s) => {
       if (s.status !== 'completed') return false;
       const d = new Date(s.updatedAt || s.scheduledAt);
       return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
     });
     const monthEarnings = thisMonth.reduce((sum, s) => sum + (s.coachEarn || 0), 0);
-    const rated = coachSessions.filter(s => s.rating != null && s.rating > 0);
-    const avgRating = rated.length > 0
-      ? rated.reduce((sum, s) => sum + (s.rating || 0), 0) / rated.length
-      : 0;
-    const pending = coachSessions.filter(s => s.status === 'requested').length;
+    const rated = coachSessions.filter((s) => s.rating != null && s.rating > 0);
+    const avgRating =
+      rated.length > 0 ? rated.reduce((sum, s) => sum + (s.rating || 0), 0) / rated.length : 0;
+    const pending = coachSessions.filter((s) => s.status === 'requested').length;
     return { total, monthEarnings, avgRating, pending };
   }, [coachSessions]);
 
   const upcoming = useMemo(() => {
     const now = Date.now();
     return coachSessions
-      .filter(s => (s.status === 'confirmed' || s.status === 'requested') && new Date(s.scheduledAt).getTime() >= now - 60 * 60 * 1000)
+      .filter(
+        (s) =>
+          (s.status === 'confirmed' || s.status === 'requested') &&
+          new Date(s.scheduledAt).getTime() >= now - 60 * 60 * 1000,
+      )
       .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
       .slice(0, 8);
   }, [coachSessions]);
 
   const recentReviews = useMemo(() => {
     return coachSessions
-      .filter(s => s.rating != null && s.rating > 0)
+      .filter((s) => s.rating != null && s.rating > 0)
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       .slice(0, 6);
   }, [coachSessions]);
@@ -107,17 +111,36 @@ export default function CoachDashboardPage() {
   return (
     <>
       <Header />
-      <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" role="main">
+      <main
+        id="main-content"
+        className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+        role="main"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl flex items-center justify-center shadow-sm">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
               </svg>
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">코치 대시보드</h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{user.name}님의 코칭 현황</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+                코치 대시보드
+              </h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {user.name}님의 코칭 현황
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -144,39 +167,56 @@ export default function CoachDashboardPage() {
           <div className="space-y-6">
             {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {loading ? (
-                [1, 2, 3, 4].map(i => (
-                  <div key={i} className="imp-card p-4 animate-pulse">
-                    <div className="h-4 w-6 bg-slate-200 dark:bg-slate-700 rounded mb-2 mx-auto" />
-                    <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded mx-auto mb-1" />
-                    <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700 rounded mx-auto" />
-                  </div>
-                ))
-              ) : (
-                [
-                  { label: '총 세션 수', value: stats.total, icon: '📚', color: 'text-blue-600' },
-                  { label: '이번 달 수익', value: `${stats.monthEarnings.toLocaleString()}원`, icon: '💰', color: 'text-emerald-600' },
-                  { label: '평균 평점', value: stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '—', icon: '⭐', color: 'text-amber-500' },
-                  { label: '대기 중 요청', value: stats.pending, icon: '⏳', color: 'text-rose-600' },
-                ].map(s => (
-                  <div key={s.label} className="imp-card p-4 text-center">
-                    <span className="text-lg block mb-1">{s.icon}</span>
-                    <span className={`text-2xl font-bold ${s.color} block`}>{s.value}</span>
-                    <span className="text-xs text-slate-400">{s.label}</span>
-                  </div>
-                ))
-              )}
+              {loading
+                ? [1, 2, 3, 4].map((i) => (
+                    <div key={i} className="imp-card p-4 animate-pulse">
+                      <div className="h-4 w-6 bg-slate-200 dark:bg-slate-700 rounded mb-2 mx-auto" />
+                      <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded mx-auto mb-1" />
+                      <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700 rounded mx-auto" />
+                    </div>
+                  ))
+                : [
+                    { label: '총 세션 수', value: stats.total, icon: '📚', color: 'text-blue-600' },
+                    {
+                      label: '이번 달 수익',
+                      value: `${stats.monthEarnings.toLocaleString()}원`,
+                      icon: '💰',
+                      color: 'text-emerald-600',
+                    },
+                    {
+                      label: '평균 평점',
+                      value: stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '—',
+                      icon: '⭐',
+                      color: 'text-amber-500',
+                    },
+                    {
+                      label: '대기 중 요청',
+                      value: stats.pending,
+                      icon: '⏳',
+                      color: 'text-rose-600',
+                    },
+                  ].map((s) => (
+                    <div key={s.label} className="imp-card p-4 text-center">
+                      <span className="text-lg block mb-1">{s.icon}</span>
+                      <span className={`text-2xl font-bold ${s.color} block`}>{s.value}</span>
+                      <span className="text-xs text-slate-400">{s.label}</span>
+                    </div>
+                  ))}
             </div>
 
             {/* Upcoming sessions timeline */}
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">예정된 세션</h2>
-                <Link to="/coaching/sessions" className="text-xs text-rose-600 hover:underline">전체 보기</Link>
+                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  예정된 세션
+                </h2>
+                <Link to="/coaching/sessions" className="text-xs text-rose-600 hover:underline">
+                  전체 보기
+                </Link>
               </div>
               {loading ? (
                 <div className="space-y-2">
-                  {[1, 2, 3].map(i => (
+                  {[1, 2, 3].map((i) => (
                     <div key={i} className="imp-card p-4 animate-pulse">
                       <div className="h-3 w-1/3 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
                       <div className="h-3 w-2/3 bg-slate-200 dark:bg-slate-700 rounded" />
@@ -186,24 +226,42 @@ export default function CoachDashboardPage() {
               ) : upcoming.length === 0 ? (
                 <div className="imp-card p-8 text-center">
                   <p className="text-3xl mb-2">🗓</p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">예정된 세션이 없습니다</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    예정된 세션이 없습니다
+                  </p>
                 </div>
               ) : (
                 <ol className="relative border-l-2 border-rose-100 dark:border-rose-900/40 ml-3 space-y-3">
-                  {upcoming.map(s => {
-                    const statusBadge = s.status === 'requested'
-                      ? { label: '요청됨', cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' }
-                      : { label: '확정', cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' };
+                  {upcoming.map((s) => {
+                    const statusBadge =
+                      s.status === 'requested'
+                        ? {
+                            label: '요청됨',
+                            cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
+                          }
+                        : {
+                            label: '확정',
+                            cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
+                          };
                     const clientName = s.client?.name || '고객';
                     return (
                       <li key={s.id} className="ml-4">
-                        <span className="absolute -left-[7px] w-3 h-3 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900" aria-hidden="true" />
+                        <span
+                          className="absolute -left-[7px] w-3 h-3 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900"
+                          aria-hidden="true"
+                        />
                         <div className="imp-card p-4">
                           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 flex-wrap mb-1">
-                                <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${statusBadge.cls}`}>{statusBadge.label}</span>
-                                <span className="text-[11px] text-slate-400">{formatRelative(s.scheduledAt)}</span>
+                                <span
+                                  className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${statusBadge.cls}`}
+                                >
+                                  {statusBadge.label}
+                                </span>
+                                <span className="text-[11px] text-slate-400">
+                                  {formatRelative(s.scheduledAt)}
+                                </span>
                               </div>
                               <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                                 {clientName} · {s.duration}분
@@ -234,11 +292,13 @@ export default function CoachDashboardPage() {
             {/* Recent reviews */}
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">최근 리뷰</h2>
+                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  최근 리뷰
+                </h2>
               </div>
               {loading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[1, 2].map(i => (
+                  {[1, 2].map((i) => (
                     <div key={i} className="imp-card p-4 animate-pulse">
                       <div className="h-3 w-1/2 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
                       <div className="h-3 w-full bg-slate-200 dark:bg-slate-700 rounded" />
@@ -252,7 +312,7 @@ export default function CoachDashboardPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {recentReviews.map(r => (
+                  {recentReviews.map((r) => (
                     <div key={r.id} className="imp-card p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2 min-w-0">
@@ -260,12 +320,18 @@ export default function CoachDashboardPage() {
                             {(r.client?.name || 'U').slice(0, 1).toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{r.client?.name || '익명'}</p>
+                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                              {r.client?.name || '익명'}
+                            </p>
                             <p className="text-[10px] text-slate-400">{formatDate(r.updatedAt)}</p>
                           </div>
                         </div>
-                        <span className="text-sm text-amber-500 shrink-0" aria-label={`${r.rating}점`}>
-                          {'★'.repeat(r.rating || 0)}{'☆'.repeat(Math.max(0, 5 - (r.rating || 0)))}
+                        <span
+                          className="text-sm text-amber-500 shrink-0"
+                          aria-label={`${r.rating}점`}
+                        >
+                          {'★'.repeat(r.rating || 0)}
+                          {'☆'.repeat(Math.max(0, 5 - (r.rating || 0)))}
                         </span>
                       </div>
                       {r.review ? (
@@ -283,14 +349,16 @@ export default function CoachDashboardPage() {
 
             {/* Quick actions */}
             <section>
-              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">빠른 액션</h2>
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                빠른 액션
+              </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { label: '프로필 수정', to: '/coach/profile', icon: '✏️' },
                   { label: '세션 내역', to: '/coaching/sessions', icon: '📋' },
                   { label: '코치 목록', to: '/coaches', icon: '🧑‍🏫' },
                   { label: '쪽지함', to: '/messages', icon: '💬' },
-                ].map(a => (
+                ].map((a) => (
                   <Link
                     key={a.to}
                     to={a.to}

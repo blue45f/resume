@@ -18,13 +18,31 @@ export declare class ForbiddenWordsService {
     }>;
     invalidateCache(): void;
     findAll(category?: string, search?: string, page?: number, limit?: number): Promise<{
-        items: any;
-        total: any;
+        items: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            category: string;
+            isActive: boolean;
+            word: string;
+            severity: string;
+            createdBy: string | null;
+        }[];
+        total: number;
         page: number;
         limit: number;
         totalPages: number;
     }>;
-    create(word: string, category: string, severity: string, createdBy?: string): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ForbiddenWordPayload<ExtArgs>, T, "create", GlobalOmitOptions>>;
+    create(word: string, category: string, severity: string, createdBy?: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        category: string;
+        isActive: boolean;
+        word: string;
+        severity: string;
+        createdBy: string | null;
+    }>;
     createBulk(words: string[], category: string, severity: string, createdBy?: string): Promise<{
         created: number;
         skipped: number;
@@ -34,7 +52,16 @@ export declare class ForbiddenWordsService {
         category?: string;
         severity?: string;
         isActive?: boolean;
-    }): Promise<$Result.GetResult<import(".prisma/client").Prisma.$ForbiddenWordPayload<ExtArgs>, T, "update", GlobalOmitOptions>>;
+    }): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        category: string;
+        isActive: boolean;
+        word: string;
+        severity: string;
+        createdBy: string | null;
+    }>;
     remove(id: string): Promise<{
         success: boolean;
     }>;
@@ -42,11 +69,14 @@ export declare class ForbiddenWordsService {
         success: boolean;
         deleted: number;
     }>;
-    getCategories(): Promise<any>;
+    getCategories(): Promise<{
+        category: string;
+        count: number;
+    }[]>;
     getStats(): Promise<{
-        total: any;
-        active: any;
-        blocked: any;
-        warned: any;
+        total: number;
+        active: number;
+        blocked: number;
+        warned: number;
     }>;
 }

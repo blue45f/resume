@@ -5,7 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
-import { upsertCoachProfile, fetchMyCoachingSessions } from '@/lib/api';
+import { upsertCoachProfile } from '@/lib/api';
+import { useMyCoachingSessions } from '@/hooks/useResources';
 import { fetchMe, getUser, setAuth, getToken } from '@/lib/auth';
 import {
   coachProfileSchema,
@@ -26,7 +27,8 @@ const SPECIALTIES = [
 
 export default function CoachProfileEditPage() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const sessionsQuery = useMyCoachingSessions();
+  const loading = sessionsQuery.isLoading;
   const [hasProfile, setHasProfile] = useState(false);
   const user = getUser();
 
@@ -61,37 +63,30 @@ export default function CoachProfileEditPage() {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    // Fetch sessions to read existing coach profile from asCoach[0].coach if any
-    fetchMyCoachingSessions()
-      .then((res) => {
-        const coachProfile = res.asCoach?.[0]?.coach;
-        if (coachProfile && !cancelled) {
-          setHasProfile(true);
-          reset({
-            specialty: coachProfile.specialty || '',
-            bio: coachProfile.bio || '',
-            hourlyRate: coachProfile.hourlyRate || 50000,
-            yearsExp: coachProfile.yearsExp || 0,
-            languages: coachProfile.languages || '한국어',
-            availableHours: coachProfile.availableHours || '',
-            isActive: coachProfile.isActive ?? true,
-          });
-        } else if (!cancelled) {
-          // userType === 'coach' but no session yet means profile may still exist
-          setHasProfile(user?.userType === 'coach');
-        }
-      })
-      .catch(() => {
-        /* 기존 프로필이 없을 수 있음 */
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+    const res = sessionsQuery.data;
+    if (!res) {
+      if (sessionsQuery.isError) {
+        // fallback: userType === 'coach' but no session yet means profile may still exist
+        setHasProfile(user?.userType === 'coach');
+      }
+      return;
+    }
+    const coachProfile = res.asCoach?.[0]?.coach;
+    if (coachProfile) {
+      setHasProfile(true);
+      reset({
+        specialty: coachProfile.specialty || '',
+        bio: coachProfile.bio || '',
+        hourlyRate: coachProfile.hourlyRate || 50000,
+        yearsExp: coachProfile.yearsExp || 0,
+        languages: coachProfile.languages || '한국어',
+        availableHours: coachProfile.availableHours || '',
+        isActive: coachProfile.isActive ?? true,
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [reset]);
+    } else {
+      setHasProfile(user?.userType === 'coach');
+    }
+  }, [sessionsQuery.data, sessionsQuery.isError, reset, user?.userType]);
 
   const onSubmit = async (data: CoachProfileFormOutput) => {
     try {

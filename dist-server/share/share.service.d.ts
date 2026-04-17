@@ -15,7 +15,7 @@ export declare class ShareService {
     }>;
     getByToken(token: string, password?: string): Promise<any>;
     getLinksForResume(resumeId: string): Promise<any>;
-    removeLink(id: string): Promise<{
+    removeLink(id: string, userId?: string, role?: string): Promise<{
         success: boolean;
     }>;
 }

@@ -1,15 +1,25 @@
-import { useState, useEffect } from 'react';
-import { API_URL } from '@/lib/config';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-
-
+import { usePublicGet } from '@/hooks/useResources';
 
 const TYPE_INFO: Record<string, { label: string; color: string; icon: string }> = {
-  GENERAL: { label: '공지', icon: '📢', color: 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300' },
-  MAINTENANCE: { label: '점검', icon: '🔧', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
-  EVENT: { label: '이벤트', icon: '🎉', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+  GENERAL: {
+    label: '공지',
+    icon: '📢',
+    color: 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
+  },
+  MAINTENANCE: {
+    label: '점검',
+    icon: '🔧',
+    color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  },
+  EVENT: {
+    label: '이벤트',
+    icon: '🎉',
+    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+  },
 };
 
 function timeAgo(date: string) {
@@ -33,26 +43,19 @@ interface Notice {
 }
 
 function NoticeList() {
-  const [notices, setNotices] = useState<Notice[]>([]);
-  const [loading, setLoading] = useState(true);
   const [type, setType] = useState('all');
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
 
-  useEffect(() => {
-    setLoading(true);
-    const params = new URLSearchParams({ page: String(page), limit: '20' });
-    if (type !== 'all') params.set('type', type);
+  const queryParams = new URLSearchParams({ page: String(page), limit: '20' });
+  if (type !== 'all') queryParams.set('type', type);
 
-    fetch(`${API_URL}/api/notices?${params}`)
-      .then(r => r.ok ? r.json() : { items: [], total: 0 })
-      .then(data => {
-        setNotices(Array.isArray(data) ? data : (data.items || []));
-        setTotal(data.total || 0);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [type, page]);
+  const { data, isLoading: loading } = usePublicGet<any>(
+    ['notices', type, page],
+    `/api/notices?${queryParams}`,
+    { staleTime: 30_000 },
+  );
+  const notices: Notice[] = Array.isArray(data) ? data : data?.items || [];
+  const total: number = data?.total || 0;
 
   const totalPages = Math.ceil(total / 20);
 
@@ -63,11 +66,18 @@ function NoticeList() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">공지사항</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">서비스 공지 및 업데이트를 확인하세요</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              서비스 공지 및 업데이트를 확인하세요
+            </p>
           </div>
-          <Link to="/community?category=notice" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
+          <Link
+            to="/community?category=notice"
+            className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+          >
             커뮤니티 공지 보기
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </Link>
         </div>
 
@@ -78,10 +88,13 @@ function NoticeList() {
             { id: 'GENERAL', label: '공지', icon: '📢' },
             { id: 'MAINTENANCE', label: '점검', icon: '🔧' },
             { id: 'EVENT', label: '이벤트', icon: '🎉' },
-          ].map(t => (
+          ].map((t) => (
             <button
               key={t.id}
-              onClick={() => { setType(t.id); setPage(1); }}
+              onClick={() => {
+                setType(t.id);
+                setPage(1);
+              }}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl transition-all ${
                 type === t.id
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -96,7 +109,10 @@ function NoticeList() {
         {loading ? (
           <div className="space-y-2">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-14 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl animate-pulse" />
+              <div
+                key={i}
+                className="h-14 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl animate-pulse"
+              />
             ))}
           </div>
         ) : notices.length === 0 ? (
@@ -107,7 +123,7 @@ function NoticeList() {
         ) : (
           <>
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-700">
-              {notices.map(notice => {
+              {notices.map((notice) => {
                 const typeInfo = TYPE_INFO[notice.type] || TYPE_INFO.GENERAL;
                 return (
                   <Link
@@ -115,18 +131,24 @@ function NoticeList() {
                     to={`/notices/${notice.id}`}
                     className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                   >
-                    <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-lg ${typeInfo.color}`}>
+                    <span
+                      className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-lg ${typeInfo.color}`}
+                    >
                       {typeInfo.icon} {typeInfo.label}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        {notice.isPinned && <span className="text-xs text-amber-500 font-bold">📌</span>}
+                        {notice.isPinned && (
+                          <span className="text-xs text-amber-500 font-bold">📌</span>
+                        )}
                         <span className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate hover:text-indigo-600 transition-colors">
                           {notice.title}
                         </span>
                       </div>
                     </div>
-                    <span className="shrink-0 text-xs text-slate-400">{timeAgo(notice.createdAt)}</span>
+                    <span className="shrink-0 text-xs text-slate-400">
+                      {timeAgo(notice.createdAt)}
+                    </span>
                   </Link>
                 );
               })}
@@ -134,14 +156,42 @@ function NoticeList() {
 
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mt-6">
-                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 disabled:opacity-40">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 disabled:opacity-40"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
                 </button>
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(p => (
-                  <button key={p} onClick={() => setPage(p)} className={`w-8 h-8 rounded-lg text-sm ${p === page ? 'bg-indigo-600 text-white' : 'border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}`}>{p}</button>
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`w-8 h-8 rounded-lg text-sm ${p === page ? 'bg-indigo-600 text-white' : 'border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}`}
+                  >
+                    {p}
+                  </button>
                 ))}
-                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 disabled:opacity-40">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 disabled:opacity-40"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
                 </button>
               </div>
             )}
@@ -155,24 +205,30 @@ function NoticeList() {
 
 function NoticeDetail() {
   const { id } = useParams<{ id: string }>();
-  const [notice, setNotice] = useState<Notice | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: notice, isLoading: loading } = usePublicGet<Notice>(
+    ['notice', id],
+    `/api/notices/${id}`,
+    { enabled: !!id, staleTime: 60_000 },
+  );
 
-  useEffect(() => {
-    fetch(`${API_URL}/api/notices/${id}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { setNotice(data); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [id]);
-
-  const typeInfo = notice ? (TYPE_INFO[notice.type] || TYPE_INFO.GENERAL) : null;
+  const typeInfo = notice ? TYPE_INFO[notice.type] || TYPE_INFO.GENERAL : null;
 
   return (
     <>
       <Header />
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8">
-        <Link to="/notices" className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-colors mb-6">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        <Link
+          to="/notices"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-colors mb-6"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
           공지사항 목록
         </Link>
 
@@ -190,12 +246,18 @@ function NoticeDetail() {
           <article className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 sm:p-8">
             <div className="mb-6 pb-6 border-b border-slate-100 dark:border-slate-700">
               {typeInfo && (
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-lg mb-3 ${typeInfo.color}`}>
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-lg mb-3 ${typeInfo.color}`}
+                >
                   {typeInfo.icon} {typeInfo.label}
                 </span>
               )}
-              {notice.isPinned && <span className="ml-2 text-xs text-amber-500 font-bold">📌 고정</span>}
-              <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-2 leading-snug">{notice.title}</h1>
+              {notice.isPinned && (
+                <span className="ml-2 text-xs text-amber-500 font-bold">📌 고정</span>
+              )}
+              <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-2 leading-snug">
+                {notice.title}
+              </h1>
               <div className="flex items-center gap-3 mt-3 text-xs text-slate-400">
                 <span>관리자</span>
                 <span>·</span>
@@ -203,7 +265,10 @@ function NoticeDetail() {
                 {notice.startAt && notice.endAt && (
                   <>
                     <span>·</span>
-                    <span>{new Date(notice.startAt).toLocaleDateString('ko-KR')} ~ {new Date(notice.endAt).toLocaleDateString('ko-KR')}</span>
+                    <span>
+                      {new Date(notice.startAt).toLocaleDateString('ko-KR')} ~{' '}
+                      {new Date(notice.endAt).toLocaleDateString('ko-KR')}
+                    </span>
                   </>
                 )}
               </div>

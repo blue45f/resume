@@ -21,32 +21,40 @@ let VersionsController = class VersionsController {
     constructor(versionsService) {
         this.versionsService = versionsService;
     }
-    findAll(resumeId) {
-        return this.versionsService.findAll(resumeId);
+    findAll(resumeId, req) {
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        return this.versionsService.findAll(resumeId, req.user.id, req.user.role);
     }
-    findOne(resumeId, versionId) {
-        return this.versionsService.findOne(resumeId, versionId);
+    findOne(resumeId, versionId, req) {
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        return this.versionsService.findOne(resumeId, versionId, req.user.id, req.user.role);
     }
     restore(resumeId, versionId, req) {
-        return this.versionsService.restore(resumeId, versionId, req.user?.id);
+        if (!req.user?.id)
+            throw new common_1.UnauthorizedException('로그인이 필요합니다');
+        return this.versionsService.restore(resumeId, versionId, req.user.id, req.user.role);
     }
 };
 exports.VersionsController = VersionsController;
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: '이력서 버전 목록 조회' }),
+    (0, swagger_1.ApiOperation)({ summary: '이력서 버전 목록 조회 (소유자 전용)' }),
     __param(0, (0, common_1.Param)('resumeId')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], VersionsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':versionId'),
-    (0, swagger_1.ApiOperation)({ summary: '특정 버전 상세 조회' }),
+    (0, swagger_1.ApiOperation)({ summary: '특정 버전 상세 조회 (소유자 전용)' }),
     __param(0, (0, common_1.Param)('resumeId')),
     __param(1, (0, common_1.Param)('versionId')),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], VersionsController.prototype, "findOne", null);
 __decorate([

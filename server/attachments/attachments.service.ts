@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
@@ -10,7 +15,10 @@ const MAX_TOTAL_SIZE_PER_RESUME = 100 * 1024 * 1024; // 100MB
 const MAX_FILES_PER_RESUME = 20;
 const ALLOWED_TYPES = [
   'application/pdf',
-  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.ms-excel',
@@ -20,8 +28,19 @@ const ALLOWED_TYPES = [
   'text/plain',
 ];
 const ALLOWED_EXTENSIONS = [
-  '.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp',
-  '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt',
+  '.pdf',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.gif',
+  '.webp',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.ppt',
+  '.pptx',
+  '.txt',
 ];
 
 @Injectable()
@@ -54,6 +73,8 @@ export class AttachmentsService {
     file: Express.Multer.File,
     category: string,
     description: string,
+    userId?: string,
+    role?: string,
   ) {
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
@@ -61,8 +82,16 @@ export class AttachmentsService {
     });
     if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
 
+    // 소유권 검증: 이력서 소유자 또는 관리자만 업로드 가능
+    const isAdmin = role === 'admin' || role === 'superadmin';
+    if (!isAdmin && resume.userId && resume.userId !== userId) {
+      throw new ForbiddenException('이 이력서에 파일을 업로드할 권한이 없습니다');
+    }
+
     if (resume.attachments.length >= MAX_FILES_PER_RESUME) {
-      throw new BadRequestException(`이력서당 최대 ${MAX_FILES_PER_RESUME}개의 파일만 업로드할 수 있습니다`);
+      throw new BadRequestException(
+        `이력서당 최대 ${MAX_FILES_PER_RESUME}개의 파일만 업로드할 수 있습니다`,
+      );
     }
     const totalSize = resume.attachments.reduce((sum, a) => sum + a.size, 0);
     if (totalSize + file.size > MAX_TOTAL_SIZE_PER_RESUME) {
@@ -125,16 +154,36 @@ export class AttachmentsService {
     return this.format(attachment);
   }
 
-  async findAll(resumeId: string) {
+  async findAll(resumeId: string, userId?: string, role?: string) {
+    // 소유권/가시성 검증: 비공개 이력서는 소유자 또는 관리자만 조회
+    const resume = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      select: { userId: true, visibility: true },
+    });
+    if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+
+    const isAdmin = role === 'admin' || role === 'superadmin';
+    const isOwner = resume.userId && resume.userId === userId;
+    if (resume.visibility === 'private' && !isOwner && !isAdmin) {
+      throw new ForbiddenException('이 이력서의 첨부파일에 접근할 권한이 없습니다');
+    }
+
     const attachments = await this.prisma.attachment.findMany({
       where: { resumeId },
       orderBy: { createdAt: 'desc' },
       select: {
-        id: true, resumeId: true, filename: true, originalName: true,
-        mimeType: true, size: true, category: true, description: true, createdAt: true,
+        id: true,
+        resumeId: true,
+        filename: true,
+        originalName: true,
+        mimeType: true,
+        size: true,
+        category: true,
+        description: true,
+        createdAt: true,
       },
     });
-    return attachments.map(a => this.format(a));
+    return attachments.map((a) => this.format(a));
   }
 
   async getFileData(id: string, userId?: string) {
@@ -144,13 +193,21 @@ export class AttachmentsService {
     });
     if (!attachment) throw new NotFoundException('파일을 찾을 수 없습니다');
 
-    if (attachment.resume.visibility === 'private' && attachment.resume.userId && attachment.resume.userId !== userId) {
+    if (
+      attachment.resume.visibility === 'private' &&
+      attachment.resume.userId &&
+      attachment.resume.userId !== userId
+    ) {
       throw new NotFoundException('파일을 찾을 수 없습니다');
     }
 
     // Cloudinary URL인 경우 리다이렉트
     if (attachment.filename.startsWith('http')) {
-      return { redirectUrl: attachment.filename, originalName: attachment.originalName, mimeType: attachment.mimeType };
+      return {
+        redirectUrl: attachment.filename,
+        originalName: attachment.originalName,
+        mimeType: attachment.mimeType,
+      };
     }
 
     // DB base64 데이터
@@ -161,9 +218,18 @@ export class AttachmentsService {
     };
   }
 
-  async remove(id: string) {
-    const attachment = await this.prisma.attachment.findUnique({ where: { id } });
+  async remove(id: string, userId?: string, role?: string) {
+    const attachment = await this.prisma.attachment.findUnique({
+      where: { id },
+      include: { resume: { select: { userId: true } } },
+    });
     if (!attachment) throw new NotFoundException('파일을 찾을 수 없습니다');
+
+    // 소유권 검증: 이력서 소유자 또는 관리자만 삭제 가능
+    const isAdmin = role === 'admin' || role === 'superadmin';
+    if (!isAdmin && attachment.resume.userId && attachment.resume.userId !== userId) {
+      throw new ForbiddenException('이 파일을 삭제할 권한이 없습니다');
+    }
 
     await this.deleteFromCloudinary(attachment.filename);
     await this.prisma.attachment.delete({ where: { id } });
@@ -195,7 +261,9 @@ export class AttachmentsService {
           await cloudinary.uploader.destroy(publicIdWithExt, { resource_type: 'raw' });
         }
       }
-    } catch { /* 로깅만 하고 계속 진행 */ }
+    } catch {
+      /* 로깅만 하고 계속 진행 */
+    }
   }
 
   private format(a: any) {

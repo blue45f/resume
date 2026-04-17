@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
@@ -22,7 +23,7 @@ export class AttachmentsController {
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
   @Post('resumes/:resumeId/attachments')
-  @ApiOperation({ summary: '파일 업로드' })
+  @ApiOperation({ summary: '파일 업로드 (소유자 전용)' })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('file'))
   upload(
@@ -30,15 +31,24 @@ export class AttachmentsController {
     @UploadedFile() file: Express.Multer.File,
     @Body('category') category: string,
     @Body('description') description: string,
+    @Req() req: any,
   ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     if (!file) throw new BadRequestException('파일이 없습니다');
-    return this.attachmentsService.upload(resumeId, file, category, description);
+    return this.attachmentsService.upload(
+      resumeId,
+      file,
+      category,
+      description,
+      req.user.id,
+      req.user.role,
+    );
   }
 
   @Get('resumes/:resumeId/attachments')
   @ApiOperation({ summary: '이력서 첨부파일 목록' })
-  findAll(@Param('resumeId') resumeId: string) {
-    return this.attachmentsService.findAll(resumeId);
+  findAll(@Param('resumeId') resumeId: string, @Req() req: any) {
+    return this.attachmentsService.findAll(resumeId, req.user?.id, req.user?.role);
   }
 
   @Get('attachments/:id/download')
@@ -58,13 +68,17 @@ export class AttachmentsController {
       return;
     }
     res.setHeader('Content-Type', mimeType);
-    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(originalName)}`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename*=UTF-8''${encodeURIComponent(originalName)}`,
+    );
     res.send(data);
   }
 
   @Delete('attachments/:id')
-  @ApiOperation({ summary: '파일 삭제' })
-  remove(@Param('id') id: string) {
-    return this.attachmentsService.remove(id);
+  @ApiOperation({ summary: '파일 삭제 (소유자 전용)' })
+  remove(@Param('id') id: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.attachmentsService.remove(id, req.user.id, req.user.role);
   }
 }

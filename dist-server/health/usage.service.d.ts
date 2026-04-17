@@ -3,5 +3,8 @@ export declare class UsageService {
     private prisma;
     constructor(prisma: PrismaService);
     checkAndLog(userId: string, feature: string): Promise<void>;
-    getUsage(userId: string): Promise<any>;
+    getUsage(userId: string): Promise<{
+        feature: string;
+        count: number;
+    }[]>;
 }

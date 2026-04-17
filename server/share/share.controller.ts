@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Delete,
-  Body,
-  Param,
-  Query,
-  Req,
-} from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, Query, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Public } from '../auth/auth.guard';
 import { ResumesService } from '../resumes/resumes.service';
@@ -42,18 +33,15 @@ export class ShareController {
   }
 
   @Delete('share/:id')
-  @ApiOperation({ summary: '공유 링크 삭제' })
-  removeLink(@Param('id') id: string) {
-    return this.shareService.removeLink(id);
+  @ApiOperation({ summary: '공유 링크 삭제 (이력서 소유자 전용)' })
+  removeLink(@Param('id') id: string, @Req() req: any) {
+    return this.shareService.removeLink(id, req.user?.id, req.user?.role);
   }
 
   @Get('shared/:token')
   @Public()
   @ApiOperation({ summary: '공유된 이력서 조회 (공개 접근)' })
-  getShared(
-    @Param('token') token: string,
-    @Query('password') password?: string,
-  ) {
+  getShared(@Param('token') token: string, @Query('password') password?: string) {
     return this.shareService.getByToken(token, password);
   }
 }
