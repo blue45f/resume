@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
@@ -9,6 +12,34 @@ import { getPlan } from '@/lib/plans';
 import { getTheme, setTheme } from '@/lib/theme';
 import { API_URL } from '@/lib/config';
 import { fetchDashboard, fetchUsage, changePassword as apiChangePassword, deleteAccount as apiDeleteAccount, updateProfile as apiUpdateProfile } from '@/lib/api';
+
+/* ── Zod 스키마 ───────────────────────────────── */
+const nameSchema = z.object({
+  name: z.string().trim().min(1, '이름을 입력해주세요').max(50, '이름은 50자 이하여야 합니다'),
+});
+type NameFormData = z.infer<typeof nameSchema>;
+
+const usernameSchema = z.object({
+  username: z.string()
+    .trim()
+    .min(3, '3자 이상 입력해주세요')
+    .max(20, '20자 이하여야 합니다')
+    .regex(/^[a-z0-9_-]+$/, '영문 소문자, 숫자, -, _ 만 사용 가능합니다'),
+});
+type UsernameFormData = z.infer<typeof usernameSchema>;
+
+const passwordSchema = z.object({
+  currentPassword: z.string().min(8, '현재 비밀번호는 8자 이상이어야 합니다'),
+  newPassword: z.string().min(8, '새 비밀번호는 8자 이상이어야 합니다'),
+  confirmPassword: z.string().min(8, '비밀번호 확인은 8자 이상이어야 합니다'),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: '새 비밀번호가 일치하지 않습니다',
+  path: ['confirmPassword'],
+}).refine((data) => data.currentPassword !== data.newPassword, {
+  message: '새 비밀번호는 현재 비밀번호와 달라야 합니다',
+  path: ['newPassword'],
+});
+type PasswordFormData = z.infer<typeof passwordSchema>;
 
 /* ── 최근 활동 ───────────────────────────────────── */
 function RecentActivityList() {
@@ -135,17 +166,25 @@ export default function SettingsPage() {
     new Set(['sec-profile', 'sec-usertype', 'sec-subscription'])
   );
   const [editingName, setEditingName] = useState(false);
-  const [nameValue, setNameValue] = useState(user?.name || '');
-  const [savingName, setSavingName] = useState(false);
   const [editingUsername, setEditingUsername] = useState(false);
-  const [usernameValue, setUsernameValue] = useState(user?.username || '');
-  const [savingUsername, setSavingUsername] = useState(false);
-  const [usernameError, setUsernameError] = useState('');
 
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [changingPw, setChangingPw] = useState(false);
+  /* ── RHF: 이름 ── */
+  const nameForm = useForm<NameFormData>({
+    resolver: zodResolver(nameSchema),
+    defaultValues: { name: user?.name || '' },
+  });
+
+  /* ── RHF: 사용자명 ── */
+  const usernameForm = useForm<UsernameFormData>({
+    resolver: zodResolver(usernameSchema),
+    defaultValues: { username: user?.username || '' },
+  });
+
+  /* ── RHF: 비밀번호 ── */
+  const passwordForm = useForm<PasswordFormData>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
+  });
 
   const [usage, setUsage] = useState<{ feature: string; count: number }[]>([]);
   const [userType, setUserType] = useState(user?.userType || 'personal');
@@ -203,15 +242,13 @@ export default function SettingsPage() {
   };
 
   /* ── 핸들러 ── */
-  const handleSaveName = async () => {
-    if (!nameValue.trim()) return;
-    setSavingName(true);
+  const onSaveName = nameForm.handleSubmit(async (values) => {
     try {
       const token = getToken();
       const res = await fetch(`${API_URL}/api/auth/profile`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ name: nameValue.trim() }),
+        body: JSON.stringify({ name: values.name.trim() }),
       });
       if (!res.ok) throw new Error();
       const updated = await res.json();
@@ -220,19 +257,11 @@ export default function SettingsPage() {
       toast('이름이 변경되었습니다', 'success');
     } catch {
       toast('이름 변경에 실패했습니다', 'error');
-    } finally {
-      setSavingName(false);
     }
-  };
+  });
 
-  const handleSaveUsername = async () => {
-    const cleaned = usernameValue.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
-    if (!cleaned || cleaned.length < 3) {
-      setUsernameError('영문 소문자, 숫자, - _ 만 사용 가능하며 3자 이상이어야 합니다');
-      return;
-    }
-    setUsernameError('');
-    setSavingUsername(true);
+  const onSaveUsername = usernameForm.handleSubmit(async (values) => {
+    const cleaned = values.username.trim().toLowerCase();
     try {
       const token = getToken();
       const res = await fetch(`${API_URL}/api/auth/profile`, {
@@ -246,31 +275,23 @@ export default function SettingsPage() {
       }
       const updated = await res.json();
       if (token) setAuth(token, updated);
-      setUsernameValue(cleaned);
+      usernameForm.reset({ username: cleaned });
       setEditingUsername(false);
       toast('포트폴리오 URL이 설정되었습니다', 'success');
     } catch (err: any) {
-      setUsernameError(err.message || '사용자명 변경에 실패했습니다');
-    } finally {
-      setSavingUsername(false);
+      usernameForm.setError('username', { message: err.message || '사용자명 변경에 실패했습니다' });
     }
-  };
+  });
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) { toast('새 비밀번호가 일치하지 않습니다', 'error'); return; }
-    if (newPassword.length < 8) { toast('비밀번호는 8자 이상이어야 합니다', 'error'); return; }
-    setChangingPw(true);
+  const onChangePassword = passwordForm.handleSubmit(async (values) => {
     try {
-      await apiChangePassword(currentPassword, newPassword);
+      await apiChangePassword(values.currentPassword, values.newPassword);
       toast('비밀번호가 변경되었습니다', 'success');
-      setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
+      passwordForm.reset();
     } catch (err: any) {
       toast(err.message || '비밀번호 변경에 실패했습니다', 'error');
-    } finally {
-      setChangingPw(false);
     }
-  };
+  });
 
   const handleDeleteAccount = async () => {
     try {
@@ -410,22 +431,26 @@ export default function SettingsPage() {
             <div className="flex-1 min-w-0">
               {/* 이름 편집 */}
               {editingName ? (
-                <div className="flex items-center gap-2 mb-1">
-                  <input
-                    type="text"
-                    value={nameValue}
-                    onChange={e => setNameValue(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false); }}
-                    className="flex-1 px-3 py-1.5 border border-indigo-400 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    autoFocus
-                  />
-                  <button onClick={handleSaveName} disabled={savingName} className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50">
-                    {savingName ? '저장 중' : '저장'}
-                  </button>
-                  <button onClick={() => { setEditingName(false); setNameValue(user.name || ''); }} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs rounded-lg">
-                    취소
-                  </button>
-                </div>
+                <form onSubmit={onSaveName} className="mb-1">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      {...nameForm.register('name')}
+                      onKeyDown={e => { if (e.key === 'Escape') { setEditingName(false); nameForm.reset({ name: user.name || '' }); } }}
+                      className="flex-1 px-3 py-1.5 border border-indigo-400 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      autoFocus
+                    />
+                    <button type="submit" disabled={nameForm.formState.isSubmitting} className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+                      {nameForm.formState.isSubmitting ? '저장 중' : '저장'}
+                    </button>
+                    <button type="button" onClick={() => { setEditingName(false); nameForm.reset({ name: user.name || '' }); }} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs rounded-lg">
+                      취소
+                    </button>
+                  </div>
+                  {nameForm.formState.errors.name && (
+                    <p className="text-xs text-red-500 mt-1">{nameForm.formState.errors.name.message}</p>
+                  )}
+                </form>
               ) : (
                 <div className="flex items-center gap-2 mb-0.5">
                   <p className="font-semibold text-slate-900 dark:text-slate-100">{user.name || '이름 없음'}</p>
@@ -449,32 +474,35 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">포트폴리오 URL</span>
                   {!editingUsername && (
-                    <button onClick={() => { setEditingUsername(true); setUsernameValue(user?.username || ''); }} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
+                    <button onClick={() => { setEditingUsername(true); usernameForm.reset({ username: user?.username || '' }); }} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
                       {user?.username ? '변경' : '설정하기'}
                     </button>
                   )}
                 </div>
                 {editingUsername ? (
-                  <div>
+                  <form onSubmit={onSaveUsername}>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-400 shrink-0">이력서공방.com/u/</span>
                       <input
                         type="text"
-                        value={usernameValue}
-                        onChange={e => { setUsernameValue(e.target.value.toLowerCase()); setUsernameError(''); }}
-                        onKeyDown={e => { if (e.key === 'Enter') handleSaveUsername(); if (e.key === 'Escape') setEditingUsername(false); }}
+                        {...usernameForm.register('username', {
+                          onChange: (e) => { e.target.value = e.target.value.toLowerCase(); },
+                        })}
+                        onKeyDown={e => { if (e.key === 'Escape') { setEditingUsername(false); usernameForm.clearErrors(); } }}
                         placeholder="my-username"
                         className="flex-1 px-2 py-1 border border-indigo-400 rounded-lg text-xs dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         autoFocus
                       />
-                      <button onClick={handleSaveUsername} disabled={savingUsername} className="px-2.5 py-1 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50 shrink-0">
-                        {savingUsername ? '...' : '저장'}
+                      <button type="submit" disabled={usernameForm.formState.isSubmitting} className="px-2.5 py-1 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50 shrink-0">
+                        {usernameForm.formState.isSubmitting ? '...' : '저장'}
                       </button>
-                      <button onClick={() => { setEditingUsername(false); setUsernameError(''); }} className="px-2 py-1 text-xs text-slate-500 hover:text-slate-700">취소</button>
+                      <button type="button" onClick={() => { setEditingUsername(false); usernameForm.clearErrors(); }} className="px-2 py-1 text-xs text-slate-500 hover:text-slate-700">취소</button>
                     </div>
-                    {usernameError && <p className="text-[11px] text-red-500 mt-1">{usernameError}</p>}
-                    <p className="text-[10px] text-slate-400 mt-1">영문 소문자, 숫자, -, _ 만 사용 가능 (3자 이상)</p>
-                  </div>
+                    {usernameForm.formState.errors.username && (
+                      <p className="text-xs text-red-500 mt-1">{usernameForm.formState.errors.username.message}</p>
+                    )}
+                    <p className="text-[10px] text-slate-400 mt-1">영문 소문자, 숫자, -, _ 만 사용 가능 (3-20자)</p>
+                  </form>
                 ) : user?.username ? (
                   <div className="flex items-center gap-2">
                     <code className="text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded">
@@ -747,12 +775,27 @@ export default function SettingsPage() {
             id="sec-password" icon="🔐" title="비밀번호 변경"
             open={openSections.has('sec-password')} onToggle={() => toggleSection('sec-password')}
           >
-            <form onSubmit={handleChangePassword} className="space-y-3">
-              <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="현재 비밀번호" required className={inputClass} />
-              <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="새 비밀번호 (8자 이상)" required minLength={8} className={inputClass} />
-              <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="새 비밀번호 확인" required minLength={8} className={inputClass} />
-              <button type="submit" disabled={changingPw} className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-all duration-200">
-                {changingPw ? '변경 중...' : '비밀번호 변경'}
+            <form onSubmit={onChangePassword} className="space-y-3">
+              <div>
+                <input type="password" {...passwordForm.register('currentPassword')} placeholder="현재 비밀번호" className={inputClass} />
+                {passwordForm.formState.errors.currentPassword && (
+                  <p className="text-xs text-red-500 mt-1">{passwordForm.formState.errors.currentPassword.message}</p>
+                )}
+              </div>
+              <div>
+                <input type="password" {...passwordForm.register('newPassword')} placeholder="새 비밀번호 (8자 이상)" className={inputClass} />
+                {passwordForm.formState.errors.newPassword && (
+                  <p className="text-xs text-red-500 mt-1">{passwordForm.formState.errors.newPassword.message}</p>
+                )}
+              </div>
+              <div>
+                <input type="password" {...passwordForm.register('confirmPassword')} placeholder="새 비밀번호 확인" className={inputClass} />
+                {passwordForm.formState.errors.confirmPassword && (
+                  <p className="text-xs text-red-500 mt-1">{passwordForm.formState.errors.confirmPassword.message}</p>
+                )}
+              </div>
+              <button type="submit" disabled={passwordForm.formState.isSubmitting} className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-all duration-200">
+                {passwordForm.formState.isSubmitting ? '변경 중...' : '비밀번호 변경'}
               </button>
             </form>
           </CollapsibleSection>

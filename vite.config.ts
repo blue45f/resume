@@ -51,6 +51,19 @@ export default defineConfig({
           if (id.includes('node_modules/@tanstack/react-query')) {
             return 'react-query';
           }
+          if (id.includes('node_modules/@radix-ui')) {
+            return 'radix';
+          }
+          if (id.includes('node_modules/zustand')) {
+            return 'state';
+          }
+          if (
+            id.includes('node_modules/react-hook-form') ||
+            id.includes('node_modules/@hookform/resolvers') ||
+            id.includes('node_modules/zod')
+          ) {
+            return 'forms';
+          }
           if (id.includes('node_modules/dompurify') || id.includes('node_modules/sanitize')) {
             return 'sanitize';
           }

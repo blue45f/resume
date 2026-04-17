@@ -38,6 +38,19 @@ interface Stats {
   resumes: { total: number; today: number; week: number; public: number };
   content: { templates: number; tags: number; comments: number; versions: number };
   activity: { applications: number; transforms: number; totalViews: number };
+  coaching?: {
+    totalCoaches: number;
+    activeCoaches: number;
+    totalSessions: number;
+    totalCommission: number;
+    byStatus: {
+      requested?: number;
+      confirmed?: number;
+      completed?: number;
+      cancelled?: number;
+      refunded?: number;
+    };
+  };
   recentUsers?: RecentUser[];
   // Extended stats for charts
   dailyUsers?: number[];
@@ -556,6 +569,67 @@ function DashboardHome({ stats }: { stats: Stats }) {
           <PlanPieChart stats={stats} />
         </div>
       </section>
+
+      <section>
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+          <span className="w-1.5 h-4 bg-rose-500 rounded" />
+          코칭 현황
+        </h2>
+        <CoachingStatsWidget coaching={stats.coaching} />
+      </section>
+    </div>
+  );
+}
+
+function CoachingStatsWidget({ coaching }: { coaching?: Stats['coaching'] }) {
+  const totalCoaches = coaching?.totalCoaches ?? 0;
+  const activeCoaches = coaching?.activeCoaches ?? 0;
+  const totalSessions = coaching?.totalSessions ?? 0;
+  const totalCommission = coaching?.totalCommission ?? 0;
+  const by = coaching?.byStatus || {};
+
+  return (
+    <div className="imp-card p-4 sm:p-5 space-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard label="총 코치 수" value={totalCoaches} color="rose" icon="🎓" />
+        <StatCard
+          label="활성 코치"
+          value={activeCoaches}
+          color="green"
+          icon="✅"
+          sub={totalCoaches > 0 ? `${Math.round((activeCoaches / totalCoaches) * 100)}% 활성` : undefined}
+        />
+        <StatCard label="총 세션 수" value={totalSessions} color="blue" icon="📅" />
+        <StatCard
+          label="총 플랫폼 수수료"
+          value={`${totalCommission.toLocaleString()}원`}
+          color="amber"
+          icon="💰"
+          sub="완료/확정 세션 합산 (15%)"
+        />
+      </div>
+
+      {totalSessions > 0 && (
+        <div className="pt-3 border-t border-slate-100 dark:border-slate-700/60">
+          <p className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">상태별 세션</p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { key: 'requested', label: '요청됨', cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' },
+              { key: 'confirmed', label: '확정', cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' },
+              { key: 'completed', label: '완료', cls: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
+              { key: 'cancelled', label: '취소', cls: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' },
+              { key: 'refunded', label: '환불', cls: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300' },
+            ].map(item => {
+              const n = Number((by as any)[item.key] ?? 0);
+              return (
+                <span key={item.key} className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full ${item.cls}`}>
+                  {item.label} <span className="font-bold">{n}</span>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

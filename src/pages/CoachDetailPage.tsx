@@ -337,6 +337,18 @@ export default function CoachDetailPage() {
               <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2 text-center">
                 코치 확정 후 결제가 진행됩니다
               </p>
+
+              {/* Cancellation policy */}
+              <div className="mt-3 rounded-lg border border-amber-200/70 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-900/10 p-2.5">
+                <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 mb-0.5 flex items-center gap-1">
+                  <span aria-hidden="true">⚠️</span> 취소 정책
+                </p>
+                <ul className="text-[11px] text-amber-700/80 dark:text-amber-200/80 space-y-0.5 list-disc pl-4">
+                  <li>세션 시작 24시간 이전 취소: 전액 환불</li>
+                  <li>24시간 이내 취소: 환불 불가</li>
+                  <li>노쇼(No-show): 환불 불가</li>
+                </ul>
+              </div>
             </form>
           </aside>
         </div>

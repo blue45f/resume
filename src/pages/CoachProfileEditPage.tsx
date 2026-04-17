@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -58,6 +58,7 @@ type CoachProfileFormValues = z.infer<typeof coachProfileSchema>;
 export default function CoachProfileEditPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [hasProfile, setHasProfile] = useState(false);
   const user = getUser();
 
   const {
@@ -95,6 +96,7 @@ export default function CoachProfileEditPage() {
       .then(res => {
         const coachProfile = res.asCoach?.[0]?.coach;
         if (coachProfile && !cancelled) {
+          setHasProfile(true);
           reset({
             specialty: coachProfile.specialty || '',
             bio: coachProfile.bio || '',
@@ -104,6 +106,9 @@ export default function CoachProfileEditPage() {
             availableHours: coachProfile.availableHours || '',
             isActive: coachProfile.isActive ?? true,
           });
+        } else if (!cancelled) {
+          // userType === 'coach' but no session yet means profile may still exist
+          setHasProfile(user?.userType === 'coach');
         }
       })
       .catch(() => { /* 기존 프로필이 없을 수 있음 */ })
@@ -147,11 +152,35 @@ export default function CoachProfileEditPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">코치 프로필</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">전문성을 소개하고 예약을 받아보세요</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {hasProfile ? '프로필을 수정하거나 대시보드로 이동하세요' : '전문성을 소개하고 예약을 받아보세요'}
+            </p>
           </div>
+          {hasProfile && (
+            <Link
+              to="/coach/dashboard"
+              className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 shadow-sm whitespace-nowrap"
+            >
+              코치 대시보드 →
+            </Link>
+          )}
         </div>
+
+        {!loading && !hasProfile && (
+          <div className="imp-card p-4 mb-4 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 border-rose-200/60 dark:border-rose-800/40">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">👋</span>
+              <div>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">코치로 활동을 시작해보세요</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300">
+                  아래 프로필을 작성하면 코치 목록에 공개되며, 예약을 받을 수 있습니다.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="imp-card p-6 animate-pulse space-y-4">

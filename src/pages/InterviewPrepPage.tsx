@@ -3,9 +3,10 @@ import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
-import { fetchResumes } from '@/lib/api';
-import type { ResumeSummary } from '@/types/resume';
+import { fetchResume, fetchResumes } from '@/lib/api';
+import type { Resume, ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
+import RelatedGroupsWidget from '@/features/study-groups/ui/RelatedGroupsWidget';
 
 // ── Types ──
 
@@ -363,6 +364,36 @@ export default function InterviewPrepPage() {
   // ── Report State ──
   const [currentReport, setCurrentReport] = useState<InterviewReport | null>(null);
   const [savedReports, setSavedReports] = useState<InterviewReport[]>(loadJSON(REPORTS_KEY, []));
+
+  // ── Related study groups (cross-feature recommendation) ──
+  const [selectedResumeDetail, setSelectedResumeDetail] = useState<Resume | null>(null);
+  useEffect(() => {
+    if (!selectedResumeId) {
+      setSelectedResumeDetail(null);
+      return;
+    }
+    let cancelled = false;
+    fetchResume(selectedResumeId)
+      .then(r => {
+        if (!cancelled) setSelectedResumeDetail(r);
+      })
+      .catch(() => {
+        if (!cancelled) setSelectedResumeDetail(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedResumeId]);
+
+  const recommendationContext = useMemo(() => {
+    const latestExperience = selectedResumeDetail?.experiences?.find(e => e.company?.trim());
+    const companyFromResume = latestExperience?.company?.trim() || '';
+    const positionFromResume = latestExperience?.position?.trim() || '';
+    return {
+      companyName: companyFromResume,
+      position: jobRole.trim() || positionFromResume,
+    };
+  }, [selectedResumeDetail, jobRole]);
 
   useEffect(() => {
     document.title = '면접 준비 — 이력서공방';
@@ -1297,6 +1328,16 @@ export default function InterviewPrepPage() {
             ) : '면접 질문 생성'}
           </button>
         </div>
+
+        {/* Sidebar: related study groups */}
+        {recommendationContext.companyName && (
+          <div className="mb-6">
+            <RelatedGroupsWidget
+              companyName={recommendationContext.companyName}
+              position={recommendationContext.position}
+            />
+          </div>
+        )}
 
         {/* Questions */}
         {questions.length > 0 && (

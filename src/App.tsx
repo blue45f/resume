@@ -81,6 +81,7 @@ const CoachesPage = lazyRetry(() => import('@/pages/CoachesPage'));
 const CoachDetailPage = lazyRetry(() => import('@/pages/CoachDetailPage'));
 const CoachingSessionsPage = lazyRetry(() => import('@/pages/CoachingSessionsPage'));
 const CoachProfileEditPage = lazyRetry(() => import('@/pages/CoachProfileEditPage'));
+const CoachDashboardPage = lazyRetry(() => import('@/pages/CoachDashboardPage'));
 
 function PageLoader() {
   return (
@@ -169,6 +170,7 @@ export default function App() {
             <Route path="/coaches/:id" element={<Suspense fallback={<PageLoader />}><CoachDetailPage /></Suspense>} />
             <Route path="/coaching/sessions" element={<Suspense fallback={<PageLoader />}><AuthGuard><CoachingSessionsPage /></AuthGuard></Suspense>} />
             <Route path="/coach/profile" element={<Suspense fallback={<PageLoader />}><AuthGuard><CoachProfileEditPage /></AuthGuard></Suspense>} />
+            <Route path="/coach/dashboard" element={<Suspense fallback={<PageLoader />}><AuthGuard><CoachDashboardPage /></AuthGuard></Suspense>} />
             <Route path="/notices" element={<Suspense fallback={<PageLoader />}><NoticePage /></Suspense>} />
             <Route path="/notices/:id" element={<Suspense fallback={<PageLoader />}><NoticePage /></Suspense>} />
             <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />

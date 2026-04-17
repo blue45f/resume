@@ -357,9 +357,14 @@ export default function Header() {
                       </Link>
                     )}
                     {user?.userType === 'coach' && (
-                      <Link to="/coach/profile" onClick={() => setProfileMenuOpen(false)} role="menuitem" className="block px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none">
-                        코치 프로필
-                      </Link>
+                      <>
+                        <Link to="/coach/dashboard" onClick={() => setProfileMenuOpen(false)} role="menuitem" className="block px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none">
+                          코치 대시보드
+                        </Link>
+                        <Link to="/coach/profile" onClick={() => setProfileMenuOpen(false)} role="menuitem" className="block px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none">
+                          코치 프로필
+                        </Link>
+                      </>
                     )}
                     <Link to="/coaching/sessions" onClick={() => setProfileMenuOpen(false)} role="menuitem" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none">
                       내 코칭 세션

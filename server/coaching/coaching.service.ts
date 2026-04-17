@@ -195,6 +195,21 @@ export class CoachingService {
       throw new ForbiddenException('환불은 코치만 가능합니다');
     }
 
+    // 전이 검증: 허용된 전이만 진행
+    const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+      requested: ['confirmed', 'cancelled'],
+      confirmed: ['completed', 'cancelled'],
+      completed: ['refunded'],
+      cancelled: ['refunded'],
+      refunded: [],
+    };
+    const allowed = ALLOWED_TRANSITIONS[session.status] || [];
+    if (!allowed.includes(data.status) && session.status !== data.status) {
+      throw new BadRequestException(
+        `'${session.status}' 상태에서 '${data.status}'(으)로 변경할 수 없습니다`,
+      );
+    }
+
     const updated = await this.session.update({
       where: { id: sessionId },
       data: {

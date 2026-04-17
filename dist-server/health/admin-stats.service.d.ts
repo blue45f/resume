@@ -26,6 +26,13 @@ export declare class AdminStatsService {
             transforms: number;
             totalViews: number;
         };
+        coaching: {
+            totalCoaches: any;
+            activeCoaches: any;
+            totalSessions: number;
+            totalCommission: number;
+            byStatus: Record<string, number>;
+        };
         recentUsers: {
             id: string;
             name: string;

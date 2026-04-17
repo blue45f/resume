@@ -10,6 +10,7 @@ import { toast } from '@/components/Toast';
 import { fetchResumes } from '@/lib/api';
 import type { ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
+import RelatedJobsWidget from '@/features/interview-prep/ui/RelatedJobsWidget';
 
 type PageMode = 'generate' | 'feedback';
 
@@ -518,6 +519,15 @@ export default function CoverLetterPage() {
                   </div>
                 )}
               </div>
+
+              {/* Related jobs (cross-feature recommendation) */}
+              {(companyName?.trim() || position?.trim()) && (
+                <RelatedJobsWidget
+                  companyName={companyName || ''}
+                  position={position || ''}
+                  limit={5}
+                />
+              )}
 
               {/* AI Feedback panel */}
               {(feedback || analyzingFeedback) && (

@@ -248,6 +248,13 @@ function SessionRow({
   const canCancel = (session.status === 'requested' || session.status === 'confirmed');
   const canClientReview = role === 'client' && session.status === 'completed';
 
+  // 24시간 이내 취소 여부: 환불 불가 정책 적용 대상
+  const scheduledMs = new Date(session.scheduledAt).getTime();
+  const hoursUntil = Number.isFinite(scheduledMs)
+    ? (scheduledMs - Date.now()) / (1000 * 60 * 60)
+    : Infinity;
+  const isLateCancellation = hoursUntil >= 0 && hoursUntil < 24;
+
   const initials = (counterpart.name || 'U').slice(0, 1).toUpperCase();
 
   return (
@@ -315,11 +322,19 @@ function SessionRow({
           {canCancel && (
             <button
               onClick={() => {
-                if (confirm('세션을 취소하시겠습니까?')) onChangeStatus(session, 'cancelled');
+                const msg = isLateCancellation
+                  ? '세션 시작 24시간 이내 취소는 환불이 불가합니다.\n정말 취소하시겠습니까?'
+                  : '세션을 취소하시겠습니까?';
+                if (confirm(msg)) onChangeStatus(session, 'cancelled');
               }}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg border ${
+                isLateCancellation
+                  ? 'border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20'
+                  : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+              }`}
+              title={isLateCancellation ? '24시간 이내 취소는 환불 불가' : undefined}
             >
-              취소
+              {isLateCancellation ? '취소 (환불 불가)' : '취소'}
             </button>
           )}
           {canClientReview && !session.rating && (
