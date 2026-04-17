@@ -61,6 +61,7 @@ const JobsPage = lazyRetry(() => import('@/pages/JobsPage'));
 const JobPostPage = lazyRetry(() => import('@/pages/JobPostPage'));
 const RecruiterDashboardPage = lazyRetry(() => import('@/pages/RecruiterDashboardPage'));
 const InterviewPrepPage = lazyRetry(() => import('@/pages/InterviewPrepPage'));
+const MockInterviewPage = lazyRetry(() => import('@/pages/MockInterviewPage'));
 const ResumeReviewPage = lazyRetry(() => import('@/pages/ResumeReviewPage'));
 const NotificationsPage = lazyRetry(() => import('@/pages/NotificationsPage'));
 const ShortLinkPage = lazyRetry(() => import('@/pages/ShortLinkPage'));
@@ -76,6 +77,10 @@ const NotFoundPage = lazyRetry(() => import('@/pages/NotFoundPage'));
 const HelpPage = lazyRetry(() => import('@/pages/HelpPage'));
 const StatsPage = lazyRetry(() => import('@/pages/StatsPage'));
 const PortfolioPage = lazyRetry(() => import('@/pages/PortfolioPage'));
+const CoachesPage = lazyRetry(() => import('@/pages/CoachesPage'));
+const CoachDetailPage = lazyRetry(() => import('@/pages/CoachDetailPage'));
+const CoachingSessionsPage = lazyRetry(() => import('@/pages/CoachingSessionsPage'));
+const CoachProfileEditPage = lazyRetry(() => import('@/pages/CoachProfileEditPage'));
 
 function PageLoader() {
   return (
@@ -144,6 +149,7 @@ export default function App() {
             <Route path="/jobs" element={<Suspense fallback={<PageLoader />}><JobsPage /></Suspense>} />
             <Route path="/recruiter" element={<Suspense fallback={<PageLoader />}><AuthGuard><RecruiterDashboardPage /></AuthGuard></Suspense>} />
             <Route path="/interview-prep" element={<Suspense fallback={<PageLoader />}><InterviewPrepPage /></Suspense>} />
+            <Route path="/mock-interview" element={<Suspense fallback={<PageLoader />}><MockInterviewPage /></Suspense>} />
             <Route path="/social/follows" element={<Suspense fallback={<PageLoader />}><AuthGuard><FollowListPage /></AuthGuard></Suspense>} />
             <Route path="/feedback" element={<Suspense fallback={<PageLoader />}><FeedbackPage /></Suspense>} />
             <Route path="/sitemap" element={<Suspense fallback={<PageLoader />}><SitemapPage /></Suspense>} />
@@ -159,6 +165,10 @@ export default function App() {
             <Route path="/community/write" element={<Suspense fallback={<PageLoader />}><AuthGuard><CommunityWritePage /></AuthGuard></Suspense>} />
             <Route path="/community/:id" element={<Suspense fallback={<PageLoader />}><CommunityPostPage /></Suspense>} />
             <Route path="/community/:id/edit" element={<Suspense fallback={<PageLoader />}><AuthGuard><CommunityWritePage /></AuthGuard></Suspense>} />
+            <Route path="/coaches" element={<Suspense fallback={<PageLoader />}><CoachesPage /></Suspense>} />
+            <Route path="/coaches/:id" element={<Suspense fallback={<PageLoader />}><CoachDetailPage /></Suspense>} />
+            <Route path="/coaching/sessions" element={<Suspense fallback={<PageLoader />}><AuthGuard><CoachingSessionsPage /></AuthGuard></Suspense>} />
+            <Route path="/coach/profile" element={<Suspense fallback={<PageLoader />}><AuthGuard><CoachProfileEditPage /></AuthGuard></Suspense>} />
             <Route path="/notices" element={<Suspense fallback={<PageLoader />}><NoticePage /></Suspense>} />
             <Route path="/notices/:id" element={<Suspense fallback={<PageLoader />}><NoticePage /></Suspense>} />
             <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />

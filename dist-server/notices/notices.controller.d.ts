@@ -189,11 +189,11 @@ export declare class NoticesController {
     } & {
         id: string;
         createdAt: Date;
+        noticeId: string;
+        editorId: string;
         prevTitle: string;
         prevContent: string;
         prevType: string;
         reason: string;
-        noticeId: string;
-        editorId: string;
     })[]>;
 }

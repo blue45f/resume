@@ -13,17 +13,17 @@ export declare class InterviewService {
         createdAt: Date;
         userId: string;
         resumeId: string | null;
+        jobRole: string | null;
         question: string;
         answer: string;
-        jobRole: string | null;
     }>;
     findAll(userId: string): Promise<{
         id: string;
         createdAt: Date;
         resumeId: string | null;
+        jobRole: string | null;
         question: string;
         answer: string;
-        jobRole: string | null;
     }[]>;
     remove(id: string, userId: string): Promise<{
         success: boolean;

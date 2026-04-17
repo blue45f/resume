@@ -14,8 +14,8 @@ export declare class SystemConfigController {
     getAll(): Promise<{
         id: string;
         updatedAt: Date;
-        key: string;
         value: string;
+        key: string;
         label: string;
     }[]>;
     setMany(body: {
@@ -26,8 +26,8 @@ export declare class SystemConfigController {
     }): Promise<{
         id: string;
         updatedAt: Date;
-        key: string;
         value: string;
+        key: string;
         label: string;
     }[]>;
 }

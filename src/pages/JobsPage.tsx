@@ -11,6 +11,9 @@ import { API_URL } from '@/lib/config';
 import { fetchResumes, createApplication } from '@/lib/api';
 import { toast } from '@/components/Toast';
 import type { ResumeSummary } from '@/types/resume';
+import Tabs from '@/shared/ui/Tabs';
+import JobQuestionsPanel from '@/features/interview-prep/ui/JobQuestionsPanel';
+import JobStudyGroupsPanel from '@/features/study-groups/ui/JobStudyGroupsPanel';
 
 /* ------------------------------------------------------------------ */
 /*  One-Click Apply: localStorage tracking for applied jobs            */
@@ -1172,6 +1175,42 @@ function CuratedJobsTab() {
                         </svg>
                       </button>
                     </div>
+
+                    {/* Interview prep + Study groups for CuratedJob */}
+                    <div className="pt-4 mt-2 border-t border-slate-200 dark:border-slate-700">
+                      <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                        함께 준비하기
+                      </h4>
+                      <Tabs
+                        ariaLabel="채용 정보 부가"
+                        items={[
+                          {
+                            id: `cq-${job.id}`,
+                            label: '예상 면접 질문',
+                            content: (
+                              <JobQuestionsPanel
+                                curatedJobId={job.id}
+                                companyName={job.company}
+                                position={job.position}
+                                description={job.summary}
+                                requirements={job.requirements}
+                                skills={job.skills}
+                              />
+                            ),
+                          },
+                          {
+                            id: `cg-${job.id}`,
+                            label: '스터디 그룹',
+                            content: (
+                              <JobStudyGroupsPanel
+                                companyName={job.company}
+                                position={job.position}
+                              />
+                            ),
+                          },
+                        ]}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -2046,6 +2085,42 @@ function JobDetailPanel({ job, isPersonal, userSkills, allJobs, onSelectJob, app
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
           회사 정보 보기
         </Link>
+      </div>
+
+      {/* Interview prep + Study groups */}
+      <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700">
+        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-3">
+          함께 준비하기
+        </h3>
+        <Tabs
+          ariaLabel="공고 부가 정보"
+          items={[
+            {
+              id: 'questions',
+              label: '예상 면접 질문',
+              content: (
+                <JobQuestionsPanel
+                  jobPostId={job.id}
+                  companyName={job.company}
+                  position={job.position}
+                  description={job.description}
+                  skills={job.skills}
+                />
+              ),
+            },
+            {
+              id: 'groups',
+              label: '스터디 그룹',
+              content: (
+                <JobStudyGroupsPanel
+                  jobPostId={job.id}
+                  companyName={job.company}
+                  position={job.position}
+                />
+              ),
+            },
+          ]}
+        />
       </div>
     </>
   );

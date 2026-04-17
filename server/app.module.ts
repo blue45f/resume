@@ -28,6 +28,9 @@ import { SystemConfigModule } from './system-config/system-config.module';
 import { CommunityModule } from './community/community.module';
 import { ForbiddenWordsModule } from './forbidden-words/forbidden-words.module';
 import { InterviewModule } from './interview/interview.module';
+import { StudyGroupsModule } from './study-groups/study-groups.module';
+import { JobInterviewQuestionsModule } from './job-interview-questions/job-interview-questions.module';
+import { CoachingModule } from './coaching/coaching.module';
 
 @Module({
   imports: [
@@ -59,6 +62,9 @@ import { InterviewModule } from './interview/interview.module';
     CommunityModule,
     ForbiddenWordsModule,
     InterviewModule,
+    StudyGroupsModule,
+    JobInterviewQuestionsModule,
+    CoachingModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: CustomThrottlerGuard },

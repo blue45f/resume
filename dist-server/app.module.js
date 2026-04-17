@@ -37,6 +37,9 @@ const system_config_module_1 = require("./system-config/system-config.module");
 const community_module_1 = require("./community/community.module");
 const forbidden_words_module_1 = require("./forbidden-words/forbidden-words.module");
 const interview_module_1 = require("./interview/interview.module");
+const study_groups_module_1 = require("./study-groups/study-groups.module");
+const job_interview_questions_module_1 = require("./job-interview-questions/job-interview-questions.module");
+const coaching_module_1 = require("./coaching/coaching.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(request_id_middleware_1.RequestIdMiddleware, sanitize_middleware_1.SanitizeMiddleware).forRoutes('*');
@@ -74,6 +77,9 @@ exports.AppModule = AppModule = __decorate([
             community_module_1.CommunityModule,
             forbidden_words_module_1.ForbiddenWordsModule,
             interview_module_1.InterviewModule,
+            study_groups_module_1.StudyGroupsModule,
+            job_interview_questions_module_1.JobInterviewQuestionsModule,
+            coaching_module_1.CoachingModule,
         ],
         providers: [
             { provide: core_1.APP_GUARD, useClass: custom_throttler_guard_1.CustomThrottlerGuard },

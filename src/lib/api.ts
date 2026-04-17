@@ -501,3 +501,306 @@ export const sendBulkScout = (data: { targetIds: string[]; message: string; comp
   request<any>(`${BASE}/social/scouts/bulk`, {
     method: 'POST', body: JSON.stringify(data),
   });
+
+// ── Per-Job Expected Questions + Shared Bank ──────────────────────
+export interface JobInterviewQuestion {
+  id: string;
+  jobPostId: string | null;
+  curatedJobId: string | null;
+  companyName: string;
+  position: string;
+  question: string;
+  sampleAnswer: string;
+  category: string;
+  difficulty: string;
+  source: string;
+  authorId: string | null;
+  upvotes: number;
+  createdAt: string;
+  updatedAt: string;
+  author?: { id: string; name: string; avatar: string } | null;
+  _count?: { votes: number };
+  myVote?: boolean;
+}
+
+export interface ListJobQuestionsParams {
+  company?: string;
+  position?: string;
+  jobPostId?: string;
+  curatedJobId?: string;
+  limit?: number;
+}
+
+export const fetchJobInterviewQuestions = (params: ListJobQuestionsParams = {}) => {
+  const qs = new URLSearchParams();
+  if (params.company) qs.set('company', params.company);
+  if (params.position) qs.set('position', params.position);
+  if (params.jobPostId) qs.set('jobPostId', params.jobPostId);
+  if (params.curatedJobId) qs.set('curatedJobId', params.curatedJobId);
+  if (params.limit) qs.set('limit', String(params.limit));
+  const q = qs.toString();
+  return request<JobInterviewQuestion[]>(`${BASE}/job-interview-questions${q ? `?${q}` : ''}`);
+};
+
+export const createJobInterviewQuestion = (data: {
+  jobPostId?: string;
+  curatedJobId?: string;
+  companyName: string;
+  position: string;
+  question: string;
+  sampleAnswer?: string;
+  category?: string;
+  difficulty?: string;
+  source?: string;
+}) =>
+  request<JobInterviewQuestion>(`${BASE}/job-interview-questions`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const upvoteJobInterviewQuestion = (id: string) =>
+  request<{ upvoted: boolean }>(`${BASE}/job-interview-questions/${id}/upvote`, {
+    method: 'POST',
+  });
+
+export const deleteJobInterviewQuestion = (id: string) =>
+  request<{ success: boolean }>(`${BASE}/job-interview-questions/${id}`, { method: 'DELETE' });
+
+export const aiGenerateJobInterviewQuestions = (data: {
+  jobPostId?: string;
+  curatedJobId?: string;
+  companyName: string;
+  position: string;
+  description?: string;
+  requirements?: string;
+  skills?: string;
+  count?: number;
+  persist?: boolean;
+}) =>
+  request<{
+    questions: Array<Partial<JobInterviewQuestion> & { question: string; sampleAnswer: string; category: string; difficulty: string }>;
+    persisted: boolean;
+    provider?: string;
+    model?: string;
+  }>(`${BASE}/job-interview-questions/ai-generate`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+// Study Groups (면접 스터디 그룹)
+export interface StudyGroup {
+  id: string;
+  name: string;
+  description: string;
+  jobPostId: string | null;
+  jobKey: string | null;
+  companyName: string | null;
+  position: string | null;
+  ownerId: string;
+  isPrivate: boolean;
+  maxMembers: number;
+  memberCount: number;
+  createdAt: string;
+  updatedAt: string;
+  owner?: { id: string; name: string; avatar: string };
+  members?: Array<{ id: string; userId: string; role: string; joinedAt: string; user: { id: string; name: string; avatar: string } }>;
+}
+
+export interface StudyGroupQuestion {
+  id: string;
+  groupId: string;
+  userId: string;
+  question: string;
+  sampleAnswer: string;
+  category: string;
+  difficulty: string;
+  upvotes: number;
+  createdAt: string;
+  user?: { id: string; name: string; avatar: string };
+}
+
+export interface StudyGroupListResponse {
+  items: StudyGroup[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export const fetchStudyGroups = (params?: {
+  q?: string;
+  companyName?: string;
+  jobPostId?: string;
+  jobKey?: string;
+  mine?: boolean;
+  page?: number;
+  limit?: number;
+}) => {
+  const qs = new URLSearchParams();
+  if (params?.q) qs.set('q', params.q);
+  if (params?.companyName) qs.set('companyName', params.companyName);
+  if (params?.jobPostId) qs.set('jobPostId', params.jobPostId);
+  if (params?.jobKey) qs.set('jobKey', params.jobKey);
+  if (params?.mine) qs.set('mine', 'true');
+  if (params?.page) qs.set('page', String(params.page));
+  if (params?.limit) qs.set('limit', String(params.limit));
+  const suffix = qs.toString() ? `?${qs.toString()}` : '';
+  return request<StudyGroupListResponse>(`${BASE}/study-groups${suffix}`);
+};
+
+export const fetchStudyGroup = (id: string) =>
+  request<StudyGroup>(`${BASE}/study-groups/${id}`);
+
+export const createStudyGroup = (data: {
+  name: string;
+  description?: string;
+  jobPostId?: string | null;
+  jobKey?: string | null;
+  companyName?: string | null;
+  position?: string | null;
+  isPrivate?: boolean;
+  maxMembers?: number;
+}) =>
+  request<StudyGroup>(`${BASE}/study-groups`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const joinStudyGroup = (id: string) =>
+  request<{ id: string; groupId: string; userId: string; role: string; joinedAt: string }>(
+    `${BASE}/study-groups/${id}/join`,
+    { method: 'POST' },
+  );
+
+export const leaveStudyGroup = (id: string) =>
+  request<{ success: boolean }>(`${BASE}/study-groups/${id}/leave`, { method: 'DELETE' });
+
+export const deleteStudyGroup = (id: string) =>
+  request<{ success: boolean }>(`${BASE}/study-groups/${id}`, { method: 'DELETE' });
+
+export const fetchStudyGroupQuestions = (id: string) =>
+  request<StudyGroupQuestion[]>(`${BASE}/study-groups/${id}/questions`);
+
+export const addStudyGroupQuestion = (
+  id: string,
+  data: { question: string; sampleAnswer?: string; category?: string; difficulty?: string },
+) =>
+  request<StudyGroupQuestion>(`${BASE}/study-groups/${id}/questions`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+// ── Coaching ──────────────────────────────────────────────
+export interface CoachUser {
+  id: string;
+  name: string;
+  username: string;
+  avatar: string;
+}
+
+export interface CoachProfile {
+  id: string;
+  userId: string;
+  specialty: string;
+  bio: string;
+  hourlyRate: number;
+  yearsExp: number;
+  languages: string;
+  availableHours: string;
+  totalSessions: number;
+  avgRating: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  user?: CoachUser;
+}
+
+export type CoachingSessionStatus =
+  | 'requested'
+  | 'confirmed'
+  | 'completed'
+  | 'cancelled'
+  | 'refunded';
+
+export interface CoachingSession {
+  id: string;
+  coachId: string;
+  clientId: string;
+  scheduledAt: string;
+  duration: number;
+  totalPrice: number;
+  commission: number;
+  coachEarn: number;
+  status: CoachingSessionStatus;
+  meetingUrl: string;
+  note: string;
+  rating: number | null;
+  review: string;
+  createdAt: string;
+  updatedAt: string;
+  coach?: CoachProfile;
+  client?: CoachUser;
+}
+
+export interface MySessionsResponse {
+  asClient: CoachingSession[];
+  asCoach: CoachingSession[];
+}
+
+export const fetchCoaches = (params: { specialty?: string; minRate?: number; maxRate?: number } = {}) => {
+  const qs = new URLSearchParams();
+  if (params.specialty) qs.set('specialty', params.specialty);
+  if (params.minRate != null) qs.set('minRate', String(params.minRate));
+  if (params.maxRate != null) qs.set('maxRate', String(params.maxRate));
+  const query = qs.toString();
+  return request<CoachProfile[]>(`${BASE}/coaching/coaches${query ? `?${query}` : ''}`);
+};
+
+export const fetchCoach = (id: string) =>
+  request<CoachProfile>(`${BASE}/coaching/coaches/${id}`);
+
+export const upsertCoachProfile = (data: {
+  specialty: string;
+  bio?: string;
+  hourlyRate?: number;
+  yearsExp?: number;
+  languages?: string;
+  availableHours?: string;
+  isActive?: boolean;
+}) =>
+  request<CoachProfile>(`${BASE}/coaching/coach-profile`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const bookCoachingSession = (data: {
+  coachId: string;
+  scheduledAt: string;
+  duration?: number;
+  note?: string;
+}) =>
+  request<CoachingSession>(`${BASE}/coaching/sessions`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const fetchMyCoachingSessions = () =>
+  request<MySessionsResponse>(`${BASE}/coaching/sessions/my`);
+
+export const updateCoachingSessionStatus = (
+  id: string,
+  data: { status: CoachingSessionStatus; meetingUrl?: string },
+) =>
+  request<CoachingSession>(`${BASE}/coaching/sessions/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+
+export const reviewCoachingSession = (
+  id: string,
+  data: { rating: number; review?: string },
+) =>
+  request<CoachingSession>(`${BASE}/coaching/sessions/${id}/review`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });

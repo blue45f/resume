@@ -17,7 +17,7 @@ model User {
   providerId String   @default("") @map("provider_id")
   passwordHash  String?   @map("password_hash")
   role       String   @default("user") // user, admin
-  userType     String   @default("personal") @map("user_type") // personal, recruiter, company
+  userType     String   @default("personal") @map("user_type") // personal, recruiter, company, coach
   companyName  String?  @map("company_name")
   companyTitle String?  @map("company_title") // 직함
   plan          String   @default("free") // free, pro, enterprise
@@ -53,6 +53,13 @@ model User {
   tags               Tag[]
   templates          Template[]
   forbiddenWords     ForbiddenWord[]
+  ownedStudyGroups     StudyGroup[]         @relation("GroupOwner")
+  studyGroupMemberships StudyGroupMember[]  @relation("GroupMember")
+  studyGroupQuestions  StudyGroupQuestion[] @relation("GroupQuestion")
+  coachProfile      CoachProfile?
+  coachingSessions  CoachingSession[] @relation("CoachingClient")
+  authoredJobQuestions JobInterviewQuestion[]      @relation("JobQuestionAuthor")
+  jobQuestionVotes   JobInterviewQuestionVote[] @relation("JobQuestionVoter")
 
   @@unique([provider, providerId])
   @@map("users")
@@ -547,6 +554,7 @@ model JobPost {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interviewQuestions JobInterviewQuestion[]
 
   @@index([userId])
   @@index([status])
@@ -770,6 +778,7 @@ model CuratedJob {
   clickCount    Int      @default(0) @map("click_count")
   authorId      String?  @map("author_id")
   author        User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  interviewQuestions JobInterviewQuestion[]
 
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
@@ -826,4 +835,151 @@ model InterviewAnswer {
 
   @@index([userId])
   @@map("interview_answers")
+}
+
+model CoachProfile {
+  id              String  @id @default(uuid())
+  userId          String  @unique @map("user_id")
+  specialty       String  // 'frontend' | 'backend' | 'pm' | 'design' | 'career' etc.
+  bio             String  @default("") @db.Text
+  hourlyRate      Int     @default(50000) @map("hourly_rate")  // KRW
+  yearsExp        Int     @default(0) @map("years_exp")
+  languages       String  @default("ko")  // csv
+  availableHours  String  @default("")    @map("available_hours") // JSON string
+  totalSessions   Int     @default(0)     @map("total_sessions")
+  avgRating       Float   @default(0.0)   @map("avg_rating")
+  isActive        Boolean @default(true)  @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions CoachingSession[]
+
+  @@index([specialty])
+  @@index([isActive])
+  @@map("coach_profiles")
+}
+
+model CoachingSession {
+  id          String @id @default(uuid())
+  coachId     String @map("coach_id")  // CoachProfile.id
+  clientId    String @map("client_id") // User.id
+  scheduledAt DateTime @map("scheduled_at")
+  duration    Int    @default(60)       // minutes
+  totalPrice  Int                       @map("total_price")       // 시간 * 레이트
+  commission  Int                       // 플랫폼 수수료 (15%)
+  coachEarn   Int                       @map("coach_earn")
+  status      String @default("requested") // requested | confirmed | completed | cancelled | refunded
+  meetingUrl  String @default("")       @map("meeting_url")
+  note        String @default("")        @db.Text
+  rating      Int?
+  review      String @default("")        @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  coach  CoachProfile @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  client User         @relation("CoachingClient", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([coachId])
+  @@index([clientId])
+  @@index([status])
+  @@map("coaching_sessions")
+}
+
+model StudyGroup {
+  id          String @id @default(uuid())
+  name        String
+  description String @default("")
+  jobPostId   String?  @map("job_post_id")
+  jobKey      String?  @map("job_key")
+  companyName String?  @map("company_name")
+  position    String?
+  ownerId     String  @map("owner_id")
+  isPrivate   Boolean @default(false) @map("is_private")
+  maxMembers  Int     @default(20) @map("max_members")
+  memberCount Int     @default(1)  @map("member_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner   User  @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members StudyGroupMember[]
+  questions StudyGroupQuestion[]
+
+  @@index([jobPostId])
+  @@index([companyName])
+  @@map("study_groups")
+}
+
+model StudyGroupMember {
+  id        String @id @default(uuid())
+  groupId   String @map("group_id")
+  userId    String @map("user_id")
+  role      String @default("member")
+  joinedAt  DateTime @default(now()) @map("joined_at")
+
+  group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation("GroupMember", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@map("study_group_members")
+}
+
+model StudyGroupQuestion {
+  id          String @id @default(uuid())
+  groupId     String @map("group_id")
+  userId      String @map("user_id")
+  question    String
+  sampleAnswer String @default("") @map("sample_answer")
+  category    String @default("")
+  difficulty  String @default("intermediate")
+  upvotes     Int    @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation("GroupQuestion", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@map("study_group_questions")
+}
+
+model JobInterviewQuestion {
+  id          String  @id @default(uuid())
+  jobPostId   String? @map("job_post_id")
+  curatedJobId String? @map("curated_job_id")
+  companyName String  @map("company_name")
+  position    String
+  question    String  @db.Text
+  sampleAnswer String @default("") @db.Text @map("sample_answer")
+  category    String  @default("")
+  difficulty  String  @default("intermediate")
+  source      String  @default("user")
+  authorId    String? @map("author_id")
+  upvotes     Int     @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  jobPost     JobPost?    @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  curatedJob  CuratedJob? @relation(fields: [curatedJobId], references: [id], onDelete: Cascade)
+  author      User?       @relation("JobQuestionAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  votes       JobInterviewQuestionVote[]
+
+  @@index([jobPostId])
+  @@index([curatedJobId])
+  @@index([companyName, position])
+  @@map("job_interview_questions")
+}
+
+model JobInterviewQuestionVote {
+  id         String @id @default(uuid())
+  questionId String @map("question_id")
+  userId     String @map("user_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  question JobInterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User                 @relation("JobQuestionVoter", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, userId])
+  @@index([userId])
+  @@map("job_interview_question_votes")
 }

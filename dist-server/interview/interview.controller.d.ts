@@ -6,18 +6,18 @@ export declare class InterviewController {
         id: string;
         createdAt: Date;
         resumeId: string | null;
+        jobRole: string | null;
         question: string;
         answer: string;
-        jobRole: string | null;
     }[]>;
     create(body: CreateInterviewAnswerDto, req: any): Promise<{
         id: string;
         createdAt: Date;
         userId: string;
         resumeId: string | null;
+        jobRole: string | null;
         question: string;
         answer: string;
-        jobRole: string | null;
     }>;
     remove(id: string, req: any): Promise<{
         success: boolean;

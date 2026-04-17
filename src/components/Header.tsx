@@ -241,6 +241,8 @@ export default function Header() {
                     <Link to="/my-cover-letters" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">내 자소서</Link>
                     <Link to="/cover-letter" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
                     <Link to="/interview-prep" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">면접 준비</Link>
+                    <Link to="/mock-interview" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">모의 면접 (카메라)</Link>
+                    <Link to="/coaches" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">코칭 받기</Link>
                     <Link to="/scouts" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">받은 스카우트</Link>
                     <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                     <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500" role="presentation">내 활동</p>
@@ -354,6 +356,14 @@ export default function Header() {
                         내 포트폴리오 보기 🔗
                       </Link>
                     )}
+                    {user?.userType === 'coach' && (
+                      <Link to="/coach/profile" onClick={() => setProfileMenuOpen(false)} role="menuitem" className="block px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none">
+                        코치 프로필
+                      </Link>
+                    )}
+                    <Link to="/coaching/sessions" onClick={() => setProfileMenuOpen(false)} role="menuitem" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none">
+                      내 코칭 세션
+                    </Link>
                     <Link to="/settings" onClick={() => setProfileMenuOpen(false)} role="menuitem" className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none">
                       {t('common.settings')}
                     </Link>
@@ -452,6 +462,8 @@ export default function Header() {
                 <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500">도구</p>
                 <Link to="/cover-letter" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">{t('nav.coverLetter')}</Link>
                 <Link to="/interview-prep" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">면접 준비</Link>
+                <Link to="/mock-interview" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">모의 면접 (카메라)</Link>
+                <Link to="/coaches" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">코칭 받기</Link>
                 <Link to="/compare" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">이력서 비교</Link>
                 <Link to="/translate" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">번역</Link>
                 <div className="border-t border-slate-100 dark:border-slate-700 my-1.5" />
