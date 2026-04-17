@@ -23,7 +23,7 @@ function SiteStats() {
 
 export default function Footer() {
   return (
-    <footer className="no-print mt-auto border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <footer className="no-print mt-auto" style={{ borderTop: '1px solid var(--color-border-subtle)', background: 'var(--color-surface)' }}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Brand */}

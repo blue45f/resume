@@ -202,7 +202,7 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-block group">
-              <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-600/20 group-hover:shadow-indigo-600/30 transition-shadow duration-200 lg:hidden">
+              <div className="w-14 h-14 bg-neutral-900 dark:bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-shadow duration-200 lg:hidden">
                 <span className="text-white text-2xl font-bold">&#xC774;</span>
               </div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">&#xC774;&#xB825;&#xC11C;&#xACF5;&#xBC29;</h1>
@@ -414,7 +414,7 @@ export default function LoginPage() {
               )}
 
               <button type="submit" disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                className="imp-btn w-full py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
                 {loading && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

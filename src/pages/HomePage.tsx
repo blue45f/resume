@@ -490,40 +490,38 @@ export default function HomePage() {
           <div className="py-12 sm:py-20 animate-fade-in">
             {/* Hero section */}
             <div className="relative text-center mb-16">
-              <div className="absolute inset-0 -top-20 bg-gradient-to-b from-blue-50/80 via-indigo-50/40 to-transparent dark:from-blue-950/30 dark:via-indigo-950/20 dark:to-transparent -mx-4 sm:-mx-6 lg:-mx-8 rounded-3xl" />
               <div className="relative">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100/80 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-semibold mb-6 animate-fade-in backdrop-blur-sm border border-blue-200/50 dark:border-blue-800/50">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 rounded-full text-xs font-medium mb-8 animate-fade-in">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                   AI 기반 이력서 관리 플랫폼
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-slate-100 mb-5 tracking-tight leading-[1.15]">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-neutral-900 dark:text-neutral-50 mb-6 tracking-tight leading-[1.1]">
                   커리어의 시작,{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400">
+                  <span className="text-blue-600 dark:text-blue-400">
                     AI와 함께
                   </span>
                   <br className="hidden sm:block" />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-400 dark:to-blue-400">
-                    스마트하게
-                  </span>
+                  스마트하게
                 </h1>
-                <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed mb-8">
-                  5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기까지.<br className="hidden sm:block" />
+                <p className="text-lg sm:text-xl text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto leading-relaxed mb-10">
+                  5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기까지.
+                  <br className="hidden sm:block" />
                   서류 합격률을 높이는 데이터 기반 이력서 플랫폼
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
                   <Link
                     to="/resumes/new"
-                    className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all duration-200 hover:-translate-y-0.5 text-base"
+                    className="imp-btn inline-flex items-center gap-2 px-8 py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all duration-200 text-base shadow-md hover:shadow-lg"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                     무료로 시작하기
                   </Link>
                   <Link
                     to="/explore"
-                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md transition-all duration-200 text-base"
+                    className="imp-btn inline-flex items-center gap-2 px-6 py-3.5 bg-transparent text-neutral-600 dark:text-neutral-300 font-medium rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200 text-base"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     이력서 탐색
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                   </Link>
                 </div>
               </div>
