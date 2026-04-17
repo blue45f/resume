@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY package.json ./
 COPY prisma ./prisma/
+COPY prisma.config.ts ./
 RUN npm install --legacy-peer-deps
 
 COPY tsconfig.server.json nest-cli.json ./
@@ -20,6 +21,7 @@ RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nestjs
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist-server ./dist-server
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./
 COPY package.json ./
 
 USER nestjs
