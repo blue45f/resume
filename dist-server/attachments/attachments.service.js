@@ -21,7 +21,10 @@ const MAX_TOTAL_SIZE_PER_RESUME = 100 * 1024 * 1024;
 const MAX_FILES_PER_RESUME = 20;
 const ALLOWED_TYPES = [
     'application/pdf',
-    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.ms-excel',
@@ -31,8 +34,19 @@ const ALLOWED_TYPES = [
     'text/plain',
 ];
 const ALLOWED_EXTENSIONS = [
-    '.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp',
-    '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt',
+    '.pdf',
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.gif',
+    '.webp',
+    '.doc',
+    '.docx',
+    '.xls',
+    '.xlsx',
+    '.ppt',
+    '.pptx',
+    '.txt',
 ];
 let AttachmentsService = class AttachmentsService {
     prisma;
@@ -135,11 +149,18 @@ let AttachmentsService = class AttachmentsService {
             where: { resumeId },
             orderBy: { createdAt: 'desc' },
             select: {
-                id: true, resumeId: true, filename: true, originalName: true,
-                mimeType: true, size: true, category: true, description: true, createdAt: true,
+                id: true,
+                resumeId: true,
+                filename: true,
+                originalName: true,
+                mimeType: true,
+                size: true,
+                category: true,
+                description: true,
+                createdAt: true,
             },
         });
-        return attachments.map(a => this.format(a));
+        return attachments.map((a) => this.format(a));
     }
     async getFileData(id, userId) {
         const attachment = await this.prisma.attachment.findUnique({
@@ -148,11 +169,17 @@ let AttachmentsService = class AttachmentsService {
         });
         if (!attachment)
             throw new common_1.NotFoundException('파일을 찾을 수 없습니다');
-        if (attachment.resume.visibility === 'private' && attachment.resume.userId && attachment.resume.userId !== userId) {
+        if (attachment.resume.visibility === 'private' &&
+            attachment.resume.userId &&
+            attachment.resume.userId !== userId) {
             throw new common_1.NotFoundException('파일을 찾을 수 없습니다');
         }
         if (attachment.filename.startsWith('http')) {
-            return { redirectUrl: attachment.filename, originalName: attachment.originalName, mimeType: attachment.mimeType };
+            return {
+                redirectUrl: attachment.filename,
+                originalName: attachment.originalName,
+                mimeType: attachment.mimeType,
+            };
         }
         return {
             data: attachment.data ? Buffer.from(attachment.data, 'base64') : null,
@@ -200,7 +227,8 @@ let AttachmentsService = class AttachmentsService {
                 }
             }
         }
-        catch { }
+        catch {
+        }
     }
     format(a) {
         const isCloudinary = a.filename?.startsWith('http');
