@@ -161,10 +161,26 @@ export class CommunityService {
       return { liked: false };
     } else {
       await this.prisma.communityLike.create({ data: { postId, userId } });
-      await this.prisma.communityPost.update({
+      const updated = await this.prisma.communityPost.update({
         where: { id: postId },
         data: { likeCount: { increment: 1 } },
+        select: { userId: true, title: true, likeCount: true },
       });
+
+      // 좋아요 알림: 게시글 작성자에게 (본인 좋아요/익명 제외, 10-tick 배수만 통지)
+      if (updated.userId && updated.userId !== userId) {
+        const threshold = updated.likeCount <= 5 || updated.likeCount % 10 === 0;
+        if (threshold) {
+          await this.notifications
+            .create(
+              updated.userId,
+              'community_like',
+              `"${updated.title}" 게시글이 ${updated.likeCount}개의 좋아요를 받았어요 ❤️`,
+              `/community/${postId}`,
+            )
+            .catch(() => undefined);
+        }
+      }
       return { liked: true };
     }
   }
