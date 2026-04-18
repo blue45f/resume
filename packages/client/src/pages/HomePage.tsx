@@ -863,8 +863,8 @@ export default function HomePage() {
             {/* Platform stats */}
             <SiteStatsBar />
 
-            {/* Action cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl md:max-w-3xl mx-auto mb-10 mt-12">
+            {/* Action cards — 브레이크포인트별 단계 명시 */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-2xl md:max-w-3xl mx-auto mb-10 mt-12">
               <Link
                 to={ROUTES.resume.new}
                 className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
@@ -1049,7 +1049,7 @@ export default function HomePage() {
               <h2 className="text-xl font-bold text-center text-slate-800 dark:text-slate-200 mb-8">
                 {socialProofTitle}
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {testimonials.map((review, i) => (
                   <div
                     key={i}
@@ -1335,7 +1335,7 @@ export default function HomePage() {
             </div>
 
             {/* Resume grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
               {sorted.map((resume, index) => (
                 <article
                   key={resume.id}
