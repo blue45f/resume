@@ -829,6 +829,7 @@ export interface CoachingSession {
   id: string;
   coachId: string;
   clientId: string;
+  resumeId?: string | null;
   scheduledAt: string;
   duration: number;
   totalPrice: number;
