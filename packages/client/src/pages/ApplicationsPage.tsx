@@ -109,21 +109,9 @@ const getPRIORITY_CONFIG = (): Record<string, { label: string; color: string; ic
   return out;
 };
 
-const MONTHS_KO = [
-  '1월',
-  '2월',
-  '3월',
-  '4월',
-  '5월',
-  '6월',
-  '7월',
-  '8월',
-  '9월',
-  '10월',
-  '11월',
-  '12월',
-];
-const DAYS_KO = ['일', '월', '화', '수', '목', '금', '토'];
+const getMONTHS = () => Array.from({ length: 12 }, (_, i) => tx(`datetime.months.${i + 1}`));
+const getDAYS = () =>
+  ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((k) => tx(`datetime.days.${k}`));
 
 function daysSince(dateStr?: string): number {
   if (!dateStr) return 0;
@@ -964,7 +952,7 @@ export default function ApplicationsPage() {
                 </svg>
               </button>
               <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                {calendarData.year}년 {MONTHS_KO[calendarData.month]}
+                {calendarData.year} {getMONTHS()[calendarData.month]}
               </h3>
               <button
                 onClick={() =>
@@ -988,7 +976,7 @@ export default function ApplicationsPage() {
             </div>
             {/* Day headers */}
             <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-700">
-              {DAYS_KO.map((d, i) => (
+              {getDAYS().map((d, i) => (
                 <div
                   key={d}
                   className={`text-center py-2 text-xs font-medium ${i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-slate-500 dark:text-slate-400'}`}
