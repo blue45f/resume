@@ -348,11 +348,11 @@ export default function StudyGroupDetailPage() {
                     onChange={(e) => setNewPostCategory(e.target.value as any)}
                     className="text-xs px-2 py-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700"
                   >
-                    {isOwner && <option value="notice">📢 공지</option>}
-                    <option value="free">💬 자유</option>
-                    <option value="question">❓ 질문</option>
-                    <option value="resource">📎 자료공유</option>
-                    <option value="study-log">📝 학습일지</option>
+                    {isOwner && <option value="notice">📢 {tx('study.category.notice')}</option>}
+                    <option value="free">💬 {tx('study.category.free')}</option>
+                    <option value="question">❓ {tx('study.category.question')}</option>
+                    <option value="resource">📎 {tx('study.category.resource')}</option>
+                    <option value="study-log">📝 {tx('study.category.studyLog')}</option>
                   </select>
                   <input
                     type="text"
