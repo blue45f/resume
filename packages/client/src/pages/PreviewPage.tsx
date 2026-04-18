@@ -15,6 +15,7 @@ import AudioSummaryPanel from '@/components/AudioSummaryPanel';
 import CareerGrowthChart from '@/components/CareerGrowthChart';
 import { downloadSocialCard, downloadSocialCardSvg } from '@/lib/socialCard';
 import { downloadJsonResume } from '@/lib/jsonResume';
+import { copyPlainText, copyMarkdown } from '@/lib/resumeExport';
 import { resumeThemes } from '@/lib/resumeThemes';
 import CompletenessBar from '@/components/CompletenessBar';
 import { ROUTES, withQuery } from '@/lib/routes';
@@ -721,6 +722,62 @@ export default function PreviewPage() {
                         />
                       </svg>
                       JSON Resume 표준 내보내기
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await copyPlainText(resume);
+                          toast('ATS-friendly 텍스트 복사됨', 'success');
+                        } catch {
+                          toast('복사 실패', 'error');
+                        }
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                      title="포맷 제거된 plain text — ATS 파서 친화적"
+                    >
+                      <svg
+                        className="w-4 h-4 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 6h16M4 10h16M4 14h10M4 18h10"
+                        />
+                      </svg>
+                      Plain Text 복사 (ATS)
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await copyMarkdown(resume);
+                          toast('Markdown 복사됨 — GitHub README/Notion 에 붙여넣기', 'success');
+                        } catch {
+                          toast('복사 실패', 'error');
+                        }
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                      title="GitHub README / dev.to / Notion 용 Markdown 복사"
+                    >
+                      <svg
+                        className="w-4 h-4 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 20H5a2 2 0 01-2-2V6a2 2 0 012-2h5m5 0h4a2 2 0 012 2v12a2 2 0 01-2 2h-4m-5-5l4-4m0 0l-4-4m4 4H9"
+                        />
+                      </svg>
+                      Markdown 복사
                     </button>
                     <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                     <button
