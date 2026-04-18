@@ -6,6 +6,7 @@ import ResumePreview from '@/components/ResumePreview';
 import PrintFooter from '@/components/PrintFooter';
 import { downloadVCard } from '@/lib/vcard';
 import { copySignatureToClipboard } from '@/lib/emailSignature';
+import PitchPanel from '@/components/PitchPanel';
 import { resumeThemes } from '@/lib/resumeThemes';
 import CompletenessBar from '@/components/CompletenessBar';
 import { ROUTES, withQuery } from '@/lib/routes';
@@ -923,6 +924,7 @@ export default function PreviewPage() {
             })()}
 
             <CompletenessBar resume={resume} />
+            <PitchPanel resume={resume} />
             <ResumeAuditPanel resume={resume} />
             <Suspense
               fallback={
