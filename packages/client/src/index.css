@@ -175,6 +175,31 @@ body {
   }
 }
 
+/* ─── 이력서 미리보기 페이지 테마 반영 ─────────────────────
+   PreviewPage 의 data-theme-category 속성과 --preview-theme-accent CSS 변수를
+   활용해 토글바/완성도/패널 chrome 이 선택 테마에 맞게 미묘하게 변화.
+   데스크탑·모바일 공통. */
+main[style*='--preview-theme-accent'] .imp-card {
+  /* 카드 상단에 얇은 accent line (테마 변경 즉시 반영) */
+  border-top: 2px solid var(--preview-theme-accent);
+}
+main[style*='--preview-theme-accent'] .resume-preview {
+  /* 테마별 카테고리에 따라 그림자 tint 다르게 */
+  box-shadow:
+    0 4px 20px -4px color-mix(in srgb, var(--preview-theme-accent) 20%, transparent),
+    0 2px 8px -2px rgba(0, 0, 0, 0.05);
+}
+main[data-theme-category='creative'] .imp-card {
+  border-top-width: 3px;
+}
+main[data-theme-category='academic'] .imp-card {
+  border-top-style: double;
+  border-top-width: 4px;
+}
+main[data-theme-category='tech'] .imp-card {
+  border-top-style: dashed;
+}
+
 @media (min-width: 640px) and (max-width: 1023px) {
   html {
     font-size: 15.5px;

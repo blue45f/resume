@@ -158,6 +158,13 @@ export default function PreviewPage() {
   const [showJdMatch, setShowJdMatch] = useState(false);
   const [themeId, setThemeId] = useState('classic');
   const [customAccentHex, setCustomAccentHex] = useState('');
+
+  // 선택된 테마의 accent/header 색상 — 페이지 전체 chrome 에 반영
+  const activeTheme = resumeThemes.find((t) => t.id === themeId) ?? resumeThemes[0];
+  const themeAccent =
+    customAccentHex || activeTheme.preview?.accentBar || activeTheme.preview?.headerBg || '#2563eb';
+  const themeHeaderBg = activeTheme.preview?.headerBg || '#f8fafc';
+  const themeCategory = activeTheme.preview?.category || 'basic';
   const [customFont, setCustomFont] = useState('');
   const [showQr, setShowQr] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
@@ -394,7 +401,23 @@ export default function PreviewPage() {
         id="main-content"
         className="flex-1 pb-20 sm:pb-0 animate-in fade-in-0 duration-300"
         role="main"
+        data-theme-category={themeCategory}
+        style={
+          {
+            '--preview-theme-accent': themeAccent,
+            '--preview-theme-header-bg': themeHeaderBg,
+          } as React.CSSProperties
+        }
       >
+        {/* 테마 반영 최상단 accent bar — 템플릿 변경 즉시 시각적 피드백 */}
+        <div
+          key={themeId}
+          aria-hidden
+          className="no-print sticky top-[104px] sm:top-[116px] z-30 h-1.5 w-full transition-all duration-500 animate-in fade-in-0"
+          style={{
+            background: `linear-gradient(to right, ${themeAccent}, ${themeAccent}99, ${themeAccent}33)`,
+          }}
+        />
         {/* Toolbar — hidden on mobile (actions moved to sticky bottom bar) */}
         <div className="no-print sticky top-14 sm:top-16 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-200/80">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2">
@@ -660,7 +683,11 @@ export default function PreviewPage() {
               return (
                 <button
                   key={t.id}
-                  onClick={() => !locked && setThemeId(t.id)}
+                  onClick={() => {
+                    if (locked) return;
+                    setThemeId(t.id);
+                    toast(`테마: ${t.name}`, 'success');
+                  }}
                   disabled={locked}
                   className={`flex-shrink-0 flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all duration-200 border-2 focus-ring-accent ${
                     locked
