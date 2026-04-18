@@ -4,5 +4,23 @@ Disallow: /admin
 Disallow: /settings
 Disallow: /auth/callback
 Disallow: /payment
+Disallow: /messages
+Disallow: /notifications
+Disallow: /bookmarks
+Disallow: /applications
 
-Sitemap: https://resume-gongbang.vercel.app/api/health/sitemap.xml
+# LLM scrapers — 학습 자원 수집 차단
+User-agent: GPTBot
+Disallow: /
+User-agent: ChatGPT-User
+Disallow: /
+User-agent: Google-Extended
+Disallow: /
+User-agent: CCBot
+Disallow: /
+User-agent: anthropic-ai
+Disallow: /
+User-agent: Claude-Web
+Disallow: /
+
+Sitemap: https://resume-gongbang.vercel.app/sitemap.xml
