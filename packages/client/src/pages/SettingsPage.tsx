@@ -655,7 +655,7 @@ export default function SettingsPage() {
                       /u/{user.username}
                     </code>
                     <Link
-                      to={`/u/${user.username}`}
+                      to={ROUTES.profile.userShort(user.username)}
                       className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                       target="_blank"
                     >

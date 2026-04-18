@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useJobStats } from '@/hooks/useApi';
 import { useSiteStatsPublic, usePublicGet, usePopularSkills } from '@/hooks/useResources';
+import { ROUTES } from '@/lib/routes';
 
 interface SiteStats {
   users: { total: number; today: number; thisWeek: number };
@@ -444,7 +445,7 @@ export default function StatsPage() {
                   {filtered.map((r, i) => (
                     <Link
                       key={r.id}
-                      to={`/resumes/${r.id}/preview`}
+                      to={ROUTES.resume.preview(r.id)}
                       className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
                       <span

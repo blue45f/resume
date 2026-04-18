@@ -8,7 +8,7 @@ import ErrorRetry from '@/components/ErrorRetry';
 import CompanyInfoCard from '@/components/CompanyInfoCard';
 import JobAlert from '@/components/JobAlert';
 import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
+import { ROUTES, withQuery } from '@/lib/routes';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
 import { fetchResumes, createApplication } from '@/lib/api';
@@ -2727,7 +2727,7 @@ export default function JobsPage() {
                         <div className="flex items-center justify-between mt-0.5">
                           <p className="text-xs text-slate-600 dark:text-slate-400">{j.company}</p>
                           <Link
-                            to={`/company/${encodeURIComponent(j.company)}`}
+                            to={ROUTES.company.view(j.company)}
                             onClick={(e) => e.stopPropagation()}
                             className="text-[10px] text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 hover:underline shrink-0"
                           >
@@ -3304,13 +3304,16 @@ function JobDetailPanel({
         ) : (
           <>
             <Link
-              to={`/applications?company=${encodeURIComponent(job.company)}&position=${encodeURIComponent(job.position)}`}
+              to={withQuery(ROUTES.jobs.applications, {
+                company: job.company,
+                position: job.position,
+              })}
               className="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-xl hover:bg-slate-200 transition-colors"
             >
               지원 추가
             </Link>
             <Link
-              to={`/jobs/new?copyFrom=${job.id}`}
+              to={ROUTES.jobs.newCopy(job.id)}
               className="px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-sm rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
             >
               복사해서 새 공고
@@ -3318,13 +3321,13 @@ function JobDetailPanel({
           </>
         )}
         <Link
-          to={`/cover-letter?company=${encodeURIComponent(job.company)}&position=${encodeURIComponent(job.position)}`}
+          to={withQuery('/cover-letter', { company: job.company, position: job.position })}
           className={`${isPersonal ? '' : 'flex-1'} px-4 py-2.5 text-center bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors`}
         >
           이 공고로 자소서 작성
         </Link>
         <Link
-          to={`/company/${encodeURIComponent(job.company)}`}
+          to={ROUTES.company.view(job.company)}
           className="px-4 py-2.5 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm rounded-xl hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors flex items-center gap-1"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -359,7 +359,7 @@ function SessionRow({
             )}
             {session.resumeId && (
               <Link
-                to={`/resumes/${session.resumeId}/preview`}
+                to={ROUTES.resume.preview(session.resumeId)}
                 className="inline-flex items-center gap-1 mt-2 ml-2 text-xs font-medium text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-900/20 px-2 py-0.5 rounded-full hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-colors"
               >
                 📄 공유 이력서 열람

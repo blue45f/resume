@@ -1089,7 +1089,7 @@ export default function NewResumePage() {
     try {
       const result = await createResume(data);
       toast('이력서가 생성되었습니다', 'success');
-      navigate(`/resumes/${result.id}/edit`);
+      navigate(ROUTES.resume.edit(result.id));
     } catch {
       toast('이력서 생성에 실패했습니다', 'error');
     } finally {
@@ -1189,7 +1189,7 @@ export default function NewResumePage() {
     try {
       const result = await duplicateResume(copySourceId);
       toast('이력서가 복사되었습니다', 'success');
-      navigate(`/resumes/${result.id}/edit`);
+      navigate(ROUTES.resume.edit(result.id));
     } catch {
       toast('복사에 실패했습니다. 직접 편집 모드로 전환합니다.', 'error');
       proceedToForm('copy');

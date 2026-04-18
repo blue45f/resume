@@ -373,7 +373,7 @@ export default function EditResumePage() {
     try {
       await updateResume(id, data);
       toast('이력서가 저장되었습니다', 'success');
-      navigate(`/resumes/${id}/preview`);
+      if (id) navigate(ROUTES.resume.preview(id));
     } catch {
       toast('저장에 실패했습니다. 다시 시도해주세요.', 'error');
     } finally {

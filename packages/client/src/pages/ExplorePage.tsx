@@ -1138,7 +1138,7 @@ export default function ExplorePage() {
                         {user.resumes.slice(0, 3).map((r) => (
                           <Link
                             key={r.id}
-                            to={`/resumes/${r.id}/preview`}
+                            to={ROUTES.resume.preview(r.id)}
                             className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
                           >
                             <svg
@@ -1201,7 +1201,7 @@ export default function ExplorePage() {
                           )}
                         </button>
                         <button
-                          onClick={() => navigate(`/messages?to=${user.userId}`)}
+                          onClick={() => navigate(ROUTES.social.conversation(user.userId))}
                           className="px-3 py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
                           title="쪽지 보내기"
                         >
@@ -1298,7 +1298,7 @@ export default function ExplorePage() {
                   return (
                     <Link
                       key={post.id}
-                      to={`/community/${post.id}`}
+                      to={ROUTES.community.post(post.id)}
                       className="flex items-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm transition-all"
                     >
                       <span
@@ -1379,7 +1379,7 @@ export default function ExplorePage() {
                   {recentViews.map((v) => (
                     <Link
                       key={`recent-${v.id}`}
-                      to={`/resumes/${v.id}/preview`}
+                      to={ROUTES.resume.preview(v.id)}
                       className="shrink-0 w-40 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-300 transition-colors"
                     >
                       <p className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">
@@ -1408,7 +1408,7 @@ export default function ExplorePage() {
                     .map((r) => (
                       <Link
                         key={`trending-${r.id}`}
-                        to={`/resumes/${r.id}/preview`}
+                        to={ROUTES.resume.preview(r.id)}
                         className="gradient-border-hot lift-hover shrink-0 w-48 p-3 bg-white dark:bg-slate-800 rounded-xl"
                       >
                         <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
@@ -1490,7 +1490,7 @@ export default function ExplorePage() {
                   return (
                     <Link
                       key={resume.id}
-                      to={`/resumes/${resume.id}/preview`}
+                      to={ROUTES.resume.preview(resume.id)}
                       className="flex items-center gap-4 imp-card p-4 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
                     >
                       {/* Theme dot */}
@@ -1580,7 +1580,7 @@ export default function ExplorePage() {
                 return (
                   <Link
                     key={resume.id}
-                    to={`/resumes/${resume.id}/preview`}
+                    to={ROUTES.resume.preview(resume.id)}
                     className="imp-card lift-hover p-5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
                   >
                     {/* Theme color bar */}

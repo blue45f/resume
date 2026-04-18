@@ -12,6 +12,7 @@ import {
   sendBulkScout,
 } from '@/lib/api';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import { timeAgo } from '@/lib/time';
 import { toast } from '@/components/Toast';
 import SendMessageButton from '@/components/SendMessageButton';
@@ -889,7 +890,7 @@ export default function ScoutsPage() {
                     {tab === 'received' && (
                       <>
                         <Link
-                          to={`/messages`}
+                          to={ROUTES.social.messages}
                           className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
                         >
                           답장하기
@@ -914,7 +915,7 @@ export default function ScoutsPage() {
                     )}
                     {selected.resumeId && (
                       <Link
-                        to={`/resumes/${selected.resumeId}/preview`}
+                        to={ROUTES.resume.preview(selected.resumeId)}
                         className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-xl hover:bg-slate-200 transition-colors"
                       >
                         관련 이력서

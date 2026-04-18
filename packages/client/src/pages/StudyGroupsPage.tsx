@@ -234,7 +234,7 @@ export default function StudyGroupsPage() {
           {groups.map((g) => (
             <Link
               key={g.id}
-              to={`/study-groups/${g.id}`}
+              to={ROUTES.interview.studyGroup(g.id)}
               className="imp-card p-5 block hover:-translate-y-0.5 transition-transform"
             >
               <div className="flex items-start justify-between gap-2 mb-2">

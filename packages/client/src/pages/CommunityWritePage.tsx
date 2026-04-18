@@ -497,7 +497,7 @@ export default function CommunityWritePage() {
     if (r.ok) {
       const data = await r.json();
       clearDraft();
-      navigate(`/community/${isEdit ? id : data.id}`);
+      navigate(ROUTES.community.post(isEdit ? (id as string) : data.id));
     } else {
       setError('저장에 실패했습니다. 다시 시도해주세요.');
     }

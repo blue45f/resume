@@ -315,7 +315,7 @@ export default function PortfolioPage() {
                 {resumes.map((resume, i) => (
                   <Link
                     key={resume.id}
-                    to={`/resumes/${resume.id}/preview`}
+                    to={ROUTES.resume.preview(resume.id)}
                     className={`block bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md transition-all duration-200 stagger-${i + 1} animate-fade-in group`}
                   >
                     {/* Header */}

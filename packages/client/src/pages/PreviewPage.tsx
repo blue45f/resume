@@ -5,7 +5,7 @@ import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
 import { resumeThemes } from '@/lib/resumeThemes';
 import CompletenessBar from '@/components/CompletenessBar';
-import { ROUTES } from '@/lib/routes';
+import { ROUTES, withQuery } from '@/lib/routes';
 
 // Lazy-load heavy sub-components that are not visible on initial render
 const LlmTransformPanel = lazy(() => import('@/components/LlmTransformPanel'));
@@ -405,7 +405,7 @@ export default function PreviewPage() {
               </button>
               <span className="text-slate-300 hidden sm:inline">|</span>
               <button
-                onClick={() => navigate(`/resumes/${id}/edit`)}
+                onClick={() => id && navigate(ROUTES.resume.edit(id))}
                 className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                 aria-label="편집"
                 title="편집"
@@ -434,7 +434,7 @@ export default function PreviewPage() {
             <div className="hidden sm:flex items-center gap-1.5">
               {/* Primary: AI 기능 */}
               <button
-                onClick={() => navigate(`/resumes/${id}/review`)}
+                onClick={() => id && navigate(ROUTES.resume.review(id))}
                 className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors"
               >
                 리뷰
@@ -452,14 +452,14 @@ export default function PreviewPage() {
                 JD 매칭
               </button>
               <button
-                onClick={() => navigate(`/cover-letter?resumeId=${id}`)}
+                onClick={() => id && navigate(ROUTES.coverLetter.new(id))}
                 className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors"
                 title="이 이력서를 기반으로 자소서 작성"
               >
                 자소서
               </button>
               <button
-                onClick={() => navigate(`/interview-prep?resumeId=${id}`)}
+                onClick={() => id && navigate(withQuery(ROUTES.interview.prep, { resumeId: id }))}
                 className="px-3 py-1.5 bg-cyan-700 text-white text-xs font-medium rounded-lg hover:bg-cyan-800 transition-colors"
                 title="이 이력서 기반 면접 준비"
               >

@@ -520,13 +520,13 @@ export default function ResumeReviewPage() {
           </div>
           <div className="flex items-center gap-2">
             <Link
-              to={`/resumes/${id}/preview`}
+              to={id ? ROUTES.resume.preview(id) : '#'}
               className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
             >
               미리보기
             </Link>
             <Link
-              to={`/resumes/${id}/edit`}
+              to={id ? ROUTES.resume.edit(id) : '#'}
               className="px-3 py-1.5 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
             >
               수정하기
@@ -761,7 +761,7 @@ export default function ResumeReviewPage() {
                   </div>
                   {rec.section && (
                     <Link
-                      to={`/resumes/${id}/edit`}
+                      to={id ? ROUTES.resume.edit(id) : '#'}
                       className="shrink-0 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                     >
                       수정하기
@@ -776,13 +776,13 @@ export default function ResumeReviewPage() {
         {/* Action Footer */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-6 border-t border-slate-200 dark:border-slate-700">
           <Link
-            to={`/resumes/${id}/edit`}
+            to={id ? ROUTES.resume.edit(id) : '#'}
             className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors text-center"
           >
             이력서 수정하기
           </Link>
           <Link
-            to={`/resumes/${id}/preview`}
+            to={id ? ROUTES.resume.preview(id) : '#'}
             className="w-full sm:w-auto px-6 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-center"
           >
             미리보기로 돌아가기

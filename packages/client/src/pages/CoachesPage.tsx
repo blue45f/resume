@@ -341,7 +341,7 @@ function CoachCard({ coach }: { coach: CoachProfile }) {
           </p>
         </div>
         <Link
-          to={`/coaches/${coach.id}`}
+          to={ROUTES.coaching.coach(coach.id)}
           className="inline-flex items-center gap-1 px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 transition-all shadow-sm"
         >
           매칭 요청

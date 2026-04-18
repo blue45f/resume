@@ -61,6 +61,7 @@ export const ROUTES = {
     list: '/jobs',
     detail: (id: string) => `/jobs/${id}`,
     new: '/jobs/new',
+    newCopy: (fromId: string) => `/jobs/new?copyFrom=${fromId}`,
     edit: (id: string) => `/jobs/${id}/edit`,
     applications: '/applications',
     scouts: '/scouts',
@@ -77,6 +78,7 @@ export const ROUTES = {
     resume: '/community?category=resume',
     write: '/community/write',
     post: (id: string) => `/community/${id}`,
+    postEdit: (id: string) => `/community/${id}/edit`,
   },
 
   // ─── 면접 ────────────────────────────────────
@@ -117,6 +119,7 @@ export const ROUTES = {
   profile: {
     me: '/settings',
     user: (username: string) => `/@${username}`,
+    userShort: (username: string) => `/u/${username}`,
     resumes: (username: string) => `/@${username}/resumes`,
     portfolio: (username: string) => `/@${username}/portfolio`,
   },
@@ -132,7 +135,7 @@ export const ROUTES = {
     pipeline: '/recruiter?tab=pipeline',
   },
   company: {
-    view: (id: string) => `/company/${id}`,
+    view: (idOrName: string) => `/company/${encodeURIComponent(idOrName)}`,
     edit: '/company/edit',
   },
 

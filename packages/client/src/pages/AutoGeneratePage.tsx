@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import { useTemplates, useResumes } from '@/hooks/useResources';
 import type { Template, ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
 
 const EXAMPLES = [
   '경력 메모, 자기소개 텍스트',
@@ -179,7 +180,7 @@ export default function AutoGeneratePage() {
       }
       const data = await res.json();
       setCurrentStep(4);
-      navigate(`/resumes/${data.resume.id}/edit`);
+      navigate(ROUTES.resume.edit(data.resume.id));
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -629,7 +630,7 @@ export default function AutoGeneratePage() {
                 {previousResumes.slice(0, 6).map((r) => (
                   <button
                     key={r.id}
-                    onClick={() => navigate(`/resumes/${r.id}/edit`)}
+                    onClick={() => navigate(ROUTES.resume.edit(r.id))}
                     className="text-left p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-sm transition-all"
                   >
                     <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">

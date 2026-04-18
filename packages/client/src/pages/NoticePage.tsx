@@ -129,7 +129,7 @@ function NoticeList() {
                 return (
                   <Link
                     key={notice.id}
-                    to={`/notices/${notice.id}`}
+                    to={ROUTES.notice(notice.id)}
                     className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                   >
                     <span

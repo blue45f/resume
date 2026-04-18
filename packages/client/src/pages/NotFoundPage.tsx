@@ -68,7 +68,7 @@ export default function NotFoundPage() {
                 {recentViews.slice(0, 4).map((v) => (
                   <Link
                     key={v.id}
-                    to={`/resumes/${v.id}/preview`}
+                    to={ROUTES.resume.preview(v.id)}
                     className="px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-indigo-300 transition-colors"
                   >
                     {v.name || v.title}

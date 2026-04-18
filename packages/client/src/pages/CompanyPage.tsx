@@ -6,7 +6,7 @@ import ErrorRetry from '@/components/ErrorRetry';
 import { timeAgo } from '@/lib/time';
 import { getUser } from '@/lib/auth';
 import { useJobs } from '@/hooks/useResources';
-import { ROUTES } from '@/lib/routes';
+import { ROUTES, withQuery } from '@/lib/routes';
 
 // ── Company Review System (localStorage-based) ─────────────────────────────
 
@@ -773,7 +773,7 @@ export default function CompanyPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <Link
-                            to={`/jobs?selected=${job.id}`}
+                            to={withQuery(ROUTES.jobs.list, { selected: job.id })}
                             className="text-sm font-semibold text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                           >
                             {job.position}
@@ -830,7 +830,10 @@ export default function CompanyPage() {
                           )}
                         </div>
                         <Link
-                          to={`/applications?company=${encodeURIComponent(job.company)}&position=${encodeURIComponent(job.position)}`}
+                          to={withQuery(ROUTES.jobs.applications, {
+                            company: job.company,
+                            position: job.position,
+                          })}
                           className="shrink-0 px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                         >
                           지원하기

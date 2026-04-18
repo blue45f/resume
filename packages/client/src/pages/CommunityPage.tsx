@@ -258,7 +258,7 @@ export default function CommunityPage() {
                 return (
                   <Link
                     key={post.id}
-                    to={`/community/${post.id}`}
+                    to={ROUTES.community.post(post.id)}
                     onClick={() => handlePostClick(post.id)}
                     className="flex items-center gap-3 group"
                   >
@@ -441,7 +441,7 @@ export default function CommunityPage() {
               return (
                 <Link
                   key={post.id}
-                  to={`/community/${post.id}`}
+                  to={ROUTES.community.post(post.id)}
                   onClick={() => handlePostClick(post.id)}
                   className={`block bg-white dark:bg-slate-800 border rounded-xl p-4 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm transition-all duration-150 ${
                     post.isPinned

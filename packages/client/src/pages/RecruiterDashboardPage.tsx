@@ -4,7 +4,7 @@ import { useQueries, useMutation, useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
+import { ROUTES, withQuery } from '@/lib/routes';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
 
@@ -307,20 +307,22 @@ export default function RecruiterDashboardPage() {
                       <div className="flex items-center gap-2 shrink-0 ml-2">
                         {a.resumeId && (
                           <Link
-                            to={`/resumes/${a.resumeId}/preview`}
+                            to={ROUTES.resume.preview(a.resumeId)}
                             className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
                           >
                             이력서
                           </Link>
                         )}
                         <Link
-                          to={`/messages`}
+                          to={ROUTES.social.messages}
                           className="text-xs px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                         >
                           메시지
                         </Link>
                         <button
-                          onClick={() => navigate(`/scouts?target=${a.userId || a.id}`)}
+                          onClick={() =>
+                            navigate(withQuery(ROUTES.jobs.scouts, { target: a.userId || a.id }))
+                          }
                           className="text-xs px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
                         >
                           스카우트
@@ -382,14 +384,16 @@ export default function RecruiterDashboardPage() {
                       <div className="flex gap-2">
                         {r.resumeId && (
                           <Link
-                            to={`/resumes/${r.resumeId}/preview`}
+                            to={ROUTES.resume.preview(r.resumeId)}
                             className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors"
                           >
                             이력서 보기
                           </Link>
                         )}
                         <button
-                          onClick={() => navigate(`/scouts?target=${r.userId || r.id}`)}
+                          onClick={() =>
+                            navigate(withQuery(ROUTES.jobs.scouts, { target: r.userId || r.id }))
+                          }
                           className="text-xs px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 transition-colors"
                         >
                           스카우트

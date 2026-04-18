@@ -573,7 +573,7 @@ export default function CommunityPostPage() {
               {(isOwner || isAdmin) && (
                 <div className="flex items-center gap-2 shrink-0">
                   <Link
-                    to={`/community/${post.id}/edit`}
+                    to={ROUTES.community.postEdit(post.id)}
                     className="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                   >
                     수정
