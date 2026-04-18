@@ -13,10 +13,14 @@
     "skipLibCheck": true,
     "noEmit": true,
     "incremental": true,
-    "tsBuildInfoFile": "./dist-server/tsconfig.test.tsbuildinfo",
+    "tsBuildInfoFile": "./packages/server/dist/tsconfig.test.tsbuildinfo",
     "baseUrl": "./",
     "paths": {},
     "types": ["jest", "node"]
   },
-  "include": ["test/**/*", "server/**/*.spec.ts", "server/**/*.test.ts"]
+  "include": [
+    "packages/server/test/**/*",
+    "packages/server/src/**/*.spec.ts",
+    "packages/server/src/**/*.test.ts"
+  ]
 }
