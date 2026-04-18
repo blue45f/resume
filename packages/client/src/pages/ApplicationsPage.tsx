@@ -58,25 +58,43 @@ const STATUS_DEFS: StatusDef[] = [
 ];
 const getSTATUSES = () => STATUS_DEFS.map((s) => ({ ...s, label: tx(s.key) }));
 
-const KANBAN_COLUMNS = [
-  { value: 'applied', label: '지원완료', headerColor: 'bg-blue-500', nextStatus: 'screening' },
+interface KanbanCol {
+  value: string;
+  key: string;
+  headerColor: string;
+  nextStatus?: string;
+  prevStatus?: string;
+}
+const KANBAN_DEFS: KanbanCol[] = [
+  {
+    value: 'applied',
+    key: 'applications.status.applied',
+    headerColor: 'bg-blue-500',
+    nextStatus: 'screening',
+  },
   {
     value: 'screening',
-    label: '서류통과',
+    key: 'applications.status.screening',
     headerColor: 'bg-sky-500',
     nextStatus: 'interview',
     prevStatus: 'applied',
   },
   {
     value: 'interview',
-    label: '면접',
+    key: 'applications.status.interview',
     headerColor: 'bg-amber-500',
     nextStatus: 'offer',
     prevStatus: 'screening',
   },
-  { value: 'offer', label: '최종합격', headerColor: 'bg-green-500', prevStatus: 'interview' },
-  { value: 'rejected', label: '탈락', headerColor: 'bg-red-500' },
+  {
+    value: 'offer',
+    key: 'applications.status.offer',
+    headerColor: 'bg-green-500',
+    prevStatus: 'interview',
+  },
+  { value: 'rejected', key: 'applications.status.rejected', headerColor: 'bg-red-500' },
 ];
+const getKANBAN_COLUMNS = () => KANBAN_DEFS.map((c) => ({ ...c, label: tx(c.key) }));
 
 const PRIORITY_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   high: { label: '중요', color: 'text-red-500', icon: '★' },
@@ -272,7 +290,7 @@ export default function ApplicationsPage() {
 
   // Kanban: group filtered apps by status
   const kanbanGroups: Record<string, JobApplication[]> = {};
-  for (const col of KANBAN_COLUMNS) {
+  for (const col of KANBAN_DEFS) {
     kanbanGroups[col.value] = filtered.filter((a) => a.status === col.value);
   }
   kanbanGroups['rejected'] = [
@@ -812,7 +830,7 @@ export default function ApplicationsPage() {
         ) : viewMode === 'kanban' ? (
           /* Kanban Board */
           <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-            {KANBAN_COLUMNS.map((col) => {
+            {getKANBAN_COLUMNS().map((col) => {
               const colApps = kanbanGroups[col.value] || [];
               return (
                 <div key={col.value} className="flex-shrink-0 w-64 sm:w-72">
@@ -830,7 +848,7 @@ export default function ApplicationsPage() {
                     )}
                     {colApps.map((app) => {
                       const days = daysSince(app.appliedDate || app.createdAt);
-                      const colDef = KANBAN_COLUMNS.find((c) => c.value === col.value);
+                      const colDef = getKANBAN_COLUMNS().find((c) => c.value === col.value);
                       const priority = (app as any).priority as string | undefined;
                       const pCfg = priority ? PRIORITY_CONFIG[priority] : null;
                       return (
@@ -877,7 +895,11 @@ export default function ApplicationsPage() {
                                 onClick={() => handleStatusChange(app.id, colDef.prevStatus!)}
                                 className="flex-1 text-xs px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
                               >
-                                ← {KANBAN_COLUMNS.find((c) => c.value === colDef.prevStatus)?.label}
+                                ←{' '}
+                                {
+                                  getKANBAN_COLUMNS().find((c) => c.value === colDef.prevStatus)
+                                    ?.label
+                                }
                               </button>
                             )}
                             {colDef?.nextStatus && (
@@ -885,7 +907,11 @@ export default function ApplicationsPage() {
                                 onClick={() => handleStatusChange(app.id, colDef.nextStatus!)}
                                 className="flex-1 text-xs px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
                               >
-                                {KANBAN_COLUMNS.find((c) => c.value === colDef.nextStatus)?.label} →
+                                {
+                                  getKANBAN_COLUMNS().find((c) => c.value === colDef.nextStatus)
+                                    ?.label
+                                }{' '}
+                                →
                               </button>
                             )}
                             {col.value !== 'rejected' && col.value !== 'offer' && (
