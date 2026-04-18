@@ -24,6 +24,8 @@ model User {
   isSample      Boolean  @default(false) @map("is_sample")
   isOpenToWork  Boolean  @default(false) @map("is_open_to_work") // 구직 중 상태 공개
   openToWorkRoles String @default("") @map("open_to_work_roles") // 희망 직무 (콤마 구분)
+  marketingOptIn  Boolean  @default(false) @map("marketing_opt_in") // PIPA: 마케팅 수신 동의
+  llmOptIn        Boolean  @default(false) @map("llm_opt_in") // PIPA: 국외 LLM 이전 동의
   createdAt  DateTime @default(now()) @map("created_at")
   resumes      Resume[]
   applications JobApplication[]

@@ -506,7 +506,7 @@ let AuthService = AuthService_1 = class AuthService {
     getFrontendUrl() {
         return this.frontendUrl;
     }
-    async register(email, password, name, userType, companyName, companyTitle) {
+    async register(email, password, name, userType, companyName, companyTitle, marketingOptIn, llmOptIn) {
         if (!email || !password || !name) {
             throw new common_1.UnauthorizedException('이메일, 비밀번호, 이름은 필수입니다');
         }
@@ -534,6 +534,8 @@ let AuthService = AuthService_1 = class AuthService {
                 userType: type || 'personal',
                 companyName: companyName || null,
                 companyTitle: companyTitle || null,
+                marketingOptIn: marketingOptIn ?? false,
+                llmOptIn: llmOptIn ?? false,
             },
         });
         return this.jwt.sign({ sub: user.id, role: user.role || 'user' });

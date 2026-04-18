@@ -123,7 +123,7 @@ let AuthController = class AuthController {
     }
     async register(dto, res) {
         try {
-            const token = await this.authService.register(dto.email, dto.password, dto.name, dto.userType, dto.companyName, dto.companyTitle);
+            const token = await this.authService.register(dto.email, dto.password, dto.name, dto.userType, dto.companyName, dto.companyTitle, dto.marketingOptIn, dto.llmOptIn);
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',

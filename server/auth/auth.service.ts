@@ -558,6 +558,8 @@ export class AuthService {
     userType?: string,
     companyName?: string,
     companyTitle?: string,
+    marketingOptIn?: boolean,
+    llmOptIn?: boolean,
   ): Promise<string> {
     if (!email || !password || !name) {
       throw new UnauthorizedException('이메일, 비밀번호, 이름은 필수입니다');
@@ -590,6 +592,8 @@ export class AuthService {
         userType: type || 'personal',
         companyName: companyName || null,
         companyTitle: companyTitle || null,
+        marketingOptIn: marketingOptIn ?? false,
+        llmOptIn: llmOptIn ?? false,
       },
     });
 

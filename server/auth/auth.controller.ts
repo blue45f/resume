@@ -29,7 +29,11 @@ export class AuthController {
 
   @Get('google/callback')
   @Public()
-  async googleCallback(@Query('code') code: string, @Query('state') state: string, @Res() res: Response) {
+  async googleCallback(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Res() res: Response,
+  ) {
     try {
       if (!code || !this.authService.validateOAuthState(state)) {
         throw new Error('Invalid OAuth state or missing code');
@@ -39,7 +43,12 @@ export class AuthController {
       const linkUserId = this.authService.extractLinkUserId(state);
       if (linkUserId) {
         const profile = await this.authService.getGoogleProfile(code);
-        await this.authService.linkSocialAccount(linkUserId, 'google', profile.providerId, profile.avatar);
+        await this.authService.linkSocialAccount(
+          linkUserId,
+          'google',
+          profile.providerId,
+          profile.avatar,
+        );
         res.redirect(`${this.authService.getFrontendUrl()}/settings?linked=google`);
         return;
       }
@@ -69,7 +78,11 @@ export class AuthController {
 
   @Get('github/callback')
   @Public()
-  async githubCallback(@Query('code') code: string, @Query('state') state: string, @Res() res: Response) {
+  async githubCallback(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Res() res: Response,
+  ) {
     try {
       if (!code || !this.authService.validateOAuthState(state)) {
         throw new Error('Invalid OAuth state or missing code');
@@ -78,7 +91,12 @@ export class AuthController {
       const linkUserId = this.authService.extractLinkUserId(state);
       if (linkUserId) {
         const profile = await this.authService.getGithubProfile(code);
-        await this.authService.linkSocialAccount(linkUserId, 'github', profile.providerId, profile.avatar);
+        await this.authService.linkSocialAccount(
+          linkUserId,
+          'github',
+          profile.providerId,
+          profile.avatar,
+        );
         res.redirect(`${this.authService.getFrontendUrl()}/settings?linked=github`);
         return;
       }
@@ -108,7 +126,11 @@ export class AuthController {
 
   @Get('kakao/callback')
   @Public()
-  async kakaoCallback(@Query('code') code: string, @Query('state') state: string, @Res() res: Response) {
+  async kakaoCallback(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Res() res: Response,
+  ) {
     try {
       // Kakao는 state 미전달 가능 → state 없으면 스킵
       if (!code) throw new Error('Missing authorization code');
@@ -120,7 +142,12 @@ export class AuthController {
         const linkUserId = this.authService.extractLinkUserId(state);
         if (linkUserId) {
           const profile = await this.authService.getKakaoProfile(code);
-          await this.authService.linkSocialAccount(linkUserId, 'kakao', profile.providerId, profile.avatar);
+          await this.authService.linkSocialAccount(
+            linkUserId,
+            'kakao',
+            profile.providerId,
+            profile.avatar,
+          );
           res.redirect(`${this.authService.getFrontendUrl()}/settings?linked=kakao`);
           return;
         }
@@ -147,14 +174,17 @@ export class AuthController {
   @ApiOperation({ summary: '이메일 회원가입' })
   @ApiResponse({ status: 200, description: '회원가입 성공, JWT 토큰 반환' })
   @ApiResponse({ status: 401, description: '중복 이메일 또는 유효성 검증 실패' })
-  async register(
-    @Body() dto: RegisterDto,
-    @Res() res: Response,
-  ) {
+  async register(@Body() dto: RegisterDto, @Res() res: Response) {
     try {
       const token = await this.authService.register(
-        dto.email, dto.password, dto.name!,
-        dto.userType, dto.companyName, dto.companyTitle,
+        dto.email,
+        dto.password,
+        dto.name!,
+        dto.userType,
+        dto.companyName,
+        dto.companyTitle,
+        dto.marketingOptIn,
+        dto.llmOptIn,
       );
       res.cookie('token', token, {
         httpOnly: true,
@@ -175,10 +205,7 @@ export class AuthController {
   @ApiOperation({ summary: '이메일 로그인' })
   @ApiResponse({ status: 200, description: '로그인 성공, JWT 토큰 반환' })
   @ApiResponse({ status: 401, description: '이메일 또는 비밀번호 불일치' })
-  async login(
-    @Body() dto: LoginDto,
-    @Res() res: Response,
-  ) {
+  async login(@Body() dto: LoginDto, @Res() res: Response) {
     try {
       const token = await this.authService.login(dto.email, dto.password);
       res.cookie('token', token, {
@@ -208,11 +235,7 @@ export class AuthController {
   @ApiOperation({ summary: '비밀번호 변경' })
   @ApiResponse({ status: 200, description: '비밀번호 변경 성공' })
   @ApiResponse({ status: 401, description: '현재 비밀번호 불일치 또는 인증 필요' })
-  async changePassword(
-    @Body() dto: ChangePasswordDto,
-    @Req() req: any,
-    @Res() res: Response,
-  ) {
+  async changePassword(@Body() dto: ChangePasswordDto, @Req() req: any, @Res() res: Response) {
     try {
       if (!req.user?.id) {
         res.status(401).json({ message: '로그인이 필요합니다' });
@@ -298,11 +321,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: '수정된 프로필 반환' })
   @ApiResponse({ status: 400, description: '유효하지 않은 사용자 유형 등' })
   @ApiResponse({ status: 401, description: '인증 필요' })
-  async updateProfile(
-    @Body() body: UpdateProfileDto,
-    @Req() req: any,
-    @Res() res: Response,
-  ) {
+  async updateProfile(@Body() body: UpdateProfileDto, @Req() req: any, @Res() res: Response) {
     try {
       if (!req.user?.id) {
         res.status(401).json({ message: '로그인이 필요합니다' });
