@@ -9,6 +9,7 @@ import { copySignatureToClipboard } from '@/lib/emailSignature';
 import PitchPanel from '@/components/PitchPanel';
 import ReadabilityPanel from '@/components/ReadabilityPanel';
 import { downloadSocialCard, downloadSocialCardSvg } from '@/lib/socialCard';
+import { downloadJsonResume } from '@/lib/jsonResume';
 import { resumeThemes } from '@/lib/resumeThemes';
 import CompletenessBar from '@/components/CompletenessBar';
 import { ROUTES, withQuery } from '@/lib/routes';
@@ -691,6 +692,30 @@ export default function PreviewPage() {
                         />
                       </svg>
                       공유 카드 이미지 저장
+                    </button>
+                    <button
+                      onClick={() => {
+                        downloadJsonResume(resume, { canonical: window.location.href });
+                        toast('JSON Resume (.json) 다운로드 완료', 'success');
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                      title="jsonresume.org 표준 포맷으로 내보내기 (다른 툴 임포트 가능)"
+                    >
+                      <svg
+                        className="w-4 h-4 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                        />
+                      </svg>
+                      JSON Resume 표준 내보내기
                     </button>
                     <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                     <button
