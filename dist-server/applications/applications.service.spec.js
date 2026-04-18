@@ -37,8 +37,20 @@ describe('ApplicationsService', ()=>{
                 {
                     provide: _prismaservice.PrismaService,
                     useValue: mockPrisma
+                },
+                {
+                    provide: 'NotificationsService',
+                    useValue: {
+                        create: jest.fn()
+                    }
                 }
             ]
+        }).useMocker((token)=>{
+            if (typeof token === 'function' && token.name === 'NotificationsService') {
+                return {
+                    create: jest.fn().mockResolvedValue(undefined)
+                };
+            }
         }).compile();
         service = module.get(_applicationsservice.ApplicationsService);
         jest.clearAllMocks();

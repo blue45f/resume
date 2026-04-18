@@ -1,9 +1,22 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
+
+const STATUS_LABEL: Record<string, string> = {
+  applied: '지원 완료',
+  screening: '서류 심사 중',
+  interview: '면접 진행',
+  offer: '오퍼 제안',
+  rejected: '불합격',
+  withdrawn: '지원 취소',
+};
 
 @Injectable()
 export class ApplicationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async findAll(userId: string) {
     const applications = await this.prisma.jobApplication.findMany({
@@ -22,17 +35,60 @@ export class ApplicationsService {
     return { total: all.length, byStatus: statusCounts };
   }
 
-  async create(data: { company: string; position: string; url?: string; status?: string; appliedDate?: string; notes?: string; salary?: string; location?: string; resumeId?: string }, userId: string) {
+  async create(
+    data: {
+      company: string;
+      position: string;
+      url?: string;
+      status?: string;
+      appliedDate?: string;
+      notes?: string;
+      salary?: string;
+      location?: string;
+      resumeId?: string;
+    },
+    userId: string,
+  ) {
     return this.prisma.jobApplication.create({
       data: { ...data, userId },
     });
   }
 
-  async update(id: string, data: Partial<{ company: string; position: string; url?: string; status: string; notes?: string; salary?: string; location?: string; resumeId?: string }>, userId: string) {
+  async update(
+    id: string,
+    data: Partial<{
+      company: string;
+      position: string;
+      url?: string;
+      status: string;
+      notes?: string;
+      salary?: string;
+      location?: string;
+      resumeId?: string;
+      visibility?: string;
+    }>,
+    userId: string,
+  ) {
     const app = await this.prisma.jobApplication.findUnique({ where: { id } });
     if (!app) throw new NotFoundException('지원 내역을 찾을 수 없습니다');
     if (app.userId !== userId) throw new ForbiddenException('권한이 없습니다');
-    return this.prisma.jobApplication.update({ where: { id }, data });
+
+    const updated = await this.prisma.jobApplication.update({ where: { id }, data });
+
+    // 상태 변경 시 본인에게 알림 (본인이 바꾼 경우도 기록용)
+    if (data.status && data.status !== app.status && app.userId) {
+      const label = STATUS_LABEL[data.status] || data.status;
+      await this.notifications
+        .create(
+          app.userId,
+          'application_status',
+          `"${app.company} ${app.position}" 지원 상태가 "${label}"로 변경되었습니다`,
+          `/applications`,
+        )
+        .catch(() => undefined);
+    }
+
+    return updated;
   }
 
   async remove(id: string, userId: string) {

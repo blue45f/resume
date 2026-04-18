@@ -717,24 +717,50 @@ export default function SettingsPage() {
             개인(구직자)과 채용담당자 모드를 전환할 수 있습니다. 모드에 따라 메뉴와 기능이
             달라집니다.
           </p>
-          <div className="flex gap-3">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+            역할별로 사용 가능한 기능이 달라집니다. 여러 역할을 병행하는 기능은 준비 중입니다.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {(
               [
                 {
                   value: 'personal',
                   label: '개인 (구직자)',
+                  icon: '🧑‍💼',
                   desc: '이력서 관리, 지원, 자소서 작성',
                   activeClass:
-                    'border-green-500 bg-green-50 dark:bg-green-900/20 ring-1 ring-green-500',
-                  dotActive: 'bg-green-500',
+                    'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500',
+                  dotActive: 'bg-blue-500',
+                  needsSetup: false,
                 },
                 {
                   value: 'recruiter',
                   label: '채용담당자',
+                  icon: '🔍',
                   desc: '채용 대시보드, 스카우트, 채용공고',
+                  activeClass: 'border-sky-500 bg-sky-50 dark:bg-sky-900/20 ring-1 ring-sky-500',
+                  dotActive: 'bg-sky-500',
+                  needsSetup: false,
+                },
+                {
+                  value: 'company',
+                  label: '기업 계정',
+                  icon: '🏢',
+                  desc: '팀 스카우트, 기업 브랜딩 (베타)',
                   activeClass:
-                    'border-purple-500 bg-purple-50 dark:bg-purple-900/20 ring-1 ring-purple-500',
-                  dotActive: 'bg-purple-500',
+                    'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20 ring-1 ring-cyan-500',
+                  dotActive: 'bg-cyan-500',
+                  needsSetup: true,
+                },
+                {
+                  value: 'coach',
+                  label: '코치 (면접관)',
+                  icon: '🎓',
+                  desc: '코칭 세션 수락, 수수료 정산 (15%)',
+                  activeClass:
+                    'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-500',
+                  dotActive: 'bg-indigo-500',
+                  needsSetup: true,
                 },
               ] as const
             ).map((opt) => {
@@ -744,6 +770,14 @@ export default function SettingsPage() {
                   key={opt.value}
                   onClick={async () => {
                     if (isActive || switchingType) return;
+                    if (opt.value === 'coach') {
+                      window.location.href = '/coach/profile';
+                      return;
+                    }
+                    if (opt.value === 'company' && !user?.companyName) {
+                      toast('기업 전환은 회사명을 먼저 입력해주세요', 'info');
+                      return;
+                    }
                     setSwitchingType(true);
                     try {
                       const token = getToken();
@@ -767,13 +801,17 @@ export default function SettingsPage() {
                     }
                   }}
                   disabled={switchingType}
-                  className={`flex-1 p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                  className={`p-4 rounded-xl border-2 text-left transition-all duration-200 relative ${
                     isActive
                       ? opt.activeClass
                       : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
                   }`}
                 >
+                  {opt.needsSetup && !isActive && (
+                    <span className="absolute top-2 right-2 badge-xs badge-amber">설정 필요</span>
+                  )}
                   <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg">{opt.icon}</span>
                     <span
                       className={`inline-block w-2.5 h-2.5 rounded-full ${isActive ? opt.dotActive : 'bg-slate-300 dark:bg-slate-600'}`}
                     />
@@ -783,10 +821,10 @@ export default function SettingsPage() {
                       {opt.label}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 pl-5">{opt.desc}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-500 pl-7">{opt.desc}</p>
                   {isActive && (
-                    <p className="text-xs text-green-600 dark:text-green-400 mt-2 pl-5 font-medium">
-                      현재 모드
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 pl-7 font-medium">
+                      ✓ 현재 모드
                     </p>
                   )}
                 </button>

@@ -35,8 +35,15 @@ describe('ApplicationsService', () => {
       providers: [
         ApplicationsService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: 'NotificationsService', useValue: { create: jest.fn() } },
       ],
-    }).compile();
+    })
+      .useMocker((token) => {
+        if (typeof token === 'function' && token.name === 'NotificationsService') {
+          return { create: jest.fn().mockResolvedValue(undefined) };
+        }
+      })
+      .compile();
     service = module.get(ApplicationsService);
     jest.clearAllMocks();
   });
@@ -85,12 +92,16 @@ describe('ApplicationsService', () => {
 
     it('존재하지 않는 지원 내역 → NotFoundException', async () => {
       mockPrisma.jobApplication.findUnique.mockResolvedValue(null);
-      await expect(service.update('fake', { status: 'x' }, 'user-1')).rejects.toThrow(NotFoundException);
+      await expect(service.update('fake', { status: 'x' }, 'user-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('다른 사용자 → ForbiddenException', async () => {
       mockPrisma.jobApplication.findUnique.mockResolvedValue(mockApp);
-      await expect(service.update('app-1', { status: 'x' }, 'other')).rejects.toThrow(ForbiddenException);
+      await expect(service.update('app-1', { status: 'x' }, 'other')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 

@@ -12,10 +12,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ApplicationsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const notifications_service_1 = require("../notifications/notifications.service");
+const STATUS_LABEL = {
+    applied: '지원 완료',
+    screening: '서류 심사 중',
+    interview: '면접 진행',
+    offer: '오퍼 제안',
+    rejected: '불합격',
+    withdrawn: '지원 취소',
+};
 let ApplicationsService = class ApplicationsService {
     prisma;
-    constructor(prisma) {
+    notifications;
+    constructor(prisma, notifications) {
         this.prisma = prisma;
+        this.notifications = notifications;
     }
     async findAll(userId) {
         const applications = await this.prisma.jobApplication.findMany({
@@ -43,7 +54,14 @@ let ApplicationsService = class ApplicationsService {
             throw new common_1.NotFoundException('지원 내역을 찾을 수 없습니다');
         if (app.userId !== userId)
             throw new common_1.ForbiddenException('권한이 없습니다');
-        return this.prisma.jobApplication.update({ where: { id }, data });
+        const updated = await this.prisma.jobApplication.update({ where: { id }, data });
+        if (data.status && data.status !== app.status && app.userId) {
+            const label = STATUS_LABEL[data.status] || data.status;
+            await this.notifications
+                .create(app.userId, 'application_status', `"${app.company} ${app.position}" 지원 상태가 "${label}"로 변경되었습니다`, `/applications`)
+                .catch(() => undefined);
+        }
+        return updated;
     }
     async remove(id, userId) {
         const app = await this.prisma.jobApplication.findUnique({ where: { id } });
@@ -86,5 +104,6 @@ let ApplicationsService = class ApplicationsService {
 exports.ApplicationsService = ApplicationsService;
 exports.ApplicationsService = ApplicationsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        notifications_service_1.NotificationsService])
 ], ApplicationsService);
