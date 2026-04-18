@@ -234,6 +234,7 @@ export default function CommunityWritePage() {
     const valid = ['notice', 'free', 'tips', 'resume', 'cover-letter', 'interview', 'question'];
     return q && valid.includes(q) ? q : 'free';
   })();
+  const initialTitle = searchParams.get('title') || '';
 
   const {
     register,
@@ -243,7 +244,7 @@ export default function CommunityWritePage() {
     formState: { errors, isSubmitting },
   } = useForm<PostForm>({
     resolver: zodResolver(postSchema),
-    defaultValues: { title: '', content: '', category: initialCategory },
+    defaultValues: { title: initialTitle, content: '', category: initialCategory },
   });
 
   const title = watch('title');

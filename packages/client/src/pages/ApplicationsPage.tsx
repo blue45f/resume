@@ -185,9 +185,26 @@ export default function ApplicationsPage() {
   };
 
   const handleStatusChange = async (id: string, status: string) => {
+    const prevStatus = apps.find((a) => a.id === id)?.status;
     setApps((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
     try {
       await updateApplication(id, { status });
+      // 합격/오퍼 전환 시 축하 + 후기 작성 유도
+      if (status === 'offer' && prevStatus !== 'offer') {
+        const app = apps.find((a) => a.id === id);
+        const successTitle = encodeURIComponent(
+          `🎉 ${app?.company ?? ''} ${app?.position ?? ''} 합격 후기`,
+        );
+        toast(`🎉 축하합니다! 합격 경험을 커뮤니티에 나눠보시겠어요?`, 'success');
+        setTimeout(() => {
+          const share = window.confirm(
+            '합격 후기를 커뮤니티에 작성하면 다른 분들에게 큰 도움이 됩니다. 지금 작성하시겠어요?',
+          );
+          if (share) {
+            window.location.href = `/community/write?category=interview&title=${successTitle}`;
+          }
+        }, 800);
+      }
     } catch {
       load();
       toast('상태 변경에 실패했습니다', 'error');
