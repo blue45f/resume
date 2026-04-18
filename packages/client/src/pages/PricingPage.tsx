@@ -7,6 +7,7 @@ import { PLANS, RECRUITER_PLANS, formatPrice, isMonetizationEnabled } from '@/li
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
+import { tx } from '@/lib/i18n';
 
 const DEFAULT_FAQ = [
   {
@@ -544,7 +545,7 @@ export default function PricingPage() {
                         : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
                     }`}
                   >
-                    {plan.id === 'free' ? '무료로 시작' : '업그레이드'}
+                    {plan.id === 'free' ? tx('plans.free.cta') : tx('pricing.upgrade')}
                   </Link>
                 )}
               </div>
