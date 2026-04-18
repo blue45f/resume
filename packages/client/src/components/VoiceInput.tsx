@@ -6,9 +6,32 @@ interface Props {
   className?: string;
 }
 
+// Web Speech API 는 표준 lib.dom.d.ts 에 없어 최소 타입을 여기서 정의.
+interface SpeechRecognitionEvent {
+  results: ArrayLike<ArrayLike<{ transcript: string; confidence: number }> & { isFinal: boolean }>;
+}
+interface SpeechRecognitionLike {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((ev: SpeechRecognitionEvent) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+}
+type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionCtor;
+    webkitSpeechRecognition?: SpeechRecognitionCtor;
+  }
+}
+
 export default function VoiceInput({ onResult, lang = 'ko-KR', className = '' }: Props) {
   const [listening, setListening] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   const isSupported =
     typeof window !== 'undefined' &&
@@ -21,14 +44,15 @@ export default function VoiceInput({ onResult, lang = 'ko-KR', className = '' }:
       return;
     }
 
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+    const Ctor: SpeechRecognitionCtor | undefined =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Ctor) return;
+    const recognition = new Ctor();
     recognition.lang = lang;
     recognition.continuous = true;
     recognition.interimResults = false;
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       const last = event.results[event.results.length - 1];
       if (last.isFinal) {
         onResult(last[0].transcript);
