@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactElement } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 
 type NavItem = {
   to: string;
@@ -13,7 +14,7 @@ type NavItem = {
 
 const JOBSEEKER_ITEMS: NavItem[] = [
   {
-    to: '/',
+    to: ROUTES.home,
     label: '홈',
     icon: (active) => (
       <svg
@@ -34,7 +35,7 @@ const JOBSEEKER_ITEMS: NavItem[] = [
     activeColor: 'text-blue-600 dark:text-blue-400',
   },
   {
-    to: '/explore',
+    to: ROUTES.resume.explore,
     label: '탐색',
     icon: (active) => (
       <svg
@@ -55,7 +56,7 @@ const JOBSEEKER_ITEMS: NavItem[] = [
     activeColor: 'text-blue-600 dark:text-blue-400',
   },
   {
-    to: '/resumes/new',
+    to: ROUTES.resume.new,
     label: '작성',
     icon: () => (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,7 +67,7 @@ const JOBSEEKER_ITEMS: NavItem[] = [
     highlight: true,
   },
   {
-    to: '/community',
+    to: ROUTES.community.list,
     label: '커뮤니티',
     icon: (active) => (
       <svg
@@ -87,7 +88,7 @@ const JOBSEEKER_ITEMS: NavItem[] = [
     activeColor: 'text-blue-600 dark:text-blue-400',
   },
   {
-    to: '/settings',
+    to: ROUTES.settings,
     label: '더보기',
     icon: (active) => (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,7 +110,7 @@ const JOBSEEKER_ITEMS: NavItem[] = [
 
 const RECRUITER_ITEMS: NavItem[] = [
   {
-    to: '/explore',
+    to: ROUTES.resume.explore,
     label: '인재탐색',
     icon: (active) => (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,7 +126,7 @@ const RECRUITER_ITEMS: NavItem[] = [
     activeColor: 'text-sky-600 dark:text-sky-400',
   },
   {
-    to: '/jobs',
+    to: ROUTES.jobs.list,
     label: '채용공고',
     icon: (active) => (
       <svg
@@ -146,7 +147,7 @@ const RECRUITER_ITEMS: NavItem[] = [
     activeColor: 'text-sky-600 dark:text-sky-400',
   },
   {
-    to: '/jobs/new',
+    to: ROUTES.jobs.new,
     label: '공고등록',
     icon: () => (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,7 +158,7 @@ const RECRUITER_ITEMS: NavItem[] = [
     highlight: true,
   },
   {
-    to: '/scouts',
+    to: ROUTES.jobs.scouts,
     label: '스카우트',
     icon: (active) => (
       <svg
@@ -178,7 +179,7 @@ const RECRUITER_ITEMS: NavItem[] = [
     activeColor: 'text-sky-600 dark:text-sky-400',
   },
   {
-    to: '/recruiter',
+    to: ROUTES.recruiter.dashboard,
     label: '대시보드',
     icon: (active) => (
       <svg
