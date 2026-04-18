@@ -7,25 +7,53 @@ import Footer from '@/components/Footer';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import SendMessageButton from '@/components/SendMessageButton';
+import { tx } from '@/lib/i18n';
 
-const CATEGORIES = [
-  { id: 'all', label: '전체', icon: '📋' },
-  { id: 'scrapped', label: '스크랩', icon: '🔖' },
-  { id: 'notice', label: '공지사항', icon: '📢' },
-  { id: 'free', label: '자유', icon: '💬' },
-  { id: 'tips', label: '취업팁', icon: '💡' },
-  { id: 'resume', label: '이력서피드백', icon: '📄' },
-  { id: 'cover-letter', label: '자소서', icon: '✍️' },
-  { id: 'interview', label: '면접후기', icon: '🎤' },
-  { id: 'question', label: '질문', icon: '❓' },
+interface CategoryDef {
+  id: string;
+  labelKey?: string;
+  fallback: string;
+  icon: string;
+}
+const CATEGORY_DEFS: CategoryDef[] = [
+  { id: 'all', labelKey: 'common.all', fallback: '전체', icon: '📋' },
+  { id: 'scrapped', fallback: '스크랩', icon: '🔖' },
+  { id: 'notice', labelKey: 'community.category.notice', fallback: '공지사항', icon: '📢' },
+  { id: 'free', labelKey: 'community.category.free', fallback: '자유', icon: '💬' },
+  { id: 'tips', labelKey: 'community.category.tips', fallback: '취업팁', icon: '💡' },
+  { id: 'resume', labelKey: 'community.category.resume', fallback: '이력서피드백', icon: '📄' },
+  {
+    id: 'cover-letter',
+    labelKey: 'community.category.coverLetter',
+    fallback: '자소서',
+    icon: '✍️',
+  },
+  {
+    id: 'interview',
+    labelKey: 'community.category.interview',
+    fallback: '면접후기',
+    icon: '🎤',
+  },
+  { id: 'question', labelKey: 'community.category.question', fallback: '질문', icon: '❓' },
 ];
+const getCATEGORIES = () =>
+  CATEGORY_DEFS.map((c) => ({
+    id: c.id,
+    label: c.labelKey ? tx(c.labelKey) : c.fallback,
+    icon: c.icon,
+  }));
 
-const SORT_OPTIONS = [
-  { value: 'recent', label: '최신순' },
-  { value: 'popular', label: '인기순' },
-  { value: 'views', label: '조회순' },
-  { value: 'comments', label: '댓글순' },
-];
+const SORT_KEYS = [
+  { value: 'recent', labelKey: 'explore.sortByLatest' },
+  { value: 'popular', labelKey: 'explore.sortByPopular' },
+  { value: 'views', labelKey: 'explore.sortByViews' },
+  { value: 'comments', fallback: '댓글순' },
+] as const;
+const getSORT_OPTIONS = () =>
+  SORT_KEYS.map((s) => ({
+    value: s.value,
+    label: 'labelKey' in s ? tx(s.labelKey) : s.fallback,
+  }));
 
 const CATEGORY_COLORS: Record<string, string> = {
   notice: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
@@ -205,7 +233,8 @@ export default function CommunityPage() {
     setReadPosts((prev) => new Set([...prev, id]));
   };
 
-  const getCategoryInfo = (cat: string) => CATEGORIES.find((c) => c.id === cat) || CATEGORIES[0];
+  const getCategoryInfo = (cat: string) =>
+    getCATEGORIES().find((c) => c.id === cat) || getCATEGORIES()[0];
 
   // Hot posts (top 3 by likes, only from first page)
   const hotPosts = [...posts]
@@ -287,7 +316,7 @@ export default function CommunityPage() {
 
         {/* Category tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none scroll-smooth">
-          {CATEGORIES.map((cat) => (
+          {getCATEGORIES().map((cat) => (
             <button
               key={cat.id}
               onClick={() => setCategory(cat.id)}
@@ -353,7 +382,7 @@ export default function CommunityPage() {
             onChange={(e) => handleSortChange(e.target.value)}
             className="px-3 py-2.5 text-xs imp-card text-slate-600 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer"
           >
-            {SORT_OPTIONS.map((opt) => (
+            {getSORT_OPTIONS().map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
