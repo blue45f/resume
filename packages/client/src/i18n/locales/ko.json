@@ -336,5 +336,47 @@
     "degree": "학위",
     "field": "전공",
     "gpa": "학점"
+  },
+  "seo": {
+    "defaultTitle": "이력서공방 — AI 이력서 작성 플랫폼",
+    "defaultDescription": "AI가 도와주는 한국어 이력서 작성, ATS 호환성 검사, 템플릿, 커뮤니티까지 한 곳에서.",
+    "ogImageAlt": "이력서공방 홈페이지",
+    "keywords": "이력서, 자기소개서, AI, 취업, ATS, 스터디 그룹, 면접 준비"
+  },
+  "breadcrumb": {
+    "home": "홈",
+    "resumes": "이력서",
+    "preview": "미리보기",
+    "edit": "편집",
+    "new": "새로 만들기",
+    "settings": "설정",
+    "admin": "관리자"
+  },
+  "datetime": {
+    "justNow": "방금 전",
+    "minutesAgo": "{n}분 전",
+    "hoursAgo": "{n}시간 전",
+    "daysAgo": "{n}일 전",
+    "weeksAgo": "{n}주 전",
+    "monthsAgo": "{n}개월 전",
+    "yearsAgo": "{n}년 전",
+    "days": {
+      "sun": "일",
+      "mon": "월",
+      "tue": "화",
+      "wed": "수",
+      "thu": "목",
+      "fri": "금",
+      "sat": "토"
+    }
+  },
+  "empty": {
+    "resumes": "아직 이력서가 없습니다",
+    "resumesHint": "첫 이력서를 만들어 AI 도움을 받아보세요",
+    "jobs": "채용공고가 없습니다",
+    "applications": "지원 내역이 없습니다",
+    "notifications": "알림이 없습니다",
+    "followers": "팔로워가 없습니다",
+    "bookmarks": "북마크가 없습니다"
   }
 }

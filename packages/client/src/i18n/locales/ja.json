@@ -236,5 +236,47 @@
     "degree": "学位",
     "field": "専攻",
     "gpa": "GPA"
+  },
+  "seo": {
+    "defaultTitle": "履歴書工房 — AI 履歴書作成プラットフォーム",
+    "defaultDescription": "AIによる韓国語履歴書作成、ATS互換性チェック、テンプレート、コミュニティ。",
+    "ogImageAlt": "履歴書工房ホームページ",
+    "keywords": "履歴書, 志望動機, AI, 就活, ATS, スタディグループ, 面接準備"
+  },
+  "breadcrumb": {
+    "home": "ホーム",
+    "resumes": "履歴書",
+    "preview": "プレビュー",
+    "edit": "編集",
+    "new": "新規作成",
+    "settings": "設定",
+    "admin": "管理者"
+  },
+  "datetime": {
+    "justNow": "たった今",
+    "minutesAgo": "{n}分前",
+    "hoursAgo": "{n}時間前",
+    "daysAgo": "{n}日前",
+    "weeksAgo": "{n}週間前",
+    "monthsAgo": "{n}ヶ月前",
+    "yearsAgo": "{n}年前",
+    "days": {
+      "sun": "日",
+      "mon": "月",
+      "tue": "火",
+      "wed": "水",
+      "thu": "木",
+      "fri": "金",
+      "sat": "土"
+    }
+  },
+  "empty": {
+    "resumes": "履歴書がまだありません",
+    "resumesHint": "AIのサポートで最初の履歴書を作成しましょう",
+    "jobs": "求人情報がありません",
+    "applications": "応募履歴がありません",
+    "notifications": "通知がありません",
+    "followers": "フォロワーがいません",
+    "bookmarks": "ブックマークがありません"
   }
 }

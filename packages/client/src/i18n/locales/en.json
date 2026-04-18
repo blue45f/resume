@@ -336,5 +336,47 @@
     "degree": "Degree",
     "field": "Major",
     "gpa": "GPA"
+  },
+  "seo": {
+    "defaultTitle": "Resume Workshop — AI Resume Builder",
+    "defaultDescription": "AI-powered Korean resume builder with ATS compatibility, templates, and community.",
+    "ogImageAlt": "Resume Workshop homepage",
+    "keywords": "resume, cover letter, AI, job search, ATS, study group, interview prep"
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "resumes": "Resumes",
+    "preview": "Preview",
+    "edit": "Edit",
+    "new": "New",
+    "settings": "Settings",
+    "admin": "Admin"
+  },
+  "datetime": {
+    "justNow": "just now",
+    "minutesAgo": "{n} min ago",
+    "hoursAgo": "{n} hr ago",
+    "daysAgo": "{n} days ago",
+    "weeksAgo": "{n} weeks ago",
+    "monthsAgo": "{n} months ago",
+    "yearsAgo": "{n} years ago",
+    "days": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    }
+  },
+  "empty": {
+    "resumes": "No resumes yet",
+    "resumesHint": "Create your first resume with AI assistance",
+    "jobs": "No job postings",
+    "applications": "No applications yet",
+    "notifications": "No notifications",
+    "followers": "No followers yet",
+    "bookmarks": "No bookmarks yet"
   }
 }

@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import CameraInterview from '@/features/interview-prep/ui/CameraInterview';
 import { useJobInterviewQuestions } from '@/hooks/useResources';
+import { t } from '@/lib/i18n';
 
 /**
  * MockInterviewPage
@@ -201,7 +202,7 @@ export default function MockInterviewPage() {
         {/* Title */}
         <div className="mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-            카메라 모의 면접
+            {t('interview.mock')}
           </h1>
           {company && position ? (
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
