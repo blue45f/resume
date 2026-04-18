@@ -196,7 +196,7 @@ export default function ResumeScoreboard({ resume }: Props) {
 
   const categories = [
     { label: '완성도', score: scores.completeness, color: '#22c55e' },
-    { label: '키워드', score: scores.keyword, color: '#8b5cf6' },
+    { label: '키워드', score: scores.keyword, color: '#06b6d4' },
     { label: '가독성', score: scores.readability, color: '#f59e0b' },
     { label: 'ATS호환성', score: scores.atsCompat, color: '#3b82f6' },
   ];

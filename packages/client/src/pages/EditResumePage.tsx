@@ -8,6 +8,7 @@ import { toast } from '@/components/Toast';
 import TagSelector from '@/components/TagSelector';
 import AttachmentPanel from '@/components/AttachmentPanel';
 import VersionPanel from '@/components/VersionPanel';
+import LiveAtsBadge from '@/components/LiveAtsBadge';
 import type { Resume } from '@/types/resume';
 import { useQueryClient } from '@tanstack/react-query';
 import { updateResume, setResumeVisibility } from '@/lib/api';
@@ -511,7 +512,12 @@ export default function EditResumePage() {
         </div>
 
         {/* Live completeness indicator */}
-        {liveData && <LiveCompletenessBar resume={liveData} />}
+        {liveData && (
+          <>
+            <LiveCompletenessBar resume={liveData} />
+            <LiveAtsBadge resume={liveData} />
+          </>
+        )}
 
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6">
           <ResumeForm
