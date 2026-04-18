@@ -43,7 +43,7 @@ import CareerLevel from '@/widgets/career-level';
 const BannerSlider = lazy(() => import('@/components/BannerSlider'));
 import NoticePopup from '@/components/NoticePopup';
 import WhatsNewModal from '@/components/WhatsNewModal';
-import { t } from '@/lib/i18n';
+import { t, tx } from '@/lib/i18n';
 import { getUser } from '@/lib/auth';
 import ShareMenu from '@/components/ShareMenu';
 
@@ -1159,10 +1159,10 @@ export default function HomePage() {
                 <span className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md flex items-center justify-center text-xs">
                   📄
                 </span>
-                내 이력서
+                {t('home.myResumes')}
                 {resumes.length > 0 && (
                   <span className="text-sm font-normal text-slate-400 dark:text-slate-500">
-                    ({resumes.length}개)
+                    ({resumes.length})
                   </span>
                 )}
               </h2>
@@ -1178,7 +1178,7 @@ export default function HomePage() {
                     d="M12 4v16m8-8H4"
                   />
                 </svg>
-                새 이력서
+                {tx('resume.new')}
               </Link>
             </div>
 
@@ -1201,7 +1201,7 @@ export default function HomePage() {
                 <input
                   type="search"
                   role="searchbox"
-                  placeholder="이력서 검색..."
+                  placeholder={`${tx('home.myResumes')} ${tx('common.search')}...`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   aria-label="이력서 검색"
