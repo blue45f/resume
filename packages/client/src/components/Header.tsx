@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { getTheme, setTheme } from '@/lib/theme';
-import { t, getLocale, setLocale, LOCALES, getLocaleName } from '@/lib/i18n';
+import { t, tx, getLocale, setLocale, LOCALES, getLocaleName } from '@/lib/i18n';
 import NotificationBell from '@/components/NotificationBell';
 import GlobalSearch from '@/components/GlobalSearch';
 import { fetchFollowers, fetchFollowing } from '@/lib/api';
@@ -248,7 +248,7 @@ export default function Header() {
                     to={ROUTES.community.list}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap hidden xl:inline-block ${location.pathname.startsWith('/community') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
-                    커뮤니티
+                    {tx('community.title')}
                   </Link>
                   {/* Recruiter More */}
                   <div className="relative group">
@@ -347,7 +347,7 @@ export default function Header() {
                     to={ROUTES.community.list}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap hidden xl:inline-block ${location.pathname.startsWith('/community') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
-                    커뮤니티
+                    {tx('community.title')}
                   </Link>
                   {/* Jobseeker More */}
                   <div className="relative group">
@@ -391,7 +391,7 @@ export default function Header() {
                         to={ROUTES.interview.mock()}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
-                        모의 면접 (카메라)
+                        {tx('interview.mock')}
                       </Link>
                       <Link
                         to={ROUTES.coaching.coaches}
@@ -466,7 +466,7 @@ export default function Header() {
                         to={ROUTES.interview.studyGroups}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
-                        스터디 카페
+                        {tx('study.cafe')}
                       </Link>
                       <Link
                         to={ROUTES.coaching.coaches}
@@ -889,7 +889,7 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
-                    커뮤니티
+                    {tx('community.title')}
                   </Link>
                   <div className="border-t border-slate-100 dark:border-slate-700 my-1.5" />
                   <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500">
@@ -1031,7 +1031,7 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
-                    커뮤니티
+                    {tx('community.title')}
                   </Link>
                   <Link
                     to={ROUTES.stats}
