@@ -54,6 +54,29 @@ export default function CoachProfileEditPage() {
 
   const specialtyValue = watch('specialty');
   const isActive = watch('isActive');
+  const bioValue = watch('bio');
+  const hourlyRateValue = watch('hourlyRate');
+  const yearsExpValue = watch('yearsExp');
+  const languagesValue = watch('languages');
+  const availableHoursValue = watch('availableHours');
+
+  // 프로필 완성도 점수 — 각 필드가 채워졌는지에 따라 0~100%
+  const completeness = (() => {
+    const items = [
+      { label: '전문분야', done: !!specialtyValue && String(specialtyValue).trim().length >= 2 },
+      { label: '시급', done: Number(hourlyRateValue) > 0 },
+      { label: '경력', done: Number(yearsExpValue) > 0 },
+      { label: '소개글', done: !!bioValue && String(bioValue).trim().length >= 50 },
+      {
+        label: '가능 시간',
+        done: !!availableHoursValue && String(availableHoursValue).trim().length > 0,
+      },
+      { label: '언어', done: !!languagesValue && String(languagesValue).trim().length > 0 },
+    ];
+    const doneCount = items.filter((i) => i.done).length;
+    const percent = Math.round((doneCount / items.length) * 100);
+    return { items, doneCount, total: items.length, percent };
+  })();
 
   useEffect(() => {
     document.title = '코치 프로필 — 이력서공방';
@@ -185,6 +208,48 @@ export default function CoachProfileEditPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="imp-card p-6 space-y-5">
+            {/* 프로필 완성도 바 */}
+            <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/15 dark:to-cyan-900/15 border border-blue-100 dark:border-blue-900/30">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                    프로필 완성도
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    완성도가 높을수록 고객에게 더 잘 노출됩니다
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                    {completeness.percent}%
+                  </div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                    {completeness.doneCount}/{completeness.total}
+                  </div>
+                </div>
+              </div>
+              <div className="h-2 bg-white dark:bg-slate-800 rounded-full overflow-hidden border border-slate-100 dark:border-slate-700">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500"
+                  style={{ width: `${completeness.percent}%` }}
+                />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {completeness.items.map((it) => (
+                  <span
+                    key={it.label}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                      it.done
+                        ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
+                    }`}
+                  >
+                    {it.done ? '✓' : '○'} {it.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
             {/* Active toggle */}
             <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60">
               <div>
