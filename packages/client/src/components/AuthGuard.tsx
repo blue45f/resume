@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import { toast } from '@/components/Toast';
 
 interface Props {
@@ -14,7 +15,7 @@ export default function AuthGuard({ children }: Props) {
   useEffect(() => {
     if (!user) {
       toast('로그인이 필요합니다', 'error');
-      navigate('/login', { replace: true });
+      navigate(ROUTES.login, { replace: true });
     }
   }, [user, navigate]);
 

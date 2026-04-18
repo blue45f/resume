@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
 
 interface TrendItem {
   position: string;
@@ -48,7 +49,10 @@ export default function HiringTrends() {
         <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
           {'\u{1F4C8} \uCC44\uC6A9 \uD2B8\uB80C\uB4DC'}
         </h2>
-        <Link to="/jobs" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+        <Link
+          to={ROUTES.jobs.list}
+          className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+        >
           채용 공고 전체 보기
         </Link>
       </div>

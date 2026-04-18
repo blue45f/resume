@@ -2,6 +2,7 @@ import { memo, useState } from 'react';
 import type { Resume, Project } from '@/types/resume';
 import { getUser } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/lib/routes';
 
 interface Props {
   resume: Resume;
@@ -175,7 +176,7 @@ function ProjectShowcase({ resume }: Props) {
       {isOwner && (
         <div className="mt-4 text-center">
           <button
-            onClick={() => navigate(`/resumes/${resume.id}/edit`)}
+            onClick={() => navigate(ROUTES.resume.edit(resume.id))}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
           >
             <svg

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { API_URL } from '@/lib/config';
 import { fetchResumes } from '@/lib/api';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import type { ResumeSummary } from '@/types/resume';
 import {
   ResponsiveContainer,
@@ -998,7 +999,7 @@ export default function CareerInsights() {
                     맞춤 학습 추천을 받을 수 있습니다
                   </p>
                   <Link
-                    to="/resumes/new"
+                    to={ROUTES.resume.new}
                     className="inline-block mt-3 px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     이력서 작성하기
@@ -1079,7 +1080,7 @@ export default function CareerInsights() {
               {jobs.length}개 채용 공고 실시간 데이터 기반
             </span>
             <Link
-              to="/jobs"
+              to={ROUTES.jobs.list}
               className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
             >
               채용 공고 보기 →

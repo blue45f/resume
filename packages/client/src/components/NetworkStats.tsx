@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchFollowers, fetchFollowing, fetchScouts } from '@/lib/api';
 import { API_URL } from '@/lib/config';
+import { ROUTES, withQuery } from '@/lib/routes';
 
 interface NetworkData {
   followers: number;
@@ -149,7 +150,7 @@ export default function NetworkStats() {
           내 네트워크
         </h3>
         <Link
-          to="/explore?tab=people"
+          to={withQuery(ROUTES.resume.explore, { tab: 'people' })}
           className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
         >
           더보기

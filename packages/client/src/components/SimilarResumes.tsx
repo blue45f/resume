@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { Resume } from '@/types/resume';
 import { API_URL } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
 
 interface Props {
   resume: Resume;
@@ -37,7 +38,7 @@ export default function SimilarResumes({ resume }: Props) {
         {similar.map((r) => (
           <Link
             key={r.id}
-            to={`/resumes/${r.id}/preview`}
+            to={ROUTES.resume.preview(r.id)}
             className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
           >
             <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0">

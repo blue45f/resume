@@ -2,6 +2,7 @@ import { useState, useMemo, type ReactElement } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Resume } from '@/types/resume';
 import { calculateCompleteness } from '@/lib/completeness';
+import { ROUTES, withQuery } from '@/lib/routes';
 
 interface WizardStep {
   key: string;
@@ -205,7 +206,7 @@ export default function ProfileWizard({ resume, resumeId, onDismiss }: ProfileWi
   const current = stepStatuses[currentStep];
 
   const handleNavigateToEdit = (tab: string) => {
-    navigate(`/resumes/${resumeId}/edit?tab=${tab}`);
+    navigate(withQuery(ROUTES.resume.edit(resumeId), { tab }));
   };
 
   const handleNext = () => {

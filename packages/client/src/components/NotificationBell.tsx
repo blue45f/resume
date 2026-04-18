@@ -5,6 +5,7 @@ import { timeAgo } from '@/lib/time';
 import { fetchNotifications as apiFetchNotifications, markAllNotificationsRead } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
 
 interface Notification {
   id: string;
@@ -142,7 +143,7 @@ export default function NotificationBell() {
           )}
         </div>
         <Link
-          to="/notifications"
+          to={ROUTES.notifications}
           onClick={() => setOpen(false)}
           className="block px-3 py-2 text-center text-xs text-blue-600 dark:text-blue-400 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 border-t border-neutral-100 dark:border-neutral-700"
         >

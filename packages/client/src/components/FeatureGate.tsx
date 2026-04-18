@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { getUser } from '@/lib/auth';
 import { canAccess, isMonetizationEnabled, type PlanConfig } from '@/lib/plans';
+import { ROUTES } from '@/lib/routes';
 
 interface Props {
   feature: keyof PlanConfig['features'];
@@ -23,15 +24,15 @@ export default function FeatureGate({ feature, children, fallback }: Props) {
   if (!isMonetizationEnabled()) return <>{children}</>;
 
   return (
-    <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl text-center">
+    <div className="p-4 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border border-blue-200 dark:border-blue-800 rounded-xl text-center">
       <span className="text-2xl mb-2 block">⭐</span>
-      <p className="text-sm font-medium text-indigo-800 dark:text-indigo-300">프로 플랜 기능</p>
-      <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1 mb-3">
+      <p className="text-sm font-medium text-blue-800 dark:text-blue-300">프로 플랜 기능</p>
+      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 mb-3">
         이 기능은 프로 이상 플랜에서 사용 가능합니다
       </p>
       <Link
-        to="/pricing"
-        className="inline-block px-4 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+        to={ROUTES.pricing}
+        className="inline-block px-4 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
       >
         플랜 업그레이드
       </Link>
