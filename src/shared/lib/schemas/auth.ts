@@ -31,6 +31,11 @@ export const registerSchema = z
       .max(100, '회사명은 최대 100자까지 입력 가능합니다')
       .optional()
       .or(z.literal('')),
+    // PIPA 동의 (필수 2개 + 선택 2개)
+    agreeTerms: z.literal(true, '이용약관에 동의해주세요'),
+    agreePrivacy: z.literal(true, '개인정보 수집·이용에 동의해주세요'),
+    marketingOptIn: z.boolean().optional(),
+    llmOptIn: z.boolean().optional(),
   })
   .refine(
     (data) =>

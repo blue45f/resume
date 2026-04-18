@@ -774,6 +774,85 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {isRegister && (
+                <div className="space-y-2.5 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                  <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    개인정보 동의
+                  </p>
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      {...registerForm.register('agreeTerms')}
+                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
+                      <span className="text-red-500 font-medium">[필수]</span>{' '}
+                      <Link
+                        to="/terms"
+                        target="_blank"
+                        className="underline underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-400"
+                      >
+                        이용약관
+                      </Link>
+                      에 동의합니다
+                    </span>
+                  </label>
+                  {registerForm.formState.errors.agreeTerms && (
+                    <p className="text-[11px] text-red-500 ml-6" role="alert">
+                      {registerForm.formState.errors.agreeTerms.message}
+                    </p>
+                  )}
+
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      {...registerForm.register('agreePrivacy')}
+                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
+                      <span className="text-red-500 font-medium">[필수]</span>{' '}
+                      <Link
+                        to="/privacy"
+                        target="_blank"
+                        className="underline underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-400"
+                      >
+                        개인정보 수집·이용
+                      </Link>
+                      에 동의합니다
+                    </span>
+                  </label>
+                  {registerForm.formState.errors.agreePrivacy && (
+                    <p className="text-[11px] text-red-500 ml-6" role="alert">
+                      {registerForm.formState.errors.agreePrivacy.message}
+                    </p>
+                  )}
+
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      {...registerForm.register('llmOptIn')}
+                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
+                      <span className="text-slate-400 font-medium">[선택]</span> AI 변환/분석 기능
+                      사용을 위한 개인정보 국외 이전(미국 소재 LLM 제공사)에 동의합니다
+                    </span>
+                  </label>
+
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      {...registerForm.register('marketingOptIn')}
+                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
+                      <span className="text-slate-400 font-medium">[선택]</span> 마케팅 정보
+                      수신(이메일·푸시)에 동의합니다
+                    </span>
+                  </label>
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={loading}
