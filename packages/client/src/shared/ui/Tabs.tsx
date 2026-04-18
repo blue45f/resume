@@ -1,4 +1,4 @@
-import { useState, type ReactNode, useId } from 'react';
+import { useState, useRef, type ReactNode, type KeyboardEvent, useId } from 'react';
 
 export interface TabItem {
   id: string;
@@ -37,10 +37,27 @@ export default function Tabs({
   const [internal, setInternal] = useState(() => defaultTab ?? items[0]?.id ?? '');
   const active = value ?? internal;
   const uid = useId();
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const activate = (id: string) => {
     if (value === undefined) setInternal(id);
     onChange?.(id);
+  };
+
+  const onTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End')
+      return;
+    e.preventDefault();
+    const last = items.length - 1;
+    let next = index;
+    if (e.key === 'ArrowLeft') next = index === 0 ? last : index - 1;
+    else if (e.key === 'ArrowRight') next = index === last ? 0 : index + 1;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = last;
+    const nextId = items[next]?.id;
+    if (!nextId) return;
+    activate(nextId);
+    tabRefs.current[nextId]?.focus();
   };
 
   const activeItem = items.find((i) => i.id === active) ?? items[0];
@@ -50,13 +67,16 @@ export default function Tabs({
       <div
         role="tablist"
         aria-label={ariaLabel}
-        className={`flex gap-1 border-b border-slate-200 dark:border-slate-700 ${className}`}
+        className={`flex gap-1 border-b border-[var(--color-border-subtle)] ${className}`}
       >
-        {items.map((tab) => {
+        {items.map((tab, index) => {
           const isActive = tab.id === active;
           return (
             <button
               key={tab.id}
+              ref={(el) => {
+                tabRefs.current[tab.id] = el;
+              }}
               role="tab"
               type="button"
               id={`${uid}-tab-${tab.id}`}
@@ -64,10 +84,11 @@ export default function Tabs({
               aria-controls={`${uid}-panel-${tab.id}`}
               tabIndex={isActive ? 0 : -1}
               onClick={() => activate(tab.id)}
-              className={`relative px-3 sm:px-4 py-2.5 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500 rounded-t-md ${
+              onKeyDown={(e) => onTabKeyDown(e, index)}
+              className={`relative px-3 sm:px-4 py-2.5 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 rounded-t-[var(--radius-sm)] ${
                 isActive
-                  ? 'text-slate-900 dark:text-slate-100'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                  ? 'text-[var(--color-text)]'
+                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'
               }`}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -77,8 +98,8 @@ export default function Tabs({
                   <span
                     className={`px-1.5 py-0.5 text-[10px] font-semibold rounded-full ${
                       isActive
-                        ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                        ? 'bg-[var(--color-accent)] text-white'
+                        : 'bg-[var(--color-surface-sunken)] text-[var(--color-text-muted)]'
                     }`}
                   >
                     {tab.count}
@@ -88,7 +109,7 @@ export default function Tabs({
               {isActive && (
                 <span
                   aria-hidden
-                  className="absolute left-0 right-0 -bottom-px h-0.5 bg-slate-900 dark:bg-slate-100"
+                  className="absolute left-0 right-0 -bottom-px h-0.5 bg-[var(--color-accent)]"
                 />
               )}
             </button>
