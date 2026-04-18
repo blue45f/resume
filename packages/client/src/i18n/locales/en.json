@@ -412,6 +412,30 @@
     "skip": "Maybe later",
     "finish": "Get Started"
   },
+  "companyTier": {
+    "public": "Public · Government",
+    "large": "Large Enterprise",
+    "mid": "Mid-size",
+    "startup": "Startup",
+    "foreign": "Foreign / MNC",
+    "sme": "SME",
+    "freelance": "Freelance / Self-employed",
+    "etc": "Other"
+  },
+  "cafeCategory": {
+    "interview": "Interview",
+    "resume": "Resume review",
+    "codingTest": "Coding test",
+    "study": "Study",
+    "networking": "Networking"
+  },
+  "experienceLevel": {
+    "any": "Any",
+    "new": "Entry-level",
+    "junior": "Junior",
+    "mid": "Mid-level",
+    "senior": "Senior"
+  },
   "plans": {
     "free": {
       "name": "Free",

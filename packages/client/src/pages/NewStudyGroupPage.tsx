@@ -8,36 +8,25 @@ import { toast } from '@/components/Toast';
 import { createStudyGroup } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
-import { t } from '@/lib/i18n';
+import { t, tx } from '@/lib/i18n';
 import {
   studyGroupSchema,
   type StudyGroupFormInput,
   type StudyGroupFormOutput,
 } from '@/shared/lib/schemas/studyGroup';
 
-const TIERS = [
-  { value: 'public', label: '공기업 · 공공기관' },
-  { value: 'large', label: '대기업' },
-  { value: 'mid', label: '중견기업' },
-  { value: 'startup', label: '스타트업' },
-  { value: 'foreign', label: '외국계' },
-  { value: 'sme', label: '중소기업' },
-  { value: 'etc', label: '기타' },
-];
-const CAFES = [
-  { value: 'interview', label: '면접' },
-  { value: 'resume', label: '이력서 첨삭' },
-  { value: 'coding-test', label: '코딩 테스트' },
-  { value: 'study', label: '공부' },
-  { value: 'networking', label: '네트워킹' },
-];
-const LEVELS = [
-  { value: 'any', label: '무관' },
-  { value: 'new', label: '신입' },
-  { value: 'junior', label: '주니어' },
-  { value: 'mid', label: '중간' },
-  { value: 'senior', label: '시니어' },
-];
+const TIER_KEYS = ['public', 'large', 'mid', 'startup', 'foreign', 'sme', 'etc'] as const;
+const CAFE_KEYS = [
+  { value: 'interview', k: 'interview' },
+  { value: 'resume', k: 'resume' },
+  { value: 'coding-test', k: 'codingTest' },
+  { value: 'study', k: 'study' },
+  { value: 'networking', k: 'networking' },
+] as const;
+const LEVEL_KEYS = ['any', 'new', 'junior', 'mid', 'senior'] as const;
+const getTIERS = () => TIER_KEYS.map((v) => ({ value: v, label: tx(`companyTier.${v}`) }));
+const getCAFES = () => CAFE_KEYS.map((c) => ({ value: c.value, label: tx(`cafeCategory.${c.k}`) }));
+const getLEVELS = () => LEVEL_KEYS.map((v) => ({ value: v, label: tx(`experienceLevel.${v}`) }));
 
 export default function NewStudyGroupPage() {
   const navigate = useNavigate();
@@ -147,7 +136,7 @@ export default function NewStudyGroupPage() {
                 defaultValue="etc"
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
               >
-                {TIERS.map((t) => (
+                {getTIERS().map((t) => (
                   <option key={t.value} value={t.value}>
                     {t.label}
                   </option>
@@ -160,7 +149,7 @@ export default function NewStudyGroupPage() {
                 defaultValue="interview"
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
               >
-                {CAFES.map((c) => (
+                {getCAFES().map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.label}
                   </option>
@@ -176,7 +165,7 @@ export default function NewStudyGroupPage() {
                 defaultValue="any"
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
               >
-                {LEVELS.map((l) => (
+                {getLEVELS().map((l) => (
                   <option key={l.value} value={l.value}>
                     {l.label}
                   </option>

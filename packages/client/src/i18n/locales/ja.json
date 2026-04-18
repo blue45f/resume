@@ -312,6 +312,30 @@
     "skip": "後で行う",
     "finish": "始める"
   },
+  "companyTier": {
+    "public": "公企業 · 公的機関",
+    "large": "大企業",
+    "mid": "中堅企業",
+    "startup": "スタートアップ",
+    "foreign": "外資系",
+    "sme": "中小企業",
+    "freelance": "フリーランス/自営業",
+    "etc": "その他"
+  },
+  "cafeCategory": {
+    "interview": "面接",
+    "resume": "履歴書添削",
+    "codingTest": "コーディングテスト",
+    "study": "学習",
+    "networking": "ネットワーキング"
+  },
+  "experienceLevel": {
+    "any": "問わない",
+    "new": "新卒",
+    "junior": "ジュニア",
+    "mid": "ミドル",
+    "senior": "シニア"
+  },
   "plans": {
     "free": {
       "name": "無料",

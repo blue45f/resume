@@ -412,6 +412,30 @@
     "skip": "나중에 하기",
     "finish": "시작하기"
   },
+  "companyTier": {
+    "public": "공기업 · 공공기관",
+    "large": "대기업",
+    "mid": "중견기업",
+    "startup": "스타트업",
+    "foreign": "외국계",
+    "sme": "중소기업",
+    "freelance": "프리랜서/자영업",
+    "etc": "기타"
+  },
+  "cafeCategory": {
+    "interview": "면접",
+    "resume": "이력서 첨삭",
+    "codingTest": "코딩 테스트",
+    "study": "공부",
+    "networking": "네트워킹"
+  },
+  "experienceLevel": {
+    "any": "무관",
+    "new": "신입",
+    "junior": "주니어",
+    "mid": "중간",
+    "senior": "시니어"
+  },
   "plans": {
     "free": {
       "name": "무료",
