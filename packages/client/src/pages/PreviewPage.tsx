@@ -14,6 +14,7 @@ import KoreanCheckerPanel from '@/components/KoreanCheckerPanel';
 import AudioSummaryPanel from '@/components/AudioSummaryPanel';
 import NonItAssistantPanel from '@/components/NonItAssistantPanel';
 import DocumentEnhancePanel from '@/components/DocumentEnhancePanel';
+import PanelSection from '@/components/PanelSection';
 import CareerGrowthChart from '@/components/CareerGrowthChart';
 import { downloadSocialCard, downloadSocialCardSvg } from '@/lib/socialCard';
 import { downloadJsonResume } from '@/lib/jsonResume';
@@ -1051,50 +1052,94 @@ export default function PreviewPage() {
             })()}
 
             <CompletenessBar resume={resume} />
-            <PitchPanel resume={resume} />
-            <ReadabilityPanel resume={resume} />
-            <SkillProficiencyPanel resume={resume} />
-            <CareerGrowthChart resume={resume} />
-            <JdMatchPanel resume={resume} />
-            <KoreanCheckerPanel
-              resume={resume}
-              resumeId={id}
-              onApplyFix={async (fixed) => {
-                if (!id) return;
-                const { id: _omit, createdAt: _c, updatedAt: _u, ...payload } = fixed;
-                void _omit;
-                void _c;
-                void _u;
-                await updateResume(id, payload as any);
-                setResume(fixed);
-              }}
-            />
-            <NonItAssistantPanel resume={resume} />
-            <DocumentEnhancePanel resumeId={id!} resume={resume} onApplied={(r) => setResume(r)} />
-            <AudioSummaryPanel resume={resume} />
-            <ResumeAuditPanel resume={resume} />
-            <Suspense
-              fallback={
-                <div className="h-24 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />
-              }
+
+            {/* ─── 섹션 1: 이력서 완성도 / 품질 ──────────────────────── */}
+            <PanelSection
+              title="이력서 완성도"
+              subtitle="AI 점수·감사·체크리스트 — 이력서 기본기 점검"
+              icon="📊"
             >
-              <ResumeScoreboard resume={resume} />
-              <SalaryEstimate resume={resume} />
-              <AtsScorePanel resume={resume} />
-              <SimilarityPanel resume={resume} />
-              <ResumeChecklist resume={resume} />
-              <TransformHistory resumeId={id!} />
-              <ResumeTrend resumeId={id!} />
-              <SkillChart resume={resume} />
-              <AchievementBadges resume={resume} />
-              <ProjectShowcase resume={resume} />
-            </Suspense>
-            <CareerTimeline resume={resume} />
-            <CareerPathSuggestion resume={resume} />
-            <SimilarResumes resume={resume} />
-            <KeywordAnalysis resume={resume} />
-            <AttachmentList resumeId={id!} />
-            <ResumeAnalytics resumeId={id!} />
+              <ResumeAuditPanel resume={resume} />
+              <ReadabilityPanel resume={resume} />
+              <KoreanCheckerPanel
+                resume={resume}
+                resumeId={id}
+                onApplyFix={async (fixed) => {
+                  if (!id) return;
+                  const { id: _omit, createdAt: _c, updatedAt: _u, ...payload } = fixed;
+                  void _omit;
+                  void _c;
+                  void _u;
+                  await updateResume(id, payload as any);
+                  setResume(fixed);
+                }}
+              />
+              <Suspense
+                fallback={
+                  <div className="imp-card h-12 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />
+                }
+              >
+                <ResumeScoreboard resume={resume} />
+                <AtsScorePanel resume={resume} />
+                <ResumeChecklist resume={resume} />
+              </Suspense>
+            </PanelSection>
+
+            {/* ─── 섹션 2: AI 도구 ────────────────────────────────── */}
+            <PanelSection
+              title="AI 어시스턴트"
+              subtitle="자동 생성·변환·분석 — 외부 문서 병합, 한줄소개, JD 매칭"
+              icon="✨"
+            >
+              <PitchPanel resume={resume} />
+              <DocumentEnhancePanel
+                resumeId={id!}
+                resume={resume}
+                onApplied={(r) => setResume(r)}
+              />
+              <JdMatchPanel resume={resume} />
+              <NonItAssistantPanel resume={resume} />
+              <AudioSummaryPanel resume={resume} />
+            </PanelSection>
+
+            {/* ─── 섹션 3: 경력 인사이트 ─────────────────────────── */}
+            <PanelSection
+              title="경력 인사이트"
+              subtitle="성장 추이·스킬 레이더·유사 이력서"
+              icon="📈"
+            >
+              <SkillProficiencyPanel resume={resume} />
+              <CareerGrowthChart resume={resume} />
+              <CareerTimeline resume={resume} />
+              <CareerPathSuggestion resume={resume} />
+              <Suspense
+                fallback={
+                  <div className="imp-card h-12 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />
+                }
+              >
+                <SkillChart resume={resume} />
+                <SimilarityPanel resume={resume} />
+                <AchievementBadges resume={resume} />
+                <ProjectShowcase resume={resume} />
+                <SalaryEstimate resume={resume} />
+              </Suspense>
+              <SimilarResumes resume={resume} />
+              <KeywordAnalysis resume={resume} />
+            </PanelSection>
+
+            {/* ─── 섹션 4: 기록·첨부 ─────────────────────────────── */}
+            <PanelSection title="기록·첨부" subtitle="변환 이력·트렌드·첨부파일" icon="📁">
+              <Suspense
+                fallback={
+                  <div className="imp-card h-12 animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />
+                }
+              >
+                <TransformHistory resumeId={id!} />
+                <ResumeTrend resumeId={id!} />
+              </Suspense>
+              <AttachmentList resumeId={id!} />
+              <ResumeAnalytics resumeId={id!} />
+            </PanelSection>
           </div>
           {/* Zoom Controls */}
           <div className="no-print max-w-[210mm] mx-auto mb-3 flex items-center justify-between gap-2">

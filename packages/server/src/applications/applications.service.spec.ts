@@ -21,6 +21,7 @@ const mockPrisma = {
   jobApplication: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
+    findFirst: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -73,12 +74,31 @@ describe('ApplicationsService', () => {
 
   describe('create', () => {
     it('지원 내역 생성', async () => {
+      mockPrisma.jobApplication.findFirst.mockResolvedValue(null); // 중복 없음
       mockPrisma.jobApplication.create.mockResolvedValue(mockApp);
       const result = await service.create({ company: '네이버', position: '프론트엔드' }, 'user-1');
       expect(result.company).toBe('네이버');
       expect(mockPrisma.jobApplication.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ userId: 'user-1' }) }),
       );
+    });
+
+    it('7일 내 동일 회사·포지션 중복 시 update 로 갱신', async () => {
+      mockPrisma.jobApplication.findFirst.mockResolvedValue({ ...mockApp, id: 'existing' });
+      mockPrisma.jobApplication.update.mockResolvedValue({
+        ...mockApp,
+        id: 'existing',
+        notes: '새 메모',
+      });
+      const result = await service.create(
+        { company: '네이버', position: '프론트엔드', notes: '새 메모' },
+        'user-1',
+      );
+      expect(mockPrisma.jobApplication.create).not.toHaveBeenCalled();
+      expect(mockPrisma.jobApplication.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'existing' } }),
+      );
+      expect(result.id).toBe('existing');
     });
   });
 

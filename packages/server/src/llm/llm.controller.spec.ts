@@ -73,41 +73,47 @@ describe('LlmController', () => {
   });
 
   describe('AI 분석', () => {
-    it('analyzeFeedback: provider 전달', () => {
-      controller.analyzeFeedback('r1', { provider: 'openai' } as any);
+    const reqStub = { user: undefined } as any;
+
+    it('analyzeFeedback: provider 전달', async () => {
+      await controller.analyzeFeedback('r1', { provider: 'openai' } as any, reqStub);
       expect(mockLlm.analyzeFeedback).toHaveBeenCalledWith('r1', 'openai');
     });
 
-    it('analyzeJobMatch: JD + provider 전달', () => {
-      controller.analyzeJobMatch('r1', {
-        jobDescription: 'Senior React',
-        provider: 'groq',
-      } as any);
+    it('analyzeJobMatch: JD + provider 전달', async () => {
+      await controller.analyzeJobMatch(
+        'r1',
+        { jobDescription: 'Senior React', provider: 'groq' } as any,
+        reqStub,
+      );
       expect(mockLlm.analyzeJobMatch).toHaveBeenCalledWith('r1', 'Senior React', 'groq');
     });
 
-    it('generateInterview: 5개 인자 분해 전달', () => {
-      controller.generateInterview('r1', {
-        jobRole: 'FE',
-        provider: 'openai',
-        jobDescription: 'JD',
-        difficulty: 'hard',
-      } as any);
+    it('generateInterview: 5개 인자 분해 전달', async () => {
+      await controller.generateInterview(
+        'r1',
+        {
+          jobRole: 'FE',
+          provider: 'openai',
+          jobDescription: 'JD',
+          difficulty: 'advanced',
+        } as any,
+        reqStub,
+      );
       expect(mockLlm.generateInterviewQuestions).toHaveBeenCalledWith(
         'r1',
         'FE',
         'openai',
         'JD',
-        'hard',
+        'advanced',
       );
     });
 
-    it('inlineAssist: text + type + provider 전달', () => {
-      controller.inlineAssist({
-        text: '원문',
-        type: 'improve',
-        provider: 'openai',
-      } as any);
+    it('inlineAssist: text + type + provider 전달', async () => {
+      await controller.inlineAssist(
+        { text: '원문', type: 'improve', provider: 'openai' } as any,
+        reqStub,
+      );
       expect(mockLlm.inlineAssist).toHaveBeenCalledWith('원문', 'improve', 'openai');
     });
   });
