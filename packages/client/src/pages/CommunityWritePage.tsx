@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -227,6 +227,14 @@ export default function CommunityWritePage() {
   const navigate = useNavigate();
   const user = getUser();
 
+  // ?category= 쿼리로부터 기본값 읽기 (커뮤니티 리스트 → 글쓰기 진입 시 현재 필터 유지)
+  const [searchParams] = useSearchParams();
+  const initialCategory = (() => {
+    const q = searchParams.get('category');
+    const valid = ['notice', 'free', 'tips', 'resume', 'cover-letter', 'interview', 'question'];
+    return q && valid.includes(q) ? q : 'free';
+  })();
+
   const {
     register,
     handleSubmit,
@@ -235,7 +243,7 @@ export default function CommunityWritePage() {
     formState: { errors, isSubmitting },
   } = useForm<PostForm>({
     resolver: zodResolver(postSchema),
-    defaultValues: { title: '', content: '', category: 'free' },
+    defaultValues: { title: '', content: '', category: initialCategory },
   });
 
   const title = watch('title');
