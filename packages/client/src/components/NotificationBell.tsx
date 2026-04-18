@@ -6,6 +6,7 @@ import { fetchNotifications as apiFetchNotifications, markAllNotificationsRead }
 import { getToken } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 
 interface Notification {
   id: string;
@@ -72,7 +73,7 @@ export default function NotificationBell() {
   return (
     <Popover.Root open={open} onOpenChange={handleOpenChange}>
       <Popover.Trigger asChild>
-        <button className="relative icon-btn-sm" aria-label="알림">
+        <button className="relative icon-btn-sm" aria-label={tx('notification.title')}>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -90,20 +91,22 @@ export default function NotificationBell() {
       </Popover.Trigger>
       <Popover.Content align="end" className="w-80 p-0 overflow-hidden">
         <div className="flex items-center justify-between p-3 border-b border-neutral-100 dark:border-neutral-700">
-          <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">알림</h3>
+          <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+            {tx('notification.title')}
+          </h3>
           {count > 0 && (
             <button
               onClick={markAllRead}
               className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
             >
-              모두 읽음
+              {tx('notification.markAllRead')}
             </button>
           )}
         </div>
         <div className="max-h-80 overflow-y-auto">
           {notifications.length === 0 ? (
             <p className="text-sm text-neutral-400 dark:text-neutral-500 text-center py-8">
-              알림이 없습니다
+              {tx('empty.notifications')}
             </p>
           ) : (
             notifications.map((n) => {
