@@ -470,7 +470,7 @@ function ContactInfo({ pi, theme }: { pi: Resume['personalInfo']; theme: ResumeT
 /* ------------------------------------------------------------------ */
 function ExperienceBlock({ exp, themeId }: { exp: Resume['experiences'][0]; themeId: string }) {
   return (
-    <div>
+    <div className="resume-item">
       <div className="flex flex-wrap justify-between items-baseline gap-2">
         <div className="min-w-0">
           <span className="font-semibold text-slate-900">{exp.company}</span>
@@ -518,7 +518,7 @@ function ExperienceBlock({ exp, themeId }: { exp: Resume['experiences'][0]; them
 function EducationBlock({ edu, themeId }: { edu: Resume['educations'][0]; themeId: string }) {
   const locale = getDateLocale(themeId);
   return (
-    <div>
+    <div className="resume-item">
       <div className="flex flex-wrap justify-between items-baseline gap-2">
         <div>
           <span className="font-semibold text-slate-900">{edu.school}</span>
@@ -683,7 +683,7 @@ function RemainingContent({
 /* ------------------------------------------------------------------ */
 function ProjectBlock({ proj, themeId }: { proj: Resume['projects'][0]; themeId: string }) {
   return (
-    <div>
+    <div className="resume-item">
       <div className="flex flex-wrap justify-between items-baseline gap-2">
         <div className="min-w-0">
           <span className="font-semibold text-slate-900">{proj.name}</span>

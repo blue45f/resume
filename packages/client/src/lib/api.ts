@@ -396,6 +396,43 @@ export const fetchTransformUsage = (resumeId: string) =>
     `${BASE}/resumes/${resumeId}/transform/usage`,
   );
 
+// AI 맞춤법 교정 (LLM 기반)
+export interface AiSpellIssue {
+  section: string;
+  wrong: string;
+  suggestion: string;
+  reason: string;
+  severity: 'error' | 'warning' | 'info';
+}
+export const aiSpellCheck = (resumeId: string, provider?: string) =>
+  request<{
+    issues: AiSpellIssue[];
+    tokensUsed: number;
+    provider: string;
+    model: string;
+  }>(`${BASE}/resumes/${resumeId}/transform/ai-spell-check`, {
+    method: 'POST',
+    body: JSON.stringify({ provider }),
+  });
+
+// AI 외부 문서 병합 — 기존 이력서 고도화
+export interface EnhanceResult {
+  enhanced: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>;
+  changes: string[];
+  tokensUsed: number;
+  provider: string;
+  model: string;
+}
+export const enhanceResumeWithDocument = (
+  resumeId: string,
+  documentText: string,
+  instruction?: string,
+) =>
+  request<EnhanceResult>(`${BASE}/resumes/${resumeId}/transform/enhance-with-document`, {
+    method: 'POST',
+    body: JSON.stringify({ documentText, instruction }),
+  });
+
 // AI Inline Assist
 export const aiInlineAssist = (resumeId: string, text: string, type: string) =>
   request<{ original: string; improved: string; type: string; tokensUsed: number }>(

@@ -13,6 +13,7 @@ import JdMatchPanel from '@/components/JdMatchPanel';
 import KoreanCheckerPanel from '@/components/KoreanCheckerPanel';
 import AudioSummaryPanel from '@/components/AudioSummaryPanel';
 import NonItAssistantPanel from '@/components/NonItAssistantPanel';
+import DocumentEnhancePanel from '@/components/DocumentEnhancePanel';
 import CareerGrowthChart from '@/components/CareerGrowthChart';
 import { downloadSocialCard, downloadSocialCardSvg } from '@/lib/socialCard';
 import { downloadJsonResume } from '@/lib/jsonResume';
@@ -48,6 +49,7 @@ import ResumeAnalytics from '@/components/ResumeAnalytics';
 import ResumeStats from '@/components/ResumeStats';
 import AICareerAdvisor from '@/components/AICareerAdvisor';
 import { toast } from '@/components/Toast';
+import { updateResume } from '@/lib/api';
 import type { Resume } from '@/types/resume';
 import { useQueryClient } from '@tanstack/react-query';
 import { useResume } from '@/hooks/useResources';
@@ -1054,8 +1056,21 @@ export default function PreviewPage() {
             <SkillProficiencyPanel resume={resume} />
             <CareerGrowthChart resume={resume} />
             <JdMatchPanel resume={resume} />
-            <KoreanCheckerPanel resume={resume} />
+            <KoreanCheckerPanel
+              resume={resume}
+              resumeId={id}
+              onApplyFix={async (fixed) => {
+                if (!id) return;
+                const { id: _omit, createdAt: _c, updatedAt: _u, ...payload } = fixed;
+                void _omit;
+                void _c;
+                void _u;
+                await updateResume(id, payload as any);
+                setResume(fixed);
+              }}
+            />
             <NonItAssistantPanel resume={resume} />
+            <DocumentEnhancePanel resumeId={id!} resume={resume} onApplied={(r) => setResume(r)} />
             <AudioSummaryPanel resume={resume} />
             <ResumeAuditPanel resume={resume} />
             <Suspense
