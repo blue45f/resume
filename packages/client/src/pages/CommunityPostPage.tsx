@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import { toast } from '@/components/Toast';
 import SendMessageButton from '@/components/SendMessageButton';
 import {
@@ -360,7 +361,7 @@ export default function CommunityPostPage() {
 
   const handleLike = async () => {
     if (!user) {
-      navigate('/login');
+      navigate(ROUTES.login);
       return;
     }
     if (liking || !post) return;
@@ -448,7 +449,7 @@ export default function CommunityPostPage() {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` } as any,
     });
-    if (r.ok) navigate('/community');
+    if (r.ok) navigate(ROUTES.community.list);
     else {
       toast('삭제에 실패했습니다', 'error');
       setDeleting(false);
@@ -513,7 +514,7 @@ export default function CommunityPostPage() {
           </p>
           <p className="text-sm text-slate-400 mb-6">삭제되었거나 존재하지 않는 게시글입니다.</p>
           <Link
-            to="/community"
+            to={ROUTES.community.list}
             className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:underline"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -538,7 +539,7 @@ export default function CommunityPostPage() {
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-6">
-          <Link to="/community" className="hover:text-indigo-600 transition-colors">
+          <Link to={ROUTES.community.list} className="hover:text-indigo-600 transition-colors">
             커뮤니티
           </Link>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -866,7 +867,7 @@ export default function CommunityPostPage() {
                 <div className="flex items-center gap-3">
                   {!user && (
                     <Link
-                      to="/login"
+                      to={ROUTES.login}
                       className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
                     >
                       로그인하면 이름이 표시됩니다
@@ -1140,7 +1141,7 @@ export default function CommunityPostPage() {
         {/* Back link */}
         <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
           <Link
-            to="/community"
+            to={ROUTES.community.list}
             className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

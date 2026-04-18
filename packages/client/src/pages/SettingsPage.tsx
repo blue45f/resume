@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import ProfileBadges from '@/components/ProfileBadges';
 import { getPlan } from '@/lib/plans';
 import { getTheme, setTheme } from '@/lib/theme';
@@ -246,7 +247,7 @@ export default function SettingsPage() {
 
   /* ── 초기화 ── */
   useEffect(() => {
-    if (!user) navigate('/login');
+    if (!user) navigate(ROUTES.login);
   }, [user]);
 
   useEffect(() => {
@@ -347,7 +348,7 @@ export default function SettingsPage() {
       await apiDeleteAccount();
       clearAuth();
       toast('계정이 삭제되었습니다', 'info');
-      navigate('/');
+      navigate(ROUTES.home);
       window.location.reload();
     } catch (err: any) {
       toast(err.message || '계정 삭제에 실패했습니다', 'error');
@@ -670,25 +671,25 @@ export default function SettingsPage() {
 
               <div className="flex flex-wrap gap-3 mt-3">
                 <Link
-                  to="/bookmarks"
+                  to={ROUTES.resume.bookmarks}
                   className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   내 북마크
                 </Link>
                 <Link
-                  to="/my-cover-letters"
+                  to={ROUTES.coverLetter.list}
                   className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   내 자소서
                 </Link>
                 <Link
-                  to="/messages"
+                  to={ROUTES.social.messages}
                   className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   쪽지
                 </Link>
                 <Link
-                  to="/scouts"
+                  to={ROUTES.jobs.scouts}
                   className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   스카우트
@@ -959,7 +960,7 @@ export default function SettingsPage() {
               </p>
             </div>
             <Link
-              to="/pricing"
+              to={ROUTES.pricing}
               className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200"
             >
               {user.plan === 'free' || !user.plan ? '업그레이드' : '플랜 변경'}
