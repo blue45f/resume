@@ -153,12 +153,21 @@
   },
   "interview": {
     "mock": "모의 면접",
+    "prep": "면접 준비",
     "record": "녹화 시작",
     "stop": "정지",
     "retake": "다시 녹화",
     "listen": "질문 음성으로 듣기",
     "speed": "속도",
-    "persona": "면접관"
+    "persona": "면접관",
+    "generate": "면접 질문 생성",
+    "generated": "면접 질문이 생성되었습니다",
+    "difficulty": {
+      "label": "난이도",
+      "beginner": "초급",
+      "intermediate": "중급",
+      "advanced": "고급"
+    }
   },
   "notice": {
     "types": {

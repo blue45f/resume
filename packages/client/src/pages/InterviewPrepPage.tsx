@@ -7,6 +7,7 @@ import type { Resume, ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
 import { useResume, useResumes, usePublicGet } from '@/hooks/useResources';
 import RelatedGroupsWidget from '@/features/study-groups/ui/RelatedGroupsWidget';
+import { tx } from '@/lib/i18n';
 
 // ── Types ──
 
@@ -473,9 +474,9 @@ export default function InterviewPrepPage() {
   }, [mockTimerActive, mockTimerDuration]);
 
   const difficultyLabels: Record<Difficulty, string> = {
-    beginner: '초급',
-    intermediate: '중급',
-    advanced: '고급',
+    beginner: tx('interview.difficulty.beginner'),
+    intermediate: tx('interview.difficulty.intermediate'),
+    advanced: tx('interview.difficulty.advanced'),
   };
 
   const difficultyDescriptions: Record<Difficulty, string> = {
@@ -1373,7 +1374,7 @@ export default function InterviewPrepPage() {
       >
         <div className="mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-            면접 준비
+            {tx('interview.prep')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             AI가 이력서 기반으로 예상 면접 질문과 모범 답변을 생성합니다
@@ -1469,7 +1470,7 @@ export default function InterviewPrepPage() {
           {/* Difficulty selector */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-              난이도
+              {tx('interview.difficulty.label')}
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {(Object.keys(difficultyLabels) as Difficulty[]).map((d) => (
@@ -1608,7 +1609,7 @@ export default function InterviewPrepPage() {
                 AI 생성 중...
               </span>
             ) : (
-              '면접 질문 생성'
+              tx('interview.generate')
             )}
           </button>
         </div>

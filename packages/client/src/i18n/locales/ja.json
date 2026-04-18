@@ -142,12 +142,21 @@
   },
   "interview": {
     "mock": "模擬面接",
+    "prep": "面接準備",
     "record": "録画開始",
     "stop": "停止",
     "retake": "再録画",
     "listen": "質問を聞く",
     "speed": "速度",
-    "persona": "面接官"
+    "persona": "面接官",
+    "generate": "面接質問を生成",
+    "generated": "面接質問を生成しました",
+    "difficulty": {
+      "label": "難易度",
+      "beginner": "初級",
+      "intermediate": "中級",
+      "advanced": "上級"
+    }
   },
   "toast": {
     "saved": "保存しました",

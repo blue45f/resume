@@ -153,12 +153,21 @@
   },
   "interview": {
     "mock": "Mock Interview",
+    "prep": "Interview Prep",
     "record": "Start Recording",
     "stop": "Stop",
     "retake": "Retake",
     "listen": "Listen to question",
     "speed": "Speed",
-    "persona": "Interviewer"
+    "persona": "Interviewer",
+    "generate": "Generate interview questions",
+    "generated": "Interview questions generated",
+    "difficulty": {
+      "label": "Difficulty",
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    }
   },
   "notice": {
     "types": {
