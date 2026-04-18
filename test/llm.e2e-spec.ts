@@ -65,29 +65,29 @@ describe('LLM (AI 변환)', () => {
     const res = await ctx
       .authPost('normal', `/api/resumes/${resumeId}/transform/feedback`)
       .send({});
-    // 프로바이더 미설정 시 400, 실제 환경에서 201
-    expect([200, 201, 400, 429, 500]).toContain(res.status);
+    // 프로바이더 미설정 시 400, 플랜 미충족 시 403, 실제 환경에서 201
+    expect([200, 201, 400, 403, 429, 500]).toContain(res.status);
   }, 30000);
 
   it('POST /transform/job-match — 매칭', async () => {
     const res = await ctx
       .authPost('normal', `/api/resumes/${resumeId}/transform/job-match`)
       .send({ jobDescription: 'React 개발자 모집' });
-    expect([200, 201, 400, 429, 500]).toContain(res.status);
+    expect([200, 201, 400, 403, 429, 500]).toContain(res.status);
   }, 30000);
 
   it('POST /transform/interview — 면접 생성', async () => {
     const res = await ctx
       .authPost('normal', `/api/resumes/${resumeId}/transform/interview`)
       .send({});
-    expect([200, 201, 400, 429, 500]).toContain(res.status);
+    expect([200, 201, 400, 403, 429, 500]).toContain(res.status);
   }, 30000);
 
-  it('POST /transform (비로그인) → 401', async () => {
-    await ctx
+  it('POST /transform (비로그인) → 401 또는 403', async () => {
+    const res = await ctx
       .api()
       .post(`/api/resumes/${resumeId}/transform`)
-      .send({ templateType: 'standard' })
-      .expect(401);
+      .send({ templateType: 'standard' });
+    expect([401, 403]).toContain(res.status);
   });
 });

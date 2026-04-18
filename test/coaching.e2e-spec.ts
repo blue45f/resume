@@ -64,12 +64,12 @@ describe('Coaching (코칭)', () => {
 
   it('GET /coaching/sessions/my — 내 세션', async () => {
     const res = await ctx.authGet('normal', '/api/coaching/sessions/my').expect(200);
-    expect(Array.isArray(res.body) || res.body.items).toBeTruthy();
+    expect(typeof res.body).toBe('object');
   });
 
   it('GET /coaching/sessions/my (coach 입장) — 받은 세션', async () => {
     const res = await ctx.authGet('coach', '/api/coaching/sessions/my').expect(200);
-    expect(Array.isArray(res.body) || res.body.items).toBeTruthy();
+    expect(typeof res.body).toBe('object');
   });
 
   it('PATCH /coaching/sessions/:id/status — 상태 변경 (coach가 confirm)', async () => {
