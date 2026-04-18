@@ -8,7 +8,7 @@ import Header from '@/components/Header';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
-import { t } from '@/lib/i18n';
+import { t, tx } from '@/lib/i18n';
 
 const CATEGORY_PATTERN = /^[\w가-힣 ·/\-()]{1,24}$/;
 
@@ -27,14 +27,27 @@ const postSchema = z.object({
 
 type PostForm = z.infer<typeof postSchema>;
 
-const CATEGORIES = [
-  { id: 'notice', label: '공지사항', icon: '📢', adminOnly: true },
-  { id: 'free', label: '자유', icon: '💬' },
-  { id: 'tips', label: '취업팁', icon: '💡' },
-  { id: 'resume', label: '이력서피드백', icon: '📄' },
-  { id: 'cover-letter', label: '자소서', icon: '✍️' },
-  { id: 'question', label: '질문', icon: '❓' },
-] as const;
+interface CategoryDef {
+  id: string;
+  labelKey: string;
+  icon: string;
+  adminOnly?: boolean;
+}
+const CATEGORY_DEFS: CategoryDef[] = [
+  { id: 'notice', labelKey: 'community.category.notice', icon: '📢', adminOnly: true },
+  { id: 'free', labelKey: 'community.category.free', icon: '💬' },
+  { id: 'tips', labelKey: 'community.category.tips', icon: '💡' },
+  { id: 'resume', labelKey: 'community.category.resume', icon: '📄' },
+  { id: 'cover-letter', labelKey: 'community.category.coverLetter', icon: '✍️' },
+  { id: 'question', labelKey: 'community.category.question', icon: '❓' },
+];
+const getCATEGORIES = () =>
+  CATEGORY_DEFS.map((c) => ({
+    id: c.id,
+    label: tx(c.labelKey),
+    icon: c.icon,
+    adminOnly: c.adminOnly,
+  }));
 
 // ── Markdown renderer for preview ────────────────────────────────────────────
 function renderMarkdown(text: string): string {
@@ -345,7 +358,7 @@ export default function CommunityWritePage() {
       setValue('content', editData.content || '');
       const cat = editData.category || 'free';
       setValue('category', cat);
-      if (!CATEGORIES.some((c) => c.id === cat)) {
+      if (!CATEGORY_DEFS.some((c) => c.id === cat)) {
         setCustomCatMode(true);
         setCustomCat(cat);
       }
@@ -561,28 +574,30 @@ export default function CommunityWritePage() {
               카테고리
             </label>
             <div className="flex flex-wrap gap-2 items-center">
-              {CATEGORIES.filter(
-                (cat) =>
-                  !('adminOnly' in cat && cat.adminOnly) ||
-                  user?.role === 'admin' ||
-                  user?.role === 'superadmin',
-              ).map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => {
-                    setCustomCatMode(false);
-                    setValue('category', cat.id, { shouldValidate: true, shouldDirty: true });
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-xl border transition-all ${
-                    category === cat.id && !customCatMode
-                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 font-medium'
-                      : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
-                  }`}
-                >
-                  {cat.icon} {cat.label}
-                </button>
-              ))}
+              {getCATEGORIES()
+                .filter(
+                  (cat) =>
+                    !('adminOnly' in cat && cat.adminOnly) ||
+                    user?.role === 'admin' ||
+                    user?.role === 'superadmin',
+                )
+                .map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      setCustomCatMode(false);
+                      setValue('category', cat.id, { shouldValidate: true, shouldDirty: true });
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-xl border transition-all ${
+                      category === cat.id && !customCatMode
+                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 font-medium'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                    }`}
+                  >
+                    {cat.icon} {cat.label}
+                  </button>
+                ))}
               {!customCatMode ? (
                 <button
                   type="button"

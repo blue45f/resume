@@ -105,7 +105,16 @@
     "comments": "コメント",
     "likes": "いいね",
     "views": "閲覧",
-    "bookmark": "ブックマーク"
+    "bookmark": "ブックマーク",
+    "category": {
+      "notice": "お知らせ",
+      "free": "自由",
+      "tips": "就活Tips",
+      "resume": "履歴書レビュー",
+      "coverLetter": "志望動機",
+      "question": "質問",
+      "interview": "面接"
+    }
   },
   "jobs": {
     "title": "求人情報",

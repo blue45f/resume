@@ -116,7 +116,16 @@
     "comments": "Comments",
     "likes": "Likes",
     "views": "Views",
-    "bookmark": "Bookmark"
+    "bookmark": "Bookmark",
+    "category": {
+      "notice": "Notice",
+      "free": "Free",
+      "tips": "Career Tips",
+      "resume": "Resume Feedback",
+      "coverLetter": "Cover Letter",
+      "question": "Question",
+      "interview": "Interview"
+    }
   },
   "jobs": {
     "title": "Job Postings",

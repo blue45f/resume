@@ -116,7 +116,16 @@
     "comments": "댓글",
     "likes": "좋아요",
     "views": "조회",
-    "bookmark": "북마크"
+    "bookmark": "북마크",
+    "category": {
+      "notice": "공지사항",
+      "free": "자유",
+      "tips": "취업팁",
+      "resume": "이력서피드백",
+      "coverLetter": "자소서",
+      "question": "질문",
+      "interview": "면접"
+    }
   },
   "jobs": {
     "title": "채용공고",
