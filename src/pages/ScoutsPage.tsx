@@ -448,9 +448,7 @@ export default function ScoutsPage() {
             >
               {t.label}
               {t.key === 'received' && unreadCount > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-red-500 text-white rounded-full">
-                  {unreadCount}
-                </span>
+                <span className="ml-1.5 badge-xs badge-red">{unreadCount}</span>
               )}
               {t.key === 'sent' && (
                 <span className="ml-1.5 text-xs text-slate-400">({sentScouts.length})</span>
@@ -480,9 +478,7 @@ export default function ScoutsPage() {
                         <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
                           {tpl.name}
                         </p>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400">
-                          사용 {tpl.useCount}회
-                        </span>
+                        <span className="badge-xs badge-neutral">사용 {tpl.useCount}회</span>
                       </div>
                       <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{tpl.message}</p>
                     </div>

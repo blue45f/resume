@@ -372,10 +372,7 @@ export default function RecruiterDashboardPage() {
                       {r.skills && r.skills.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-3">
                           {(r.skills as string[]).slice(0, 5).map((skill: string) => (
-                            <span
-                              key={skill}
-                              className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
-                            >
+                            <span key={skill} className="badge-xs badge-neutral">
                               {skill}
                             </span>
                           ))}

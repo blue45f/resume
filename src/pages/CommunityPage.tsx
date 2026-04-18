@@ -467,9 +467,7 @@ export default function CommunityPage() {
                           <span className="text-xs text-red-500 font-bold shrink-0">🔥</span>
                         )}
                         {fresh && (
-                          <span className="text-[10px] font-bold bg-indigo-500 text-white px-1.5 py-0.5 rounded-full shrink-0">
-                            NEW
-                          </span>
+                          <span className="badge-xs badge-blue font-bold shrink-0">NEW</span>
                         )}
                         <h3
                           className={`text-sm font-semibold truncate transition-colors ${

@@ -24,5 +24,38 @@
       "type": "image/svg+xml",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "새 이력서 작성",
+      "short_name": "새 이력서",
+      "description": "이력서를 새로 작성합니다",
+      "url": "/resumes/new",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "채용 공고 탐색",
+      "short_name": "채용 공고",
+      "description": "채용 공고를 둘러봅니다",
+      "url": "/jobs",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "이력서 탐색",
+      "short_name": "인재 탐색",
+      "description": "공개 이력서를 탐색합니다",
+      "url": "/explore",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "커뮤니티",
+      "short_name": "커뮤니티",
+      "description": "취업/이력서 커뮤니티",
+      "url": "/community",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "scope": "/"
 }

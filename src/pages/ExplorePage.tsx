@@ -984,10 +984,7 @@ export default function ExplorePage() {
                         </div>
                         <div className="flex flex-wrap gap-1 mb-3">
                           {user.matchedSkills.slice(0, 3).map((s) => (
-                            <span
-                              key={s}
-                              className="px-1.5 py-0.5 text-[10px] bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded font-medium"
-                            >
+                            <span key={s} className="badge-xs badge-amber">
                               {s}
                             </span>
                           ))}
@@ -1097,7 +1094,7 @@ export default function ExplorePage() {
                               {user.name}
                             </h3>
                             {user.isOpenToWork && (
-                              <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800">
+                              <span className="shrink-0 badge-xs badge-green font-bold">
                                 구직 중
                               </span>
                             )}
@@ -1387,9 +1384,7 @@ export default function ExplorePage() {
             {!query && !tag && page === 1 && result.data.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-                    HOT
-                  </span>
+                  <span className="badge-xs badge-cyan font-bold">HOT</span>
                   인기 이력서
                 </h3>
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">

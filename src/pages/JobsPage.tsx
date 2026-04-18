@@ -720,9 +720,7 @@ function ExternalJobLinks({
           <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
             주요 채용 사이트 바로가기
           </span>
-          <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full">
-            {links.length}개
-          </span>
+          <span className="badge-xs badge-blue font-bold">{links.length}개</span>
         </div>
         <div className="flex items-center gap-2">
           {canCreate && (
@@ -919,9 +917,7 @@ function ExternalJobLinks({
                       {link.name}
                     </span>
                     {link.badgeText && (
-                      <span className="px-1 py-0.5 text-[9px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">
-                        {link.badgeText}
-                      </span>
+                      <span className="badge-xs badge-neutral">{link.badgeText}</span>
                     )}
                   </div>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">
@@ -1752,12 +1748,12 @@ function CuratedJobsTab() {
                             {job.company}
                           </span>
                           {job.companySize && SIZE_LABELS[job.companySize] && (
-                            <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded">
+                            <span className="shrink-0 badge-xs badge-neutral">
                               {SIZE_LABELS[job.companySize]}
                             </span>
                           )}
                           {job.industry && INDUSTRY_LABELS[job.industry] && (
-                            <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-medium bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded">
+                            <span className="shrink-0 badge-xs badge-blue">
                               {INDUSTRY_LABELS[job.industry]}
                             </span>
                           )}
@@ -1776,24 +1772,18 @@ function CuratedJobsTab() {
 
                       {/* Meta badges */}
                       <div className="flex flex-wrap gap-1.5 mb-2">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md">
-                          📍 {job.location || '미정'}
-                        </span>
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md">
+                        <span className="badge-xs badge-neutral">📍 {job.location || '미정'}</span>
+                        <span className="badge-xs badge-neutral">
                           👤 {EXP_LABELS[job.experienceLevel] || job.experienceLevel}
                         </span>
                         {job.education && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md">
-                            🎓 {job.education}
-                          </span>
+                          <span className="badge-xs badge-neutral">🎓 {job.education}</span>
                         )}
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md">
+                        <span className="badge-xs badge-neutral">
                           📋 {JOB_TYPES[job.jobType] || job.jobType}
                         </span>
                         {job.salary && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-md">
-                            💰 {job.salary}
-                          </span>
+                          <span className="badge-xs badge-green">💰 {job.salary}</span>
                         )}
                       </div>
 
@@ -2696,7 +2686,7 @@ export default function JobsPage() {
                               {j.position}
                             </h3>
                             {appliedJobs.has(j.id) && (
-                              <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-md border border-green-200 dark:border-green-800">
+                              <span className="shrink-0 badge-xs badge-green font-bold">
                                 지원 완료
                               </span>
                             )}
