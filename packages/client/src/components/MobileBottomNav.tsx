@@ -232,7 +232,7 @@ export default function MobileBottomNav() {
     ? 'text-sky-600 dark:text-sky-400'
     : 'text-blue-600 dark:text-blue-400';
   const highlightGradient = isRecruiter
-    ? 'bg-gradient-to-br from-purple-600 to-indigo-600 shadow-purple-600/30'
+    ? 'bg-gradient-to-br from-blue-600 to-sky-600 shadow-blue-600/30'
     : 'bg-gradient-to-br from-blue-600 to-indigo-600 shadow-blue-600/30';
 
   return (

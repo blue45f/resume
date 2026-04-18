@@ -92,7 +92,7 @@ function ThemeSeparator({ themeId }: { themeId: string }) {
     case 'creative':
     case 'startup':
       return (
-        <div className="h-1 my-6 rounded-full bg-gradient-to-r from-purple-400 via-pink-400 to-orange-300 opacity-60" />
+        <div className="h-1 my-6 rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-300 opacity-60" />
       );
     case 'tech':
       return (
@@ -123,7 +123,7 @@ function ThemeSeparator({ themeId }: { themeId: string }) {
       );
     case 'portfolio':
       return (
-        <div className="h-1.5 my-7 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-50" />
+        <div className="h-1.5 my-7 rounded-full bg-gradient-to-r from-blue-500 via-sky-500 to-cyan-500 opacity-50" />
       );
     case 'professional':
       return <div className="border-t-2 border-slate-200 my-6" />;
@@ -163,7 +163,7 @@ function SkillsDisplay({
     const colorMap: Record<string, string> = {
       blue: 'bg-blue-100 text-blue-700 border-blue-200',
       indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-      slate: 'bg-sky-100 text-violet-700 border-sky-200',
+      slate: 'bg-sky-100 text-sky-700 border-sky-200',
       purple: 'bg-cyan-100 text-pink-700 border-cyan-200',
     };
     const pillColor = colorMap[accentColor] || colorMap.blue;
@@ -223,7 +223,7 @@ function SkillsDisplay({
       'from-blue-500 to-cyan-400',
       'from-orange-400 to-red-500',
       'from-green-400 to-emerald-500',
-      'from-indigo-500 to-purple-400',
+      'from-blue-500 to-sky-400',
     ];
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -495,7 +495,7 @@ function ExperienceBlock({ exp, themeId }: { exp: Resume['experiences'][0]; them
             themeId === 'tech'
               ? 'border-[#238636] bg-[#0d1117]/5'
               : themeId === 'creative'
-                ? 'border-purple-300 bg-purple-50/50'
+                ? 'border-sky-300 bg-sky-50/50'
                 : 'border-blue-300 bg-blue-50/50'
           }`}
         >
@@ -1257,7 +1257,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
               </div>
             )}
             {skills.length > 0 && (
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-5 shadow-sm border border-purple-100">
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-5 shadow-sm border border-blue-100">
                 <h2 className={theme.sectionTitleStyle}>{t('resume.skills')}</h2>
                 <SkillsDisplay skills={skills} themeId={theme.id} accentColor={theme.accentColor} />
               </div>
@@ -1822,7 +1822,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                       key={proj.id}
                       className="border border-slate-200 rounded-xl p-4 bg-gradient-to-br from-slate-50 to-white shadow-sm hover:shadow-md transition-shadow"
                     >
-                      <div className="h-20 bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 rounded-lg mb-3 flex items-center justify-center">
+                      <div className="h-20 bg-gradient-to-br from-blue-100 via-sky-50 to-cyan-100 rounded-lg mb-3 flex items-center justify-center">
                         <span className="text-2xl text-indigo-300 select-none">&#9998;</span>
                       </div>
                       <h3 className="font-bold text-slate-900 text-sm">{proj.name}</h3>

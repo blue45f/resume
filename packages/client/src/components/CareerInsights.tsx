@@ -604,7 +604,7 @@ export default function CareerInsights() {
         className="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-sky-600 rounded-lg flex items-center justify-center">
             <svg
               className="w-4 h-4 text-white"
               fill="none"
@@ -970,7 +970,7 @@ export default function CareerInsights() {
                               rec.type === 'cert'
                                 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
                                 : rec.type === 'project'
-                                  ? 'bg-sky-100 dark:bg-sky-900/30 text-purple-700 dark:text-sky-400'
+                                  ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400'
                                   : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                             }`}
                           >

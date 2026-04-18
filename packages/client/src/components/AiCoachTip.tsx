@@ -65,24 +65,22 @@ export default function AiCoachTip({ resumeId, section, currentText, onApply }: 
         </button>
 
         {expanded && suggestion && (
-          <div className="mt-2 p-3 bg-purple-50 dark:bg-sky-900/20 border border-sky-200 dark:border-purple-800 rounded-lg animate-fade-in">
+          <div className="mt-2 p-3 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg animate-fade-in">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-medium text-purple-700 dark:text-sky-400">
-                AI 개선안
-              </span>
+              <span className="text-xs font-medium text-sky-700 dark:text-sky-400">AI 개선안</span>
               {onApply && (
                 <button
                   onClick={() => {
                     onApply(suggestion);
                     toast('개선안이 적용되었습니다', 'success');
                   }}
-                  className="text-xs px-2 py-0.5 bg-sky-600 text-white rounded hover:bg-purple-700 transition-colors"
+                  className="text-xs px-2 py-0.5 bg-sky-600 text-white rounded hover:bg-sky-700 transition-colors"
                 >
                   적용
                 </button>
               )}
             </div>
-            <p className="text-xs text-purple-800 dark:text-purple-300 whitespace-pre-wrap leading-relaxed">
+            <p className="text-xs text-purple-800 dark:text-sky-300 whitespace-pre-wrap leading-relaxed">
               {suggestion}
             </p>
           </div>

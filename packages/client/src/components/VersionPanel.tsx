@@ -375,7 +375,7 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
                 </span>
               )}
               {skills.length > 0 && (
-                <span className="px-1.5 py-0.5 bg-sky-100 dark:bg-sky-900/30 rounded text-purple-700 dark:text-purple-300">
+                <span className="px-1.5 py-0.5 bg-sky-100 dark:bg-sky-900/30 rounded text-sky-700 dark:text-sky-300">
                   기술 {skills.length}
                 </span>
               )}
@@ -427,7 +427,7 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
                   onClick={toggleDiffMode}
                   className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors ${
                     diffMode
-                      ? 'bg-sky-100 text-purple-700 dark:bg-sky-900/30 dark:text-sky-400'
+                      ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
                       : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
                   }`}
                 >
@@ -459,8 +459,8 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
 
           {/* Diff mode instructions */}
           {diffMode && (
-            <div className="px-4 sm:px-6 py-2 bg-purple-50 dark:bg-sky-900/10 border-b border-purple-100 dark:border-purple-900/20">
-              <p className="text-xs text-purple-700 dark:text-sky-400">
+            <div className="px-4 sm:px-6 py-2 bg-sky-50 dark:bg-sky-900/10 border-b border-blue-100 dark:border-sky-900/20">
+              <p className="text-xs text-sky-700 dark:text-sky-400">
                 {!diffBaseId
                   ? '비교할 기준 버전을 선택하세요.'
                   : !diffTargetId
@@ -514,7 +514,7 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
                       className={`flex items-center justify-between p-3 rounded-lg border transition-colors cursor-pointer ${
                         diffMode && (diffBaseId === v.id || diffTargetId === v.id)
                           ? diffBaseId === v.id
-                            ? 'border-purple-400 dark:border-purple-500 bg-purple-50/50 dark:bg-sky-900/10'
+                            ? 'border-sky-400 dark:border-sky-500 bg-sky-50/50 dark:bg-sky-900/10'
                             : 'border-orange-400 dark:border-orange-500 bg-orange-50/50 dark:bg-orange-900/10'
                           : activeVersionId === v.id
                             ? 'border-blue-400 dark:border-blue-500 bg-blue-50/50 dark:bg-blue-900/10'
@@ -537,7 +537,7 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
                           <span
                             className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 ${
                               diffMode && diffBaseId === v.id
-                                ? 'bg-sky-100 text-purple-700'
+                                ? 'bg-sky-100 text-sky-700'
                                 : diffMode && diffTargetId === v.id
                                   ? 'bg-orange-100 text-orange-700'
                                   : 'bg-blue-100 text-blue-700'
@@ -590,9 +590,9 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
 
                 {/* Diff Result */}
                 {diffMode && diffBaseId && diffTargetId && (
-                  <div className="mt-4 border border-sky-200 dark:border-purple-800 rounded-xl overflow-hidden">
-                    <div className="px-3 py-2 bg-purple-50 dark:bg-sky-900/20 border-b border-sky-200 dark:border-purple-800 flex items-center justify-between">
-                      <h4 className="text-xs font-semibold text-purple-700 dark:text-sky-400">
+                  <div className="mt-4 border border-sky-200 dark:border-sky-800 rounded-xl overflow-hidden">
+                    <div className="px-3 py-2 bg-sky-50 dark:bg-sky-900/20 border-b border-sky-200 dark:border-sky-800 flex items-center justify-between">
+                      <h4 className="text-xs font-semibold text-sky-700 dark:text-sky-400">
                         {getVersionLabel(diffBaseId)} &rarr; {getVersionLabel(diffTargetId)}{' '}
                         변경사항
                       </h4>
@@ -609,7 +609,7 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
                     </div>
                     {/* Restore button for target version */}
                     {diffTargetId && (
-                      <div className="px-3 py-2 border-t border-purple-100 dark:border-purple-800 bg-purple-50/50 dark:bg-sky-900/10">
+                      <div className="px-3 py-2 border-t border-blue-100 dark:border-sky-800 bg-sky-50/50 dark:bg-sky-900/10">
                         <button
                           onClick={() => {
                             const targetVersion = versions.find((v) => v.id === diffTargetId);
@@ -617,7 +617,7 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
                               handleRestore(diffTargetId, targetVersion.versionNumber);
                           }}
                           disabled={!!restoring}
-                          className="w-full px-3 py-2 text-xs font-medium text-white bg-sky-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                          className="w-full px-3 py-2 text-xs font-medium text-white bg-sky-600 rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors"
                         >
                           {restoring ? '복원 중...' : `${getVersionLabel(diffTargetId)}으로 복원`}
                         </button>

@@ -14,7 +14,7 @@ const TYPE_STYLES: Record<string, string> = {
   info: 'bg-blue-600 text-white',
   warning: 'bg-amber-500 text-white',
   success: 'bg-emerald-600 text-white',
-  promo: 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white',
+  promo: 'bg-gradient-to-r from-blue-600 to-sky-600 text-white',
 };
 
 const TYPE_ICONS: Record<string, string> = {

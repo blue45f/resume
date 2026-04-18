@@ -78,7 +78,7 @@ export default function AiWritingAssist({ resumeId, value, onAccept }: Props) {
           setResult(null);
           setError('');
         }}
-        className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs text-sky-600 hover:text-purple-800 hover:bg-purple-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400"
+        className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs text-sky-600 hover:text-purple-800 hover:bg-sky-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400"
         title="AI 문장 개선"
         aria-label="AI 작성 도우미"
         aria-expanded={open}
@@ -103,9 +103,7 @@ export default function AiWritingAssist({ resumeId, value, onAccept }: Props) {
         <div className="absolute left-0 top-full mt-1 z-50 w-72 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
           {/* Header */}
           <div className="px-3 py-2 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-b border-slate-100 dark:border-slate-700">
-            <p className="text-xs font-semibold text-purple-700 dark:text-sky-400">
-              AI 작성 도우미
-            </p>
+            <p className="text-xs font-semibold text-sky-700 dark:text-sky-400">AI 작성 도우미</p>
             {plainText.length > 0 && (
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                 &ldquo;{plainText.substring(0, 40)}

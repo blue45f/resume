@@ -208,7 +208,7 @@ export default function Header() {
                 <span
                   className={`mr-1 px-2 py-0.5 text-[10px] font-bold rounded-full border whitespace-nowrap hidden xl:inline-flex items-center ${
                     isRecruiter
-                      ? 'bg-purple-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-purple-800'
+                      ? 'bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800'
                       : 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800'
                   }`}
                 >
@@ -572,7 +572,7 @@ export default function Header() {
               {isRecruiter ? (
                 <Link
                   to="/jobs/new"
-                  className="px-2 lg:px-2.5 py-1.5 text-xs font-medium rounded-lg bg-sky-600 hover:bg-purple-700 text-white transition-colors whitespace-nowrap"
+                  className="px-2 lg:px-2.5 py-1.5 text-xs font-medium rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition-colors whitespace-nowrap"
                 >
                   공고 등록
                 </Link>
@@ -615,7 +615,7 @@ export default function Header() {
                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                     className={`text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-1.5 lg:px-2 py-1 transition-colors duration-200 flex items-center gap-1 lg:gap-1.5 border whitespace-nowrap max-w-[140px] lg:max-w-none ${
                       isRecruiter
-                        ? 'text-purple-700 dark:text-purple-300 border-sky-200 dark:border-purple-700 bg-purple-50 dark:bg-sky-900/20 hover:bg-sky-100 dark:hover:bg-purple-900/40'
+                        ? 'text-sky-700 dark:text-sky-300 border-sky-200 dark:border-purple-700 bg-sky-50 dark:bg-sky-900/20 hover:bg-sky-100 dark:hover:bg-purple-900/40'
                         : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border-transparent hover:border-slate-200 dark:hover:border-slate-600'
                     }`}
                     aria-haspopup="true"
@@ -636,13 +636,13 @@ export default function Header() {
                     >
                       {/* Mode header */}
                       <div
-                        className={`mx-2 mb-1 px-3 py-2.5 rounded-lg ${isRecruiter ? 'bg-purple-50 dark:bg-sky-900/30' : 'bg-green-50 dark:bg-green-900/30'}`}
+                        className={`mx-2 mb-1 px-3 py-2.5 rounded-lg ${isRecruiter ? 'bg-sky-50 dark:bg-sky-900/30' : 'bg-green-50 dark:bg-green-900/30'}`}
                       >
                         <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">
                           현재 모드
                         </p>
                         <p
-                          className={`text-sm font-bold ${isRecruiter ? 'text-purple-700 dark:text-purple-300' : 'text-green-700 dark:text-green-300'}`}
+                          className={`text-sm font-bold ${isRecruiter ? 'text-sky-700 dark:text-sky-300' : 'text-green-700 dark:text-green-300'}`}
                         >
                           {isRecruiter ? '채용담당자 모드' : '구직자 모드'}
                         </p>
@@ -806,14 +806,14 @@ export default function Header() {
               {user && (
                 <>
                   <div
-                    className={`flex items-center justify-between px-3 py-2.5 mx-1 rounded-xl ${isRecruiter ? 'bg-purple-50 dark:bg-sky-900/30 border border-sky-200 dark:border-purple-800' : 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800'}`}
+                    className={`flex items-center justify-between px-3 py-2.5 mx-1 rounded-xl ${isRecruiter ? 'bg-sky-50 dark:bg-sky-900/30 border border-sky-200 dark:border-sky-800' : 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800'}`}
                   >
                     <div>
                       <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
                         현재 모드
                       </p>
                       <p
-                        className={`text-sm font-bold ${isRecruiter ? 'text-purple-700 dark:text-purple-300' : 'text-green-700 dark:text-green-300'}`}
+                        className={`text-sm font-bold ${isRecruiter ? 'text-sky-700 dark:text-sky-300' : 'text-green-700 dark:text-green-300'}`}
                       >
                         {isRecruiter ? '채용담당자 모드' : '구직자 모드'}
                       </p>
@@ -824,7 +824,7 @@ export default function Header() {
                       className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
                         isRecruiter
                           ? 'border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 bg-white dark:bg-slate-800 hover:bg-green-50'
-                          : 'border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 bg-white dark:bg-slate-800 hover:bg-purple-50'
+                          : 'border-sky-300 dark:border-purple-700 text-sky-700 dark:text-sky-300 bg-white dark:bg-slate-800 hover:bg-sky-50'
                       }`}
                     >
                       {switching
@@ -847,14 +847,14 @@ export default function Header() {
                   <Link
                     to="/recruiter"
                     onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    className="block px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 rounded-lg hover:bg-sky-50 dark:hover:bg-purple-900/20"
                   >
                     채용 대시보드
                   </Link>
                   <Link
                     to="/scouts"
                     onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    className="block px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 rounded-lg hover:bg-sky-50 dark:hover:bg-purple-900/20"
                   >
                     스카우트 관리
                   </Link>
@@ -868,7 +868,7 @@ export default function Header() {
                   <Link
                     to="/jobs/new"
                     onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2.5 text-sm font-medium text-sky-600 dark:text-sky-400 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/30"
+                    className="block px-3 py-2.5 text-sm font-medium text-sky-600 dark:text-sky-400 rounded-lg hover:bg-sky-50 dark:hover:bg-purple-900/30"
                   >
                     공고 등록
                   </Link>
@@ -932,7 +932,7 @@ export default function Header() {
                   <Link
                     to="/auto-generate"
                     onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2.5 text-sm font-medium text-sky-600 dark:text-sky-400 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/30"
+                    className="block px-3 py-2.5 text-sm font-medium text-sky-600 dark:text-sky-400 rounded-lg hover:bg-sky-50 dark:hover:bg-purple-900/30"
                   >
                     AI 자동 생성
                   </Link>

@@ -240,7 +240,7 @@ export default function AICareerAdvisor({ resume }: Props) {
       {/* Chat bubble trigger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="no-print fixed bottom-6 right-6 z-50 w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center justify-center group"
+        className="no-print fixed bottom-6 right-6 z-50 w-12 h-12 bg-gradient-to-br from-blue-500 to-sky-600 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center justify-center group"
         title="AI 커리어 상담"
       >
         {isOpen ? (
@@ -275,7 +275,7 @@ export default function AICareerAdvisor({ resume }: Props) {
           style={{ maxHeight: 'min(70vh, 500px)' }}
         >
           {/* Header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white flex items-center justify-between shrink-0">
+          <div className="px-4 py-3 bg-gradient-to-r from-blue-500 to-sky-600 text-white flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

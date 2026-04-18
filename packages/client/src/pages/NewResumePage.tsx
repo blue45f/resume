@@ -1354,7 +1354,7 @@ export default function NewResumePage() {
                   onClick={() => setStartMode('ai-upload')}
                   className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
                     startMode === 'ai-upload'
-                      ? 'border-purple-500 bg-purple-50 dark:bg-sky-900/20 ring-1 ring-purple-500'
+                      ? 'border-purple-500 bg-sky-50 dark:bg-sky-900/20 ring-1 ring-purple-500'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                 >
@@ -1486,7 +1486,7 @@ export default function NewResumePage() {
 
               {/* AI Upload mode */}
               {startMode === 'ai-upload' && (
-                <div className="mt-3 p-4 bg-purple-50 dark:bg-sky-900/10 rounded-xl border border-sky-200 dark:border-purple-800">
+                <div className="mt-3 p-4 bg-sky-50 dark:bg-sky-900/10 rounded-xl border border-sky-200 dark:border-sky-800">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     경력증명서, 기존 이력서, 자기소개 텍스트 등을 붙여넣거나 파일을 업로드하세요
                   </label>
@@ -1500,7 +1500,7 @@ export default function NewResumePage() {
                     className="w-full px-3 py-2 text-sm border border-sky-200 dark:border-purple-700 rounded-xl dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 resize-none mb-3"
                   />
                   <div className="flex items-center gap-3 mb-3">
-                    <label className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-sky-200 dark:border-purple-700 rounded-lg cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-sm">
+                    <label className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-sky-200 dark:border-purple-700 rounded-lg cursor-pointer hover:bg-sky-50 dark:hover:bg-purple-900/20 transition-colors text-sm">
                       <svg
                         className="w-4 h-4 text-sky-500"
                         fill="none"

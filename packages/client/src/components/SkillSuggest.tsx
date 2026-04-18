@@ -129,9 +129,9 @@ export function SkillSuggestDropdown({
   const lastSkill = existing[existing.length - 1] || '';
 
   return (
-    <div className="mt-1.5 p-2.5 bg-purple-50 dark:bg-sky-900/20 border border-sky-200 dark:border-purple-800 rounded-lg animate-fade-in w-full overflow-hidden">
+    <div className="mt-1.5 p-2.5 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg animate-fade-in w-full overflow-hidden">
       <div className="flex items-start justify-between gap-2 mb-1.5">
-        <p className="text-xs text-purple-700 dark:text-purple-300 flex-1 min-w-0 break-words">
+        <p className="text-xs text-sky-700 dark:text-sky-300 flex-1 min-w-0 break-words">
           <span className="font-medium">{lastSkill}</span>을(를) 입력하셨습니다. 관련 기술도
           추가하시겠습니까?
         </p>
@@ -157,7 +157,7 @@ export function SkillSuggestDropdown({
             key={skill}
             type="button"
             onClick={() => onAdd(skill)}
-            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 bg-white dark:bg-slate-800 border border-sky-200 dark:border-purple-700 rounded-md hover:bg-sky-100 dark:hover:bg-purple-900/30 transition-colors"
+            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-sky-700 dark:text-sky-300 bg-white dark:bg-slate-800 border border-sky-200 dark:border-purple-700 rounded-md hover:bg-sky-100 dark:hover:bg-purple-900/30 transition-colors"
           >
             <svg
               className="w-3 h-3 shrink-0"

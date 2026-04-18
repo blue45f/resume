@@ -291,7 +291,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                         onClick={() => setTemplateType(opt.value)}
                         className={`px-3 py-2.5 text-sm rounded-lg border text-left transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500 ${
                           templateType === opt.value
-                            ? 'border-purple-500 bg-purple-50 dark:bg-sky-900/30 text-purple-700 font-medium'
+                            ? 'border-purple-500 bg-sky-50 dark:bg-sky-900/30 text-sky-700 font-medium'
                             : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                         }`}
                       >
@@ -406,7 +406,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
               className={`w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-white rounded-lg disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
                 mode === 'local'
                   ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
-                  : 'bg-sky-600 hover:bg-purple-700 focus:ring-sky-500'
+                  : 'bg-sky-600 hover:bg-sky-700 focus:ring-sky-500'
               }`}
               aria-busy={loading}
             >

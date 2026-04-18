@@ -459,7 +459,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 flex items-center gap-1.5 px-2 py-3 bg-sky-600 text-white rounded-l-xl shadow-lg hover:bg-purple-700 transition-all duration-200 group"
+          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 flex items-center gap-1.5 px-2 py-3 bg-sky-600 text-white rounded-l-xl shadow-lg hover:bg-sky-700 transition-all duration-200 group"
           aria-label="AI 코치 열기"
         >
           <svg
@@ -671,7 +671,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
                           {tip.fixAction && (
                             <button
                               onClick={tip.fixAction}
-                              className="mt-1.5 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 bg-sky-100 dark:bg-sky-900/30 rounded-md hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-colors"
+                              className="mt-1.5 px-2.5 py-1 text-xs font-medium text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/30 rounded-md hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-colors"
                             >
                               자동 수정
                             </button>
@@ -689,7 +689,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
               <button
                 onClick={fetchAiCoaching}
                 disabled={loadingAi}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors"
               >
                 {loadingAi ? (
                   <>

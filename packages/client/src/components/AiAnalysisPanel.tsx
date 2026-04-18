@@ -394,7 +394,7 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
                     <button
                       onClick={runInterview}
                       disabled={loading}
-                      className="px-6 py-2.5 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                      className="px-6 py-2.5 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors"
                     >
                       {loading ? (
                         <span className="flex items-center gap-2">
@@ -417,7 +417,7 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
                         className="group border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden"
                       >
                         <summary className="flex items-start gap-3 p-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                          <span className="w-6 h-6 bg-sky-100 text-purple-700 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                          <span className="w-6 h-6 bg-sky-100 text-sky-700 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                             {i + 1}
                           </span>
                           <div>

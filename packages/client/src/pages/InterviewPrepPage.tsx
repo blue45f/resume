@@ -1881,7 +1881,7 @@ export default function InterviewPrepPage() {
                               {history.map((h, hi) => (
                                 <div
                                   key={hi}
-                                  className="p-2 bg-purple-50 dark:bg-sky-900/10 border border-sky-200 dark:border-purple-800/50 rounded-lg"
+                                  className="p-2 bg-sky-50 dark:bg-sky-900/10 border border-sky-200 dark:border-sky-800/50 rounded-lg"
                                 >
                                   <div className="flex items-center justify-between mb-1">
                                     <span className="text-xs text-sky-500 dark:text-sky-400">

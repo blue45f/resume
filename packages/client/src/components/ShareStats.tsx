@@ -61,7 +61,7 @@ export default function ShareStats({ viewCount }: Props) {
           />
         </svg>
       ),
-      color: 'text-sky-600 bg-purple-50 dark:bg-sky-900/20 dark:text-sky-400',
+      color: 'text-sky-600 bg-sky-50 dark:bg-sky-900/20 dark:text-sky-400',
     },
     {
       label: 'QR',

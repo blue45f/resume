@@ -645,7 +645,7 @@ function StatCard({
   const bgMap: Record<string, string> = {
     blue: 'bg-blue-50 dark:bg-blue-900/20',
     green: 'bg-green-50 dark:bg-green-900/20',
-    purple: 'bg-purple-50 dark:bg-sky-900/20',
+    purple: 'bg-sky-50 dark:bg-sky-900/20',
     amber: 'bg-amber-50 dark:bg-amber-900/20',
     rose: 'bg-rose-50 dark:bg-blue-900/20',
     indigo: 'bg-indigo-50 dark:bg-indigo-900/20',

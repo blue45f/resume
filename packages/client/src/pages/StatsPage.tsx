@@ -229,10 +229,10 @@ function JobStatsSection() {
               return (
                 <span
                   key={s.skill || s.name}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm border border-sky-200 dark:border-purple-800 transition-colors hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm border border-sky-200 dark:border-sky-800 transition-colors hover:bg-sky-50 dark:hover:bg-purple-900/20"
                   style={{ opacity }}
                 >
-                  <span className="font-medium text-purple-700 dark:text-purple-300">
+                  <span className="font-medium text-purple-700 dark:text-sky-300">
                     {s.skill || s.name}
                   </span>
                   <span className="text-xs text-purple-400">{s.count}</span>

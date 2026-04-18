@@ -43,7 +43,7 @@ const SIZE_BADGES = [
   {
     min: 10,
     label: '스타트업',
-    color: 'bg-sky-100 text-violet-700 dark:bg-sky-900/30 dark:text-sky-400',
+    color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
   },
   {
     min: 5,
