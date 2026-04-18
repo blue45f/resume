@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { usePublicGet } from '@/hooks/useResources';
+import { ROUTES } from '@/lib/routes';
 
 const TYPE_INFO: Record<string, { label: string; color: string; icon: string }> = {
   GENERAL: {
@@ -71,7 +72,7 @@ function NoticeList() {
             </p>
           </div>
           <Link
-            to="/community?category=notice"
+            to={ROUTES.community.notice}
             className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
           >
             커뮤니티 공지 보기
@@ -218,7 +219,7 @@ function NoticeDetail() {
       <Header />
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8">
         <Link
-          to="/notices"
+          to={ROUTES.notices}
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-colors mb-6"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

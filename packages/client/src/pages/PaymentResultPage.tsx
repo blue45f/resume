@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
+import { ROUTES } from '@/lib/routes';
 
 export default function PaymentResultPage() {
   const [params] = useSearchParams();
@@ -69,14 +70,14 @@ export default function PaymentResultPage() {
           )}
           <div className="flex flex-wrap justify-center gap-3">
             <Link
-              to="/"
+              to={ROUTES.home}
               className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
             >
               홈으로
             </Link>
             {!success && (
               <Link
-                to="/pricing"
+                to={ROUTES.pricing}
                 className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-200 transition-colors"
               >
                 다시 시도

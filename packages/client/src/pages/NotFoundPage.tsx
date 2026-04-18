@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useRecentViews } from '@/features/recent-views/model/useRecentViews';
+import { ROUTES } from '@/lib/routes';
 
 export default function NotFoundPage() {
   const { views: recentViews } = useRecentViews();
@@ -48,13 +49,13 @@ export default function NotFoundPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link
-              to="/"
+              to={ROUTES.home}
               className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md shadow-blue-500/20"
             >
               홈으로
             </Link>
             <Link
-              to="/explore"
+              to={ROUTES.resume.explore}
               className="px-6 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-600 shadow-sm"
             >
               이력서 탐색

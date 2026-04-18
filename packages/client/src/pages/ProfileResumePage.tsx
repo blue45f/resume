@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
 import ShareMenu from '@/components/ShareMenu';
+import { ROUTES } from '@/lib/routes';
 
 // Lazy-load heavy sub-components
 const CommentSection = lazy(() => import('@/components/CommentSection'));
@@ -133,7 +134,7 @@ export default function ProfileResumePage() {
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
               @{username}/{slug}
             </p>
-            <Link to="/explore" className="text-blue-600 hover:underline">
+            <Link to={ROUTES.resume.explore} className="text-blue-600 hover:underline">
               공개 이력서 탐색
             </Link>
           </div>
@@ -154,7 +155,7 @@ export default function ProfileResumePage() {
             {/* Left: navigation + person info */}
             <div className="flex items-center gap-3 min-w-0">
               <Link
-                to="/explore"
+                to={ROUTES.resume.explore}
                 className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 shrink-0"
               >
                 &larr; 탐색

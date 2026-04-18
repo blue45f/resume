@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import SendMessageButton from '@/components/SendMessageButton';
 
 const CATEGORIES = [
@@ -226,7 +227,7 @@ export default function CommunityPage() {
           </div>
           {user && (
             <Link
-              to="/community/write"
+              to={ROUTES.community.write}
               className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -421,7 +422,7 @@ export default function CommunityPage() {
               </button>
             ) : user ? (
               <Link
-                to="/community/write"
+                to={ROUTES.community.write}
                 className="mt-3 inline-block text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
               >
                 첫 번째 글을 작성해보세요!

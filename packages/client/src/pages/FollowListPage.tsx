@@ -7,6 +7,7 @@ import FollowButton from '@/components/FollowButton';
 import SendMessageButton from '@/components/SendMessageButton';
 import { getUser } from '@/lib/auth';
 import { useFollowers, useFollowing } from '@/hooks/useResources';
+import { ROUTES } from '@/lib/routes';
 
 interface FollowUser {
   id: string;
@@ -169,7 +170,7 @@ export default function FollowListPage() {
                   탐색 페이지에서 다른 사용자를 찾아보세요
                 </p>
                 <Link
-                  to="/explore"
+                  to={ROUTES.resume.explore}
                   className="inline-block mt-3 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
                 >
                   탐색하기

@@ -12,6 +12,7 @@ import type { Resume } from '@/types/resume';
 import { useQueryClient } from '@tanstack/react-query';
 import { updateResume, setResumeVisibility } from '@/lib/api';
 import { useResume } from '@/hooks/useResources';
+import { ROUTES } from '@/lib/routes';
 import { calculateCompleteness } from '@/lib/completeness';
 
 interface RoadmapTask {
@@ -422,7 +423,7 @@ export default function EditResumePage() {
               삭제되었거나 존재하지 않는 이력서입니다.
             </p>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate(ROUTES.home)}
               className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
             >
               목록으로 돌아가기

@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { PLANS, RECRUITER_PLANS, formatPrice, isMonetizationEnabled } from '@/lib/plans';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
 
 const DEFAULT_FAQ = [
@@ -521,7 +522,7 @@ export default function PricingPage() {
                   </div>
                 ) : !isMonetizationEnabled() ? (
                   <Link
-                    to="/resumes/new"
+                    to={ROUTES.resume.new}
                     className={`block w-full py-3 text-center text-sm font-semibold rounded-xl transition-all duration-200 ${
                       plan.popular
                         ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 hover:-translate-y-0.5'

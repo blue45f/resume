@@ -9,6 +9,7 @@ import { toast } from '@/components/Toast';
 import { timeAgo } from '@/lib/time';
 import { deleteCoverLetter } from '@/lib/api';
 import { useCoverLetters } from '@/hooks/useResources';
+import { ROUTES } from '@/lib/routes';
 
 interface CoverLetter {
   id: string;
@@ -137,7 +138,7 @@ export default function MyCoverLettersPage() {
             </p>
           </div>
           <Link
-            to="/cover-letter"
+            to={ROUTES.coverLetter.new()}
             className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
           >
             + 새 자소서

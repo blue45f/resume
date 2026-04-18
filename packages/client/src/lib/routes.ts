@@ -122,6 +122,8 @@ export const ROUTES = {
   },
   notifications: '/notifications',
   settings: '/settings',
+  notices: '/notices',
+  notice: (id: string) => `/notices/${id}`,
 
   // ─── 리쿠르터·기업 ────────────────────────────
   recruiter: {

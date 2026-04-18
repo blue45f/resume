@@ -8,6 +8,7 @@ import { toast } from '@/components/Toast';
 import { upsertCoachProfile } from '@/lib/api';
 import { useMyCoachingSessions } from '@/hooks/useResources';
 import { fetchMe, getUser, setAuth, getToken } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import {
   coachProfileSchema,
   type CoachProfileFormInput,
@@ -133,7 +134,7 @@ export default function CoachProfileEditPage() {
         /* noop */
       }
 
-      navigate('/coaching/sessions');
+      navigate(ROUTES.coaching.sessions);
     } catch (err) {
       toast(err instanceof Error ? err.message : '프로필 저장에 실패했습니다', 'error');
     }
@@ -176,7 +177,7 @@ export default function CoachProfileEditPage() {
           </div>
           {hasProfile && (
             <Link
-              to="/coach/dashboard"
+              to={ROUTES.coaching.dashboard}
               className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-sm whitespace-nowrap"
             >
               코치 대시보드 →

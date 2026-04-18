@@ -8,6 +8,7 @@ import { toast } from '@/components/Toast';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import { timeAgo } from '@/lib/time';
 import { useBookmarks } from '@/hooks/useResources';
+import { ROUTES } from '@/lib/routes';
 
 export default function BookmarksPage() {
   const queryClient = useQueryClient();
@@ -48,7 +49,10 @@ export default function BookmarksPage() {
               관심 있는 이력서를 저장했습니다
             </p>
           </div>
-          <Link to="/explore" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+          <Link
+            to={ROUTES.resume.explore}
+            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+          >
             이력서 탐색 →
           </Link>
         </div>
@@ -75,7 +79,7 @@ export default function BookmarksPage() {
               탐색 페이지에서 관심 있는 이력서를 북마크하세요
             </p>
             <Link
-              to="/explore"
+              to={ROUTES.resume.explore}
               className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
               이력서 탐색하기 →

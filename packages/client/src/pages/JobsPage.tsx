@@ -8,6 +8,7 @@ import ErrorRetry from '@/components/ErrorRetry';
 import CompanyInfoCard from '@/components/CompanyInfoCard';
 import JobAlert from '@/components/JobAlert';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
 import { fetchResumes, createApplication } from '@/lib/api';
@@ -2286,7 +2287,7 @@ export default function JobsPage() {
             {(isRecruiter || user?.role === 'admin' || user?.role === 'superadmin') && (
               <div className="flex justify-end mb-3">
                 <Link
-                  to="/jobs/new"
+                  to={ROUTES.jobs.new}
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2966,7 +2967,7 @@ function QuickApplyModal({
                 로그인 후 즉시 지원할 수 있습니다.
               </p>
               <Link
-                to="/login"
+                to={ROUTES.login}
                 className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors"
               >
                 로그인하기
@@ -2991,7 +2992,7 @@ function QuickApplyModal({
                 먼저 이력서를 작성해주세요.
               </p>
               <Link
-                to="/resumes/new"
+                to={ROUTES.resume.new}
                 className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors"
               >
                 이력서 작성하기

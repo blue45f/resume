@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import EmptyState from '@/components/EmptyState';
 import { timeAgo } from '@/lib/time';
+import { ROUTES } from '@/lib/routes';
 import {
   fetchNotifications as apiFetchNotifications,
   markAllNotificationsRead,
@@ -253,7 +254,7 @@ export default function NotificationsPage() {
               {selectMode ? '완료' : '편집'}
             </button>
             <Link
-              to="/settings"
+              to={ROUTES.settings}
               className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               title="알림 설정"
             >
@@ -353,7 +354,7 @@ export default function NotificationsPage() {
               알림을 확인하려면 로그인해주세요
             </p>
             <Link
-              to="/login"
+              to={ROUTES.login}
               className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors"
             >
               로그인

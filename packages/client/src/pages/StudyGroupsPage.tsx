@@ -7,6 +7,7 @@ import {
   STUDY_GROUP_EXPERIENCE_LEVELS,
 } from '@resume/shared';
 import { API_URL } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
 
 const TIER_LABEL: Record<string, string> = {
   public: '공공기관·공기업',
@@ -143,7 +144,7 @@ export default function StudyGroupsPage() {
           </svg>
         </div>
         <Link
-          to="/study-groups/new"
+          to={ROUTES.interview.newStudyGroup}
           className="imp-btn inline-flex items-center justify-center h-11 px-5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
         >
           + 새 스터디 만들기
@@ -222,7 +223,7 @@ export default function StudyGroupsPage() {
             필터를 바꿔 다시 검색하거나, 직접 새 스터디를 만들어보세요
           </p>
           <Link
-            to="/study-groups/new"
+            to={ROUTES.interview.newStudyGroup}
             className="imp-btn inline-flex items-center gap-2 px-5 h-10 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700"
           >
             + 새 스터디 만들기

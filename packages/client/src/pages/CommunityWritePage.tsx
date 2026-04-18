@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
 
 const postSchema = z.object({
@@ -317,7 +318,7 @@ export default function CommunityWritePage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (!user) navigate('/login');
+    if (!user) navigate(ROUTES.login);
   }, [user, navigate]);
 
   const { data: editData } = useQuery({

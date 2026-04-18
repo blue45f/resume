@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import { PLANS } from '@/lib/plans';
 import { API_URL } from '@/lib/config';
 import AdminPostsTab from '@/features/admin/ui/AdminPostsTab';
@@ -112,7 +113,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
-      navigate('/');
+      navigate(ROUTES.home);
     }
   }, [user]);
 
@@ -2762,13 +2763,13 @@ function ContentModeration() {
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
-            to="/explore"
+            to={ROUTES.resume.explore}
             className="flex-1 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-center"
           >
             공개 이력서 검토 &rarr;
           </Link>
           <Link
-            to="/applications"
+            to={ROUTES.jobs.applications}
             className="flex-1 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-center"
           >
             지원 목록 검토 &rarr;

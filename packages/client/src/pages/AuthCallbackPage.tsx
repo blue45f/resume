@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { handleAuthCallback } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
 
 type UserType = 'personal' | 'recruiter' | 'company';
@@ -72,12 +73,12 @@ export default function AuthCallbackPage() {
         if (isNew && user.userType === 'personal') {
           setShowTypeSelect(true);
         } else {
-          navigate('/');
+          navigate(ROUTES.home);
         }
       })
       .catch(() => {
         setError('인증에 실패했습니다');
-        setTimeout(() => navigate('/login'), 2000);
+        setTimeout(() => navigate(ROUTES.login), 2000);
       });
   }, [params, navigate]);
 
@@ -100,7 +101,7 @@ export default function AuthCallbackPage() {
         }
       }
     } catch {}
-    navigate('/');
+    navigate(ROUTES.home);
   };
 
   if (showTypeSelect) {

@@ -12,6 +12,7 @@ import { createEmptyResumeData } from '@/types/resume';
 import type { Resume, Template } from '@/types/resume';
 import { createResume, fetchResume, duplicateResume } from '@/lib/api';
 import { useTemplates, useResumes } from '@/hooks/useResources';
+import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
 import { getUser } from '@/lib/auth';
 import { getPlan } from '@/lib/plans';
@@ -1217,7 +1218,7 @@ export default function NewResumePage() {
               무료 플랜에서는 최대 {plan.features.maxResumes}개의 이력서를 생성할 수 있습니다.
             </p>
             <Link
-              to="/pricing"
+              to={ROUTES.pricing}
               className="inline-block px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
             >
               프로 플랜으로 업그레이드

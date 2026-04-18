@@ -6,6 +6,7 @@ import ErrorRetry from '@/components/ErrorRetry';
 import { timeAgo } from '@/lib/time';
 import { getUser } from '@/lib/auth';
 import { useJobs } from '@/hooks/useResources';
+import { ROUTES } from '@/lib/routes';
 
 // ── Company Review System (localStorage-based) ─────────────────────────────
 
@@ -565,7 +566,7 @@ export default function CompanyPage() {
             해당 회사의 채용 공고가 등록되어 있지 않습니다.
           </p>
           <Link
-            to="/jobs"
+            to={ROUTES.jobs.list}
             className="px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors"
           >
             채용 공고 보기
@@ -587,7 +588,7 @@ export default function CompanyPage() {
       >
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-6">
-          <Link to="/jobs" className="hover:text-blue-600 transition-colors">
+          <Link to={ROUTES.jobs.list} className="hover:text-blue-600 transition-colors">
             채용 공고
           </Link>
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

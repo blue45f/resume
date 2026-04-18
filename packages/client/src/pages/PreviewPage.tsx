@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
 import { resumeThemes } from '@/lib/resumeThemes';
 import CompletenessBar from '@/components/CompletenessBar';
+import { ROUTES } from '@/lib/routes';
 
 // Lazy-load heavy sub-components that are not visible on initial render
 const LlmTransformPanel = lazy(() => import('@/components/LlmTransformPanel'));
@@ -343,7 +344,7 @@ export default function PreviewPage() {
                 다시 시도
               </button>
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate(ROUTES.home)}
                 className="imp-btn px-5 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus-ring-accent"
               >
                 홈으로
@@ -396,7 +397,7 @@ export default function PreviewPage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate(ROUTES.home)}
                 className="text-sm text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
                 aria-label="목록으로"
               >

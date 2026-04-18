@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePublicGet } from '@/hooks/useResources';
+import { ROUTES } from '@/lib/routes';
 
 export default function ShortLinkPage() {
   const { code } = useParams<{ code: string }>();
@@ -13,7 +14,7 @@ export default function ShortLinkPage() {
 
   useEffect(() => {
     if (data?.id) {
-      navigate(`/resumes/${data.id}/preview`, { replace: true });
+      navigate(ROUTES.resume.preview(data.id), { replace: true });
     }
   }, [data, navigate]);
 
@@ -23,7 +24,7 @@ export default function ShortLinkPage() {
         <div className="text-center px-4">
           <p className="text-6xl font-black text-slate-200 dark:text-slate-700 mb-4">404</p>
           <p className="text-slate-600 dark:text-slate-400 mb-4">이력서를 찾을 수 없습니다</p>
-          <button onClick={() => navigate('/')} className="text-blue-600 hover:underline">
+          <button onClick={() => navigate(ROUTES.home)} className="text-blue-600 hover:underline">
             홈으로
           </button>
         </div>

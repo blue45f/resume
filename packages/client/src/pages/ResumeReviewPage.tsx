@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useResume } from '@/hooks/useResources';
+import { ROUTES } from '@/lib/routes';
 import type { Resume } from '@/types/resume';
 
 /** Category weights for score calculation */
@@ -475,7 +476,7 @@ export default function ResumeReviewPage() {
               이력서를 불러올 수 없습니다
             </p>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate(ROUTES.home)}
               className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
             >
               홈으로

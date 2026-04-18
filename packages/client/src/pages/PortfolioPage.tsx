@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import FollowButton from '@/components/FollowButton';
 import ShareMenu from '@/components/ShareMenu';
 import SendMessageButton from '@/components/SendMessageButton';
@@ -236,7 +237,7 @@ export default function PortfolioPage() {
                 )}
                 {isOwn && (
                   <Link
-                    to="/settings"
+                    to={ROUTES.settings}
                     className="px-4 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-300"
                   >
                     프로필 수정
