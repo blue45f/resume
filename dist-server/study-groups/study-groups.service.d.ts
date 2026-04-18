@@ -4,6 +4,9 @@ export interface StudyGroupListFilters {
     companyName?: string;
     jobPostId?: string;
     jobKey?: string;
+    companyTier?: string;
+    cafeCategory?: string;
+    experienceLevel?: string;
     mine?: boolean;
     userId?: string;
     page?: number;
@@ -16,6 +19,9 @@ export interface CreateStudyGroupDto {
     jobKey?: string | null;
     companyName?: string | null;
     position?: string | null;
+    companyTier?: string;
+    cafeCategory?: string;
+    experienceLevel?: string;
     isPrivate?: boolean;
     maxMembers?: number;
 }

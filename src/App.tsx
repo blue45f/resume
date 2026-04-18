@@ -80,6 +80,7 @@ const NotFoundPage = lazyRetry(() => import('@/pages/NotFoundPage'));
 const HelpPage = lazyRetry(() => import('@/pages/HelpPage'));
 const StatsPage = lazyRetry(() => import('@/pages/StatsPage'));
 const PortfolioPage = lazyRetry(() => import('@/pages/PortfolioPage'));
+const StudyGroupsPage = lazyRetry(() => import('@/pages/StudyGroupsPage'));
 const CoachesPage = lazyRetry(() => import('@/pages/CoachesPage'));
 const CoachDetailPage = lazyRetry(() => import('@/pages/CoachDetailPage'));
 const CoachingSessionsPage = lazyRetry(() => import('@/pages/CoachingSessionsPage'));
@@ -377,6 +378,14 @@ export default function App() {
                   element={
                     <Suspense fallback={<PageLoader />}>
                       <MockInterviewPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/study-groups"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <StudyGroupsPage />
                     </Suspense>
                   }
                 />

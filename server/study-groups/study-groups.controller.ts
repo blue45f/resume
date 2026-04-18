@@ -31,6 +31,9 @@ export class StudyGroupsController {
     @Query('companyName') companyName?: string,
     @Query('jobPostId') jobPostId?: string,
     @Query('jobKey') jobKey?: string,
+    @Query('companyTier') companyTier?: string,
+    @Query('cafeCategory') cafeCategory?: string,
+    @Query('experienceLevel') experienceLevel?: string,
     @Query('mine') mine?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -40,6 +43,9 @@ export class StudyGroupsController {
       companyName,
       jobPostId,
       jobKey,
+      companyTier,
+      cafeCategory,
+      experienceLevel,
       mine: mine === 'true' || mine === '1',
       userId: req.user?.id,
       page: page ? parseInt(page, 10) : 1,
@@ -91,11 +97,7 @@ export class StudyGroupsController {
 
   @Post(':id/questions')
   @ApiOperation({ summary: '스터디 그룹 질문 추가' })
-  addQuestion(
-    @Param('id') id: string,
-    @Body() body: CreateStudyGroupQuestionDto,
-    @Req() req: any,
-  ) {
+  addQuestion(@Param('id') id: string, @Body() body: CreateStudyGroupQuestionDto, @Req() req: any) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.addQuestion(id, req.user.id, body);
   }

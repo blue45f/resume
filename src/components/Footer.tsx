@@ -51,6 +51,7 @@ const SERVICE_LINKS: FooterLink[] = [
   { to: '/explore', label: '이력서 탐색' },
   { to: '/jobs', label: '채용 공고' },
   { to: '/community', label: '커뮤니티' },
+  { to: '/study-groups', label: '스터디 카페' },
   { to: '/coaches', label: '코치 찾기' },
   { to: '/interview-prep', label: '면접 준비' },
 ];

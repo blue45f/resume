@@ -22,12 +22,15 @@ let StudyGroupsController = class StudyGroupsController {
     constructor(service) {
         this.service = service;
     }
-    findAll(req, q, companyName, jobPostId, jobKey, mine, page, limit) {
+    findAll(req, q, companyName, jobPostId, jobKey, companyTier, cafeCategory, experienceLevel, mine, page, limit) {
         return this.service.findAll({
             q,
             companyName,
             jobPostId,
             jobKey,
+            companyTier,
+            cafeCategory,
+            experienceLevel,
             mine: mine === 'true' || mine === '1',
             userId: req.user?.id,
             page: page ? parseInt(page, 10) : 1,
@@ -76,11 +79,14 @@ __decorate([
     __param(2, (0, common_1.Query)('companyName')),
     __param(3, (0, common_1.Query)('jobPostId')),
     __param(4, (0, common_1.Query)('jobKey')),
-    __param(5, (0, common_1.Query)('mine')),
-    __param(6, (0, common_1.Query)('page')),
-    __param(7, (0, common_1.Query)('limit')),
+    __param(5, (0, common_1.Query)('companyTier')),
+    __param(6, (0, common_1.Query)('cafeCategory')),
+    __param(7, (0, common_1.Query)('experienceLevel')),
+    __param(8, (0, common_1.Query)('mine')),
+    __param(9, (0, common_1.Query)('page')),
+    __param(10, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String, String, String, String, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, String, String, String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], StudyGroupsController.prototype, "findAll", null);
 __decorate([
