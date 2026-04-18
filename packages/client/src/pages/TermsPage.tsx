@@ -154,7 +154,10 @@ export default function TermsPage() {
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-8 mt-16">
+        <h1
+          id="privacy"
+          className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-8 mt-16 scroll-mt-24"
+        >
           개인정보 처리방침
         </h1>
 

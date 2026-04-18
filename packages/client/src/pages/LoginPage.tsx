@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getSocialLoginUrl } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import {
   loginSchema,
   registerSchema,
@@ -147,7 +148,7 @@ export default function LoginPage() {
       const user = await meRes.json();
       localStorage.setItem('user', JSON.stringify(user));
     }
-    navigate('/');
+    navigate(ROUTES.home);
     window.location.reload();
   };
 
@@ -333,7 +334,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           {/* Logo */}
           <div className="text-center mb-8">
-            <Link to="/" className="inline-block group">
+            <Link to={ROUTES.home} className="inline-block group">
               <div className="w-14 h-14 bg-neutral-900 dark:bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-shadow duration-200 lg:hidden">
                 <span className="text-white text-2xl font-bold">&#xC774;</span>
               </div>
@@ -766,7 +767,7 @@ export default function LoginPage() {
                     </span>
                   </label>
                   <Link
-                    to="/forgot-password"
+                    to={ROUTES.forgotPassword}
                     className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
                   >
                     비밀번호 찾기
@@ -788,8 +789,9 @@ export default function LoginPage() {
                     <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
                       <span className="text-red-500 font-medium">[필수]</span>{' '}
                       <Link
-                        to="/terms"
+                        to={ROUTES.terms}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="underline underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-400"
                       >
                         이용약관
@@ -812,8 +814,9 @@ export default function LoginPage() {
                     <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
                       <span className="text-red-500 font-medium">[필수]</span>{' '}
                       <Link
-                        to="/privacy"
+                        to={ROUTES.privacy}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="underline underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-400"
                       >
                         개인정보 수집·이용
@@ -888,14 +891,14 @@ export default function LoginPage() {
               <p className="text-xs text-slate-400 dark:text-slate-500 text-center leading-relaxed">
                 {isRegister ? '가입' : '로그인'}하면{' '}
                 <Link
-                  to="/terms"
+                  to={ROUTES.terms}
                   className="text-slate-500 dark:text-slate-400 underline underline-offset-2 hover:text-slate-700 dark:hover:text-slate-300 transition-colors duration-200"
                 >
                   이용약관
                 </Link>{' '}
                 및{' '}
                 <Link
-                  to="/privacy"
+                  to={ROUTES.privacy}
                   className="text-slate-500 dark:text-slate-400 underline underline-offset-2 hover:text-slate-700 dark:hover:text-slate-300 transition-colors duration-200"
                 >
                   개인정보처리방침
@@ -907,7 +910,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-slate-400 dark:text-slate-500 mt-6">
             <Link
-              to="/"
+              to={ROUTES.home}
               className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200"
             >
               비로그인으로 사용하기 &rarr;
