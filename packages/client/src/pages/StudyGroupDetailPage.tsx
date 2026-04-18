@@ -10,7 +10,11 @@ import {
   leaveStudyGroup,
   deleteStudyGroup,
   fetchStudyGroupQuestions,
+  fetchStudyGroupPosts,
+  createStudyGroupPost,
+  likeStudyGroupPost,
   type StudyGroup,
+  type StudyGroupPost,
 } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
@@ -41,6 +45,56 @@ export default function StudyGroupDetailPage() {
     enabled: !!id && !!group,
     retry: 1,
   });
+
+  const [postCategory, setPostCategory] = useState<'all' | StudyGroupPost['category']>('all');
+  const { data: postsData } = useQuery({
+    queryKey: ['study-group-posts', id, postCategory],
+    queryFn: () =>
+      fetchStudyGroupPosts(id!, { category: postCategory === 'all' ? undefined : postCategory }),
+    enabled: !!id && !!group,
+    retry: 1,
+  });
+  const posts = postsData?.items ?? [];
+
+  const [showComposer, setShowComposer] = useState(false);
+  const [newPostTitle, setNewPostTitle] = useState('');
+  const [newPostContent, setNewPostContent] = useState('');
+  const [newPostCategory, setNewPostCategory] = useState<StudyGroupPost['category']>('free');
+  const [posting, setPosting] = useState(false);
+
+  const submitPost = async () => {
+    if (!id) return;
+    if (newPostTitle.trim().length < 2 || newPostContent.trim().length < 2) {
+      toast('제목·내용을 입력하세요', 'info');
+      return;
+    }
+    setPosting(true);
+    try {
+      await createStudyGroupPost(id, {
+        title: newPostTitle,
+        content: newPostContent,
+        category: newPostCategory,
+      });
+      toast('게시 완료', 'success');
+      setNewPostTitle('');
+      setNewPostContent('');
+      setShowComposer(false);
+      qc.invalidateQueries({ queryKey: ['study-group-posts', id] });
+    } catch (e) {
+      toast(e instanceof Error ? e.message : '게시 실패', 'error');
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  const handleLike = async (postId: string) => {
+    try {
+      await likeStudyGroupPost(postId);
+      qc.invalidateQueries({ queryKey: ['study-group-posts', id] });
+    } catch {
+      /* noop */
+    }
+  };
 
   useEffect(() => {
     if (group) document.title = `${group.name} — 스터디`;
@@ -237,6 +291,169 @@ export default function StudyGroupDetailPage() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* 카페 게시판 (멤버만) */}
+        {isMember && (
+          <div className="imp-card p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 mb-6">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                📌 스터디 카페 게시판 ({postsData?.total ?? 0})
+              </h2>
+              <button
+                onClick={() => setShowComposer((v) => !v)}
+                className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                {showComposer ? '취소' : '+ 글쓰기'}
+              </button>
+            </div>
+
+            {/* 카테고리 필터 */}
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {(
+                [
+                  { k: 'all', label: '전체', icon: '📋' },
+                  { k: 'notice', label: '공지', icon: '📢' },
+                  { k: 'free', label: '자유', icon: '💬' },
+                  { k: 'question', label: '질문', icon: '❓' },
+                  { k: 'resource', label: '자료공유', icon: '📎' },
+                  { k: 'study-log', label: '학습일지', icon: '📝' },
+                ] as const
+              ).map((c) => (
+                <button
+                  key={c.k}
+                  onClick={() => setPostCategory(c.k as any)}
+                  className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
+                    postCategory === c.k
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-blue-300'
+                  }`}
+                >
+                  <span aria-hidden className="mr-0.5">
+                    {c.icon}
+                  </span>
+                  {c.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 글쓰기 폼 */}
+            {showComposer && (
+              <div className="mb-4 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 space-y-2">
+                <div className="flex gap-2">
+                  <select
+                    value={newPostCategory}
+                    onChange={(e) => setNewPostCategory(e.target.value as any)}
+                    className="text-xs px-2 py-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700"
+                  >
+                    {isOwner && <option value="notice">📢 공지</option>}
+                    <option value="free">💬 자유</option>
+                    <option value="question">❓ 질문</option>
+                    <option value="resource">📎 자료공유</option>
+                    <option value="study-log">📝 학습일지</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={newPostTitle}
+                    onChange={(e) => setNewPostTitle(e.target.value.slice(0, 100))}
+                    placeholder="제목"
+                    className="flex-1 text-sm px-2 py-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700"
+                  />
+                </div>
+                <textarea
+                  value={newPostContent}
+                  onChange={(e) => setNewPostContent(e.target.value.slice(0, 20000))}
+                  rows={4}
+                  placeholder="내용을 입력하세요"
+                  className="w-full text-sm px-2 py-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 resize-y"
+                />
+                <div className="flex items-center justify-end gap-2">
+                  <span className="text-[10px] text-slate-400 mr-auto">
+                    {newPostContent.length}/20,000
+                  </span>
+                  <button
+                    onClick={submitPost}
+                    disabled={posting}
+                    className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {posting ? '게시 중...' : '게시하기'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 게시글 목록 */}
+            {posts.length === 0 ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-6">
+                아직 게시글이 없습니다. 첫 글을 남겨보세요!
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {posts.map((p) => (
+                  <li
+                    key={p.id}
+                    className="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700 hover:border-blue-300 transition-colors"
+                  >
+                    <div className="flex items-start gap-2">
+                      {p.isPinned && (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 font-semibold shrink-0"
+                          aria-label="고정"
+                        >
+                          📌 고정
+                        </span>
+                      )}
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
+                          p.category === 'notice'
+                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                            : p.category === 'question'
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                              : p.category === 'resource'
+                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                                : p.category === 'study-log'
+                                  ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300'
+                                  : 'bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-200'
+                        }`}
+                      >
+                        {p.category === 'notice'
+                          ? '공지'
+                          : p.category === 'question'
+                            ? '질문'
+                            : p.category === 'resource'
+                              ? '자료'
+                              : p.category === 'study-log'
+                                ? '학습'
+                                : '자유'}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
+                          {p.title}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed whitespace-pre-wrap">
+                          {p.content}
+                        </p>
+                        <div className="mt-1.5 flex items-center gap-2 text-[10px] text-slate-400">
+                          <span>{p.user?.name || '익명'}</span>
+                          <span>·</span>
+                          <span>{new Date(p.createdAt).toLocaleDateString('ko-KR')}</span>
+                          <span>·</span>
+                          <span>👁 {p.viewCount}</span>
+                          <button
+                            onClick={() => handleLike(p.id)}
+                            className="hover:text-red-500 transition-colors"
+                          >
+                            ♥ {p.likeCount}
+                          </button>
+                          {p.attachments?.length > 0 && <span>· 📎 {p.attachments.length}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 

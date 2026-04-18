@@ -1273,6 +1273,117 @@ async function main() {
     console.log(`  ✓ 코치: ${user.name} — ${c.specialty}`);
   }
 
+  // ─── 10b. 스터디 그룹 게시판 샘플 포스트 ───────────────────────────
+  const allGroups = await prisma.studyGroup.findMany({
+    select: { id: true, name: true, ownerId: true },
+    take: 30,
+  });
+
+  const postTemplates = [
+    {
+      category: 'notice',
+      title: '[필독] 이번 주 스터디 진행 일정',
+      content:
+        '안녕하세요 스터디장입니다.\n이번 주 수요일 오후 8시에 온라인 미팅이 있습니다. Zoom 링크는 당일 공유드릴게요.\n- 주제: 자기소개 3분 스피치\n- 준비물: 본인 이력서 1부',
+    },
+    {
+      category: 'question',
+      title: '면접에서 가장 자주 나왔던 질문 공유해주세요',
+      content:
+        '실제 경험한 기술/인성 질문 중에서 압박감 있었던 것 위주로 댓글 남겨주시면 감사하겠습니다!',
+    },
+    {
+      category: 'resource',
+      title: '[자료] 2026 상반기 채용 대비 CS 정리 PDF',
+      content:
+        'OS·자료구조·네트워크 핵심만 60페이지로 정리했습니다. 필요하신 분 자료실에서 다운로드하세요.\n링크: https://example.com/cs-summary.pdf',
+    },
+    {
+      category: 'study-log',
+      title: 'Day 12 — 알고리즘 DP 집중',
+      content:
+        '오늘 푼 문제\n- 백준 1463 1로 만들기 ✅\n- 프로그래머스 정수 삼각형 ✅\n- LeetCode 322 Coin Change (재시도 필요)\n\n내일은 DP 심화로 LIS/LCS 집중.',
+    },
+    {
+      category: 'free',
+      title: '면접 전날 긴장 푸는 루틴 공유',
+      content:
+        '저는 커피 줄이고 가벼운 산책 + 9시 취침으로 컨디션 맞춥니다. 여러분은 어떻게 하시나요?',
+    },
+    {
+      category: 'question',
+      title: 'Java vs Kotlin 백엔드 선택 고민',
+      content:
+        '신규 서비스 백엔드로 Spring Boot 기반 Java/Kotlin 중 고민 중입니다. 실무 선택 기준 조언 부탁드려요.',
+    },
+    {
+      category: 'resource',
+      title: '[자료] 자기소개서 4대 항목 샘플 10건',
+      content:
+        '대기업 합격 자소서 샘플 정리. 성장과정·지원동기·성격·포부 순으로 구성.\n링크: https://example.com/cover-letter-samples',
+    },
+    {
+      category: 'free',
+      title: '합격 후기! 드디어 최종 합격했습니다 🎉',
+      content: '3개월간 스터디하며 함께해주신 분들 감사합니다. 다음 분도 곧 좋은 소식 있으시길!',
+    },
+    {
+      category: 'study-log',
+      title: 'Day 5 — 모의면접 녹화 피드백',
+      content: '녹화 영상을 보니 습관적 "음..." 을 너무 많이 씀. 다음 주엔 의식적으로 줄이기 목표.',
+    },
+    {
+      category: 'question',
+      title: '포트폴리오 GitHub 스타 개수 중요한가요?',
+      content: '주니어 채용에서 GitHub Star/Fork 실제 가중치가 있을지 궁금합니다.',
+    },
+    {
+      category: 'resource',
+      title: '[자료] 최신 채용공고 키워드 분석 스프레드시트',
+      content: '최근 한 달간 네카라쿠배 등 JD 200건에서 가장 자주 등장한 키워드 TOP 50.',
+    },
+    {
+      category: 'free',
+      title: '스터디원 맥주 한잔 오프라인 번개 (선택참여)',
+      content: '다음 금요일 강남역 7시, 참여 원하시는 분 댓글 부탁드려요. (강요 아님)',
+    },
+  ];
+
+  let seedPostCount = 0;
+  for (const group of allGroups) {
+    // 그룹당 3~6개 포스트 생성
+    const count = 3 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < count; i++) {
+      const tpl = postTemplates[Math.floor(Math.random() * postTemplates.length)];
+      const authorId =
+        Math.random() > 0.3
+          ? group.ownerId
+          : userByIdx(Math.floor(Math.random() * existingUsers.length))?.id;
+      if (!authorId) continue;
+      // 고유 제목 — 그룹명 + 인덱스 suffix 로 중복 방지
+      const title = `${tpl.title}`;
+      const exists = await prisma.studyGroupPost.findFirst({
+        where: { groupId: group.id, title },
+      });
+      if (exists) continue;
+      await prisma.studyGroupPost.create({
+        data: {
+          group: { connect: { id: group.id } },
+          user: { connect: { id: authorId } },
+          title,
+          content: tpl.content,
+          category: tpl.category,
+          isPinned: tpl.category === 'notice' && i === 0,
+          viewCount: Math.floor(Math.random() * 200),
+          likeCount: Math.floor(Math.random() * 30),
+          commentCount: Math.floor(Math.random() * 10),
+        },
+      });
+      seedPostCount++;
+    }
+  }
+  console.log(`  ✓ 스터디 게시글 ${seedPostCount}개`);
+
   // ─── 11. SystemConfig 초기값 ─────────────────────────────────────
   const configs = [
     { key: 'monetization_enabled', value: 'false', label: '유료화 활성화' },

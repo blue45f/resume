@@ -830,6 +830,70 @@ export const addStudyGroupQuestion = (
     body: JSON.stringify(data),
   });
 
+// ── 스터디 그룹 카페 게시판 ────────────────────────────────
+export interface StudyGroupPost {
+  id: string;
+  groupId: string;
+  userId: string;
+  title: string;
+  content: string;
+  category: 'notice' | 'free' | 'question' | 'resource' | 'study-log';
+  attachments: Array<{ url: string; name: string; size: number; type: string }>;
+  isPinned: boolean;
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+  createdAt: string;
+  updatedAt: string;
+  user?: { id: string; name: string; avatar?: string | null };
+}
+
+export const fetchStudyGroupPosts = (
+  groupId: string,
+  params?: { category?: string; page?: number; limit?: number },
+) => {
+  const q = new URLSearchParams();
+  if (params?.category) q.set('category', params.category);
+  if (params?.page) q.set('page', String(params.page));
+  if (params?.limit) q.set('limit', String(params.limit));
+  const qs = q.toString();
+  return request<{ items: StudyGroupPost[]; total: number; page: number; limit: number }>(
+    `${BASE}/study-groups/${groupId}/posts${qs ? `?${qs}` : ''}`,
+  );
+};
+
+export const fetchStudyGroupPost = (postId: string) =>
+  request<StudyGroupPost>(`${BASE}/study-groups/posts/${postId}`);
+
+export const createStudyGroupPost = (
+  groupId: string,
+  data: {
+    title: string;
+    content: string;
+    category?: string;
+    attachments?: StudyGroupPost['attachments'];
+  },
+) =>
+  request<StudyGroupPost>(`${BASE}/study-groups/${groupId}/posts`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const updateStudyGroupPost = (
+  postId: string,
+  data: Partial<Pick<StudyGroupPost, 'title' | 'content' | 'category' | 'isPinned'>>,
+) =>
+  request<StudyGroupPost>(`${BASE}/study-groups/posts/${postId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+
+export const deleteStudyGroupPost = (postId: string) =>
+  request<{ success: boolean }>(`${BASE}/study-groups/posts/${postId}`, { method: 'DELETE' });
+
+export const likeStudyGroupPost = (postId: string) =>
+  request<StudyGroupPost>(`${BASE}/study-groups/posts/${postId}/like`, { method: 'POST' });
+
 // ── Coaching ──────────────────────────────────────────────
 export interface CoachUser {
   id: string;

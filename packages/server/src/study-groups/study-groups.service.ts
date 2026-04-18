@@ -346,6 +346,141 @@ export class StudyGroupsService {
     return { success: true };
   }
 
+  /** 카페형 게시판 — 멤버 전용 글 작성·조회 */
+  private async assertMemberOrPublic(groupId: string, userId?: string) {
+    const group = await this.prisma.studyGroup.findUnique({
+      where: { id: groupId },
+      select: { id: true, isPrivate: true, ownerId: true },
+    });
+    if (!group) throw new NotFoundException('스터디 그룹을 찾을 수 없습니다');
+    if (!group.isPrivate) return group;
+    if (!userId) throw new ForbiddenException('비공개 그룹입니다');
+    const m = await this.prisma.studyGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (!m && group.ownerId !== userId) throw new ForbiddenException('비공개 그룹입니다');
+    return group;
+  }
+
+  async listPosts(
+    groupId: string,
+    userId: string | undefined,
+    opts: { category?: string; page?: number; limit?: number } = {},
+  ) {
+    await this.assertMemberOrPublic(groupId, userId);
+    const page = opts.page && opts.page > 0 ? opts.page : 1;
+    const limit = Math.min(opts.limit ?? 20, 50);
+    const where: any = { groupId };
+    if (opts.category && opts.category !== 'all') where.category = opts.category;
+    const [items, total] = await Promise.all([
+      this.prisma.studyGroupPost.findMany({
+        where,
+        orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          user: { select: { id: true, name: true, avatar: true } },
+        },
+      }),
+      this.prisma.studyGroupPost.count({ where }),
+    ]);
+    return { items, total, page, limit };
+  }
+
+  async getPost(postId: string, userId?: string) {
+    const post = await this.prisma.studyGroupPost.findUnique({
+      where: { id: postId },
+      include: { user: { select: { id: true, name: true, avatar: true } } },
+    });
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
+    await this.assertMemberOrPublic(post.groupId, userId);
+    await this.prisma.studyGroupPost.update({
+      where: { id: postId },
+      data: { viewCount: { increment: 1 } },
+    });
+    return post;
+  }
+
+  async createPost(
+    groupId: string,
+    userId: string,
+    data: {
+      title: string;
+      content: string;
+      category?: string;
+      attachments?: Array<{ url: string; name: string; size: number; type: string }>;
+    },
+  ) {
+    await this.assertMemberOrPublic(groupId, userId);
+    const title = (data.title || '').trim();
+    const content = (data.content || '').trim();
+    if (title.length < 2 || title.length > 100)
+      throw new BadRequestException('제목은 2~100자여야 합니다');
+    if (content.length < 2 || content.length > 20000)
+      throw new BadRequestException('내용은 2~20000자여야 합니다');
+    const category = data.category || 'free';
+    const group = await this.prisma.studyGroup.findUnique({
+      where: { id: groupId },
+      select: { ownerId: true },
+    });
+    const isPinned = category === 'notice' && group?.ownerId === userId;
+    return this.prisma.studyGroupPost.create({
+      data: {
+        group: { connect: { id: groupId } },
+        user: { connect: { id: userId } },
+        title,
+        content,
+        category,
+        attachments: (data.attachments ?? []) as any,
+        isPinned,
+      },
+    });
+  }
+
+  async updatePost(
+    postId: string,
+    userId: string,
+    data: Partial<{ title: string; content: string; category: string; isPinned: boolean }>,
+  ) {
+    const post = await this.prisma.studyGroupPost.findUnique({ where: { id: postId } });
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
+    const group = await this.prisma.studyGroup.findUnique({
+      where: { id: post.groupId },
+      select: { ownerId: true },
+    });
+    if (post.userId !== userId && group?.ownerId !== userId)
+      throw new ForbiddenException('수정 권한이 없습니다');
+    const patch: any = {};
+    if (data.title !== undefined) patch.title = data.title.trim().slice(0, 100);
+    if (data.content !== undefined) patch.content = data.content.trim().slice(0, 20000);
+    if (data.category !== undefined) patch.category = data.category;
+    if (data.isPinned !== undefined && group?.ownerId === userId) patch.isPinned = data.isPinned;
+    return this.prisma.studyGroupPost.update({ where: { id: postId }, data: patch });
+  }
+
+  async deletePost(postId: string, userId: string) {
+    const post = await this.prisma.studyGroupPost.findUnique({ where: { id: postId } });
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
+    const group = await this.prisma.studyGroup.findUnique({
+      where: { id: post.groupId },
+      select: { ownerId: true },
+    });
+    if (post.userId !== userId && group?.ownerId !== userId)
+      throw new ForbiddenException('삭제 권한이 없습니다');
+    await this.prisma.studyGroupPost.delete({ where: { id: postId } });
+    return { success: true };
+  }
+
+  async likePost(postId: string, userId: string) {
+    const post = await this.prisma.studyGroupPost.findUnique({ where: { id: postId } });
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
+    await this.assertMemberOrPublic(post.groupId, userId);
+    return this.prisma.studyGroupPost.update({
+      where: { id: postId },
+      data: { likeCount: { increment: 1 } },
+    });
+  }
+
   async listQuestions(groupId: string, userId?: string) {
     const group = await this.prisma.studyGroup.findUnique({
       where: { id: groupId },

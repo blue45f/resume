@@ -58,6 +58,7 @@ model User {
   ownedStudyGroups     StudyGroup[]         @relation("GroupOwner")
   studyGroupMemberships StudyGroupMember[]  @relation("GroupMember")
   studyGroupQuestions  StudyGroupQuestion[] @relation("GroupQuestion")
+  studyGroupPosts      StudyGroupPost[]     @relation("GroupPost")
   coachProfile      CoachProfile?
   coachingSessions  CoachingSession[] @relation("CoachingClient")
   authoredJobQuestions JobInterviewQuestion[]      @relation("JobQuestionAuthor")
@@ -913,6 +914,7 @@ model StudyGroup {
   owner   User  @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members StudyGroupMember[]
   questions StudyGroupQuestion[]
+  posts   StudyGroupPost[]
 
   @@index([jobPostId])
   @@index([companyName])
@@ -953,6 +955,33 @@ model StudyGroupQuestion {
 
   @@index([groupId])
   @@map("study_group_questions")
+}
+
+/// 스터디 그룹의 카페형 게시판 — 멤버가 자유롭게 글·자료·공지 공유
+model StudyGroupPost {
+  id          String   @id @default(uuid())
+  groupId     String   @map("group_id")
+  userId      String   @map("user_id")
+  title       String
+  content     String   @db.Text
+  /// category: notice(공지), free(자유), question(질문), resource(자료공유), study-log(학습일지)
+  category    String   @default("free")
+  /// 첨부파일 JSON 배열 [{ url, name, size, type }]
+  attachments Json     @default("[]")
+  isPinned    Boolean  @default(false) @map("is_pinned")
+  viewCount   Int      @default(0) @map("view_count")
+  likeCount   Int      @default(0) @map("like_count")
+  commentCount Int     @default(0) @map("comment_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation("GroupPost", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, createdAt])
+  @@index([userId])
+  @@index([category])
+  @@map("study_group_posts")
 }
 
 model JobInterviewQuestion {

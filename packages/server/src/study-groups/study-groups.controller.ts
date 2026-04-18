@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Delete,
   Param,
   Body,
@@ -100,5 +101,72 @@ export class StudyGroupsController {
   addQuestion(@Param('id') id: string, @Body() body: CreateStudyGroupQuestionDto, @Req() req: any) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.addQuestion(id, req.user.id, body);
+  }
+
+  // ─── 카페형 게시판 ──────────────────────────────────────────
+  @Get(':id/posts')
+  @Public()
+  @ApiOperation({ summary: '스터디 그룹 게시글 목록 (카페 게시판)' })
+  listPosts(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Query('category') category?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.service.listPosts(id, req.user?.id, {
+      category,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    });
+  }
+
+  @Get('posts/:postId')
+  @Public()
+  @ApiOperation({ summary: '스터디 게시글 상세' })
+  getPost(@Param('postId') postId: string, @Req() req: any) {
+    return this.service.getPost(postId, req.user?.id);
+  }
+
+  @Post(':id/posts')
+  @ApiOperation({ summary: '스터디 그룹 게시글 작성' })
+  createPost(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      title: string;
+      content: string;
+      category?: string;
+      attachments?: Array<{ url: string; name: string; size: number; type: string }>;
+    },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.createPost(id, req.user.id, body);
+  }
+
+  @Put('posts/:postId')
+  @ApiOperation({ summary: '스터디 그룹 게시글 수정' })
+  updatePost(
+    @Param('postId') postId: string,
+    @Body() body: { title?: string; content?: string; category?: string; isPinned?: boolean },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.updatePost(postId, req.user.id, body);
+  }
+
+  @Delete('posts/:postId')
+  @ApiOperation({ summary: '스터디 그룹 게시글 삭제' })
+  deletePost(@Param('postId') postId: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.deletePost(postId, req.user.id);
+  }
+
+  @Post('posts/:postId/like')
+  @ApiOperation({ summary: '스터디 그룹 게시글 좋아요' })
+  likePost(@Param('postId') postId: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.likePost(postId, req.user.id);
   }
 }
