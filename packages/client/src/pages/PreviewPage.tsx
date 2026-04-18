@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
 import PrintFooter from '@/components/PrintFooter';
 import { downloadVCard } from '@/lib/vcard';
+import { copySignatureToClipboard } from '@/lib/emailSignature';
 import { resumeThemes } from '@/lib/resumeThemes';
 import CompletenessBar from '@/components/CompletenessBar';
 import { ROUTES, withQuery } from '@/lib/routes';
@@ -621,6 +622,37 @@ export default function PreviewPage() {
                         />
                       </svg>
                       연락처 저장 (vCard)
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await copySignatureToClipboard(resume, {
+                            shareUrl: window.location.href,
+                            accent: themeAccent,
+                          });
+                          toast('이메일 서명 복사됨 — Gmail/Outlook 에 붙여넣기', 'success');
+                        } catch {
+                          toast('복사 실패 — 브라우저 권한 확인', 'error');
+                        }
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                      title="이메일 서명을 HTML 로 클립보드에 복사"
+                    >
+                      <svg
+                        className="w-4 h-4 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                      </svg>
+                      이메일 서명 복사
                     </button>
                     <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                     <button
