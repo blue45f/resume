@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { API_URL } from '@/lib/config';
+import { tx } from '@/lib/i18n';
 
 interface SearchResult {
   type: 'resume' | 'job' | 'community' | 'user';
@@ -187,7 +188,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
           className="fixed z-[101] top-[12vh] left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fade-in focus:outline-none max-h-[80vh] flex flex-col"
           style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
         >
-          <RadixDialog.Title className="sr-only">검색</RadixDialog.Title>
+          <RadixDialog.Title className="sr-only">{tx('common.search')}</RadixDialog.Title>
           <div
             className="flex items-center gap-3 px-4 py-3.5"
             style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
@@ -211,7 +212,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="이력서, 채용정보, 커뮤니티 검색..."
+              placeholder={tx('form.placeholder.search')}
               className="flex-1 text-sm bg-transparent text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none"
             />
             {loading && (
@@ -264,10 +265,10 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
             ) : query.trim().length >= 2 && !loading ? (
               <div className="text-center py-8">
                 <p className="text-sm text-neutral-400 dark:text-neutral-500">
-                  검색 결과가 없습니다
+                  {tx('common.empty')}
                 </p>
                 <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
-                  다른 키워드로 검색해보세요
+                  {tx('common.retry')}
                 </p>
               </div>
             ) : (
