@@ -778,6 +778,16 @@ export default function SettingsPage() {
                       toast('기업 전환은 회사명을 먼저 입력해주세요', 'info');
                       return;
                     }
+                    // recruiter/company 전환 시 개인정보 보호 경고
+                    if (opt.value === 'recruiter' || opt.value === 'company') {
+                      const warn = window.confirm(
+                        `${opt.label} 모드로 전환합니다.\n\n` +
+                          '⚠️ 주의: 채용 담당자 모드로 전환해도 본인의 공개(public) 이력서는 계속 검색·열람 가능합니다.\n\n' +
+                          '본인의 공개 이력서를 private로 먼저 변경한 뒤 전환하시는 것을 권장합니다.\n\n' +
+                          '그래도 계속 전환하시겠습니까?',
+                      );
+                      if (!warn) return;
+                    }
                     setSwitchingType(true);
                     try {
                       const token = getToken();
