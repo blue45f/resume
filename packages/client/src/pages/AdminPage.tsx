@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as RadixDialog from '@radix-ui/react-dialog';
@@ -8,6 +8,10 @@ import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 import { PLANS } from '@/lib/plans';
 import { API_URL } from '@/lib/config';
+import AdminPostsTab from '@/features/admin/ui/AdminPostsTab';
+import AdminStudyGroupsTab from '@/features/admin/ui/AdminStudyGroupsTab';
+import AdminInterviewQuestionsTab from '@/features/admin/ui/AdminInterviewQuestionsTab';
+import AdminUsersTab from '@/features/admin/ui/AdminUsersTab';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -70,6 +74,9 @@ type TabId =
   | 'banners'
   | 'notices'
   | 'community'
+  | 'posts'
+  | 'study-groups'
+  | 'interview-questions'
   | 'extlinks'
   | 'permissions'
   | 'forbidden-words';
@@ -85,12 +92,15 @@ export default function AdminPage() {
 
   const tabs: { id: TabId; label: string; icon: string; superOnly?: boolean }[] = [
     { id: 'stats', label: '대시보드', icon: '📊' },
-    { id: 'users', label: '사용자', icon: '👥' },
+    { id: 'users', label: '회원 관리', icon: '👥' },
+    { id: 'posts', label: '게시물', icon: '📝' },
+    { id: 'study-groups', label: '스터디 그룹', icon: '🧑‍🤝‍🧑' },
+    { id: 'interview-questions', label: '면접 질문', icon: '🎯' },
     { id: 'banners', label: '배너', icon: '🖼' },
     { id: 'notices', label: '공지사항', icon: '📢' },
     { id: 'community', label: '커뮤니티', icon: '💬' },
     { id: 'extlinks', label: '채용링크', icon: '🔗' },
-    { id: 'content', label: '콘텐츠', icon: '📝' },
+    { id: 'content', label: '콘텐츠', icon: '📄' },
     { id: 'permissions', label: '권한 관리', icon: '🔐' },
     { id: 'forbidden-words', label: '금칙어', icon: '🚫' },
     { id: 'moderation', label: '신고 관리', icon: '🛡' },
@@ -221,6 +231,39 @@ export default function AdminPage() {
             {activeTab === 'extlinks' && <AdminExtLinksTab />}
             {activeTab === 'permissions' && <AdminPermissionsTab />}
             {activeTab === 'forbidden-words' && <AdminForbiddenWordsTab />}
+            {activeTab === 'posts' && (
+              <div className="space-y-6 animate-fade-in-up">
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-blue-500 rounded" />
+                    커뮤니티 게시물 관리
+                  </h2>
+                  <AdminPostsTab />
+                </section>
+              </div>
+            )}
+            {activeTab === 'study-groups' && (
+              <div className="space-y-6 animate-fade-in-up">
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-teal-500 rounded" />
+                    스터디 그룹 관리
+                  </h2>
+                  <AdminStudyGroupsTab />
+                </section>
+              </div>
+            )}
+            {activeTab === 'interview-questions' && (
+              <div className="space-y-6 animate-fade-in-up">
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-amber-500 rounded" />
+                    면접 질문 관리
+                  </h2>
+                  <AdminInterviewQuestionsTab />
+                </section>
+              </div>
+            )}
             {activeTab === 'users' && (
               <div className="space-y-6 animate-fade-in-up">
                 {stats.recentUsers && stats.recentUsers.length > 0 && (
@@ -304,9 +347,9 @@ export default function AdminPage() {
                 <section>
                   <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
                     <span className="w-1.5 h-4 bg-rose-500 rounded" />
-                    사용자 관리
+                    회원 관리
                   </h2>
-                  <UserManagement />
+                  <AdminUsersTab isSuperAdmin={isSuperAdmin} />
                 </section>
               </div>
             )}
@@ -399,27 +442,6 @@ function providerBadge(provider: string) {
       : provider === 'kakao'
         ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
         : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
-}
-
-// ─── Helper: Plan badge ────────────────────────────────
-function planBadge(plan?: string) {
-  switch (plan) {
-    case 'premium':
-      return {
-        text: 'Premium',
-        cls: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
-      };
-    case 'standard':
-      return {
-        text: 'Standard',
-        cls: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
-      };
-    default:
-      return {
-        text: 'Free',
-        cls: 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400',
-      };
-  }
 }
 
 // ─── Helper: Relative time ──────────────────────────────
@@ -860,369 +882,6 @@ function CoachingStatsWidget({ coaching }: { coaching?: Stats['coaching'] }) {
     </div>
   );
 }
-
-// ═══════════════════════════════════════════════════════════
-// 2. User Management (enhanced)
-// ═══════════════════════════════════════════════════════════
-function UserManagement() {
-  const [users, setUsers] = useState<
-    {
-      id: string;
-      name: string;
-      email: string;
-      provider: string;
-      role: string;
-      plan?: string;
-      createdAt: string;
-      lastLoginAt?: string;
-    }[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [planFilter, setPlanFilter] = useState<string>('all');
-  const [providerFilter, setProviderFilter] = useState<string>('all');
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const perPage = 10;
-
-  const queryClient = useQueryClient();
-  const usersQuery = useQuery<any[]>({
-    queryKey: ['admin-users'],
-    queryFn: async () => {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/api/auth/admin/users`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) return [];
-      return res.json();
-    },
-    staleTime: 60_000,
-  });
-  useEffect(() => {
-    if (usersQuery.data) setUsers(usersQuery.data);
-    if (!usersQuery.isLoading) setLoading(false);
-  }, [usersQuery.data, usersQuery.isLoading]);
-  const load = () => queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-
-  const toggleRole = async (userId: string, currentRole: string) => {
-    const newRole = currentRole === 'admin' ? 'user' : 'admin';
-    if (
-      !confirm(
-        `이 사용자를 ${newRole === 'admin' ? '관리자로 지정' : '일반 사용자로 변경'}하시겠습니까?`,
-      )
-    )
-      return;
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}/api/auth/admin/users/${userId}/role`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ role: newRole }),
-    });
-    if (res.ok) {
-      toast(`역할이 ${newRole}로 변경되었습니다`, 'success');
-      load();
-    } else {
-      toast('변경에 실패했습니다', 'error');
-    }
-  };
-
-  const filtered = useMemo(() => {
-    return users.filter((u) => {
-      const matchSearch =
-        !search ||
-        u.name?.toLowerCase().includes(search.toLowerCase()) ||
-        u.email?.toLowerCase().includes(search.toLowerCase());
-      const matchPlan = planFilter === 'all' || (u.plan || 'free') === planFilter;
-      const matchProvider = providerFilter === 'all' || u.provider === providerFilter;
-      return matchSearch && matchPlan && matchProvider;
-    });
-  }, [users, search, planFilter, providerFilter]);
-
-  const totalPages = Math.ceil(filtered.length / perPage);
-  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.size === paginated.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(paginated.map((u) => u.id)));
-    }
-  };
-
-  const exportCSV = () => {
-    const toExport =
-      selectedIds.size > 0 ? filtered.filter((u) => selectedIds.has(u.id)) : filtered;
-    if (toExport.length === 0) {
-      toast('내보낼 사용자가 없습니다', 'error');
-      return;
-    }
-    const header = '이름,이메일,로그인방식,역할,요금제,가입일,최근활동';
-    const rows = toExport.map(
-      (u) =>
-        `"${u.name || ''}","${u.email}","${u.provider}","${u.role || 'user'}","${u.plan || 'free'}","${new Date(u.createdAt).toLocaleDateString('ko-KR')}","${u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('ko-KR') : '—'}"`,
-    );
-    const csv = '\uFEFF' + [header, ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `users_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast(`${toExport.length}명의 사용자 데이터를 내보냈습니다`, 'success');
-  };
-
-  if (loading) return <p className="text-sm text-slate-400 py-4 text-center">불러오는 중...</p>;
-
-  const providers = [...new Set(users.map((u) => u.provider))];
-
-  return (
-    <div>
-      {/* Search and filters */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-3">
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="이름 또는 이메일 검색..."
-          className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
-        />
-        <select
-          value={planFilter}
-          onChange={(e) => {
-            setPlanFilter(e.target.value);
-            setPage(1);
-          }}
-          className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
-        >
-          <option value="all">모든 요금제</option>
-          <option value="free">Free</option>
-          <option value="standard">Standard</option>
-          <option value="premium">Premium</option>
-        </select>
-        <select
-          value={providerFilter}
-          onChange={(e) => {
-            setProviderFilter(e.target.value);
-            setPage(1);
-          }}
-          className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
-        >
-          <option value="all">모든 로그인</option>
-          {providers.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 shrink-0">{filtered.length}명</span>
-          <button
-            onClick={exportCSV}
-            className="text-xs px-3 py-2 min-h-[44px] bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-xl hover:bg-green-100 transition-colors whitespace-nowrap"
-          >
-            CSV 내보내기{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile card layout */}
-      <div className="space-y-2 sm:hidden">
-        {paginated.map((u) => {
-          const pb = planBadge(u.plan);
-          return (
-            <div
-              key={u.id}
-              className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3"
-            >
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.has(u.id)}
-                    onChange={() => toggleSelect(u.id)}
-                    className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
-                  />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {u.name || '—'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${pb.cls}`}>{pb.text}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${providerBadge(u.provider)}`}>
-                    {u.provider}
-                  </span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${
-                      u.role === 'admin'
-                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                    }`}
-                  >
-                    {u.role || 'user'}
-                  </span>
-                </div>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-1">{u.email}</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
-                최근 활동: {relativeTime(u.lastLoginAt)}
-              </p>
-              <button
-                onClick={() => toggleRole(u.id, u.role || 'user')}
-                className={`text-xs px-3 py-2 min-h-[44px] w-full rounded-lg transition-colors ${
-                  u.role === 'admin'
-                    ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                    : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100'
-                }`}
-              >
-                {u.role === 'admin' ? '관리자 해제' : '관리자 지정'}
-              </button>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Desktop table layout */}
-      <div className="hidden sm:block bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-slate-50 dark:bg-slate-900 text-left">
-              <th className="px-3 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                <input
-                  type="checkbox"
-                  checked={selectedIds.size === paginated.length && paginated.length > 0}
-                  onChange={toggleSelectAll}
-                  className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
-                />
-              </th>
-              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                이름
-              </th>
-              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                이메일
-              </th>
-              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                로그인
-              </th>
-              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                요금제
-              </th>
-              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                역할
-              </th>
-              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                최근 활동
-              </th>
-              <th className="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                관리
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-            {paginated.map((u) => {
-              const pb = planBadge(u.plan);
-              return (
-                <tr
-                  key={u.id}
-                  className={`hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${selectedIds.has(u.id) ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
-                >
-                  <td className="px-3 py-2.5">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(u.id)}
-                      onChange={() => toggleSelect(u.id)}
-                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
-                    />
-                  </td>
-                  <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-medium">
-                    {u.name || '—'}
-                  </td>
-                  <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 truncate max-w-[200px]">
-                    {u.email}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${providerBadge(u.provider)}`}
-                    >
-                      {u.provider}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${pb.cls}`}>
-                      {pb.text}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${
-                        u.role === 'admin'
-                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                          : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                      }`}
-                    >
-                      {u.role || 'user'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5 text-xs text-slate-400 dark:text-slate-500">
-                    {relativeTime(u.lastLoginAt)}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <button
-                      onClick={() => toggleRole(u.id, u.role || 'user')}
-                      className={`text-xs px-2 py-1 rounded-lg transition-colors ${
-                        u.role === 'admin'
-                          ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                          : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100'
-                      }`}
-                    >
-                      {u.role === 'admin' ? '해제' : '관리자 지정'}
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-3">
-          <span className="text-xs text-slate-400">
-            {page} / {totalPages} 페이지
-          </span>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              className="px-3 py-2 min-h-[44px] min-w-[44px] text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30"
-            >
-              이전
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
-              className="px-3 py-2 min-h-[44px] min-w-[44px] text-xs bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-30"
-            >
-              다음
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ═══════════════════════════════════════════════════════════
 // 3. Reported Content Queue (Moderation)
 // ═══════════════════════════════════════════════════════════
