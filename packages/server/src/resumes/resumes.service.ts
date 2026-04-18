@@ -47,6 +47,29 @@ export class ResumesService {
   ) {}
 
   /** 이력서 열람 알림 — 소유자가 다를 때만 1시간 쿨타임으로 알림 생성 */
+  /**
+   * viewerId가 이 resume과 연결된 CoachingSession의 코치인지 확인.
+   * 연결된 코치는 비공개 이력서라도 열람 허용 (예약된 피코칭 이력서).
+   */
+  private async isCoachOfResumeSession(resumeId: string, viewerId: string): Promise<boolean> {
+    try {
+      const coachProfile = await (this.prisma as any).coachProfile.findUnique({
+        where: { userId: viewerId },
+      });
+      if (!coachProfile) return false;
+      const session = await (this.prisma as any).coachingSession.findFirst({
+        where: {
+          resumeId,
+          coachId: coachProfile.id,
+          status: { in: ['requested', 'confirmed', 'completed'] },
+        },
+      });
+      return !!session;
+    } catch {
+      return false;
+    }
+  }
+
   private async sendViewNotification(
     resumeId: string,
     resumeTitle: string,
@@ -286,8 +309,12 @@ export class ResumesService {
     if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
 
     // 비공개 이력서는 소유자만 조회 가능
+    // 예외: 이 이력서를 연결한 CoachingSession의 코치는 열람 허용 (예약된 피코칭 이력서)
     if (resume.visibility === 'private' && resume.userId && resume.userId !== userId) {
-      throw new ForbiddenException('이 이력서에 접근할 권한이 없습니다');
+      const isLinkedCoach = userId ? await this.isCoachOfResumeSession(id, userId) : false;
+      if (!isLinkedCoach) {
+        throw new ForbiddenException('이 이력서에 접근할 권한이 없습니다');
+      }
     }
 
     // 조회수 증가 + 열람 알림: 소유자가 아닌 경우에만
