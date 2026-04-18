@@ -167,7 +167,10 @@ export default function PreviewPage() {
   // Zoom controls
   const ZOOM_LEVELS = [75, 100, 125, 150] as const;
   const [zoomLevel, setZoomLevel] = useState(100);
-  const [fitToWidth, setFitToWidth] = useState(false);
+  // 모바일에서는 기본값이 fit-to-width — 210mm 이력서가 375px 뷰포트 넘어 가로 스크롤 유발하던 문제 해결
+  const [fitToWidth, setFitToWidth] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false,
+  );
   const [isFullscreen, setIsFullscreen] = useState(false);
   const previewWrapperRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);

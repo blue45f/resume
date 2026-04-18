@@ -115,6 +115,52 @@ body {
     user-select: none;
     -webkit-user-select: none;
   }
+
+  /* ─── 이력서 미리보기 모바일 가독성 강화 ─────────────────
+     데스크탑 테마는 A4 비율(210mm) + 작은 폰트 전제. 모바일에선 아래 규칙으로 오버라이드.
+     .resume-preview 는 각 테마 루트에 부착된 공통 클래스. */
+  .resume-preview {
+    /* 210mm 고정폭 해제 → 화면 폭 꽉 채우기 (가로 스크롤 방지) */
+    max-width: 100% !important;
+    /* 좌우 여백 확보 */
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  /* 본문 문단·리스트 최소 가독 크기 15px + 행간 1.65 */
+  .resume-preview p,
+  .resume-preview li,
+  .resume-preview div:not([class*='text-']):not([class*='heading']) {
+    line-height: 1.65;
+  }
+  /* 10-11px 의 초소형 라벨(섹션 헤더, 뱃지)을 12px 로 승격 — 읽을 수 있도록 */
+  .resume-preview .text-\[10px\] {
+    font-size: 12px !important;
+  }
+  .resume-preview .text-\[11px\] {
+    font-size: 12.5px !important;
+  }
+  .resume-preview .text-\[12px\] {
+    font-size: 13px !important;
+  }
+  .resume-preview .text-\[13px\] {
+    font-size: 14px !important;
+  }
+  /* 학술/임원 테마의 과한 letter-spacing 완화 (모바일에서 끊김) */
+  .resume-preview .tracking-\[0\.3em\] {
+    letter-spacing: 0.15em !important;
+  }
+  /* 좌우 2단 레이아웃을 단일 컬럼으로 스택 */
+  .resume-preview .grid-cols-\[35\%_1fr\],
+  .resume-preview .grid-cols-\[280px_1fr\],
+  .resume-preview .grid-cols-\[220px_1fr\] {
+    grid-template-columns: 1fr !important;
+  }
+  /* 테마 내부 큰 패딩(px-12 sm:px-20 등)을 대체 — 모바일에선 16px 좌우 */
+  .resume-preview.px-12,
+  .resume-preview.sm\:px-20 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {
