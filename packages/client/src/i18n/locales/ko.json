@@ -378,5 +378,64 @@
     "notifications": "알림이 없습니다",
     "followers": "팔로워가 없습니다",
     "bookmarks": "북마크가 없습니다"
+  },
+  "notification": {
+    "title": "알림",
+    "markAllRead": "모두 읽음",
+    "clear": "지우기",
+    "settings": "알림 설정",
+    "types": {
+      "comment": "새 댓글",
+      "like": "좋아요",
+      "follow": "팔로우",
+      "message": "쪽지",
+      "scout": "스카우트 제안",
+      "applicationUpdate": "지원 현황 업데이트",
+      "systemAlert": "시스템 알림"
+    }
+  },
+  "email": {
+    "verify": "이메일 인증",
+    "verifyHint": "받은 메일의 인증 링크를 클릭해주세요",
+    "resend": "재전송",
+    "changePassword": "비밀번호 변경",
+    "resetPassword": "비밀번호 재설정",
+    "preferences": "이메일 수신 설정",
+    "marketingOptIn": "마케팅 이메일 수신 동의"
+  },
+  "onboarding": {
+    "welcome": "환영합니다!",
+    "step1": "프로필 작성",
+    "step2": "첫 이력서 생성",
+    "step3": "AI 분석 실행",
+    "step4": "공개 설정",
+    "skip": "나중에 하기",
+    "finish": "시작하기"
+  },
+  "plans": {
+    "free": {
+      "name": "무료",
+      "description": "기본 기능만 필요한 분",
+      "cta": "시작하기"
+    },
+    "pro": {
+      "name": "프로",
+      "description": "AI 도구를 모두 활용하고 싶은 분",
+      "cta": "프로 구독"
+    },
+    "enterprise": {
+      "name": "엔터프라이즈",
+      "description": "팀/조직 단위",
+      "cta": "문의하기"
+    },
+    "features": {
+      "unlimitedResumes": "무제한 이력서",
+      "aiTransforms": "AI 변환 월 {n}회",
+      "themes": "테마 {n}종",
+      "prioritySupport": "우선 지원",
+      "customDomain": "커스텀 도메인",
+      "teamManagement": "팀 관리",
+      "analytics": "고급 분석"
+    }
   }
 }

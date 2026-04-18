@@ -378,5 +378,64 @@
     "notifications": "No notifications",
     "followers": "No followers yet",
     "bookmarks": "No bookmarks yet"
+  },
+  "notification": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "clear": "Clear",
+    "settings": "Notification settings",
+    "types": {
+      "comment": "New comment",
+      "like": "Like",
+      "follow": "Follow",
+      "message": "Message",
+      "scout": "Scout proposal",
+      "applicationUpdate": "Application update",
+      "systemAlert": "System alert"
+    }
+  },
+  "email": {
+    "verify": "Verify email",
+    "verifyHint": "Click the verification link in the email we sent you",
+    "resend": "Resend",
+    "changePassword": "Change password",
+    "resetPassword": "Reset password",
+    "preferences": "Email preferences",
+    "marketingOptIn": "Opt in to marketing emails"
+  },
+  "onboarding": {
+    "welcome": "Welcome!",
+    "step1": "Complete your profile",
+    "step2": "Create your first resume",
+    "step3": "Run AI analysis",
+    "step4": "Publish",
+    "skip": "Maybe later",
+    "finish": "Get Started"
+  },
+  "plans": {
+    "free": {
+      "name": "Free",
+      "description": "For casual users",
+      "cta": "Start Free"
+    },
+    "pro": {
+      "name": "Pro",
+      "description": "Full AI toolset",
+      "cta": "Upgrade to Pro"
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "description": "Teams and organizations",
+      "cta": "Contact Sales"
+    },
+    "features": {
+      "unlimitedResumes": "Unlimited resumes",
+      "aiTransforms": "AI transforms {n}/mo",
+      "themes": "{n} themes",
+      "prioritySupport": "Priority support",
+      "customDomain": "Custom domain",
+      "teamManagement": "Team management",
+      "analytics": "Advanced analytics"
+    }
   }
 }

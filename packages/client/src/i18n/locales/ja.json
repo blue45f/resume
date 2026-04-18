@@ -278,5 +278,64 @@
     "notifications": "通知がありません",
     "followers": "フォロワーがいません",
     "bookmarks": "ブックマークがありません"
+  },
+  "notification": {
+    "title": "通知",
+    "markAllRead": "すべて既読",
+    "clear": "消去",
+    "settings": "通知設定",
+    "types": {
+      "comment": "新しいコメント",
+      "like": "いいね",
+      "follow": "フォロー",
+      "message": "メッセージ",
+      "scout": "スカウト提案",
+      "applicationUpdate": "応募状況更新",
+      "systemAlert": "システム通知"
+    }
+  },
+  "email": {
+    "verify": "メール認証",
+    "verifyHint": "受信したメールの認証リンクをクリックしてください",
+    "resend": "再送信",
+    "changePassword": "パスワード変更",
+    "resetPassword": "パスワード再設定",
+    "preferences": "メール受信設定",
+    "marketingOptIn": "マーケティングメール受信に同意"
+  },
+  "onboarding": {
+    "welcome": "ようこそ！",
+    "step1": "プロフィール作成",
+    "step2": "最初の履歴書を作成",
+    "step3": "AI分析を実行",
+    "step4": "公開設定",
+    "skip": "後で行う",
+    "finish": "始める"
+  },
+  "plans": {
+    "free": {
+      "name": "無料",
+      "description": "基本機能のみ必要な方",
+      "cta": "はじめる"
+    },
+    "pro": {
+      "name": "プロ",
+      "description": "AIツールをすべて活用したい方",
+      "cta": "プロにアップグレード"
+    },
+    "enterprise": {
+      "name": "エンタープライズ",
+      "description": "チーム/組織単位",
+      "cta": "お問い合わせ"
+    },
+    "features": {
+      "unlimitedResumes": "無制限履歴書",
+      "aiTransforms": "AI変換 月{n}回",
+      "themes": "テーマ{n}種",
+      "prioritySupport": "優先サポート",
+      "customDomain": "カスタムドメイン",
+      "teamManagement": "チーム管理",
+      "analytics": "高度な分析"
+    }
   }
 }
