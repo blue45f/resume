@@ -17,39 +17,46 @@ import { useApplications, useResumes } from '@/hooks/useResources';
 import type { JobApplication } from '@/lib/api';
 import type { ResumeSummary } from '@/types/resume';
 import { applicationSchema, type ApplicationFormValues } from '@/shared/lib/schemas/application';
+import { tx } from '@/lib/i18n';
 
-const STATUSES = [
+interface StatusDef {
+  value: string;
+  key: string;
+  color: string;
+}
+const STATUS_DEFS: StatusDef[] = [
   {
     value: 'applied',
-    label: '지원완료',
+    key: 'applications.status.applied',
     color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   },
   {
     value: 'screening',
-    label: '서류심사',
+    key: 'applications.status.screening',
     color: 'bg-sky-100 text-purple-700 dark:bg-sky-900/30 dark:text-sky-400',
   },
   {
     value: 'interview',
-    label: '면접',
+    key: 'applications.status.interview',
     color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
   },
   {
     value: 'offer',
-    label: '합격',
+    key: 'applications.status.offer',
     color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   },
   {
     value: 'rejected',
-    label: '불합격',
+    key: 'applications.status.rejected',
     color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   },
   {
     value: 'withdrawn',
-    label: '취소',
+    key: 'applications.status.withdrawn',
     color: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400',
   },
 ];
+const getSTATUSES = () => STATUS_DEFS.map((s) => ({ ...s, label: tx(s.key) }));
 
 const KANBAN_COLUMNS = [
   { value: 'applied', label: '지원완료', headerColor: 'bg-blue-500', nextStatus: 'screening' },
@@ -258,7 +265,7 @@ export default function ApplicationsPage() {
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
 
-  const stats = STATUSES.map((s) => ({
+  const stats = getSTATUSES().map((s) => ({
     ...s,
     count: apps.filter((a) => a.status === s.value).length,
   }));
@@ -733,7 +740,7 @@ export default function ApplicationsPage() {
                   {...appForm.register('status')}
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  {STATUSES.map((s) => (
+                  {getSTATUSES().map((s) => (
                     <option key={s.value} value={s.value}>
                       {s.label}
                     </option>
@@ -1294,7 +1301,8 @@ export default function ApplicationsPage() {
           /* List View */
           <div className="space-y-3">
             {filtered.map((app) => {
-              const statusInfo = STATUSES.find((s) => s.value === app.status) || STATUSES[0];
+              const all = getSTATUSES();
+              const statusInfo = all.find((s) => s.value === app.status) || all[0];
               const priority = (app as any).priority as string | undefined;
               const pCfg = priority ? PRIORITY_CONFIG[priority] : null;
               const deadline = (app as any).deadline as string | undefined;
@@ -1382,7 +1390,7 @@ export default function ApplicationsPage() {
                           onChange={(e) => handleStatusChange(app.id, e.target.value)}
                           className={`text-xs font-medium px-2 py-1.5 rounded-lg border-0 cursor-pointer focus:ring-2 focus:ring-blue-500 ${statusInfo.color}`}
                         >
-                          {STATUSES.map((s) => (
+                          {getSTATUSES().map((s) => (
                             <option key={s.value} value={s.value}>
                               {s.label}
                             </option>
