@@ -76,7 +76,7 @@ export default function StudyGroupDetailPage() {
         content: newPostContent,
         category: newPostCategory,
       });
-      toast('게시 완료', 'success');
+      toast(tx('toast.posted'), 'success');
       setNewPostTitle('');
       setNewPostContent('');
       setShowComposer(false);
@@ -113,7 +113,7 @@ export default function StudyGroupDetailPage() {
     setBusy(true);
     try {
       await joinStudyGroup(id);
-      toast('가입 완료', 'success');
+      toast(tx('toast.joined'), 'success');
       qc.invalidateQueries({ queryKey: ['study-group', id] });
     } catch (err) {
       toast(err instanceof Error ? err.message : '가입 실패', 'error');
@@ -127,7 +127,7 @@ export default function StudyGroupDetailPage() {
     setBusy(true);
     try {
       await leaveStudyGroup(id);
-      toast('탈퇴 완료', 'info');
+      toast(tx('toast.left'), 'info');
       qc.invalidateQueries({ queryKey: ['study-group', id] });
     } catch (err) {
       toast(err instanceof Error ? err.message : '탈퇴 실패', 'error');
@@ -378,7 +378,7 @@ export default function StudyGroupDetailPage() {
                     disabled={posting}
                     className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                   >
-                    {posting ? '게시 중...' : '게시하기'}
+                    {posting ? tx('common.loading') : tx('study.newPost')}
                   </button>
                 </div>
               </div>
@@ -387,7 +387,7 @@ export default function StudyGroupDetailPage() {
             {/* 게시글 목록 */}
             {posts.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-6">
-                아직 게시글이 없습니다. 첫 글을 남겨보세요!
+                {tx('study.posts')} — {tx('common.empty')}
               </p>
             ) : (
               <ul className="space-y-2">
@@ -462,11 +462,11 @@ export default function StudyGroupDetailPage() {
         {isMember && (
           <div className="imp-card p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
             <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
-              공유된 질문 {questions.length}개
+              {tx('study.questions')} ({questions.length})
             </h2>
             {questions.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-6">
-                아직 공유된 질문이 없습니다.
+                {tx('study.questions')} — {tx('common.empty')}
               </p>
             ) : (
               <ul className="space-y-2">
