@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { t } from '@/lib/i18n';
+import { ROUTES } from '@/lib/routes';
 
 /**
  * 심플 Footer — 메뉴는 GNB로 집중, Footer는 법률·회사 정보만.
@@ -16,7 +17,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Brand */}
-          <Link to="/" className="inline-flex items-center gap-2 group">
+          <Link to={ROUTES.home} className="inline-flex items-center gap-2 group">
             <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-md flex items-center justify-center">
               <svg
                 className="w-3 h-3 text-white"
@@ -43,19 +44,19 @@ export default function Footer() {
           {/* Essential links only — 나머지는 GNB/More에 집중 */}
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
             <Link
-              to="/terms"
+              to={ROUTES.terms}
               className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               이용약관
             </Link>
             <Link
-              to="/terms#privacy"
+              to={ROUTES.privacy}
               className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               개인정보처리방침
             </Link>
             <Link
-              to="/feedback"
+              to={ROUTES.feedback}
               className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               피드백
