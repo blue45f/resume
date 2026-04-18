@@ -797,6 +797,51 @@ export function t(key: keyof TranslationKeys): string {
   return translations[currentLocale]?.[key] || translations.ko[key] || key;
 }
 
+// ────────────────────────────────────────────────────────────
+// JSON 기반 중첩 번역 사전 — locales/*.json 파일에서 직접 import.
+// tx('study.cafe') 같은 점 표기 경로 + {n}/{min} 등 플레이스홀더 치환 지원.
+// 기존 t(flat key) 와 공존. 신규 UI 는 tx() 권장.
+// ────────────────────────────────────────────────────────────
+import jsonKo from '@/i18n/locales/ko.json';
+import jsonEn from '@/i18n/locales/en.json';
+import jsonJa from '@/i18n/locales/ja.json';
+
+type NestedDict = { [key: string]: string | NestedDict };
+const jsonDicts: Record<Locale, NestedDict> = {
+  ko: jsonKo as NestedDict,
+  en: jsonEn as NestedDict,
+  ja: jsonJa as NestedDict,
+};
+
+function pick(dict: NestedDict, path: string): string | undefined {
+  const parts = path.split('.');
+  let cur: string | NestedDict | undefined = dict;
+  for (const p of parts) {
+    if (cur == null || typeof cur === 'string') return undefined;
+    cur = cur[p];
+  }
+  return typeof cur === 'string' ? cur : undefined;
+}
+
+function interpolate(template: string, params?: Record<string, string | number>): string {
+  if (!params) return template;
+  return template.replace(/\{(\w+)\}/g, (_, k) =>
+    params[k] !== undefined ? String(params[k]) : `{${k}}`,
+  );
+}
+
+/**
+ * 중첩 JSON locale 파일에서 번역 문자열 조회.
+ * @param path 점 표기 경로 (예: "study.cafe", "plans.features.aiTransforms")
+ * @param params 플레이스홀더 값 — "{n}/{max}" 형태를 치환
+ * @returns 번역 문자열. 미존재 시 경로 문자열 반환 (개발 중 빠지면 눈에 띄도록)
+ */
+export function tx(path: string, params?: Record<string, string | number>): string {
+  const val = pick(jsonDicts[currentLocale], path) ?? pick(jsonDicts.ko, path);
+  if (!val) return path;
+  return interpolate(val, params);
+}
+
 export function getLocaleName(locale: Locale): string {
   const names: Record<Locale, string> = { ko: '한국어', en: 'English', ja: '日本語' };
   return names[locale];

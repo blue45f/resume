@@ -18,7 +18,7 @@ import {
 } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
-import { t } from '@/lib/i18n';
+import { t, tx } from '@/lib/i18n';
 
 type StudyGroupDetail = StudyGroup & {
   companyTier?: string;
@@ -138,7 +138,7 @@ export default function StudyGroupDetailPage() {
 
   const handleDelete = async () => {
     if (!id) return;
-    if (!confirm(t('confirm.deleteStudy'))) return;
+    if (!confirm(tx('confirm.deleteStudy'))) return;
     setBusy(true);
     try {
       await deleteStudyGroup(id);
