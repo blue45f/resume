@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import { getTheme, setTheme } from '@/lib/theme';
 import { t, getLocale, setLocale, LOCALES, getLocaleName } from '@/lib/i18n';
 import NotificationBell from '@/components/NotificationBell';
@@ -176,7 +177,7 @@ export default function Header() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16">
             <Link
-              to="/"
+              to={ROUTES.home}
               className="logo-hover text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded inline-flex items-center gap-2"
               aria-label="이력서공방 홈"
             >
@@ -220,31 +221,31 @@ export default function Header() {
               {isRecruiter ? (
                 <>
                   <Link
-                    to="/explore"
+                    to={ROUTES.resume.explore}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname === '/explore' ? 'text-sky-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
                     인재탐색
                   </Link>
                   <Link
-                    to="/jobs"
+                    to={ROUTES.jobs.list}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname.startsWith('/jobs') ? 'text-sky-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
                     채용공고
                   </Link>
                   <Link
-                    to="/scouts"
+                    to={ROUTES.jobs.scouts}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname === '/scouts' ? 'text-sky-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
                     스카우트
                   </Link>
                   <Link
-                    to="/recruiter"
+                    to={ROUTES.recruiter.dashboard}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname === '/recruiter' ? 'text-sky-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
                     대시보드
                   </Link>
                   <Link
-                    to="/community"
+                    to={ROUTES.community.list}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap hidden xl:inline-block ${location.pathname.startsWith('/community') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
                     커뮤니티
@@ -270,19 +271,19 @@ export default function Header() {
                         채용 관리
                       </p>
                       <Link
-                        to="/jobs/new"
+                        to={ROUTES.jobs.new}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         공고 등록
                       </Link>
                       <Link
-                        to="/messages"
+                        to={ROUTES.social.messages}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         쪽지함
                       </Link>
                       <Link
-                        to="/bookmarks"
+                        to={ROUTES.resume.bookmarks}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         북마크
@@ -295,19 +296,19 @@ export default function Header() {
                         기타
                       </p>
                       <Link
-                        to="/stats"
+                        to={ROUTES.stats}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         통계
                       </Link>
                       <Link
-                        to="/templates"
+                        to={ROUTES.resume.templates}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         {t('nav.templates')}
                       </Link>
                       <Link
-                        to="/pricing"
+                        to={ROUTES.pricing}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         요금제
@@ -319,31 +320,31 @@ export default function Header() {
                 /* ── 구직자 메뉴 ── */
                 <>
                   <Link
-                    to="/"
+                    to={ROUTES.home}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${isHome ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
                     내 이력서
                   </Link>
                   <Link
-                    to="/explore"
+                    to={ROUTES.resume.explore}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname === '/explore' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
                     탐색
                   </Link>
                   <Link
-                    to="/jobs"
+                    to={ROUTES.jobs.list}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname.startsWith('/jobs') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
                     채용정보
                   </Link>
                   <Link
-                    to="/applications"
+                    to={ROUTES.jobs.applications}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname === '/applications' ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
                     지원현황
                   </Link>
                   <Link
-                    to="/community"
+                    to={ROUTES.community.list}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap hidden xl:inline-block ${location.pathname.startsWith('/community') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
                     커뮤니티
@@ -369,37 +370,37 @@ export default function Header() {
                         취업 준비
                       </p>
                       <Link
-                        to="/my-cover-letters"
+                        to={ROUTES.coverLetter.list}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         내 자소서
                       </Link>
                       <Link
-                        to="/cover-letter"
+                        to={ROUTES.coverLetter.new()}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         {t('nav.coverLetter')}
                       </Link>
                       <Link
-                        to="/interview-prep"
+                        to={ROUTES.interview.prep}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         면접 준비
                       </Link>
                       <Link
-                        to="/mock-interview"
+                        to={ROUTES.interview.mock()}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         모의 면접 (카메라)
                       </Link>
                       <Link
-                        to="/coaches"
+                        to={ROUTES.coaching.coaches}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         코칭 받기
                       </Link>
                       <Link
-                        to="/scouts"
+                        to={ROUTES.jobs.scouts}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         받은 스카우트
@@ -412,13 +413,13 @@ export default function Header() {
                         내 활동
                       </p>
                       <Link
-                        to="/messages"
+                        to={ROUTES.social.messages}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         쪽지함
                       </Link>
                       <Link
-                        to="/bookmarks"
+                        to={ROUTES.resume.bookmarks}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         북마크
@@ -431,19 +432,19 @@ export default function Header() {
                         도구
                       </p>
                       <Link
-                        to="/compare"
+                        to={ROUTES.resume.compare}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         {t('nav.compare')}
                       </Link>
                       <Link
-                        to="/translate"
+                        to={ROUTES.resume.translate}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         번역
                       </Link>
                       <Link
-                        to="/auto-generate"
+                        to={ROUTES.resume.autoGenerate}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         AI 자동 생성
@@ -456,81 +457,81 @@ export default function Header() {
                         둘러보기
                       </p>
                       <Link
-                        to="/templates"
+                        to={ROUTES.resume.templates}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         {t('nav.templates')}
                       </Link>
                       <Link
-                        to="/study-groups"
+                        to={ROUTES.interview.studyGroups}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         스터디 카페
                       </Link>
                       <Link
-                        to="/coaches"
+                        to={ROUTES.coaching.coaches}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         코치 찾기
                       </Link>
                       <Link
-                        to="/interview-prep"
+                        to={ROUTES.interview.prep}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         면접 준비
                       </Link>
                       <Link
-                        to="/compare"
+                        to={ROUTES.resume.compare}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         이력서 비교
                       </Link>
                       <Link
-                        to="/translate"
+                        to={ROUTES.resume.translate}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         이력서 번역
                       </Link>
                       <div className="my-1 mx-3 border-t border-slate-100 dark:border-slate-700" />
                       <Link
-                        to="/community?category=notice"
+                        to={ROUTES.community.notice}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         공지사항
                       </Link>
                       <Link
-                        to="/community?category=interview"
+                        to={ROUTES.community.interview}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         면접후기
                       </Link>
                       <Link
-                        to="/stats"
+                        to={ROUTES.stats}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         통계
                       </Link>
                       <div className="my-1 mx-3 border-t border-slate-100 dark:border-slate-700" />
                       <Link
-                        to="/about"
+                        to={ROUTES.about}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         서비스 소개
                       </Link>
                       <Link
-                        to="/tutorial"
+                        to={ROUTES.tutorial}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         튜토리얼
                       </Link>
                       <Link
-                        to="/help"
+                        to={ROUTES.help}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         도움말
                       </Link>
                       <Link
-                        to="/pricing"
+                        to={ROUTES.pricing}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         요금제
@@ -542,7 +543,7 @@ export default function Header() {
 
               {(user?.role === 'admin' || user?.role === 'superadmin') && (
                 <Link
-                  to="/admin"
+                  to={ROUTES.admin.root}
                   className={`text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname === '/admin' ? 'text-red-600 font-medium' : 'text-red-500 hover:text-red-700 dark:text-red-400'}`}
                 >
                   {t('nav.admin')}
@@ -571,14 +572,14 @@ export default function Header() {
               </button>
               {isRecruiter ? (
                 <Link
-                  to="/jobs/new"
+                  to={ROUTES.jobs.new}
                   className="px-2 lg:px-2.5 py-1.5 text-xs font-medium rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition-colors whitespace-nowrap"
                 >
                   공고 등록
                 </Link>
               ) : (
                 <Link
-                  to="/resumes/new"
+                  to={ROUTES.resume.new}
                   className="px-2 lg:px-2.5 py-1.5 btn-gradient text-xs font-medium rounded-lg whitespace-nowrap"
                 >
                   {t('nav.newResume')}
@@ -681,7 +682,7 @@ export default function Header() {
                         role="separator"
                       />
                       <Link
-                        to="/social/follows"
+                        to={ROUTES.social.follows}
                         onClick={() => setProfileMenuOpen(false)}
                         role="menuitem"
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none"
@@ -695,7 +696,7 @@ export default function Header() {
                       </Link>
                       {user?.username && (
                         <Link
-                          to={`/u/${user.username}`}
+                          to={ROUTES.profile.userShort(user.username)}
                           onClick={() => setProfileMenuOpen(false)}
                           role="menuitem"
                           className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none"
@@ -706,7 +707,7 @@ export default function Header() {
                       {user?.userType === 'coach' && (
                         <>
                           <Link
-                            to="/coach/dashboard"
+                            to={ROUTES.coaching.dashboard}
                             onClick={() => setProfileMenuOpen(false)}
                             role="menuitem"
                             className="block px-3 py-2 text-sm text-blue-700 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none"
@@ -714,7 +715,7 @@ export default function Header() {
                             코치 대시보드
                           </Link>
                           <Link
-                            to="/coach/profile"
+                            to={ROUTES.coaching.profileEdit}
                             onClick={() => setProfileMenuOpen(false)}
                             role="menuitem"
                             className="block px-3 py-2 text-sm text-blue-700 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none"
@@ -724,7 +725,7 @@ export default function Header() {
                         </>
                       )}
                       <Link
-                        to="/coaching/sessions"
+                        to={ROUTES.coaching.sessions}
                         onClick={() => setProfileMenuOpen(false)}
                         role="menuitem"
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none"
@@ -732,7 +733,7 @@ export default function Header() {
                         내 코칭 세션
                       </Link>
                       <Link
-                        to="/settings"
+                        to={ROUTES.settings}
                         onClick={() => setProfileMenuOpen(false)}
                         role="menuitem"
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none"
@@ -742,7 +743,7 @@ export default function Header() {
                       <button
                         onClick={() => {
                           clearAuth();
-                          navigate('/');
+                          navigate(ROUTES.home);
                           window.location.reload();
                         }}
                         role="menuitem"
@@ -755,7 +756,7 @@ export default function Header() {
                 </div>
               ) : (
                 <Link
-                  to="/login"
+                  to={ROUTES.login}
                   className="text-xs lg:text-sm text-blue-600 hover:text-blue-800 px-1.5 lg:px-2 py-1 whitespace-nowrap"
                 >
                   {t('common.login')}
@@ -845,28 +846,28 @@ export default function Header() {
                     채용 관리
                   </p>
                   <Link
-                    to="/recruiter"
+                    to={ROUTES.recruiter.dashboard}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 rounded-lg hover:bg-sky-50 dark:hover:bg-purple-900/20"
                   >
                     채용 대시보드
                   </Link>
                   <Link
-                    to="/scouts"
+                    to={ROUTES.jobs.scouts}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 rounded-lg hover:bg-sky-50 dark:hover:bg-purple-900/20"
                   >
                     스카우트 관리
                   </Link>
                   <Link
-                    to="/jobs"
+                    to={ROUTES.jobs.list}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     채용공고
                   </Link>
                   <Link
-                    to="/jobs/new"
+                    to={ROUTES.jobs.new}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm font-medium text-sky-600 dark:text-sky-400 rounded-lg hover:bg-sky-50 dark:hover:bg-purple-900/30"
                   >
@@ -877,14 +878,14 @@ export default function Header() {
                     인재 검색
                   </p>
                   <Link
-                    to="/explore"
+                    to={ROUTES.resume.explore}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     인재탐색
                   </Link>
                   <Link
-                    to="/community"
+                    to={ROUTES.community.list}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
@@ -895,14 +896,14 @@ export default function Header() {
                     내 활동
                   </p>
                   <Link
-                    to="/messages"
+                    to={ROUTES.social.messages}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     쪽지함
                   </Link>
                   <Link
-                    to="/bookmarks"
+                    to={ROUTES.resume.bookmarks}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
@@ -916,21 +917,21 @@ export default function Header() {
                     이력서 관리
                   </p>
                   <Link
-                    to="/"
+                    to={ROUTES.home}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20"
                   >
                     내 이력서
                   </Link>
                   <Link
-                    to="/resumes/new"
+                    to={ROUTES.resume.new}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm font-medium text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30"
                   >
                     이력서 작성
                   </Link>
                   <Link
-                    to="/auto-generate"
+                    to={ROUTES.resume.autoGenerate}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm font-medium text-sky-600 dark:text-sky-400 rounded-lg hover:bg-sky-50 dark:hover:bg-purple-900/30"
                   >
@@ -941,28 +942,28 @@ export default function Header() {
                     취업 활동
                   </p>
                   <Link
-                    to="/applications"
+                    to={ROUTES.jobs.applications}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     지원현황
                   </Link>
                   <Link
-                    to="/my-cover-letters"
+                    to={ROUTES.coverLetter.list}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     내 자소서
                   </Link>
                   <Link
-                    to="/scouts"
+                    to={ROUTES.jobs.scouts}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     받은 스카우트
                   </Link>
                   <Link
-                    to="/jobs"
+                    to={ROUTES.jobs.list}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
@@ -973,42 +974,42 @@ export default function Header() {
                     도구
                   </p>
                   <Link
-                    to="/cover-letter"
+                    to={ROUTES.coverLetter.new()}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     {t('nav.coverLetter')}
                   </Link>
                   <Link
-                    to="/interview-prep"
+                    to={ROUTES.interview.prep}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     면접 준비
                   </Link>
                   <Link
-                    to="/mock-interview"
+                    to={ROUTES.interview.mock()}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     모의 면접 (카메라)
                   </Link>
                   <Link
-                    to="/coaches"
+                    to={ROUTES.coaching.coaches}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     코칭 받기
                   </Link>
                   <Link
-                    to="/compare"
+                    to={ROUTES.resume.compare}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     이력서 비교
                   </Link>
                   <Link
-                    to="/translate"
+                    to={ROUTES.resume.translate}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
@@ -1019,35 +1020,35 @@ export default function Header() {
                     탐색
                   </p>
                   <Link
-                    to="/explore"
+                    to={ROUTES.resume.explore}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     공개 이력서 탐색
                   </Link>
                   <Link
-                    to="/community"
+                    to={ROUTES.community.list}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     커뮤니티
                   </Link>
                   <Link
-                    to="/stats"
+                    to={ROUTES.stats}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     통계
                   </Link>
                   <Link
-                    to="/notices"
+                    to={ROUTES.notices}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     공지사항
                   </Link>
                   <Link
-                    to="/help"
+                    to={ROUTES.help}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
@@ -1058,21 +1059,21 @@ export default function Header() {
                     내 활동
                   </p>
                   <Link
-                    to="/messages"
+                    to={ROUTES.social.messages}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     쪽지함
                   </Link>
                   <Link
-                    to="/bookmarks"
+                    to={ROUTES.resume.bookmarks}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     북마크
                   </Link>
                   <Link
-                    to="/templates"
+                    to={ROUTES.resume.templates}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
@@ -1085,7 +1086,7 @@ export default function Header() {
                 <>
                   <div className="border-t border-slate-100 dark:border-slate-700 my-1.5" />
                   <Link
-                    to="/settings"
+                    to={ROUTES.settings}
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
@@ -1093,7 +1094,7 @@ export default function Header() {
                   </Link>
                   {(user.role === 'admin' || user.role === 'superadmin') && (
                     <Link
-                      to="/admin"
+                      to={ROUTES.admin.root}
                       onClick={() => setMenuOpen(false)}
                       className="block px-3 py-2.5 text-sm text-red-500 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30"
                     >
