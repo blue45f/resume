@@ -20,21 +20,26 @@ import type { ComponentPropsWithoutRef, ElementRef } from 'react';
 import { forwardRef } from 'react';
 
 const contentClass = [
-  'z-[100] min-w-[10rem] overflow-hidden',
-  'rounded-[12px] border border-neutral-200 dark:border-neutral-800',
-  'bg-white dark:bg-neutral-900',
-  'shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)]',
+  'z-[100] min-w-[11rem] overflow-hidden',
+  'rounded-[var(--radius-md)] border border-[var(--color-border-subtle)]',
+  'bg-[var(--color-surface)]',
+  'shadow-[var(--shadow-lg)]',
   'p-1',
-  'animate-in fade-in-0 zoom-in-95',
-  'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+  // Radix side-aware open animation (slide from trigger side)
+  'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-[0.96]',
+  'data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1',
+  'data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1',
+  'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-[0.96]',
+  'motion-reduce:animate-none',
 ].join(' ');
 
 const itemClass = [
-  'relative flex items-center gap-2',
-  'px-2.5 py-2 rounded-[8px]',
-  'text-sm text-neutral-700 dark:text-neutral-200',
+  'relative flex items-center gap-2.5',
+  'h-9 px-2.5 rounded-[var(--radius-sm)]',
+  'text-sm text-[var(--color-text)]',
   'cursor-pointer select-none outline-none',
-  'data-[highlighted]:bg-neutral-100 dark:data-[highlighted]:bg-neutral-800',
+  'data-[highlighted]:bg-[var(--color-surface-sunken)]',
+  'data-[highlighted]:text-[var(--color-text)]',
   'data-[disabled]:opacity-50 data-[disabled]:pointer-events-none',
   'transition-colors duration-100',
 ].join(' ');
@@ -83,7 +88,7 @@ const Separator = forwardRef<
 >(({ className = '', ...props }, ref) => (
   <Radix.Separator
     ref={ref}
-    className={`my-1 h-px bg-neutral-100 dark:bg-neutral-800 ${className}`}
+    className={`my-1 h-px bg-[var(--color-border-subtle)] ${className}`}
     {...props}
   />
 ));
@@ -95,7 +100,7 @@ const Label = forwardRef<
 >(({ className = '', ...props }, ref) => (
   <Radix.Label
     ref={ref}
-    className={`px-2.5 py-1 text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider ${className}`}
+    className={`px-2.5 pt-2 pb-1 text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider ${className}`}
     {...props}
   />
 ));

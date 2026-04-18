@@ -2,7 +2,6 @@
  * Auth E2E — 회원가입/로그인/로그아웃/비밀번호/OAuth state/프로필
  */
 import { E2EContext, setupE2EApp, cleanupTestData } from './e2e-helper';
-import request from 'supertest';
 
 describe('Auth (인증)', () => {
   let ctx: E2EContext;

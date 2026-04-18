@@ -20,27 +20,56 @@ export default function Dialog({
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm animate-fade-in" />
+        <RadixDialog.Overlay
+          className="fixed inset-0 z-[90] bg-neutral-950/50 backdrop-blur-[2px]
+                     data-[state=open]:animate-in data-[state=open]:fade-in-0
+                     data-[state=closed]:animate-out data-[state=closed]:fade-out-0
+                     motion-reduce:animate-none"
+        />
         <RadixDialog.Content
-          className={`fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] ${maxWidth} bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl p-6 animate-fade-in-up focus:outline-none max-h-[90vh] overflow-y-auto`}
+          className={`fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+                     w-[calc(100%-2rem)] ${maxWidth}
+                     bg-[var(--color-surface)] text-[var(--color-text)]
+                     rounded-[var(--radius-lg)]
+                     border border-[var(--color-border-subtle)]
+                     shadow-[var(--shadow-hover)]
+                     px-6 py-6 sm:px-7 sm:py-7
+                     data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-[0.98] data-[state=open]:slide-in-from-top-1
+                     data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-[0.98]
+                     motion-reduce:animate-none
+                     focus:outline-none
+                     max-h-[calc(100dvh-3rem)] overflow-y-auto`}
+          aria-describedby={description ? undefined : undefined}
         >
           {title && (
-            <RadixDialog.Title className="text-lg font-bold text-neutral-900 dark:text-neutral-100 mb-1">
+            <RadixDialog.Title className="text-[17px] sm:text-lg font-semibold tracking-tight text-[var(--color-text)] mb-1 pr-8">
               {title}
             </RadixDialog.Title>
           )}
           {description && (
-            <RadixDialog.Description className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
+            <RadixDialog.Description className="text-sm text-[var(--color-text-secondary)] leading-relaxed mb-5 pr-8">
               {description}
             </RadixDialog.Description>
           )}
           {children}
           <RadixDialog.Close asChild>
             <button
-              className="absolute top-4 right-4 p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-              aria-label="Close dialog"
+              type="button"
+              className="absolute top-3 right-3 inline-flex items-center justify-center
+                         h-9 w-9 rounded-full
+                         text-[var(--color-text-muted)]
+                         hover:text-[var(--color-text)] hover:bg-[var(--color-surface-sunken)]
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2
+                         transition-colors"
+              aria-label="닫기"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

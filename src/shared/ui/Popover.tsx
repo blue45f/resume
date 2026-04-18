@@ -15,14 +15,17 @@ import { forwardRef } from 'react';
 
 const contentClass = [
   'z-[100] w-72',
-  'rounded-[12px] border border-neutral-200 dark:border-neutral-800',
-  'bg-white dark:bg-neutral-900',
-  'shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)]',
+  'rounded-[var(--radius-md)] border border-[var(--color-border-subtle)]',
+  'bg-[var(--color-surface)] text-[var(--color-text)]',
+  'shadow-[var(--shadow-lg)]',
   'p-4',
   'outline-none',
-  'animate-in fade-in-0 zoom-in-95',
-  'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
-  'max-h-[90vh] overflow-y-auto',
+  'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-[0.96]',
+  'data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1',
+  'data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1',
+  'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-[0.96]',
+  'motion-reduce:animate-none',
+  'max-h-[calc(100dvh-3rem)] overflow-y-auto',
 ].join(' ');
 
 const Content = forwardRef<

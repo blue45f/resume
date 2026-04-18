@@ -153,12 +153,16 @@ export async function setupE2EApp(options: SetupOptions): Promise<E2EContext> {
     userIds[role] = userId;
   }
 
-  // admin 역할 승격 (있을 경우) — DB 직접 업데이트 (setUserRole 엔드포인트는 superadmin 필요)
+  // admin 역할 승격 (있을 경우) — DB 직접 업데이트 후 JWT 재발급
+  // (JWT payload에 role이 박혀 있어 role 변경 후 재로그인해야 admin 권한 인식)
   if (wantAdmin && userIds.admin) {
     await prisma.user.update({
       where: { id: userIds.admin },
       data: { role: 'admin' },
     });
+    // JwtService로 새 토큰 발급 (role=admin)
+    const jwtService = app.get(require('@nestjs/jwt').JwtService);
+    tokens.admin = jwtService.sign({ sub: userIds.admin, role: 'admin' });
   }
   if (wantCoach && userIds.coach) {
     await prisma.user.update({
