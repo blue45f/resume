@@ -1,9 +1,22 @@
-import { Controller, Get, Post, Patch, Delete, Query, Res, Req, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Query,
+  Res,
+  Req,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from './auth.guard';
+import { AdminGuard } from '../common/guards/admin.guard';
 import { RegisterDto, LoginDto, ChangePasswordDto, UpdateProfileDto } from './dto/auth.dto';
 
 @ApiTags('auth')
@@ -357,5 +370,44 @@ export class AuthController {
     } catch (e: any) {
       res.status(403).json({ message: e.message || '권한이 없습니다' });
     }
+  }
+
+  @Patch('admin/users/:userId/role')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '[관리자] 사용자 역할 변경 (PATCH)' })
+  async patchUserRole(
+    @Param('userId') userId: string,
+    @Body('role') role: string,
+    @Req() req: any,
+    @Res() res: Response,
+  ) {
+    try {
+      const result = await this.authService.setUserRole(req.user?.id, userId, role);
+      res.json(result);
+    } catch (e: any) {
+      res.status(403).json({ message: e.message || '권한이 없습니다' });
+    }
+  }
+
+  @Patch('admin/users/:userId/suspend')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '[관리자] 사용자 계정 정지' })
+  async suspendUser(@Param('userId') userId: string) {
+    return this.authService.setSuspended(userId, true);
+  }
+
+  @Patch('admin/users/:userId/resume')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '[관리자] 사용자 계정 정지 해제' })
+  async resumeUser(@Param('userId') userId: string) {
+    return this.authService.setSuspended(userId, false);
+  }
+
+  @Delete('admin/users/:userId')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '[관리자] 사용자 탈퇴 처리' })
+  async adminDeleteUser(@Param('userId') userId: string) {
+    await this.authService.adminDeleteUser(userId);
+    return { success: true };
   }
 }

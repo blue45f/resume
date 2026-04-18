@@ -26,6 +26,7 @@ model User {
   openToWorkRoles String @default("") @map("open_to_work_roles") // 희망 직무 (콤마 구분)
   marketingOptIn  Boolean  @default(false) @map("marketing_opt_in") // PIPA: 마케팅 수신 동의
   llmOptIn        Boolean  @default(false) @map("llm_opt_in") // PIPA: 국외 LLM 이전 동의
+  isSuspended   Boolean  @default(false) @map("is_suspended") // 관리자에 의한 계정 정지
   createdAt  DateTime @default(now()) @map("created_at")
   resumes      Resume[]
   applications JobApplication[]
@@ -967,6 +968,8 @@ model JobInterviewQuestion {
   source      String  @default("user")
   authorId    String? @map("author_id")
   upvotes     Int     @default(0)
+  isApproved  Boolean @default(false) @map("is_approved") // 관리자 채택 여부
+  isRejected  Boolean @default(false) @map("is_rejected") // 관리자 반려 여부
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 

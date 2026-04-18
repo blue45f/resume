@@ -36,6 +36,9 @@ import CareerInsights from '@/components/CareerInsights';
 import OnboardingBanner from '@/components/OnboardingBanner';
 import ProfileCompleteness from '@/components/ProfileCompleteness';
 import ProfileWizard from '@/components/ProfileWizard';
+import ResumeHealthRing from '@/widgets/resume-health-ring';
+import InterviewRoulette from '@/widgets/interview-roulette';
+import CareerLevel from '@/widgets/career-level';
 const BannerSlider = lazy(() => import('@/components/BannerSlider'));
 import NoticePopup from '@/components/NoticePopup';
 import WhatsNewModal from '@/components/WhatsNewModal';
@@ -1082,6 +1085,14 @@ export default function HomePage() {
               <ProfileWizard resume={wizardResume} resumeId={resumes[0].id} />
             )}
 
+            {/* 창의적 위젯: 이력서 헬스 링 + 커리어 레벨 (2열) */}
+            {user && resumes.length > 0 && (
+              <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)] gap-4 mb-6">
+                <ResumeHealthRing resumes={resumes} />
+                <CareerLevel user={user} resumes={resumes} />
+              </div>
+            )}
+
             <DashboardStats />
 
             <ProfileViewers />
@@ -1135,6 +1146,9 @@ export default function HomePage() {
             <CommunityWidget />
 
             <InterviewDiscoveryWidget />
+
+            {/* 창의적 위젯: 면접 질문 룰렛 */}
+            <InterviewRoulette />
 
             {user?.userType === 'personal' && <WeeklyGoalWidget />}
 

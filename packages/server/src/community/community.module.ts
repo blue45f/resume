@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CommunityController } from './community.controller';
+import { CommunityAdminController } from './community-admin.controller';
 import { CommunityService } from './community.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -14,7 +15,7 @@ import * as multer from 'multer';
     ConfigModule,
     MulterModule.register({ storage: multer.memoryStorage() }),
   ],
-  controllers: [CommunityController],
+  controllers: [CommunityAdminController, CommunityController],
   providers: [CommunityService],
 })
 export class CommunityModule {}

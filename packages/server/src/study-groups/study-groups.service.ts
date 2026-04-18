@@ -263,6 +263,89 @@ export class StudyGroupsService {
     });
   }
 
+  // ─────────────────────────────────────────────
+  // Admin APIs
+  // ─────────────────────────────────────────────
+
+  async adminList(params: {
+    q?: string;
+    tier?: string;
+    cafe?: string;
+    experienceLevel?: string;
+    page: number;
+    limit: number;
+  }) {
+    const { q, tier, cafe, experienceLevel, page, limit } = params;
+    const where: any = {};
+    if (tier && tier !== 'all') where.companyTier = tier;
+    if (cafe && cafe !== 'all') where.cafeCategory = cafe;
+    if (experienceLevel && experienceLevel !== 'all') where.experienceLevel = experienceLevel;
+    if (q) {
+      where.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } },
+        { companyName: { contains: q, mode: 'insensitive' } },
+        { position: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.studyGroup.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          owner: { select: { id: true, name: true, email: true, username: true } },
+          _count: { select: { members: true, questions: true } },
+        },
+      }),
+      this.prisma.studyGroup.count({ where }),
+    ]);
+
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async adminForceClose(id: string) {
+    const group = await this.prisma.studyGroup.findUnique({ where: { id } });
+    if (!group) throw new NotFoundException('그룹을 찾을 수 없습니다');
+    // 강제 종료: 비공개로 전환하여 신규 검색/가입 차단
+    return this.prisma.studyGroup.update({
+      where: { id },
+      data: { isPrivate: true, maxMembers: group.memberCount },
+    });
+  }
+
+  async adminUpdate(
+    id: string,
+    data: {
+      name?: string;
+      description?: string;
+      companyTier?: string;
+      cafeCategory?: string;
+      experienceLevel?: string;
+      isPrivate?: boolean;
+      maxMembers?: number;
+    },
+  ) {
+    const patch: any = {};
+    if (typeof data.name === 'string' && data.name.trim()) patch.name = data.name.trim();
+    if (typeof data.description === 'string') patch.description = data.description;
+    if (typeof data.companyTier === 'string') patch.companyTier = data.companyTier;
+    if (typeof data.cafeCategory === 'string') patch.cafeCategory = data.cafeCategory;
+    if (typeof data.experienceLevel === 'string') patch.experienceLevel = data.experienceLevel;
+    if (typeof data.isPrivate === 'boolean') patch.isPrivate = data.isPrivate;
+    if (typeof data.maxMembers === 'number') {
+      patch.maxMembers = Math.min(Math.max(data.maxMembers, 2), 500);
+    }
+    return this.prisma.studyGroup.update({ where: { id }, data: patch });
+  }
+
+  async adminDelete(id: string) {
+    await this.prisma.studyGroup.delete({ where: { id } });
+    return { success: true };
+  }
+
   async listQuestions(groupId: string, userId?: string) {
     const group = await this.prisma.studyGroup.findUnique({
       where: { id: groupId },

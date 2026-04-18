@@ -163,6 +163,70 @@ export class JobInterviewQuestionsService {
     return { success: true };
   }
 
+  // ─────────────────────────────────────────────
+  // Admin APIs
+  // ─────────────────────────────────────────────
+
+  async adminList(params: { status?: string; q?: string; page: number; limit: number }) {
+    const { status, q, page, limit } = params;
+    const where: any = {};
+    if (status === 'approved') where.isApproved = true;
+    else if (status === 'rejected') where.isRejected = true;
+    else if (status === 'pending') {
+      where.isApproved = false;
+      where.isRejected = false;
+    }
+    if (q) {
+      where.OR = [
+        { question: { contains: q, mode: 'insensitive' } },
+        { companyName: { contains: q, mode: 'insensitive' } },
+        { position: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.jobInterviewQuestion.findMany({
+        where,
+        include: {
+          author: { select: { id: true, name: true, email: true, username: true } },
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.jobInterviewQuestion.count({ where }),
+    ]);
+
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async adminApprove(id: string) {
+    return this.prisma.jobInterviewQuestion.update({
+      where: { id },
+      data: { isApproved: true, isRejected: false },
+    });
+  }
+
+  async adminReject(id: string) {
+    return this.prisma.jobInterviewQuestion.update({
+      where: { id },
+      data: { isRejected: true, isApproved: false },
+    });
+  }
+
+  async adminSetUpvotes(id: string, upvotes: number) {
+    const safe = Math.max(0, Math.floor(Number(upvotes) || 0));
+    return this.prisma.jobInterviewQuestion.update({
+      where: { id },
+      data: { upvotes: safe },
+    });
+  }
+
+  async adminDelete(id: string) {
+    await this.prisma.jobInterviewQuestion.delete({ where: { id } });
+    return { success: true };
+  }
+
   async aiGenerate(userId: string | null, dto: AiGenerateDto) {
     if (!dto?.companyName?.trim() || !dto?.position?.trim()) {
       throw new BadRequestException('회사명/직무는 필수입니다');

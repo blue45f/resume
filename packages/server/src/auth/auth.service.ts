@@ -227,6 +227,7 @@ export class AuthService {
           OR: [
             { name: { contains: search, mode: 'insensitive' as const } },
             { email: { contains: search, mode: 'insensitive' as const } },
+            { username: { contains: search, mode: 'insensitive' as const } },
           ],
         }
       : {};
@@ -237,13 +238,33 @@ export class AuthService {
         id: true,
         name: true,
         email: true,
+        username: true,
+        userType: true,
         provider: true,
         role: true,
         plan: true,
+        isSuspended: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async setSuspended(userId: string, isSuspended: boolean) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+    await this.prisma.user.update({ where: { id: userId }, data: { isSuspended } });
+    return { success: true, userId, isSuspended };
+  }
+
+  async adminDeleteUser(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+    // Prevent deleting superadmin through admin channel
+    if (user.role === 'superadmin') {
+      throw new UnauthorizedException('슈퍼관리자는 삭제할 수 없습니다');
+    }
+    await this.prisma.user.delete({ where: { id: userId } });
   }
 
   // ---- 내 정보 ----
@@ -698,6 +719,10 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user || !user.passwordHash) {
       throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다');
+    }
+
+    if (user.isSuspended) {
+      throw new UnauthorizedException('정지된 계정입니다. 관리자에게 문의하세요');
     }
 
     const bcrypt = await import('bcryptjs');

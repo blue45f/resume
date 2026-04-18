@@ -254,4 +254,82 @@ export class CommunityService {
       throw new Error('Forbidden');
     return this.prisma.communityComment.delete({ where: { id: commentId } });
   }
+
+  // ─────────────────────────────────────────────
+  // Admin APIs
+  // ─────────────────────────────────────────────
+
+  async adminList(params: {
+    q?: string;
+    category?: string;
+    hidden?: string;
+    page: number;
+    limit: number;
+  }) {
+    const { q, category, hidden, page, limit } = params;
+    const where: any = {};
+    if (category && category !== 'all') where.category = category;
+    if (hidden === 'true') where.isHidden = true;
+    else if (hidden === 'false') where.isHidden = false;
+    if (q) {
+      where.OR = [
+        { title: { contains: q, mode: 'insensitive' } },
+        { content: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.communityPost.findMany({
+        where,
+        orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          user: { select: { id: true, name: true, email: true, username: true } },
+          _count: { select: { comments: true, likes: true } },
+        },
+      }),
+      this.prisma.communityPost.count({ where }),
+    ]);
+
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async adminToggleHide(id: string, explicit?: boolean) {
+    const post = await this.prisma.communityPost.findUnique({ where: { id } });
+    if (!post) throw new Error('Not found');
+    const isHidden = typeof explicit === 'boolean' ? explicit : !post.isHidden;
+    return this.prisma.communityPost.update({ where: { id }, data: { isHidden } });
+  }
+
+  async adminTogglePin(id: string, explicit?: boolean) {
+    const post = await this.prisma.communityPost.findUnique({ where: { id } });
+    if (!post) throw new Error('Not found');
+    const isPinned = typeof explicit === 'boolean' ? explicit : !post.isPinned;
+    return this.prisma.communityPost.update({ where: { id }, data: { isPinned } });
+  }
+
+  async adminChangeCategory(id: string, category: string) {
+    if (!category) throw new Error('카테고리가 필요합니다');
+    return this.prisma.communityPost.update({ where: { id }, data: { category } });
+  }
+
+  async adminDelete(id: string) {
+    await this.prisma.communityPost.delete({ where: { id } });
+    return { success: true };
+  }
+
+  async adminBulk(action: 'hide' | 'delete' | 'show', ids: string[]) {
+    if (!ids.length) return { affected: 0 };
+    if (action === 'delete') {
+      const result = await this.prisma.communityPost.deleteMany({ where: { id: { in: ids } } });
+      return { affected: result.count };
+    }
+    const isHidden = action === 'hide';
+    const result = await this.prisma.communityPost.updateMany({
+      where: { id: { in: ids } },
+      data: { isHidden },
+    });
+    return { affected: result.count };
+  }
 }
