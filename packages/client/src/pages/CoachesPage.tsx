@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import { type CoachProfile } from '@/lib/api';
 import { useCoaches } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 
 type SortKey = 'rating' | 'rateAsc' | 'rateDesc';
 
@@ -143,14 +144,14 @@ export default function CoachesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
-                전문 분야
+                {tx('coach.specialty')}
               </label>
               <select
                 value={specialty}
                 onChange={(e) => setSpecialty(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
               >
-                <option value="">전체</option>
+                <option value="">{tx('common.all')}</option>
                 {SPECIALTIES.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -190,16 +191,16 @@ export default function CoachesPage() {
             </div>
             <div>
               <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
-                정렬
+                {tx('explore.sortBy')}
               </label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortKey)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
               >
-                <option value="rating">평점순</option>
-                <option value="rateAsc">시급 낮은순</option>
-                <option value="rateDesc">시급 높은순</option>
+                <option value="rating">{tx('coach.rating')}</option>
+                <option value="rateAsc">{tx('coach.hourlyRate')} ↑</option>
+                <option value="rateDesc">{tx('coach.hourlyRate')} ↓</option>
               </select>
             </div>
           </div>
