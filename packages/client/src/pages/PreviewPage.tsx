@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
 import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
+import PrintFooter from '@/components/PrintFooter';
 import { resumeThemes } from '@/lib/resumeThemes';
 import CompletenessBar from '@/components/CompletenessBar';
 import { ROUTES, withQuery } from '@/lib/routes';
@@ -1011,13 +1012,16 @@ export default function PreviewPage() {
                 width: fitToWidth ? '100%' : `${10000 / zoomLevel}%`,
               }}
             >
-              <ResumePreview
-                ref={contentRef}
-                resume={resume}
-                themeId={themeId}
-                customAccentHex={customAccentHex || undefined}
-                customFont={customFont || undefined}
-              />
+              <div ref={contentRef}>
+                <ResumePreview
+                  resume={resume}
+                  themeId={themeId}
+                  customAccentHex={customAccentHex || undefined}
+                  customFont={customFont || undefined}
+                />
+                {/* 인쇄 전용: 하단에 QR + Career DNA 핑거프린트 자동 삽입 */}
+                <PrintFooter resume={resume} />
+              </div>
             </div>
             {resume.skills.length > 0 && (
               <div className="max-w-[210mm] mx-auto px-1">

@@ -271,6 +271,11 @@ body {
     sans-serif;
 }
 
+/* 인쇄 전용 요소 기본 숨김 */
+.print-only {
+  display: none;
+}
+
 @media print {
   @page {
     margin: 10mm 15mm;
@@ -284,6 +289,10 @@ body {
   .no-print,
   .no-print * {
     display: none !important;
+  }
+  /* print-only 요소: 화면에선 숨김, 인쇄에서만 표시 */
+  .print-only {
+    display: block !important;
   }
   .dark body,
   .dark .bg-white {
