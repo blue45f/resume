@@ -880,7 +880,7 @@ export default function ExplorePage() {
           <div
             aria-busy="true"
             aria-label="검색 결과 불러오는 중"
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5"
           >
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="skeleton-card p-5 h-44" />
@@ -1052,7 +1052,7 @@ export default function ExplorePage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
                 {users.map((user) => {
                   const initial = user.name.charAt(0).toUpperCase();
                   const avatarColor = getAvatarColor(user.name);
@@ -1478,7 +1478,7 @@ export default function ExplorePage() {
             <div
               className={
                 viewMode === 'grid'
-                  ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5'
+                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5'
                   : 'space-y-3'
               }
             >
