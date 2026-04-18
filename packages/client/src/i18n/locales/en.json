@@ -237,5 +237,48 @@
       "title": "Enter title",
       "content": "Enter content"
     }
+  },
+  "toast": {
+    "saved": "Saved",
+    "deleted": "Deleted",
+    "copied": "Copied to clipboard",
+    "applied": "Applied",
+    "joined": "Joined",
+    "left": "Left",
+    "posted": "Posted",
+    "failed": "Failed. Please try again",
+    "networkError": "Network error occurred",
+    "unauthorized": "Login required",
+    "notFound": "Not found"
+  },
+  "confirm": {
+    "delete": "Are you sure you want to delete?",
+    "deleteIrreversible": "This action cannot be undone. Proceed?",
+    "leaveStudy": "Are you sure you want to leave this study?",
+    "deleteStudy": "Delete this group? This cannot be undone.",
+    "deletePost": "Delete this post?",
+    "cancelEdit": "Unsaved changes will be lost. Leave anyway?"
+  },
+  "profile": {
+    "edit": "Edit Profile",
+    "avatar": "Profile Picture",
+    "bio": "Bio",
+    "following": "Following",
+    "followers": "Followers",
+    "posts": "Posts",
+    "resumes": "Resumes",
+    "memberSince": "Joined",
+    "lastLogin": "Last login",
+    "editDetails": "Edit Details"
+  },
+  "a11y": {
+    "closeDialog": "Close dialog",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "loading": "Loading",
+    "previous": "Previous",
+    "next": "Next",
+    "expand": "Expand",
+    "collapse": "Collapse"
   }
 }

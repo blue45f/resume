@@ -138,7 +138,7 @@ export default function StudyGroupDetailPage() {
 
   const handleDelete = async () => {
     if (!id) return;
-    if (!confirm('그룹을 삭제하시겠습니까? 복구할 수 없습니다.')) return;
+    if (!confirm(t('confirm.deleteStudy'))) return;
     setBusy(true);
     try {
       await deleteStudyGroup(id);

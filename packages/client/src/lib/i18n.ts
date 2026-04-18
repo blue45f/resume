@@ -208,6 +208,21 @@ type TranslationKeys = {
   'common.viewAll': string;
   'common.today': string;
   'common.yesterday': string;
+
+  // Toast
+  'toast.saved': string;
+  'toast.copied': string;
+  'toast.failed': string;
+  'toast.joined': string;
+  'toast.left': string;
+  'toast.posted': string;
+
+  // Confirm dialogs
+  'confirm.delete': string;
+  'confirm.deleteIrreversible': string;
+  'confirm.leaveStudy': string;
+  'confirm.deleteStudy': string;
+  'confirm.deletePost': string;
 };
 
 const ko: TranslationKeys = {
@@ -383,6 +398,19 @@ const ko: TranslationKeys = {
   'common.viewAll': '전체 보기',
   'common.today': '오늘',
   'common.yesterday': '어제',
+
+  'toast.saved': '저장되었습니다',
+  'toast.copied': '복사되었습니다',
+  'toast.failed': '실패했습니다. 다시 시도해주세요',
+  'toast.joined': '가입 완료',
+  'toast.left': '탈퇴 완료',
+  'toast.posted': '게시 완료',
+
+  'confirm.delete': '정말 삭제하시겠습니까?',
+  'confirm.deleteIrreversible': '이 작업은 복구할 수 없습니다. 진행하시겠습니까?',
+  'confirm.leaveStudy': '스터디를 탈퇴하시겠습니까?',
+  'confirm.deleteStudy': '그룹을 삭제하시겠습니까? 복구할 수 없습니다.',
+  'confirm.deletePost': '게시글을 삭제하시겠습니까?',
 };
 
 const en: TranslationKeys = {
@@ -558,6 +586,19 @@ const en: TranslationKeys = {
   'common.viewAll': 'View All',
   'common.today': 'Today',
   'common.yesterday': 'Yesterday',
+
+  'toast.saved': 'Saved',
+  'toast.copied': 'Copied to clipboard',
+  'toast.failed': 'Failed. Please try again',
+  'toast.joined': 'Joined',
+  'toast.left': 'Left',
+  'toast.posted': 'Posted',
+
+  'confirm.delete': 'Are you sure you want to delete?',
+  'confirm.deleteIrreversible': 'This action cannot be undone. Proceed?',
+  'confirm.leaveStudy': 'Are you sure you want to leave this study?',
+  'confirm.deleteStudy': 'Delete this group? This cannot be undone.',
+  'confirm.deletePost': 'Delete this post?',
 };
 
 const ja: TranslationKeys = {
@@ -733,6 +774,19 @@ const ja: TranslationKeys = {
   'common.viewAll': 'すべて表示',
   'common.today': '今日',
   'common.yesterday': '昨日',
+
+  'toast.saved': '保存しました',
+  'toast.copied': 'コピーしました',
+  'toast.failed': '失敗しました。再度お試しください',
+  'toast.joined': '参加しました',
+  'toast.left': '退会しました',
+  'toast.posted': '投稿しました',
+
+  'confirm.delete': '本当に削除しますか？',
+  'confirm.deleteIrreversible': 'この操作は元に戻せません。続行しますか？',
+  'confirm.leaveStudy': 'スタディを退会しますか？',
+  'confirm.deleteStudy': 'グループを削除しますか？元に戻せません。',
+  'confirm.deletePost': '投稿を削除しますか？',
 };
 
 const translations: Record<Locale, TranslationKeys> = { ko, en, ja };
