@@ -455,6 +455,11 @@
     "mid": "중간",
     "senior": "시니어"
   },
+  "priority": {
+    "high": "중요",
+    "medium": "보통",
+    "low": "낮음"
+  },
   "plans": {
     "free": {
       "name": "무료",

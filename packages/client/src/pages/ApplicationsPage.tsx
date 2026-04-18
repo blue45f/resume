@@ -96,10 +96,17 @@ const KANBAN_DEFS: KanbanCol[] = [
 ];
 const getKANBAN_COLUMNS = () => KANBAN_DEFS.map((c) => ({ ...c, label: tx(c.key) }));
 
-const PRIORITY_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-  high: { label: '중요', color: 'text-red-500', icon: '★' },
-  medium: { label: '보통', color: 'text-amber-500', icon: '☆' },
-  low: { label: '낮음', color: 'text-slate-400', icon: '○' },
+const PRIORITY_CONFIG_BASE: Record<string, { key: string; color: string; icon: string }> = {
+  high: { key: 'priority.high', color: 'text-red-500', icon: '★' },
+  medium: { key: 'priority.medium', color: 'text-amber-500', icon: '☆' },
+  low: { key: 'priority.low', color: 'text-slate-400', icon: '○' },
+};
+const getPRIORITY_CONFIG = (): Record<string, { label: string; color: string; icon: string }> => {
+  const out: Record<string, { label: string; color: string; icon: string }> = {};
+  for (const [k, v] of Object.entries(PRIORITY_CONFIG_BASE)) {
+    out[k] = { label: tx(v.key), color: v.color, icon: v.icon };
+  }
+  return out;
 };
 
 const MONTHS_KO = [
@@ -580,7 +587,7 @@ export default function ApplicationsPage() {
               </button>
             ))}
           <div className="h-6 w-px bg-slate-200 dark:bg-slate-600 self-center mx-1" />
-          {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
+          {Object.entries(getPRIORITY_CONFIG()).map(([key, cfg]) => (
             <button
               key={key}
               onClick={() => setPriorityFilter(priorityFilter === key ? null : key)}
@@ -850,7 +857,7 @@ export default function ApplicationsPage() {
                       const days = daysSince(app.appliedDate || app.createdAt);
                       const colDef = getKANBAN_COLUMNS().find((c) => c.value === col.value);
                       const priority = (app as any).priority as string | undefined;
-                      const pCfg = priority ? PRIORITY_CONFIG[priority] : null;
+                      const pCfg = priority ? getPRIORITY_CONFIG()[priority] : null;
                       return (
                         <div
                           key={app.id}
@@ -1330,7 +1337,7 @@ export default function ApplicationsPage() {
               const all = getSTATUSES();
               const statusInfo = all.find((s) => s.value === app.status) || all[0];
               const priority = (app as any).priority as string | undefined;
-              const pCfg = priority ? PRIORITY_CONFIG[priority] : null;
+              const pCfg = priority ? getPRIORITY_CONFIG()[priority] : null;
               const deadline = (app as any).deadline as string | undefined;
               const deadlineDays = deadline ? daysUntil(deadline) : null;
               const isExpanded = expandedId === app.id;

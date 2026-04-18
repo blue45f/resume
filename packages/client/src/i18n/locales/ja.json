@@ -355,6 +355,11 @@
     "mid": "ミドル",
     "senior": "シニア"
   },
+  "priority": {
+    "high": "重要",
+    "medium": "普通",
+    "low": "低"
+  },
   "plans": {
     "free": {
       "name": "無料",

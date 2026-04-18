@@ -455,6 +455,11 @@
     "mid": "Mid-level",
     "senior": "Senior"
   },
+  "priority": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
   "plans": {
     "free": {
       "name": "Free",
