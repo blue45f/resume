@@ -3,6 +3,7 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import { PLANS, formatPrice } from '@/lib/plans';
 import { PAYMENT_METHODS, requestPayment } from '@/lib/payment';
 
@@ -20,7 +21,7 @@ export default function PaymentPage() {
 
   useEffect(() => {
     document.title = '결제 — 이력서공방';
-    if (!user) navigate('/login');
+    if (!user) navigate(ROUTES.login);
     return () => {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
     };
@@ -60,7 +61,7 @@ export default function PaymentPage() {
         role="main"
       >
         <Link
-          to="/pricing"
+          to={ROUTES.pricing}
           className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 mb-4 inline-block"
         >
           &larr; 요금제로 돌아가기
@@ -150,7 +151,7 @@ export default function PaymentPage() {
               />
               <span className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 결제 진행 시{' '}
-                <Link to="/terms" className="text-blue-600 underline">
+                <Link to={ROUTES.terms} className="text-blue-600 underline">
                   이용약관
                 </Link>{' '}
                 및 자동 갱신에 동의합니다. 구독은 언제든 설정에서 취소할 수 있습니다.

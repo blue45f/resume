@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import { createJob } from '@/lib/api';
 import { useJob } from '@/hooks/useResources';
 import {
@@ -81,7 +82,7 @@ export default function JobPostPage() {
     document.title = copyFromId ? '공고 복사하여 등록 — 이력서공방' : '채용 공고 등록 — 이력서공방';
     if (!user || user.userType === 'personal') {
       toast('리크루터 또는 기업 회원만 공고를 등록할 수 있습니다', 'error');
-      navigate('/jobs');
+      navigate(ROUTES.jobs.list);
       return;
     }
     return () => {
@@ -123,7 +124,7 @@ export default function JobPostPage() {
         `${values.salaryMin.toLocaleString()}~${values.salaryMax.toLocaleString()}만원`;
       await createJob({ ...values, salary });
       toast('채용 공고가 등록되었습니다', 'success');
-      navigate('/jobs');
+      navigate(ROUTES.jobs.list);
     } catch (e: any) {
       toast(e.message || '등록에 실패했습니다', 'error');
     }
@@ -520,7 +521,7 @@ export default function JobPostPage() {
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => navigate('/jobs')}
+                onClick={() => navigate(ROUTES.jobs.list)}
                 className="px-5 py-2.5 text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 transition-colors"
               >
                 취소

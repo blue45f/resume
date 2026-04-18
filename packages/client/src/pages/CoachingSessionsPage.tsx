@@ -13,6 +13,7 @@ import {
 } from '@/lib/api';
 import { useMyCoachingSessions } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 
 type TabKey = 'client' | 'coach';
 
@@ -149,7 +150,7 @@ export default function CoachingSessionsPage() {
           </div>
           <div className="flex items-center gap-2">
             <Link
-              to="/coaches"
+              to={ROUTES.coaching.coaches}
               className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-sm"
             >
               + 코치 찾기
@@ -212,14 +213,14 @@ export default function CoachingSessionsPage() {
             </p>
             {tab === 'client' ? (
               <Link
-                to="/coaches"
+                to={ROUTES.coaching.coaches}
                 className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
               >
                 코치 찾기
               </Link>
             ) : (
               <Link
-                to="/coach/profile"
+                to={ROUTES.coaching.profileEdit}
                 className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
               >
                 코치 프로필 설정

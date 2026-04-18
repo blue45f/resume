@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import type { ResumeSummary, Tag } from '@/types/resume';
 import { useTags, usePopularSkills, useResumes, usePublicGet } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import BookmarkButton from '@/components/BookmarkButton';
 import SendMessageButton from '@/components/SendMessageButton';
 import { API_URL } from '@/lib/config';
@@ -515,7 +516,7 @@ export default function ExplorePage() {
                 <strong>프로 플랜</strong>으로 AI 무제한, 번역, 자소서 기능을 사용하세요
               </p>
               <Link
-                to="/pricing"
+                to={ROUTES.pricing}
                 className="shrink-0 px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors focus-ring-accent"
               >
                 업그레이드
@@ -1234,7 +1235,7 @@ export default function ExplorePage() {
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-slate-500 dark:text-slate-400">최신 커뮤니티 게시글</p>
               <Link
-                to="/community/write"
+                to={ROUTES.community.write}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 글쓰기
@@ -1261,7 +1262,7 @@ export default function ExplorePage() {
                   첫 번째 이야기를 들려주세요
                 </p>
                 <Link
-                  to="/community/write"
+                  to={ROUTES.community.write}
                   className="imp-btn inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors focus-ring-accent"
                 >
                   <span aria-hidden="true">✏️</span> 첫 글 작성하기
@@ -1350,7 +1351,7 @@ export default function ExplorePage() {
             )}
             <div className="mt-6 text-center">
               <Link
-                to="/community"
+                to={ROUTES.community.list}
                 className="inline-flex items-center gap-1.5 text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
               >
                 커뮤니티 전체 보기 →

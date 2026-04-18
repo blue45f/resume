@@ -8,6 +8,7 @@ import { toast } from '@/components/Toast';
 import { bookCoachingSession, type CoachProfile } from '@/lib/api';
 import { useCoach, useResumes } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import {
   bookingSchema,
   type BookingFormInput,
@@ -82,7 +83,7 @@ export default function CoachDetailPage() {
   const onSubmit = async (data: BookingFormOutput) => {
     if (!user) {
       toast('로그인이 필요합니다', 'error');
-      navigate('/login');
+      navigate(ROUTES.login);
       return;
     }
     if (!coach) return;
@@ -96,7 +97,7 @@ export default function CoachDetailPage() {
         resumeId: data.resumeId?.trim() || undefined,
       });
       toast('세션 예약이 요청되었습니다', 'success');
-      navigate('/coaching/sessions');
+      navigate(ROUTES.coaching.sessions);
     } catch (err) {
       toast(err instanceof Error ? err.message : '세션 예약에 실패했습니다', 'error');
     }
@@ -135,7 +136,7 @@ export default function CoachDetailPage() {
               {error || '요청하신 코치 정보가 존재하지 않거나 비활성 상태입니다.'}
             </p>
             <Link
-              to="/coaches"
+              to={ROUTES.coaching.coaches}
               className="inline-block px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
             >
               코치 목록으로
@@ -164,7 +165,10 @@ export default function CoachDetailPage() {
         role="main"
       >
         <nav aria-label="경로" className="mb-4 text-xs text-slate-400 dark:text-slate-500">
-          <Link to="/coaches" className="hover:text-slate-600 dark:hover:text-slate-300">
+          <Link
+            to={ROUTES.coaching.coaches}
+            className="hover:text-slate-600 dark:hover:text-slate-300"
+          >
             코치 찾기
           </Link>
           <span className="mx-1">/</span>

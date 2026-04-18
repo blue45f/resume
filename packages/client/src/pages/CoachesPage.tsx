@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { type CoachProfile } from '@/lib/api';
 import { useCoaches } from '@/hooks/useResources';
+import { ROUTES } from '@/lib/routes';
 
 type SortKey = 'rating' | 'rateAsc' | 'rateDesc';
 
@@ -97,13 +98,13 @@ export default function CoachesPage() {
           </div>
           <div className="flex items-center gap-2">
             <Link
-              to="/coach/profile"
+              to={ROUTES.coaching.profileEdit}
               className="inline-flex items-center justify-center gap-1 px-3.5 py-2 text-xs font-semibold rounded-lg bg-gradient-to-br from-blue-600 to-cyan-600 text-white shadow-sm hover:shadow-md transition-all whitespace-nowrap"
             >
               🎓 나도 코치 되기
             </Link>
             <Link
-              to="/coaching/sessions"
+              to={ROUTES.coaching.sessions}
               className="inline-flex items-center justify-center px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 whitespace-nowrap"
             >
               내 세션 관리 →
@@ -129,7 +130,7 @@ export default function CoachesPage() {
               </div>
             </div>
             <Link
-              to="/coach/profile"
+              to={ROUTES.coaching.profileEdit}
               className="shrink-0 inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold rounded-lg bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors whitespace-nowrap"
             >
               프로필 등록 →
