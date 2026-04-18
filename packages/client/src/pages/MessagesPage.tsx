@@ -12,6 +12,7 @@ import { toast } from '@/components/Toast';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
 import { useConversations, useMessages } from '@/hooks/useResources';
+import { tx } from '@/lib/i18n';
 
 const replyComposeSchema = z.object({
   content: z.string().max(2000, '메시지는 2000자 이내로 입력해주세요'),
@@ -296,7 +297,7 @@ export default function MessagesPage() {
         role="main"
       >
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">
-          쪽지
+          {tx('messages.title')}
           {totalUnread > 0 && (
             <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
               {totalUnread}
