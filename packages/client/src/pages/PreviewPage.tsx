@@ -10,6 +10,7 @@ import PitchPanel from '@/components/PitchPanel';
 import ReadabilityPanel from '@/components/ReadabilityPanel';
 import SkillProficiencyPanel from '@/components/SkillProficiencyPanel';
 import JdMatchPanel from '@/components/JdMatchPanel';
+import KoreanCheckerPanel from '@/components/KoreanCheckerPanel';
 import { downloadSocialCard, downloadSocialCardSvg } from '@/lib/socialCard';
 import { downloadJsonResume } from '@/lib/jsonResume';
 import { resumeThemes } from '@/lib/resumeThemes';
@@ -992,6 +993,7 @@ export default function PreviewPage() {
             <ReadabilityPanel resume={resume} />
             <SkillProficiencyPanel resume={resume} />
             <JdMatchPanel resume={resume} />
+            <KoreanCheckerPanel resume={resume} />
             <ResumeAuditPanel resume={resume} />
             <Suspense
               fallback={
