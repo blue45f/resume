@@ -21,6 +21,7 @@ export interface CreateSessionDto {
   scheduledAt: string; // ISO
   duration?: number;
   note?: string;
+  resumeId?: string; // 공유할 이력서 (코치만 열람 허용)
 }
 
 export interface ListCoachesQuery {
@@ -126,10 +127,22 @@ export class CoachingService {
     const commission = Math.round(totalPrice * COMMISSION_RATE);
     const coachEarn = totalPrice - commission;
 
+    // resumeId가 있으면 clientId 소유인지 검증 (권한 상승 방지)
+    let resumeId: string | null = null;
+    if (data.resumeId) {
+      const resume = await this.prisma.resume.findUnique({ where: { id: data.resumeId } });
+      if (!resume) throw new BadRequestException('이력서를 찾을 수 없습니다');
+      if (resume.userId !== clientId) {
+        throw new BadRequestException('본인 이력서만 공유할 수 있습니다');
+      }
+      resumeId = data.resumeId;
+    }
+
     return this.session.create({
       data: {
         coachId: data.coachId,
         clientId,
+        resumeId,
         scheduledAt: new Date(data.scheduledAt),
         duration,
         totalPrice,

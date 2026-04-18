@@ -865,6 +865,7 @@ model CoachingSession {
   id          String @id @default(uuid())
   coachId     String @map("coach_id")  // CoachProfile.id
   clientId    String @map("client_id") // User.id
+  resumeId    String? @map("resume_id") // 예약 시 공유된 이력서 (코치 열람 허용)
   scheduledAt DateTime @map("scheduled_at")
   duration    Int    @default(60)       // minutes
   totalPrice  Int                       @map("total_price")       // 시간 * 레이트
