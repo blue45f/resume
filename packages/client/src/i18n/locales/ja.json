@@ -1,0 +1,184 @@
+{
+  "nav": {
+    "home": "ホーム",
+    "resumes": "マイ履歴書",
+    "explore": "探索",
+    "jobs": "求人",
+    "community": "コミュニティ",
+    "studyGroups": "スタディ",
+    "interviewPrep": "面接準備",
+    "mockInterview": "模擬面接",
+    "applications": "応募管理",
+    "coaching": "コーチング",
+    "notices": "お知らせ",
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "profile": "プロフィール",
+    "settings": "設定",
+    "admin": "管理者"
+  },
+  "resume": {
+    "new": "新規履歴書",
+    "edit": "履歴書編集",
+    "preview": "プレビュー",
+    "download": "ダウンロード",
+    "share": "共有",
+    "delete": "削除",
+    "duplicate": "複製",
+    "print": "印刷",
+    "export": "エクスポート",
+    "import": "インポート",
+    "sections": {
+      "personalInfo": "個人情報",
+      "experience": "職歴",
+      "education": "学歴",
+      "skills": "スキル",
+      "projects": "プロジェクト",
+      "certifications": "資格",
+      "languages": "語学",
+      "awards": "受賞",
+      "activities": "活動",
+      "summary": "自己紹介"
+    },
+    "status": {
+      "saving": "保存中...",
+      "saved": "保存済み",
+      "error": "保存失敗",
+      "uploading": "アップロード中...",
+      "uploaded": "アップロード済み"
+    },
+    "ai": {
+      "analyze": "AI分析",
+      "improve": "AI改善",
+      "translate": "AI翻訳",
+      "enhance": "文書マージ",
+      "spellCheck": "AIスペルチェック",
+      "transform": "書式変換"
+    }
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "edit": "編集",
+    "add": "追加",
+    "confirm": "確認",
+    "back": "戻る",
+    "next": "次へ",
+    "close": "閉じる",
+    "copy": "コピー",
+    "apply": "適用",
+    "reset": "リセット",
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "empty": "データがありません",
+    "search": "検索",
+    "filter": "フィルター",
+    "all": "すべて",
+    "today": "今日",
+    "yesterday": "昨日",
+    "viewAll": "すべて表示",
+    "more": "もっと見る",
+    "retry": "再試行"
+  },
+  "study": {
+    "title": "スタディグループ",
+    "create": "新規スタディ",
+    "join": "参加",
+    "leave": "退会",
+    "cafe": "スタディカフェ掲示板",
+    "members": "メンバー",
+    "posts": "投稿",
+    "questions": "質問",
+    "category": {
+      "all": "すべて",
+      "notice": "お知らせ",
+      "free": "自由",
+      "question": "質問",
+      "resource": "資料共有",
+      "studyLog": "学習日誌"
+    }
+  },
+  "community": {
+    "title": "コミュニティ",
+    "write": "投稿",
+    "comments": "コメント",
+    "likes": "いいね",
+    "views": "閲覧",
+    "bookmark": "ブックマーク"
+  },
+  "jobs": {
+    "title": "求人情報",
+    "apply": "応募する",
+    "applied": "応募済み",
+    "external": "外部サイトで応募",
+    "location": "勤務地",
+    "salary": "給与",
+    "company": "会社",
+    "position": "職種",
+    "requirements": "応募資格",
+    "benefits": "福利厚生",
+    "deadline": "締切"
+  },
+  "applications": {
+    "title": "応募管理",
+    "status": {
+      "applied": "応募済み",
+      "screening": "書類審査",
+      "interview": "面接進行",
+      "offer": "オファー",
+      "rejected": "不合格",
+      "withdrawn": "応募取消"
+    }
+  },
+  "interview": {
+    "mock": "模擬面接",
+    "record": "録画開始",
+    "stop": "停止",
+    "retake": "再録画",
+    "listen": "質問を聞く",
+    "speed": "速度",
+    "persona": "面接官"
+  },
+  "toast": {
+    "saved": "保存しました",
+    "deleted": "削除しました",
+    "copied": "コピーしました",
+    "applied": "適用しました",
+    "joined": "参加しました",
+    "left": "退会しました",
+    "posted": "投稿しました",
+    "failed": "失敗しました。再度お試しください",
+    "networkError": "ネットワークエラーが発生しました",
+    "unauthorized": "ログインが必要です",
+    "notFound": "見つかりません"
+  },
+  "confirm": {
+    "delete": "本当に削除しますか？",
+    "deleteIrreversible": "この操作は元に戻せません。続行しますか？",
+    "leaveStudy": "スタディを退会しますか？",
+    "deleteStudy": "グループを削除しますか？元に戻せません。",
+    "deletePost": "投稿を削除しますか？",
+    "cancelEdit": "編集内容は保存されません。離れますか？"
+  },
+  "admin": {
+    "dashboard": "ダッシュボード",
+    "users": "会員管理",
+    "posts": "投稿管理",
+    "studyGroups": "スタディ管理",
+    "interviewQuestions": "面接質問管理",
+    "notices": "お知らせ管理",
+    "banners": "バナー管理",
+    "systemConfig": "システム設定",
+    "forbiddenWords": "禁止語管理",
+    "coaches": "コーチ管理"
+  },
+  "pricing": {
+    "free": "無料",
+    "pro": "プロ",
+    "enterprise": "エンタープライズ",
+    "comingSoon": "近日公開",
+    "currentPlan": "現在のプラン",
+    "upgrade": "アップグレード"
+  }
+}

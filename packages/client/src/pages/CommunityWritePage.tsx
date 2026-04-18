@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
+import { t } from '@/lib/i18n';
 
 const CATEGORY_PATTERN = /^[\w가-힣 ·/\-()]{1,24}$/;
 
@@ -528,7 +529,7 @@ export default function CommunityWritePage() {
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              {isEdit ? '게시글 수정' : '글쓰기'}
+              {isEdit ? t('community.write') + ' 수정' : t('community.write')}
             </h1>
             {draftSaved && !isEdit && (
               <span className="text-[10px] text-emerald-500 animate-fade-in flex items-center gap-1">
@@ -883,14 +884,18 @@ export default function CommunityWritePage() {
               onClick={() => navigate(-1)}
               className="px-5 py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
             >
-              취소
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-6 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm"
             >
-              {isSubmitting ? '저장 중...' : isEdit ? '수정하기' : '게시하기'}
+              {isSubmitting
+                ? t('common.loading')
+                : isEdit
+                  ? t('common.edit')
+                  : t('community.write')}
             </button>
           </div>
         </form>
