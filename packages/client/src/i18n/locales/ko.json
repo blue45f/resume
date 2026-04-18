@@ -166,6 +166,76 @@
     "enterprise": "엔터프라이즈",
     "comingSoon": "곧 출시 예정",
     "currentPlan": "현재 플랜",
-    "upgrade": "업그레이드"
+    "upgrade": "업그레이드",
+    "monthly": "월",
+    "annually": "연",
+    "perMonth": "/ 월",
+    "perYear": "/ 년",
+    "saveAnnual": "연간 결제 시 2개월 무료"
+  },
+  "admin": {
+    "dashboard": "대시보드",
+    "users": "회원 관리",
+    "posts": "게시글 관리",
+    "studyGroups": "스터디 관리",
+    "interviewQuestions": "면접 질문 관리",
+    "notices": "공지 관리",
+    "banners": "배너 관리",
+    "systemConfig": "시스템 설정",
+    "forbiddenWords": "금칙어 관리",
+    "coaches": "코치 관리"
+  },
+  "dashboard": {
+    "overview": "개요",
+    "recentResumes": "최근 이력서",
+    "recentApplications": "최근 지원",
+    "totalResumes": "총 이력서",
+    "totalViews": "총 조회수",
+    "totalApplications": "총 지원 건수",
+    "totalInterviews": "면접 진행",
+    "conversionRate": "전환율"
+  },
+  "coach": {
+    "title": "커리어 코치",
+    "bookSession": "코칭 예약",
+    "specialty": "전문 분야",
+    "yearsExp": "경력",
+    "hourlyRate": "시간당 요금",
+    "rating": "평점",
+    "sessions": "코칭 세션",
+    "available": "예약 가능",
+    "unavailable": "예약 불가"
+  },
+  "messages": {
+    "title": "쪽지함",
+    "compose": "쪽지 보내기",
+    "inbox": "받은 쪽지",
+    "sent": "보낸 쪽지",
+    "noMessages": "쪽지가 없습니다",
+    "typeMessage": "메시지를 입력하세요"
+  },
+  "explore": {
+    "title": "이력서 탐색",
+    "subtitle": "다른 사용자의 공개 이력서 둘러보기",
+    "filter": "필터",
+    "sortBy": "정렬",
+    "sortByLatest": "최신순",
+    "sortByPopular": "인기순",
+    "sortByViews": "조회수순",
+    "empty": "공개된 이력서가 없습니다"
+  },
+  "form": {
+    "required": "필수 입력 항목",
+    "optional": "선택",
+    "charCount": "{current}/{max}자",
+    "uploadFile": "파일 업로드",
+    "dragDrop": "파일을 여기로 끌어다 놓으세요",
+    "remove": "제거",
+    "placeholder": {
+      "email": "이메일 주소 입력",
+      "search": "검색어 입력...",
+      "title": "제목을 입력하세요",
+      "content": "내용을 입력하세요"
+    }
   }
 }

@@ -166,6 +166,76 @@
     "enterprise": "Enterprise",
     "comingSoon": "Coming Soon",
     "currentPlan": "Current Plan",
-    "upgrade": "Upgrade"
+    "upgrade": "Upgrade",
+    "monthly": "Monthly",
+    "annually": "Annually",
+    "perMonth": "/ mo",
+    "perYear": "/ yr",
+    "saveAnnual": "2 months free with annual billing"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "posts": "Posts",
+    "studyGroups": "Study Groups",
+    "interviewQuestions": "Interview Questions",
+    "notices": "Notices",
+    "banners": "Banners",
+    "systemConfig": "System Config",
+    "forbiddenWords": "Forbidden Words",
+    "coaches": "Coaches"
+  },
+  "dashboard": {
+    "overview": "Overview",
+    "recentResumes": "Recent Resumes",
+    "recentApplications": "Recent Applications",
+    "totalResumes": "Total Resumes",
+    "totalViews": "Total Views",
+    "totalApplications": "Total Applications",
+    "totalInterviews": "Interviews in Progress",
+    "conversionRate": "Conversion Rate"
+  },
+  "coach": {
+    "title": "Career Coaches",
+    "bookSession": "Book Session",
+    "specialty": "Specialty",
+    "yearsExp": "Experience",
+    "hourlyRate": "Hourly Rate",
+    "rating": "Rating",
+    "sessions": "Sessions",
+    "available": "Available",
+    "unavailable": "Unavailable"
+  },
+  "messages": {
+    "title": "Messages",
+    "compose": "Compose",
+    "inbox": "Inbox",
+    "sent": "Sent",
+    "noMessages": "No messages",
+    "typeMessage": "Type a message..."
+  },
+  "explore": {
+    "title": "Explore Resumes",
+    "subtitle": "Browse public resumes from other users",
+    "filter": "Filter",
+    "sortBy": "Sort by",
+    "sortByLatest": "Latest",
+    "sortByPopular": "Popular",
+    "sortByViews": "Most viewed",
+    "empty": "No public resumes available"
+  },
+  "form": {
+    "required": "Required",
+    "optional": "Optional",
+    "charCount": "{current}/{max} chars",
+    "uploadFile": "Upload file",
+    "dragDrop": "Drag and drop file here",
+    "remove": "Remove",
+    "placeholder": {
+      "email": "Enter email address",
+      "search": "Search...",
+      "title": "Enter title",
+      "content": "Enter content"
+    }
   }
 }

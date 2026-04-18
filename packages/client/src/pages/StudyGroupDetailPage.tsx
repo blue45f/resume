@@ -18,6 +18,7 @@ import {
 } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
+import { t } from '@/lib/i18n';
 
 type StudyGroupDetail = StudyGroup & {
   companyTier?: string;
@@ -299,13 +300,13 @@ export default function StudyGroupDetailPage() {
           <div className="imp-card p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 mb-6">
             <div className="flex items-center justify-between gap-2 mb-3">
               <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                📌 스터디 카페 게시판 ({postsData?.total ?? 0})
+                📌 {t('study.cafe')} ({postsData?.total ?? 0})
               </h2>
               <button
                 onClick={() => setShowComposer((v) => !v)}
                 className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                {showComposer ? '취소' : '+ 글쓰기'}
+                {showComposer ? t('common.cancel') : `+ ${t('study.newPost')}`}
               </button>
             </div>
 
@@ -313,12 +314,12 @@ export default function StudyGroupDetailPage() {
             <div className="flex flex-wrap gap-1.5 mb-3">
               {(
                 [
-                  { k: 'all', label: '전체', icon: '📋' },
-                  { k: 'notice', label: '공지', icon: '📢' },
-                  { k: 'free', label: '자유', icon: '💬' },
-                  { k: 'question', label: '질문', icon: '❓' },
-                  { k: 'resource', label: '자료공유', icon: '📎' },
-                  { k: 'study-log', label: '학습일지', icon: '📝' },
+                  { k: 'all', label: t('study.category.all'), icon: '📋' },
+                  { k: 'notice', label: t('study.category.notice'), icon: '📢' },
+                  { k: 'free', label: t('study.category.free'), icon: '💬' },
+                  { k: 'question', label: t('study.category.question'), icon: '❓' },
+                  { k: 'resource', label: t('study.category.resource'), icon: '📎' },
+                  { k: 'study-log', label: t('study.category.studyLog'), icon: '📝' },
                 ] as const
               ).map((c) => (
                 <button
