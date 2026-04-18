@@ -462,11 +462,36 @@ export default function Header() {
                         {t('nav.templates')}
                       </Link>
                       <Link
-                        to="/stats"
+                        to="/study-groups"
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
-                        통계
+                        스터디 카페
                       </Link>
+                      <Link
+                        to="/coaches"
+                        className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
+                        코치 찾기
+                      </Link>
+                      <Link
+                        to="/interview-prep"
+                        className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
+                        면접 준비
+                      </Link>
+                      <Link
+                        to="/compare"
+                        className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
+                        이력서 비교
+                      </Link>
+                      <Link
+                        to="/translate"
+                        className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
+                        이력서 번역
+                      </Link>
+                      <div className="my-1 mx-3 border-t border-slate-100 dark:border-slate-700" />
                       <Link
                         to="/community?category=notice"
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -478,6 +503,25 @@ export default function Header() {
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         면접후기
+                      </Link>
+                      <Link
+                        to="/stats"
+                        className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
+                        통계
+                      </Link>
+                      <div className="my-1 mx-3 border-t border-slate-100 dark:border-slate-700" />
+                      <Link
+                        to="/about"
+                        className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
+                        서비스 소개
+                      </Link>
+                      <Link
+                        to="/tutorial"
+                        className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
+                        튜토리얼
                       </Link>
                       <Link
                         to="/help"
