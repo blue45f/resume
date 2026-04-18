@@ -1,5 +1,105 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+/** 면접관 음성 페르소나 — 브라우저 TTS 보이스를 성별·연령대로 휴리스틱 그룹핑 */
+export type InterviewerPersona = {
+  id: string;
+  label: string;
+  icon: string;
+  voiceURI?: string;
+  rate: number;
+  pitch: number;
+  lang: string;
+};
+
+const PERSONA_PRESETS: Omit<InterviewerPersona, 'voiceURI'>[] = [
+  {
+    id: 'male-senior',
+    label: '시니어 남성 면접관',
+    icon: '👔',
+    rate: 0.92,
+    pitch: 0.88,
+    lang: 'ko-KR',
+  },
+  { id: 'male-mid', label: '중년 남성 면접관', icon: '🧑‍💼', rate: 0.98, pitch: 0.95, lang: 'ko-KR' },
+  {
+    id: 'male-young',
+    label: '젊은 남성 면접관',
+    icon: '🙋‍♂️',
+    rate: 1.05,
+    pitch: 1.05,
+    lang: 'ko-KR',
+  },
+  {
+    id: 'female-senior',
+    label: '시니어 여성 면접관',
+    icon: '👩‍💼',
+    rate: 0.95,
+    pitch: 0.95,
+    lang: 'ko-KR',
+  },
+  {
+    id: 'female-mid',
+    label: '중년 여성 면접관',
+    icon: '🧑‍🏫',
+    rate: 1.0,
+    pitch: 1.05,
+    lang: 'ko-KR',
+  },
+  {
+    id: 'female-young',
+    label: '젊은 여성 면접관',
+    icon: '👩',
+    rate: 1.08,
+    pitch: 1.15,
+    lang: 'ko-KR',
+  },
+];
+
+/** 이름으로 여성/남성 추정 — iOS/macOS/Chrome 한국어 보이스 이름 기준 */
+function guessGender(voice: SpeechSynthesisVoice): 'female' | 'male' | 'unknown' {
+  const n = voice.name.toLowerCase();
+  const femaleHints = [
+    'female',
+    'yuna',
+    'sora',
+    'minji',
+    'heami',
+    '유나',
+    '소라',
+    '민지',
+    '해미',
+    '여자',
+  ];
+  const maleHints = ['male', 'minsu', 'junho', 'jaehyun', '민수', '준호', '재현', '남자'];
+  if (femaleHints.some((h) => n.includes(h))) return 'female';
+  if (maleHints.some((h) => n.includes(h))) return 'male';
+  return 'unknown';
+}
+
+/** 페르소나에 가장 적합한 보이스를 매칭 */
+function matchVoice(
+  persona: Omit<InterviewerPersona, 'voiceURI'>,
+  voices: SpeechSynthesisVoice[],
+): SpeechSynthesisVoice | undefined {
+  const korean = voices.filter((v) => v.lang.toLowerCase().startsWith('ko'));
+  if (korean.length === 0) return voices[0];
+  const wantFemale = persona.id.startsWith('female');
+  const pool = korean.filter((v) => {
+    const g = guessGender(v);
+    return wantFemale ? g === 'female' || g === 'unknown' : g === 'male' || g === 'unknown';
+  });
+  const source = pool.length > 0 ? pool : korean;
+  const idx =
+    source.length > 1
+      ? persona.id.includes('young')
+        ? 0
+        : persona.id.includes('senior')
+          ? source.length - 1
+          : Math.floor(source.length / 2)
+      : 0;
+  return source[idx];
+}
+
 /**
  * CameraInterview
  * 브라우저 MediaRecorder API 기반 카메라 모의 면접 컴포넌트.
@@ -67,8 +167,54 @@ export default function CameraInterview({
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
   const [announce, setAnnounce] = useState<string>('');
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [personaId, setPersonaId] = useState<string>('male-mid');
+  const [ttsRate, setTtsRate] = useState<number>(1.0);
+  const [speaking, setSpeaking] = useState(false);
+  const ttsSupported =
+    typeof window !== 'undefined' && typeof window.speechSynthesis !== 'undefined';
 
   const mimeType = useMemo(() => pickMimeType(), []);
+
+  // 브라우저 보이스 로드
+  useEffect(() => {
+    if (!ttsSupported) return;
+    const load = () => setVoices(window.speechSynthesis.getVoices());
+    load();
+    window.speechSynthesis.addEventListener('voiceschanged', load);
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', load);
+      window.speechSynthesis.cancel();
+    };
+  }, [ttsSupported]);
+
+  const activePersona = useMemo<InterviewerPersona>(() => {
+    const preset = PERSONA_PRESETS.find((p) => p.id === personaId) ?? PERSONA_PRESETS[1];
+    const matched = matchVoice(preset, voices);
+    return { ...preset, voiceURI: matched?.voiceURI, lang: matched?.lang ?? preset.lang };
+  }, [personaId, voices]);
+
+  const speakQuestion = useCallback(() => {
+    if (!ttsSupported || !question.trim()) return;
+    const u = new SpeechSynthesisUtterance(question);
+    const v = voices.find((x) => x.voiceURI === activePersona.voiceURI);
+    if (v) u.voice = v;
+    u.lang = activePersona.lang;
+    u.rate = activePersona.rate * ttsRate;
+    u.pitch = activePersona.pitch;
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+    setSpeaking(true);
+    setAnnounce(`${activePersona.label} 음성으로 질문을 읽습니다.`);
+  }, [activePersona, question, ttsRate, ttsSupported, voices]);
+
+  const stopSpeaking = useCallback(() => {
+    if (!ttsSupported) return;
+    window.speechSynthesis.cancel();
+    setSpeaking(false);
+  }, [ttsSupported]);
 
   /* ── Stream 관리 ───────────────────────────────────────────── */
 
@@ -264,10 +410,65 @@ export default function CameraInterview({
 
       {/* Question */}
       <div className="mb-4">
-        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-1">면접 질문</p>
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <p className="text-xs font-medium text-slate-400 dark:text-slate-500">면접 질문</p>
+          {ttsSupported && (
+            <button
+              type="button"
+              onClick={speaking ? stopSpeaking : speakQuestion}
+              disabled={!question.trim()}
+              className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-40 transition-colors"
+              aria-label={speaking ? '질문 읽기 중지' : '질문을 음성으로 듣기'}
+            >
+              <span aria-hidden>{speaking ? '⏹️' : '🔊'}</span>
+              <span>{speaking ? '중지' : '듣기'}</span>
+            </button>
+          )}
+        </div>
         <h3 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">
           {question}
         </h3>
+        {ttsSupported && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] text-slate-400 mr-1">면접관:</span>
+            {PERSONA_PRESETS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => {
+                  setPersonaId(p.id);
+                  if (speaking) window.speechSynthesis.cancel();
+                }}
+                className={`inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded-full border transition-colors ${
+                  personaId === p.id
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-blue-300'
+                }`}
+                aria-pressed={personaId === p.id}
+                title={p.label}
+              >
+                <span aria-hidden>{p.icon}</span>
+                <span className="hidden sm:inline">{p.label.replace(' 면접관', '')}</span>
+              </button>
+            ))}
+            <label className="ml-auto flex items-center gap-1 text-[11px] text-slate-500">
+              속도
+              <input
+                type="range"
+                min="0.6"
+                max="1.4"
+                step="0.1"
+                value={ttsRate}
+                onChange={(e) => setTtsRate(parseFloat(e.target.value))}
+                className="w-20"
+                aria-label="TTS 속도"
+              />
+              <span className="font-mono tabular-nums w-8 text-slate-400">
+                {ttsRate.toFixed(1)}x
+              </span>
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Permission denied or idle */}

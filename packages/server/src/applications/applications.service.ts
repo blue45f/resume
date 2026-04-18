@@ -49,6 +49,29 @@ export class ApplicationsService {
     },
     userId: string,
   ) {
+    // 외부 채용공고 자동 등록 중복 방지 — 동일 URL 또는 동일 회사·포지션 조합이 최근 7일 내 있으면 갱신만.
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const existing = await this.prisma.jobApplication.findFirst({
+      where: {
+        userId,
+        OR: [
+          data.url ? { url: data.url } : undefined,
+          { company: data.company, position: data.position },
+        ].filter(Boolean) as any[],
+        createdAt: { gte: sevenDaysAgo },
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+    if (existing) {
+      return this.prisma.jobApplication.update({
+        where: { id: existing.id },
+        data: {
+          notes: data.notes || existing.notes,
+          status: data.status || existing.status,
+          url: data.url || existing.url,
+        },
+      });
+    }
     return this.prisma.jobApplication.create({
       data: { ...data, userId },
     });

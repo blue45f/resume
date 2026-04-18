@@ -1516,6 +1516,21 @@ function CuratedJobsTab() {
 
   const handleClick = (job: CuratedJob) => {
     fetch(`${API_URL}/api/jobs/curated/${job.id}/click`, { method: 'POST' }).catch(() => {});
+    // 로그인 상태에서 외부 채용공고를 클릭하면 지원 내역에 자동 기록 (중복은 서버가 무시)
+    const token = localStorage.getItem('token');
+    if (token) {
+      createApplication({
+        company: job.company,
+        position: job.position,
+        status: 'applied',
+        location: job.location,
+        salary: job.salary,
+        notes: `자동 기록 — ${job.sourceSite || '외부 사이트'}에서 지원 버튼 클릭`,
+        url: job.sourceUrl,
+      }).catch(() => {
+        /* silent — 이미 지원했을 수 있음 */
+      });
+    }
     window.open(job.sourceUrl, '_blank', 'noopener,noreferrer');
   };
 

@@ -12,6 +12,7 @@ import SkillProficiencyPanel from '@/components/SkillProficiencyPanel';
 import JdMatchPanel from '@/components/JdMatchPanel';
 import KoreanCheckerPanel from '@/components/KoreanCheckerPanel';
 import AudioSummaryPanel from '@/components/AudioSummaryPanel';
+import NonItAssistantPanel from '@/components/NonItAssistantPanel';
 import CareerGrowthChart from '@/components/CareerGrowthChart';
 import { downloadSocialCard, downloadSocialCardSvg } from '@/lib/socialCard';
 import { downloadJsonResume } from '@/lib/jsonResume';
@@ -1054,6 +1055,7 @@ export default function PreviewPage() {
             <CareerGrowthChart resume={resume} />
             <JdMatchPanel resume={resume} />
             <KoreanCheckerPanel resume={resume} />
+            <NonItAssistantPanel resume={resume} />
             <AudioSummaryPanel resume={resume} />
             <ResumeAuditPanel resume={resume} />
             <Suspense

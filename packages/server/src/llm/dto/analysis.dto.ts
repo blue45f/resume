@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, MaxLength } from 'class-validator';
+import { IsString, IsOptional, MaxLength, IsIn } from 'class-validator';
 
 export class FeedbackDto {
   @ApiPropertyOptional({ description: 'LLM 프로바이더' })
@@ -10,9 +10,9 @@ export class FeedbackDto {
 }
 
 export class JobMatchDto {
-  @ApiProperty({ description: 'Job Description (5000자 이내)' })
+  @ApiProperty({ description: 'Job Description (3000자 이내)' })
   @IsString()
-  @MaxLength(5000, { message: 'JD는 5000자 이내여야 합니다' })
+  @MaxLength(3000, { message: 'JD는 3000자 이내여야 합니다' })
   jobDescription!: string;
 
   @ApiPropertyOptional({ description: 'LLM 프로바이더' })
@@ -38,6 +38,9 @@ export class InterviewDto {
   @ApiPropertyOptional({ description: '난이도 (beginner/intermediate/advanced)' })
   @IsOptional()
   @IsString()
+  @IsIn(['beginner', 'intermediate', 'advanced'], {
+    message: '난이도는 beginner/intermediate/advanced 중 하나여야 합니다',
+  })
   difficulty?: string;
 
   @ApiPropertyOptional({ description: 'LLM 프로바이더' })

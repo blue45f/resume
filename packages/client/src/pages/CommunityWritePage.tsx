@@ -9,13 +9,19 @@ import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
 
+const CATEGORY_PATTERN = /^[\w가-힣 ·/\-()]{1,24}$/;
+
 const postSchema = z.object({
   title: z.string().min(2, '제목을 2자 이상 입력하세요').max(100, '제목은 100자 이내여야 합니다'),
   content: z
     .string()
     .min(10, '내용을 10자 이상 입력하세요')
     .max(10000, '내용은 10000자 이내여야 합니다'),
-  category: z.string().min(1),
+  category: z
+    .string()
+    .min(1, '카테고리를 선택하거나 입력하세요')
+    .max(24, '카테고리는 24자 이내여야 합니다')
+    .regex(CATEGORY_PATTERN, '한글·영문·숫자·공백·- · / ( ) 만 사용 가능합니다'),
 });
 
 type PostForm = z.infer<typeof postSchema>;
@@ -254,6 +260,8 @@ export default function CommunityWritePage() {
 
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(false);
+  const [customCatMode, setCustomCatMode] = useState(false);
+  const [customCat, setCustomCat] = useState('');
   const [attachments, setAttachments] = useState<
     { url: string; name: string; size: number; type: string }[]
   >([]);
@@ -334,7 +342,12 @@ export default function CommunityWritePage() {
     if (editData) {
       setValue('title', editData.title || '');
       setValue('content', editData.content || '');
-      setValue('category', editData.category || 'free');
+      const cat = editData.category || 'free';
+      setValue('category', cat);
+      if (!CATEGORIES.some((c) => c.id === cat)) {
+        setCustomCatMode(true);
+        setCustomCat(cat);
+      }
       setAttachments(Array.isArray(editData.attachments) ? editData.attachments : []);
     }
   }, [editData, setValue]);
@@ -546,7 +559,7 @@ export default function CommunityWritePage() {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               카테고리
             </label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 items-center">
               {CATEGORIES.filter(
                 (cat) =>
                   !('adminOnly' in cat && cat.adminOnly) ||
@@ -556,11 +569,12 @@ export default function CommunityWritePage() {
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() =>
-                    setValue('category', cat.id, { shouldValidate: true, shouldDirty: true })
-                  }
+                  onClick={() => {
+                    setCustomCatMode(false);
+                    setValue('category', cat.id, { shouldValidate: true, shouldDirty: true });
+                  }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-xl border transition-all ${
-                    category === cat.id
+                    category === cat.id && !customCatMode
                       ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 font-medium'
                       : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
@@ -568,7 +582,54 @@ export default function CommunityWritePage() {
                   {cat.icon} {cat.label}
                 </button>
               ))}
+              {!customCatMode ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomCatMode(true);
+                    setCustomCat('');
+                    setValue('category', '', { shouldValidate: false });
+                  }}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
+                  aria-label="새 카테고리 입력"
+                >
+                  <span aria-hidden>＋</span> 새 카테고리
+                </button>
+              ) : (
+                <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-xl border border-indigo-400 bg-indigo-50/60 dark:bg-indigo-900/20">
+                  <input
+                    type="text"
+                    value={customCat}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setCustomCat(v);
+                      setValue('category', v, { shouldValidate: true, shouldDirty: true });
+                    }}
+                    placeholder="예: 테크면접, 신입공채"
+                    maxLength={24}
+                    autoFocus
+                    className="w-32 sm:w-48 px-2 py-1 text-sm bg-transparent border-0 outline-none text-indigo-700 dark:text-indigo-300 placeholder-indigo-300 dark:placeholder-indigo-500/60"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomCatMode(false);
+                      setCustomCat('');
+                      setValue('category', 'free', { shouldValidate: true });
+                    }}
+                    className="text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-200 px-1"
+                    aria-label="커스텀 카테고리 취소"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
             </div>
+            {errors.category?.message && (
+              <p className="mt-1.5 text-xs text-red-500" role="alert">
+                {errors.category.message}
+              </p>
+            )}
           </div>
 
           {/* Title */}
