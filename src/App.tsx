@@ -87,8 +87,10 @@ const CoachProfileEditPage = lazyRetry(() => import('@/pages/CoachProfileEditPag
 const CoachDashboardPage = lazyRetry(() => import('@/pages/CoachDashboardPage'));
 
 function PageLoader() {
+  // flex-1 (not min-h-screen) so the loader participates in the app shell's
+  // flex-col sticky-footer layout instead of forcing an extra viewport height.
   return (
-    <div className="min-h-screen flex items-center justify-center animate-fade-in">
+    <div className="flex-1 flex items-center justify-center animate-fade-in">
       <div className="flex flex-col items-center gap-3">
         <div className="relative">
           <div className="w-10 h-10 border-4 border-indigo-200 dark:border-indigo-800 rounded-full" />

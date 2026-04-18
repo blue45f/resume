@@ -1,0 +1,16 @@
+{
+  "name": "@resume/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "이력서공방 백엔드 (NestJS 11 + Prisma 7)",
+  "scripts": {
+    "dev": "cd ../.. && pnpm dev:server",
+    "build": "cd ../.. && pnpm build:server",
+    "start": "cd ../.. && pnpm start:server",
+    "test": "cd ../.. && pnpm test",
+    "test:e2e": "cd ../.. && pnpm test:e2e"
+  },
+  "dependencies": {
+    "@resume/shared": "workspace:*"
+  }
+}

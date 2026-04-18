@@ -1,0 +1,15 @@
+{
+  "name": "@resume/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "이력서공방 프론트엔드 (Vite + React 19)",
+  "scripts": {
+    "dev": "cd ../.. && pnpm dev:client",
+    "build": "cd ../.. && pnpm build:client",
+    "preview": "cd ../.. && pnpm preview"
+  },
+  "dependencies": {
+    "@resume/shared": "workspace:*"
+  }
+}
