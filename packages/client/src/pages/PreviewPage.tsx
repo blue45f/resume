@@ -4,6 +4,7 @@ import { useReactToPrint } from 'react-to-print';
 import Header from '@/components/Header';
 import ResumePreview from '@/components/ResumePreview';
 import PrintFooter from '@/components/PrintFooter';
+import { downloadVCard } from '@/lib/vcard';
 import { resumeThemes } from '@/lib/resumeThemes';
 import CompletenessBar from '@/components/CompletenessBar';
 import { ROUTES, withQuery } from '@/lib/routes';
@@ -596,6 +597,30 @@ export default function PreviewPage() {
                         />
                       </svg>
                       QR 코드
+                    </button>
+                    <button
+                      onClick={() => {
+                        downloadVCard(resume);
+                        setShowMoreMenu(false);
+                        toast('연락처(.vcf) 다운로드 완료', 'success');
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                      title="연락처를 주소록에 바로 추가할 수 있는 vCard 파일 다운로드"
+                    >
+                      <svg
+                        className="w-4 h-4 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                      연락처 저장 (vCard)
                     </button>
                     <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                     <button
