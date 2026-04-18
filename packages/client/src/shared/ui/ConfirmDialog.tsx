@@ -29,23 +29,32 @@ export default function ConfirmDialog({
       description={description}
       maxWidth="max-w-sm"
     >
-      <div className="flex items-center justify-end gap-2 mt-6">
+      <div className="mt-6 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2">
         <button
+          type="button"
           onClick={() => onOpenChange(false)}
-          className="imp-btn px-4 py-2 text-sm text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+          className="imp-btn px-4 h-10 text-sm font-medium text-[var(--color-text-secondary)]
+                     bg-transparent hover:bg-[var(--color-surface-sunken)]
+                     border border-[var(--color-border)]
+                     rounded-[var(--radius-md)]
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2
+                     transition-colors"
         >
           {cancelText}
         </button>
         <button
+          type="button"
           onClick={() => {
             onConfirm();
             onOpenChange(false);
           }}
-          className={`imp-btn px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-            danger
-              ? 'bg-red-600 text-white hover:bg-red-700'
-              : 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-100'
-          }`}
+          className={`imp-btn px-4 h-10 text-sm font-semibold rounded-[var(--radius-md)]
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+                     transition-colors ${
+                       danger
+                         ? 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500'
+                         : 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-100 focus-visible:ring-[var(--color-accent)]'
+                     }`}
         >
           {confirmText}
         </button>

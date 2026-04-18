@@ -39,7 +39,6 @@ export default function Dialog({
                      motion-reduce:animate-none
                      focus:outline-none
                      max-h-[calc(100dvh-3rem)] overflow-y-auto`}
-          aria-describedby={description ? undefined : undefined}
         >
           {title && (
             <RadixDialog.Title className="text-[17px] sm:text-lg font-semibold tracking-tight text-[var(--color-text)] mb-1 pr-8">
