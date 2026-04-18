@@ -1953,6 +1953,145 @@ button:active:not(:disabled) {
   }
 }
 
+/* ═══ Design Upgrade Pass — Extra utilities ═══ */
+
+/* Unified focus ring using --color-accent */
+.focus-ring-accent:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+/* Subtle card-lift — gentler than .lift-hover, good for dense grids */
+.card-lift-subtle {
+  transition:
+    transform 0.2s var(--ease-out-quart),
+    box-shadow 0.25s var(--ease-out-quart),
+    border-color 0.2s var(--ease-out-quart);
+  will-change: transform;
+}
+.card-lift-subtle:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+.card-lift-subtle:active {
+  transform: translateY(0);
+  transition-duration: 60ms;
+}
+
+/* Delight — empty state illustration container */
+.empty-delight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+.empty-delight .empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-xl);
+  background: radial-gradient(circle at 30% 30%, #dbeafe, #e0f2fe 70%);
+  font-size: 2.25rem;
+  margin-bottom: 1rem;
+  animation: float 4s ease-in-out infinite;
+  box-shadow: var(--shadow-sm);
+}
+.dark .empty-delight .empty-icon {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(37, 99, 235, 0.25),
+    rgba(14, 116, 144, 0.2) 70%
+  );
+}
+
+/* Bounce-in-subtle (not bouncy) — for badges/toasts */
+@keyframes bounceInSubtle {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-bounce-in-subtle {
+  animation: bounceInSubtle 0.32s var(--ease-out-expo) both;
+}
+
+/* Page stagger — combines fade-in + slight rise, kind to motion-reduced users */
+.page-stagger-in {
+  animation: pageEnter 0.28s var(--ease-out-quart) both;
+}
+.page-stagger-in.delay-1 {
+  animation-delay: 0.04s;
+}
+.page-stagger-in.delay-2 {
+  animation-delay: 0.08s;
+}
+.page-stagger-in.delay-3 {
+  animation-delay: 0.12s;
+}
+.page-stagger-in.delay-4 {
+  animation-delay: 0.16s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-delight .empty-icon,
+  .animate-bounce-in-subtle,
+  .page-stagger-in,
+  .card-lift-subtle {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Softer skeleton pulse — replaces aggressive shimmer on long lists */
+@keyframes softPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.skeleton-soft {
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-md);
+  animation: softPulse 1.8s ease-in-out infinite;
+}
+.dark .skeleton-soft {
+  background: var(--color-surface-raised);
+}
+
+/* Category accent bar for resume cards — blue/cyan/slate only */
+.accent-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  background: linear-gradient(180deg, #3b82f6, #06b6d4);
+}
+.accent-bar-public {
+  background: linear-gradient(180deg, #10b981, #06b6d4);
+}
+.accent-bar-link {
+  background: linear-gradient(180deg, #3b82f6, #0ea5e9);
+}
+.accent-bar-private {
+  background: linear-gradient(180deg, #94a3b8, #64748b);
+}
+
 /* ═══ Swiper.js Impeccable Theme ═══ */
 .banner-swiper-root {
   --swiper-theme-color: #2563eb;

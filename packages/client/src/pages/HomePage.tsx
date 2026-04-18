@@ -59,7 +59,7 @@ const DEFAULT_HIGHLIGHTS = [
   {
     title: '26개 직종별 템플릿',
     desc: '개발자, 디자이너, 마케터 등 직종에 최적화된 레이아웃과 15종 테마로 프로페셔널한 이력서 완성',
-    bg: 'bg-purple-50 dark:bg-purple-900/20',
+    bg: 'bg-cyan-50 dark:bg-cyan-900/20',
   },
   {
     title: '완전 무료로 시작',
@@ -73,7 +73,7 @@ const DEFAULT_FEATURES = [
     icon: '✨',
     title: 'AI 이력서 작성',
     desc: '직종별 최적화된 문구를 AI가 자동 생성',
-    color: 'from-indigo-500 to-purple-600',
+    color: 'from-blue-500 to-sky-600',
   },
   {
     icon: '📊',
@@ -97,13 +97,13 @@ const DEFAULT_FEATURES = [
     icon: '📧',
     title: '자기소개서',
     desc: 'AI가 회사/포지션에 맞는 자소서 작성',
-    color: 'from-pink-500 to-rose-600',
+    color: 'from-sky-500 to-blue-600',
   },
   {
     icon: '📈',
     title: '커리어 분석',
     desc: '업계 트렌드와 연봉 데이터 인사이트',
-    color: 'from-violet-500 to-indigo-600',
+    color: 'from-cyan-500 to-blue-600',
   },
 ];
 
@@ -132,7 +132,7 @@ function CommunityWidget() {
     free: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
     tips: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
     resume: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    'cover-letter': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    'cover-letter': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
     question: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   };
   const CAT_LABELS: Record<string, string> = {
@@ -717,7 +717,7 @@ export default function HomePage() {
       <Header />
       <main
         id="main-content"
-        className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+        className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-in fade-in-0 slide-in-from-bottom-1 duration-300"
         role="main"
       >
         <Suspense fallback={null}>
@@ -788,12 +788,21 @@ export default function HomePage() {
               />
 
               <div className="relative">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm text-neutral-600 dark:text-neutral-300 rounded-full text-xs font-medium mb-8 animate-fade-in border border-neutral-200/60 dark:border-neutral-700/60">
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/75 dark:bg-neutral-800/70 backdrop-blur-sm text-neutral-700 dark:text-neutral-300 rounded-full text-xs font-medium mb-8 animate-bounce-in-subtle border border-neutral-200/60 dark:border-neutral-700/60 shadow-sm">
+                  <span className="relative flex w-2 h-2" aria-hidden="true">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
                   AI 기반 이력서 관리 플랫폼
                 </div>
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-neutral-900 dark:text-neutral-50 mb-6 tracking-[-0.03em] leading-[1.05]">
-                  커리어의 시작, <span className="text-blue-600 dark:text-blue-400">AI와 함께</span>
+                <h1
+                  className="font-extrabold text-neutral-900 dark:text-neutral-50 mb-6 tracking-[-0.03em] leading-[1.05]"
+                  style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)' }}
+                >
+                  커리어의 시작,{' '}
+                  <span className="bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
+                    AI와 함께
+                  </span>
                   <br className="hidden sm:block" />
                   스마트하게
                 </h1>
@@ -805,9 +814,15 @@ export default function HomePage() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
                   <Link
                     to="/resumes/new"
-                    className="imp-btn animate-cta-float inline-flex items-center gap-2 px-8 py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all duration-200 text-base shadow-md hover:shadow-xl"
+                    className="imp-btn group inline-flex items-center gap-2 px-8 py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all duration-200 text-base shadow-md hover:shadow-xl focus-ring-accent"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="w-5 h-5 transition-transform duration-300 group-hover:rotate-90"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -819,10 +834,16 @@ export default function HomePage() {
                   </Link>
                   <Link
                     to="/explore"
-                    className="imp-btn inline-flex items-center gap-2 px-6 py-3.5 bg-white/60 dark:bg-neutral-900/40 backdrop-blur-sm text-neutral-600 dark:text-neutral-300 font-medium rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 hover:bg-white dark:hover:bg-neutral-800 transition-all duration-200 text-base"
+                    className="imp-btn group inline-flex items-center gap-2 px-6 py-3.5 bg-white/60 dark:bg-neutral-900/40 backdrop-blur-sm text-neutral-700 dark:text-neutral-300 font-medium rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 hover:bg-white dark:hover:bg-neutral-800 transition-all duration-200 text-base focus-ring-accent"
                   >
                     이력서 탐색
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -868,11 +889,11 @@ export default function HomePage() {
               </Link>
               <Link
                 to="/auto-generate"
-                className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-purple-200 dark:border-purple-800 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
+                className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-cyan-200 dark:border-cyan-800 hover:border-cyan-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
               >
-                <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/30 group-hover:scale-110 transition-transform">
+                <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-cyan-100 dark:bg-cyan-900/30 group-hover:scale-110 transition-transform">
                   <svg
-                    className="w-5 h-5 text-purple-600 dark:text-purple-400"
+                    className="w-5 h-5 text-cyan-700 dark:text-cyan-300"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -985,7 +1006,7 @@ export default function HomePage() {
               </Link>
               <Link
                 to="/pricing"
-                className="text-sm text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 transition-colors"
+                className="text-sm text-sky-700 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300 transition-colors"
               >
                 요금제 보기 &rarr;
               </Link>
@@ -1303,8 +1324,12 @@ export default function HomePage() {
               {sorted.map((resume, index) => (
                 <article
                   key={resume.id}
-                  className={`card-hover imp-card p-4 sm:p-5 focus-within:ring-2 focus-within:ring-blue-500 animate-fade-in-up stagger-${Math.min(index + 1, 6)} border-l-4 ${resume.visibility === 'public' ? 'border-l-emerald-400' : resume.visibility === 'link-only' ? 'border-l-blue-400' : 'border-l-slate-300'}`}
+                  className={`relative card-lift-subtle imp-card p-4 sm:p-5 pl-5 sm:pl-6 focus-within:ring-2 focus-within:ring-[var(--color-accent)] focus-within:ring-offset-2 animate-fade-in-up stagger-${Math.min(index + 1, 6)} overflow-hidden`}
                 >
+                  <span
+                    className={`accent-bar ${resume.visibility === 'public' ? 'accent-bar-public' : resume.visibility === 'link-only' ? 'accent-bar-link' : 'accent-bar-private'}`}
+                    aria-hidden="true"
+                  />
                   <div className="flex gap-3">
                     {/* Thumbnail preview */}
                     <div className="hidden sm:block w-20 shrink-0">

@@ -16,22 +16,28 @@ export default function HomeHero({ userType, isAuthenticated }: HomeHeroProps) {
   const isRecruiter = userType === 'recruiter' || userType === 'company';
 
   return (
-    <section className="w-full" aria-label="메인 히어로">
+    <section className="w-full animate-in fade-in-0 duration-300" aria-label="메인 히어로">
       <Suspense fallback={<HeroSkeleton />}>
         <BannerSlider />
       </Suspense>
 
       {!isAuthenticated && (
-        <div className="max-w-6xl mx-auto px-4 mt-6 flex flex-wrap items-center justify-center gap-3">
+        <div className="max-w-6xl mx-auto px-4 mt-6 flex flex-wrap items-center justify-center gap-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-100">
           <Link
             to="/register"
-            className="imp-btn px-6 py-3 text-sm font-semibold bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 transition-colors"
+            className="imp-btn group px-6 py-3 text-sm font-semibold bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 transition-colors focus-ring-accent"
           >
             무료로 시작하기
+            <span
+              aria-hidden="true"
+              className="ml-1.5 inline-block transition-transform duration-200 group-hover:translate-x-0.5"
+            >
+              →
+            </span>
           </Link>
           <Link
             to="/tutorial"
-            className="imp-btn px-6 py-3 text-sm font-semibold bg-white dark:bg-neutral-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-neutral-700 rounded-lg hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
+            className="imp-btn px-6 py-3 text-sm font-semibold bg-white dark:bg-neutral-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-neutral-700 rounded-lg hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors focus-ring-accent"
           >
             튜토리얼 보기
           </Link>
@@ -39,18 +45,18 @@ export default function HomeHero({ userType, isAuthenticated }: HomeHeroProps) {
       )}
 
       {isAuthenticated && (
-        <div className="max-w-6xl mx-auto px-4 mt-6 flex flex-wrap items-center justify-center gap-3">
+        <div className="max-w-6xl mx-auto px-4 mt-6 flex flex-wrap items-center justify-center gap-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-100">
           {isRecruiter ? (
             <>
               <Link
                 to="/explore"
-                className="imp-btn px-5 py-2.5 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="imp-btn px-5 py-2.5 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors focus-ring-accent"
               >
                 인재 탐색
               </Link>
               <Link
                 to="/jobs/new"
-                className="imp-btn px-5 py-2.5 text-sm font-semibold bg-white dark:bg-neutral-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-neutral-700 rounded-lg"
+                className="imp-btn px-5 py-2.5 text-sm font-semibold bg-white dark:bg-neutral-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-neutral-700 rounded-lg focus-ring-accent"
               >
                 공고 등록
               </Link>
@@ -59,13 +65,13 @@ export default function HomeHero({ userType, isAuthenticated }: HomeHeroProps) {
             <>
               <Link
                 to="/resumes/new"
-                className="imp-btn px-5 py-2.5 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="imp-btn px-5 py-2.5 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors focus-ring-accent"
               >
                 새 이력서 작성
               </Link>
               <Link
                 to="/jobs"
-                className="imp-btn px-5 py-2.5 text-sm font-semibold bg-white dark:bg-neutral-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-neutral-700 rounded-lg"
+                className="imp-btn px-5 py-2.5 text-sm font-semibold bg-white dark:bg-neutral-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-neutral-700 rounded-lg focus-ring-accent"
               >
                 채용 공고 보기
               </Link>
@@ -80,7 +86,7 @@ export default function HomeHero({ userType, isAuthenticated }: HomeHeroProps) {
 function HeroSkeleton() {
   return (
     <div className="w-full max-w-6xl mx-auto px-4">
-      <div className="aspect-[16/6] bg-gradient-to-br from-slate-100 to-slate-200 dark:from-neutral-800 dark:to-neutral-900 rounded-2xl animate-pulse" />
+      <div className="aspect-[16/6] skeleton-soft rounded-2xl" />
     </div>
   );
 }

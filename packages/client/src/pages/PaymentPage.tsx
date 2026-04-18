@@ -66,7 +66,18 @@ export default function PaymentPage() {
           &larr; 요금제로 돌아가기
         </Link>
 
-        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">결제</h1>
+        <div className="flex items-center gap-2 mb-3">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">결제</h1>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+            🧪 BETA
+          </span>
+        </div>
+        <div className="mb-6 p-3.5 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-900/10">
+          <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+            <strong>베타 기간 안내</strong> — 결제 연동은 준비 중으로, 현재는 모든 기능을 무료로
+            이용할 수 있습니다. 결제가 정식 활성화되면 이메일로 사전 공지됩니다.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 gap-6">
           {/* Order Summary */}

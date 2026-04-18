@@ -65,10 +65,11 @@ const accentColorMap: Record<
     border: 'border-slate-400',
   },
   purple: {
-    dot: 'bg-purple-500',
-    ring: 'ring-purple-400',
-    bgLight: 'bg-purple-50',
-    border: 'border-purple-400',
+    // Legacy theme key — remapped to sapphire per Impeccable palette
+    dot: 'bg-sky-600',
+    ring: 'ring-sky-400',
+    bgLight: 'bg-sky-50',
+    border: 'border-sky-400',
   },
   indigo: {
     dot: 'bg-indigo-500',
@@ -324,36 +325,26 @@ export default function PreviewPage() {
       <>
         <Header />
         <main id="main-content" className="flex-1 flex items-center justify-center" role="main">
-          <div className="text-center px-4 animate-fade-in">
-            <svg
-              className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <div className="empty-delight animate-in fade-in-0 zoom-in-95 duration-300">
+            <span className="empty-icon" aria-hidden="true">
+              🔎
+            </span>
+            <p className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-1.5">
               이력서를 불러올 수 없습니다
             </p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-              서버가 시작 중이거나 일시적 오류일 수 있습니다
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+              서버가 시작 중이거나 일시적 오류일 수 있어요
             </p>
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={loadResume}
-                className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
+                className="imp-btn px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors focus-ring-accent"
               >
                 다시 시도
               </button>
               <button
                 onClick={() => navigate('/')}
-                className="px-5 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="imp-btn px-5 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus-ring-accent"
               >
                 홈으로
               </button>
@@ -395,7 +386,11 @@ export default function PreviewPage() {
   return (
     <>
       <Header />
-      <main id="main-content" className="flex-1 pb-20 sm:pb-0" role="main">
+      <main
+        id="main-content"
+        className="flex-1 pb-20 sm:pb-0 animate-in fade-in-0 duration-300"
+        role="main"
+      >
         {/* Toolbar — hidden on mobile (actions moved to sticky bottom bar) */}
         <div className="no-print sticky top-14 sm:top-16 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-200/80">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2">
@@ -464,21 +459,21 @@ export default function PreviewPage() {
               </button>
               <button
                 onClick={() => navigate(`/interview-prep?resumeId=${id}`)}
-                className="px-3 py-1.5 bg-pink-600 text-white text-xs font-medium rounded-lg hover:bg-pink-700 transition-colors"
+                className="px-3 py-1.5 bg-cyan-700 text-white text-xs font-medium rounded-lg hover:bg-cyan-800 transition-colors"
                 title="이 이력서 기반 면접 준비"
               >
                 면접준비
               </button>
               <button
                 onClick={() => setShowScoreCard(true)}
-                className="px-3 py-1.5 bg-violet-600 text-white text-xs font-medium rounded-lg hover:bg-violet-700 transition-colors"
+                className="px-3 py-1.5 bg-sky-700 text-white text-xs font-medium rounded-lg hover:bg-sky-800 transition-colors"
                 title="점수 공유 카드"
               >
                 점수 공유
               </button>
               <button
                 onClick={() => setShowTransform(true)}
-                className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors"
+                className="px-3 py-1.5 bg-slate-700 text-white text-xs font-medium rounded-lg hover:bg-slate-800 transition-colors"
               >
                 변환
               </button>
@@ -663,14 +658,15 @@ export default function PreviewPage() {
                   key={t.id}
                   onClick={() => !locked && setThemeId(t.id)}
                   disabled={locked}
-                  className={`flex-shrink-0 flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all duration-200 border-2 ${
+                  className={`flex-shrink-0 flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all duration-200 border-2 focus-ring-accent ${
                     locked
                       ? 'opacity-40 cursor-not-allowed border-transparent'
                       : isSelected
-                        ? `border-blue-500 bg-blue-50 shadow-sm ring-1 ${colors.ring}`
-                        : 'border-transparent hover:border-slate-200 hover:bg-slate-50'
+                        ? `border-blue-500 bg-blue-50 dark:bg-blue-950/30 shadow-sm ring-1 ${colors.ring} scale-[1.02]`
+                        : 'border-transparent hover:border-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:-translate-y-0.5'
                   }`}
                   title={locked ? '프로 플랜 전용' : t.description}
+                  aria-pressed={isSelected}
                 >
                   {/* Mini preview swatch */}
                   <div className="w-14 h-10 rounded-md overflow-hidden border border-slate-200 bg-white relative">
@@ -679,11 +675,11 @@ export default function PreviewPage() {
                       className={`h-3.5 w-full ${
                         hasColorHeader
                           ? t.headerStyle.includes('from-purple')
-                            ? 'bg-gradient-to-r from-purple-500 via-pink-400 to-orange-400'
+                            ? 'bg-gradient-to-r from-blue-500 via-cyan-400 to-sky-400'
                             : t.headerStyle.includes('from-indigo')
-                              ? 'bg-gradient-to-r from-indigo-500 via-blue-400 to-cyan-400'
+                              ? 'bg-gradient-to-r from-blue-500 via-sky-400 to-cyan-400'
                               : t.headerStyle.includes('from-pink')
-                                ? 'bg-gradient-to-r from-pink-200 via-purple-200 to-blue-200'
+                                ? 'bg-gradient-to-r from-sky-200 via-blue-200 to-cyan-200'
                                 : t.headerStyle.includes('bg-[#0d1117]')
                                   ? 'bg-[#0d1117]'
                                   : t.headerStyle.includes('bg-[#1a1a2e]')
@@ -1087,7 +1083,7 @@ export default function PreviewPage() {
             </button>
             <button
               onClick={() => setShowTransform(true)}
-              className="flex flex-col items-center gap-0.5 px-2 py-1 text-purple-600 rounded-lg active:bg-purple-50 transition-colors"
+              className="flex flex-col items-center gap-0.5 px-2 py-1 text-slate-700 rounded-lg active:bg-slate-100 transition-colors"
             >
               <span className="text-base">✨</span>
               <span className="text-[10px] font-medium">변환</span>

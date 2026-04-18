@@ -14,12 +14,12 @@ import { API_URL } from '@/lib/config';
 import { timeAgo } from '@/lib/time';
 
 const THEME_COLORS = [
-  'from-blue-500 to-indigo-500',
+  'from-blue-500 to-sky-500',
   'from-emerald-500 to-teal-500',
-  'from-purple-500 to-pink-500',
+  'from-sky-600 to-blue-600',
   'from-orange-500 to-red-500',
   'from-cyan-500 to-blue-500',
-  'from-rose-500 to-fuchsia-500',
+  'from-slate-700 to-cyan-500',
   'from-amber-500 to-orange-500',
   'from-lime-500 to-emerald-500',
 ];
@@ -27,10 +27,10 @@ const THEME_COLORS = [
 const THEME_DOT_COLORS = [
   'bg-blue-500',
   'bg-emerald-500',
-  'bg-purple-500',
+  'bg-sky-600',
   'bg-orange-500',
   'bg-cyan-500',
-  'bg-rose-500',
+  'bg-teal-600',
   'bg-amber-500',
   'bg-lime-500',
 ];
@@ -105,14 +105,14 @@ function aggregateUsers(resumes: ResumeSummary[]): UserProfile[] {
 const AVATAR_COLORS = [
   'bg-blue-500',
   'bg-emerald-500',
-  'bg-purple-500',
+  'bg-sky-600',
   'bg-orange-500',
   'bg-cyan-500',
-  'bg-rose-500',
+  'bg-slate-600',
   'bg-amber-500',
   'bg-teal-500',
   'bg-indigo-500',
-  'bg-pink-500',
+  'bg-blue-700',
 ];
 
 function getAvatarColor(name: string): string {
@@ -479,10 +479,12 @@ export default function ExplorePage() {
       <Header />
       <main
         id="main-content"
-        className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+        className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-in fade-in-0 slide-in-from-bottom-1 duration-300"
         role="main"
       >
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">공개 이력서 탐색</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
+          공개 이력서 탐색
+        </h1>
         <p className="text-sm text-slate-500 mb-6">
           공개 설정된 이력서를 검색하고 열람할 수 있습니다.
         </p>
@@ -507,13 +509,14 @@ export default function ExplorePage() {
         {(() => {
           const u = getUser();
           return u && (!u?.plan || u.plan === 'free') ? (
-            <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2">
-              <p className="text-sm text-purple-800 dark:text-purple-300">
-                ⭐ <strong>프로 플랜</strong>으로 AI 무제한, 번역, 자소서 기능을 사용하세요
+            <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+              <p className="text-sm text-blue-900 dark:text-blue-200">
+                <span aria-hidden="true">⭐ </span>
+                <strong>프로 플랜</strong>으로 AI 무제한, 번역, 자소서 기능을 사용하세요
               </p>
               <Link
                 to="/pricing"
-                className="shrink-0 px-3 py-1 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors"
+                className="shrink-0 px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors focus-ring-accent"
               >
                 업그레이드
               </Link>
@@ -1247,11 +1250,21 @@ export default function ExplorePage() {
                 ))}
               </div>
             ) : communityPosts.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="text-4xl mb-3">📭</div>
-                <p className="text-slate-500 dark:text-slate-400 mb-4">아직 게시글이 없습니다</p>
-                <Link to="/community/write" className="text-sm text-indigo-600 hover:underline">
-                  첫 글 작성하기
+              <div className="empty-delight">
+                <span className="empty-icon" aria-hidden="true">
+                  📭
+                </span>
+                <p className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  아직 게시글이 없어요
+                </p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
+                  첫 번째 이야기를 들려주세요
+                </p>
+                <Link
+                  to="/community/write"
+                  className="imp-btn inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors focus-ring-accent"
+                >
+                  <span aria-hidden="true">✏️</span> 첫 글 작성하기
                 </Link>
               </div>
             ) : (
@@ -1262,7 +1275,7 @@ export default function ExplorePage() {
                     tips: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
                     resume: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
                     'cover-letter':
-                      'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+                      'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
                     question:
                       'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
                   };
