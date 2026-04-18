@@ -10,16 +10,13 @@ COPY packages ./packages/
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
 
-RUN pnpm install --frozen-lockfile --prod=false
+RUN pnpm install --frozen-lockfile
 
 COPY tsconfig.server.json nest-cli.json ./
 COPY server ./server/
 
 RUN pnpm exec prisma generate
 RUN pnpm exec nest build
-
-# Prune dev dependencies for runtime stage
-RUN pnpm install --frozen-lockfile --prod --prefer-offline --ignore-scripts
 
 # ── Production stage ──
 FROM node:20-alpine
