@@ -4,10 +4,17 @@
     "resumes": "내 이력서",
     "explore": "탐색",
     "jobs": "채용",
+    "community": "커뮤니티",
+    "studyGroups": "스터디",
+    "interviewPrep": "면접 준비",
+    "mockInterview": "모의 면접",
+    "applications": "지원 관리",
+    "coaching": "코칭",
     "notices": "공지사항",
     "login": "로그인",
     "logout": "로그아웃",
     "profile": "프로필",
+    "settings": "설정",
     "admin": "관리자"
   },
   "resume": {
@@ -17,6 +24,10 @@
     "download": "다운로드",
     "share": "공유",
     "delete": "삭제",
+    "duplicate": "복제",
+    "print": "인쇄",
+    "export": "내보내기",
+    "import": "가져오기",
     "sections": {
       "personalInfo": "기본 정보",
       "experience": "경력",
@@ -26,12 +37,23 @@
       "certifications": "자격증",
       "languages": "어학",
       "awards": "수상",
-      "activities": "활동"
+      "activities": "활동",
+      "summary": "자기소개"
     },
     "status": {
       "saving": "저장 중...",
       "saved": "저장됨",
-      "error": "저장 실패"
+      "error": "저장 실패",
+      "uploading": "업로드 중...",
+      "uploaded": "업로드됨"
+    },
+    "ai": {
+      "analyze": "AI 분석",
+      "improve": "AI 개선",
+      "translate": "AI 번역",
+      "enhance": "문서 병합 고도화",
+      "spellCheck": "AI 맞춤법 검사",
+      "transform": "양식 변환"
     }
   },
   "common": {
@@ -43,19 +65,91 @@
     "confirm": "확인",
     "back": "뒤로",
     "next": "다음",
+    "close": "닫기",
+    "copy": "복사",
+    "apply": "적용",
+    "reset": "초기화",
     "loading": "로딩 중...",
     "error": "오류가 발생했습니다",
     "empty": "데이터가 없습니다",
     "search": "검색",
     "filter": "필터",
-    "all": "전체"
+    "all": "전체",
+    "today": "오늘",
+    "yesterday": "어제",
+    "viewAll": "전체 보기",
+    "more": "더보기",
+    "retry": "재시도"
   },
   "auth": {
     "login": "로그인",
     "signup": "회원가입",
     "logout": "로그아웃",
     "loginWithGoogle": "Google로 로그인",
-    "loginWithKakao": "카카오로 로그인"
+    "loginWithKakao": "카카오로 로그인",
+    "email": "이메일",
+    "password": "비밀번호",
+    "name": "이름",
+    "forgotPassword": "비밀번호 찾기"
+  },
+  "study": {
+    "title": "스터디 그룹",
+    "create": "새 스터디 만들기",
+    "join": "가입하기",
+    "leave": "탈퇴",
+    "cafe": "스터디 카페 게시판",
+    "members": "멤버",
+    "posts": "게시글",
+    "questions": "질문",
+    "category": {
+      "all": "전체",
+      "notice": "공지",
+      "free": "자유",
+      "question": "질문",
+      "resource": "자료공유",
+      "studyLog": "학습일지"
+    }
+  },
+  "community": {
+    "title": "커뮤니티",
+    "write": "글쓰기",
+    "comments": "댓글",
+    "likes": "좋아요",
+    "views": "조회",
+    "bookmark": "북마크"
+  },
+  "jobs": {
+    "title": "채용공고",
+    "apply": "지원하기",
+    "applied": "지원 완료",
+    "external": "외부 사이트에서 지원",
+    "location": "근무지",
+    "salary": "급여",
+    "company": "회사",
+    "position": "직무",
+    "requirements": "자격 요건",
+    "benefits": "복리후생",
+    "deadline": "마감일"
+  },
+  "applications": {
+    "title": "지원 관리",
+    "status": {
+      "applied": "지원 완료",
+      "screening": "서류 심사",
+      "interview": "면접 진행",
+      "offer": "오퍼 제안",
+      "rejected": "불합격",
+      "withdrawn": "지원 취소"
+    }
+  },
+  "interview": {
+    "mock": "모의 면접",
+    "record": "녹화 시작",
+    "stop": "정지",
+    "retake": "다시 녹화",
+    "listen": "질문 음성으로 듣기",
+    "speed": "속도",
+    "persona": "면접관"
   },
   "notice": {
     "types": {

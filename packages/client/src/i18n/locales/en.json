@@ -4,10 +4,17 @@
     "resumes": "My Resumes",
     "explore": "Explore",
     "jobs": "Jobs",
+    "community": "Community",
+    "studyGroups": "Study Groups",
+    "interviewPrep": "Interview Prep",
+    "mockInterview": "Mock Interview",
+    "applications": "Applications",
+    "coaching": "Coaching",
     "notices": "Notices",
     "login": "Login",
     "logout": "Logout",
     "profile": "Profile",
+    "settings": "Settings",
     "admin": "Admin"
   },
   "resume": {
@@ -17,6 +24,10 @@
     "download": "Download",
     "share": "Share",
     "delete": "Delete",
+    "duplicate": "Duplicate",
+    "print": "Print",
+    "export": "Export",
+    "import": "Import",
     "sections": {
       "personalInfo": "Personal Info",
       "experience": "Experience",
@@ -26,12 +37,23 @@
       "certifications": "Certifications",
       "languages": "Languages",
       "awards": "Awards",
-      "activities": "Activities"
+      "activities": "Activities",
+      "summary": "Summary"
     },
     "status": {
       "saving": "Saving...",
       "saved": "Saved",
-      "error": "Save failed"
+      "error": "Save failed",
+      "uploading": "Uploading...",
+      "uploaded": "Uploaded"
+    },
+    "ai": {
+      "analyze": "AI Analyze",
+      "improve": "AI Improve",
+      "translate": "AI Translate",
+      "enhance": "Merge document",
+      "spellCheck": "AI Spell Check",
+      "transform": "Transform format"
     }
   },
   "common": {
@@ -43,19 +65,91 @@
     "confirm": "Confirm",
     "back": "Back",
     "next": "Next",
+    "close": "Close",
+    "copy": "Copy",
+    "apply": "Apply",
+    "reset": "Reset",
     "loading": "Loading...",
     "error": "An error occurred",
     "empty": "No data",
     "search": "Search",
     "filter": "Filter",
-    "all": "All"
+    "all": "All",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "viewAll": "View All",
+    "more": "More",
+    "retry": "Retry"
   },
   "auth": {
     "login": "Login",
     "signup": "Sign Up",
     "logout": "Logout",
     "loginWithGoogle": "Login with Google",
-    "loginWithKakao": "Login with Kakao"
+    "loginWithKakao": "Login with Kakao",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "forgotPassword": "Forgot password?"
+  },
+  "study": {
+    "title": "Study Groups",
+    "create": "New Study",
+    "join": "Join",
+    "leave": "Leave",
+    "cafe": "Study Cafe Board",
+    "members": "Members",
+    "posts": "Posts",
+    "questions": "Questions",
+    "category": {
+      "all": "All",
+      "notice": "Notice",
+      "free": "Free",
+      "question": "Question",
+      "resource": "Resource",
+      "studyLog": "Study Log"
+    }
+  },
+  "community": {
+    "title": "Community",
+    "write": "Write",
+    "comments": "Comments",
+    "likes": "Likes",
+    "views": "Views",
+    "bookmark": "Bookmark"
+  },
+  "jobs": {
+    "title": "Job Postings",
+    "apply": "Apply",
+    "applied": "Applied",
+    "external": "Apply on external site",
+    "location": "Location",
+    "salary": "Salary",
+    "company": "Company",
+    "position": "Position",
+    "requirements": "Requirements",
+    "benefits": "Benefits",
+    "deadline": "Deadline"
+  },
+  "applications": {
+    "title": "Applications",
+    "status": {
+      "applied": "Applied",
+      "screening": "Screening",
+      "interview": "Interview",
+      "offer": "Offer",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
+    }
+  },
+  "interview": {
+    "mock": "Mock Interview",
+    "record": "Start Recording",
+    "stop": "Stop",
+    "retake": "Retake",
+    "listen": "Listen to question",
+    "speed": "Speed",
+    "persona": "Interviewer"
   },
   "notice": {
     "types": {
@@ -63,7 +157,7 @@
       "MAINTENANCE": "Maintenance",
       "EVENT": "Event"
     },
-    "dismissToday": "Do not show today",
+    "dismissToday": "Don't show today",
     "close": "Close"
   },
   "pricing": {

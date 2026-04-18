@@ -136,6 +136,78 @@ type TranslationKeys = {
   // Footer
   'footer.copyright': string;
   'footer.openSource': string;
+
+  // Study Groups (카페형)
+  'study.title': string;
+  'study.create': string;
+  'study.join': string;
+  'study.leave': string;
+  'study.members': string;
+  'study.posts': string;
+  'study.questions': string;
+  'study.cafe': string;
+  'study.newPost': string;
+  'study.category.all': string;
+  'study.category.notice': string;
+  'study.category.free': string;
+  'study.category.question': string;
+  'study.category.resource': string;
+  'study.category.studyLog': string;
+
+  // Community
+  'community.title': string;
+  'community.write': string;
+  'community.category.notice': string;
+  'community.category.free': string;
+  'community.category.tips': string;
+  'community.category.resume': string;
+  'community.category.coverLetter': string;
+  'community.category.question': string;
+  'community.category.interview': string;
+  'community.comments': string;
+  'community.likes': string;
+  'community.views': string;
+
+  // Jobs
+  'job.title': string;
+  'job.apply': string;
+  'job.applied': string;
+  'job.external': string;
+  'job.location': string;
+  'job.salary': string;
+  'job.company': string;
+  'job.position': string;
+  'job.requirements': string;
+  'job.benefits': string;
+  'job.deadline': string;
+
+  // Application management
+  'app.status.applied': string;
+  'app.status.screening': string;
+  'app.status.interview': string;
+  'app.status.offer': string;
+  'app.status.rejected': string;
+  'app.status.withdrawn': string;
+
+  // Interview
+  'interview.mock': string;
+  'interview.record': string;
+  'interview.stop': string;
+  'interview.retake': string;
+  'interview.listen': string;
+  'interview.speed': string;
+  'interview.persona': string;
+
+  // Common actions (확장)
+  'common.enable': string;
+  'common.disable': string;
+  'common.publish': string;
+  'common.unpublish': string;
+  'common.apply': string;
+  'common.reset': string;
+  'common.viewAll': string;
+  'common.today': string;
+  'common.yesterday': string;
 };
 
 const ko: TranslationKeys = {
@@ -245,6 +317,72 @@ const ko: TranslationKeys = {
 
   'footer.copyright': '© 2025 이력서공방',
   'footer.openSource': '오픈소스 프로젝트',
+
+  'study.title': '스터디 그룹',
+  'study.create': '새 스터디',
+  'study.join': '가입하기',
+  'study.leave': '탈퇴',
+  'study.members': '멤버',
+  'study.posts': '게시글',
+  'study.questions': '질문',
+  'study.cafe': '스터디 카페 게시판',
+  'study.newPost': '글쓰기',
+  'study.category.all': '전체',
+  'study.category.notice': '공지',
+  'study.category.free': '자유',
+  'study.category.question': '질문',
+  'study.category.resource': '자료공유',
+  'study.category.studyLog': '학습일지',
+
+  'community.title': '커뮤니티',
+  'community.write': '글쓰기',
+  'community.category.notice': '공지사항',
+  'community.category.free': '자유',
+  'community.category.tips': '취업팁',
+  'community.category.resume': '이력서피드백',
+  'community.category.coverLetter': '자소서',
+  'community.category.question': '질문',
+  'community.category.interview': '면접',
+  'community.comments': '댓글',
+  'community.likes': '좋아요',
+  'community.views': '조회',
+
+  'job.title': '채용공고',
+  'job.apply': '지원하기',
+  'job.applied': '지원 완료',
+  'job.external': '외부 사이트에서 지원',
+  'job.location': '근무지',
+  'job.salary': '급여',
+  'job.company': '회사',
+  'job.position': '직무',
+  'job.requirements': '자격 요건',
+  'job.benefits': '복리후생',
+  'job.deadline': '마감일',
+
+  'app.status.applied': '지원 완료',
+  'app.status.screening': '서류 심사',
+  'app.status.interview': '면접 진행',
+  'app.status.offer': '오퍼 제안',
+  'app.status.rejected': '불합격',
+  'app.status.withdrawn': '지원 취소',
+
+  'interview.mock': '모의 면접',
+  'interview.record': '녹화 시작',
+  'interview.stop': '정지',
+  'interview.retake': '다시 녹화',
+  'interview.listen': '질문 듣기',
+  'interview.speed': '속도',
+  'interview.persona': '면접관',
+
+  'common.enable': '활성화',
+  'common.disable': '비활성화',
+  'common.publish': '공개',
+  'common.unpublish': '비공개',
+  'common.apply': '적용',
+  'common.reset': '초기화',
+  'common.viewAll': '전체 보기',
+  'common.today': '오늘',
+  'common.yesterday': '어제',
 };
 
 const en: TranslationKeys = {
@@ -354,6 +492,72 @@ const en: TranslationKeys = {
 
   'footer.copyright': '© 2025 Resume Workshop',
   'footer.openSource': 'Open Source Project',
+
+  'study.title': 'Study Groups',
+  'study.create': 'New Study',
+  'study.join': 'Join',
+  'study.leave': 'Leave',
+  'study.members': 'Members',
+  'study.posts': 'Posts',
+  'study.questions': 'Questions',
+  'study.cafe': 'Study Cafe Board',
+  'study.newPost': 'New Post',
+  'study.category.all': 'All',
+  'study.category.notice': 'Notice',
+  'study.category.free': 'Free',
+  'study.category.question': 'Question',
+  'study.category.resource': 'Resource',
+  'study.category.studyLog': 'Study Log',
+
+  'community.title': 'Community',
+  'community.write': 'Write',
+  'community.category.notice': 'Notice',
+  'community.category.free': 'Free',
+  'community.category.tips': 'Career Tips',
+  'community.category.resume': 'Resume Feedback',
+  'community.category.coverLetter': 'Cover Letter',
+  'community.category.question': 'Question',
+  'community.category.interview': 'Interview',
+  'community.comments': 'Comments',
+  'community.likes': 'Likes',
+  'community.views': 'Views',
+
+  'job.title': 'Job Postings',
+  'job.apply': 'Apply',
+  'job.applied': 'Applied',
+  'job.external': 'Apply on external site',
+  'job.location': 'Location',
+  'job.salary': 'Salary',
+  'job.company': 'Company',
+  'job.position': 'Position',
+  'job.requirements': 'Requirements',
+  'job.benefits': 'Benefits',
+  'job.deadline': 'Deadline',
+
+  'app.status.applied': 'Applied',
+  'app.status.screening': 'Screening',
+  'app.status.interview': 'Interview',
+  'app.status.offer': 'Offer',
+  'app.status.rejected': 'Rejected',
+  'app.status.withdrawn': 'Withdrawn',
+
+  'interview.mock': 'Mock Interview',
+  'interview.record': 'Start Recording',
+  'interview.stop': 'Stop',
+  'interview.retake': 'Retake',
+  'interview.listen': 'Listen to question',
+  'interview.speed': 'Speed',
+  'interview.persona': 'Interviewer',
+
+  'common.enable': 'Enable',
+  'common.disable': 'Disable',
+  'common.publish': 'Publish',
+  'common.unpublish': 'Unpublish',
+  'common.apply': 'Apply',
+  'common.reset': 'Reset',
+  'common.viewAll': 'View All',
+  'common.today': 'Today',
+  'common.yesterday': 'Yesterday',
 };
 
 const ja: TranslationKeys = {
@@ -463,6 +667,72 @@ const ja: TranslationKeys = {
 
   'footer.copyright': '© 2025 履歴書工房',
   'footer.openSource': 'オープンソースプロジェクト',
+
+  'study.title': 'スタディグループ',
+  'study.create': '新規スタディ',
+  'study.join': '参加',
+  'study.leave': '退会',
+  'study.members': 'メンバー',
+  'study.posts': '投稿',
+  'study.questions': '質問',
+  'study.cafe': 'スタディカフェ掲示板',
+  'study.newPost': '投稿する',
+  'study.category.all': 'すべて',
+  'study.category.notice': 'お知らせ',
+  'study.category.free': '自由',
+  'study.category.question': '質問',
+  'study.category.resource': '資料共有',
+  'study.category.studyLog': '学習日誌',
+
+  'community.title': 'コミュニティ',
+  'community.write': '投稿',
+  'community.category.notice': 'お知らせ',
+  'community.category.free': '自由',
+  'community.category.tips': '就活Tips',
+  'community.category.resume': '履歴書レビュー',
+  'community.category.coverLetter': '志望動機',
+  'community.category.question': '質問',
+  'community.category.interview': '面接',
+  'community.comments': 'コメント',
+  'community.likes': 'いいね',
+  'community.views': '閲覧',
+
+  'job.title': '求人情報',
+  'job.apply': '応募する',
+  'job.applied': '応募済み',
+  'job.external': '外部サイトで応募',
+  'job.location': '勤務地',
+  'job.salary': '給与',
+  'job.company': '会社',
+  'job.position': '職種',
+  'job.requirements': '応募資格',
+  'job.benefits': '福利厚生',
+  'job.deadline': '締切',
+
+  'app.status.applied': '応募済み',
+  'app.status.screening': '書類審査',
+  'app.status.interview': '面接進行',
+  'app.status.offer': 'オファー',
+  'app.status.rejected': '不合格',
+  'app.status.withdrawn': '応募取消',
+
+  'interview.mock': '模擬面接',
+  'interview.record': '録画開始',
+  'interview.stop': '停止',
+  'interview.retake': '再録画',
+  'interview.listen': '質問を聞く',
+  'interview.speed': '速度',
+  'interview.persona': '面接官',
+
+  'common.enable': '有効化',
+  'common.disable': '無効化',
+  'common.publish': '公開',
+  'common.unpublish': '非公開',
+  'common.apply': '適用',
+  'common.reset': 'リセット',
+  'common.viewAll': 'すべて表示',
+  'common.today': '今日',
+  'common.yesterday': '昨日',
 };
 
 const translations: Record<Locale, TranslationKeys> = { ko, en, ja };
