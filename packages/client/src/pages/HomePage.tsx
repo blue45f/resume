@@ -8,6 +8,7 @@ import { toast } from '@/components/Toast';
 import QuickImportModal from '@/components/QuickImportModal';
 import Footer from '@/components/Footer';
 import { timeAgo } from '@/lib/time';
+import { ROUTES, withQuery } from '@/lib/routes';
 import type { ResumeSummary, Tag, Resume } from '@/types/resume';
 import {
   deleteResume,
@@ -157,7 +158,7 @@ function CommunityWidget() {
           커뮤니티 최신 글
         </h3>
         <Link
-          to="/community"
+          to={ROUTES.community.list}
           className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
         >
           더보기 →
@@ -167,7 +168,7 @@ function CommunityWidget() {
         {posts.map((post) => (
           <Link
             key={post.id}
-            to={`/community/${post.id}`}
+            to={ROUTES.community.post(post.id)}
             className="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
           >
             <span
@@ -194,7 +195,7 @@ function CommunityWidget() {
       </div>
       <div className="px-5 py-2.5 bg-slate-50 dark:bg-slate-700/30 border-t border-slate-100 dark:border-slate-700">
         <Link
-          to="/community/write"
+          to={ROUTES.community.write}
           className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
         >
           + 새 글 작성하기
@@ -260,7 +261,7 @@ function InterviewDiscoveryWidget() {
               인기 면접 스터디 그룹
             </h3>
             <Link
-              to="/jobs?tab=internal"
+              to={withQuery(ROUTES.jobs.list, { tab: 'internal' })}
               className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
             >
               더보기 →
@@ -300,7 +301,7 @@ function InterviewDiscoveryWidget() {
               최근 생성된 면접 질문
             </h3>
             <Link
-              to="/interview-prep"
+              to={ROUTES.interview.prep}
               className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
             >
               더보기 →
@@ -322,7 +323,7 @@ function InterviewDiscoveryWidget() {
                   </p>
                 </div>
                 <Link
-                  to={`/interview-prep?position=${encodeURIComponent(q.position || '')}`}
+                  to={withQuery(ROUTES.interview.prep, { position: q.position || '' })}
                   className="shrink-0 text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-medium"
                 >
                   보기
@@ -485,7 +486,7 @@ function WeeklyGoalWidget() {
               + 지원 추가
             </button>
             <Link
-              to="/applications"
+              to={ROUTES.jobs.applications}
               className="px-3 py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
             >
               지원 관리
@@ -762,7 +763,7 @@ export default function HomePage() {
               🏢 채용 대시보드에서 공고와 스카우트를 관리하세요
             </p>
             <Link
-              to="/recruiter"
+              to={ROUTES.recruiter.dashboard}
               className="shrink-0 px-3 py-1 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors"
             >
               대시보드
@@ -816,7 +817,7 @@ export default function HomePage() {
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
                   <Link
-                    to="/resumes/new"
+                    to={ROUTES.resume.new}
                     className="imp-btn group inline-flex items-center gap-2 px-8 py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all duration-200 text-base shadow-md hover:shadow-xl focus-ring-accent"
                   >
                     <svg
@@ -836,7 +837,7 @@ export default function HomePage() {
                     무료로 시작하기
                   </Link>
                   <Link
-                    to="/explore"
+                    to={ROUTES.resume.explore}
                     className="imp-btn group inline-flex items-center gap-2 px-6 py-3.5 bg-white/60 dark:bg-neutral-900/40 backdrop-blur-sm text-neutral-700 dark:text-neutral-300 font-medium rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 hover:bg-white dark:hover:bg-neutral-800 transition-all duration-200 text-base focus-ring-accent"
                   >
                     이력서 탐색
@@ -865,7 +866,7 @@ export default function HomePage() {
             {/* Action cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl md:max-w-3xl mx-auto mb-10 mt-12">
               <Link
-                to="/resumes/new"
+                to={ROUTES.resume.new}
                 className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
               >
                 <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform">
@@ -891,7 +892,7 @@ export default function HomePage() {
                 </span>
               </Link>
               <Link
-                to="/auto-generate"
+                to={ROUTES.resume.autoGenerate}
                 className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-cyan-200 dark:border-cyan-800 hover:border-cyan-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
               >
                 <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-cyan-100 dark:bg-cyan-900/30 group-hover:scale-110 transition-transform">
@@ -943,7 +944,7 @@ export default function HomePage() {
                 </span>
               </button>
               <Link
-                to="/explore"
+                to={ROUTES.resume.explore}
                 className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
               >
                 <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 group-hover:scale-110 transition-transform">
@@ -1002,19 +1003,19 @@ export default function HomePage() {
             {/* Bottom links */}
             <div className="text-center space-x-4 mt-12">
               <Link
-                to="/tutorial"
+                to={ROUTES.tutorial}
                 className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
               >
                 사용 가이드 보기 &rarr;
               </Link>
               <Link
-                to="/pricing"
+                to={ROUTES.pricing}
                 className="text-sm text-sky-700 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300 transition-colors"
               >
                 요금제 보기 &rarr;
               </Link>
               <Link
-                to="/jobs"
+                to={ROUTES.jobs.list}
                 className="text-sm text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors"
               >
                 채용 공고 보기 &rarr;
@@ -1110,7 +1111,7 @@ export default function HomePage() {
                   </p>
                 </div>
                 <Link
-                  to="/pricing"
+                  to={ROUTES.pricing}
                   className="shrink-0 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   요금제 보기
@@ -1127,7 +1128,7 @@ export default function HomePage() {
                   {bookmarks.slice(0, 5).map((b) => (
                     <Link
                       key={b.id}
-                      to={`/resumes/${b.resumeId}/preview`}
+                      to={ROUTES.resume.preview(b.resumeId)}
                       className="shrink-0 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
                     >
                       {b.title || b.name || '이력서'}
@@ -1166,7 +1167,7 @@ export default function HomePage() {
                 )}
               </h2>
               <Link
-                to="/resumes/new"
+                to={ROUTES.resume.new}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1349,7 +1350,7 @@ export default function HomePage() {
                     <div className="hidden sm:block w-20 shrink-0">
                       <ResumeThumbnail
                         resume={resume}
-                        onClick={() => navigate(`/resumes/${resume.id}/preview`)}
+                        onClick={() => navigate(ROUTES.resume.preview(resume.id))}
                       />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1483,7 +1484,7 @@ export default function HomePage() {
                       {/* Actions */}
                       <div className="flex items-center gap-0.5">
                         <Link
-                          to={`/resumes/${resume.id}/preview`}
+                          to={ROUTES.resume.preview(resume.id)}
                           className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-lg transition-all duration-200"
                           aria-label={`${resume.title} 미리보기`}
                           title="미리보기"
@@ -1510,7 +1511,7 @@ export default function HomePage() {
                           미리보기
                         </Link>
                         <Link
-                          to={`/resumes/${resume.id}/edit`}
+                          to={ROUTES.resume.edit(resume.id)}
                           className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
                           aria-label={`${resume.title} 편집`}
                           title="편집"
@@ -1589,7 +1590,7 @@ export default function HomePage() {
           onClose={() => setShowImport(false)}
           onSuccess={(id) => {
             setShowImport(false);
-            navigate(`/resumes/${id}/edit`);
+            navigate(ROUTES.resume.edit(id));
           }}
         />
       )}
