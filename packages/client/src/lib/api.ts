@@ -882,6 +882,7 @@ export const bookCoachingSession = (data: {
   scheduledAt: string;
   duration?: number;
   note?: string;
+  resumeId?: string;
 }) =>
   request<CoachingSession>(`${BASE}/coaching/sessions`, {
     method: 'POST',

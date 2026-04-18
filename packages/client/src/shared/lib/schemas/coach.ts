@@ -12,6 +12,7 @@ export const bookingSchema = z.object({
     .min(15, '최소 15분 이상')
     .max(240, '최대 240분까지 가능합니다'),
   note: z.string().max(1000, '요청사항은 최대 1000자까지 입력 가능합니다').optional(),
+  resumeId: z.string().optional().or(z.literal('')),
 });
 
 export type BookingFormInput = z.input<typeof bookingSchema>;

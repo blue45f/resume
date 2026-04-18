@@ -95,12 +95,46 @@ export default function CoachesPage() {
               </p>
             </div>
           </div>
-          <Link
-            to="/coaching/sessions"
-            className="inline-flex items-center justify-center px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 whitespace-nowrap"
-          >
-            내 세션 관리 →
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/coach/profile"
+              className="inline-flex items-center justify-center gap-1 px-3.5 py-2 text-xs font-semibold rounded-lg bg-gradient-to-br from-blue-600 to-cyan-600 text-white shadow-sm hover:shadow-md transition-all whitespace-nowrap"
+            >
+              🎓 나도 코치 되기
+            </Link>
+            <Link
+              to="/coaching/sessions"
+              className="inline-flex items-center justify-center px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 whitespace-nowrap"
+            >
+              내 세션 관리 →
+            </Link>
+          </div>
+        </div>
+
+        {/* 코치 되기 안내 배너 */}
+        <div className="mb-5 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-100 dark:border-blue-900/40">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 w-10 h-10 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-xl">
+                🎓
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-0.5">
+                  나도 코치로 활동하고 싶다면?
+                </h2>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  전문 분야 · 시급 · 가능 시간만 입력하면 몇 분 안에 코치 프로필이 완성됩니다.
+                  수수료는 15% (플랫폼 유지비)로 업계 최저 수준입니다.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/coach/profile"
+              className="shrink-0 inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold rounded-lg bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors whitespace-nowrap"
+            >
+              프로필 등록 →
+            </Link>
+          </div>
         </div>
 
         {/* Filter bar */}

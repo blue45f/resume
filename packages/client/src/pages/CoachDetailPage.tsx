@@ -6,7 +6,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { bookCoachingSession, type CoachProfile } from '@/lib/api';
-import { useCoach } from '@/hooks/useResources';
+import { useCoach, useResumes } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 import {
   bookingSchema,
@@ -49,8 +49,15 @@ export default function CoachDetailPage() {
       scheduledAt: getDefaultDateTime(),
       duration: 60,
       note: '',
+      resumeId: '',
     },
   });
+
+  // 로그인 유저의 이력서 목록 (예약 시 첨부할 이력서 선택용)
+  const { data: resumesData } = useResumes(!!user);
+  const myResumes: Array<{ id: string; title?: string }> = Array.isArray(resumesData)
+    ? resumesData
+    : ((resumesData as { data?: Array<{ id: string; title?: string }> } | undefined)?.data ?? []);
 
   const durationValue = watch('duration');
 
@@ -86,6 +93,7 @@ export default function CoachDetailPage() {
         scheduledAt: isoDate,
         duration: Number(data.duration),
         note: data.note?.trim() || undefined,
+        resumeId: data.resumeId?.trim() || undefined,
       });
       toast('세션 예약이 요청되었습니다', 'success');
       navigate('/coaching/sessions');
@@ -337,10 +345,38 @@ export default function CoachDetailPage() {
                   rows={4}
                   placeholder="원하시는 코칭 주제나 준비 자료를 적어주세요"
                   {...register('note')}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 resize-none focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 resize-none focus:ring-2 focus:ring-blue-500"
                 />
                 {errors.note && <p className="text-xs text-red-500 mt-1">{errors.note.message}</p>}
               </div>
+
+              {/* 이력서 공유 (선택) — 코치가 예약 확정 후 열람 가능 */}
+              {myResumes.length > 0 && (
+                <div className="mb-4">
+                  <label
+                    htmlFor="resumeId"
+                    className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1"
+                  >
+                    공유할 이력서 (선택)
+                  </label>
+                  <select
+                    id="resumeId"
+                    {...register('resumeId')}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">이력서 공유하지 않음</option>
+                    {myResumes.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.title || '제목 없음'}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
+                    선택한 이력서는 비공개 상태여도 예약 확정 후 코치가 열람할 수 있습니다. 세션
+                    취소·환불 시 즉시 차단됩니다.
+                  </p>
+                </div>
+              )}
 
               {/* Price preview */}
               <div className="rounded-xl border border-rose-100 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-900/10 p-3 text-sm mb-4 space-y-1.5">
