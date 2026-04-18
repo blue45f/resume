@@ -85,11 +85,11 @@ export default function Select({
         className={[
           'inline-flex items-center justify-between gap-2',
           'h-10 px-3.5 min-w-[140px] w-full',
-          'rounded-[12px] border border-neutral-200 dark:border-neutral-800',
-          'bg-white dark:bg-neutral-900',
-          'text-sm text-neutral-900 dark:text-neutral-100',
-          'hover:border-neutral-300 dark:hover:border-neutral-700',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/60',
+          'rounded-[var(--radius-md)] border border-[var(--color-border)]',
+          'bg-[var(--color-surface)]',
+          'text-sm text-[var(--color-text)]',
+          'hover:border-[var(--color-text-muted)]',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:border-[var(--color-accent)]',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           'transition-colors duration-150',
           className,
@@ -101,11 +101,11 @@ export default function Select({
             {selected ? (
               <span className="truncate">{selected.label}</span>
             ) : (
-              <span className="text-neutral-400 dark:text-neutral-500">{placeholder}</span>
+              <span className="text-[var(--color-text-muted)]">{placeholder}</span>
             )}
           </RadixSelect.Value>
         </span>
-        <RadixSelect.Icon className="text-neutral-400 dark:text-neutral-500">
+        <RadixSelect.Icon className="text-[var(--color-text-muted)]">
           <ChevronDown />
         </RadixSelect.Icon>
       </RadixSelect.Trigger>
@@ -116,12 +116,15 @@ export default function Select({
           sideOffset={6}
           className={[
             'z-[100] overflow-hidden',
-            'rounded-[12px] border border-neutral-200 dark:border-neutral-800',
-            'bg-white dark:bg-neutral-900',
-            'shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)]',
+            'rounded-[var(--radius-md)] border border-[var(--color-border-subtle)]',
+            'bg-[var(--color-surface)]',
+            'shadow-[var(--shadow-lg)]',
             'min-w-[var(--radix-select-trigger-width)]',
             'max-h-[var(--radix-select-content-available-height)]',
-            'animate-in fade-in-0 zoom-in-95',
+            'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-[0.96]',
+            'data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1',
+            'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-[0.96]',
+            'motion-reduce:animate-none',
           ].join(' ')}
         >
           <RadixSelect.Viewport className="p-1">
@@ -131,11 +134,11 @@ export default function Select({
                 value={opt.value}
                 className={[
                   'relative flex items-center gap-2',
-                  'px-2.5 py-2 pr-8 rounded-[8px]',
-                  'text-sm text-neutral-900 dark:text-neutral-100',
+                  'px-2.5 py-2 pr-8 rounded-[var(--radius-sm)]',
+                  'text-sm text-[var(--color-text)]',
                   'cursor-pointer select-none outline-none',
-                  'data-[highlighted]:bg-neutral-100 dark:data-[highlighted]:bg-neutral-800',
-                  'data-[state=checked]:text-blue-600 dark:data-[state=checked]:text-blue-400',
+                  'data-[highlighted]:bg-[var(--color-surface-sunken)]',
+                  'data-[state=checked]:text-[var(--color-accent)] data-[state=checked]:font-medium',
                   'data-[disabled]:opacity-50 data-[disabled]:pointer-events-none',
                   'transition-colors duration-100',
                 ].join(' ')}
