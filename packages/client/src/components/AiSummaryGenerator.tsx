@@ -108,11 +108,11 @@ export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props
   };
 
   return (
-    <div className="mt-2 rounded-xl border border-dashed border-purple-300 dark:border-purple-700 bg-purple-50/50 dark:bg-purple-900/10 p-4">
+    <div className="mt-2 rounded-xl border border-dashed border-purple-300 dark:border-purple-700 bg-purple-50/50 dark:bg-sky-900/10 p-4">
       {/* Header */}
       <div className="flex items-center gap-2 mb-2">
         <svg
-          className="w-5 h-5 text-purple-500"
+          className="w-5 h-5 text-sky-500"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -124,7 +124,7 @@ export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props
             d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
           />
         </svg>
-        <p className="text-sm font-medium text-purple-700 dark:text-purple-400">
+        <p className="text-sm font-medium text-purple-700 dark:text-sky-400">
           자기소개가 비어있습니다
         </p>
       </div>
@@ -142,7 +142,7 @@ export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center gap-2 py-6">
-          <svg className="w-5 h-5 animate-spin text-purple-500" fill="none" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 animate-spin text-sky-500" fill="none" viewBox="0 0 24 24">
             <circle
               className="opacity-25"
               cx="12"
@@ -157,7 +157,7 @@ export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <span className="text-sm text-purple-600 dark:text-purple-400">
+          <span className="text-sm text-sky-600 dark:text-sky-400">
             AI가 자기소개를 작성 중입니다...
           </span>
         </div>
@@ -166,7 +166,7 @@ export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props
       {/* Preview */}
       {preview && !loading && (
         <div className="space-y-3">
-          <div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-purple-200 dark:border-purple-800">
+          <div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-sky-200 dark:border-purple-800">
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
               AI 생성 결과:
             </p>
@@ -178,14 +178,14 @@ export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props
             <button
               type="button"
               onClick={handleAccept}
-              className="flex-1 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+              className="flex-1 px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-lg hover:bg-purple-700 transition-colors"
             >
               적용
             </button>
             <button
               type="button"
               onClick={handleRegenerate}
-              className="flex-1 px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-colors"
+              className="flex-1 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/30 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-colors"
             >
               다시 생성
             </button>

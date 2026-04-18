@@ -176,7 +176,7 @@ export default function ResumeAnalytics({ resumeId }: Props) {
     { label: '조회', value: data.viewCount, icon: '👁', color: 'text-blue-600' },
     { label: '댓글', value: data.commentCount, icon: '💬', color: 'text-green-600' },
     { label: '북마크', value: data.bookmarkCount, icon: '🔖', color: 'text-amber-600' },
-    { label: '공유', value: data.shareCount, icon: '🔗', color: 'text-purple-600' },
+    { label: '공유', value: data.shareCount, icon: '🔗', color: 'text-sky-600' },
     { label: '버전', value: data.versionCount, icon: '📋', color: 'text-slate-600' },
   ];
 

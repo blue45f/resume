@@ -27,7 +27,7 @@ const STATUSES = [
   {
     value: 'screening',
     label: '서류심사',
-    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'bg-sky-100 text-purple-700 dark:bg-sky-900/30 dark:text-sky-400',
   },
   {
     value: 'interview',
@@ -56,7 +56,7 @@ const KANBAN_COLUMNS = [
   {
     value: 'screening',
     label: '서류통과',
-    headerColor: 'bg-purple-500',
+    headerColor: 'bg-sky-500',
     nextStatus: 'interview',
     prevStatus: 'applied',
   },
@@ -1030,7 +1030,7 @@ export default function ApplicationsPage() {
                       {
                         label: '서류심사',
                         key: 'screening',
-                        color: 'bg-purple-500',
+                        color: 'bg-sky-500',
                         total: apps.filter((a) =>
                           ['screening', 'interview', 'offer'].includes(a.status),
                         ).length,
@@ -1230,7 +1230,7 @@ export default function ApplicationsPage() {
                               s.value === 'applied'
                                 ? 'bg-blue-500'
                                 : s.value === 'screening'
-                                  ? 'bg-purple-500'
+                                  ? 'bg-sky-500'
                                   : s.value === 'interview'
                                     ? 'bg-amber-500'
                                     : s.value === 'offer'
@@ -1250,7 +1250,7 @@ export default function ApplicationsPage() {
                                   s.value === 'applied'
                                     ? 'bg-blue-500'
                                     : s.value === 'screening'
-                                      ? 'bg-purple-500'
+                                      ? 'bg-sky-500'
                                       : s.value === 'interview'
                                         ? 'bg-amber-500'
                                         : s.value === 'offer'

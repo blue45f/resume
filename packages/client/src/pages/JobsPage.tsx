@@ -2046,9 +2046,9 @@ const JOB_TYPES: Record<string, string> = {
 const SKILL_COLORS = [
   { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400' },
   { bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-600 dark:text-emerald-400' },
-  { bg: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400' },
+  { bg: 'bg-purple-50 dark:bg-sky-900/20', text: 'text-sky-600 dark:text-sky-400' },
   { bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400' },
-  { bg: 'bg-rose-50 dark:bg-rose-900/20', text: 'text-rose-600 dark:text-rose-400' },
+  { bg: 'bg-rose-50 dark:bg-blue-900/20', text: 'text-blue-700 dark:text-blue-400' },
   { bg: 'bg-cyan-50 dark:bg-cyan-900/20', text: 'text-cyan-600 dark:text-cyan-400' },
 ];
 

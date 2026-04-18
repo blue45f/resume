@@ -25,7 +25,7 @@ interface Activity {
 
 const ACTIVITY_ICONS: Record<string, ReactElement> = {
   view: (
-    <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -81,7 +81,7 @@ const ACTIVITY_ICONS: Record<string, ReactElement> = {
     </svg>
   ),
   comment: (
-    <svg className="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -101,7 +101,7 @@ const ACTIVITY_ICONS: Record<string, ReactElement> = {
     </svg>
   ),
   social_comment: (
-    <svg className="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -125,10 +125,10 @@ const ACTIVITY_ICONS: Record<string, ReactElement> = {
 const AVATAR_COLORS = [
   'bg-blue-500',
   'bg-emerald-500',
-  'bg-purple-500',
+  'bg-sky-500',
   'bg-orange-500',
   'bg-cyan-500',
-  'bg-rose-500',
+  'bg-blue-600',
   'bg-amber-500',
   'bg-teal-500',
 ];

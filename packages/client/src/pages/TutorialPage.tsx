@@ -509,7 +509,7 @@ export default function TutorialPage() {
             </Link>
             <Link
               to="/auto-generate"
-              className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-medium rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
+              className="inline-flex items-center px-6 py-3 bg-sky-600 text-white font-medium rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
             >
               AI 자동 생성
             </Link>

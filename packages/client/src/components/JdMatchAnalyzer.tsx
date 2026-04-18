@@ -663,7 +663,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
                       <button
                         onClick={runOptimize}
                         disabled={optimizing}
-                        className="flex-1 py-3 bg-purple-600 text-white text-sm font-semibold rounded-xl hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                        className="flex-1 py-3 bg-sky-600 text-white text-sm font-semibold rounded-xl hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                       >
                         {optimizing ? (
                           <>

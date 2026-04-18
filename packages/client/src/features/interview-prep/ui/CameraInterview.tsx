@@ -274,7 +274,7 @@ export default function CameraInterview({
       {permission !== 'granted' && (
         <div className="space-y-3">
           {permission === 'denied' && error && (
-            <div className="rounded-lg border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/20 p-3 text-sm text-rose-700 dark:text-rose-300">
+            <div className="rounded-lg border border-blue-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/20 p-3 text-sm text-rose-700 dark:text-rose-300">
               {error}
             </div>
           )}
@@ -353,7 +353,7 @@ export default function CameraInterview({
           </div>
 
           {error && (
-            <div className="rounded-lg border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/20 p-3 text-sm text-rose-700 dark:text-rose-300">
+            <div className="rounded-lg border border-blue-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/20 p-3 text-sm text-rose-700 dark:text-rose-300">
               {error}
             </div>
           )}
@@ -378,7 +378,7 @@ export default function CameraInterview({
               <button
                 type="button"
                 onClick={stopRecording}
-                className="imp-btn px-4 py-2 text-sm bg-rose-600 hover:bg-rose-700 text-white"
+                className="imp-btn px-4 py-2 text-sm bg-blue-700 hover:bg-rose-700 text-white"
                 aria-label="녹화 정지 (스페이스 키)"
               >
                 <span className="inline-flex items-center gap-2">

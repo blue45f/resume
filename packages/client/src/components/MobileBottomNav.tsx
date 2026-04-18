@@ -122,7 +122,7 @@ const RECRUITER_ITEMS: NavItem[] = [
       </svg>
     ),
     match: (p) => p === '/explore',
-    activeColor: 'text-purple-600 dark:text-purple-400',
+    activeColor: 'text-sky-600 dark:text-sky-400',
   },
   {
     to: '/jobs',
@@ -143,7 +143,7 @@ const RECRUITER_ITEMS: NavItem[] = [
       </svg>
     ),
     match: (p) => p.startsWith('/jobs'),
-    activeColor: 'text-purple-600 dark:text-purple-400',
+    activeColor: 'text-sky-600 dark:text-sky-400',
   },
   {
     to: '/jobs/new',
@@ -175,7 +175,7 @@ const RECRUITER_ITEMS: NavItem[] = [
       </svg>
     ),
     match: (p) => p === '/scouts',
-    activeColor: 'text-purple-600 dark:text-purple-400',
+    activeColor: 'text-sky-600 dark:text-sky-400',
   },
   {
     to: '/recruiter',
@@ -196,7 +196,7 @@ const RECRUITER_ITEMS: NavItem[] = [
       </svg>
     ),
     match: (p) => p === '/recruiter',
-    activeColor: 'text-purple-600 dark:text-purple-400',
+    activeColor: 'text-sky-600 dark:text-sky-400',
   },
 ];
 
@@ -229,7 +229,7 @@ export default function MobileBottomNav() {
 
   const items = isRecruiter ? RECRUITER_ITEMS : JOBSEEKER_ITEMS;
   const activeColor = isRecruiter
-    ? 'text-purple-600 dark:text-purple-400'
+    ? 'text-sky-600 dark:text-sky-400'
     : 'text-blue-600 dark:text-blue-400';
   const highlightGradient = isRecruiter
     ? 'bg-gradient-to-br from-purple-600 to-indigo-600 shadow-purple-600/30'
@@ -264,7 +264,7 @@ export default function MobileBottomNav() {
             <span
               className={`text-[10px] leading-tight ${
                 item.highlight
-                  ? `${isRecruiter ? 'text-purple-600 dark:text-purple-400' : 'text-blue-600 dark:text-blue-400'} font-medium`
+                  ? `${isRecruiter ? 'text-sky-600 dark:text-sky-400' : 'text-blue-600 dark:text-blue-400'} font-medium`
                   : active
                     ? 'font-semibold'
                     : ''

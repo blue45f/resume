@@ -18,7 +18,7 @@ const TYPE_INFO: Record<string, { label: string; color: string; icon: string }> 
   EVENT: {
     label: '이벤트',
     icon: '🎉',
-    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'bg-sky-100 text-purple-700 dark:bg-sky-900/30 dark:text-sky-400',
   },
 };
 

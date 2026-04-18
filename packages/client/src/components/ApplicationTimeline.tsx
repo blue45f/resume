@@ -20,9 +20,9 @@ const STAGES = [
   {
     key: 'screening',
     label: '서류심사',
-    color: 'bg-purple-500',
-    lightColor: 'bg-purple-100 dark:bg-purple-900/30',
-    textColor: 'text-purple-600 dark:text-purple-400',
+    color: 'bg-sky-500',
+    lightColor: 'bg-sky-100 dark:bg-sky-900/30',
+    textColor: 'text-sky-600 dark:text-sky-400',
     avgDays: 7,
   },
   {

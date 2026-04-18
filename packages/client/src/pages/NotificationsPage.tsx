@@ -52,9 +52,9 @@ const TYPE_META: Record<string, { icon: string; bg: string; label: string; color
   },
   scout: {
     icon: '📨',
-    bg: 'bg-purple-100 dark:bg-purple-900/30',
+    bg: 'bg-sky-100 dark:bg-sky-900/30',
     label: '스카우트',
-    color: 'text-purple-600 dark:text-purple-400',
+    color: 'text-sky-600 dark:text-sky-400',
   },
   message: {
     icon: '✉️',

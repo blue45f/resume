@@ -63,7 +63,7 @@ export default function NotificationBell() {
       scout: { icon: '🏢', color: 'bg-amber-100 dark:bg-amber-900/30' },
       message: { icon: '✉️', color: 'bg-blue-100 dark:bg-blue-900/30' },
       endorsement: { icon: '⭐', color: 'bg-yellow-100 dark:bg-yellow-900/30' },
-      bookmark: { icon: '🔖', color: 'bg-rose-100 dark:bg-rose-900/30' },
+      bookmark: { icon: '🔖', color: 'bg-blue-100 dark:bg-blue-900/30' },
     };
     return icons[type] || { icon: '🔔', color: 'bg-neutral-100 dark:bg-neutral-700' };
   };

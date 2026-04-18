@@ -183,7 +183,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
               }}
               className={`flex-1 py-2.5 text-sm font-medium text-center transition-colors focus:outline-none ${
                 mode === 'llm'
-                  ? 'text-purple-600 border-b-2 border-purple-600'
+                  ? 'text-sky-600 border-b-2 border-purple-600'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
@@ -289,9 +289,9 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                       <button
                         key={opt.value}
                         onClick={() => setTemplateType(opt.value)}
-                        className={`px-3 py-2.5 text-sm rounded-lg border text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                        className={`px-3 py-2.5 text-sm rounded-lg border text-left transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500 ${
                           templateType === opt.value
-                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-700 font-medium'
+                            ? 'border-purple-500 bg-purple-50 dark:bg-sky-900/30 text-purple-700 font-medium'
                             : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                         }`}
                       >
@@ -312,7 +312,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                     id="target-lang"
                     value={targetLanguage}
                     onChange={(e) => setTargetLanguage(e.target.value)}
-                    className="w-full sm:w-auto px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-700 dark:text-slate-100"
+                    className="w-full sm:w-auto px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white dark:bg-slate-700 dark:text-slate-100"
                   >
                     <option value="ko">한국어</option>
                     <option value="en">English</option>
@@ -343,7 +343,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                     value={jobDescription}
                     onChange={(e) => setJobDescription(e.target.value)}
                     placeholder="JD를 붙여넣으면 맞춤 최적화됩니다"
-                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-700 dark:text-slate-100"
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white dark:bg-slate-700 dark:text-slate-100"
                     maxLength={3000}
                   />
                   <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
@@ -406,7 +406,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
               className={`w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-white rounded-lg disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
                 mode === 'local'
                   ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
-                  : 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500'
+                  : 'bg-sky-600 hover:bg-purple-700 focus:ring-sky-500'
               }`}
               aria-busy={loading}
             >

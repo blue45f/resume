@@ -459,7 +459,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 flex items-center gap-1.5 px-2 py-3 bg-purple-600 text-white rounded-l-xl shadow-lg hover:bg-purple-700 transition-all duration-200 group"
+          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 flex items-center gap-1.5 px-2 py-3 bg-sky-600 text-white rounded-l-xl shadow-lg hover:bg-purple-700 transition-all duration-200 group"
           aria-label="AI 코치 열기"
         >
           <svg
@@ -509,7 +509,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 shrink-0">
               <div className="flex items-center gap-2">
                 <svg
-                  className="w-5 h-5 text-purple-600 dark:text-purple-400"
+                  className="w-5 h-5 text-sky-600 dark:text-sky-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -584,7 +584,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
                   onClick={() => setActiveCategory('all')}
                   className={`shrink-0 px-2.5 py-1 text-xs rounded-full transition-colors ${
                     activeCategory === 'all'
-                      ? 'bg-purple-600 text-white'
+                      ? 'bg-sky-600 text-white'
                       : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                   }`}
                 >
@@ -598,7 +598,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
                       onClick={() => setActiveCategory(cat)}
                       className={`shrink-0 px-2.5 py-1 text-xs rounded-full transition-colors ${
                         activeCategory === cat
-                          ? 'bg-purple-600 text-white'
+                          ? 'bg-sky-600 text-white'
                           : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                       }`}
                     >
@@ -671,7 +671,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
                           {tip.fixAction && (
                             <button
                               onClick={tip.fixAction}
-                              className="mt-1.5 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/30 rounded-md hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-colors"
+                              className="mt-1.5 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 bg-sky-100 dark:bg-sky-900/30 rounded-md hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-colors"
                             >
                               자동 수정
                             </button>
@@ -689,7 +689,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
               <button
                 onClick={fetchAiCoaching}
                 disabled={loadingAi}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
               >
                 {loadingAi ? (
                   <>

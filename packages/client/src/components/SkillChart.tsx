@@ -18,14 +18,14 @@ const PROFICIENCY_COLORS = [
   'text-blue-500 bg-blue-50 dark:bg-blue-900/30',
   'text-green-500 bg-green-50 dark:bg-green-900/30',
   'text-amber-500 bg-amber-50 dark:bg-amber-900/30',
-  'text-purple-500 bg-purple-50 dark:bg-purple-900/30',
+  'text-sky-500 bg-purple-50 dark:bg-sky-900/30',
 ] as const;
 const PROFICIENCY_BAR_COLORS = [
   'from-slate-300 to-slate-400',
   'from-blue-400 to-blue-500',
   'from-green-400 to-emerald-500',
   'from-amber-400 to-orange-500',
-  'from-purple-500 to-pink-500',
+  'from-blue-500 to-cyan-500',
 ] as const;
 
 function getProficiencyIndex(count: number, maxCount: number): number {

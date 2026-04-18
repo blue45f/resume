@@ -102,7 +102,7 @@ export default function DashboardStats() {
       value: data.summary.totalViews,
       prevValue: prev.totalViews,
       icon: '👁',
-      color: 'text-purple-600',
+      color: 'text-sky-600',
       link: '/',
     },
     {
@@ -118,7 +118,7 @@ export default function DashboardStats() {
       value: data.summary.recentEdits,
       prevValue: prev.recentEdits,
       icon: '✏️',
-      color: 'text-rose-600',
+      color: 'text-blue-700',
       link: '/',
     },
   ];

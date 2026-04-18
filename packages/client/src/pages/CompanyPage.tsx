@@ -615,7 +615,7 @@ export default function CompanyPage() {
                 <span className="px-2.5 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
                   {industry}
                 </span>
-                <span className="px-2.5 py-1 text-xs font-medium bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 rounded-full">
+                <span className="px-2.5 py-1 text-xs font-medium bg-sky-100 dark:bg-sky-900/30 text-violet-700 dark:text-sky-400 rounded-full">
                   {estimatedSize}
                 </span>
                 {locations.map((loc) => (
@@ -640,7 +640,7 @@ export default function CompanyPage() {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">채용 중인 공고</p>
           </div>
           <div className="imp-card p-4 text-center">
-            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+            <p className="text-2xl font-bold text-sky-600 dark:text-sky-400">
               {companyJobs.length}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">전체 공고</p>

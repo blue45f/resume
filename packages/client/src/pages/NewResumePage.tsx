@@ -1354,13 +1354,13 @@ export default function NewResumePage() {
                   onClick={() => setStartMode('ai-upload')}
                   className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
                     startMode === 'ai-upload'
-                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 ring-1 ring-purple-500'
+                      ? 'border-purple-500 bg-purple-50 dark:bg-sky-900/20 ring-1 ring-purple-500'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                 >
-                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-2">
+                  <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-lg flex items-center justify-center mb-2">
                     <svg
-                      className="w-5 h-5 text-purple-500 dark:text-purple-400"
+                      className="w-5 h-5 text-sky-500 dark:text-sky-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1486,7 +1486,7 @@ export default function NewResumePage() {
 
               {/* AI Upload mode */}
               {startMode === 'ai-upload' && (
-                <div className="mt-3 p-4 bg-purple-50 dark:bg-purple-900/10 rounded-xl border border-purple-200 dark:border-purple-800">
+                <div className="mt-3 p-4 bg-purple-50 dark:bg-sky-900/10 rounded-xl border border-sky-200 dark:border-purple-800">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     경력증명서, 기존 이력서, 자기소개 텍스트 등을 붙여넣거나 파일을 업로드하세요
                   </label>
@@ -1497,12 +1497,12 @@ export default function NewResumePage() {
                       '경력 메모, LinkedIn 프로필, 이전 이력서 내용 등을 자유롭게 붙여넣기...\n\n예시:\n이름: 홍길동\n경력: 네이버 프론트엔드 개발자 3년\n기술: React, TypeScript, Node.js'
                     }
                     rows={6}
-                    className="w-full px-3 py-2 text-sm border border-purple-200 dark:border-purple-700 rounded-xl dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-purple-500 resize-none mb-3"
+                    className="w-full px-3 py-2 text-sm border border-sky-200 dark:border-purple-700 rounded-xl dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 resize-none mb-3"
                   />
                   <div className="flex items-center gap-3 mb-3">
-                    <label className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-700 rounded-lg cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-sm">
+                    <label className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-sky-200 dark:border-purple-700 rounded-lg cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-sm">
                       <svg
-                        className="w-4 h-4 text-purple-500"
+                        className="w-4 h-4 text-sky-500"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1523,7 +1523,7 @@ export default function NewResumePage() {
                       />
                     </label>
                     {uploadFile && (
-                      <div className="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400">
+                      <div className="flex items-center gap-2 text-sm text-sky-600 dark:text-sky-400">
                         <span>{uploadFile.name}</span>
                         <button
                           onClick={() => setUploadFile(null)}
@@ -1537,7 +1537,7 @@ export default function NewResumePage() {
                   <button
                     onClick={handleAiUpload}
                     disabled={aiLoading || (!uploadText.trim() && !uploadFile)}
-                    className="w-full py-2.5 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-2.5 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                   >
                     {aiLoading ? (
                       <>
@@ -1858,7 +1858,7 @@ export default function NewResumePage() {
                                     추천
                                   </span>
                                   {(t.usageCount || 0) >= popularThreshold && maxUsage > 0 && (
-                                    <span className="px-2 py-0.5 text-[10px] font-bold bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full">
+                                    <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
                                       인기 템플릿
                                     </span>
                                   )}
@@ -1927,7 +1927,7 @@ export default function NewResumePage() {
                                 </h3>
                                 <div className="flex items-center gap-1 shrink-0 ml-1">
                                   {isPopular && (
-                                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full whitespace-nowrap">
+                                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full whitespace-nowrap">
                                       인기
                                     </span>
                                   )}

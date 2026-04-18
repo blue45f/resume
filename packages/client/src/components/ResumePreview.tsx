@@ -163,8 +163,8 @@ function SkillsDisplay({
     const colorMap: Record<string, string> = {
       blue: 'bg-blue-100 text-blue-700 border-blue-200',
       indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-      slate: 'bg-violet-100 text-violet-700 border-violet-200',
-      purple: 'bg-pink-100 text-pink-700 border-pink-200',
+      slate: 'bg-sky-100 text-violet-700 border-sky-200',
+      purple: 'bg-cyan-100 text-pink-700 border-cyan-200',
     };
     const pillColor = colorMap[accentColor] || colorMap.blue;
     return (
@@ -219,7 +219,7 @@ function SkillsDisplay({
   // Colored cards with level bar
   if (['creative', 'portfolio'].includes(themeId)) {
     const gradients = [
-      'from-purple-500 to-pink-500',
+      'from-blue-500 to-cyan-500',
       'from-blue-500 to-cyan-400',
       'from-orange-400 to-red-500',
       'from-green-400 to-emerald-500',
@@ -1297,7 +1297,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                         <div key={lang.id} className="text-sm">
                           <span className="font-medium text-slate-900">{lang.name}</span>
                           {lang.score && (
-                            <span className="text-purple-600 ml-2 font-medium">{lang.score}</span>
+                            <span className="text-sky-600 ml-2 font-medium">{lang.score}</span>
                           )}
                         </div>
                       ))}
@@ -1826,9 +1826,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                         <span className="text-2xl text-indigo-300 select-none">&#9998;</span>
                       </div>
                       <h3 className="font-bold text-slate-900 text-sm">{proj.name}</h3>
-                      {proj.role && (
-                        <div className="text-xs text-purple-600 mt-0.5">{proj.role}</div>
-                      )}
+                      {proj.role && <div className="text-xs text-sky-600 mt-0.5">{proj.role}</div>}
                       {proj.description && (
                         <SafeHtml
                           html={proj.description}

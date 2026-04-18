@@ -368,7 +368,7 @@ export default function MockInterviewPage() {
                     <button
                       type="button"
                       onClick={() => handleDeleteSaved(s.id)}
-                      className="shrink-0 text-xs text-slate-400 hover:text-rose-600"
+                      className="shrink-0 text-xs text-slate-400 hover:text-blue-700"
                       aria-label="기록 삭제"
                     >
                       삭제

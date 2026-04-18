@@ -184,7 +184,7 @@ export default function AdminPage() {
           </h1>
           <div className="flex items-center gap-2">
             {isSuperAdmin && (
-              <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full">
+              <span className="text-xs px-2 py-1 bg-sky-100 dark:bg-sky-900/30 text-purple-700 dark:text-sky-400 rounded-full">
                 SuperAdmin
               </span>
             )}
@@ -346,7 +346,7 @@ export default function AdminPage() {
                 )}
                 <section>
                   <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-rose-500 rounded" />
+                    <span className="w-1.5 h-4 bg-blue-600 rounded" />
                     회원 관리
                   </h2>
                   <AdminUsersTab isSuperAdmin={isSuperAdmin} />
@@ -637,17 +637,17 @@ function StatCard({
   const colorMap: Record<string, string> = {
     blue: 'text-blue-600',
     green: 'text-green-600',
-    purple: 'text-purple-600',
+    purple: 'text-sky-600',
     amber: 'text-amber-600',
-    rose: 'text-rose-600',
+    rose: 'text-blue-700',
     indigo: 'text-indigo-600',
   };
   const bgMap: Record<string, string> = {
     blue: 'bg-blue-50 dark:bg-blue-900/20',
     green: 'bg-green-50 dark:bg-green-900/20',
-    purple: 'bg-purple-50 dark:bg-purple-900/20',
+    purple: 'bg-purple-50 dark:bg-sky-900/20',
     amber: 'bg-amber-50 dark:bg-amber-900/20',
-    rose: 'bg-rose-50 dark:bg-rose-900/20',
+    rose: 'bg-rose-50 dark:bg-blue-900/20',
     indigo: 'bg-indigo-50 dark:bg-indigo-900/20',
   };
   return (
@@ -760,7 +760,7 @@ function DashboardHome({ stats }: { stats: Stats }) {
       {/* Charts */}
       <section>
         <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-          <span className="w-1.5 h-4 bg-purple-500 rounded" />
+          <span className="w-1.5 h-4 bg-sky-500 rounded" />
           7일 추이
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -792,7 +792,7 @@ function DashboardHome({ stats }: { stats: Stats }) {
 
       <section>
         <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-          <span className="w-1.5 h-4 bg-rose-500 rounded" />
+          <span className="w-1.5 h-4 bg-blue-600 rounded" />
           코칭 현황
         </h2>
         <CoachingStatsWidget coaching={stats.coaching} />
@@ -863,7 +863,7 @@ function CoachingStatsWidget({ coaching }: { coaching?: Stats['coaching'] }) {
               {
                 key: 'refunded',
                 label: '환불',
-                cls: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
+                cls: 'bg-blue-100 dark:bg-blue-900/30 text-rose-700 dark:text-rose-300',
               },
             ].map((item) => {
               const n = Number((by as any)[item.key] ?? 0);
@@ -992,7 +992,7 @@ function ReportedContentQueue() {
                         className={`text-xs px-2 py-0.5 rounded-full ${
                           item.type === 'resume'
                             ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                            : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
+                            : 'bg-sky-100 dark:bg-sky-900/30 text-purple-700 dark:text-sky-400'
                         }`}
                       >
                         {item.type === 'resume' ? '이력서' : '댓글'}
@@ -1116,7 +1116,7 @@ const BANNER_COLORS = [
   {
     label: '로즈',
     value: 'linear-gradient(135deg, #f43f5e, #db2777)',
-    preview: 'from-rose-500 to-pink-600',
+    preview: 'from-blue-600 to-cyan-600',
   },
   {
     label: '슬레이트',
@@ -1486,7 +1486,7 @@ const NOTICE_TYPE_COLORS: Record<string, string> = {
   MAINTENANCE: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
   EVENT: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
   UPDATE: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
-  URGENT: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
+  URGENT: 'bg-blue-100 dark:bg-blue-900/30 text-rose-700 dark:text-blue-400',
 };
 
 function AdminNoticesTab() {
@@ -1806,7 +1806,7 @@ function AdminNoticesTab() {
                       </span>
                     )}
                     {n.isPopup && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-purple-700 dark:text-sky-400">
                         팝업
                       </span>
                     )}
@@ -1932,7 +1932,7 @@ function AdminCommunityTab() {
     free: 'bg-slate-100 text-slate-600',
     tips: 'bg-yellow-100 text-yellow-700',
     resume: 'bg-blue-100 text-blue-700',
-    'cover-letter': 'bg-purple-100 text-purple-700',
+    'cover-letter': 'bg-sky-100 text-purple-700',
     question: 'bg-green-100 text-green-700',
   };
 
@@ -2373,7 +2373,7 @@ function SystemSettings() {
                         info: 'bg-blue-600 text-white',
                         warning: 'bg-amber-500 text-white',
                         success: 'bg-emerald-600 text-white',
-                        promo: 'bg-purple-600 text-white',
+                        promo: 'bg-sky-600 text-white',
                       }[t]
                     : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                 }`}
@@ -3293,7 +3293,7 @@ const PERM_ROLES = [
   {
     key: 'recruiter',
     label: '채용담당자',
-    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'bg-sky-100 text-purple-700 dark:bg-sky-900/30 dark:text-sky-400',
     border: 'border-purple-300 dark:border-purple-700',
   },
   {

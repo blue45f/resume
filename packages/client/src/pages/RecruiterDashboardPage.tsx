@@ -23,7 +23,7 @@ const PIPELINE_STAGES = [
   {
     key: 'interview',
     label: '면접',
-    color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
+    color: 'bg-sky-100 dark:bg-sky-900/30 text-purple-700 dark:text-sky-400',
     icon: '🗓',
   },
   {
@@ -200,7 +200,7 @@ export default function RecruiterDashboardPage() {
                   label: '스카우트 응답률',
                   value: `${scoutResponseRate}%`,
                   icon: '📊',
-                  color: 'text-purple-600',
+                  color: 'text-sky-600',
                 },
                 {
                   label: '보낸 스카우트',

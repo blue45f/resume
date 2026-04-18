@@ -23,7 +23,7 @@ const SITEMAP = [
   {
     title: 'AI 도구',
     icon: '🤖',
-    color: 'from-purple-500 to-pink-500',
+    color: 'from-blue-500 to-cyan-500',
     links: [
       { to: '/cover-letter', label: '자소서 생성', desc: 'AI 자기소개서 작성' },
       { to: '/my-cover-letters', label: '내 자소서', desc: '작성한 자소서 관리', auth: true },

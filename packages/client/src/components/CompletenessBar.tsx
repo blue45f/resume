@@ -8,7 +8,7 @@ interface Props {
 }
 
 const gradeColors: Record<string, string> = {
-  S: 'text-purple-600 bg-purple-100',
+  S: 'text-sky-600 bg-sky-100',
   A: 'text-blue-600 bg-blue-100',
   B: 'text-green-600 bg-green-100',
   C: 'text-amber-600 bg-amber-100',
@@ -16,7 +16,7 @@ const gradeColors: Record<string, string> = {
 };
 
 const barColors: Record<string, string> = {
-  S: 'bg-purple-500',
+  S: 'bg-sky-500',
   A: 'bg-blue-500',
   B: 'bg-green-500',
   C: 'bg-amber-500',

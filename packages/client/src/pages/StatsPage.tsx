@@ -219,7 +219,7 @@ function JobStatsSection() {
         {/* By Skill */}
         <div className="imp-card p-5 lg:col-span-2">
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-            <span className="w-1.5 h-4 bg-purple-500 rounded" />
+            <span className="w-1.5 h-4 bg-sky-500 rounded" />
             채용 요구 기술 TOP 20
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -229,7 +229,7 @@ function JobStatsSection() {
               return (
                 <span
                   key={s.skill || s.name}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm border border-purple-200 dark:border-purple-800 transition-colors hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm border border-sky-200 dark:border-purple-800 transition-colors hover:bg-purple-50 dark:hover:bg-purple-900/20"
                   style={{ opacity }}
                 >
                   <span className="font-medium text-purple-700 dark:text-purple-300">
@@ -352,7 +352,7 @@ export default function StatsPage() {
                   label: '총 조회수',
                   value: stats.activity.totalViews,
                   sub: '',
-                  color: 'from-purple-500 to-pink-600',
+                  color: 'from-blue-500 to-cyan-600',
                   icon: '👀',
                 },
                 {

@@ -197,7 +197,7 @@ function LiveCompletenessBar({ resume }: { resume: Partial<Resume> }) {
   const grade = result.grade;
 
   const gradeColors: Record<string, string> = {
-    S: 'text-purple-600 bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800 dark:text-purple-400',
+    S: 'text-sky-600 bg-purple-50 border-sky-200 dark:bg-sky-900/20 dark:border-purple-800 dark:text-sky-400',
     A: 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400',
     B: 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400',
     C: 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400',
@@ -327,7 +327,7 @@ function LiveCompletenessBar({ resume }: { resume: Partial<Resume> }) {
             ))}
           </div>
           {pct === 100 && (
-            <p className="mt-2 text-[11px] text-center text-purple-600 dark:text-purple-400 font-medium">
+            <p className="mt-2 text-[11px] text-center text-sky-600 dark:text-sky-400 font-medium">
               🎉 완벽한 이력서! 이제 공개로 전환해 보세요.
             </p>
           )}

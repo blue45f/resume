@@ -159,7 +159,7 @@ export default function JobStudyGroupsPanel({
         </div>
       ) : error ? (
         <div className="imp-card p-6 text-center">
-          <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>
+          <p className="text-sm text-blue-700 dark:text-blue-400">{error}</p>
           <button
             type="button"
             onClick={load}

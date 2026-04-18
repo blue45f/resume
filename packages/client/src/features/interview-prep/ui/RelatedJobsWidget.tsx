@@ -118,7 +118,7 @@ export default function RelatedJobsWidget({
           ))}
         </div>
       ) : error ? (
-        <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p>
+        <p className="text-xs text-blue-700 dark:text-blue-400">{error}</p>
       ) : ranked.length === 0 ? (
         <p className="text-xs text-slate-500 dark:text-slate-400">
           조건에 맞는 채용 공고가 아직 없어요.

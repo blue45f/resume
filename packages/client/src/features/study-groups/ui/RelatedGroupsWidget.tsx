@@ -108,7 +108,7 @@ export default function RelatedGroupsWidget({
           ))}
         </div>
       ) : error ? (
-        <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p>
+        <p className="text-xs text-blue-700 dark:text-blue-400">{error}</p>
       ) : groups.length === 0 ? (
         <p className="text-xs text-slate-500 dark:text-slate-400">
           해당 회사·포지션의 스터디 그룹이 아직 없어요.

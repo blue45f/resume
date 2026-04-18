@@ -51,7 +51,7 @@ export default function AiCoachTip({ resumeId, section, currentText, onApply }: 
         <button
           onClick={expanded ? () => setExpanded(false) : getSuggestion}
           disabled={loading}
-          className="inline-flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1 text-xs text-sky-600 dark:text-sky-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors disabled:opacity-50"
         >
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -65,9 +65,9 @@ export default function AiCoachTip({ resumeId, section, currentText, onApply }: 
         </button>
 
         {expanded && suggestion && (
-          <div className="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg animate-fade-in">
+          <div className="mt-2 p-3 bg-purple-50 dark:bg-sky-900/20 border border-sky-200 dark:border-purple-800 rounded-lg animate-fade-in">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-medium text-purple-700 dark:text-purple-400">
+              <span className="text-xs font-medium text-purple-700 dark:text-sky-400">
                 AI 개선안
               </span>
               {onApply && (
@@ -76,7 +76,7 @@ export default function AiCoachTip({ resumeId, section, currentText, onApply }: 
                     onApply(suggestion);
                     toast('개선안이 적용되었습니다', 'success');
                   }}
-                  className="text-xs px-2 py-0.5 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                  className="text-xs px-2 py-0.5 bg-sky-600 text-white rounded hover:bg-purple-700 transition-colors"
                 >
                   적용
                 </button>

@@ -940,7 +940,7 @@ export default function InterviewPrepPage() {
                     : currentQ?.category === '행동'
                       ? 'bg-green-100 dark:bg-green-900/30 text-green-600'
                       : currentQ?.category === '상황'
-                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
+                        ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-600'
                         : 'bg-orange-100 dark:bg-orange-900/30 text-orange-600'
                 }`}
               >
@@ -1871,7 +1871,7 @@ export default function InterviewPrepPage() {
                             onClick={() =>
                               setShowHistoryFor(showHistoryFor === questionKey ? null : questionKey)
                             }
-                            className="text-xs text-purple-600 dark:text-purple-400 hover:underline py-1"
+                            className="text-xs text-sky-600 dark:text-sky-400 hover:underline py-1"
                           >
                             이전 답변 ({history.length}개){' '}
                             {showHistoryFor === questionKey ? '숨기기' : '보기'}
@@ -1881,10 +1881,10 @@ export default function InterviewPrepPage() {
                               {history.map((h, hi) => (
                                 <div
                                   key={hi}
-                                  className="p-2 bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800/50 rounded-lg"
+                                  className="p-2 bg-purple-50 dark:bg-sky-900/10 border border-sky-200 dark:border-purple-800/50 rounded-lg"
                                 >
                                   <div className="flex items-center justify-between mb-1">
-                                    <span className="text-xs text-purple-500 dark:text-purple-400">
+                                    <span className="text-xs text-sky-500 dark:text-sky-400">
                                       {new Date(h.date).toLocaleDateString('ko-KR')}{' '}
                                       {new Date(h.date).toLocaleTimeString('ko-KR', {
                                         hour: '2-digit',

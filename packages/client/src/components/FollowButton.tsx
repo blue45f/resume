@@ -75,7 +75,7 @@ export default function FollowButton({
         {loading ? '...' : showUnfollow ? '팔로우 취소' : following ? '팔로잉' : '팔로우'}
       </button>
       {following && mutual && (
-        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full">
+        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 rounded-full">
           <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
