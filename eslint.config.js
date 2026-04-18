@@ -6,7 +6,19 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'dist-server', 'node_modules', 'coverage', '**/*.d.ts', 'packages/**']),
+  globalIgnores([
+    'dist',
+    'dist-server',
+    'node_modules',
+    'coverage',
+    '**/*.d.ts',
+    'packages/*/dist',
+    'packages/*/dist-server',
+    'packages/*/node_modules',
+    'packages/*/coverage',
+    'packages/client/public/**',
+    'packages/server/prisma/migrations/**',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
