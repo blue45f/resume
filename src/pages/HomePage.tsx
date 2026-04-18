@@ -1366,7 +1366,7 @@ export default function HomePage() {
                           if (daysSinceUpdate >= 30)
                             return (
                               <span
-                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full"
+                                className="badge-xs badge-amber"
                                 title="30일 이상 업데이트되지 않았습니다"
                               >
                                 <svg
