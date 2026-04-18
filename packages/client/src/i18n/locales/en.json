@@ -280,6 +280,16 @@
     "lastLogin": "Last login",
     "editDetails": "Edit Details"
   },
+  "footer": {
+    "brandName": "Resume Workshop",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "feedback": "Feedback",
+    "github": "GitHub",
+    "pipaCompliance": "PIPA Compliant",
+    "copyright": "© 2025 Resume Workshop",
+    "madeWith": "AI · React · TypeScript"
+  },
   "a11y": {
     "closeDialog": "Close dialog",
     "openMenu": "Open menu",

@@ -280,6 +280,16 @@
     "lastLogin": "최근 로그인",
     "editDetails": "상세 정보 편집"
   },
+  "footer": {
+    "brandName": "이력서공방",
+    "terms": "이용약관",
+    "privacy": "개인정보처리방침",
+    "feedback": "피드백",
+    "github": "GitHub",
+    "pipaCompliance": "PIPA 준수",
+    "copyright": "© 2025 이력서공방",
+    "madeWith": "AI · React · TypeScript"
+  },
   "a11y": {
     "closeDialog": "다이얼로그 닫기",
     "openMenu": "메뉴 열기",

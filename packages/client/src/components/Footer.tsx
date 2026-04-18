@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { t } from '@/lib/i18n';
+import { tx } from '@/lib/i18n';
 import { ROUTES } from '@/lib/routes';
 
 /**
@@ -34,7 +34,7 @@ export default function Footer() {
               </svg>
             </div>
             <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-              이력서공방
+              {tx('footer.brandName')}
             </span>
             <span className="text-[11px] text-slate-400 dark:text-slate-500">
               © {new Date().getFullYear()}
@@ -47,19 +47,19 @@ export default function Footer() {
               to={ROUTES.terms}
               className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
-              이용약관
+              {tx('footer.terms')}
             </Link>
             <Link
               to={ROUTES.privacy}
               className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
-              개인정보처리방침
+              {tx('footer.privacy')}
             </Link>
             <Link
               to={ROUTES.feedback}
               className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
-              피드백
+              {tx('footer.feedback')}
             </Link>
             <a
               href="https://github.com/blue45f/resume"
@@ -67,16 +67,18 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
-              GitHub
+              {tx('footer.github')}
             </a>
             <span className="hidden sm:inline text-slate-300 dark:text-slate-700">·</span>
-            <span className="text-slate-400 dark:text-slate-500">PIPA 준수</span>
+            <span className="text-slate-400 dark:text-slate-500">
+              {tx('footer.pipaCompliance')}
+            </span>
           </div>
         </div>
 
         {/* Copyright line (mobile visible) */}
         <div className="mt-3 pt-3 sm:hidden text-center text-[10px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
-          {t('footer.copyright')}
+          {tx('footer.copyright')}
         </div>
       </div>
     </footer>

@@ -190,6 +190,16 @@
     "currentPlan": "現在のプラン",
     "upgrade": "アップグレード"
   },
+  "footer": {
+    "brandName": "履歴書工房",
+    "terms": "利用規約",
+    "privacy": "プライバシーポリシー",
+    "feedback": "フィードバック",
+    "github": "GitHub",
+    "pipaCompliance": "PIPA準拠",
+    "copyright": "© 2025 履歴書工房",
+    "madeWith": "AI · React · TypeScript"
+  },
   "help": {
     "title": "ヘルプ",
     "faq": "よくある質問",
