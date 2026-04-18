@@ -13,6 +13,7 @@ import BookmarkButton from '@/components/BookmarkButton';
 import SendMessageButton from '@/components/SendMessageButton';
 import { API_URL } from '@/lib/config';
 import { timeAgo } from '@/lib/time';
+import { tx } from '@/lib/i18n';
 
 const THEME_COLORS = [
   'from-blue-500 to-sky-500',
@@ -484,11 +485,9 @@ export default function ExplorePage() {
         role="main"
       >
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
-          공개 이력서 탐색
+          {tx('explore.title')}
         </h1>
-        <p className="text-sm text-slate-500 mb-6">
-          공개 설정된 이력서를 검색하고 열람할 수 있습니다.
-        </p>
+        <p className="text-sm text-slate-500 mb-6">{tx('explore.subtitle')}</p>
 
         {(() => {
           const u = getUser();
@@ -736,18 +735,20 @@ export default function ExplorePage() {
         </div>
 
         <div className="flex items-center gap-2 mb-4 overflow-x-auto scrollbar-none">
-          <span className="text-xs text-slate-500 dark:text-slate-400">정렬:</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            {tx('explore.sortBy')}:
+          </span>
           <button
             onClick={() => setSortBy('recent')}
             className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${sortBy === 'recent' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}
           >
-            최신순
+            {tx('explore.sortByLatest')}
           </button>
           <button
             onClick={() => setSortBy('views')}
             className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${sortBy === 'views' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}
           >
-            인기순
+            {tx('explore.sortByPopular')}
           </button>
           {industryFilter !== 'all' && (
             <span className="ml-auto text-xs text-blue-600 dark:text-blue-400">
