@@ -245,7 +245,7 @@ export default function Header() {
                   </Link>
                   <Link
                     to="/community"
-                    className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap hidden xl:inline-block ${location.pathname.startsWith('/community') ? 'text-purple-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
+                    className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap hidden xl:inline-block ${location.pathname.startsWith('/community') ? 'text-blue-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
                     커뮤니티
                   </Link>
@@ -468,10 +468,16 @@ export default function Header() {
                         통계
                       </Link>
                       <Link
-                        to="/notices"
+                        to="/community?category=notice"
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         공지사항
+                      </Link>
+                      <Link
+                        to="/community?category=interview"
+                        className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
+                        면접후기
                       </Link>
                       <Link
                         to="/help"
