@@ -161,6 +161,18 @@ body {
     padding-left: 1rem !important;
     padding-right: 1rem !important;
   }
+
+  /* ─── 전역 초소형 폰트 최소 크기 보장 ────────────────────
+     text-[10px] / text-[11px] 같은 임의 값이 모바일에서 판독 불가 수준으로
+     쓰이는 경우를 방어. 레이아웃·라벨·뱃지·타임스탬프 등 모든 UI 에 일괄 적용. */
+  .text-\[10px\] {
+    font-size: 11px !important;
+    line-height: 1.4;
+  }
+  .text-\[11px\] {
+    font-size: 12px !important;
+    line-height: 1.4;
+  }
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {
