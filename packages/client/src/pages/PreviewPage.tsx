@@ -8,6 +8,7 @@ import { downloadVCard } from '@/lib/vcard';
 import { copySignatureToClipboard } from '@/lib/emailSignature';
 import PitchPanel from '@/components/PitchPanel';
 import ReadabilityPanel from '@/components/ReadabilityPanel';
+import SkillProficiencyPanel from '@/components/SkillProficiencyPanel';
 import { downloadSocialCard, downloadSocialCardSvg } from '@/lib/socialCard';
 import { downloadJsonResume } from '@/lib/jsonResume';
 import { resumeThemes } from '@/lib/resumeThemes';
@@ -988,6 +989,7 @@ export default function PreviewPage() {
             <CompletenessBar resume={resume} />
             <PitchPanel resume={resume} />
             <ReadabilityPanel resume={resume} />
+            <SkillProficiencyPanel resume={resume} />
             <ResumeAuditPanel resume={resume} />
             <Suspense
               fallback={
