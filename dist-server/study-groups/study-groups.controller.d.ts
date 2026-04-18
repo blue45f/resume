@@ -18,7 +18,10 @@ export declare class StudyGroupsController {
             updatedAt: Date;
             companyName: string | null;
             jobPostId: string | null;
+            experienceLevel: string;
             jobKey: string | null;
+            companyTier: string;
+            cafeCategory: string;
             ownerId: string;
             isPrivate: boolean;
             maxMembers: number;
@@ -38,7 +41,10 @@ export declare class StudyGroupsController {
         updatedAt: Date;
         companyName: string | null;
         jobPostId: string | null;
+        experienceLevel: string;
         jobKey: string | null;
+        companyTier: string;
+        cafeCategory: string;
         ownerId: string;
         isPrivate: boolean;
         maxMembers: number;
@@ -72,7 +78,10 @@ export declare class StudyGroupsController {
         updatedAt: Date;
         companyName: string | null;
         jobPostId: string | null;
+        experienceLevel: string;
         jobKey: string | null;
+        companyTier: string;
+        cafeCategory: string;
         ownerId: string;
         isPrivate: boolean;
         maxMembers: number;

@@ -1237,9 +1237,14 @@ button:active:not(:disabled) {
     align-items: center;
   }
 
-  /* Add bottom padding to main content so it doesn't hide behind the nav */
-  main {
-    padding-bottom: 72px !important;
+  /*
+   * Only pad main when the mobile bottom nav is actually present (it is
+   * conditionally rendered — hidden on /login, /edit, /preview, when the
+   * software keyboard is open, etc.). Using :has() prevents the phantom
+   * 72px of empty space on pages where the nav is absent.
+   */
+  body:has(.mobile-bottom-nav) main {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 

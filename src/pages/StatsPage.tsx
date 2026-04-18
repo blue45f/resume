@@ -291,6 +291,7 @@ export default function StatsPage() {
             </div>
           </div>
         </main>
+        <Footer />
       </>
     );
 

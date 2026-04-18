@@ -895,6 +895,12 @@ model StudyGroup {
   jobKey      String?  @map("job_key")
   companyName String?  @map("company_name")
   position    String?
+  // 기업 카테고리: public(공기업/공공기관), large(대기업), mid(중견기업), startup(스타트업), foreign(외국계), sme(중소기업), freelance(프리랜서/자영업), etc.
+  companyTier String   @default("etc") @map("company_tier")
+  // 카페 스타일 세부 카테고리: interview(면접), resume(이력서), coding-test(코테), study(공부), networking(네트워킹)
+  cafeCategory String  @default("interview") @map("cafe_category")
+  // 경력 단계: new(신입), junior(주니어), mid(중간), senior(시니어), any
+  experienceLevel String @default("any") @map("experience_level")
   ownerId     String  @map("owner_id")
   isPrivate   Boolean @default(false) @map("is_private")
   maxMembers  Int     @default(20) @map("max_members")
@@ -908,6 +914,9 @@ model StudyGroup {
 
   @@index([jobPostId])
   @@index([companyName])
+  @@index([companyTier])
+  @@index([cafeCategory])
+  @@index([experienceLevel])
   @@map("study_groups")
 }
 

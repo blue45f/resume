@@ -460,6 +460,7 @@ export default function ResumeReviewPage() {
             </div>
           </div>
         </main>
+        <Footer />
       </>
     );
   }

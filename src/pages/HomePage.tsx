@@ -705,6 +705,7 @@ export default function HomePage() {
           <div className="h-8 bg-slate-200 rounded w-48 mb-6 animate-pulse" />
           <CardGridSkeleton count={6} />
         </main>
+        <Footer />
       </>
     );
   }
