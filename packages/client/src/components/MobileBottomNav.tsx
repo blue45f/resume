@@ -245,7 +245,9 @@ export default function MobileBottomNav() {
           <Link
             key={item.to}
             to={item.to}
-            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 min-w-[56px] transition-colors duration-150 ${
+            aria-current={active ? 'page' : undefined}
+            aria-label={item.label}
+            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 min-w-[56px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 rounded-[var(--radius-sm)] ${
               item.highlight
                 ? 'text-white'
                 : active
