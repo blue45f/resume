@@ -180,5 +180,61 @@
     "comingSoon": "近日公開",
     "currentPlan": "現在のプラン",
     "upgrade": "アップグレード"
+  },
+  "help": {
+    "title": "ヘルプ",
+    "faq": "よくある質問",
+    "contact": "お問い合わせ",
+    "shortcuts": "ショートカット",
+    "privacy": "プライバシーポリシー",
+    "terms": "利用規約",
+    "about": "サービス紹介"
+  },
+  "tutorial": {
+    "title": "チュートリアル",
+    "getStarted": "はじめる",
+    "createFirstResume": "最初の履歴書を作成",
+    "useAiFeatures": "AI機能を使う",
+    "exportResume": "履歴書をエクスポート",
+    "shareResume": "履歴書を共有",
+    "nextStep": "次へ",
+    "skip": "スキップ",
+    "finish": "完了"
+  },
+  "validation": {
+    "minLength": "{min}文字以上で入力してください",
+    "maxLength": "{max}文字以内で入力してください",
+    "required": "必須項目です",
+    "invalidFormat": "正しい形式で入力してください",
+    "invalidEmail": "正しいメールアドレスを入力してください",
+    "invalidUrl": "正しいURLを入力してください",
+    "passwordTooShort": "パスワードは8文字以上必要です",
+    "passwordMismatch": "パスワードが一致しません",
+    "fileTooLarge": "ファイルサイズが{max}を超えています",
+    "invalidFileType": "サポートされていないファイル形式です"
+  },
+  "resumeEdit": {
+    "title": "履歴書タイトル",
+    "addExperience": "+ 職歴追加",
+    "addProject": "+ プロジェクト追加",
+    "addEducation": "+ 学歴追加",
+    "addSkill": "+ スキル追加",
+    "addCertification": "+ 資格追加",
+    "addLanguage": "+ 語学追加",
+    "addAward": "+ 受賞追加",
+    "addActivity": "+ 活動追加",
+    "company": "会社名",
+    "position": "職種",
+    "department": "部署",
+    "startDate": "開始日",
+    "endDate": "終了日",
+    "current": "在職中",
+    "description": "説明",
+    "achievements": "主要成果",
+    "techStack": "技術スタック",
+    "school": "学校名",
+    "degree": "学位",
+    "field": "専攻",
+    "gpa": "GPA"
   }
 }

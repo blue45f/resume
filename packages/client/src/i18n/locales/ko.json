@@ -280,5 +280,61 @@
     "next": "다음",
     "expand": "펼치기",
     "collapse": "접기"
+  },
+  "help": {
+    "title": "도움말",
+    "faq": "자주 묻는 질문",
+    "contact": "문의하기",
+    "shortcuts": "단축키",
+    "privacy": "개인정보처리방침",
+    "terms": "이용약관",
+    "about": "서비스 소개"
+  },
+  "tutorial": {
+    "title": "사용 가이드",
+    "getStarted": "시작하기",
+    "createFirstResume": "첫 이력서 만들기",
+    "useAiFeatures": "AI 기능 활용하기",
+    "exportResume": "이력서 내보내기",
+    "shareResume": "공유하기",
+    "nextStep": "다음 단계",
+    "skip": "건너뛰기",
+    "finish": "완료"
+  },
+  "validation": {
+    "minLength": "최소 {min}자 이상 입력하세요",
+    "maxLength": "{max}자 이내로 입력하세요",
+    "required": "필수 입력 항목입니다",
+    "invalidFormat": "올바른 형식이 아닙니다",
+    "invalidEmail": "올바른 이메일 형식이 아닙니다",
+    "invalidUrl": "올바른 URL 형식이 아닙니다",
+    "passwordTooShort": "비밀번호는 8자 이상이어야 합니다",
+    "passwordMismatch": "비밀번호가 일치하지 않습니다",
+    "fileTooLarge": "파일 크기가 {max}을 초과합니다",
+    "invalidFileType": "지원하지 않는 파일 형식입니다"
+  },
+  "resumeEdit": {
+    "title": "이력서 제목",
+    "addExperience": "+ 경력 추가",
+    "addProject": "+ 프로젝트 추가",
+    "addEducation": "+ 학력 추가",
+    "addSkill": "+ 기술 추가",
+    "addCertification": "+ 자격증 추가",
+    "addLanguage": "+ 어학 추가",
+    "addAward": "+ 수상 추가",
+    "addActivity": "+ 활동 추가",
+    "company": "회사명",
+    "position": "직책",
+    "department": "부서",
+    "startDate": "시작일",
+    "endDate": "종료일",
+    "current": "재직 중",
+    "description": "설명",
+    "achievements": "주요 성과",
+    "techStack": "기술 스택",
+    "school": "학교명",
+    "degree": "학위",
+    "field": "전공",
+    "gpa": "학점"
   }
 }

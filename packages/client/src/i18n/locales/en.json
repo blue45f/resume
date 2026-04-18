@@ -280,5 +280,61 @@
     "next": "Next",
     "expand": "Expand",
     "collapse": "Collapse"
+  },
+  "help": {
+    "title": "Help",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "shortcuts": "Keyboard Shortcuts",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "about": "About"
+  },
+  "tutorial": {
+    "title": "Tutorial",
+    "getStarted": "Get Started",
+    "createFirstResume": "Create your first resume",
+    "useAiFeatures": "Use AI features",
+    "exportResume": "Export resume",
+    "shareResume": "Share resume",
+    "nextStep": "Next",
+    "skip": "Skip",
+    "finish": "Finish"
+  },
+  "validation": {
+    "minLength": "Must be at least {min} characters",
+    "maxLength": "Must be {max} characters or less",
+    "required": "This field is required",
+    "invalidFormat": "Invalid format",
+    "invalidEmail": "Invalid email address",
+    "invalidUrl": "Invalid URL",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "passwordMismatch": "Passwords do not match",
+    "fileTooLarge": "File size exceeds {max}",
+    "invalidFileType": "Unsupported file type"
+  },
+  "resumeEdit": {
+    "title": "Resume Title",
+    "addExperience": "+ Add Experience",
+    "addProject": "+ Add Project",
+    "addEducation": "+ Add Education",
+    "addSkill": "+ Add Skill",
+    "addCertification": "+ Add Certification",
+    "addLanguage": "+ Add Language",
+    "addAward": "+ Add Award",
+    "addActivity": "+ Add Activity",
+    "company": "Company",
+    "position": "Position",
+    "department": "Department",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "current": "Currently",
+    "description": "Description",
+    "achievements": "Key Achievements",
+    "techStack": "Tech Stack",
+    "school": "School",
+    "degree": "Degree",
+    "field": "Major",
+    "gpa": "GPA"
   }
 }

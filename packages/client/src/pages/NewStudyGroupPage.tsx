@@ -8,6 +8,7 @@ import { toast } from '@/components/Toast';
 import { createStudyGroup } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
+import { t } from '@/lib/i18n';
 import {
   studyGroupSchema,
   type StudyGroupFormInput,
@@ -109,7 +110,7 @@ export default function NewStudyGroupPage() {
             ← 스터디 목록
           </button>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            새 스터디 그룹 만들기
+            {t('study.create')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             면접 준비 · 코딩 테스트 · 이력서 첨삭 등 함께 공부할 동료를 모집하세요.
@@ -232,14 +233,14 @@ export default function NewStudyGroupPage() {
               onClick={() => navigate(ROUTES.interview.studyGroups)}
               className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
             >
-              취소
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="imp-btn px-5 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
-              {isSubmitting ? '생성 중...' : '그룹 만들기'}
+              {isSubmitting ? t('common.loading') : t('study.create')}
             </button>
           </div>
         </form>
