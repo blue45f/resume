@@ -172,14 +172,14 @@ export async function setupE2EApp(options: SetupOptions): Promise<E2EContext> {
   }
 
   const api = () => request(app.getHttpServer());
-  const authReq = (
-    method: 'get' | 'post' | 'put' | 'patch' | 'delete',
-    role: string,
-    url: string,
-  ) =>
-    api()
-      [method](url)
-      .set('Authorization', `Bearer ${tokens[role] || ''}`);
+  const auth = (role: string) => `Bearer ${tokens[role] || ''}`;
+  const authGet = (role: string, url: string) => api().get(url).set('Authorization', auth(role));
+  const authPost = (role: string, url: string) => api().post(url).set('Authorization', auth(role));
+  const authPut = (role: string, url: string) => api().put(url).set('Authorization', auth(role));
+  const authPatch = (role: string, url: string) =>
+    api().patch(url).set('Authorization', auth(role));
+  const authDelete = (role: string, url: string) =>
+    api().delete(url).set('Authorization', auth(role));
 
   return {
     app,
@@ -188,11 +188,11 @@ export async function setupE2EApp(options: SetupOptions): Promise<E2EContext> {
     userIds,
     users,
     api,
-    authGet: (role, url) => authReq('get', role, url),
-    authPost: (role, url) => authReq('post', role, url),
-    authPut: (role, url) => authReq('put', role, url),
-    authPatch: (role, url) => authReq('patch', role, url),
-    authDelete: (role, url) => authReq('delete', role, url),
+    authGet,
+    authPost,
+    authPut,
+    authPatch,
+    authDelete,
   };
 }
 
