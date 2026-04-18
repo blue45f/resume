@@ -230,7 +230,7 @@ export default function Header() {
                     to={ROUTES.jobs.list}
                     className={`nav-link-animated text-xs lg:text-sm rounded px-1.5 lg:px-2 py-1 whitespace-nowrap ${location.pathname.startsWith('/jobs') ? 'text-sky-600 font-medium active' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
                   >
-                    채용공고
+                    {tx('jobs.title')}
                   </Link>
                   <Link
                     to={ROUTES.jobs.scouts}
@@ -385,7 +385,7 @@ export default function Header() {
                         to={ROUTES.interview.prep}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
-                        면접 준비
+                        {t('nav.interviewPrep')}
                       </Link>
                       <Link
                         to={ROUTES.interview.mock()}
@@ -397,7 +397,7 @@ export default function Header() {
                         to={ROUTES.coaching.coaches}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
-                        코칭 받기
+                        {tx('nav.coaching')}
                       </Link>
                       <Link
                         to={ROUTES.jobs.scouts}
@@ -478,7 +478,7 @@ export default function Header() {
                         to={ROUTES.interview.prep}
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
-                        면접 준비
+                        {t('nav.interviewPrep')}
                       </Link>
                       <Link
                         to={ROUTES.resume.compare}
@@ -864,7 +864,7 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
-                    채용공고
+                    {tx('jobs.title')}
                   </Link>
                   <Link
                     to={ROUTES.jobs.new}
@@ -985,7 +985,7 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
-                    면접 준비
+                    {t('nav.interviewPrep')}
                   </Link>
                   <Link
                     to={ROUTES.interview.mock()}
@@ -999,7 +999,7 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
-                    코칭 받기
+                    {tx('nav.coaching')}
                   </Link>
                   <Link
                     to={ROUTES.resume.compare}
