@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import { type CoachingSession, type MySessionsResponse } from '@/lib/api';
 import { useMyCoachingSessions } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 
 function formatDate(iso: string) {
   try {
@@ -59,11 +60,11 @@ export default function CoachDashboardPage() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      navigate(ROUTES.login);
       return;
     }
     if (user.userType !== 'coach') {
-      navigate('/coach/profile');
+      navigate(ROUTES.coaching.profileEdit);
       return;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -145,13 +146,13 @@ export default function CoachDashboardPage() {
           </div>
           <div className="flex items-center gap-2">
             <Link
-              to="/coach/profile"
+              to={ROUTES.coaching.profileEdit}
               className="px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
             >
               프로필 수정
             </Link>
             <Link
-              to="/coaching/sessions"
+              to={ROUTES.coaching.sessions}
               className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-sm"
             >
               세션 내역
@@ -210,7 +211,10 @@ export default function CoachDashboardPage() {
                 <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                   예정된 세션
                 </h2>
-                <Link to="/coaching/sessions" className="text-xs text-blue-700 hover:underline">
+                <Link
+                  to={ROUTES.coaching.sessions}
+                  className="text-xs text-blue-700 hover:underline"
+                >
                   전체 보기
                 </Link>
               </div>

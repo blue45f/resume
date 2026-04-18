@@ -4,6 +4,7 @@ import { useQueries, useMutation, useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getUser } from '@/lib/auth';
+import { ROUTES } from '@/lib/routes';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
 
@@ -62,7 +63,7 @@ export default function RecruiterDashboardPage() {
   useEffect(() => {
     document.title = '리크루터 대시보드 — 이력서공방';
     if (!user || user.userType === 'personal') {
-      navigate('/');
+      navigate(ROUTES.home);
     }
     return () => {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
@@ -170,7 +171,7 @@ export default function RecruiterDashboardPage() {
             </p>
           </div>
           <Link
-            to="/jobs/new"
+            to={ROUTES.jobs.new}
             className="px-4 py-2.5 min-h-[44px] flex items-center bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
           >
             + 공고 등록
@@ -337,7 +338,7 @@ export default function RecruiterDashboardPage() {
                 <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                   추천 후보
                 </h2>
-                <Link to="/explore" className="text-xs text-blue-600 hover:underline">
+                <Link to={ROUTES.resume.explore} className="text-xs text-blue-600 hover:underline">
                   더 보기
                 </Link>
               </div>
@@ -406,7 +407,7 @@ export default function RecruiterDashboardPage() {
                 <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                   내 채용 공고
                 </h2>
-                <Link to="/jobs" className="text-xs text-blue-600 hover:underline">
+                <Link to={ROUTES.jobs.list} className="text-xs text-blue-600 hover:underline">
                   전체 보기
                 </Link>
               </div>
@@ -414,7 +415,7 @@ export default function RecruiterDashboardPage() {
                 <div className="text-center py-8 imp-card">
                   <p className="text-sm text-slate-400">등록된 공고가 없습니다</p>
                   <Link
-                    to="/jobs/new"
+                    to={ROUTES.jobs.new}
                     className="text-sm text-blue-600 hover:underline mt-2 inline-block"
                   >
                     첫 공고 등록하기
@@ -429,7 +430,7 @@ export default function RecruiterDashboardPage() {
                     >
                       <div className="min-w-0">
                         <Link
-                          to="/jobs"
+                          to={j.id ? ROUTES.jobs.detail(j.id) : ROUTES.jobs.list}
                           className="text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-blue-600 truncate block"
                         >
                           {j.position}

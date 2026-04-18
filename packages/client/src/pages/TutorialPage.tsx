@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { ROUTES } from '@/lib/routes';
 
 const steps = [
   {
@@ -487,13 +488,13 @@ export default function TutorialPage() {
         {guideType === 'recruiter' ? (
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
-              to="/jobs/new"
+              to={ROUTES.jobs.new}
               className="px-6 py-3 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-all"
             >
               채용 공고 등록
             </Link>
             <Link
-              to="/explore"
+              to={ROUTES.resume.explore}
               className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-200 transition-all"
             >
               인재 검색
@@ -502,19 +503,19 @@ export default function TutorialPage() {
         ) : (
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
-              to="/resumes/new"
+              to={ROUTES.resume.new}
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
             >
               이력서 만들기
             </Link>
             <Link
-              to="/auto-generate"
-              className="inline-flex items-center px-6 py-3 bg-sky-600 text-white font-medium rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
+              to={ROUTES.resume.autoGenerate}
+              className="inline-flex items-center px-6 py-3 bg-sky-600 text-white font-medium rounded-xl hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
             >
               AI 자동 생성
             </Link>
             <Link
-              to="/explore"
+              to={ROUTES.resume.explore}
               className="inline-flex items-center px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
             >
               이력서 둘러보기

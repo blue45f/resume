@@ -1,6 +1,7 @@
 import { useEffect, type ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
+import { ROUTES } from '@/lib/routes';
 import { useSystemContent } from '@/hooks/useResources';
 
 const featureIcons = {
@@ -184,13 +185,13 @@ export default function AboutPage() {
             </p>
             <div className="flex flex-wrap justify-center gap-3 mt-8">
               <Link
-                to="/resumes/new"
+                to={ROUTES.resume.new}
                 className="px-6 py-3 bg-white text-blue-700 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
               >
                 이력서 만들기
               </Link>
               <Link
-                to="/tutorial"
+                to={ROUTES.tutorial}
                 className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-400 transition-colors"
               >
                 사용 가이드
@@ -288,7 +289,7 @@ export default function AboutPage() {
             </div>
             <div className="text-center mt-8">
               <Link
-                to="/pricing"
+                to={ROUTES.pricing}
                 className="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors shadow-sm"
               >
                 채용 요금제 보기
@@ -323,13 +324,13 @@ export default function AboutPage() {
         <footer className="border-t border-slate-200 dark:border-slate-700 py-8 bg-white dark:bg-slate-900">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-4">
-              <Link to="/about" className="hover:text-slate-700 dark:hover:text-slate-200">
+              <Link to={ROUTES.about} className="hover:text-slate-700 dark:hover:text-slate-200">
                 서비스 소개
               </Link>
-              <Link to="/tutorial" className="hover:text-slate-700 dark:hover:text-slate-200">
+              <Link to={ROUTES.tutorial} className="hover:text-slate-700 dark:hover:text-slate-200">
                 사용 가이드
               </Link>
-              <Link to="/terms" className="hover:text-slate-700 dark:hover:text-slate-200">
+              <Link to={ROUTES.terms} className="hover:text-slate-700 dark:hover:text-slate-200">
                 이용약관
               </Link>
             </div>
