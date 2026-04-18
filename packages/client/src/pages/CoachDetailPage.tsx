@@ -136,7 +136,7 @@ export default function CoachDetailPage() {
             </p>
             <Link
               to="/coaches"
-              className="inline-block px-4 py-2 text-sm font-medium rounded-lg bg-rose-500 hover:bg-rose-600 text-white"
+              className="inline-block px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
             >
               코치 목록으로
             </Link>
@@ -183,7 +183,7 @@ export default function CoachDetailPage() {
                     className="w-20 h-20 rounded-full object-cover bg-slate-100 dark:bg-slate-700"
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-rose-400 to-pink-600 flex items-center justify-center text-white font-bold text-2xl shadow-sm">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white font-bold text-2xl shadow-sm">
                     {initials}
                   </div>
                 )}
@@ -191,7 +191,7 @@ export default function CoachDetailPage() {
                   <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
                     {name}
                   </h1>
-                  <p className="text-sm text-rose-600 dark:text-rose-400 font-medium mt-0.5">
+                  <p className="text-sm text-blue-700 dark:text-blue-400 font-medium mt-0.5">
                     {coach.specialty || '전문 분야 미설정'}
                   </p>
                   <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-500 dark:text-slate-400">
@@ -237,7 +237,7 @@ export default function CoachDetailPage() {
 
             <div className="imp-card p-6">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-rose-500 rounded" />
+                <span className="w-1.5 h-4 bg-blue-600 rounded" />
                 코치 소개
               </h2>
               <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-line leading-relaxed">
@@ -288,7 +288,7 @@ export default function CoachDetailPage() {
           <aside className="space-y-4">
             <form onSubmit={handleSubmit(onSubmit)} className="imp-card p-6 sticky top-20">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-rose-500 rounded" />
+                <span className="w-1.5 h-4 bg-blue-600 rounded" />
                 세션 예약
               </h2>
 
@@ -303,7 +303,7 @@ export default function CoachDetailPage() {
                   id="scheduledAt"
                   type="datetime-local"
                   {...register('scheduledAt')}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
                 />
                 {errors.scheduledAt && (
                   <p className="text-xs text-red-500 mt-1">{errors.scheduledAt.message}</p>
@@ -320,7 +320,7 @@ export default function CoachDetailPage() {
                 <select
                   id="duration"
                   {...register('duration')}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
                 >
                   {DURATION_OPTIONS.map((d) => (
                     <option key={d} value={d}>
@@ -379,7 +379,7 @@ export default function CoachDetailPage() {
               )}
 
               {/* Price preview */}
-              <div className="rounded-xl border border-rose-100 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-900/10 p-3 text-sm mb-4 space-y-1.5">
+              <div className="rounded-xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-900/10 p-3 text-sm mb-4 space-y-1.5">
                 <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 text-xs">
                   <span>
                     코칭료 ({(coach.hourlyRate || 0).toLocaleString()}원 × {String(durationValue)}
@@ -390,21 +390,21 @@ export default function CoachDetailPage() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="inline-flex items-center gap-1 text-rose-700 dark:text-rose-300 font-medium">
+                  <span className="inline-flex items-center gap-1 text-blue-700 dark:text-blue-300 font-medium">
                     플랫폼 수수료{' '}
-                    <span className="px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/40 text-[10px]">
+                    <span className="px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-[10px]">
                       15%
                     </span>
                   </span>
-                  <span className="font-medium text-rose-700 dark:text-rose-300">
+                  <span className="font-medium text-blue-700 dark:text-blue-300">
                     {priceBreakdown.fee.toLocaleString()}원
                   </span>
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t border-rose-100 dark:border-rose-900/40">
+                <div className="flex items-center justify-between pt-2 border-t border-blue-100 dark:border-blue-900/40">
                   <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
                     총 결제 예정
                   </span>
-                  <span className="text-base font-bold text-rose-600 dark:text-rose-400">
+                  <span className="text-base font-bold text-blue-700 dark:text-blue-400">
                     {priceBreakdown.total.toLocaleString()}원
                   </span>
                 </div>
@@ -413,7 +413,7 @@ export default function CoachDetailPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full px-4 py-2.5 text-sm font-semibold rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 disabled:opacity-50 transition-all shadow-sm"
+                className="w-full px-4 py-2.5 text-sm font-semibold rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 transition-all shadow-sm"
               >
                 {isSubmitting ? '예약 요청 중...' : '매칭 요청 보내기'}
               </button>
@@ -442,7 +442,7 @@ export default function CoachDetailPage() {
 }
 
 const TONE_MAP: Record<string, string> = {
-  rose: 'text-rose-600 dark:text-rose-400',
+  rose: 'text-blue-700 dark:text-blue-400',
   amber: 'text-amber-600 dark:text-amber-400',
   blue: 'text-blue-600 dark:text-blue-400',
   emerald: 'text-emerald-600 dark:text-emerald-400',

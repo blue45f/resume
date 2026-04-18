@@ -35,7 +35,7 @@ const STATUS_LABEL: Record<CoachingSessionStatus, { label: string; className: st
   },
   refunded: {
     label: '환불',
-    className: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
+    className: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
   },
 };
 
@@ -150,7 +150,7 @@ export default function CoachingSessionsPage() {
           <div className="flex items-center gap-2">
             <Link
               to="/coaches"
-              className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 shadow-sm"
+              className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-sm"
             >
               + 코치 찾기
             </Link>
@@ -213,14 +213,14 @@ export default function CoachingSessionsPage() {
             {tab === 'client' ? (
               <Link
                 to="/coaches"
-                className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-rose-500 hover:bg-rose-600 text-white"
+                className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
               >
                 코치 찾기
               </Link>
             ) : (
               <Link
                 to="/coach/profile"
-                className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-rose-500 hover:bg-rose-600 text-white"
+                className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
               >
                 코치 프로필 설정
               </Link>
@@ -319,7 +319,7 @@ function SessionRow({
               className="w-12 h-12 rounded-full object-cover bg-slate-100 dark:bg-slate-700"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-400 to-pink-600 flex items-center justify-center text-white font-bold shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white font-bold shadow-sm">
               {initials}
             </div>
           )}

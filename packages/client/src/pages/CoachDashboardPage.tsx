@@ -118,7 +118,7 @@ export default function CoachDashboardPage() {
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-sm">
               <svg
                 className="w-5 h-5 text-white"
                 fill="none"
@@ -152,7 +152,7 @@ export default function CoachDashboardPage() {
             </Link>
             <Link
               to="/coaching/sessions"
-              className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 shadow-sm"
+              className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-sm"
             >
               세션 내역
             </Link>
@@ -193,7 +193,7 @@ export default function CoachDashboardPage() {
                       label: '대기 중 요청',
                       value: stats.pending,
                       icon: '⏳',
-                      color: 'text-rose-600',
+                      color: 'text-blue-700',
                     },
                   ].map((s) => (
                     <div key={s.label} className="imp-card p-4 text-center">
@@ -210,7 +210,7 @@ export default function CoachDashboardPage() {
                 <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                   예정된 세션
                 </h2>
-                <Link to="/coaching/sessions" className="text-xs text-rose-600 hover:underline">
+                <Link to="/coaching/sessions" className="text-xs text-blue-700 hover:underline">
                   전체 보기
                 </Link>
               </div>
@@ -231,7 +231,7 @@ export default function CoachDashboardPage() {
                   </p>
                 </div>
               ) : (
-                <ol className="relative border-l-2 border-rose-100 dark:border-rose-900/40 ml-3 space-y-3">
+                <ol className="relative border-l-2 border-blue-100 dark:border-blue-900/40 ml-3 space-y-3">
                   {upcoming.map((s) => {
                     const statusBadge =
                       s.status === 'requested'
@@ -247,7 +247,7 @@ export default function CoachDashboardPage() {
                     return (
                       <li key={s.id} className="ml-4">
                         <span
-                          className="absolute -left-[7px] w-3 h-3 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900"
+                          className="absolute -left-[7px] w-3 h-3 rounded-full bg-blue-600 ring-2 ring-white dark:ring-slate-900"
                           aria-hidden="true"
                         />
                         <div className="imp-card p-4">
@@ -316,7 +316,7 @@ export default function CoachDashboardPage() {
                     <div key={r.id} className="imp-card p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-pink-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
                             {(r.client?.name || 'U').slice(0, 1).toUpperCase()}
                           </div>
                           <div className="min-w-0">

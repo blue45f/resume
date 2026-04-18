@@ -148,7 +148,7 @@ export default function CoachProfileEditPage() {
         role="main"
       >
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl flex items-center justify-center shadow-sm">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-sm">
             <svg
               className="w-5 h-5 text-white"
               fill="none"
@@ -177,7 +177,7 @@ export default function CoachProfileEditPage() {
           {hasProfile && (
             <Link
               to="/coach/dashboard"
-              className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 shadow-sm whitespace-nowrap"
+              className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-sm whitespace-nowrap"
             >
               코치 대시보드 →
             </Link>
@@ -185,7 +185,7 @@ export default function CoachProfileEditPage() {
         </div>
 
         {!loading && !hasProfile && (
-          <div className="imp-card p-4 mb-4 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 border-rose-200/60 dark:border-rose-800/40">
+          <div className="imp-card p-4 mb-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200/60 dark:border-blue-800/40">
             <div className="flex items-start gap-3">
               <span className="text-2xl">👋</span>
               <div>
@@ -267,7 +267,7 @@ export default function CoachProfileEditPage() {
                   checked={!!isActive}
                   onChange={(e) => setValue('isActive', e.target.checked, { shouldDirty: true })}
                 />
-                <div className="w-11 h-6 bg-slate-300 dark:bg-slate-600 peer-checked:bg-rose-500 rounded-full peer transition-colors" />
+                <div className="w-11 h-6 bg-slate-300 dark:bg-slate-600 peer-checked:bg-blue-600 rounded-full peer transition-colors" />
                 <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-5" />
               </label>
             </div>
@@ -285,7 +285,7 @@ export default function CoachProfileEditPage() {
                 list="coach-specialty-presets"
                 placeholder="예: 이력서 첨삭, 면접 코칭"
                 {...register('specialty')}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
               />
               <datalist id="coach-specialty-presets">
                 {SPECIALTIES.map((s) => (
@@ -302,8 +302,8 @@ export default function CoachProfileEditPage() {
                     }
                     className={`px-2 py-0.5 text-[11px] rounded-full border transition-colors ${
                       specialtyValue === s
-                        ? 'bg-rose-500 border-rose-500 text-white'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-900/20'
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                     }`}
                   >
                     {s}
@@ -331,7 +331,7 @@ export default function CoachProfileEditPage() {
                   min={0}
                   step={1000}
                   {...register('hourlyRate')}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
                 />
                 {errors.hourlyRate && (
                   <p className="text-xs text-red-500 mt-1">{errors.hourlyRate.message}</p>
@@ -351,7 +351,7 @@ export default function CoachProfileEditPage() {
                   min={0}
                   step={1}
                   {...register('yearsExp')}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
                 />
                 {errors.yearsExp && (
                   <p className="text-xs text-red-500 mt-1">{errors.yearsExp.message}</p>
@@ -371,7 +371,7 @@ export default function CoachProfileEditPage() {
                 id="languages"
                 placeholder="예: 한국어, English"
                 {...register('languages')}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
               />
               {errors.languages && (
                 <p className="text-xs text-red-500 mt-1">{errors.languages.message}</p>
@@ -390,7 +390,7 @@ export default function CoachProfileEditPage() {
                 id="availableHours"
                 placeholder="예: 평일 19:00~22:00 / 주말 10:00~17:00"
                 {...register('availableHours')}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
               />
               {errors.availableHours && (
                 <p className="text-xs text-red-500 mt-1">{errors.availableHours.message}</p>
@@ -411,7 +411,7 @@ export default function CoachProfileEditPage() {
                 maxLength={2000}
                 placeholder="어떤 분야의 전문가이신가요? 어떤 경험을 바탕으로 코칭하시나요?"
                 {...register('bio')}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 resize-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 resize-none focus:ring-2 focus:ring-blue-500"
               />
               {errors.bio && <p className="text-xs text-red-500 mt-1">{errors.bio.message}</p>}
             </div>
@@ -425,7 +425,7 @@ export default function CoachProfileEditPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-5 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 disabled:opacity-50 shadow-sm"
+                className="px-5 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 shadow-sm"
               >
                 {isSubmitting ? '저장 중...' : '프로필 저장'}
               </button>

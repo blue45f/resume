@@ -70,7 +70,7 @@ export default function CoachesPage() {
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-sm">
               <svg
                 className="w-5 h-5 text-white"
                 fill="none"
@@ -258,7 +258,7 @@ export default function CoachesPage() {
             </p>
             <button
               onClick={resetFilters}
-              className="px-4 py-2 text-xs font-medium rounded-lg bg-rose-500 hover:bg-rose-600 text-white transition-colors"
+              className="px-4 py-2 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
             >
               필터 초기화
             </button>
@@ -298,13 +298,13 @@ function CoachCard({ coach }: { coach: CoachProfile }) {
             className="w-14 h-14 rounded-full object-cover bg-slate-100 dark:bg-slate-700"
           />
         ) : (
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-rose-400 to-pink-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
             {initials}
           </div>
         )}
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{name}</h3>
-          <p className="text-xs text-rose-600 dark:text-rose-400 font-medium truncate">
+          <p className="text-xs text-blue-700 dark:text-blue-400 font-medium truncate">
             {coach.specialty || '전문 분야 미설정'}
           </p>
           <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400 dark:text-slate-500">
@@ -341,7 +341,7 @@ function CoachCard({ coach }: { coach: CoachProfile }) {
         </div>
         <Link
           to={`/coaches/${coach.id}`}
-          className="inline-flex items-center gap-1 px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 transition-all shadow-sm"
+          className="inline-flex items-center gap-1 px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 transition-all shadow-sm"
         >
           매칭 요청
           <svg
