@@ -82,6 +82,8 @@ const HelpPage = lazyRetry(() => import('@/pages/HelpPage'));
 const StatsPage = lazyRetry(() => import('@/pages/StatsPage'));
 const PortfolioPage = lazyRetry(() => import('@/pages/PortfolioPage'));
 const StudyGroupsPage = lazyRetry(() => import('@/pages/StudyGroupsPage'));
+const NewStudyGroupPage = lazyRetry(() => import('@/pages/NewStudyGroupPage'));
+const StudyGroupDetailPage = lazyRetry(() => import('@/pages/StudyGroupDetailPage'));
 const CoachesPage = lazyRetry(() => import('@/pages/CoachesPage'));
 const CoachDetailPage = lazyRetry(() => import('@/pages/CoachDetailPage'));
 const CoachingSessionsPage = lazyRetry(() => import('@/pages/CoachingSessionsPage'));
@@ -387,6 +389,24 @@ export default function App() {
                   element={
                     <Suspense fallback={<PageLoader />}>
                       <StudyGroupsPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/study-groups/new"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <NewStudyGroupPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/study-groups/:id"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <StudyGroupDetailPage />
                     </Suspense>
                   }
                 />
