@@ -12,6 +12,7 @@ import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
 import AuthCallbackPage from '@/pages/AuthCallbackPage';
 import KeyboardShortcuts from '@/components/KeyboardShortcuts';
+import CommandPalette from '@/components/CommandPalette';
 import ScrollToTop from '@/components/ScrollToTop';
 import ScrollReset from '@/components/ScrollReset';
 import QuickActions from '@/components/QuickActions';
@@ -595,6 +596,7 @@ export default function App() {
             <QuickActions />
             <ScrollToTop />
             <KeyboardShortcuts />
+            <CommandPalette />
             <CookieConsent />
             <ToastContainer />
           </BrowserRouter>
