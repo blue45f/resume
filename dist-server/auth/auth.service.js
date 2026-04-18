@@ -79,7 +79,10 @@ let AuthService = AuthService_1 = class AuthService {
             return false;
         const [timestamp, nonce, hmac] = parts;
         const payload = `${timestamp}.${nonce}`;
-        const expected = (0, crypto_1.createHmac)('sha256', this.stateSecret).update(payload).digest('hex').slice(0, 16);
+        const expected = (0, crypto_1.createHmac)('sha256', this.stateSecret)
+            .update(payload)
+            .digest('hex')
+            .slice(0, 16);
         const hmacBuf = Buffer.from(hmac, 'utf8');
         const expectedBuf = Buffer.from(expected, 'utf8');
         if (hmacBuf.length !== expectedBuf.length || !(0, crypto_1.timingSafeEqual)(hmacBuf, expectedBuf)) {
@@ -121,7 +124,13 @@ let AuthService = AuthService_1 = class AuthService {
         const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: redirectUri, grant_type: 'authorization_code' }),
+            body: JSON.stringify({
+                code,
+                client_id: clientId,
+                client_secret: clientSecret,
+                redirect_uri: redirectUri,
+                grant_type: 'authorization_code',
+            }),
         });
         const tokenData = await tokenRes.json();
         if (!tokenData.access_token)
@@ -206,15 +215,25 @@ let AuthService = AuthService_1 = class AuthService {
         return { success: true, userId: targetUserId, role };
     }
     async getAllUsers(search) {
-        const where = search ? {
-            OR: [
-                { name: { contains: search, mode: 'insensitive' } },
-                { email: { contains: search, mode: 'insensitive' } },
-            ],
-        } : {};
+        const where = search
+            ? {
+                OR: [
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { email: { contains: search, mode: 'insensitive' } },
+                ],
+            }
+            : {};
         return this.prisma.user.findMany({
             where,
-            select: { id: true, name: true, email: true, provider: true, role: true, plan: true, createdAt: true },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                provider: true,
+                role: true,
+                plan: true,
+                createdAt: true,
+            },
             orderBy: { createdAt: 'desc' },
         });
     }
@@ -228,8 +247,13 @@ let AuthService = AuthService_1 = class AuthService {
             this.prisma.follow.count({ where: { followerId: userId } }),
         ]);
         return {
-            id: user.id, email: user.email, name: user.name, avatar: user.avatar,
-            provider: user.provider, role: user.role || 'user', plan: user.plan || 'free',
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            avatar: user.avatar,
+            provider: user.provider,
+            role: user.role || 'user',
+            plan: user.plan || 'free',
             userType: user.userType || 'personal',
             companyName: user.companyName || '',
             companyTitle: user.companyTitle || '',
@@ -251,9 +275,19 @@ let AuthService = AuthService_1 = class AuthService {
             this.prisma.resume.findMany({
                 where: { userId: user.id, visibility: 'public' },
                 include: {
-                    personalInfo: { select: { name: true, summary: true, github: true, website: true, photo: true } },
+                    personalInfo: {
+                        select: { name: true, summary: true, github: true, website: true, photo: true },
+                    },
                     skills: { select: { category: true, items: true } },
-                    experiences: { select: { company: true, position: true, startDate: true, endDate: true, current: true } },
+                    experiences: {
+                        select: {
+                            company: true,
+                            position: true,
+                            startDate: true,
+                            endDate: true,
+                            current: true,
+                        },
+                    },
                     tags: { include: { tag: true } },
                 },
                 orderBy: { viewCount: 'desc' },
@@ -265,8 +299,12 @@ let AuthService = AuthService_1 = class AuthService {
         const totalViews = publicResumes.reduce((s, r) => s + (r.viewCount || 0), 0);
         const totalExp = publicResumes.reduce((s, r) => s + r.experiences.length, 0);
         const allSkills = [];
-        publicResumes.forEach(r => r.skills.forEach((sk) => {
-            sk.items.split(',').map((s) => s.trim()).filter(Boolean).forEach((s) => allSkills.push(s));
+        publicResumes.forEach((r) => r.skills.forEach((sk) => {
+            sk.items
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
+                .forEach((s) => allSkills.push(s));
         }));
         const uniqueSkills = [...new Set(allSkills)].slice(0, 20);
         return {
@@ -301,7 +339,11 @@ let AuthService = AuthService_1 = class AuthService {
                 photo: r.personalInfo?.photo || '',
                 experiences: r.experiences,
                 tags: r.tags.map((t) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })),
-                topSkills: (r.skills[0]?.items || '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 5),
+                topSkills: (r.skills[0]?.items || '')
+                    .split(',')
+                    .map((s) => s.trim())
+                    .filter(Boolean)
+                    .slice(0, 5),
             })),
         };
     }
@@ -322,7 +364,13 @@ let AuthService = AuthService_1 = class AuthService {
         const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: redirectUri, grant_type: 'authorization_code' }),
+            body: JSON.stringify({
+                code,
+                client_id: clientId,
+                client_secret: clientSecret,
+                redirect_uri: redirectUri,
+                grant_type: 'authorization_code',
+            }),
         });
         const tokenData = await tokenRes.json();
         if (!tokenData.access_token)
@@ -429,7 +477,11 @@ let AuthService = AuthService_1 = class AuthService {
                 if (user) {
                     user = await this.prisma.user.update({
                         where: { id: user.id },
-                        data: { provider: profile.provider, providerId: profile.providerId, avatar: profile.avatar || user.avatar },
+                        data: {
+                            provider: profile.provider,
+                            providerId: profile.providerId,
+                            avatar: profile.avatar || user.avatar,
+                        },
                     });
                 }
             }
@@ -529,15 +581,22 @@ let AuthService = AuthService_1 = class AuthService {
             const clean = data.username.toLowerCase().replace(/[^a-z0-9_-]/g, '');
             if (clean.length < 3)
                 throw new Error('사용자명은 3자 이상이어야 합니다');
-            const existing = await this.prisma.user.findFirst({ where: { username: clean, NOT: { id: userId } } });
+            const existing = await this.prisma.user.findFirst({
+                where: { username: clean, NOT: { id: userId } },
+            });
             if (existing)
                 throw new Error('이미 사용 중인 사용자명입니다');
             updateData.username = clean;
         }
         const updated = await this.prisma.user.update({ where: { id: userId }, data: updateData });
         return {
-            id: updated.id, email: updated.email, name: updated.name, avatar: updated.avatar,
-            provider: updated.provider, role: updated.role || 'user', plan: updated.plan || 'free',
+            id: updated.id,
+            email: updated.email,
+            name: updated.name,
+            avatar: updated.avatar,
+            provider: updated.provider,
+            role: updated.role || 'user',
+            plan: updated.plan || 'free',
             userType: updated.userType || 'personal',
             companyName: updated.companyName || '',
             companyTitle: updated.companyTitle || '',

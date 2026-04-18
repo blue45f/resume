@@ -27,23 +27,15 @@ export declare class LlmService {
         isDefault: boolean;
     }[];
     transform(resumeId: string, dto: TransformResumeDto, userId?: string): Promise<{
-        id: string;
+        id: any;
         text: string;
         tokensUsed: number;
         provider: string;
         model: string;
-        createdAt: string;
+        createdAt: any;
     }>;
     transformStream(resumeId: string, dto: TransformResumeDto): AsyncGenerator<LlmStreamChunk>;
-    getTransformationHistory(resumeId: string): Promise<{
-        id: string;
-        templateType: string;
-        targetLanguage: string;
-        tokensUsed: number;
-        model: string;
-        createdAt: string;
-        result: any;
-    }[]>;
+    getTransformationHistory(resumeId: string): Promise<any>;
     autoGenerate(rawText: string, instruction?: string, _provider?: string): Promise<{
         resume: any;
         tokensUsed: number;
@@ -51,8 +43,8 @@ export declare class LlmService {
         model: string;
     }>;
     getUsageStats(): Promise<{
-        totalTransformations: number;
-        totalTokensUsed: number;
+        totalTransformations: any;
+        totalTokensUsed: any;
     }>;
     private readonly FREE_PROVIDER_PRIORITY;
     private getProvider;

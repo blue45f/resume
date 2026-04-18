@@ -84,11 +84,15 @@ let LlmService = LlmService_1 = class LlmService {
             this.providers.set('openai-compatible', openAiCompatibleProvider);
         this.defaultProvider =
             this.config.get('LLM_DEFAULT_PROVIDER') ||
-                (geminiProvider.isAvailable ? 'gemini' :
-                    groqProvider.isAvailable ? 'groq' :
-                        n8nProvider.isAvailable ? 'n8n' :
-                            openAiCompatibleProvider.isAvailable ? 'openai-compatible' :
-                                'anthropic');
+                (geminiProvider.isAvailable
+                    ? 'gemini'
+                    : groqProvider.isAvailable
+                        ? 'groq'
+                        : n8nProvider.isAvailable
+                            ? 'n8n'
+                            : openAiCompatibleProvider.isAvailable
+                                ? 'openai-compatible'
+                                : 'anthropic');
         this.logger.log(`LLM providers: [${[...this.providers.keys()].join(', ')}] | default: ${this.defaultProvider}`);
     }
     getAvailableProviders() {
@@ -264,7 +268,7 @@ let LlmService = LlmService_1 = class LlmService {
         const tried = new Set();
         const errors = [];
         const order = preferredProvider
-            ? [preferredProvider, ...this.FREE_PROVIDER_PRIORITY.filter(p => p !== preferredProvider)]
+            ? [preferredProvider, ...this.FREE_PROVIDER_PRIORITY.filter((p) => p !== preferredProvider)]
             : this.FREE_PROVIDER_PRIORITY;
         if (this.providers.size === 0) {
             throw new common_1.BadRequestException('LLM 프로바이더가 설정되지 않았습니다. 관리자에게 API 키 설정을 요청해주세요.');
@@ -351,7 +355,12 @@ let LlmService = LlmService_1 = class LlmService {
         catch {
             throw new common_1.BadRequestException('AI 분석 결과를 파싱할 수 없습니다. 다시 시도해주세요.');
         }
-        return { feedback: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
+        return {
+            feedback: parsed,
+            tokensUsed: result.tokensUsed,
+            provider: result.provider,
+            model: result.model,
+        };
     }
     async analyzeJobMatch(resumeId, jobDescription, provider) {
         if (!jobDescription || jobDescription.length < 20) {
@@ -388,13 +397,24 @@ let LlmService = LlmService_1 = class LlmService {
         catch {
             throw new common_1.BadRequestException('AI 분석 결과를 파싱할 수 없습니다.');
         }
-        return { analysis: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
+        return {
+            analysis: parsed,
+            tokensUsed: result.tokensUsed,
+            provider: result.provider,
+            model: result.model,
+        };
     }
     async generateInterviewQuestions(resumeId, jobRole, provider, jobDescription, difficulty) {
         const resume = await this.resumesService.findOne(resumeId);
         const roleContext = jobRole ? `지원 직무: ${jobRole}\n` : '';
-        const jdContext = jobDescription ? `\n채용공고/자격요건:\n${jobDescription.slice(0, 2000)}\n\n위 채용공고의 요구사항에 맞춤화된 질문을 생성하세요.\n` : '';
-        const diffContext = difficulty === 'beginner' ? '신입/주니어 수준의 기초적인 질문을 생성하세요.\n' : difficulty === 'advanced' ? '시니어/리드 수준의 심화 질문을 생성하세요.\n' : '';
+        const jdContext = jobDescription
+            ? `\n채용공고/자격요건:\n${jobDescription.slice(0, 2000)}\n\n위 채용공고의 요구사항에 맞춤화된 질문을 생성하세요.\n`
+            : '';
+        const diffContext = difficulty === 'beginner'
+            ? '신입/주니어 수준의 기초적인 질문을 생성하세요.\n'
+            : difficulty === 'advanced'
+                ? '시니어/리드 수준의 심화 질문을 생성하세요.\n'
+                : '';
         const systemPrompt = `당신은 기술 면접관입니다. 이력서를 분석하여 예상 면접 질문과 모범 답변을 JSON으로 생성해주세요.
 ${roleContext}${jdContext}${diffContext}
 반드시 아래 JSON 형식으로만 응답하세요:
@@ -422,7 +442,12 @@ ${roleContext}${jdContext}${diffContext}
         catch {
             throw new common_1.BadRequestException('AI 분석 결과를 파싱할 수 없습니다.');
         }
-        return { interview: parsed, tokensUsed: result.tokensUsed, provider: result.provider, model: result.model };
+        return {
+            interview: parsed,
+            tokensUsed: result.tokensUsed,
+            provider: result.provider,
+            model: result.model,
+        };
     }
     async inlineAssist(text, type, provider) {
         if (!text || text.trim().length < 2) {
