@@ -9,23 +9,31 @@ export declare class LlmController {
     private readonly usageService;
     constructor(llmService: LlmService, usageService: UsageService);
     transform(resumeId: string, dto: TransformResumeDto, req: any): Promise<{
-        id: any;
+        id: string;
         text: string;
         tokensUsed: number;
         provider: string;
         model: string;
-        createdAt: any;
+        createdAt: string;
     }>;
     transformStream(resumeId: string, dto: TransformResumeDto): Observable<MessageEvent>;
-    getHistory(resumeId: string): Promise<any>;
+    getHistory(resumeId: string): Promise<{
+        id: string;
+        templateType: string;
+        targetLanguage: string;
+        tokensUsed: number;
+        model: string;
+        createdAt: string;
+        result: any;
+    }[]>;
     getProviders(): {
         name: string;
         available: boolean;
         isDefault: boolean;
     }[];
     getUsage(): Promise<{
-        totalTransformations: any;
-        totalTokensUsed: any;
+        totalTransformations: number;
+        totalTokensUsed: number;
     }>;
     analyzeFeedback(resumeId: string, dto: FeedbackDto): Promise<{
         feedback: any;
