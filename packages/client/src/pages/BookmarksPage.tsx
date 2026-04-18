@@ -92,7 +92,7 @@ export default function BookmarksPage() {
                 key={b.id}
                 className="card-hover flex items-center justify-between p-4 imp-card animate-fade-in-up"
               >
-                <Link to={`/resumes/${b.resumeId}/preview`} className="flex-1 min-w-0">
+                <Link to={ROUTES.resume.preview(b.resumeId)} className="flex-1 min-w-0">
                   <h3 className="font-medium text-slate-900 dark:text-slate-100 truncate hover:text-blue-600 transition-colors">
                     {b.title || '제목 없음'}
                   </h3>

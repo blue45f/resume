@@ -2561,7 +2561,7 @@ function RecentResumes() {
           >
             <div className="min-w-0 flex-1">
               <Link
-                to={`/resumes/${r.id}/preview`}
+                to={ROUTES.resume.preview(r.id)}
                 className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 truncate block"
               >
                 {r.title || '제목 없음'}
