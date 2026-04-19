@@ -4633,6 +4633,7 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
   },
   { name: 'detectCareerGaps', category: '이력서', description: '경력 공백(6개월↑) 검출' },
   { name: 'analyzeVerbTense', category: '문체', description: '시제 일관성(과거/현재/미래)' },
+  { name: 'detectAllCapsOveruse', category: '구조', description: 'ALL CAPS 영문 단어 과용' },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5721,6 +5722,43 @@ export function analyzeVerbTense(text: string): TenseAnalysis {
           ? `현재시제 우세 (${present}건) — 경력 기술은 과거시제 전환 권장.`
           : `미래시제 우세 (${future}건) — 입사 후 계획 외에는 과거시제로.`;
   return { past, present, future, total, dominant, suggestion };
+}
+
+/**
+ * ALL CAPS 과용 검출 — 축약어가 아닌 일반 영문 단어를 대문자로만 쓰면 소리치는 인상.
+ * 3자 이상 일반 단어 + COMMON_ACRONYMS 아님 + 문장 시작 대문자 아님.
+ */
+export interface AllCapsHit {
+  word: string;
+  index: number;
+}
+export interface AllCapsAnalysis {
+  hits: AllCapsHit[];
+  count: number;
+  suggestion: string;
+}
+
+export function detectAllCapsOveruse(text: string): AllCapsAnalysis {
+  const t = text ?? '';
+  const hits: AllCapsHit[] = [];
+  const re = /\b([A-Z]{3,})\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(t))) {
+    const word = m[1];
+    if (COMMON_ACRONYMS.has(word)) continue;
+    // 6자 이상이면 축약어 아닐 가능성 높음, 5자 이하면 더 엄격하게 필터
+    if (word.length < 6 && /^(?:[A-Z][a-z]+)+$/.test(word)) continue;
+    hits.push({ word, index: m.index });
+    if (hits.length > 30) break;
+  }
+  const count = hits.length;
+  const suggestion =
+    count === 0
+      ? 'ALL CAPS 과용 없음.'
+      : count <= 2
+        ? `ALL CAPS ${count}건 — 일반 단어는 소문자/Title Case 로.`
+        : `ALL CAPS ${count}건 — "소리치는 인상"을 주므로 축약어 외엔 피하세요.`;
+  return { hits: hits.slice(0, 20), count, suggestion };
 }
 
 function stripHtml(html: string): string {
