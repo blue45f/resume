@@ -386,6 +386,13 @@ export default function AdminPage() {
                 </section>
                 <section>
                   <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-indigo-500 rounded" />
+                    커뮤니티 게시물 신고
+                  </h2>
+                  <CommunityPostReportsQueue />
+                </section>
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
                     <span className="w-1.5 h-4 bg-amber-500 rounded" />
                     콘텐츠 관리 도구
                   </h2>
@@ -3209,6 +3216,136 @@ function ResumeReportsQueue() {
                 >
                   기각
                 </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// CommunityPostReportsQueue — 커뮤니티 게시물 신고 관리
+// ═══════════════════════════════════════════════════════════
+interface CommunityReportItem {
+  id: string;
+  reason: string;
+  detail: string;
+  createdAt: string;
+  post: {
+    id: string;
+    title: string;
+    reportCount: number;
+    autoHidden: boolean;
+    category: string;
+  };
+  reporter: { id: string; name: string; email: string };
+}
+function CommunityPostReportsQueue() {
+  const queryClient = useQueryClient();
+  const token = localStorage.getItem('token');
+  const { data } = useQuery<{ items: CommunityReportItem[]; total: number }>({
+    queryKey: ['admin-community-reports'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/community/admin/reports?limit=50`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return { items: [], total: 0 };
+      return res.json();
+    },
+    staleTime: 30_000,
+  });
+  const unhide = async (id: string) => {
+    if (!confirm('자동숨김을 해제하고 신고 카운트를 리셋하시겠습니까?')) return;
+    const res = await fetch(`${API_URL}/api/community/admin/${id}/unhide`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      toast('자동숨김 해제 완료', 'success');
+      queryClient.invalidateQueries({ queryKey: ['admin-community-reports'] });
+    } else {
+      toast('해제 실패', 'error');
+    }
+  };
+  const reports = data?.items ?? [];
+  // 자동숨김된 게시물만 상단 요약
+  const hidden = Array.from(
+    new Map(reports.filter((r) => r.post.autoHidden).map((r) => [r.post.id, r.post])).values(),
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+          🙈 자동숨김 {hidden.length}건 (신고 누적)
+        </div>
+        {hidden.length === 0 ? (
+          <p className="text-xs text-slate-500 dark:text-slate-400">숨김 처리된 게시물 없음</p>
+        ) : (
+          <div className="space-y-1.5">
+            {hidden.map((p) => (
+              <div
+                key={p.id}
+                className="flex items-center justify-between gap-2 p-2 text-xs bg-red-50/50 dark:bg-red-900/10 rounded border border-red-200/60 dark:border-red-800/40"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-slate-800 dark:text-slate-200 truncate">
+                    {p.title || '(제목 없음)'}
+                  </div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                    신고 {p.reportCount}회 · {p.category}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => unhide(p.id)}
+                  className="shrink-0 px-2 py-1 text-[11px] font-medium bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  해제
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+          📋 최근 신고 {reports.length}건
+        </div>
+        {reports.length === 0 ? (
+          <p className="text-xs text-slate-500 dark:text-slate-400">신고 기록 없음</p>
+        ) : (
+          <div className="space-y-1.5 max-h-96 overflow-y-auto">
+            {reports.map((r) => (
+              <div
+                key={r.id}
+                className="flex items-start justify-between gap-2 p-2 text-xs bg-slate-50 dark:bg-slate-700/30 rounded border border-slate-200 dark:border-slate-700"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[10px] font-semibold">
+                      {REPORT_REASON_LABEL[r.reason] ?? r.reason}
+                    </span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200 truncate">
+                      {r.post.title || '(제목 없음)'}
+                    </span>
+                    {r.post.autoHidden && (
+                      <span className="text-[10px] text-red-600 dark:text-red-400">🙈</span>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                    {r.reporter.name} · {r.post.category} ·{' '}
+                    {new Date(r.createdAt).toLocaleString('ko-KR')}
+                  </div>
+                  {r.detail && (
+                    <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 italic">
+                      "{r.detail}"
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
