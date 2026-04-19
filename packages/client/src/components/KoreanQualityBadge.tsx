@@ -29,6 +29,7 @@ import {
   detectSoftSkills,
   analyzeBulletMarkerConsistency,
   analyzePunctuationBalance,
+  countAchievements,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -144,6 +145,7 @@ export default function KoreanQualityBadge({
             value={`${actionVerbs.strong}/${actionVerbs.weak}`}
             hint={`${Math.round(actionVerbs.ratio * 100)}% 강`}
           />
+          <AchievementsRow text={text} />
           <Row title="상투구" value={`${cliches.count}건`} hint={cliches.level} />
           <SectionHeader>✍️ 문장 구조</SectionHeader>
           <Row
@@ -524,6 +526,24 @@ function PriorityActions({ report }: { report: ReturnType<typeof generateQuality
         ))}
       </ol>
     </div>
+  );
+}
+
+function AchievementsRow({ text }: { text: string }) {
+  const a = countAchievements(text);
+  return (
+    <Row
+      title="수상·성취"
+      value={`${a.total}건`}
+      hint={
+        a.total === 0
+          ? '없음'
+          : a.byKeyword
+              .slice(0, 3)
+              .map((k) => k.keyword)
+              .join(' · ')
+      }
+    />
   );
 }
 
