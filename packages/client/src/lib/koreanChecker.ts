@@ -4598,6 +4598,11 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     category: '파생',
     description: '모든 분석기 일괄 실행 (단일 진입점)',
   },
+  {
+    name: 'summarizeAnalysis',
+    category: '파생',
+    description: 'FullAnalysis 요약 (red/yellow/green 플래그 + 한줄평)',
+  },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -4855,6 +4860,138 @@ export function analyzeEverything(text: string): FullAnalysis {
     interview: generateInterviewQuestions(text),
     openers: recommendCoverLetterOpeners(text),
     endings: countSentencesByEnding(text),
+  };
+}
+
+/**
+ * FullAnalysis 요약 — 가장 중요한 신호만 추려 플래그와 한 줄 코멘트로 압축.
+ * 긴 리포트를 대시보드 카드 하나에 요약할 때, 혹은 LLM 에 짧은 컨텍스트로 넘길 때 활용.
+ */
+export interface AnalysisFlag {
+  severity: 'red' | 'yellow' | 'green';
+  label: string;
+  note: string;
+}
+
+export function summarizeAnalysis(full: FullAnalysis): {
+  overallScore: number;
+  completenessScore: number;
+  topFlags: AnalysisFlag[];
+  oneLiner: string;
+} {
+  const flags: AnalysisFlag[] = [];
+
+  // PII — 최우선 경고
+  if (full.pii.severity === 'critical') {
+    flags.push({
+      severity: 'red',
+      label: 'PII 고위험',
+      note: '주민·카드번호 등 민감정보 포함 — 즉시 제거.',
+    });
+  } else if (full.pii.severity === 'warning') {
+    flags.push({
+      severity: 'yellow',
+      label: '개인정보 노출',
+      note: `${full.pii.count}건 — 필요성 재검토.`,
+    });
+  }
+
+  // 맞춤법 에러
+  if (full.quality.check.summary.error > 3) {
+    flags.push({
+      severity: 'red',
+      label: '맞춤법 오류 다수',
+      note: `${full.quality.check.summary.error}건 — 자동수정 권장.`,
+    });
+  }
+
+  // 정량 지표 부재
+  if (full.quality.quantification.level === 'none') {
+    flags.push({
+      severity: 'yellow',
+      label: '정량 지표 없음',
+      note: '수치 성과가 비어 있음.',
+    });
+  }
+
+  // 과장 표현
+  if (full.exaggeration.level === 'many') {
+    flags.push({
+      severity: 'yellow',
+      label: '과장 표현 다수',
+      note: `${full.exaggeration.count}건 — 증거 기반 표현으로.`,
+    });
+  }
+
+  // 완성도 낮음
+  if (full.completeness.overall < 50) {
+    flags.push({
+      severity: 'red',
+      label: '이력서 완성도 낮음',
+      note: `${full.completeness.overall}점 — 약한 축: ${
+        full.completeness.breakdown.slice().sort((a, b) => a.score - b.score)[0].axis
+      }.`,
+    });
+  } else if (full.completeness.overall >= 85) {
+    flags.push({
+      severity: 'green',
+      label: '완성도 우수',
+      note: `${full.completeness.overall}점.`,
+    });
+  }
+
+  // 날짜 오류
+  if (full.invalidDates.length > 0) {
+    flags.push({
+      severity: 'red',
+      label: '날짜 범위 오류',
+      note: `${full.invalidDates.length}건 — 시작 > 종료.`,
+    });
+  }
+
+  // 연락처 유효성
+  const invalidContacts =
+    full.contact.emails.filter((e) => !e.valid).length +
+    full.contact.phones.filter((p) => !p.valid).length;
+  if (invalidContacts > 0) {
+    flags.push({
+      severity: 'yellow',
+      label: '연락처 오류',
+      note: `잘못된 형식 ${invalidContacts}건.`,
+    });
+  }
+
+  // 품질 점수 총평
+  if (full.quality.overallScore >= 85) {
+    flags.push({
+      severity: 'green',
+      label: '한국어 품질 우수',
+      note: `${full.quality.overallScore}점.`,
+    });
+  } else if (full.quality.overallScore < 55) {
+    flags.push({
+      severity: 'red',
+      label: '한국어 품질 미흡',
+      note: `${full.quality.overallScore}점 — 우선 개선 필요.`,
+    });
+  }
+
+  // 중복 7개까지만 상위로
+  flags.sort((a, b) => {
+    const rank = { red: 0, yellow: 1, green: 2 };
+    return rank[a.severity] - rank[b.severity];
+  });
+  const topFlags = flags.slice(0, 7);
+  const red = topFlags.filter((f) => f.severity === 'red').length;
+  const yellow = topFlags.filter((f) => f.severity === 'yellow').length;
+  const green = topFlags.filter((f) => f.severity === 'green').length;
+  const oneLiner = `종합 ${full.quality.overallScore}점 · 완성도 ${full.completeness.overall}점 · 🔴 ${red} 🟡 ${yellow} 🟢 ${green}`;
+
+  return {
+    overallScore: full.quality.overallScore,
+    completenessScore: full.completeness.overall,
+    topFlags,
+    oneLiner,
   };
 }
 
