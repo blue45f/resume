@@ -2729,6 +2729,120 @@ export function prioritizeImprovements(report: KoreanQualityReport, topK = 3): P
   return ranked.slice(0, topK);
 }
 
+/**
+ * 두 QualityReport 간 차원별 점수 변화를 비교 — "자동수정 전후" / "초안 v1 vs v2"
+ * 같은 before/after 흐름에서 무엇이 개선·퇴행했는지 시각화에 사용.
+ */
+export interface ReportDelta {
+  dimension: string;
+  before: number;
+  after: number;
+  diff: number; // after - before
+}
+export interface ReportComparison {
+  overallBefore: number;
+  overallAfter: number;
+  overallDiff: number;
+  dimensions: ReportDelta[];
+  topImprovements: ReportDelta[]; // diff > 0 내림차순
+  topRegressions: ReportDelta[]; // diff < 0 오름차순 (더 큰 하락 먼저)
+  summary: string;
+}
+
+function scoreOf(r: KoreanQualityReport): Array<{ dimension: string; score: number }> {
+  return [
+    { dimension: '맞춤법', score: r.check.score },
+    { dimension: '가독성', score: r.readability.readabilityScore },
+    { dimension: '어휘 다양성', score: Math.round(r.lexical.ttr * 100) },
+    { dimension: '어미 변주', score: 100 - r.endings.monotonyScore },
+    { dimension: '반복어', score: Math.max(0, 100 - r.redundancy.hits.length * 10) },
+    {
+      dimension: '정량 지표',
+      score:
+        r.quantification.level === 'high'
+          ? 100
+          : r.quantification.level === 'medium'
+            ? 70
+            : r.quantification.level === 'low'
+              ? 40
+              : 10,
+    },
+    {
+      dimension: '액션 동사',
+      score:
+        r.actionVerbs.strong + r.actionVerbs.weak < 3 ? 60 : Math.round(r.actionVerbs.ratio * 100),
+    },
+    { dimension: '상투구', score: Math.max(0, 100 - r.cliches.count * 12) },
+    {
+      dimension: '문장 시작 변주',
+      score: Math.max(0, 100 - Math.round(r.sentenceStarts.repeatedStartRatio * 100)),
+    },
+    {
+      dimension: '수동태',
+      score: r.passive.level === 'low' ? 100 : r.passive.level === 'medium' ? 70 : 35,
+    },
+    { dimension: '평행구조', score: r.parallelism.consistency },
+    { dimension: '비격식', score: Math.max(0, 100 - r.informal.count * 15) },
+  ];
+}
+
+export function compareReports(
+  before: KoreanQualityReport,
+  after: KoreanQualityReport,
+): ReportComparison {
+  const b = scoreOf(before);
+  const a = scoreOf(after);
+  const dimensions: ReportDelta[] = b.map((row, i) => ({
+    dimension: row.dimension,
+    before: row.score,
+    after: a[i].score,
+    diff: a[i].score - row.score,
+  }));
+  const topImprovements = dimensions
+    .filter((d) => d.diff > 0)
+    .sort((a1, b1) => b1.diff - a1.diff)
+    .slice(0, 3);
+  const topRegressions = dimensions
+    .filter((d) => d.diff < 0)
+    .sort((a1, b1) => a1.diff - b1.diff)
+    .slice(0, 3);
+  const overallDiff = after.overallScore - before.overallScore;
+  const summary =
+    overallDiff > 0
+      ? `종합 점수 +${overallDiff}점 향상 (${before.overallScore} → ${after.overallScore})`
+      : overallDiff < 0
+        ? `종합 점수 ${overallDiff}점 하락 (${before.overallScore} → ${after.overallScore})`
+        : `종합 점수 동일 (${after.overallScore}점)`;
+  return {
+    overallBefore: before.overallScore,
+    overallAfter: after.overallScore,
+    overallDiff,
+    dimensions,
+    topImprovements,
+    topRegressions,
+    summary,
+  };
+}
+
+/**
+ * 안전한 autoFix 적용 + before/after 리포트 동시 생성.
+ * "자동수정을 적용하면 내 글이 얼마나 좋아지는지" 를 한 함수 호출로 보여줌.
+ */
+export interface SafeAutoFixResult {
+  fixedText: string;
+  changes: Array<{ from: string; to: string }>;
+  before: KoreanQualityReport;
+  after: KoreanQualityReport;
+  comparison: ReportComparison;
+}
+export function applySafeAutoFix(text: string, sectionName = '본문'): SafeAutoFixResult {
+  const before = generateQualityReport(text, sectionName);
+  const { fixed, changes } = autoFixText(text, 'error');
+  const after = generateQualityReport(fixed, sectionName);
+  const comparison = compareReports(before, after);
+  return { fixedText: fixed, changes, before, after, comparison };
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
