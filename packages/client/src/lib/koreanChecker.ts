@@ -3000,6 +3000,106 @@ export function analyzeDateConsistency(text: string): DateConsistencyAnalysis {
   };
 }
 
+/**
+ * 비즈니스 자곤(jargon) 과잉 사용 검출 — "인사이트/시너지/커뮤니케이션/이니셔티브/리소스"
+ * 같은 버즈워드는 구체성이 없고 공허한 인상. 3건 이상이면 재작성 권고.
+ */
+const JARGON_WORDS = [
+  '인사이트',
+  '시너지',
+  '커뮤니케이션',
+  '이니셔티브',
+  '리소스',
+  '패러다임',
+  '디벨롭',
+  '얼라인',
+  '온보딩',
+  '데브옵스',
+  '오너십',
+  '임팩트',
+  '레버리지',
+  '밸류',
+  '어젠다',
+  '콘텐츠',
+  '스케일업',
+];
+
+export interface JargonAnalysis {
+  hits: Array<{ word: string; count: number }>;
+  totalCount: number;
+  distinctCount: number;
+  level: 'none' | 'few' | 'many';
+  suggestion: string;
+}
+
+export function detectJargon(text: string): JargonAnalysis {
+  const t = text ?? '';
+  const counts = new Map<string, number>();
+  for (const w of JARGON_WORDS) {
+    const re = new RegExp(w, 'g');
+    const matches = t.match(re);
+    if (matches) counts.set(w, matches.length);
+  }
+  const hits = [...counts.entries()]
+    .map(([word, count]) => ({ word, count }))
+    .sort((a, b) => b.count - a.count);
+  const totalCount = hits.reduce((a, b) => a + b.count, 0);
+  const distinctCount = hits.length;
+  const level: JargonAnalysis['level'] =
+    totalCount === 0 ? 'none' : totalCount < 3 ? 'few' : 'many';
+  const suggestion =
+    level === 'none'
+      ? '자곤 표현이 감지되지 않았습니다.'
+      : level === 'few'
+        ? `자곤 ${totalCount}건 — "${hits[0].word}" 등을 구체 표현으로 바꾸세요.`
+        : `자곤이 ${totalCount}건, ${distinctCount}종 남용됩니다. 구체적 행동·결과로 재작성하세요.`;
+  return { hits: hits.slice(0, 10), totalCount, distinctCount, level, suggestion };
+}
+
+/**
+ * 괄호 균형 검사 — ([{「『 와 대응 닫힘의 개수가 다르면 편집 실수. 이력서·자소서에서
+ * 편집 중 생기는 흔한 실수를 간단히 포착.
+ */
+export interface BracketBalanceAnalysis {
+  pairs: Array<{ open: string; close: string; opened: number; closed: number; unbalanced: number }>;
+  unbalanced: boolean;
+  suggestion: string;
+}
+
+const BRACKET_PAIRS: Array<{ open: string; close: string }> = [
+  { open: '(', close: ')' },
+  { open: '[', close: ']' },
+  { open: '{', close: '}' },
+  { open: '「', close: '」' },
+  { open: '『', close: '』' },
+  { open: '<', close: '>' },
+  { open: '"', close: '"' },
+  { open: '"', close: '"' },
+];
+
+export function analyzeBracketBalance(text: string): BracketBalanceAnalysis {
+  const t = text ?? '';
+  const pairs = BRACKET_PAIRS.map(({ open, close }) => {
+    const opened =
+      open === close
+        ? Math.floor((t.split(open).length - 1) / 2) // 대칭 기호는 짝수 기대
+        : t.split(open).length - 1;
+    const closed = open === close ? opened : t.split(close).length - 1;
+    const unbalanced = Math.abs(opened - closed);
+    return { open, close, opened, closed, unbalanced };
+  }).filter((p) => p.opened > 0 || p.closed > 0);
+  const hasUnbalanced = pairs.some((p) => p.unbalanced > 0);
+  const suggestion = hasUnbalanced
+    ? `괄호 불균형: ${pairs
+        .filter((p) => p.unbalanced > 0)
+        .map((p) => `${p.open}${p.close} ${p.opened}/${p.closed}`)
+        .join(', ')} — 짝을 맞추세요.`
+    : pairs.length > 0
+      ? '괄호 균형이 맞습니다.'
+      : '괄호가 사용되지 않았습니다.';
+  return { pairs, unbalanced: hasUnbalanced, suggestion };
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
