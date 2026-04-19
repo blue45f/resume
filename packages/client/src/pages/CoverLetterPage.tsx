@@ -22,6 +22,7 @@ import {
   recommendCoverLetterOpeners,
   analyzeEverything,
   summarizeAnalysis,
+  generateResumeTldr,
 } from '@/lib/koreanChecker';
 
 type PageMode = 'generate' | 'feedback';
@@ -863,6 +864,7 @@ export default function CoverLetterPage() {
                   )}
                   {(feedbackText || '').length >= 80 && (
                     <div className="mt-2">
+                      <TldrHeadline text={feedbackText || ''} />
                       <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
                         🏷️ 핵심 키워드
                       </div>
@@ -1082,6 +1084,21 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
 }
 
 // KoreanQualityBadge 는 @/components/KoreanQualityBadge 로 추출되어 공용화됨.
+
+function TldrHeadline({ text }: { text: string }) {
+  if (text.length < 300) return null;
+  const tldr = generateResumeTldr(text);
+  return (
+    <div className="mb-3 p-2.5 rounded-lg bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300 mb-1">
+        📌 이력서 한 줄 요약
+      </div>
+      <p className="text-[12.5px] leading-relaxed text-slate-700 dark:text-slate-200">
+        {tldr.summary}
+      </p>
+    </div>
+  );
+}
 
 function AnalysisSummaryBar({ text }: { text: string }) {
   if (text.length < 200) return null;
