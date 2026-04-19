@@ -249,7 +249,9 @@ export default function CommunityPage() {
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">커뮤니티</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              {tx('community.title')}
+            </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               취업 정보와 경험을 나눠보세요
             </p>
