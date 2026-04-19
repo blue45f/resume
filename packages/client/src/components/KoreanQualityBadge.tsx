@@ -30,6 +30,7 @@ import {
   analyzeBulletMarkerConsistency,
   analyzePunctuationBalance,
   countAchievements,
+  computeSectionHealth,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -147,6 +148,7 @@ export default function KoreanQualityBadge({
           />
           <AchievementsRow text={text} />
           <Row title="상투구" value={`${cliches.count}건`} hint={cliches.level} />
+          <SectionHealthRow text={text} />
           <SectionHeader>✍️ 문장 구조</SectionHeader>
           <Row
             title="시작 변주"
@@ -543,6 +545,28 @@ function AchievementsRow({ text }: { text: string }) {
               .map((k) => k.keyword)
               .join(' · ')
       }
+    />
+  );
+}
+
+function SectionHealthRow({ text }: { text: string }) {
+  const health = computeSectionHealth(text);
+  if (health.balanceScore === 0 && health.orderScore === 100 && health.densityScore === 0) {
+    return null;
+  }
+  const tierLabel =
+    health.tier === 'excellent'
+      ? '우수'
+      : health.tier === 'good'
+        ? '양호'
+        : health.tier === 'fair'
+          ? '보통'
+          : '취약';
+  return (
+    <Row
+      title="섹션 구성"
+      value={`${health.overall}점 · ${tierLabel}`}
+      hint={`균형 ${health.balanceScore} · 순서 ${health.orderScore} · 밀도 ${health.densityScore}`}
     />
   );
 }
