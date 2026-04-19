@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { generateQualityReport } from '@/lib/koreanChecker';
+import { generateQualityReport, exportQualityReportMarkdown } from '@/lib/koreanChecker';
+import { toast } from '@/components/Toast';
 
 interface Props {
   /** 검사할 원문 */
@@ -105,6 +106,23 @@ export default function KoreanQualityBadge({
               💡 {readability.suggestion}
             </p>
           )}
+          <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const md = exportQualityReportMarkdown(text, label);
+                  await navigator.clipboard.writeText(md);
+                  toast('리포트를 클립보드에 복사했습니다', 'success');
+                } catch {
+                  toast('복사에 실패했습니다', 'error');
+                }
+              }}
+              className="text-[10px] px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              📋 리포트 복사 (MD)
+            </button>
+          </div>
         </div>
       )}
     </div>
