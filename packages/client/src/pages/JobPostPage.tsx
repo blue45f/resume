@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 import { createJob } from '@/lib/api';
 import { useJob } from '@/hooks/useResources';
 import {
@@ -211,7 +212,7 @@ export default function JobPostPage() {
       >
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-            {copyFromId ? '공고 복사하여 등록' : '채용 공고 등록'}
+            {copyFromId ? `${tx('jobs.title')} — ${tx('common.copy')}` : tx('jobs.title')}
           </h1>
           <button
             type="button"
