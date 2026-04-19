@@ -479,13 +479,7 @@ const RULES: Array<{
     reason: '"병이 낫다"는 낫다, "아이를 낳다"는 낳다. 문맥 확인.',
     severity: 'info',
   },
-  {
-    pattern: /\s왠만/g,
-    wrong: '왠만',
-    suggestion: '웬만',
-    reason: '"어지간한"의 뜻은 "웬만"입니다.',
-    severity: 'error',
-  },
+  // (중복 제거 — 왠만 규칙은 위 블록으로 통합, \s 접두사 없는 패턴이 더 포괄적)
   {
     pattern: /맞추어/g,
     wrong: '맞추어',
@@ -1031,6 +1025,60 @@ function computeScore(
 
 /** 외부 확장 (테스트·진단용) — 현재 등록된 규칙 수 */
 export const KOREAN_RULE_COUNT = RULES.length;
+
+/**
+ * 규칙 메타데이터 — admin/dev 도구에서 "몇 개 규칙이 등록되어 있고 어떤 분포인지" 파악.
+ */
+export interface RuleMetadata {
+  total: number;
+  bySeverity: { error: number; warning: number; info: number };
+  /** 중복 wrong 이 있으면 UX 가 혼란스러워지므로 추적 */
+  duplicateWrongs: string[];
+}
+export function getRuleMetadata(): RuleMetadata {
+  const bySeverity = { error: 0, warning: 0, info: 0 };
+  const seen = new Map<string, number>();
+  for (const r of RULES) {
+    bySeverity[r.severity]++;
+    seen.set(r.wrong, (seen.get(r.wrong) ?? 0) + 1);
+  }
+  const duplicateWrongs = [...seen.entries()].filter(([, n]) => n > 1).map(([w]) => w);
+  return { total: RULES.length, bySeverity, duplicateWrongs };
+}
+
+/**
+ * 모든 규칙의 기본적인 안전성 검증 — dev 모드에서 호출해 추가된 규칙이
+ * 빈 필드나 잘못된 정규식을 가지지 않는지 확인.
+ * 실패 시 문제 있는 규칙 인덱스 + 이유 목록 반환.
+ */
+export interface RuleValidationIssue {
+  index: number;
+  wrong: string;
+  problem: string;
+}
+export function validateRules(): RuleValidationIssue[] {
+  const issues: RuleValidationIssue[] = [];
+  RULES.forEach((r, i) => {
+    if (!r.wrong?.trim()) {
+      issues.push({ index: i, wrong: r.wrong ?? '', problem: 'wrong 이 비어있음' });
+    }
+    // suggestion 이 공백 1칸일 수 있음(전각공백→일반공백 류) → length === 0 만 체크
+    if (r.suggestion === undefined || r.suggestion === null || r.suggestion.length === 0) {
+      issues.push({ index: i, wrong: r.wrong, problem: 'suggestion 이 비어있음' });
+    }
+    if (!r.reason?.trim()) {
+      issues.push({ index: i, wrong: r.wrong, problem: 'reason 이 비어있음' });
+    }
+    if (!r.pattern.global) {
+      issues.push({ index: i, wrong: r.wrong, problem: "pattern 에 'g' 플래그 없음" });
+    }
+    // 자기 치환 루프 방지: wrong === suggestion (은 사실상 no-op)
+    if (r.wrong === r.suggestion) {
+      issues.push({ index: i, wrong: r.wrong, problem: 'wrong === suggestion (no-op 규칙)' });
+    }
+  });
+  return issues;
+}
 
 /**
  * 자동 수정 전/후 결과 비교 — 개선 성과 리포트용.
