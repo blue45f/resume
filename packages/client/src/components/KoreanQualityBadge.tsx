@@ -31,6 +31,7 @@ import {
   analyzePunctuationBalance,
   countAchievements,
   computeSectionHealth,
+  analyzeStarPattern,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -149,6 +150,7 @@ export default function KoreanQualityBadge({
           <AchievementsRow text={text} />
           <Row title="상투구" value={`${cliches.count}건`} hint={cliches.level} />
           <SectionHealthRow text={text} />
+          <StarPatternRow text={text} />
           <SectionHeader>✍️ 문장 구조</SectionHeader>
           <Row
             title="시작 변주"
@@ -545,6 +547,26 @@ function AchievementsRow({ text }: { text: string }) {
               .map((k) => k.keyword)
               .join(' · ')
       }
+    />
+  );
+}
+
+function StarPatternRow({ text }: { text: string }) {
+  const star = analyzeStarPattern(text);
+  if (star.analyzed < 2) return null;
+  const tierLabel =
+    star.tier === 'excellent'
+      ? '우수'
+      : star.tier === 'good'
+        ? '양호'
+        : star.tier === 'fair'
+          ? '보통'
+          : '취약';
+  return (
+    <Row
+      title="STAR 커버리지"
+      value={`${star.coverage}% · ${tierLabel}`}
+      hint={`완전 ${star.fullStarCount}/${star.analyzed} · 평균 ${star.avgScore}점`}
     />
   );
 }
