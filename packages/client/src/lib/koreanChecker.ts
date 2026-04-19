@@ -4622,6 +4622,7 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     description: '문장부호 분포 (느낌표·물음표·쉼표)',
   },
   { name: 'extractQuotableLines', category: '파생', description: '인용 가능한 임팩트 문장 Top-N' },
+  { name: 'computeTextSimilarity', category: '파생', description: 'Jaccard 텍스트 유사도 비교' },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5368,6 +5369,40 @@ export function extractQuotableLines(text: string, topN = 3): QuotableLine[] {
   }
   results.sort((a, b) => b.score - a.score);
   return results.slice(0, topN);
+}
+
+/**
+ * 두 텍스트 간 Jaccard 유사도 — 키워드 집합 교집합/합집합 기반. 0~1.
+ * 1에 가까울수록 유사. 이력서 버전 간 변화 감지 · 복붙 의심 판정에 활용.
+ */
+export interface TextSimilarityResult {
+  jaccard: number; // 0~1
+  shared: string[]; // 공통 키워드 상위 10
+  uniqueA: string[]; // a 에만 있는 상위 10
+  uniqueB: string[]; // b 에만 있는 상위 10
+  verdict: '거의 동일' | '매우 유사' | '유사' | '다름' | '매우 다름';
+}
+
+export function computeTextSimilarity(a: string, b: string): TextSimilarityResult {
+  const kwA = new Set(extractKeywords(a ?? '', 100).map((k) => k.word));
+  const kwB = new Set(extractKeywords(b ?? '', 100).map((k) => k.word));
+  const intersection = [...kwA].filter((w) => kwB.has(w));
+  const union = new Set([...kwA, ...kwB]);
+  const jaccard =
+    union.size === 0 ? 0 : Math.round((intersection.length / union.size) * 1000) / 1000;
+  const uniqueA = [...kwA].filter((w) => !kwB.has(w)).slice(0, 10);
+  const uniqueB = [...kwB].filter((w) => !kwA.has(w)).slice(0, 10);
+  const verdict: TextSimilarityResult['verdict'] =
+    jaccard >= 0.9
+      ? '거의 동일'
+      : jaccard >= 0.7
+        ? '매우 유사'
+        : jaccard >= 0.4
+          ? '유사'
+          : jaccard >= 0.2
+            ? '다름'
+            : '매우 다름';
+  return { jaccard, shared: intersection.slice(0, 10), uniqueA, uniqueB, verdict };
 }
 
 function stripHtml(html: string): string {
