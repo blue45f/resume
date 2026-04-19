@@ -2904,6 +2904,102 @@ export function getDimensionScores(report: KoreanQualityReport): DimensionScore[
   return scoreOf(report);
 }
 
+/**
+ * 예상 읽기 시간 — 한국어 평균 독해 속도 ~300 자/분 기준.
+ * 구직자·심사자가 글의 부담감을 가늠할 수 있게 돕는다.
+ */
+export interface ReadingTimeEstimate {
+  chars: number;
+  words: number;
+  minutes: number; // 분 단위 (0.5 반올림)
+  label: string; // '30초 이내' | '약 2분' 등
+}
+export function estimateReadingTime(text: string, charsPerMinute = 300): ReadingTimeEstimate {
+  const clean = (text ?? '').replace(/\s+/g, '');
+  const chars = clean.length;
+  const words = (text ?? '').match(/[가-힣A-Za-z0-9]+/g)?.length ?? 0;
+  const rawMinutes = chars / charsPerMinute;
+  const minutes = Math.max(0, Math.round(rawMinutes * 2) / 2); // 0.5 step
+  const label =
+    chars === 0
+      ? '본문 없음'
+      : rawMinutes < 0.5
+        ? '30초 이내'
+        : minutes < 1
+          ? '약 30초'
+          : minutes < 2
+            ? '약 1분'
+            : `약 ${Math.round(minutes)}분`;
+  return { chars, words, minutes, label };
+}
+
+/**
+ * 날짜 포맷 일관성 검사 — 이력서·자소서 전반에서 2023.01 / 2023-01-05 / 2023/01/05 / 2023년 1월
+ * 등 섞이면 전문성이 떨어져 보임. 포맷별 빈도를 계산해 2종 이상이면 경고.
+ */
+export interface DateFormatHit {
+  format: 'dot' | 'hyphen' | 'slash' | 'korean' | 'other';
+  sample: string;
+  index: number;
+}
+export interface DateConsistencyAnalysis {
+  hits: DateFormatHit[];
+  formatCounts: Record<DateFormatHit['format'], number>;
+  distinctFormats: number;
+  dominantFormat: DateFormatHit['format'] | null;
+  consistent: boolean;
+  suggestion: string;
+}
+
+const DATE_PATTERNS: Array<{ re: RegExp; format: DateFormatHit['format'] }> = [
+  { re: /\b\d{4}\.(0?[1-9]|1[0-2])(?:\.(0?[1-9]|[12]\d|3[01]))?\b/g, format: 'dot' },
+  { re: /\b\d{4}-(0?[1-9]|1[0-2])(?:-(0?[1-9]|[12]\d|3[01]))?\b/g, format: 'hyphen' },
+  { re: /\b\d{4}\/(0?[1-9]|1[0-2])(?:\/(0?[1-9]|[12]\d|3[01]))?\b/g, format: 'slash' },
+  { re: /\d{4}년\s*\d{1,2}월(?:\s*\d{1,2}일)?/g, format: 'korean' },
+];
+
+export function analyzeDateConsistency(text: string): DateConsistencyAnalysis {
+  const t = text ?? '';
+  const hits: DateFormatHit[] = [];
+  for (const p of DATE_PATTERNS) {
+    const re = new RegExp(p.re.source, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(t))) {
+      hits.push({ format: p.format, sample: m[0], index: m.index });
+      if (hits.length > 80) break;
+    }
+    if (hits.length > 80) break;
+  }
+  hits.sort((a, b) => a.index - b.index);
+  const formatCounts: Record<DateFormatHit['format'], number> = {
+    dot: 0,
+    hyphen: 0,
+    slash: 0,
+    korean: 0,
+    other: 0,
+  };
+  for (const h of hits) formatCounts[h.format]++;
+  const usedFormats = (Object.keys(formatCounts) as DateFormatHit['format'][]).filter(
+    (k) => formatCounts[k] > 0,
+  );
+  const distinctFormats = usedFormats.length;
+  const dominantFormat = usedFormats.sort((a, b) => formatCounts[b] - formatCounts[a])[0] ?? null;
+  const consistent = distinctFormats <= 1;
+  let suggestion = '';
+  if (hits.length === 0) suggestion = '날짜 표기가 감지되지 않았습니다.';
+  else if (consistent) suggestion = `날짜 표기가 "${dominantFormat}" 로 일관됩니다.`;
+  else
+    suggestion = `날짜 포맷이 ${distinctFormats}종 혼재 — 한 가지로 통일하세요 (주류: "${dominantFormat}", ${formatCounts[dominantFormat!]}건).`;
+  return {
+    hits: hits.slice(0, 30),
+    formatCounts,
+    distinctFormats,
+    dominantFormat,
+    consistent,
+    suggestion,
+  };
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
