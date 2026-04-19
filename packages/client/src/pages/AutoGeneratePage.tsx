@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import KoreanQualityBadge from '@/components/KoreanQualityBadge';
 import { useTemplates, useResumes } from '@/hooks/useResources';
 import type { Template, ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
@@ -301,9 +302,12 @@ export default function AutoGeneratePage() {
                   className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-52 resize-none bg-white dark:bg-slate-700 dark:text-slate-100"
                   placeholder={`아무 형식으로 경력/학력/기술 정보를 입력하세요.\n\n예시:\n- 경력 메모\n- LinkedIn 프로필 복사\n- 이전 이력서 텍스트\n- 자기소개 + 경력 나열`}
                 />
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                  {rawText.length.toLocaleString()}자
-                </p>
+                <div className="flex items-center justify-between mt-1 gap-2 flex-wrap">
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                    {rawText.length.toLocaleString()}자
+                  </p>
+                  <KoreanQualityBadge text={rawText} label="원본 텍스트" minLength={200} />
+                </div>
               </div>
             ) : (
               <div>

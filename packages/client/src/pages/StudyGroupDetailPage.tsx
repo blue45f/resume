@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
+import KoreanQualityBadge from '@/components/KoreanQualityBadge';
 import {
   fetchStudyGroup,
   joinStudyGroup,
@@ -369,10 +370,11 @@ export default function StudyGroupDetailPage() {
                   placeholder="내용을 입력하세요"
                   className="w-full text-sm px-2 py-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 resize-y"
                 />
-                <div className="flex items-center justify-end gap-2">
+                <div className="flex items-center justify-end gap-2 flex-wrap">
                   <span className="text-[10px] text-slate-400 mr-auto">
                     {newPostContent.length}/20,000
                   </span>
+                  <KoreanQualityBadge text={newPostContent} label="스터디 글" minLength={100} />
                   <button
                     onClick={submitPost}
                     disabled={posting}
