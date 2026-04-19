@@ -8,6 +8,7 @@ import SendMessageButton from '@/components/SendMessageButton';
 import { getUser } from '@/lib/auth';
 import { useFollowers, useFollowing } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 
 interface FollowUser {
   id: string;
@@ -62,7 +63,7 @@ export default function FollowListPage() {
       >
         <div className="mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-            팔로워 / 팔로잉
+            {tx('profile.followers')} / {tx('profile.following')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             나를 팔로우하는 사용자와 내가 팔로우하는 사용자를 관리합니다
