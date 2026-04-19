@@ -2156,6 +2156,155 @@ function AdminCommunityTab() {
 }
 
 // ═══════════════════════════════════════════════════════════
+// 4b. Feature Toggles — 개별 기능 전역 on/off
+// ═══════════════════════════════════════════════════════════
+const FEATURE_LABELS: Array<{ key: string; label: string; hint: string; group: string }> = [
+  {
+    key: 'ai.resume',
+    label: 'AI 이력서 변환',
+    hint: 'LLM 기반 이력서 양식 변환·생성',
+    group: 'AI',
+  },
+  { key: 'ai.coverLetter', label: 'AI 커버레터', hint: '자기소개서 자동 생성', group: 'AI' },
+  { key: 'ai.oneLiner', label: 'AI 한줄소개', hint: '경력·기술 기반 2~3문장', group: 'AI' },
+  { key: 'coaching', label: '코칭 예약', hint: '코치 세션 생성·예약', group: '소셜' },
+  { key: 'messaging', label: '1:1 메시지', hint: '사용자간 직접 메시지', group: '소셜' },
+  {
+    key: 'studyGroup.create',
+    label: '스터디 생성',
+    hint: '신규 스터디 그룹 생성',
+    group: '스터디',
+  },
+  {
+    key: 'studyGroup.reactions',
+    label: '이모지 리액션',
+    hint: '스터디 게시물 이모지',
+    group: '스터디',
+  },
+  { key: 'community.create', label: '커뮤니티 작성', hint: '신규 게시물', group: '커뮤니티' },
+  { key: 'community.comment', label: '커뮤니티 댓글', hint: '댓글 작성', group: '커뮤니티' },
+  { key: 'publicResume', label: '공개 이력서', hint: '이력서 public visibility', group: '기타' },
+];
+
+function FeatureTogglesSection() {
+  const queryClient = useQueryClient();
+  const token = localStorage.getItem('token');
+  const { data, isLoading } = useQuery<Record<string, boolean>>({
+    queryKey: ['admin-feature-toggles'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/system-config/feature-toggles`);
+      if (!res.ok) return {};
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
+  const [toggles, setToggles] = useState<Record<string, boolean>>({});
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    if (data) setToggles(data);
+  }, [data]);
+
+  const flip = (key: string) => setToggles((t) => ({ ...t, [key]: !t[key] }));
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(`${API_URL}/api/system-config/feature-toggles`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(toggles),
+      });
+      if (!res.ok) throw new Error();
+      toast('기능 토글 설정이 저장되었습니다', 'success');
+      queryClient.invalidateQueries({ queryKey: ['admin-feature-toggles'] });
+      queryClient.invalidateQueries({ queryKey: ['feature-toggles'] });
+    } catch {
+      toast('저장에 실패했습니다', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // group by category
+  const grouped: Record<string, typeof FEATURE_LABELS> = {};
+  for (const f of FEATURE_LABELS) (grouped[f.group] ||= []).push(f);
+  const disabledCount = FEATURE_LABELS.filter((f) => toggles[f.key] === false).length;
+
+  return (
+    <section>
+      <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+        <span className="w-1.5 h-4 bg-indigo-500 rounded" />
+        기능 토글
+        {disabledCount > 0 && (
+          <span className="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+            {disabledCount}개 비활성화
+          </span>
+        )}
+      </h2>
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-4">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          개별 기능을 일시적으로 비활성화할 수 있습니다. 비활성화된 기능은 사용자에게 403 Forbidden
+          을 반환합니다.
+        </p>
+        {Object.entries(grouped).map(([group, items]) => (
+          <div key={group} className="space-y-2">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              {group}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {items.map((f) => {
+                const on = toggles[f.key] !== false;
+                return (
+                  <label
+                    key={f.key}
+                    className="flex items-start justify-between gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {f.label}
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                        {f.hint}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        flip(f.key);
+                      }}
+                      disabled={isLoading}
+                      className={`shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${
+                        on ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-600'
+                      }`}
+                      aria-label={`${f.label} 토글`}
+                    >
+                      <span
+                        className={`block w-4 h-4 bg-white rounded-full transition-transform shadow ${on ? 'translate-x-5' : 'translate-x-1'}`}
+                      />
+                    </button>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving || isLoading}
+            className="px-4 h-9 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            {saving ? '저장 중...' : '저장'}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
 // 4a. Upload Settings — 파일 업로드 전역 토글 + 크기/MIME 제한
 // ═══════════════════════════════════════════════════════════
 function UploadSettingsSection() {
@@ -2482,6 +2631,9 @@ function SystemSettings() {
 
       {/* File Upload Settings */}
       <UploadSettingsSection />
+
+      {/* Feature Toggles (AI·코칭·메시지·스터디 등) */}
+      <FeatureTogglesSection />
 
       {/* Announcement Banner */}
       <section>
