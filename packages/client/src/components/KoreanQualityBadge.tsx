@@ -3,6 +3,7 @@ import {
   generateQualityReport,
   exportQualityReportMarkdown,
   prioritizeImprovements,
+  gradeFromScore,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -72,6 +73,12 @@ export default function KoreanQualityBadge({
       >
         <span>🔤 한국어 품질</span>
         <span className="font-bold">{overallScore}점</span>
+        <span
+          className="text-[10px] font-semibold px-1 py-0.5 rounded bg-white/50 dark:bg-black/20"
+          title={`${gradeFromScore(overallScore).tier} · ${overallScore}/100`}
+        >
+          {gradeFromScore(overallScore).grade}
+        </span>
         {summary.error > 0 && <span className="text-red-600">❌{summary.error}</span>}
         {summary.warning > 0 && <span className="text-amber-600">⚠️{summary.warning}</span>}
         {summary.info > 0 && <span className="text-slate-500">💡{summary.info}</span>}
