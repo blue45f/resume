@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { API_URL } from '@/lib/config';
+import { tx } from '@/lib/i18n';
 
 interface Step {
   num: number;
@@ -40,7 +41,7 @@ export default function OnboardingBanner() {
   );
   const [hiding, setHiding] = useState(false);
   const [steps, setSteps] = useState<Step[]>(DEFAULT_STEPS);
-  const [title, setTitle] = useState('시작하기 가이드');
+  const [title, setTitle] = useState(tx('onboarding.welcome'));
   const [subtitle, setSubtitle] = useState('3단계로 완벽한 이력서를 완성하세요');
   const location = useLocation();
 
