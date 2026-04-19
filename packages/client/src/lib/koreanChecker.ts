@@ -4623,6 +4623,8 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
   },
   { name: 'extractQuotableLines', category: '파생', description: '인용 가능한 임팩트 문장 Top-N' },
   { name: 'computeTextSimilarity', category: '파생', description: 'Jaccard 텍스트 유사도 비교' },
+  { name: 'quickScore', category: '파생', description: '빠른 품질 점수(단일 숫자)' },
+  { name: 'detectEmptyClaims', category: '문체', description: '빈 주장(근거 없는 역량 주장) 검출' },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5403,6 +5405,80 @@ export function computeTextSimilarity(a: string, b: string): TextSimilarityResul
             ? '다름'
             : '매우 다름';
   return { jaccard, shared: intersection.slice(0, 10), uniqueA, uniqueB, verdict };
+}
+
+/**
+ * 빠른 품질 점수 조회 — 전체 리포트(generateQualityReport) 생성 비용 대비 단순 숫자만
+ * 필요한 경우(대량 배치, 목록 정렬 등)에 사용. checkText 의 score 를 직접 리턴.
+ */
+export function quickScore(text: string): number {
+  return checkText(text, '본문').score;
+}
+
+/**
+ * 빈 주장(empty claim) 감지 — "~를 잘 알고 있습니다", "~에 대한 이해가 깊습니다",
+ * "~에 자신 있습니다" 같이 근거 없이 자기 능력을 주장하는 표현 검출. detectExaggeration
+ * 과 다른 축 — 과장이 아닌 "모호한 역량 주장".
+ */
+const EMPTY_CLAIM_PATTERNS: Array<{ re: RegExp; phrase: string; reason: string }> = [
+  {
+    re: /잘\s*(?:알|이해하|다룰)/g,
+    phrase: '잘 알고 있다',
+    reason: '구체 예시로 "어떻게 아는지" 증명.',
+  },
+  {
+    re: /(?:대한|에\s*대한)\s*이해가?\s*(?:깊|풍부)/g,
+    phrase: '대한 이해가 깊다',
+    reason: '프로젝트·결과로 이해 수준을 증명.',
+  },
+  { re: /자신\s*(?:있|있습)/g, phrase: '자신 있다', reason: '구체 사례 제시.' },
+  {
+    re: /(?:전문|능숙|숙련)\s*합(?:니다|임)/g,
+    phrase: '전문/능숙/숙련',
+    reason: '연수·프로젝트·산출물 링크로 증명.',
+  },
+  { re: /꼼꼼(?:하|함)/g, phrase: '꼼꼼함', reason: '체크리스트·QA 사례로 증명.' },
+  {
+    re: /탁월한?\s*(?:역량|능력|실력)/g,
+    phrase: '탁월한 역량/능력',
+    reason: '수치·비교 사례 필요.',
+  },
+];
+
+export interface EmptyClaimHit {
+  phrase: string;
+  index: number;
+  reason: string;
+}
+export interface EmptyClaimAnalysis {
+  hits: EmptyClaimHit[];
+  count: number;
+  level: 'none' | 'few' | 'many';
+  suggestion: string;
+}
+
+export function detectEmptyClaims(text: string): EmptyClaimAnalysis {
+  const t = text ?? '';
+  const hits: EmptyClaimHit[] = [];
+  for (const p of EMPTY_CLAIM_PATTERNS) {
+    const re = new RegExp(p.re.source, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(t))) {
+      hits.push({ phrase: p.phrase, index: m.index, reason: p.reason });
+      if (hits.length > 30) break;
+    }
+    if (hits.length > 30) break;
+  }
+  hits.sort((a, b) => a.index - b.index);
+  const count = hits.length;
+  const level: EmptyClaimAnalysis['level'] = count === 0 ? 'none' : count <= 2 ? 'few' : 'many';
+  const suggestion =
+    level === 'none'
+      ? '빈 주장이 감지되지 않았습니다.'
+      : level === 'few'
+        ? `빈 주장 ${count}건 — 각 표현에 증거(수치·사례·산출물) 1개씩 덧붙이세요.`
+        : `빈 주장이 ${count}건으로 많습니다. "잘 안다/자신 있다" 같은 주장은 구체 사례로 증명하세요.`;
+  return { hits: hits.slice(0, 20), count, level, suggestion };
 }
 
 function stripHtml(html: string): string {
