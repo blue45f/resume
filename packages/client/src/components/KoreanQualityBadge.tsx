@@ -73,7 +73,7 @@ export default function KoreanQualityBadge({
         <span className="text-slate-400 text-[10px]">{expanded ? '▲' : '▼'}</span>
       </button>
       {expanded && (
-        <div className="mt-2 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px] leading-relaxed max-w-xs shadow-sm">
+        <div className="mt-2 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px] leading-relaxed w-full max-w-xs sm:max-w-sm max-h-[70vh] overflow-y-auto shadow-sm">
           <Row
             title="맞춤법"
             value={`${check.score}점`}

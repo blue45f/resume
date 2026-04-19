@@ -2103,6 +2103,52 @@ export function analyzeParallelism(text: string): ParallelismAnalysis {
 }
 
 /**
+ * 길이 분석 — 자소서·입사지원서는 보통 500~2000 자 범위 제한.
+ * 입력이 target 범위를 벗어나면 경고. 공백 포함/제외 2가지 기준 모두 제공.
+ */
+export interface LengthAnalysis {
+  charsWithSpaces: number;
+  charsWithoutSpaces: number;
+  words: number;
+  paragraphs: number;
+  target?: { min?: number; max?: number };
+  status: 'under' | 'ok' | 'over' | 'no-target';
+  suggestion: string;
+}
+
+export function analyzeLength(
+  text: string,
+  target?: { min?: number; max?: number },
+): LengthAnalysis {
+  const t = text ?? '';
+  const charsWithSpaces = t.length;
+  const charsWithoutSpaces = t.replace(/\s+/g, '').length;
+  const words = (t.match(/[가-힣A-Za-z0-9]+/g) ?? []).length;
+  const paragraphs = t
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0).length;
+  let status: LengthAnalysis['status'] = 'no-target';
+  let suggestion = '';
+  const effective = charsWithSpaces;
+  if (target) {
+    if (target.min !== undefined && effective < target.min) {
+      status = 'under';
+      suggestion = `목표 최소치 ${target.min}자 대비 ${target.min - effective}자 부족합니다.`;
+    } else if (target.max !== undefined && effective > target.max) {
+      status = 'over';
+      suggestion = `목표 최대치 ${target.max}자를 ${effective - target.max}자 초과했습니다.`;
+    } else {
+      status = 'ok';
+      suggestion = `목표 범위 내 (${effective}자).`;
+    }
+  } else {
+    suggestion = `현재 ${effective}자 (공백 제외 ${charsWithoutSpaces}자, ${words}단어, ${paragraphs}문단).`;
+  }
+  return { charsWithSpaces, charsWithoutSpaces, words, paragraphs, target, status, suggestion };
+}
+
+/**
  * 모든 분석기를 합쳐 한 번에 호출하는 통합 리포트.
  * 실사용 컴포넌트에서 여러 함수 호출 대신 한 번의 호출로 품질 스코어·지표 전부 가져올 수 있음.
  */
