@@ -4651,6 +4651,11 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     category: '이력서',
     description: '섹션 배치가 권장 순서(자기소개→경력→프로젝트→기술→학력)에 부합하는지',
   },
+  {
+    name: 'analyzeSectionDensity',
+    category: '이력서',
+    description: '섹션별 숫자·액션동사·불릿 밀도 — 강화가 필요한 섹션 식별',
+  },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -6056,6 +6061,75 @@ export function analyzeSectionOrder(text: string): SectionOrderReport {
     isOptimal: inversions === 0,
     score,
   };
+}
+
+export interface SectionDensity {
+  key: string;
+  chars: number;
+  numbers: number;
+  actionVerbs: number;
+  bullets: number;
+  density: number;
+  needsBoost: boolean;
+  hint?: string;
+}
+
+const SECTION_DENSITY_ACTION_VERBS = [
+  '개발',
+  '구축',
+  '설계',
+  '구현',
+  '개선',
+  '최적화',
+  '리팩터',
+  '리팩토',
+  '도입',
+  '주도',
+  '운영',
+  '운용',
+  '관리',
+  '리드',
+  '담당',
+  '분석',
+  '기획',
+  '제안',
+  '제작',
+  '배포',
+  '자동화',
+  '통합',
+  '마이그',
+];
+
+const SECTION_DENSITY_BULLET_RE = /^[\s]*[-•·▶►◆◇□■★☆*·]/gm;
+const SECTION_DENSITY_NUMBER_RE = /\d+(?:[.,]\d+)?(?:%|배|시간|분|초|건|명|개|회|원|만|억|천)?/g;
+
+/**
+ * 섹션별 구체성 밀도 — 숫자·액션동사·불릿의 per-100-char 밀도를 계산.
+ * density 가 0.8 미만인 섹션은 needsBoost=true 로 표시하고 섹션별 힌트 제공.
+ */
+export function analyzeSectionDensity(text: string): SectionDensity[] {
+  const parts = splitByExperienceSection(text);
+  return parts.map((p) => {
+    const chars = p.content.length;
+    const numbers = (p.content.match(SECTION_DENSITY_NUMBER_RE) ?? []).length;
+    const actionVerbs = SECTION_DENSITY_ACTION_VERBS.reduce(
+      (acc, v) => acc + (p.content.match(new RegExp(v, 'g'))?.length ?? 0),
+      0,
+    );
+    const bullets = (p.content.match(SECTION_DENSITY_BULLET_RE) ?? []).length;
+    const signalCount = numbers + actionVerbs + bullets;
+    const density = chars > 0 ? +((signalCount / chars) * 100).toFixed(2) : 0;
+    const isExperienceLike = p.key === '경력' || p.key === '프로젝트' || p.key === '자기소개';
+    const needsBoost = isExperienceLike && chars >= 120 && density < 0.8;
+    let hint: string | undefined;
+    if (needsBoost) {
+      if (numbers < 2) hint = `${p.key}: 정량 지표(숫자·%·기간)가 부족합니다`;
+      else if (actionVerbs < 2) hint = `${p.key}: 액션 동사(개발·개선·도입 등)를 추가하세요`;
+      else if (bullets === 0) hint = `${p.key}: 불릿으로 성과를 구조화하세요`;
+      else hint = `${p.key}: 구체적 성과 기술이 부족합니다`;
+    }
+    return { key: p.key, chars, numbers, actionVerbs, bullets, density, needsBoost, hint };
+  });
 }
 
 function stripHtml(html: string): string {
