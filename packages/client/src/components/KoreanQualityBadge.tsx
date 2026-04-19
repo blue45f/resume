@@ -21,6 +21,7 @@ import {
   detectMissingResumeSections,
   detectPersonalInfo,
   analyzeEnglishMix,
+  analyzeSentiment,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -337,7 +338,20 @@ function PiiAndEnglishRow({ text }: { text: string }) {
       {eng.level === 'high' && (
         <Row title="영문 혼재" value={`${Math.round(eng.englishRatio * 100)}%`} hint={eng.level} />
       )}
+      <SentimentRow text={text} />
     </>
+  );
+}
+
+function SentimentRow({ text }: { text: string }) {
+  const sent = analyzeSentiment(text);
+  if (sent.tone === 'none') return null;
+  return (
+    <Row
+      title="어조"
+      value={sent.tone === 'positive' ? '긍정' : sent.tone === 'balanced' ? '균형' : '부정'}
+      hint={`+${sent.positiveCount} / -${sent.negativeCount} (${Math.round(sent.ratio * 100)}%)`}
+    />
   );
 }
 
