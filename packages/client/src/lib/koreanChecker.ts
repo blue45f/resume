@@ -1033,6 +1033,55 @@ function computeScore(
 export const KOREAN_RULE_COUNT = RULES.length;
 
 /**
+ * 이슈 목록을 Markdown 표로 직렬화 — 코치·동료에게 피드백 공유용.
+ * 이모지 접두사로 심각도를 시각화 (GitHub 등 일반 Markdown 뷰어 호환).
+ */
+export function exportIssuesAsMarkdown(
+  issues: KoreanIssue[],
+  title = '한국어 맞춤법 감수 결과',
+): string {
+  if (issues.length === 0) return `# ${title}\n\n✓ 감지된 이슈 없음\n`;
+  const ICON: Record<KoreanIssue['severity'], string> = {
+    error: '❌',
+    warning: '⚠️',
+    info: '💡',
+  };
+  const header = '| 섹션 | 심각도 | 틀린 표현 | 제안 | 이유 |\n|---|---|---|---|---|';
+  const rows = issues
+    .map(
+      (i) =>
+        `| ${escapePipe(i.section)} | ${ICON[i.severity]} | \`${escapePipe(
+          i.wrong,
+        )}\` | **${escapePipe(i.suggestion)}** | ${escapePipe(i.reason)} |`,
+    )
+    .join('\n');
+  return `# ${title}\n\n총 ${issues.length}건\n\n${header}\n${rows}\n`;
+}
+
+/**
+ * 이슈 목록을 CSV 로 직렬화 — 스프레드시트 분석·대량 교정 검토용.
+ * RFC 4180 규약에 따라 쌍따옴표·쉼표·개행 이스케이프.
+ */
+export function exportIssuesAsCsv(issues: KoreanIssue[]): string {
+  const header = 'section,severity,wrong,suggestion,reason,offset,length';
+  const rows = issues.map((i) =>
+    [i.section, i.severity, i.wrong, i.suggestion, i.reason, i.offset, i.length]
+      .map((v) => csvEscape(String(v)))
+      .join(','),
+  );
+  return [header, ...rows].join('\n');
+}
+
+function escapePipe(s: string): string {
+  return s.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+}
+
+function csvEscape(s: string): string {
+  if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+/**
  * 결과를 보고 가장 임팩트 큰 개선 3가지를 산출.
  * UI 에서 "먼저 이것부터 고치세요" 식 상단 배너로 렌더링.
  */

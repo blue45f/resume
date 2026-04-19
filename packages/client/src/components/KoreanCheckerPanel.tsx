@@ -10,6 +10,7 @@ import {
   issuesBySeverity,
   getTopWrongPatterns,
   computeImprovementTips,
+  exportIssuesAsMarkdown,
   KOREAN_RULE_COUNT,
   type KoreanIssue,
 } from '@/lib/koreanChecker';
@@ -56,6 +57,20 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
   const topWrongs = useMemo(() => getTopWrongPatterns(result.issues, 3), [result.issues]);
   // 우선순위 개선 팁 Top 3
   const improvementTips = useMemo(() => computeImprovementTips(result), [result]);
+
+  const copyAsMarkdown = async () => {
+    if (result.issues.length === 0) {
+      toast('공유할 이슈가 없습니다', 'info');
+      return;
+    }
+    const md = exportIssuesAsMarkdown(result.issues);
+    try {
+      await navigator.clipboard.writeText(md);
+      toast('Markdown 이 클립보드에 복사되었습니다', 'success');
+    } catch {
+      toast('복사에 실패했습니다', 'error');
+    }
+  };
 
   const runAiCheck = async () => {
     if (!resumeId) {
@@ -489,11 +504,23 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
             </p>
           ) : null}
 
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed">
-            💡 <strong>규칙 기반</strong>: {KOREAN_RULE_COUNT}개 정규식 규칙으로 즉시 검사
-            (무료·오프라인). <strong>AI 검수</strong>: LLM 이 문맥까지 분석 (고정밀·유료).
-            고유명사·인용문은 오탐 가능.
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed flex-1 min-w-0">
+              💡 <strong>규칙 기반</strong>: {KOREAN_RULE_COUNT}개 정규식 규칙으로 즉시 검사
+              (무료·오프라인). <strong>AI 검수</strong>: LLM 이 문맥까지 분석 (고정밀·유료).
+              고유명사·인용문은 오탐 가능.
+            </p>
+            {result.issues.length > 0 && (
+              <button
+                type="button"
+                onClick={copyAsMarkdown}
+                className="shrink-0 text-[10px] px-2 py-1 rounded border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                title="이슈 목록을 Markdown 표로 클립보드 복사 — 코치·동료 공유용"
+              >
+                📋 MD 복사
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
