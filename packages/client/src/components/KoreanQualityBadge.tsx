@@ -26,6 +26,8 @@ import {
   estimateJobLevel,
   scoreSpecificity,
   analyzeActivityChronology,
+  detectSoftSkills,
+  analyzeBulletMarkerConsistency,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -398,6 +400,8 @@ function SentimentRow({ text }: { text: string }) {
 function SpecificityAndChronologyRows({ text }: { text: string }) {
   const spec = scoreSpecificity(text);
   const chrono = analyzeActivityChronology(text);
+  const soft = detectSoftSkills(text);
+  const bullet = analyzeBulletMarkerConsistency(text);
   return (
     <>
       <Row
@@ -416,6 +420,26 @@ function SpecificityAndChronologyRows({ text }: { text: string }) {
                 : '혼재'
           }
           hint={chrono.isConsistent ? '일관' : '순서 확인'}
+        />
+      )}
+      {soft.distinctCount > 0 && (
+        <Row
+          title="소프트 스킬"
+          value={`${soft.distinctCount}종`}
+          hint={soft.hits
+            .slice(0, 3)
+            .map((h) => h.skill)
+            .join(', ')}
+        />
+      )}
+      {bullet.markers.length > 0 && !bullet.consistent && (
+        <Row
+          title="목록 기호"
+          value={`${bullet.distinct}종 혼재`}
+          hint={bullet.markers
+            .slice(0, 4)
+            .map((m) => m.marker)
+            .join(' ')}
         />
       )}
     </>

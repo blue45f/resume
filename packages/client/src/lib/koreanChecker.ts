@@ -4422,6 +4422,94 @@ export function analyzeActivityChronology(text: string): ChronologyCheck {
   return { order, isConsistent, ranges, suggestion };
 }
 
+/**
+ * 소프트 스킬 감지 — 기술 스킬(detectSkillMentions) 외 협업·소통·문제해결 역량 키워드.
+ * 이력서에 하드/소프트 스킬 균형이 잡혀 있는지 확인.
+ */
+const SOFT_SKILLS: Array<{ key: string; variants: string[] }> = [
+  { key: '협업', variants: ['협업', '협력', '공동 작업', '팀워크', 'teamwork'] },
+  { key: '커뮤니케이션', variants: ['커뮤니케이션', '소통', '의사소통', 'communication'] },
+  { key: '문제해결', variants: ['문제 해결', '문제해결', '트러블슈팅', 'troubleshooting'] },
+  { key: '리더십', variants: ['리더십', '리딩', '팀 리드', '팀장', 'leadership'] },
+  { key: '기획', variants: ['기획', '설계', '계획'] },
+  { key: '주도성', variants: ['주도', '오너십', '책임감', 'ownership'] },
+  { key: '학습', variants: ['학습', '습득', '배움', '자기계발'] },
+  { key: '분석', variants: ['분석', '데이터 기반', '인사이트', 'analysis'] },
+  { key: '창의성', variants: ['창의', '혁신', '아이디어', 'creative'] },
+  { key: '협상', variants: ['협상', '설득', '조율'] },
+];
+
+export interface SoftSkillHit {
+  skill: string;
+  count: number;
+}
+export interface SoftSkillAnalysis {
+  hits: SoftSkillHit[];
+  total: number;
+  distinctCount: number;
+  suggestion: string;
+}
+
+export function detectSoftSkills(text: string): SoftSkillAnalysis {
+  const t = text ?? '';
+  const hits: SoftSkillHit[] = [];
+  for (const s of SOFT_SKILLS) {
+    let count = 0;
+    for (const v of s.variants) {
+      const escaped = v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(escaped, 'gi');
+      count += (t.match(re) ?? []).length;
+    }
+    if (count > 0) hits.push({ skill: s.key, count });
+  }
+  hits.sort((a, b) => b.count - a.count);
+  const total = hits.reduce((a, b) => a + b.count, 0);
+  const distinctCount = hits.length;
+  const suggestion =
+    distinctCount === 0
+      ? '소프트 스킬 표현이 감지되지 않았습니다 — 협업·문제해결 경험을 녹여 내세요.'
+      : distinctCount >= 5
+        ? `소프트 스킬 ${distinctCount}종 · ${total}회 — 균형 잡힌 역량 표현.`
+        : `소프트 스킬 ${distinctCount}종만 감지 — 협업/커뮤니케이션/주도성 등 다양화 권장.`;
+  return { hits: hits.slice(0, 10), total, distinctCount, suggestion };
+}
+
+/**
+ * Bullet 마커 일관성 — `-`, `•`, `*`, `▪`, `·` 등 목록 기호가 섞이면 지저분한 인상.
+ * 줄 시작 위치에서 각 마커 빈도를 집계하고 혼재 여부 리포트.
+ */
+export interface BulletMarkerAnalysis {
+  markers: Array<{ marker: string; count: number; percent: number }>;
+  distinct: number;
+  dominant: string | null;
+  consistent: boolean;
+  suggestion: string;
+}
+
+export function analyzeBulletMarkerConsistency(text: string): BulletMarkerAnalysis {
+  const t = text ?? '';
+  const lines = t.split(/\r?\n/);
+  const markerRe = /^\s*([-*•▪·◦▫☆★→▶▸])\s+/;
+  const counts = new Map<string, number>();
+  for (const l of lines) {
+    const m = l.match(markerRe);
+    if (m) counts.set(m[1], (counts.get(m[1]) ?? 0) + 1);
+  }
+  const total = [...counts.values()].reduce((a, b) => a + b, 0) || 1;
+  const markers = [...counts.entries()]
+    .map(([marker, count]) => ({ marker, count, percent: Math.round((count / total) * 100) }))
+    .sort((a, b) => b.count - a.count);
+  const distinct = markers.length;
+  const dominant = markers[0]?.marker ?? null;
+  const consistent = distinct <= 1;
+  const suggestion = !markers.length
+    ? 'bullet 목록이 감지되지 않았습니다.'
+    : consistent
+      ? `bullet 마커가 "${dominant}" 하나로 일관됩니다.`
+      : `bullet 마커 ${distinct}종 혼재 (${markers.map((m) => m.marker).join(' ')}) — "${dominant}" 하나로 통일하세요.`;
+  return { markers, distinct, dominant, consistent, suggestion };
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
