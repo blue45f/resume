@@ -6,6 +6,7 @@ import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { PLANS, formatPrice } from '@/lib/plans';
 import { PAYMENT_METHODS, requestPayment } from '@/lib/payment';
+import { tx } from '@/lib/i18n';
 
 export default function PaymentPage() {
   const [params] = useSearchParams();
@@ -68,7 +69,9 @@ export default function PaymentPage() {
         </Link>
 
         <div className="flex items-center gap-2 mb-3">
-          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">결제</h1>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            {tx('payment.title')}
+          </h1>
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
             🧪 BETA
           </span>

@@ -383,6 +383,12 @@
     "medium": "普通",
     "low": "低"
   },
+  "payment": {
+    "title": "決済",
+    "cancelled": "決済がキャンセルされました",
+    "failed": "決済に失敗しました",
+    "completed": "決済完了"
+  },
   "plans": {
     "free": {
       "name": "無料",

@@ -483,6 +483,12 @@
     "medium": "Medium",
     "low": "Low"
   },
+  "payment": {
+    "title": "Payment",
+    "cancelled": "Payment cancelled",
+    "failed": "Payment failed",
+    "completed": "Payment completed"
+  },
   "plans": {
     "free": {
       "name": "Free",

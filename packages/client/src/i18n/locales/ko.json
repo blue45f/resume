@@ -483,6 +483,12 @@
     "medium": "보통",
     "low": "낮음"
   },
+  "payment": {
+    "title": "결제",
+    "cancelled": "결제가 취소되었습니다",
+    "failed": "결제에 실패했습니다",
+    "completed": "결제 완료"
+  },
   "plans": {
     "free": {
       "name": "무료",
