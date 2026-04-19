@@ -4610,6 +4610,11 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     category: '메타',
     description: '문자 카테고리 분포 (한/영/숫자/공백/기호)',
   },
+  {
+    name: 'detectUnquantifiedClaims',
+    category: '이력서',
+    description: '수치 없는 성과 문장 검출 (문장 단위)',
+  },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5177,6 +5182,68 @@ export function countCharsByCategory(text: string): CharDistribution {
       other: p(other),
     },
   };
+}
+
+/**
+ * 수치화 누락 청구 검출 — "개선/향상/달성/증가/감소" 같은 성과 동사가 등장하는 문장에서
+ * 수치(%·배수·기간·금액)가 함께 있지 않으면 "구체화 필요" 문장으로 리포트.
+ * analyzeQuantification 은 전체 밀도를 평가하고, 이 함수는 문장 단위로 정확히 짚음.
+ */
+const ACHIEVEMENT_VERBS = [
+  '개선',
+  '향상',
+  '달성',
+  '증가',
+  '감소',
+  '단축',
+  '절감',
+  '상승',
+  '하락',
+  '확장',
+  '성장',
+  '기여',
+  '창출',
+  '극복',
+  '최적화',
+  '구현',
+  '구축',
+];
+
+export interface UnquantifiedClaim {
+  sentence: string;
+  verb: string;
+  index: number;
+  reason: string;
+}
+
+export function detectUnquantifiedClaims(text: string): UnquantifiedClaim[] {
+  const clean = (text ?? '').replace(/\s+/g, ' ').trim();
+  if (!clean) return [];
+  const sentences = clean.split(/[.!?。]+/).filter((s) => s.trim().length > 0);
+  const results: UnquantifiedClaim[] = [];
+  let cursor = 0;
+  const quantRe =
+    /\d+(?:[.,]\d+)?\s*(?:%|배|퍼센트|년|개월|달|주|일|시간|원|건|명|회|차|번)|상위\s*\d+|TOP\s*\d+/;
+  for (const raw of sentences) {
+    const trimmed = raw.trim();
+    const idx = clean.indexOf(trimmed, cursor);
+    if (idx >= 0) cursor = idx + trimmed.length;
+    for (const v of ACHIEVEMENT_VERBS) {
+      if (trimmed.includes(v)) {
+        if (!quantRe.test(trimmed)) {
+          results.push({
+            sentence: trimmed,
+            verb: v,
+            index: idx,
+            reason: `"${v}" 성과 표현에 수치가 없습니다 — %·배수·기간 등을 추가하세요.`,
+          });
+          break;
+        }
+      }
+    }
+    if (results.length >= 15) break;
+  }
+  return results;
 }
 
 function stripHtml(html: string): string {
