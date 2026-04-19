@@ -4591,6 +4591,8 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
   { name: 'gradeFromScore', category: '파생', description: '점수 → A+/A/B+/B/C/D/F 등급' },
   { name: 'getDimensionScores', category: '파생', description: '12 차원별 점수 배열' },
   { name: 'explainWrongWord', category: '파생', description: '단어별 규칙 설명 조회' },
+  { name: 'recommendCoverLetterOpeners', category: '파생', description: '자소서 오프닝 3종 추천' },
+  { name: 'countSentencesByEnding', category: '파생', description: '종결어미 타입별 카운트' },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -4674,6 +4676,101 @@ export function detectAbbreviations(text: string): AcronymAnalysis {
             .map((h) => h.acronym)
             .join(', ')}) — 처음 등장 시 "(풀이)" 를 괄호로 부연 권장.`;
   return { hits: hits.slice(0, 20), unexplained: unexplained.slice(0, 10), suggestion };
+}
+
+/**
+ * 자기소개서 오프닝 추천 — 이력서에서 상위 스킬 + 경력 레벨을 뽑아 회사·직무에 맞는
+ * 3가지 템플릿 문장을 생성. LLM 없이 가벼운 규칙 기반.
+ */
+export interface OpenerSuggestion {
+  style: 'achievement' | 'passion' | 'pragmatic';
+  text: string;
+}
+
+export function recommendCoverLetterOpeners(
+  resumeText: string,
+  company: string = '귀사',
+  role: string = '해당 포지션',
+): OpenerSuggestion[] {
+  const skills = detectSkillMentions(resumeText, 3)
+    .slice(0, 3)
+    .map((s) => s.skill);
+  const topSkills = skills.length > 0 ? skills.join(' · ') : '다양한 프로젝트';
+  const level = estimateJobLevel(resumeText);
+  const years = level.years;
+  const yearsText = years > 0 ? `${years}년간 ` : '';
+
+  return [
+    {
+      style: 'achievement',
+      text: `${yearsText}${topSkills}를 바탕으로 실전 성과를 축적해 온 ${level.level === 'junior' ? '개발자 지망생' : '실무자'}로서, ${company}의 ${role}에서 다음 성과를 만들어 가고 싶습니다.`,
+    },
+    {
+      style: 'passion',
+      text: `${topSkills}를 통해 사용자에게 직접적인 가치를 전달하는 일이 가장 즐겁습니다. ${company}의 비전이 제 방향과 정확히 맞닿아 ${role}에 지원합니다.`,
+    },
+    {
+      style: 'pragmatic',
+      text: `${yearsText}쌓아 온 ${topSkills} 경험이 ${company} ${role}의 현재 과제와 맞물리는 지점을 확인했습니다. 다음 세 가지 영역에서 기여할 수 있습니다.`,
+    },
+  ];
+}
+
+/**
+ * 문장 종결 어미 카운트 — 합니다체 vs 다./했다체 vs 요체 문장 수. 문체 통일 가이드에
+ * 활용. toneMix 와 비슷하지만 구체적 어미 라벨로 제공.
+ */
+export interface EndingTypeCount {
+  formal: number; // 합니다/했습니다/됩니다 등
+  declarative: number; // 다./했다 등 문어체
+  polite: number; // 해요/요 등
+  other: number;
+  total: number;
+  dominant: 'formal' | 'declarative' | 'polite' | 'mixed' | 'none';
+}
+
+export function countSentencesByEnding(text: string): EndingTypeCount {
+  const clean = (text ?? '').replace(/\s+/g, ' ').trim();
+  if (!clean) {
+    return {
+      formal: 0,
+      declarative: 0,
+      polite: 0,
+      other: 0,
+      total: 0,
+      dominant: 'none',
+    };
+  }
+  const sentences = clean.split(/[.!?。]+/).filter((s) => s.trim().length > 0);
+  const counts = { formal: 0, declarative: 0, polite: 0, other: 0 };
+  for (const s of sentences) {
+    const trimmed = s.trim();
+    if (/(습니다|합니다|됩니다|입니다|있습니다|없습니다|드립니다)$/.test(trimmed)) {
+      counts.formal++;
+    } else if (/(했다|했고|한다|된다|이다|이며|이었다)$/.test(trimmed)) {
+      counts.declarative++;
+    } else if (/(해요|이에요|예요|세요)$/.test(trimmed)) {
+      counts.polite++;
+    } else {
+      counts.other++;
+    }
+  }
+  const total = sentences.length;
+  const buckets: Array<{ k: 'formal' | 'declarative' | 'polite' | 'other'; v: number }> = [
+    { k: 'formal', v: counts.formal },
+    { k: 'declarative', v: counts.declarative },
+    { k: 'polite', v: counts.polite },
+    { k: 'other', v: counts.other },
+  ];
+  buckets.sort((a, b) => b.v - a.v);
+  const top = buckets[0];
+  let dominant: EndingTypeCount['dominant'] = 'none';
+  if (total > 0 && top.v / total >= 0.6 && top.k !== 'other') {
+    dominant = top.k;
+  } else if (total > 0) {
+    dominant = 'mixed';
+  }
+  return { ...counts, total, dominant };
 }
 
 function stripHtml(html: string): string {
