@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import KoreanQualityBadge from '@/components/KoreanQualityBadge';
+import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
@@ -568,356 +569,360 @@ export default function CommunityWritePage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              카테고리
-            </label>
-            <div className="flex flex-wrap gap-2 items-center">
-              {getCATEGORIES()
-                .filter(
-                  (cat) =>
-                    !('adminOnly' in cat && cat.adminOnly) ||
-                    user?.role === 'admin' ||
-                    user?.role === 'superadmin',
-                )
-                .map((cat) => (
+        <FeatureDisabledBanner feature="community.create" label="커뮤니티 게시물 작성">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Category */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                카테고리
+              </label>
+              <div className="flex flex-wrap gap-2 items-center">
+                {getCATEGORIES()
+                  .filter(
+                    (cat) =>
+                      !('adminOnly' in cat && cat.adminOnly) ||
+                      user?.role === 'admin' ||
+                      user?.role === 'superadmin',
+                  )
+                  .map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        setCustomCatMode(false);
+                        setValue('category', cat.id, { shouldValidate: true, shouldDirty: true });
+                      }}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-xl border transition-all ${
+                        category === cat.id && !customCatMode
+                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 font-medium'
+                          : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                      }`}
+                    >
+                      {cat.icon} {cat.label}
+                    </button>
+                  ))}
+                {!customCatMode ? (
                   <button
-                    key={cat.id}
                     type="button"
                     onClick={() => {
-                      setCustomCatMode(false);
-                      setValue('category', cat.id, { shouldValidate: true, shouldDirty: true });
+                      setCustomCatMode(true);
+                      setCustomCat('');
+                      setValue('category', '', { shouldValidate: false });
                     }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-xl border transition-all ${
-                      category === cat.id && !customCatMode
-                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 font-medium'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
-                    }`}
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
+                    aria-label="새 카테고리 입력"
                   >
-                    {cat.icon} {cat.label}
+                    <span aria-hidden>＋</span> 새 카테고리
                   </button>
-                ))}
-              {!customCatMode ? (
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-xl border border-indigo-400 bg-indigo-50/60 dark:bg-indigo-900/20">
+                    <input
+                      type="text"
+                      value={customCat}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setCustomCat(v);
+                        setValue('category', v, { shouldValidate: true, shouldDirty: true });
+                      }}
+                      placeholder="예: 테크면접, 신입공채"
+                      maxLength={24}
+                      autoFocus
+                      className="w-32 sm:w-48 px-2 py-1 text-sm bg-transparent border-0 outline-none text-indigo-700 dark:text-indigo-300 placeholder-indigo-300 dark:placeholder-indigo-500/60"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomCatMode(false);
+                        setCustomCat('');
+                        setValue('category', 'free', { shouldValidate: true });
+                      }}
+                      className="text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-200 px-1"
+                      aria-label="커스텀 카테고리 취소"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+              </div>
+              {errors.category?.message && (
+                <p className="mt-1.5 text-xs text-red-500" role="alert">
+                  {errors.category.message}
+                </p>
+              )}
+            </div>
+
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                제목
+              </label>
+              <input
+                type="text"
+                {...titleRegister}
+                placeholder="제목을 입력하세요"
+                maxLength={100}
+                className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+              />
+              <div className="flex items-center justify-between mt-1">
+                {errors.title?.message ? (
+                  <span className="text-xs text-red-500">{errors.title.message}</span>
+                ) : (
+                  <span />
+                )}
+                <div className="text-right text-xs text-slate-400">{(title || '').length}/100</div>
+              </div>
+            </div>
+
+            {/* Editor */}
+            <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800">
+              {/* Toolbar */}
+              <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80">
+                {TOOLBAR.map((action, idx) =>
+                  action === null ? (
+                    <div
+                      key={`sep-${idx}`}
+                      className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1"
+                    />
+                  ) : (
+                    <button
+                      key={action.label}
+                      type="button"
+                      title={action.title}
+                      onClick={() => applyAction(action)}
+                      className={`px-2 py-1 text-xs rounded-lg transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-mono select-none ${
+                        action.label === 'Bold'
+                          ? 'font-bold'
+                          : action.label === 'Italic'
+                            ? 'italic'
+                            : action.label === 'Strike'
+                              ? 'line-through'
+                              : ''
+                      }`}
+                    >
+                      {action.icon}
+                    </button>
+                  ),
+                )}
+                <div className="flex-1" />
+                {/* Preview toggle */}
                 <button
                   type="button"
-                  onClick={() => {
-                    setCustomCatMode(true);
-                    setCustomCat('');
-                    setValue('category', '', { shouldValidate: false });
-                  }}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
-                  aria-label="새 카테고리 입력"
+                  onClick={() => setPreview((p) => !p)}
+                  className={`ml-2 px-3 py-1 text-xs rounded-lg border transition-all ${
+                    preview
+                      ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
+                      : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-300'
+                  }`}
                 >
-                  <span aria-hidden>＋</span> 새 카테고리
+                  {preview ? '✏️ 편집' : '👁 미리보기'}
                 </button>
+              </div>
+
+              {/* Editor / Preview pane */}
+              {preview ? (
+                <div
+                  className="min-h-[360px] max-h-[600px] overflow-y-auto px-5 py-4 text-sm leading-relaxed"
+                  dangerouslySetInnerHTML={{
+                    __html: content
+                      ? renderMarkdown(content)
+                      : '<p class="text-slate-400">내용이 없습니다.</p>',
+                  }}
+                />
               ) : (
-                <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-xl border border-indigo-400 bg-indigo-50/60 dark:bg-indigo-900/20">
-                  <input
-                    type="text"
-                    value={customCat}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setCustomCat(v);
-                      setValue('category', v, { shouldValidate: true, shouldDirty: true });
-                    }}
-                    placeholder="예: 테크면접, 신입공채"
-                    maxLength={24}
-                    autoFocus
-                    className="w-32 sm:w-48 px-2 py-1 text-sm bg-transparent border-0 outline-none text-indigo-700 dark:text-indigo-300 placeholder-indigo-300 dark:placeholder-indigo-500/60"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCustomCatMode(false);
-                      setCustomCat('');
-                      setValue('category', 'free', { shouldValidate: true });
-                    }}
-                    className="text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-200 px-1"
-                    aria-label="커스텀 카테고리 취소"
+                <textarea
+                  {...contentRegister}
+                  ref={(el) => {
+                    contentRegister.ref(el);
+                    textareaRef.current = el;
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder={`내용을 마크다운으로 작성하세요 (최소 10자)\n\n**굵게** *기울임* \`코드\`\n## 제목\n- 목록 항목\n> 인용문`}
+                  rows={18}
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-y font-mono leading-relaxed"
+                />
+              )}
+
+              {/* Status bar */}
+              <div className="flex items-center justify-between gap-2 px-4 py-2 border-t border-slate-100 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60">
+                <span className="text-xs text-slate-400 truncate">
+                  마크다운 지원 · Tab 들여쓰기 · Enter 목록 자동완성
+                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <KoreanQualityBadge text={content || ''} label="커뮤니티 글" minLength={100} />
+                  <span
+                    className={`text-xs ${charCount > 5000 ? 'text-red-500' : 'text-slate-400'}`}
                   >
-                    ×
-                  </button>
+                    {charCount.toLocaleString()}자
+                  </span>
+                </div>
+              </div>
+            </div>
+            {errors.content?.message && (
+              <div className="text-xs text-red-500 -mt-2">{errors.content.message}</div>
+            )}
+
+            {/* Attachments */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  첨부파일{' '}
+                  <span className="text-xs text-slate-400 font-normal">
+                    ({attachments.length}/5 · 최대 20MB)
+                  </span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading || attachments.length >= 5}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-indigo-600 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50 transition-colors"
+                >
+                  {uploading ? (
+                    <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                      />
+                    </svg>
+                  )}
+                  {uploading ? '업로드 중...' : '파일 첨부'}
+                </button>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.txt"
+                className="hidden"
+                onChange={(e) => handleFileUpload(e.target.files)}
+              />
+              {attachments.length > 0 && (
+                <div className="space-y-1.5">
+                  {attachments.map((att, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2.5 p-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm"
+                    >
+                      <span className="text-base flex-shrink-0">
+                        {att.type.startsWith('image/')
+                          ? '🖼️'
+                          : att.type === 'application/pdf'
+                            ? '📄'
+                            : '📎'}
+                      </span>
+                      <span className="flex-1 truncate text-slate-700 dark:text-slate-300">
+                        {att.name}
+                      </span>
+                      <span className="text-xs text-slate-400 flex-shrink-0">
+                        {(att.size / 1024).toFixed(0)}KB
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setAttachments((prev) => prev.filter((_, i) => i !== idx))}
+                        className="text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
+                        aria-label="첨부파일 삭제"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-            {errors.category?.message && (
-              <p className="mt-1.5 text-xs text-red-500" role="alert">
-                {errors.category.message}
-              </p>
-            )}
-          </div>
 
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              제목
-            </label>
-            <input
-              type="text"
-              {...titleRegister}
-              placeholder="제목을 입력하세요"
-              maxLength={100}
-              className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
-            />
-            <div className="flex items-center justify-between mt-1">
-              {errors.title?.message ? (
-                <span className="text-xs text-red-500">{errors.title.message}</span>
-              ) : (
-                <span />
-              )}
-              <div className="text-right text-xs text-slate-400">{(title || '').length}/100</div>
-            </div>
-          </div>
-
-          {/* Editor */}
-          <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800">
-            {/* Toolbar */}
-            <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80">
-              {TOOLBAR.map((action, idx) =>
-                action === null ? (
-                  <div
-                    key={`sep-${idx}`}
-                    className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1"
+            {/* Markdown cheatsheet (collapsible hint) */}
+            <details className="group">
+              <summary className="cursor-pointer text-xs text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 select-none list-none flex items-center gap-1">
+                <svg
+                  className="w-3 h-3 transition-transform group-open:rotate-90"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
                   />
-                ) : (
-                  <button
-                    key={action.label}
-                    type="button"
-                    title={action.title}
-                    onClick={() => applyAction(action)}
-                    className={`px-2 py-1 text-xs rounded-lg transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-mono select-none ${
-                      action.label === 'Bold'
-                        ? 'font-bold'
-                        : action.label === 'Italic'
-                          ? 'italic'
-                          : action.label === 'Strike'
-                            ? 'line-through'
-                            : ''
-                    }`}
-                  >
-                    {action.icon}
-                  </button>
-                ),
-              )}
-              <div className="flex-1" />
-              {/* Preview toggle */}
-              <button
-                type="button"
-                onClick={() => setPreview((p) => !p)}
-                className={`ml-2 px-3 py-1 text-xs rounded-lg border transition-all ${
-                  preview
-                    ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
-                    : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-300'
-                }`}
-              >
-                {preview ? '✏️ 편집' : '👁 미리보기'}
-              </button>
-            </div>
-
-            {/* Editor / Preview pane */}
-            {preview ? (
-              <div
-                className="min-h-[360px] max-h-[600px] overflow-y-auto px-5 py-4 text-sm leading-relaxed"
-                dangerouslySetInnerHTML={{
-                  __html: content
-                    ? renderMarkdown(content)
-                    : '<p class="text-slate-400">내용이 없습니다.</p>',
-                }}
-              />
-            ) : (
-              <textarea
-                {...contentRegister}
-                ref={(el) => {
-                  contentRegister.ref(el);
-                  textareaRef.current = el;
-                }}
-                onKeyDown={handleKeyDown}
-                placeholder={`내용을 마크다운으로 작성하세요 (최소 10자)\n\n**굵게** *기울임* \`코드\`\n## 제목\n- 목록 항목\n> 인용문`}
-                rows={18}
-                className="w-full px-4 py-3 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-y font-mono leading-relaxed"
-              />
-            )}
-
-            {/* Status bar */}
-            <div className="flex items-center justify-between gap-2 px-4 py-2 border-t border-slate-100 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60">
-              <span className="text-xs text-slate-400 truncate">
-                마크다운 지원 · Tab 들여쓰기 · Enter 목록 자동완성
-              </span>
-              <div className="flex items-center gap-2 shrink-0">
-                <KoreanQualityBadge text={content || ''} label="커뮤니티 글" minLength={100} />
-                <span className={`text-xs ${charCount > 5000 ? 'text-red-500' : 'text-slate-400'}`}>
-                  {charCount.toLocaleString()}자
-                </span>
-              </div>
-            </div>
-          </div>
-          {errors.content?.message && (
-            <div className="text-xs text-red-500 -mt-2">{errors.content.message}</div>
-          )}
-
-          {/* Attachments */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                첨부파일{' '}
-                <span className="text-xs text-slate-400 font-normal">
-                  ({attachments.length}/5 · 최대 20MB)
-                </span>
-              </label>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading || attachments.length >= 5}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-indigo-600 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50 transition-colors"
-              >
-                {uploading ? (
-                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
-                ) : (
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                    />
-                  </svg>
-                )}
-                {uploading ? '업로드 중...' : '파일 첨부'}
-              </button>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.txt"
-              className="hidden"
-              onChange={(e) => handleFileUpload(e.target.files)}
-            />
-            {attachments.length > 0 && (
-              <div className="space-y-1.5">
-                {attachments.map((att, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-2.5 p-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm"
-                  >
-                    <span className="text-base flex-shrink-0">
-                      {att.type.startsWith('image/')
-                        ? '🖼️'
-                        : att.type === 'application/pdf'
-                          ? '📄'
-                          : '📎'}
-                    </span>
-                    <span className="flex-1 truncate text-slate-700 dark:text-slate-300">
-                      {att.name}
-                    </span>
-                    <span className="text-xs text-slate-400 flex-shrink-0">
-                      {(att.size / 1024).toFixed(0)}KB
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setAttachments((prev) => prev.filter((_, i) => i !== idx))}
-                      className="text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
-                      aria-label="첨부파일 삭제"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
+                </svg>
+                마크다운 단축키 보기
+              </summary>
+              <div className="mt-2 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs text-slate-500 dark:text-slate-400 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {[
+                  ['**굵게**', '굵은 텍스트'],
+                  ['*기울임*', '기울인 텍스트'],
+                  ['~~취소선~~', '취소선'],
+                  ['`코드`', '인라인 코드'],
+                  ['```\\n코드\\n```', '코드 블록'],
+                  ['> 텍스트', '인용'],
+                  ['## 제목', '2단계 제목'],
+                  ['### 제목', '3단계 제목'],
+                  ['- 항목', '목록'],
+                  ['[링크텍스트](URL)', '하이퍼링크'],
+                  ['---', '구분선'],
+                ].map(([syntax, desc]) => (
+                  <div key={syntax} className="flex flex-col gap-0.5">
+                    <code className="font-mono text-indigo-600 dark:text-indigo-400">{syntax}</code>
+                    <span>{desc}</span>
                   </div>
                 ))}
               </div>
+            </details>
+
+            {error && (
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400">
+                {error}
+              </div>
             )}
-          </div>
 
-          {/* Markdown cheatsheet (collapsible hint) */}
-          <details className="group">
-            <summary className="cursor-pointer text-xs text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 select-none list-none flex items-center gap-1">
-              <svg
-                className="w-3 h-3 transition-transform group-open:rotate-90"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="px-5 py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-              마크다운 단축키 보기
-            </summary>
-            <div className="mt-2 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs text-slate-500 dark:text-slate-400 grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {[
-                ['**굵게**', '굵은 텍스트'],
-                ['*기울임*', '기울인 텍스트'],
-                ['~~취소선~~', '취소선'],
-                ['`코드`', '인라인 코드'],
-                ['```\\n코드\\n```', '코드 블록'],
-                ['> 텍스트', '인용'],
-                ['## 제목', '2단계 제목'],
-                ['### 제목', '3단계 제목'],
-                ['- 항목', '목록'],
-                ['[링크텍스트](URL)', '하이퍼링크'],
-                ['---', '구분선'],
-              ].map(([syntax, desc]) => (
-                <div key={syntax} className="flex flex-col gap-0.5">
-                  <code className="font-mono text-indigo-600 dark:text-indigo-400">{syntax}</code>
-                  <span>{desc}</span>
-                </div>
-              ))}
+                {t('common.cancel')}
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm"
+              >
+                {isSubmitting
+                  ? t('common.loading')
+                  : isEdit
+                    ? t('common.edit')
+                    : t('community.write')}
+              </button>
             </div>
-          </details>
-
-          {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400">
-              {error}
-            </div>
-          )}
-
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="px-5 py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-            >
-              {t('common.cancel')}
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm"
-            >
-              {isSubmitting
-                ? t('common.loading')
-                : isEdit
-                  ? t('common.edit')
-                  : t('community.write')}
-            </button>
-          </div>
-        </form>
+          </form>
+        </FeatureDisabledBanner>
       </main>
     </>
   );

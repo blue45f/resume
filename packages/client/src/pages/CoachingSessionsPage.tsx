@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
+import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import {
@@ -159,100 +160,102 @@ export default function CoachingSessionsPage() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-600 p-0.5 mb-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur">
-          <button
-            onClick={() => setTab('client')}
-            className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              tab === 'client'
-                ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-            }`}
-          >
-            내가 예약 ({data?.asClient.length || 0})
-          </button>
-          {hasCoachTab && (
+        <FeatureDisabledBanner feature="coaching" label="코칭 예약">
+          {/* Tabs */}
+          <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-600 p-0.5 mb-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur">
             <button
-              onClick={() => setTab('coach')}
+              onClick={() => setTab('client')}
               className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                tab === 'coach'
+                tab === 'client'
                   ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}
             >
-              내가 코치 ({data?.asCoach.length || 0})
+              내가 예약 ({data?.asClient.length || 0})
             </button>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="imp-card p-5 animate-pulse">
-                <div className="h-4 w-2/3 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
-                <div className="h-3 w-1/3 bg-slate-200 dark:bg-slate-700 rounded" />
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <div className="imp-card p-8 text-center">
-            <p className="text-sm text-red-500 mb-3">{error}</p>
-            <button onClick={load} className="text-xs text-blue-600 hover:text-blue-800">
-              다시 시도
-            </button>
-          </div>
-        ) : !sessions || sessions.length === 0 ? (
-          <div className="imp-card p-10 text-center">
-            <p className="text-4xl mb-3">{tab === 'client' ? '🎓' : '🧑‍🏫'}</p>
-            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">
-              {tab === 'client' ? '예약한 세션이 없습니다' : '코칭 요청이 없습니다'}
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              {tab === 'client'
-                ? '전문 코치와 1:1 세션을 시작해보세요'
-                : '코치 프로필을 공개하면 요청이 들어옵니다'}
-            </p>
-            {tab === 'client' ? (
-              <Link
-                to={ROUTES.coaching.coaches}
-                className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+            {hasCoachTab && (
+              <button
+                onClick={() => setTab('coach')}
+                className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  tab === 'coach'
+                    ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
               >
-                코치 찾기
-              </Link>
-            ) : (
-              <Link
-                to={ROUTES.coaching.profileEdit}
-                className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                코치 프로필 설정
-              </Link>
+                내가 코치 ({data?.asCoach.length || 0})
+              </button>
             )}
           </div>
-        ) : (
-          <ul className="space-y-3">
-            {sessions.map((session) => (
-              <SessionRow
-                key={session.id}
-                session={session}
-                role={tab}
-                onChangeStatus={changeStatus}
-                onOpenReview={() => {
-                  setReviewOpen(session.id);
-                  setReviewRating(session.rating || 5);
-                  setReviewText(session.review || '');
-                }}
-                reviewOpen={reviewOpen === session.id}
-                onCloseReview={() => setReviewOpen(null)}
-                reviewRating={reviewRating}
-                setReviewRating={setReviewRating}
-                reviewText={reviewText}
-                setReviewText={setReviewText}
-                submitting={submitting}
-                onSubmitReview={() => submitReview(session.id)}
-              />
-            ))}
-          </ul>
-        )}
+
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="imp-card p-5 animate-pulse">
+                  <div className="h-4 w-2/3 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
+                  <div className="h-3 w-1/3 bg-slate-200 dark:bg-slate-700 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="imp-card p-8 text-center">
+              <p className="text-sm text-red-500 mb-3">{error}</p>
+              <button onClick={load} className="text-xs text-blue-600 hover:text-blue-800">
+                다시 시도
+              </button>
+            </div>
+          ) : !sessions || sessions.length === 0 ? (
+            <div className="imp-card p-10 text-center">
+              <p className="text-4xl mb-3">{tab === 'client' ? '🎓' : '🧑‍🏫'}</p>
+              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">
+                {tab === 'client' ? '예약한 세션이 없습니다' : '코칭 요청이 없습니다'}
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                {tab === 'client'
+                  ? '전문 코치와 1:1 세션을 시작해보세요'
+                  : '코치 프로필을 공개하면 요청이 들어옵니다'}
+              </p>
+              {tab === 'client' ? (
+                <Link
+                  to={ROUTES.coaching.coaches}
+                  className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  코치 찾기
+                </Link>
+              ) : (
+                <Link
+                  to={ROUTES.coaching.profileEdit}
+                  className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  코치 프로필 설정
+                </Link>
+              )}
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {sessions.map((session) => (
+                <SessionRow
+                  key={session.id}
+                  session={session}
+                  role={tab}
+                  onChangeStatus={changeStatus}
+                  onOpenReview={() => {
+                    setReviewOpen(session.id);
+                    setReviewRating(session.rating || 5);
+                    setReviewText(session.review || '');
+                  }}
+                  reviewOpen={reviewOpen === session.id}
+                  onCloseReview={() => setReviewOpen(null)}
+                  reviewRating={reviewRating}
+                  setReviewRating={setReviewRating}
+                  reviewText={reviewText}
+                  setReviewText={setReviewText}
+                  submitting={submitting}
+                  onSubmitReview={() => submitReview(session.id)}
+                />
+              ))}
+            </ul>
+          )}
+        </FeatureDisabledBanner>
       </main>
       <Footer />
     </>
