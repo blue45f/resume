@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { type CoachProfile } from '@/lib/api';
-import { useCoaches } from '@/hooks/useResources';
+import { useCoaches, useSystemContent } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
 
 type SortKey = 'rating' | 'rateAsc' | 'rateDesc';
 
-const SPECIALTIES = [
+// 기본 전문 분야 (admin 이 /api/system-config/content/coach_specialties 에 JSON
+// 배열을 저장하지 않은 경우 fallback). admin 이 SystemConfig 편집해 실시간 갱신 가능.
+const DEFAULT_SPECIALTIES = [
   '이력서 첨삭',
   '자기소개서',
   '면접 코칭',
@@ -21,6 +23,8 @@ const SPECIALTIES = [
 ];
 
 export default function CoachesPage() {
+  const { data: dynSpec } = useSystemContent<string[]>('coach_specialties');
+  const SPECIALTIES = Array.isArray(dynSpec) && dynSpec.length > 0 ? dynSpec : DEFAULT_SPECIALTIES;
   const [specialty, setSpecialty] = useState('');
   const [minRate, setMinRate] = useState('');
   const [maxRate, setMaxRate] = useState('');
