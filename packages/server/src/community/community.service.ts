@@ -1,7 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 @Injectable()
 export class CommunityService {
@@ -9,7 +15,75 @@ export class CommunityService {
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
     private readonly forbiddenWords: ForbiddenWordsService,
+    private readonly systemConfig: SystemConfigService,
   ) {}
+
+  // ── 커뮤니티 게시물 신고 + autoHidden ─────────────────────
+  async reportPost(postId: string, reporterId: string, reason: string, detail: string) {
+    if (!reporterId) throw new ForbiddenException('로그인이 필요합니다');
+    const post = await this.prisma.communityPost.findUnique({
+      where: { id: postId },
+      select: { id: true, userId: true, isHidden: true },
+    });
+    if (!post) throw new NotFoundException('게시물을 찾을 수 없습니다');
+    if (post.userId === reporterId) {
+      throw new BadRequestException('본인 게시물은 신고할 수 없습니다');
+    }
+
+    const allowedReasons = ['spam', 'inappropriate', 'fake', 'copyright', 'other'];
+    const safeReason = allowedReasons.includes(reason) ? reason : 'other';
+    const safeDetail = (detail || '').slice(0, 500);
+
+    await this.prisma.communityPostReport.upsert({
+      where: { postId_reporterId: { postId, reporterId } },
+      create: { postId, reporterId, reason: safeReason, detail: safeDetail },
+      update: { reason: safeReason, detail: safeDetail },
+    });
+
+    const count = await this.prisma.communityPostReport.count({ where: { postId } });
+    const threshold = await this.systemConfig.getReportThreshold();
+    const autoHidden = count >= threshold;
+    await this.prisma.communityPost.update({
+      where: { id: postId },
+      data: { reportCount: count, autoHidden },
+    });
+    return { reportCount: count, autoHidden, threshold };
+  }
+
+  async adminListPostReports(opts: { page?: number; limit?: number } = {}) {
+    const page = Math.max(1, opts.page ?? 1);
+    const limit = Math.min(Math.max(1, opts.limit ?? 20), 100);
+    const [items, total] = await Promise.all([
+      this.prisma.communityPostReport.findMany({
+        orderBy: [{ createdAt: 'desc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          post: {
+            select: {
+              id: true,
+              title: true,
+              reportCount: true,
+              autoHidden: true,
+              category: true,
+            },
+          },
+          reporter: { select: { id: true, name: true, email: true } },
+        },
+      }),
+      this.prisma.communityPostReport.count(),
+    ]);
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async adminUnhidePost(id: string) {
+    const post = await this.prisma.communityPost.findUnique({ where: { id } });
+    if (!post) throw new NotFoundException('게시물을 찾을 수 없습니다');
+    return this.prisma.communityPost.update({
+      where: { id },
+      data: { autoHidden: false, reportCount: 0 },
+    });
+  }
 
   async getPosts(
     category?: string,
@@ -20,7 +94,10 @@ export class CommunityService {
     sort = 'recent',
   ) {
     const where: any = {};
-    if (!showHidden) where.isHidden = false;
+    if (!showHidden) {
+      where.isHidden = false;
+      where.autoHidden = false; // 신고 누적 자동숨김 제외
+    }
     if (category && category !== 'all') where.category = category;
     if (search) {
       where.OR = [

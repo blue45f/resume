@@ -3,6 +3,11 @@ import { CommunityService } from './community.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
+import { SystemConfigService } from '../system-config/system-config.service';
+
+const mockSystemConfig = {
+  getReportThreshold: jest.fn().mockResolvedValue(5),
+};
 
 const mockPrisma = {
   communityPost: {
@@ -39,6 +44,7 @@ describe('CommunityService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationsService, useValue: mockNotifications },
         { provide: ForbiddenWordsService, useValue: mockForbiddenWords },
+        { provide: SystemConfigService, useValue: mockSystemConfig },
       ],
     }).compile();
     service = module.get(CommunityService);

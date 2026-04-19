@@ -8,10 +8,13 @@ import {
   Param,
   Query,
   Req,
+  UseGuards,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { AdminGuard } from '../common/guards/admin.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -183,5 +186,34 @@ export class CommunityController {
       size: file.size,
       type: file.mimetype,
     };
+  }
+
+  // ── 신고 + admin 관리 ────────────────────────────────
+  @Post(':id/report')
+  @ApiOperation({ summary: '커뮤니티 게시물 신고 — 누적 시 autoHidden' })
+  reportPost(
+    @Param('id') id: string,
+    @Body() body: { reason?: string; detail?: string },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.reportPost(id, req.user.id, body.reason ?? 'other', body.detail ?? '');
+  }
+
+  @Get('admin/reports')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '(admin) 커뮤니티 신고 목록' })
+  adminListReports(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.service.adminListPostReports({
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    });
+  }
+
+  @Post('admin/:id/unhide')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '(admin) 자동숨김 해제 + reportCount 리셋' })
+  adminUnhide(@Param('id') id: string) {
+    return this.service.adminUnhidePost(id);
   }
 }
