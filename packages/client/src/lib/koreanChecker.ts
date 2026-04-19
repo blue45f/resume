@@ -2843,6 +2843,67 @@ export function applySafeAutoFix(text: string, sectionName = '본문'): SafeAuto
   return { fixedText: fixed, changes, before, after, comparison };
 }
 
+/**
+ * 단어 조회 — 주어진 단어가 맞춤법 규칙에 걸리면 해당 규칙의 설명·제안을 반환.
+ * 에디터·툴팁에서 특정 단어에 대한 학습용 설명을 표시할 때 사용.
+ */
+export interface WordExplanation {
+  matched: boolean;
+  wrong?: string;
+  suggestion?: string;
+  reason?: string;
+  severity?: 'error' | 'warning' | 'info';
+}
+
+export function explainWrongWord(word: string): WordExplanation {
+  const w = (word ?? '').trim();
+  if (!w) return { matched: false };
+  for (const rule of RULES) {
+    const re = new RegExp(rule.pattern.source);
+    if (re.test(w)) {
+      return {
+        matched: true,
+        wrong: rule.wrong,
+        suggestion: rule.suggestion,
+        reason: rule.reason,
+        severity: rule.severity,
+      };
+    }
+  }
+  return { matched: false };
+}
+
+/**
+ * 종합 점수 → 등급 변환. A+ ~ F. UI 배지·차트 축에 활용.
+ */
+export type Grade = 'A+' | 'A' | 'B+' | 'B' | 'C' | 'D' | 'F';
+export interface GradeInfo {
+  grade: Grade;
+  tier: '탁월' | '우수' | '양호' | '보통' | '미흡' | '부족' | '낙제';
+  color: 'green' | 'blue' | 'teal' | 'amber' | 'orange' | 'red' | 'gray';
+}
+export function gradeFromScore(score: number): GradeInfo {
+  if (score >= 95) return { grade: 'A+', tier: '탁월', color: 'green' };
+  if (score >= 85) return { grade: 'A', tier: '우수', color: 'green' };
+  if (score >= 75) return { grade: 'B+', tier: '양호', color: 'blue' };
+  if (score >= 65) return { grade: 'B', tier: '양호', color: 'teal' };
+  if (score >= 50) return { grade: 'C', tier: '보통', color: 'amber' };
+  if (score >= 35) return { grade: 'D', tier: '미흡', color: 'orange' };
+  return { grade: 'F', tier: '낙제', color: 'red' };
+}
+
+/**
+ * 리포트의 12 차원별 점수를 공개 API 로 노출. prioritizeImprovements 와 compareReports
+ * 내부에서 쓰이던 scoreOf 를 같은 기준으로 외부 사용자도 접근 가능하게 함 (레이더 차트 등).
+ */
+export interface DimensionScore {
+  dimension: string;
+  score: number;
+}
+export function getDimensionScores(report: KoreanQualityReport): DimensionScore[] {
+  return scoreOf(report);
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
