@@ -4132,6 +4132,99 @@ export function generateHashtags(text: string, topN = 8): string[] {
     .map((k) => `#${k.word}`);
 }
 
+/**
+ * URL 링크 추출 + 검증 — 이력서·포트폴리오에 포함된 외부 링크 감지.
+ * GitHub/LinkedIn/Notion/Behance/Dribbble 등 플랫폼 분류 + http/https scheme 체크.
+ */
+export interface ExtractedLink {
+  url: string;
+  index: number;
+  platform: 'github' | 'linkedin' | 'notion' | 'behance' | 'dribbble' | 'velog' | 'blog' | 'other';
+  hasScheme: boolean;
+}
+export interface LinkAnalysis {
+  links: ExtractedLink[];
+  count: number;
+  platforms: string[];
+  missingScheme: number;
+  suggestion: string;
+}
+
+const PLATFORM_PATTERNS: Array<{ re: RegExp; platform: ExtractedLink['platform'] }> = [
+  { re: /github\.com/i, platform: 'github' },
+  { re: /linkedin\.com/i, platform: 'linkedin' },
+  { re: /notion\.(so|site)/i, platform: 'notion' },
+  { re: /behance\.net/i, platform: 'behance' },
+  { re: /dribbble\.com/i, platform: 'dribbble' },
+  { re: /velog\.io/i, platform: 'velog' },
+  { re: /\b(tistory|naver\/blog|medium)/i, platform: 'blog' },
+];
+
+export function extractLinks(text: string): LinkAnalysis {
+  const t = text ?? '';
+  const links: ExtractedLink[] = [];
+  const re = /(?:https?:\/\/)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[^\s)]*)?/g;
+  let m: RegExpExecArray | null;
+  const seen = new Set<string>();
+  while ((m = re.exec(t))) {
+    const url = m[0];
+    if (seen.has(url)) continue;
+    seen.add(url);
+    const hasScheme = /^https?:\/\//i.test(url);
+    let platform: ExtractedLink['platform'] = 'other';
+    for (const p of PLATFORM_PATTERNS) {
+      if (p.re.test(url)) {
+        platform = p.platform;
+        break;
+      }
+    }
+    links.push({ url, index: m.index, platform, hasScheme });
+  }
+  const platforms = [...new Set(links.map((l) => l.platform))];
+  const missingScheme = links.filter((l) => !l.hasScheme).length;
+  const suggestion = !links.length
+    ? '외부 링크가 감지되지 않았습니다.'
+    : missingScheme > 0
+      ? `링크 ${links.length}개 — ${missingScheme}개에 https:// 스킴 누락 (클릭 안 될 수 있음).`
+      : `링크 ${links.length}개 · 플랫폼 ${platforms.length}종 (${platforms.join(', ')}).`;
+  return { links: links.slice(0, 30), count: links.length, platforms, missingScheme, suggestion };
+}
+
+/**
+ * 경력 레벨 추정 — estimateExperienceYears 결과 + 액션 동사 강도 + 키워드 성숙도 종합.
+ * Junior(0-3y) / Mid(3-7y) / Senior(7+y) / Lead(10+y + "리딩/팀 리드" 키워드 감지).
+ */
+const LEAD_KEYWORDS = ['리딩', '팀 리드', '팀 리더', '리더십', 'Tech Lead', '테크 리드', '팀장'];
+
+export interface JobLevelEstimate {
+  years: number;
+  level: 'junior' | 'mid' | 'senior' | 'lead';
+  hasLeadKeyword: boolean;
+  suggestion: string;
+}
+
+export function estimateJobLevel(text: string): JobLevelEstimate {
+  const exp = estimateExperienceYears(text);
+  const years = exp.totalYears;
+  const hasLeadKeyword = LEAD_KEYWORDS.some((k) => text.includes(k));
+  let level: JobLevelEstimate['level'];
+  if (years >= 10 && hasLeadKeyword) level = 'lead';
+  else if (years >= 7) level = 'senior';
+  else if (years >= 3) level = 'mid';
+  else level = 'junior';
+  const suggestion =
+    years === 0
+      ? '경력 기간이 감지되지 않아 추정 불가.'
+      : level === 'lead'
+        ? `리드 레벨 (${years}년 + 리딩 경험 키워드 감지).`
+        : level === 'senior'
+          ? `시니어 레벨 (${years}년). 리딩·멘토링 경험을 강조하면 lead 로 어필 가능.`
+          : level === 'mid'
+            ? `미드 레벨 (${years}년). 주도 프로젝트·정량 성과로 시니어 발판 마련.`
+            : `주니어 레벨 (${years}년). 학습 속도·기여 사례·협업 경험을 부각하세요.`;
+  return { years, level, hasLeadKeyword, suggestion };
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
