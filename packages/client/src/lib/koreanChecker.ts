@@ -739,6 +739,63 @@ const RULES: Array<{
     reason: '전각 공백(U+3000)을 일반 공백으로 통일합니다.',
     severity: 'warning',
   },
+  // ── 추가 이력서 빈출 오표현 ──────────────────────────────
+  {
+    pattern: /(?<![가-힣])역활(?![가-힣])/g,
+    wrong: '역활',
+    suggestion: '역할',
+    reason: '표준어는 "역할"입니다. (役割)',
+    severity: 'error',
+  },
+  {
+    pattern: /(?<![가-힣])설겆이/g,
+    wrong: '설겆이',
+    suggestion: '설거지',
+    reason: '표준어는 "설거지"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /(?<![가-힣])얼만큼/g,
+    wrong: '얼만큼',
+    suggestion: '얼마큼',
+    reason: '"얼마큼"이 표준어입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /(?<![가-힣])왠일/g,
+    wrong: '왠일',
+    suggestion: '웬일',
+    reason: '"어찌 된 일"의 뜻은 "웬일"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /(?<![가-힣])희안(?![가-힣])/g,
+    wrong: '희안',
+    suggestion: '희한',
+    reason: '"매우 드물거나 신기함"은 "희한(稀罕)"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /(?<![가-힣])일일히/g,
+    wrong: '일일히',
+    suggestion: '일일이',
+    reason: '부사는 "일일이"가 맞습니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /(?<![가-힣])틈틈히/g,
+    wrong: '틈틈히',
+    suggestion: '틈틈이',
+    reason: '부사는 "틈틈이"입니다. (~히는 한자어에 주로 붙음)',
+    severity: 'error',
+  },
+  {
+    pattern: /(?<![가-힣])곰곰히/g,
+    wrong: '곰곰히',
+    suggestion: '곰곰이',
+    reason: '부사는 "곰곰이"입니다.',
+    severity: 'error',
+  },
 ];
 
 export function checkKorean(resume: Resume): KoreanCheckResult {
@@ -1402,6 +1459,121 @@ export function autoFixResume(
     },
     totalChanges,
   };
+}
+
+/**
+ * 문장 종결 어미 다양성 분석 — 이력서·자소서에서 같은 어미만 반복하면
+ * 단조롭고 AI 생성물처럼 보임. 상위 종결어미와 집중도(Herfindahl)를 계산.
+ *
+ * monotonyScore: 0~100. 100 에 가까울수록 한두 어미에 집중되어 단조로움.
+ * dominantEndings: 빈도 상위 어미 최대 5개.
+ */
+export interface SentenceEndingAnalysis {
+  total: number;
+  dominantEndings: Array<{ ending: string; count: number; percent: number }>;
+  monotonyScore: number;
+  suggestion: string;
+}
+
+const ENDING_PATTERNS: Array<{ label: string; regex: RegExp }> = [
+  { label: '했습니다', regex: /(했|됐|받았|만들었|썼|봤|갔|왔|냈)습니다(?=[.!?。\s]|$)/ },
+  { label: '합니다', regex: /(합|됩|드립|봅|갑|옵)니다(?=[.!?。\s]|$)/ },
+  { label: '입니다', regex: /입니다(?=[.!?。\s]|$)/ },
+  { label: '있습니다', regex: /있습니다(?=[.!?。\s]|$)/ },
+  { label: '없습니다', regex: /없습니다(?=[.!?。\s]|$)/ },
+  { label: '됩니다', regex: /됩니다(?=[.!?。\s]|$)/ },
+  { label: '~다.', regex: /[가-힣]다(?=[.!?。\s]|$)/ },
+  { label: '했다', regex: /(했|됐|갔|왔|봤|받았)다(?=[.!?。\s]|$)/ },
+  { label: '해요', regex: /해요(?=[.!?。\s]|$)/ },
+  { label: '~요.', regex: /[가-힣]요(?=[.!?。\s]|$)/ },
+];
+
+export function analyzeSentenceEndings(text: string): SentenceEndingAnalysis {
+  const clean = (text ?? '').replace(/\s+/g, ' ').trim();
+  if (!clean) {
+    return { total: 0, dominantEndings: [], monotonyScore: 0, suggestion: '' };
+  }
+  const sentences = clean.split(/[.!?。]+/).filter((s) => s.trim().length > 0);
+  const counts = new Map<string, number>();
+  let matched = 0;
+  for (const s of sentences) {
+    const trimmed = s.trim();
+    for (const { label, regex } of ENDING_PATTERNS) {
+      if (regex.test(trimmed + '.')) {
+        counts.set(label, (counts.get(label) ?? 0) + 1);
+        matched++;
+        break;
+      }
+    }
+  }
+  const total = matched;
+  const entries = [...counts.entries()]
+    .map(([ending, count]) => ({ ending, count, percent: total ? (count * 100) / total : 0 }))
+    .sort((a, b) => b.count - a.count);
+  const top5 = entries.slice(0, 5);
+
+  // Herfindahl-Hirschman index — 0~10000 기준, %² 합계. 단일 어미면 10000.
+  let hhi = 0;
+  for (const e of entries) hhi += e.percent * e.percent;
+  const monotonyScore = Math.min(100, Math.round(hhi / 100));
+
+  let suggestion = '';
+  if (total < 5) {
+    suggestion = '분석을 위한 문장이 부족합니다 (5 문장 이상 권장).';
+  } else if (monotonyScore >= 60) {
+    const dom = top5[0];
+    suggestion = `"${dom.ending}" 어미에 ${dom.percent.toFixed(0)}% 집중되어 단조롭습니다. 종결어미를 2~3 종류로 변주해 보세요.`;
+  } else if (monotonyScore >= 40) {
+    suggestion = '종결어미 분포가 약간 편중되어 있습니다. 상위 어미 비중을 낮춰 보세요.';
+  } else {
+    suggestion = '종결어미 분포가 자연스럽습니다.';
+  }
+
+  return { total, dominantEndings: top5, monotonyScore, suggestion };
+}
+
+/**
+ * 어휘 다양성 (Type-Token Ratio) — 중복 단어 비율이 높으면 어휘 빈약.
+ * 한글 단어만 2자 이상 추출해 TTR 계산.
+ */
+export interface LexicalDiversityAnalysis {
+  tokenCount: number;
+  uniqueCount: number;
+  ttr: number; // 0~1, 1 에 가까울수록 다양
+  level: 'low' | 'medium' | 'high';
+  suggestion: string;
+}
+
+export function analyzeLexicalDiversity(text: string): LexicalDiversityAnalysis {
+  const tokens = (text ?? '').match(/[가-힣]{2,}/g) ?? [];
+  const tokenCount = tokens.length;
+  if (tokenCount === 0) {
+    return {
+      tokenCount: 0,
+      uniqueCount: 0,
+      ttr: 0,
+      level: 'low',
+      suggestion: '분석할 한글 단어가 없습니다.',
+    };
+  }
+  const uniqueCount = new Set(tokens).size;
+  const ttr = uniqueCount / tokenCount;
+  let level: LexicalDiversityAnalysis['level'];
+  let suggestion: string;
+  if (tokenCount < 30) {
+    level = 'medium';
+    suggestion = '단어가 적어 분석이 제한적입니다.';
+  } else if (ttr >= 0.6) {
+    level = 'high';
+    suggestion = '어휘가 풍부합니다.';
+  } else if (ttr >= 0.4) {
+    level = 'medium';
+    suggestion = '반복 표현이 다소 있습니다. 동의어·유의어로 변주해 보세요.';
+  } else {
+    level = 'low';
+    suggestion = '같은 단어가 자주 반복됩니다. 주요 명사·동사를 2~3 가지로 다양화하세요.';
+  }
+  return { tokenCount, uniqueCount, ttr: Math.round(ttr * 1000) / 1000, level, suggestion };
 }
 
 function stripHtml(html: string): string {
