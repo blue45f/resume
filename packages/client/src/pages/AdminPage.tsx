@@ -2156,6 +2156,135 @@ function AdminCommunityTab() {
 }
 
 // ═══════════════════════════════════════════════════════════
+// 4a. Upload Settings — 파일 업로드 전역 토글 + 크기/MIME 제한
+// ═══════════════════════════════════════════════════════════
+function UploadSettingsSection() {
+  const queryClient = useQueryClient();
+  const token = localStorage.getItem('token');
+  const { data, isLoading } = useQuery<{
+    enabled: boolean;
+    maxSizeMb: number;
+    allowedMime: string;
+  }>({
+    queryKey: ['admin-upload-settings'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/system-config/upload-settings`);
+      if (!res.ok) return { enabled: true, maxSizeMb: 10, allowedMime: 'image/*,application/pdf' };
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
+  const [enabled, setEnabled] = useState(true);
+  const [maxSizeMb, setMaxSizeMb] = useState(10);
+  const [mime, setMime] = useState('image/*,application/pdf,application/zip');
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    if (data) {
+      setEnabled(data.enabled);
+      setMaxSizeMb(data.maxSizeMb);
+      setMime(data.allowedMime);
+    }
+  }, [data]);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const configs = [
+        { key: 'feature.fileUpload.enabled', value: String(enabled) },
+        { key: 'feature.fileUpload.maxSizeMb', value: String(maxSizeMb) },
+        { key: 'feature.fileUpload.allowedMime', value: mime },
+      ];
+      const res = await fetch(`${API_URL}/api/system-config`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ configs }),
+      });
+      if (!res.ok) throw new Error();
+      toast('파일 업로드 설정이 저장되었습니다', 'success');
+      queryClient.invalidateQueries({ queryKey: ['admin-upload-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['upload-settings'] });
+    } catch {
+      toast('저장에 실패했습니다', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <section>
+      <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+        <span className="w-1.5 h-4 bg-cyan-500 rounded" />
+        파일 업로드 설정
+      </h2>
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              파일 업로드 활성화
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              비활성화 시 이력서 첨부파일 및 게시물 파일 업로드가 모두 차단됩니다
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setEnabled((v) => !v)}
+            disabled={isLoading}
+            className={`shrink-0 w-12 h-7 rounded-full transition-colors disabled:opacity-50 ${
+              enabled ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'
+            }`}
+            aria-label="파일 업로드 토글"
+          >
+            <span
+              className={`block w-5 h-5 bg-white rounded-full transition-transform shadow ${enabled ? 'translate-x-6' : 'translate-x-1'}`}
+            />
+          </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className="block">
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              최대 파일 크기 (MB)
+            </span>
+            <input
+              type="number"
+              min={1}
+              max={500}
+              value={maxSizeMb}
+              onChange={(e) => setMaxSizeMb(Math.max(1, Math.min(500, Number(e.target.value))))}
+              disabled={!enabled}
+              className="mt-1 w-full h-9 px-3 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 disabled:opacity-50"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              허용 MIME 타입 (쉼표 구분, image/* 등 와일드카드 지원)
+            </span>
+            <input
+              type="text"
+              value={mime}
+              onChange={(e) => setMime(e.target.value)}
+              disabled={!enabled}
+              placeholder="image/*,application/pdf"
+              className="mt-1 w-full h-9 px-3 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono disabled:opacity-50"
+            />
+          </label>
+        </div>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving || isLoading}
+            className="px-4 h-9 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            {saving ? '저장 중...' : '저장'}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
 // 4. System Settings (superadmin only)
 // ═══════════════════════════════════════════════════════════
 function SystemSettings() {
@@ -2350,6 +2479,9 @@ function SystemSettings() {
           )}
         </div>
       </section>
+
+      {/* File Upload Settings */}
+      <UploadSettingsSection />
 
       {/* Announcement Banner */}
       <section>
