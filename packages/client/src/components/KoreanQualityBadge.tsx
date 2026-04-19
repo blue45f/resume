@@ -46,6 +46,7 @@ export default function KoreanQualityBadge({
     sentenceStarts,
     passive,
     parallelism,
+    informal,
   } = report;
   const { summary } = check;
   const tone =
@@ -120,6 +121,11 @@ export default function KoreanQualityBadge({
             title="평행구조"
             value={`${parallelism.consistency}%`}
             hint={parallelism.styles[0]?.style ?? '-'}
+          />
+          <Row
+            title="비격식"
+            value={`${informal.count}건`}
+            hint={informal.hits[0]?.category ?? informal.level}
           />
           {(readability.suggestion || lexical.suggestion || endings.suggestion) && (
             <p className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400">

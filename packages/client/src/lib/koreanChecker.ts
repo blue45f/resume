@@ -2464,6 +2464,7 @@ export interface KoreanQualityReport {
   sentenceStarts: SentenceStartAnalysis;
   passive: PassiveVoiceAnalysis;
   parallelism: ParallelismAnalysis;
+  informal: InformalAnalysis;
   /** 0~100 가중치 평균 — UI 배지에 바로 사용 가능 */
   overallScore: number;
 }
@@ -2480,8 +2481,9 @@ export function generateQualityReport(text: string, sectionName = '본문'): Kor
   const sentenceStarts = analyzeSentenceStarts(text);
   const passive = analyzePassiveVoice(text);
   const parallelism = analyzeParallelism(text);
-  // 가중 평균: 맞춤법 25 + 가독성 15 + 어휘 8 + 어미변주 8 + 반복 8
-  //           + 정량 7 + 동사 7 + 상투구 5 + 시작변주 5 + 수동태 7 + 평행구조 5 = 100
+  const informal = detectInformalLanguage(text);
+  // 가중 평균: 맞춤법 22 + 가독성 13 + 어휘 7 + 어미 7 + 반복 7
+  //           + 정량 7 + 동사 7 + 상투구 5 + 시작 5 + 수동 7 + 평행 5 + 비격식 8 = 100
   const ttrScore = Math.round(lexical.ttr * 100);
   const monotonyScore = 100 - endings.monotonyScore;
   const redundancyScore = Math.max(0, 100 - redundancy.hits.length * 10);
@@ -2498,18 +2500,20 @@ export function generateQualityReport(text: string, sectionName = '본문'): Kor
   const startScore = Math.max(0, 100 - Math.round(sentenceStarts.repeatedStartRatio * 100));
   const passiveScore = passive.level === 'low' ? 100 : passive.level === 'medium' ? 70 : 35;
   const parallelismScore = parallelism.consistency;
+  const informalScore = Math.max(0, 100 - informal.count * 15);
   const overallScore = Math.round(
-    check.score * 0.25 +
-      readability.readabilityScore * 0.15 +
-      ttrScore * 0.08 +
-      monotonyScore * 0.08 +
-      redundancyScore * 0.08 +
+    check.score * 0.22 +
+      readability.readabilityScore * 0.13 +
+      ttrScore * 0.07 +
+      monotonyScore * 0.07 +
+      redundancyScore * 0.07 +
       quantScore * 0.07 +
       verbScore * 0.07 +
       clicheScore * 0.05 +
       startScore * 0.05 +
       passiveScore * 0.07 +
-      parallelismScore * 0.05,
+      parallelismScore * 0.05 +
+      informalScore * 0.08,
   );
   return {
     check,
@@ -2523,6 +2527,7 @@ export function generateQualityReport(text: string, sectionName = '본문'): Kor
     sentenceStarts,
     passive,
     parallelism,
+    informal,
     overallScore,
   };
 }
@@ -2571,6 +2576,7 @@ export function exportQualityReportMarkdown(text: string, sectionName = '본문'
   lines.push(
     `- **bullet 평행구조**: ${r.parallelism.consistency}% 일관 (${r.parallelism.lines}줄 분석, 주류 "${r.parallelism.styles[0]?.style ?? '-'}")`,
   );
+  lines.push(`- **비격식 표현**: ${r.informal.count}건 (${r.informal.level})`);
   lines.push('');
   if (r.actionVerbs.topStrong.length) {
     lines.push(`**강한 동사 상위**: ${r.actionVerbs.topStrong.join(', ')}`);
@@ -2591,6 +2597,7 @@ export function exportQualityReportMarkdown(text: string, sectionName = '본문'
   if (r.sentenceStarts.suggestion) tips.push(`- ${r.sentenceStarts.suggestion}`);
   if (r.passive.suggestion) tips.push(`- ${r.passive.suggestion}`);
   if (r.parallelism.suggestion) tips.push(`- ${r.parallelism.suggestion}`);
+  if (r.informal.suggestion) tips.push(`- ${r.informal.suggestion}`);
   if (r.actionVerbs.suggestion) tips.push(`- ${r.actionVerbs.suggestion}`);
   lines.push(tips.length ? tips.join('\n') : '- 개선 포인트가 없습니다. 훌륭합니다!');
   return lines.join('\n');
