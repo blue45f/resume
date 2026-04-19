@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Resume } from '@/types/resume';
-import { checkKorean, autoFixResume } from '@/lib/koreanChecker';
+import { checkKorean, autoFixResume, sortKoreanIssues, dedupIssues } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 import { aiSpellCheck, type AiSpellIssue } from '@/lib/api';
 
@@ -23,6 +23,11 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
   const [aiIssues, setAiIssues] = useState<AiSpellIssue[] | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const result = useMemo(() => checkKorean(resume), [resume]);
+  // 심각도 정렬 + 동일 (섹션, wrong) 중복 제거 — 같은 오타 반복 시 count 배지로 집계
+  const displayIssues = useMemo(
+    () => dedupIssues(sortKoreanIssues(result.issues)),
+    [result.issues],
+  );
 
   const runAiCheck = async () => {
     if (!resumeId) {
@@ -282,10 +287,10 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
             </div>
           )}
 
-          {/* 이슈 리스트 (규칙 기반) */}
-          {!aiMode && result.issues.length > 0 ? (
+          {/* 이슈 리스트 (규칙 기반, 심각도순 정렬 + 중복 제거) */}
+          {!aiMode && displayIssues.length > 0 ? (
             <div className="space-y-2">
-              {result.issues.map((issue, i) => (
+              {displayIssues.map((issue, i) => (
                 <div
                   key={i}
                   className={`p-3 rounded-lg border text-xs ${
@@ -305,6 +310,11 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
                         <span className="font-mono text-[11px] line-through text-red-600 dark:text-red-400">
                           {issue.wrong}
                         </span>
+                        {issue.count > 1 && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold">
+                            ×{issue.count}
+                          </span>
+                        )}
                         <span className="text-slate-400">→</span>
                         <span className="font-mono text-[11px] font-bold text-green-700 dark:text-green-400">
                           {issue.suggestion}
