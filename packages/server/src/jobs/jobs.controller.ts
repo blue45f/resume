@@ -123,6 +123,11 @@ export class JobsController {
     @Query('industry') industry?: string,
     @Query('location') location?: string,
     @Query('q') q?: string,
+    @Query('sort') sort?: string,
+    @Query('urgent') urgent?: string,
+    @Query('deadlineWithinDays') deadlineWithinDays?: string,
+    @Query('hasSalary') hasSalary?: string,
+    @Query('excludeExpired') excludeExpired?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
@@ -133,6 +138,11 @@ export class JobsController {
       industry,
       location,
       q,
+      sort,
+      urgent: urgent === 'true' || urgent === '1',
+      deadlineWithinDays: deadlineWithinDays ? parseInt(deadlineWithinDays, 10) : undefined,
+      hasSalary: hasSalary === 'true' || hasSalary === '1',
+      excludeExpired: excludeExpired === 'true' || excludeExpired === '1',
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 20,
     });

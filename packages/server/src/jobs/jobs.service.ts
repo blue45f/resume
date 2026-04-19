@@ -183,6 +183,16 @@ export class JobsService {
     industry?: string;
     location?: string;
     q?: string;
+    /** recent | deadline | popular | hot | oldest */
+    sort?: string;
+    /** true 면 마감 7일 이내 긴급건만 */
+    urgent?: boolean;
+    /** 마감 N일 이내 (숫자) */
+    deadlineWithinDays?: number;
+    /** true 면 연봉 표시된 공고만 */
+    hasSalary?: boolean;
+    /** true 면 마감 지난 공고 제외 */
+    excludeExpired?: boolean;
     page?: number;
     limit?: number;
   }) {
@@ -211,6 +221,42 @@ export class JobsService {
         { summary: { contains: filters.q, mode: 'insensitive' } },
       ];
     }
+    if (filters.hasSalary) {
+      where.NOT = [...(where.NOT ?? []), { salary: '' }];
+    }
+
+    const now = new Date();
+    if (filters.excludeExpired) {
+      where.OR = [
+        ...(where.OR ?? []),
+        { deadline: null },
+        { deadline: { gte: now } },
+        { isRolling: true },
+      ];
+    }
+    if (filters.urgent) {
+      const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      where.deadline = { gte: now, lte: sevenDaysLater };
+    } else if (filters.deadlineWithinDays && filters.deadlineWithinDays > 0) {
+      const cutoff = new Date(now.getTime() + filters.deadlineWithinDays * 24 * 60 * 60 * 1000);
+      where.deadline = { gte: now, lte: cutoff };
+    }
+
+    const orderBy: any = (() => {
+      switch (filters.sort) {
+        case 'recent':
+          return [{ createdAt: 'desc' }];
+        case 'oldest':
+          return [{ createdAt: 'asc' }];
+        case 'popular':
+          return [{ viewCount: 'desc' }, { createdAt: 'desc' }];
+        case 'hot':
+          return [{ clickCount: 'desc' }, { createdAt: 'desc' }];
+        case 'deadline':
+        default:
+          return [{ deadline: 'asc' }, { createdAt: 'desc' }];
+      }
+    })();
 
     const page = filters.page || 1;
     const limit = Math.min(filters.limit || 20, 50);
@@ -219,7 +265,7 @@ export class JobsService {
       this.prisma.curatedJob.findMany({
         where,
         include: { author: { select: { id: true, name: true, companyName: true } } },
-        orderBy: [{ deadline: 'asc' }, { createdAt: 'desc' }],
+        orderBy,
         skip: (page - 1) * limit,
         take: limit,
       }),

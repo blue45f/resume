@@ -1486,6 +1486,12 @@ function CuratedJobsTab() {
   const [sizeFilter, setSizeFilter] = useState('all');
   const [searchInput, setSearchInput] = useState('');
   const [q, setQ] = useState('');
+  const [sortKey, setSortKey] = useState<'deadline' | 'recent' | 'popular' | 'hot' | 'oldest'>(
+    'deadline',
+  );
+  const [urgentOnly, setUrgentOnly] = useState(false);
+  const [hasSalaryOnly, setHasSalaryOnly] = useState(false);
+  const [excludeExpired, setExcludeExpired] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingJob, setEditingJob] = useState<CuratedJob | null>(null);
@@ -1495,13 +1501,30 @@ function CuratedJobsTab() {
   const canDelete = canDo('curatedJobs', 'delete');
 
   const jobsQuery = useQuery<{ items: CuratedJob[]; total: number }>({
-    queryKey: ['curated-jobs', { expFilter, typeFilter, sizeFilter, q, page }],
+    queryKey: [
+      'curated-jobs',
+      {
+        expFilter,
+        typeFilter,
+        sizeFilter,
+        q,
+        page,
+        sortKey,
+        urgentOnly,
+        hasSalaryOnly,
+        excludeExpired,
+      },
+    ],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (expFilter !== 'all') params.set('experienceLevel', expFilter);
       if (typeFilter !== 'all') params.set('jobType', typeFilter);
       if (sizeFilter !== 'all') params.set('companySize', sizeFilter);
       if (q) params.set('q', q);
+      if (sortKey !== 'deadline') params.set('sort', sortKey);
+      if (urgentOnly) params.set('urgent', '1');
+      if (hasSalaryOnly) params.set('hasSalary', '1');
+      if (excludeExpired) params.set('excludeExpired', '1');
       params.set('page', String(page));
       params.set('limit', '20');
       const res = await fetch(`${API_URL}/api/jobs/curated/list?${params}`);
@@ -1707,6 +1730,90 @@ function CuratedJobsTab() {
               {o.l}
             </button>
           ))}
+        </div>
+
+        {/* Sort + Advanced toggles */}
+        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-slate-400 w-10 shrink-0">정렬</span>
+            <select
+              value={sortKey}
+              onChange={(e) => {
+                setSortKey(e.target.value as typeof sortKey);
+                setPage(1);
+              }}
+              className="h-8 px-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+            >
+              <option value="deadline">마감 임박순</option>
+              <option value="recent">최신 등록순</option>
+              <option value="oldest">오래된순</option>
+              <option value="popular">조회 많은순</option>
+              <option value="hot">클릭 많은순</option>
+            </select>
+          </div>
+          <label className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={urgentOnly}
+              onChange={(e) => {
+                setUrgentOnly(e.target.checked);
+                setPage(1);
+              }}
+              className="rounded border-slate-300 dark:border-slate-600 text-red-500 focus:ring-red-500"
+            />
+            🔥 마감 임박 (7일 이내)
+          </label>
+          <label className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={hasSalaryOnly}
+              onChange={(e) => {
+                setHasSalaryOnly(e.target.checked);
+                setPage(1);
+              }}
+              className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+            />
+            💰 연봉 공개
+          </label>
+          <label className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={excludeExpired}
+              onChange={(e) => {
+                setExcludeExpired(e.target.checked);
+                setPage(1);
+              }}
+              className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+            />
+            마감 지난 공고 제외
+          </label>
+          {(expFilter !== 'all' ||
+            typeFilter !== 'all' ||
+            sizeFilter !== 'all' ||
+            sortKey !== 'deadline' ||
+            urgentOnly ||
+            hasSalaryOnly ||
+            !excludeExpired ||
+            q) && (
+            <button
+              type="button"
+              onClick={() => {
+                setExpFilter('all');
+                setTypeFilter('all');
+                setSizeFilter('all');
+                setSortKey('deadline');
+                setUrgentOnly(false);
+                setHasSalaryOnly(false);
+                setExcludeExpired(true);
+                setQ('');
+                setSearchInput('');
+                setPage(1);
+              }}
+              className="ml-auto text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline underline-offset-2"
+            >
+              필터 초기화
+            </button>
+          )}
         </div>
       </div>
 
