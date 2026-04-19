@@ -3814,6 +3814,104 @@ export function validateDateRanges(text: string): InvalidDateRange[] {
   return invalid;
 }
 
+/**
+ * 표준 이력서 섹션 커버리지 — 한국 이력서가 일반적으로 포함해야 할 섹션 존재 여부 체크.
+ * 섹션 제목 키워드(경력/학력/기술/프로젝트/자기소개 등) 감지 후 누락된 것 리포트.
+ */
+const RESUME_SECTIONS: Array<{ key: string; synonyms: string[] }> = [
+  {
+    key: '경력',
+    synonyms: ['경력 사항', '경력사항', '근무 경력', '회사 경력', '직장 경력', 'Career'],
+  },
+  { key: '학력', synonyms: ['학력 사항', '학력사항', '교육 사항', '학업', 'Education'] },
+  {
+    key: '기술',
+    synonyms: ['기술 스택', '보유 기술', '스킬', '기술 스킬', 'Skills', 'Tech Stack'],
+  },
+  { key: '프로젝트', synonyms: ['프로젝트 경험', '주요 프로젝트', 'Projects', 'Portfolio'] },
+  { key: '자기소개', synonyms: ['자기 소개', '자기소개서', 'About Me', 'Summary', 'Profile'] },
+];
+
+export interface ResumeSectionCoverage {
+  present: string[];
+  missing: string[];
+  coverageRatio: number; // 0~1
+  suggestion: string;
+}
+
+export function detectMissingResumeSections(text: string): ResumeSectionCoverage {
+  const t = text ?? '';
+  const present: string[] = [];
+  const missing: string[] = [];
+  for (const section of RESUME_SECTIONS) {
+    const variants = [section.key, ...section.synonyms];
+    const found = variants.some((v) => {
+      const escaped = v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(escaped, 'i').test(t);
+    });
+    if (found) present.push(section.key);
+    else missing.push(section.key);
+  }
+  const coverageRatio = Math.round((present.length / RESUME_SECTIONS.length) * 100) / 100;
+  let suggestion = '';
+  if (coverageRatio === 1) suggestion = '이력서 주요 섹션이 모두 포함되어 있습니다.';
+  else if (missing.length === 1)
+    suggestion = `"${missing[0]}" 섹션이 누락되었습니다 — 추가를 고려하세요.`;
+  else suggestion = `누락된 섹션: ${missing.join(', ')} — 완성도를 위해 추가하세요.`;
+  return { present, missing, coverageRatio, suggestion };
+}
+
+/**
+ * 이력서 완성도 점수 — 섹션 커버리지 + 연락처 유효성 + 경력 기간 + 스킬 언급 + 정량 지표
+ * 5개 축으로 0-100점 산출. generateQualityReport 의 문체/맞춤법과 독립적인 '구조' 점수.
+ */
+export interface ResumeCompletenessScore {
+  overall: number; // 0-100
+  breakdown: Array<{ axis: string; score: number; weight: number }>;
+  suggestion: string;
+}
+
+export function scoreResumeCompleteness(text: string): ResumeCompletenessScore {
+  const sections = detectMissingResumeSections(text);
+  const contact = detectContactInfo(text);
+  const exp = estimateExperienceYears(text);
+  const skills = detectSkillMentions(text, 50);
+  const quant = analyzeQuantification(text);
+
+  const contactScore =
+    contact.emails.length + contact.phones.length === 0
+      ? 0
+      : contact.emails.filter((e) => e.valid).length > 0 &&
+          contact.phones.filter((p) => p.valid).length > 0
+        ? 100
+        : contact.emails.filter((e) => e.valid).length > 0 ||
+            contact.phones.filter((p) => p.valid).length > 0
+          ? 60
+          : 20;
+  const experienceScore = exp.ranges.length === 0 ? 0 : Math.min(100, exp.ranges.length * 25 + 40);
+  const skillsScore = Math.min(100, skills.length * 20);
+  const quantScore =
+    quant.level === 'high' ? 100 : quant.level === 'medium' ? 70 : quant.level === 'low' ? 40 : 10;
+  const sectionsScore = Math.round(sections.coverageRatio * 100);
+
+  const breakdown = [
+    { axis: '섹션 커버리지', score: sectionsScore, weight: 0.3 },
+    { axis: '연락처', score: contactScore, weight: 0.15 },
+    { axis: '경력 기간', score: experienceScore, weight: 0.25 },
+    { axis: '스킬 언급', score: skillsScore, weight: 0.15 },
+    { axis: '정량 지표', score: quantScore, weight: 0.15 },
+  ];
+  const overall = Math.round(breakdown.reduce((a, b) => a + b.score * b.weight, 0));
+  const weakest = [...breakdown].sort((a, b) => a.score - b.score)[0];
+  const suggestion =
+    overall >= 90
+      ? '이력서 구조가 매우 완성도 높습니다.'
+      : overall >= 70
+        ? `구조 양호 (${overall}점). 약한 축: ${weakest.axis} (${weakest.score}).`
+        : `완성도가 낮습니다 (${overall}점). ${weakest.axis} (${weakest.score}) 부터 보강하세요.`;
+  return { overall, breakdown, suggestion };
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
