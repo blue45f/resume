@@ -4634,6 +4634,7 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
   { name: 'detectCareerGaps', category: '이력서', description: '경력 공백(6개월↑) 검출' },
   { name: 'analyzeVerbTense', category: '문체', description: '시제 일관성(과거/현재/미래)' },
   { name: 'detectAllCapsOveruse', category: '구조', description: 'ALL CAPS 영문 단어 과용' },
+  { name: 'analyzeCallToAction', category: '이력서', description: '자소서 마무리 CTA 체크' },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5759,6 +5760,48 @@ export function detectAllCapsOveruse(text: string): AllCapsAnalysis {
         ? `ALL CAPS ${count}건 — 일반 단어는 소문자/Title Case 로.`
         : `ALL CAPS ${count}건 — "소리치는 인상"을 주므로 축약어 외엔 피하세요.`;
   return { hits: hits.slice(0, 20), count, suggestion };
+}
+
+/**
+ * 클로징 CTA 검출 — 자소서 마지막 문단에 "기여/함께하겠습니다/기대하겠습니다" 같은
+ * 행동 유발 마무리가 있는지 확인. 이력서·자소서 마지막 인상 체크.
+ */
+const CTA_PATTERNS = [
+  /기여하(?:고 싶|겠)/,
+  /함께(?:하고 싶|하겠)/,
+  /성장하(?:고 싶|겠)/,
+  /만들어\s*가(?:고 싶|겠)/,
+  /도전하(?:고 싶|겠)/,
+  /이바지하/,
+  /합류하(?:고 싶|기)/,
+  /기대하(?:고 있|겠)/,
+  /감사합니다/,
+];
+
+export interface CallToActionAnalysis {
+  hasCTA: boolean;
+  matched: string[];
+  lastParagraph: string;
+  suggestion: string;
+}
+
+export function analyzeCallToAction(text: string): CallToActionAnalysis {
+  const t = (text ?? '').trim();
+  if (!t) {
+    return { hasCTA: false, matched: [], lastParagraph: '', suggestion: '본문이 비어 있습니다.' };
+  }
+  const paragraphs = t.split(/\n{2,}/).filter((p) => p.trim().length > 0);
+  const lastParagraph = (paragraphs[paragraphs.length - 1] ?? '').trim();
+  const matched: string[] = [];
+  for (const re of CTA_PATTERNS) {
+    const m = lastParagraph.match(re);
+    if (m) matched.push(m[0]);
+  }
+  const hasCTA = matched.length > 0;
+  const suggestion = hasCTA
+    ? `마지막 문단에 CTA 표현 ${matched.length}건 감지 — "${matched[0]}" 등 행동 유발 마무리가 있습니다.`
+    : '마지막 문단에 명시적 CTA(기여/함께/성장/도전/감사합니다) 가 없습니다 — 인상적인 마무리를 추가하세요.';
+  return { hasCTA, matched, lastParagraph: lastParagraph.slice(0, 100), suggestion };
 }
 
 function stripHtml(html: string): string {
