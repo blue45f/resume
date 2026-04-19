@@ -6,6 +6,7 @@ import EmptyState from '@/components/EmptyState';
 import { toast } from '@/components/Toast';
 import { createTag, deleteTag } from '@/lib/api';
 import { useTags } from '@/hooks/useResources';
+import { t } from '@/lib/i18n';
 
 const COLOR_PRESETS = [
   '#3b82f6',
@@ -80,7 +81,7 @@ export default function TagsPage() {
         role="main"
       >
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">
-          태그 관리
+          {t('nav.tags')}
         </h1>
 
         {/* Create form */}
