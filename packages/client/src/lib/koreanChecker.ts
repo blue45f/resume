@@ -656,6 +656,22 @@ export function checkKorean(resume: Resume): KoreanCheckResult {
       name: `프로젝트 ${i + 1} - ${p.name || '무제'}`,
       text: stripHtml(p.description || ''),
     })),
+    ...resume.educations.map((e, i) => ({
+      name: `학력 ${i + 1} - ${e.school || '무제'}`,
+      text: stripHtml(e.description || ''),
+    })),
+    ...(resume.certifications ?? []).map((c, i) => ({
+      name: `자격증 ${i + 1} - ${c.name || '무제'}`,
+      text: stripHtml(c.description || ''),
+    })),
+    ...(resume.awards ?? []).map((a, i) => ({
+      name: `수상 ${i + 1} - ${a.name || '무제'}`,
+      text: stripHtml(a.description || ''),
+    })),
+    ...(resume.activities ?? []).map((a, i) => ({
+      name: `활동 ${i + 1} - ${a.name || '무제'}`,
+      text: stripHtml(a.description || ''),
+    })),
   ];
 
   for (const { name, text } of sections) {
@@ -803,6 +819,35 @@ export function hasKoreanErrors(result: KoreanCheckResult): boolean {
 }
 
 /**
+ * 심각도(error→warning→info) → 섹션명 → offset 순으로 정렬.
+ * UI 리스트에서 상단에 중요한 이슈가 먼저 오도록.
+ */
+const SEVERITY_ORDER: Record<KoreanIssue['severity'], number> = {
+  error: 0,
+  warning: 1,
+  info: 2,
+};
+export function sortKoreanIssues(issues: KoreanIssue[]): KoreanIssue[] {
+  return [...issues].sort((a, b) => {
+    const s = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
+    if (s !== 0) return s;
+    const sec = a.section.localeCompare(b.section);
+    if (sec !== 0) return sec;
+    return a.offset - b.offset;
+  });
+}
+
+/**
+ * 단일 이슈 기반 부분 치환 — 인터랙티브 UI(제안 버튼 클릭) 용.
+ * offset/length 기반 정확한 slice 치환이라 autoFixText 의 전역 정규식과 달리
+ * 다른 동일 단어 발생은 건드리지 않음.
+ */
+export function fixIssueInText(text: string, issue: KoreanIssue): string {
+  if (issue.length <= 0 || isHintSuggestion(issue.suggestion)) return text;
+  return text.slice(0, issue.offset) + issue.suggestion + text.slice(issue.offset + issue.length);
+}
+
+/**
  * 같은 (wrong, section) 조합이 반복되는 이슈를 중복 제거.
  * UI 가 너무 많은 동일 항목을 보여주지 않도록 — count 필드로 빈도 노출.
  */
@@ -848,6 +893,18 @@ export function autoFixResume(
       educations: resume.educations.map((e) => ({
         ...e,
         description: apply(e.description || ''),
+      })),
+      certifications: (resume.certifications ?? []).map((c) => ({
+        ...c,
+        description: apply(c.description || ''),
+      })),
+      awards: (resume.awards ?? []).map((a) => ({
+        ...a,
+        description: apply(a.description || ''),
+      })),
+      activities: (resume.activities ?? []).map((a) => ({
+        ...a,
+        description: apply(a.description || ''),
       })),
     },
     totalChanges,
