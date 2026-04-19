@@ -741,20 +741,6 @@ const RULES: Array<{
   },
   // ── 추가 이력서 빈출 오표현 ──────────────────────────────
   {
-    pattern: /(?<![가-힣])역활(?![가-힣])/g,
-    wrong: '역활',
-    suggestion: '역할',
-    reason: '표준어는 "역할"입니다. (役割)',
-    severity: 'error',
-  },
-  {
-    pattern: /(?<![가-힣])설겆이/g,
-    wrong: '설겆이',
-    suggestion: '설거지',
-    reason: '표준어는 "설거지"입니다.',
-    severity: 'error',
-  },
-  {
     pattern: /(?<![가-힣])얼만큼/g,
     wrong: '얼만큼',
     suggestion: '얼마큼',
@@ -769,31 +755,10 @@ const RULES: Array<{
     severity: 'error',
   },
   {
-    pattern: /(?<![가-힣])희안(?![가-힣])/g,
-    wrong: '희안',
-    suggestion: '희한',
-    reason: '"매우 드물거나 신기함"은 "희한(稀罕)"입니다.',
-    severity: 'error',
-  },
-  {
-    pattern: /(?<![가-힣])일일히/g,
-    wrong: '일일히',
-    suggestion: '일일이',
-    reason: '부사는 "일일이"가 맞습니다.',
-    severity: 'error',
-  },
-  {
     pattern: /(?<![가-힣])틈틈히/g,
     wrong: '틈틈히',
     suggestion: '틈틈이',
     reason: '부사는 "틈틈이"입니다. (~히는 한자어에 주로 붙음)',
-    severity: 'error',
-  },
-  {
-    pattern: /(?<![가-힣])곰곰히/g,
-    wrong: '곰곰히',
-    suggestion: '곰곰이',
-    reason: '부사는 "곰곰이"입니다.',
     severity: 'error',
   },
 ];
