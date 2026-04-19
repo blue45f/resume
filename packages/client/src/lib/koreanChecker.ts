@@ -4593,6 +4593,11 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
   { name: 'explainWrongWord', category: '파생', description: '단어별 규칙 설명 조회' },
   { name: 'recommendCoverLetterOpeners', category: '파생', description: '자소서 오프닝 3종 추천' },
   { name: 'countSentencesByEnding', category: '파생', description: '종결어미 타입별 카운트' },
+  {
+    name: 'analyzeEverything',
+    category: '파생',
+    description: '모든 분석기 일괄 실행 (단일 진입점)',
+  },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -4771,6 +4776,86 @@ export function countSentencesByEnding(text: string): EndingTypeCount {
     dominant = 'mixed';
   }
   return { ...counts, total, dominant };
+}
+
+/**
+ * 모든 분석기 일괄 실행 — 외부(LLM/admin/API)에서 "텍스트 하나 던지면 전체 품질 진단"
+ * 시나리오를 위한 단일 진입점. generateQualityReport 는 12개 핵심만, 이 함수는 50+ 전부.
+ */
+export interface FullAnalysis {
+  quality: KoreanQualityReport;
+  contact: ContactInfo;
+  sections: ResumeSectionCoverage;
+  completeness: ResumeCompletenessScore;
+  experience: ExperienceEstimate;
+  jobLevel: JobLevelEstimate;
+  specificity: SpecificityScore;
+  chronology: ChronologyCheck;
+  softSkills: SoftSkillAnalysis;
+  skills: SkillMention[];
+  casing: CasingAnalysis;
+  exaggeration: ExaggerationAnalysis;
+  pii: PiiAnalysis;
+  englishMix: EnglishMixAnalysis;
+  sentiment: SentimentAnalysis;
+  paragraphs: ParagraphStats;
+  firstPerson: FirstPersonAnalysis;
+  duplicates: DuplicateSentence[];
+  overuse: OveruseWithSynonyms[];
+  dates: DateConsistencyAnalysis;
+  invalidDates: InvalidDateRange[];
+  jargon: JargonAnalysis;
+  brackets: BracketBalanceAnalysis;
+  whitespace: WhitespaceAnalysis;
+  numeric: NumericFormatAnalysis;
+  reading: ReadingTimeEstimate;
+  links: LinkAnalysis;
+  bullets: BulletMarkerAnalysis;
+  acronyms: AcronymAnalysis;
+  hashtags: string[];
+  keywords: ExtractedKeyword[];
+  interview: InterviewQuestion[];
+  openers: OpenerSuggestion[];
+  endings: EndingTypeCount;
+}
+
+export function analyzeEverything(text: string): FullAnalysis {
+  return {
+    quality: generateQualityReport(text),
+    contact: detectContactInfo(text),
+    sections: detectMissingResumeSections(text),
+    completeness: scoreResumeCompleteness(text),
+    experience: estimateExperienceYears(text),
+    jobLevel: estimateJobLevel(text),
+    specificity: scoreSpecificity(text),
+    chronology: analyzeActivityChronology(text),
+    softSkills: detectSoftSkills(text),
+    skills: detectSkillMentions(text),
+    casing: detectInconsistentCasing(text),
+    exaggeration: detectExaggeration(text),
+    pii: detectPersonalInfo(text),
+    englishMix: analyzeEnglishMix(text),
+    sentiment: analyzeSentiment(text),
+    paragraphs: analyzeParagraphs(text),
+    firstPerson: analyzeFirstPersonUsage(text),
+    duplicates: detectDuplicateSentences(text),
+    overuse: suggestSynonymsForOveruse(text),
+    dates: analyzeDateConsistency(text),
+    invalidDates: validateDateRanges(text),
+    jargon: detectJargon(text),
+    brackets: analyzeBracketBalance(text),
+    whitespace: detectWhitespaceAnomalies(text),
+    numeric: analyzeNumericFormat(text),
+    reading: estimateReadingTime(text),
+    links: extractLinks(text),
+    bullets: analyzeBulletMarkerConsistency(text),
+    acronyms: detectAbbreviations(text),
+    hashtags: generateHashtags(text),
+    keywords: extractKeywords(text),
+    interview: generateInterviewQuestions(text),
+    openers: recommendCoverLetterOpeners(text),
+    endings: countSentencesByEnding(text),
+  };
 }
 
 function stripHtml(html: string): string {
