@@ -14,6 +14,7 @@ import { tx } from '@/lib/i18n';
 import { useResumes } from '@/hooks/useResources';
 import KoreanQualityBadge from '@/components/KoreanQualityBadge';
 import KeywordCloud from '@/components/KeywordCloud';
+import InterviewQuestionsPanel from '@/components/InterviewQuestionsPanel';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import { computeJDMatch, detectSkillMentions } from '@/lib/koreanChecker';
 
@@ -861,6 +862,7 @@ export default function CoverLetterPage() {
                       </div>
                       <KeywordCloud text={feedbackText || ''} topN={12} />
                       <SkillMentionsBar text={feedbackText || ''} />
+                      <InterviewQuestionsPanel text={feedbackText || ''} />
                     </div>
                   )}
                 </div>
