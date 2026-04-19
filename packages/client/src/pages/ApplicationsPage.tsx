@@ -157,7 +157,9 @@ export default function ApplicationsPage() {
   });
   const [filter, setFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'recent' | 'company' | 'deadline'>('recent');
+  const [sortBy, setSortBy] = useState<
+    'recent' | 'oldest' | 'company' | 'status' | 'applied' | 'deadline'
+  >('recent');
   const [yearFilter, setYearFilter] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'calendar' | 'analytics'>('list');
   const { data: resumesData } = useResumes();

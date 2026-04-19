@@ -44,10 +44,12 @@ const getCATEGORIES = () =>
   }));
 
 const SORT_KEYS = [
+  { value: 'trending', fallback: '🔥 지금 뜨는' },
   { value: 'recent', labelKey: 'explore.sortByLatest' },
   { value: 'popular', labelKey: 'explore.sortByPopular' },
   { value: 'views', labelKey: 'explore.sortByViews' },
   { value: 'comments', fallback: '댓글순' },
+  { value: 'oldest', fallback: '오래된순' },
 ] as const;
 const getSORT_OPTIONS = () =>
   SORT_KEYS.map((s) => ({
