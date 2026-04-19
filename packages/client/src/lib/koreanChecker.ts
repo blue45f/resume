@@ -4332,6 +4332,96 @@ export function generateInterviewQuestions(text: string, maxN = 10): InterviewQu
   return questions.slice(0, maxN);
 }
 
+/**
+ * 구체성 점수 — 숫자·고유명사(회사/제품명)·기술 용어 밀도를 종합. 추상적 표현 대비
+ * 실체적 근거의 비율. 이력서는 구체성이 신뢰도의 핵심.
+ */
+export interface SpecificityScore {
+  overall: number; // 0~100
+  numbers: number; // 숫자 등장 수
+  properNouns: number; // 대문자로 시작하는 영문/회사 후보
+  techTerms: number; // 기술 스킬 언급 총계
+  suggestion: string;
+}
+
+export function scoreSpecificity(text: string): SpecificityScore {
+  const t = text ?? '';
+  const chars = t.length || 1;
+  const numbers = (t.match(/\d+/g) ?? []).length;
+  // 고유명사: 영문 대문자 시작 2자 이상, 혹은 '네이버/카카오/삼성/LG/쿠팡/토스/배민/당근' 등 주요 한국 기업
+  const companyPatterns =
+    /(네이버|카카오|삼성|LG|SK|현대|쿠팡|토스|배민|당근|라인|우아한형제|야놀자|무신사|NHN|KT)/g;
+  const properEn = (t.match(/\b[A-Z][A-Za-z0-9.]+\b/g) ?? []).length;
+  const properKr = (t.match(companyPatterns) ?? []).length;
+  const properNouns = properEn + properKr;
+  const techTerms = detectSkillMentions(t, 50).reduce((a, s) => a + s.count, 0);
+
+  // 밀도 기반 점수 (100자당)
+  const density = ((numbers + properNouns + techTerms) / chars) * 100;
+  // 30/100자 이상이면 훌륭, 10/100 미만이면 부족
+  let overall = Math.min(100, Math.round(density * 4));
+  if (overall < 0) overall = 0;
+  const suggestion =
+    overall >= 75
+      ? '구체성이 우수합니다 — 수치·고유명사·기술 용어가 충분히 드러납니다.'
+      : overall >= 45
+        ? `구체성 보통 (${overall}점). 회사명·수치·기술 용어를 더 추가하면 신뢰도 상승.`
+        : `구체성이 부족합니다 (${overall}점). 추상 표현을 구체 사례·수치로 대체하세요.`;
+  return { overall, numbers, properNouns, techTerms, suggestion };
+}
+
+/**
+ * 활동 시간순 검증 — 이력서·경력 섹션은 최신 → 과거 (역순) 또는 과거 → 최신 (순차)
+ * 중 하나로 일관돼야 함. estimateExperienceYears 결과의 시작 연도 순서 검사.
+ */
+export interface ChronologyCheck {
+  order: 'newest-first' | 'oldest-first' | 'mixed' | 'single-or-none';
+  isConsistent: boolean;
+  ranges: number[]; // 각 구간의 start year 배열 (등장 순서 유지)
+  suggestion: string;
+}
+
+export function analyzeActivityChronology(text: string): ChronologyCheck {
+  const exp = estimateExperienceYears(text);
+  const ranges = exp.ranges.map((r) => r.start.year);
+  if (ranges.length < 2) {
+    return {
+      order: 'single-or-none',
+      isConsistent: true,
+      ranges,
+      suggestion: '경력 구간이 2개 미만 — 시간순 검증 불가.',
+    };
+  }
+  // 엄격한 내림차순?
+  let newest = true;
+  for (let i = 1; i < ranges.length; i++) {
+    if (ranges[i] > ranges[i - 1]) {
+      newest = false;
+      break;
+    }
+  }
+  // 엄격한 오름차순?
+  let oldest = true;
+  for (let i = 1; i < ranges.length; i++) {
+    if (ranges[i] < ranges[i - 1]) {
+      oldest = false;
+      break;
+    }
+  }
+  const order: ChronologyCheck['order'] = newest
+    ? 'newest-first'
+    : oldest
+      ? 'oldest-first'
+      : 'mixed';
+  const isConsistent = order !== 'mixed';
+  const suggestion = isConsistent
+    ? order === 'newest-first'
+      ? '경력이 최신순으로 정렬되어 있습니다 (권장).'
+      : '경력이 과거→최신 순. 일반적으로 최신순이 권장됩니다.'
+    : `경력 구간(${ranges.join(' → ')})이 일관된 순서가 아닙니다 — 정렬 통일을 권장합니다.`;
+  return { order, isConsistent, ranges, suggestion };
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')

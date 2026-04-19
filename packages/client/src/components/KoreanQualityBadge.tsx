@@ -24,6 +24,8 @@ import {
   analyzeSentiment,
   extractLinks,
   estimateJobLevel,
+  scoreSpecificity,
+  analyzeActivityChronology,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -386,6 +388,34 @@ function SentimentRow({ text }: { text: string }) {
                   : '주니어'
           }
           hint={`${job.years}년${job.hasLeadKeyword ? ' · 리딩' : ''}`}
+        />
+      )}
+      <SpecificityAndChronologyRows text={text} />
+    </>
+  );
+}
+
+function SpecificityAndChronologyRows({ text }: { text: string }) {
+  const spec = scoreSpecificity(text);
+  const chrono = analyzeActivityChronology(text);
+  return (
+    <>
+      <Row
+        title="구체성"
+        value={`${spec.overall}점`}
+        hint={`#${spec.numbers} · 고유 ${spec.properNouns} · 기술 ${spec.techTerms}`}
+      />
+      {chrono.order !== 'single-or-none' && (
+        <Row
+          title="시간 순"
+          value={
+            chrono.order === 'newest-first'
+              ? '최신순'
+              : chrono.order === 'oldest-first'
+                ? '과거순'
+                : '혼재'
+          }
+          hint={chrono.isConsistent ? '일관' : '순서 확인'}
         />
       )}
     </>
