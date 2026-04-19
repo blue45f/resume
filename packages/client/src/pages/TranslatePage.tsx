@@ -6,6 +6,7 @@ import { toast } from '@/components/Toast';
 import type { ResumeSummary, Resume } from '@/types/resume';
 import { API_URL } from '@/lib/config';
 import { useResumes, useResume } from '@/hooks/useResources';
+import { t } from '@/lib/i18n';
 
 const LANGUAGE_PAIRS = [
   {
@@ -229,7 +230,7 @@ export default function TranslatePage() {
       >
         <div className="mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-            이력서 번역
+            {t('page.translate')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             AI가 이력서를 다른 언어로 번역합니다. 현지 형식에 맞게 변환됩니다.

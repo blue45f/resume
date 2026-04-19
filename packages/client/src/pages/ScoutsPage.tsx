@@ -13,6 +13,7 @@ import {
 } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
+import { t } from '@/lib/i18n';
 import { timeAgo } from '@/lib/time';
 import { toast } from '@/components/Toast';
 import SendMessageButton from '@/components/SendMessageButton';
@@ -358,7 +359,7 @@ export default function ScoutsPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-              스카우트 제안
+              {t('page.scouts')}
               {unreadCount > 0 && (
                 <span className="ml-2 px-2 py-0.5 text-xs bg-red-500 text-white rounded-full">
                   {unreadCount}
