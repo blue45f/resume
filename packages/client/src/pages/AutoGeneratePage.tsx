@@ -6,6 +6,7 @@ import { useTemplates, useResumes } from '@/hooks/useResources';
 import type { Template, ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
+import { t } from '@/lib/i18n';
 
 const EXAMPLES = [
   '경력 메모, 자기소개 텍스트',
@@ -203,7 +204,7 @@ export default function AutoGeneratePage() {
         role="main"
       >
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-          AI 이력서 자동 생성
+          {t('nav.aiGenerate')}
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
           경력 관련 아무 자료나 붙여넣거나 파일을 업로드하면 AI가 자동으로 이력서를 생성합니다.
