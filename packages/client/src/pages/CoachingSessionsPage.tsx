@@ -14,6 +14,7 @@ import {
 import { useMyCoachingSessions } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 
 type TabKey = 'client' | 'coach';
 
@@ -142,7 +143,7 @@ export default function CoachingSessionsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-              내 코칭 세션
+              {tx('coach.sessions')}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               예약하거나 진행 중인 세션을 관리하세요
