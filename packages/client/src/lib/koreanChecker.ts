@@ -4626,6 +4626,11 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
   { name: 'quickScore', category: '파생', description: '빠른 품질 점수(단일 숫자)' },
   { name: 'detectEmptyClaims', category: '문체', description: '빈 주장(근거 없는 역량 주장) 검출' },
   { name: 'countAchievements', category: '이력서', description: '수상·성취 키워드 밀도' },
+  {
+    name: 'scoreInterviewability',
+    category: '파생',
+    description: '면접 콜백 가능성 점수 (0-100)',
+  },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5553,6 +5558,68 @@ export function countAchievements(text: string): AchievementCount {
           ? `성취 ${total}건 — 조금 더 구체 이력(대회·자격증)을 추가하면 임팩트 상승.`
           : `성취 키워드가 적습니다 (${total}건). 수상·인증·선정 경험 추가 검토.`;
   return { total, byKeyword: byKeyword.slice(0, 10), density, level, suggestion };
+}
+
+/**
+ * 면접 적합도(interviewability) 점수 — 이력서를 본 리쿠르터가 면접으로 부를 확률을
+ * 근사하는 0~100 지표. 5개 축 가중 합산.
+ *   - 구체성(수치·고유명사·기술) 30%
+ *   - 정량 지표 20%
+ *   - 액션 동사 비율 15%
+ *   - 수상·성취 밀도 15%
+ *   - 섹션 완성도 20%
+ * 일부러 문체(맞춤법·가독성)는 제외 — 본질적 "채용 가치" 에 집중.
+ */
+export interface InterviewabilityScore {
+  overall: number; // 0-100
+  breakdown: Array<{ axis: string; value: number; weight: number }>;
+  tier: 'call-back' | 'promising' | 'needs-work' | 'below-bar';
+  suggestion: string;
+}
+
+export function scoreInterviewability(text: string): InterviewabilityScore {
+  const spec = scoreSpecificity(text);
+  const quant = analyzeQuantification(text);
+  const verbs = analyzeActionVerbs(text);
+  const achievements = countAchievements(text);
+  const sections = detectMissingResumeSections(text);
+
+  const quantValue =
+    quant.level === 'high' ? 100 : quant.level === 'medium' ? 70 : quant.level === 'low' ? 40 : 10;
+  const verbsValue = verbs.strong + verbs.weak < 3 ? 50 : Math.round(verbs.ratio * 100);
+  const achievementsValue =
+    achievements.level === 'high'
+      ? 100
+      : achievements.level === 'medium'
+        ? 65
+        : achievements.total > 0
+          ? 35
+          : 10;
+  const sectionsValue = Math.round(sections.coverageRatio * 100);
+
+  const breakdown = [
+    { axis: '구체성', value: spec.overall, weight: 0.3 },
+    { axis: '정량 지표', value: quantValue, weight: 0.2 },
+    { axis: '액션 동사', value: verbsValue, weight: 0.15 },
+    { axis: '수상·성취', value: achievementsValue, weight: 0.15 },
+    { axis: '섹션 완성도', value: sectionsValue, weight: 0.2 },
+  ];
+  const overall = Math.round(breakdown.reduce((a, b) => a + b.value * b.weight, 0));
+  let tier: InterviewabilityScore['tier'];
+  if (overall >= 80) tier = 'call-back';
+  else if (overall >= 60) tier = 'promising';
+  else if (overall >= 40) tier = 'needs-work';
+  else tier = 'below-bar';
+  const weakest = [...breakdown].sort((a, b) => a.value - b.value)[0];
+  const suggestion =
+    tier === 'call-back'
+      ? '면접 콜백 가능성 높음 — 강력한 이력서입니다.'
+      : tier === 'promising'
+        ? `유망 (${overall}점). 약한 축: ${weakest.axis} (${weakest.value}) 보강 시 콜백률 상승.`
+        : tier === 'needs-work'
+          ? `보완 필요 (${overall}점). ${weakest.axis} (${weakest.value}) 를 먼저 개선하세요.`
+          : `면접 문턱 미달 (${overall}점). 섹션 완성도·정량 지표·구체 경험을 전면 재작성 권장.`;
+  return { overall, breakdown, tier, suggestion };
 }
 
 function stripHtml(html: string): string {
