@@ -10,6 +10,7 @@ import { toast } from '@/components/Toast';
 import type { ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
 import RelatedJobsWidget from '@/features/interview-prep/ui/RelatedJobsWidget';
+import { tx } from '@/lib/i18n';
 import { useResumes } from '@/hooks/useResources';
 
 type PageMode = 'generate' | 'feedback';
@@ -429,7 +430,7 @@ export default function CoverLetterPage() {
       >
         <div className="mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-            자기소개서
+            {tx('resume.sections.summary')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             AI 자기소개서 생성 · 피드백 분석 · 항목별 작성
