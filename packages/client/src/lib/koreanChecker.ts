@@ -4823,6 +4823,7 @@ export interface FullAnalysis {
   interview: InterviewQuestion[];
   openers: OpenerSuggestion[];
   endings: EndingTypeCount;
+  selfDeprecation: SelfDeprecationAnalysis;
 }
 
 export function analyzeEverything(text: string): FullAnalysis {
@@ -4861,6 +4862,7 @@ export function analyzeEverything(text: string): FullAnalysis {
     interview: generateInterviewQuestions(text),
     openers: recommendCoverLetterOpeners(text),
     endings: countSentencesByEnding(text),
+    selfDeprecation: detectSelfDeprecation(text),
   };
 }
 
@@ -4959,6 +4961,15 @@ export function summarizeAnalysis(full: FullAnalysis): {
       severity: 'yellow',
       label: '연락처 오류',
       note: `잘못된 형식 ${invalidContacts}건.`,
+    });
+  }
+
+  // 자기비하 표현
+  if (full.selfDeprecation.level === 'many') {
+    flags.push({
+      severity: 'yellow',
+      label: '자기비하 과다',
+      note: `${full.selfDeprecation.count}건 — 자신감 있는 표현으로.`,
     });
   }
 
