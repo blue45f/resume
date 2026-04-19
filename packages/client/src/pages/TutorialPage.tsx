@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 
 const steps = [
   {
@@ -421,7 +422,7 @@ export default function TutorialPage() {
       >
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-            사용 가이드
+            {tx('tutorial.title')}
           </h1>
           <p className="text-slate-500 dark:text-slate-400">
             이력서공방를 처음 사용하시나요? 아래 가이드를 따라해보세요.
