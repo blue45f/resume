@@ -633,7 +633,8 @@ const RULES: Array<{
   },
   // ── 자주 헷갈리는 맞춤법 (3차 확장) ────────────────────
   {
-    pattern: /\s구지/g,
+    // "가구지/나무구지" 같은 오매치 회피 + 문장 시작 위치에서도 매치
+    pattern: /(?<![가-힣])구지/g,
     wrong: '구지',
     suggestion: '굳이',
     reason: '"일부러·반드시"의 뜻은 "굳이"입니다.',
@@ -1056,6 +1057,45 @@ export interface RuleValidationIssue {
   wrong: string;
   problem: string;
 }
+/**
+ * 모듈 스모크 테스트 — 클라이언트에 test runner 가 없어 내장 self-check 로 대체.
+ * 알려진 입력/출력 쌍이 실제로 감지되는지 확인. dev 도구/CI smoke 로 호출.
+ */
+export interface SelfCheckCase {
+  input: string;
+  expectedWrong: string;
+  description: string;
+}
+export interface SelfCheckResult {
+  passed: number;
+  failed: Array<SelfCheckCase & { foundWrongs: string[] }>;
+  total: number;
+}
+const SELF_CHECK_CASES: SelfCheckCase[] = [
+  { input: '이 부분이 됬다.', expectedWrong: '됬', description: '되었→됐' },
+  { input: '컨텐츠 관리', expectedWrong: '컨텐츠', description: '외래어 콘텐츠' },
+  { input: '열심히 했습니다.', expectedWrong: '열심히 했', description: '약한 표현' },
+  { input: '!!', expectedWrong: '!!', description: '느낌표 반복' },
+  { input: '스케쥴을 조정', expectedWrong: '스케쥴', description: '외래어 스케줄' },
+  { input: '괜찬습니다.', expectedWrong: '괜찬', description: '괜찮' },
+  { input: '구지 말씀드리면', expectedWrong: '구지', description: '굳이' },
+  { input: '역활을 맡아', expectedWrong: '역활', description: '역할' },
+];
+export function runSelfCheck(): SelfCheckResult {
+  const failed: SelfCheckResult['failed'] = [];
+  let passed = 0;
+  for (const tc of SELF_CHECK_CASES) {
+    const result = checkText(tc.input);
+    const foundWrongs = result.issues.map((i) => i.wrong);
+    if (foundWrongs.includes(tc.expectedWrong)) {
+      passed++;
+    } else {
+      failed.push({ ...tc, foundWrongs });
+    }
+  }
+  return { passed, failed, total: SELF_CHECK_CASES.length };
+}
+
 export function validateRules(): RuleValidationIssue[] {
   const issues: RuleValidationIssue[] = [];
   RULES.forEach((r, i) => {
