@@ -3100,6 +3100,143 @@ export function analyzeBracketBalance(text: string): BracketBalanceAnalysis {
   return { pairs, unbalanced: hasUnbalanced, suggestion };
 }
 
+/**
+ * 공백 이상 검출 — 줄 끝 trailing 공백 · 탭 문자 · 무중단 공백(NBSP) · 탭·공백 혼재 등
+ * 복사/붙여넣기 혹은 에디터 설정 차이로 생기는 숨은 쓰레기. 자동 제거 대상.
+ */
+export interface WhitespaceAnomaly {
+  type: 'trailing' | 'tab' | 'nbsp' | 'fullwidth' | 'multiple-blank-lines';
+  index: number;
+  line: number;
+  sample: string;
+}
+export interface WhitespaceAnalysis {
+  anomalies: WhitespaceAnomaly[];
+  counts: Record<WhitespaceAnomaly['type'], number>;
+  clean: boolean;
+  suggestion: string;
+}
+
+export function detectWhitespaceAnomalies(text: string): WhitespaceAnalysis {
+  const t = text ?? '';
+  const anomalies: WhitespaceAnomaly[] = [];
+  const lines = t.split('\n');
+  let lineOffset = 0;
+  let consecBlank = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    // trailing
+    if (/ +$/.test(line)) {
+      anomalies.push({
+        type: 'trailing',
+        index: lineOffset + line.length - (line.match(/ +$/)?.[0].length ?? 0),
+        line: i + 1,
+        sample: '·'.repeat(line.match(/ +$/)?.[0].length ?? 0),
+      });
+    }
+    // tab
+    const tabMatch = line.match(/\t/);
+    if (tabMatch) {
+      anomalies.push({
+        type: 'tab',
+        index: lineOffset + (tabMatch.index ?? 0),
+        line: i + 1,
+        sample: '→',
+      });
+    }
+    // NBSP (U+00A0)
+    const nbspMatch = line.match(/\u00A0/);
+    if (nbspMatch) {
+      anomalies.push({
+        type: 'nbsp',
+        index: lineOffset + (nbspMatch.index ?? 0),
+        line: i + 1,
+        sample: '[NBSP]',
+      });
+    }
+    // fullwidth (U+3000)
+    const fwMatch = line.match(/\u3000/);
+    if (fwMatch) {
+      anomalies.push({
+        type: 'fullwidth',
+        index: lineOffset + (fwMatch.index ?? 0),
+        line: i + 1,
+        sample: '[전각]',
+      });
+    }
+    if (/^\s*$/.test(line)) consecBlank++;
+    else {
+      if (consecBlank >= 3) {
+        anomalies.push({
+          type: 'multiple-blank-lines',
+          index: lineOffset - consecBlank,
+          line: i - consecBlank + 1,
+          sample: `빈줄 ${consecBlank}개`,
+        });
+      }
+      consecBlank = 0;
+    }
+    lineOffset += line.length + 1; // +1 for '\n'
+  }
+  const counts: Record<WhitespaceAnomaly['type'], number> = {
+    trailing: 0,
+    tab: 0,
+    nbsp: 0,
+    fullwidth: 0,
+    'multiple-blank-lines': 0,
+  };
+  for (const a of anomalies) counts[a.type]++;
+  const clean = anomalies.length === 0;
+  const suggestion = clean
+    ? '공백 이상이 없습니다.'
+    : `공백 이상 ${anomalies.length}건: ${Object.entries(counts)
+        .filter(([, v]) => v > 0)
+        .map(([k, v]) => `${k}=${v}`)
+        .join(', ')} — 에디터에서 정리하세요.`;
+  return { anomalies: anomalies.slice(0, 30), counts, clean, suggestion };
+}
+
+/**
+ * 숫자 포맷 일관성 — "1,000 / 1000 / 1천" 혼재 여부. 이력서·자소서 전반에서 숫자 표기를
+ * 한 가지로 통일하면 전문성 상승.
+ */
+export interface NumericFormatAnalysis {
+  comma: number; // 1,000
+  plain: number; // 1000
+  korean: number; // 1천, 1만, 1억
+  distinct: number;
+  dominant: 'comma' | 'plain' | 'korean' | null;
+  consistent: boolean;
+  suggestion: string;
+}
+
+export function analyzeNumericFormat(text: string): NumericFormatAnalysis {
+  const t = text ?? '';
+  const comma = (t.match(/\b\d{1,3}(?:,\d{3})+\b/g) ?? []).length;
+  const korean = (t.match(/\d+\s*(천|만|억|조)/g) ?? []).length;
+  // plain: 4자리 이상 숫자이면서 쉼표·한글단위 없이 등장
+  const allLarge = (t.match(/(?<![,\d])\d{4,}(?![,\d])/g) ?? []).length;
+  const plain = Math.max(0, allLarge - comma - korean);
+  const allFormats: Array<{ key: NonNullable<NumericFormatAnalysis['dominant']>; count: number }> =
+    [
+      { key: 'comma' as const, count: comma },
+      { key: 'plain' as const, count: plain },
+      { key: 'korean' as const, count: korean },
+    ];
+  const formats = allFormats.filter((f) => f.count > 0);
+  const distinct = formats.length;
+  formats.sort((a, b) => b.count - a.count);
+  const dominant = formats[0]?.key ?? null;
+  const consistent = distinct <= 1;
+  let suggestion = '';
+  const total = comma + plain + korean;
+  if (total === 0) suggestion = '4자리 이상 숫자가 없습니다.';
+  else if (consistent) suggestion = `숫자 포맷이 "${dominant}" 로 일관됩니다.`;
+  else
+    suggestion = `숫자 포맷 ${distinct}종 혼재 — "${dominant}" 스타일로 통일하세요 (쉼표=${comma}, 단순=${plain}, 한글=${korean}).`;
+  return { comma, plain, korean, distinct, dominant, consistent, suggestion };
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
