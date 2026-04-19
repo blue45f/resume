@@ -301,20 +301,14 @@ const RULES: Array<{
     severity: 'info',
   },
   {
-    pattern: /맞추/g,
-    wrong: '맞추',
-    suggestion: '맞히 (정답) / 맞추 (조립)',
-    reason: '정답을 말하면 "맞히다", 부품을 끼우면 "맞추다".',
+    // "맞추" 가 일상적으로 "조립·정렬" 의미로 쓰이는 경우가 많아 — 정답/답을 앞에서 찾은 경우에만 힌트
+    pattern: /(?:정답|답을)\s*맞추/g,
+    wrong: '정답을 맞추',
+    suggestion: '정답을 맞히',
+    reason: '정답을 말하면 "맞히다". 부품을 끼우면 "맞추다".',
     severity: 'info',
   },
   // ── 외래어/영문 한글 표기 (자주 틀림) ────────────────
-  {
-    pattern: /매니지먼트/g,
-    wrong: '매니지먼트',
-    suggestion: '매니지먼트(관리)',
-    reason: '한국어로 바꿔쓸 수 있으면 한국어 권장.',
-    severity: 'info',
-  },
   {
     pattern: /컨텐츠/g,
     wrong: '컨텐츠',
@@ -563,6 +557,86 @@ const RULES: Array<{
     reason: '번역투 — 자연스러운 한국어로.',
     severity: 'info',
   },
+  // ── 부사 "-이/-히" 헷갈리는 것들 ─────────────────────────
+  {
+    pattern: /\s간간히/g,
+    wrong: '간간히',
+    suggestion: '간간이',
+    reason: '"-이"로 끝나는 부사 — "간간이"가 맞습니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /\s번번히/g,
+    wrong: '번번히',
+    suggestion: '번번이',
+    reason: '표준어는 "번번이"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /\s나즈막/g,
+    wrong: '나즈막',
+    suggestion: '나지막',
+    reason: '표준어는 "나지막하다"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /솔직히\s/g,
+    wrong: '솔직히',
+    suggestion: '솔직히 (맞음)',
+    reason: '확인: "솔직히"가 표준어. "솔직이" 는 오류.',
+    severity: 'info',
+  },
+  // ── 이력서에서 자주 보는 비표준 경어 ─────────────────────
+  {
+    pattern: /있으시/g,
+    wrong: '있으시',
+    suggestion: '계시',
+    reason: '사람에 대한 높임은 "계시다"입니다. ("있으시다" 는 물건용)',
+    severity: 'info',
+  },
+  // ── IT·비즈니스 맥락 맞춤법 ──────────────────────────────
+  {
+    pattern: /런칭/g,
+    wrong: '런칭',
+    suggestion: '론칭',
+    reason: '외래어 표기법: launch → "론칭".',
+    severity: 'error',
+  },
+  {
+    pattern: /악셀/g,
+    wrong: '악셀',
+    suggestion: '액셀',
+    reason: '외래어 표기법: accelerator → "액셀".',
+    severity: 'error',
+  },
+  {
+    pattern: /까르텔/g,
+    wrong: '까르텔',
+    suggestion: '카르텔',
+    reason: '외래어 표기법: cartel → "카르텔".',
+    severity: 'error',
+  },
+  {
+    pattern: /타겟/g,
+    wrong: '타겟',
+    suggestion: '타깃',
+    reason: '외래어 표기법: target → "타깃".',
+    severity: 'error',
+  },
+  {
+    pattern: /데이타/g,
+    wrong: '데이타',
+    suggestion: '데이터',
+    reason: '외래어 표기법: data → "데이터".',
+    severity: 'error',
+  },
+  {
+    pattern: /시그너처/g,
+    wrong: '시그너처',
+    suggestion: '시그니처',
+    reason: '외래어 표기법: signature → "시그니처".',
+    severity: 'error',
+  },
 ];
 
 export function checkKorean(resume: Resume): KoreanCheckResult {
@@ -705,6 +779,49 @@ function computeScore(
 
 /** 외부 확장 (테스트·진단용) — 현재 등록된 규칙 수 */
 export const KOREAN_RULE_COUNT = RULES.length;
+
+/** 섹션별로 이슈 묶기 — UI 에서 collapsible 그룹 렌더링용 */
+export function groupIssuesBySection(issues: KoreanIssue[]): Record<string, KoreanIssue[]> {
+  const groups: Record<string, KoreanIssue[]> = {};
+  for (const iss of issues) {
+    (groups[iss.section] ||= []).push(iss);
+  }
+  return groups;
+}
+
+/** 심각도별로 이슈 필터 */
+export function issuesBySeverity(
+  issues: KoreanIssue[],
+  severity: KoreanIssue['severity'],
+): KoreanIssue[] {
+  return issues.filter((i) => i.severity === severity);
+}
+
+/** 명확한 error 가 하나라도 있는지 빠른 체크 */
+export function hasKoreanErrors(result: KoreanCheckResult): boolean {
+  return result.summary.error > 0;
+}
+
+/**
+ * 같은 (wrong, section) 조합이 반복되는 이슈를 중복 제거.
+ * UI 가 너무 많은 동일 항목을 보여주지 않도록 — count 필드로 빈도 노출.
+ */
+export interface DedupedKoreanIssue extends KoreanIssue {
+  count: number;
+}
+export function dedupIssues(issues: KoreanIssue[]): DedupedKoreanIssue[] {
+  const seen = new Map<string, DedupedKoreanIssue>();
+  for (const iss of issues) {
+    const key = `${iss.section}::${iss.wrong}`;
+    const prev = seen.get(key);
+    if (prev) {
+      prev.count++;
+    } else {
+      seen.set(key, { ...iss, count: 1 });
+    }
+  }
+  return [...seen.values()];
+}
 
 /** Resume 전체 필드에 대해 자동 수정 적용 */
 export function autoFixResume(
