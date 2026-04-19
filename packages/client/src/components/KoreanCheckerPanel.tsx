@@ -9,6 +9,7 @@ import {
   hasKoreanErrors,
   issuesBySeverity,
   getTopWrongPatterns,
+  computeImprovementTips,
   KOREAN_RULE_COUNT,
   type KoreanIssue,
 } from '@/lib/koreanChecker';
@@ -53,6 +54,8 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
   const hasErrors = hasKoreanErrors(result);
   // 학습 힌트 — 가장 자주 틀리는 표현 Top 3 (같은 wrong 이 2회+ 반복일 때만)
   const topWrongs = useMemo(() => getTopWrongPatterns(result.issues, 3), [result.issues]);
+  // 우선순위 개선 팁 Top 3
+  const improvementTips = useMemo(() => computeImprovementTips(result), [result]);
 
   const runAiCheck = async () => {
     if (!resumeId) {
@@ -309,6 +312,44 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
                   </div>
                 ))
               )}
+            </div>
+          )}
+
+          {/* 우선순위 개선 팁 Top 3 */}
+          {!aiMode && improvementTips.length > 0 && (
+            <div className="space-y-1.5">
+              {improvementTips.map((tip, i) => (
+                <div
+                  key={i}
+                  className={`p-2.5 rounded-lg border text-xs flex items-start gap-2 ${
+                    tip.priority === 'high'
+                      ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                      : tip.priority === 'medium'
+                        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                        : 'bg-slate-50 dark:bg-slate-700/30 border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  <span
+                    className={`shrink-0 text-[10px] font-bold uppercase tracking-wider mt-0.5 ${
+                      tip.priority === 'high'
+                        ? 'text-red-700 dark:text-red-400'
+                        : tip.priority === 'medium'
+                          ? 'text-amber-700 dark:text-amber-400'
+                          : 'text-slate-500 dark:text-slate-400'
+                    }`}
+                  >
+                    {tip.priority === 'high' ? '우선' : tip.priority === 'medium' ? '권장' : '참고'}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-slate-800 dark:text-slate-200">
+                      {tip.title}
+                    </div>
+                    <div className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
+                      {tip.description}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 

@@ -925,6 +925,57 @@ function computeScore(
 /** 외부 확장 (테스트·진단용) — 현재 등록된 규칙 수 */
 export const KOREAN_RULE_COUNT = RULES.length;
 
+/**
+ * 결과를 보고 가장 임팩트 큰 개선 3가지를 산출.
+ * UI 에서 "먼저 이것부터 고치세요" 식 상단 배너로 렌더링.
+ */
+export interface ImprovementTip {
+  title: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+}
+export function computeImprovementTips(result: KoreanCheckResult): ImprovementTip[] {
+  const tips: ImprovementTip[] = [];
+  const { summary, toneMix, score } = result;
+
+  if (summary.error > 0) {
+    tips.push({
+      title: `명백한 오타 ${summary.error}건 먼저 수정`,
+      description: '맞춤법 오타는 "자동 수정" 버튼으로 한 번에 교정 가능합니다.',
+      priority: 'high',
+    });
+  }
+  if (toneMix.dominant === 'mixed') {
+    tips.push({
+      title: `문체 통일 필요 (합니다체 ${toneMix.formal} · 해요체 ${toneMix.polite})`,
+      description: '이력서는 보통 "합니다체"로 통일합니다. 해요체와 섞이면 비전문적으로 읽힙니다.',
+      priority: 'high',
+    });
+  }
+  if (summary.warning > 0 && tips.length < 3) {
+    tips.push({
+      title: `경고 ${summary.warning}건 검토 권장`,
+      description: '띄어쓰기·약한 표현·긴 문장 등 — 취업 경쟁력 강화를 위해 점검이 필요합니다.',
+      priority: 'medium',
+    });
+  }
+  if (summary.info >= 5 && tips.length < 3) {
+    tips.push({
+      title: `스타일 제안 ${summary.info}건`,
+      description: '구체적 동사·수치화 등 — 여유가 있을 때 반영하면 더 설득력 있는 글이 됩니다.',
+      priority: 'low',
+    });
+  }
+  if (tips.length === 0 && score >= 90) {
+    tips.push({
+      title: '훌륭합니다 — 추가 조치 불필요',
+      description: `${score}점의 깔끔한 문체. 그대로 제출해도 좋은 상태입니다.`,
+      priority: 'low',
+    });
+  }
+  return tips.slice(0, 3);
+}
+
 /** 섹션별로 이슈 묶기 — UI 에서 collapsible 그룹 렌더링용 */
 export function groupIssuesBySection(issues: KoreanIssue[]): Record<string, KoreanIssue[]> {
   const groups: Record<string, KoreanIssue[]> = {};
