@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,6 +12,7 @@ import { API_URL } from '@/lib/config';
 import RelatedJobsWidget from '@/features/interview-prep/ui/RelatedJobsWidget';
 import { tx } from '@/lib/i18n';
 import { useResumes } from '@/hooks/useResources';
+import { checkText } from '@/lib/koreanChecker';
 
 type PageMode = 'generate' | 'feedback';
 
@@ -832,6 +833,7 @@ export default function CoverLetterPage() {
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                   자기소개서 붙여넣기 <span className="text-red-500">*</span>
                 </label>
+                <KoreanQualityBadge text={feedbackText || ''} />
                 <div className="text-xs text-slate-400 mb-1.5">
                   {(feedbackText || '').replace(/\s/g, '').length}자 (공백 제외)
                 </div>
@@ -1044,6 +1046,39 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
           </ul>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * 자기소개서 텍스트의 한국어 품질 점수 뱃지 — 50자 이상일 때만 노출.
+ * koreanChecker 의 checkText() 를 활용한 실시간 품질 인디케이터.
+ */
+function KoreanQualityBadge({ text }: { text: string }) {
+  const result = useMemo(() => {
+    if (!text || text.length < 50) return null;
+    return checkText(text, '자기소개서');
+  }, [text]);
+  if (!result) return null;
+  const { score, summary } = result;
+  const tone =
+    score >= 90
+      ? 'text-green-700 bg-green-50 border-green-200'
+      : score >= 70
+        ? 'text-blue-700 bg-blue-50 border-blue-200'
+        : score >= 50
+          ? 'text-amber-700 bg-amber-50 border-amber-200'
+          : 'text-red-700 bg-red-50 border-red-200';
+  return (
+    <div
+      className={`inline-flex items-center gap-2 px-2.5 py-1 mb-1.5 text-[11px] font-medium rounded-full border ${tone}`}
+      title={`error ${summary.error} · warning ${summary.warning} · info ${summary.info}`}
+    >
+      <span>🔤 한국어 품질</span>
+      <span className="font-bold">{score}점</span>
+      {summary.error > 0 && <span className="text-red-600">❌{summary.error}</span>}
+      {summary.warning > 0 && <span className="text-amber-600">⚠️{summary.warning}</span>}
+      {summary.info > 0 && <span className="text-slate-500">💡{summary.info}</span>}
     </div>
   );
 }

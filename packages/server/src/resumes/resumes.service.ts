@@ -327,7 +327,8 @@ export class ResumesService {
   }) {
     opts.page = Math.max(1, opts.page);
     opts.limit = Math.min(Math.max(1, opts.limit), 100);
-    const where: any = { visibility: 'public' };
+    // autoHidden (신고 누적) 자동 제외 — 공개 탐색 목록에서 영구 감춤
+    const where: any = { visibility: 'public', autoHidden: false };
 
     // 텍스트 검색 (이름, 제목, 요약)
     if (opts.query) {
@@ -344,8 +345,24 @@ export class ResumesService {
       where.tags = { some: { tag: { name: opts.tag } } };
     }
 
-    const orderBy =
-      opts.sort === 'views' ? { viewCount: 'desc' as const } : { updatedAt: 'desc' as const };
+    // 정렬 — recent(updatedAt) | views | oldest | name(personalInfo.name)
+    const orderBy: any = (() => {
+      switch (opts.sort) {
+        case 'views':
+          return { viewCount: 'desc' };
+        case 'oldest':
+          return { updatedAt: 'asc' };
+        case 'trending':
+          // 최근 7일 + 조회수 — where 에 추가 필터
+          if (!where.createdAt) {
+            where.createdAt = { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) };
+          }
+          return { viewCount: 'desc' };
+        case 'recent':
+        default:
+          return { updatedAt: 'desc' };
+      }
+    })();
 
     const [resumes, total] = await Promise.all([
       this.prisma.resume.findMany({

@@ -151,7 +151,7 @@ export default function ExplorePage() {
   const popularSkills: { name: string; count: number }[] =
     (popularSkillsData as { name: string; count: number }[] | undefined) ?? [];
   const [searchInput, setSearchInput] = useState(params.get('q') || '');
-  const [sortBy, setSortBy] = useState<'recent' | 'views'>('recent');
+  const [sortBy, setSortBy] = useState<'recent' | 'views' | 'oldest' | 'trending'>('recent');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
@@ -365,7 +365,7 @@ export default function ExplorePage() {
       const qs = new URLSearchParams();
       if (query) qs.set('q', query);
       if (tag) qs.set('tag', tag);
-      if (sortBy === 'views') qs.set('sort', 'views');
+      if (sortBy !== 'recent') qs.set('sort', sortBy);
       qs.set('page', String(page));
       qs.set('limit', limit);
       const res = await fetch(`${API_URL}/api/resumes/public?${qs}`);
@@ -749,6 +749,19 @@ export default function ExplorePage() {
             className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${sortBy === 'views' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}
           >
             {tx('explore.sortByPopular')}
+          </button>
+          <button
+            onClick={() => setSortBy('trending')}
+            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${sortBy === 'trending' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 font-medium' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}
+            title="최근 7일 내 조회수 많은 순"
+          >
+            🔥 지금 뜨는
+          </button>
+          <button
+            onClick={() => setSortBy('oldest')}
+            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${sortBy === 'oldest' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}
+          >
+            오래된순
           </button>
           {industryFilter !== 'all' && (
             <span className="ml-auto text-xs text-blue-600 dark:text-blue-400">
