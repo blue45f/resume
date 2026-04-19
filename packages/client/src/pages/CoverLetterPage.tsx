@@ -24,6 +24,7 @@ import {
   summarizeAnalysis,
   generateResumeTldr,
   detectUnquantifiedClaims,
+  scoreInterviewability,
 } from '@/lib/koreanChecker';
 
 type PageMode = 'generate' | 'feedback';
@@ -1106,14 +1107,36 @@ function AnalysisSummaryBar({ text }: { text: string }) {
   if (text.length < 200) return null;
   const full = analyzeEverything(text);
   const summary = summarizeAnalysis(full);
+  const interview = scoreInterviewability(text);
+  const tierColor =
+    interview.tier === 'call-back'
+      ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200'
+      : interview.tier === 'promising'
+        ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200'
+        : interview.tier === 'needs-work'
+          ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200'
+          : 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200';
+  const tierLabel =
+    interview.tier === 'call-back'
+      ? '콜백 유력'
+      : interview.tier === 'promising'
+        ? '유망'
+        : interview.tier === 'needs-work'
+          ? '보완 필요'
+          : '미달';
   if (summary.topFlags.length === 0) return null;
   return (
     <div className="mt-3 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-slate-50/50 dark:from-slate-800/50 dark:to-slate-800/30">
-      <div className="flex items-baseline justify-between mb-1.5">
+      <div className="flex items-baseline justify-between mb-1.5 gap-2">
         <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-200">
           📊 종합 진단
         </span>
-        <span className="text-[10px] text-slate-500 dark:text-slate-400">{summary.oneLiner}</span>
+        <span className="flex items-center gap-1.5">
+          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${tierColor}`}>
+            🎯 면접 {interview.overall}점 · {tierLabel}
+          </span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400">{summary.oneLiner}</span>
+        </span>
       </div>
       <ul className="space-y-1">
         {summary.topFlags.map((f, i) => (
