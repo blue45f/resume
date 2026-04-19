@@ -448,6 +448,36 @@ export function useUploadSettings() {
   });
 }
 
+// ── Feature Toggles (admin-toggleable 기능 on/off) ──
+export type FeatureToggleMap = Record<string, boolean>;
+
+/** 전체 feature toggle 맵 — admin UI/dashboard 용 */
+export function useFeatureToggles() {
+  return useQuery<FeatureToggleMap>({
+    queryKey: ['feature-toggles'],
+    queryFn: async () => {
+      const { API_URL } = await import('@/lib/config');
+      const res = await fetch(`${API_URL}/api/system-config/feature-toggles`);
+      if (!res.ok) return {};
+      return (await res.json()) as FeatureToggleMap;
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/**
+ * 특정 기능 1개의 on/off 상태 — 로딩 중이거나 키 미설정이면 true(기본 활성).
+ * 사용처 예:
+ *   const aiEnabled = useFeatureToggle('ai.resume');
+ *   if (!aiEnabled) return <DisabledBanner />
+ */
+export function useFeatureToggle(name: string): boolean {
+  const { data } = useFeatureToggles();
+  if (!data) return true;
+  const v = data[name];
+  return v !== false; // undefined 면 기본 활성 (서버 default 와 동일)
+}
+
 // ── Site Stats (public) ──────────────────────
 export function useSiteStatsPublic() {
   return useQuery<any>({
