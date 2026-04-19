@@ -8,6 +8,7 @@ import {
 } from '@resume/shared';
 import { API_URL } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 
 const TIER_LABEL: Record<string, string> = {
   public: '공공기관·공기업',
@@ -112,7 +113,7 @@ export default function StudyGroupsPage() {
       {/* Header */}
       <header className="space-y-2">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-          스터디 카페
+          {tx('study.cafe')}
         </h1>
         <p className="text-sm text-slate-600 dark:text-slate-400">
           공기업·대기업·스타트업별로 면접 준비와 이력서 첨삭을 함께하는 스터디 그룹을 찾아보세요
