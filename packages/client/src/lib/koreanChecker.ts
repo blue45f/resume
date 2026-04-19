@@ -4640,6 +4640,7 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     category: '파생',
     description: '종합 건강도 (품질+완성도+면접) 단일 점수',
   },
+  { name: 'splitByExperienceSection', category: '메타', description: '이력서를 섹션별로 분할' },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5841,6 +5842,66 @@ export function calculateOverallHealth(text: string): OverallHealth {
   const tier: OverallHealth['tier'] =
     health >= 85 ? 'excellent' : health >= 70 ? 'good' : health >= 50 ? 'fair' : 'poor';
   return { health, quality, completeness, interviewability, tier };
+}
+
+/**
+ * 이력서 텍스트를 섹션별로 분할 — 표준 섹션 제목(경력/학력/기술/프로젝트/자기소개) 을
+ * 기준으로 본문을 쪼개 section → content 맵 생성. 섹션 단위 분석의 기반.
+ */
+export interface SplitSection {
+  key: string;
+  heading: string;
+  content: string;
+  index: number;
+}
+
+const SECTION_HEADING_PATTERNS: Array<{ key: string; re: RegExp }> = [
+  { key: '자기소개', re: /^[\s#=]*(자기\s?소개(?:서)?|프로필|Profile|About\s?Me|Summary)\s*$/im },
+  { key: '경력', re: /^[\s#=]*(경력\s?사항|경력|근무\s?경력|Career|Work\s?Experience)\s*$/im },
+  { key: '학력', re: /^[\s#=]*(학력\s?사항|학력|학업|Education)\s*$/im },
+  { key: '기술', re: /^[\s#=]*(기술\s?스택|보유\s?기술|스킬|기술|Skills|Tech\s?Stack)\s*$/im },
+  {
+    key: '프로젝트',
+    re: /^[\s#=]*(프로젝트(?:\s?경험)?|주요\s?프로젝트|Projects?|Portfolio)\s*$/im,
+  },
+  { key: '자격증', re: /^[\s#=]*(자격증|자격|Certifications?)\s*$/im },
+  { key: '수상', re: /^[\s#=]*(수상\s?경력|수상|Awards?)\s*$/im },
+];
+
+export function splitByExperienceSection(text: string): SplitSection[] {
+  const t = text ?? '';
+  if (!t.trim()) return [];
+  const lines = t.split(/\r?\n/);
+  const sections: SplitSection[] = [];
+  let currentKey = '';
+  let currentHeading = '';
+  let currentStart = 0;
+  let buffer: string[] = [];
+  const flush = (endIdx: number) => {
+    if (currentKey) {
+      sections.push({
+        key: currentKey,
+        heading: currentHeading,
+        content: buffer.join('\n').trim(),
+        index: endIdx,
+      });
+    }
+    buffer = [];
+  };
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const matched = SECTION_HEADING_PATTERNS.find((p) => p.re.test(line));
+    if (matched) {
+      flush(currentStart);
+      currentKey = matched.key;
+      currentHeading = line.trim();
+      currentStart = i;
+      continue;
+    }
+    buffer.push(line);
+  }
+  flush(currentStart);
+  return sections;
 }
 
 function stripHtml(html: string): string {
