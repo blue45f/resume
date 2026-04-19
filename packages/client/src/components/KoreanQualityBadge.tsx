@@ -6,6 +6,8 @@ import {
   gradeFromScore,
   estimateReadingTime,
   analyzeDateConsistency,
+  detectJargon,
+  analyzeBracketBalance,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -173,6 +175,8 @@ export default function KoreanQualityBadge({
 function ExtraRows({ text }: { text: string }) {
   const reading = estimateReadingTime(text);
   const dates = analyzeDateConsistency(text);
+  const jargon = detectJargon(text);
+  const brackets = analyzeBracketBalance(text);
   return (
     <>
       <Row
@@ -185,6 +189,23 @@ function ExtraRows({ text }: { text: string }) {
           title="날짜 포맷"
           value={dates.consistent ? '일관' : `${dates.distinctFormats}종 혼재`}
           hint={dates.dominantFormat ?? '-'}
+        />
+      )}
+      {jargon.totalCount > 0 && (
+        <Row
+          title="자곤"
+          value={`${jargon.totalCount}건`}
+          hint={jargon.hits[0]?.word ?? jargon.level}
+        />
+      )}
+      {brackets.unbalanced && (
+        <Row
+          title="괄호"
+          value="불균형"
+          hint={brackets.pairs
+            .filter((p) => p.unbalanced > 0)
+            .map((p) => `${p.open}${p.close}`)
+            .join(' ')}
         />
       )}
     </>
