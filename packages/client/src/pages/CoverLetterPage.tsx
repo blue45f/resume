@@ -20,6 +20,8 @@ import {
   computeJDMatch,
   detectSkillMentions,
   recommendCoverLetterOpeners,
+  analyzeEverything,
+  summarizeAnalysis,
 } from '@/lib/koreanChecker';
 
 type PageMode = 'generate' | 'feedback';
@@ -866,6 +868,7 @@ export default function CoverLetterPage() {
                       </div>
                       <KeywordCloud text={feedbackText || ''} topN={12} />
                       <SkillMentionsBar text={feedbackText || ''} />
+                      <AnalysisSummaryBar text={feedbackText || ''} />
                       <OpenerSuggestionsPanel text={feedbackText || ''} />
                       <InterviewQuestionsPanel text={feedbackText || ''} />
                     </div>
@@ -1079,6 +1082,39 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
 }
 
 // KoreanQualityBadge 는 @/components/KoreanQualityBadge 로 추출되어 공용화됨.
+
+function AnalysisSummaryBar({ text }: { text: string }) {
+  if (text.length < 200) return null;
+  const full = analyzeEverything(text);
+  const summary = summarizeAnalysis(full);
+  if (summary.topFlags.length === 0) return null;
+  return (
+    <div className="mt-3 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-slate-50/50 dark:from-slate-800/50 dark:to-slate-800/30">
+      <div className="flex items-baseline justify-between mb-1.5">
+        <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-200">
+          📊 종합 진단
+        </span>
+        <span className="text-[10px] text-slate-500 dark:text-slate-400">{summary.oneLiner}</span>
+      </div>
+      <ul className="space-y-1">
+        {summary.topFlags.map((f, i) => (
+          <li
+            key={i}
+            className="flex items-start gap-1.5 text-[10.5px] text-slate-600 dark:text-slate-300"
+          >
+            <span aria-hidden>
+              {f.severity === 'red' ? '🔴' : f.severity === 'yellow' ? '🟡' : '🟢'}
+            </span>
+            <span>
+              <span className="font-medium">{f.label}</span>
+              <span className="text-slate-500 dark:text-slate-400"> · {f.note}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 function OpenerSuggestionsPanel({ text }: { text: string }) {
   if (text.length < 200) return null;
