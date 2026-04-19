@@ -4603,6 +4603,7 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     category: '파생',
     description: 'FullAnalysis 요약 (red/yellow/green 플래그 + 한줄평)',
   },
+  { name: 'detectSelfDeprecation', category: '문체', description: '자기비하 표현 검출' },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -4993,6 +4994,74 @@ export function summarizeAnalysis(full: FullAnalysis): {
     topFlags,
     oneLiner,
   };
+}
+
+/**
+ * 자기비하 표현 검출 — 이력서·자소서에 "부족하지만/미흡하나/혹시/실례지만/드려도 될까요"
+ * 같은 지나친 겸양은 자신감 결여 신호. 한국 직장문화에서도 공식 문서는 자신감 있게.
+ */
+const SELF_DEPRECATION_PATTERNS: Array<{ re: RegExp; phrase: string; reason: string }> = [
+  {
+    re: /부족하지만/g,
+    phrase: '부족하지만',
+    reason: '자신감 결여 표현 — "충실히 준비했습니다" 등으로 전환.',
+  },
+  {
+    re: /미흡하[지나]/g,
+    phrase: '미흡하지만/미흡하나',
+    reason: '자기비하. 구체 근거로 역량을 제시하세요.',
+  },
+  { re: /(?<![가-힣])혹시(?![가-힣])/g, phrase: '혹시', reason: '불확실성 표현. 단정적으로 서술.' },
+  { re: /실례[지되][만만]/g, phrase: '실례지만', reason: '공식 문서에 과잉 겸양.' },
+  {
+    re: /폐[가를 ]?끼치[지면]/g,
+    phrase: '폐를 끼치',
+    reason: '부정적 뉘앙스. 긍정적 가치 전달로.',
+  },
+  {
+    re: /많은\s*부족함/g,
+    phrase: '많은 부족함',
+    reason: '자기 결함 강조 — 성장 가능성으로 재구성.',
+  },
+  { re: /잘\s*모르지만/g, phrase: '잘 모르지만', reason: '무지 인정 — 학습 의지로 전환.' },
+  { re: /서투르지만/g, phrase: '서투르지만', reason: '기술 부족 인정 — 배움의 자세로 표현.' },
+];
+
+export interface SelfDeprecationHit {
+  phrase: string;
+  index: number;
+  reason: string;
+}
+export interface SelfDeprecationAnalysis {
+  hits: SelfDeprecationHit[];
+  count: number;
+  level: 'none' | 'few' | 'many';
+  suggestion: string;
+}
+
+export function detectSelfDeprecation(text: string): SelfDeprecationAnalysis {
+  const t = text ?? '';
+  const hits: SelfDeprecationHit[] = [];
+  for (const p of SELF_DEPRECATION_PATTERNS) {
+    const re = new RegExp(p.re.source, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(t))) {
+      hits.push({ phrase: p.phrase, index: m.index, reason: p.reason });
+      if (hits.length > 30) break;
+    }
+    if (hits.length > 30) break;
+  }
+  hits.sort((a, b) => a.index - b.index);
+  const count = hits.length;
+  const level: SelfDeprecationAnalysis['level'] =
+    count === 0 ? 'none' : count <= 2 ? 'few' : 'many';
+  const suggestion =
+    level === 'none'
+      ? '자기비하 표현이 감지되지 않았습니다.'
+      : level === 'few'
+        ? `자기비하 ${count}건 — 자신감 있는 표현으로 교체하세요.`
+        : `자기비하가 ${count}건으로 많습니다. 공식 문서에서는 성과·학습 의지 중심으로 재작성하세요.`;
+  return { hits: hits.slice(0, 20), count, level, suggestion };
 }
 
 function stripHtml(html: string): string {
