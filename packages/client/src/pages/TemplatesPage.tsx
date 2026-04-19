@@ -8,6 +8,7 @@ import type { Template } from '@/types/resume';
 import { createTemplate, updateTemplate, deleteTemplate } from '@/lib/api';
 import { useTemplates } from '@/hooks/useResources';
 import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes';
+import { t } from '@/lib/i18n';
 
 const SECTION_OPTIONS = [
   { value: 'personalInfo', label: '인적사항' },
@@ -276,7 +277,7 @@ export default function TemplatesPage() {
       >
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-            템플릿 관리
+            {t('nav.templates')}
           </h1>
           {!isEditing && (
             <button
