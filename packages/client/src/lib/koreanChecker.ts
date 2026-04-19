@@ -4635,6 +4635,11 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
   { name: 'analyzeVerbTense', category: '문체', description: '시제 일관성(과거/현재/미래)' },
   { name: 'detectAllCapsOveruse', category: '구조', description: 'ALL CAPS 영문 단어 과용' },
   { name: 'analyzeCallToAction', category: '이력서', description: '자소서 마무리 CTA 체크' },
+  {
+    name: 'calculateOverallHealth',
+    category: '파생',
+    description: '종합 건강도 (품질+완성도+면접) 단일 점수',
+  },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5813,6 +5818,29 @@ export function analyzeCallToAction(text: string): CallToActionAnalysis {
     ? `마지막 문단에 CTA 표현 ${matched.length}건 감지 — "${matched[0]}" 등 행동 유발 마무리가 있습니다.`
     : '마지막 문단에 명시적 CTA(기여/함께/성장/도전/감사합니다) 가 없습니다 — 인상적인 마무리를 추가하세요.';
   return { hasCTA, matched, lastParagraph: lastParagraph.slice(0, 100), suggestion };
+}
+
+/**
+ * 종합 건강도 점수 — 3대 축(품질 overallScore / 완성도 / 면접 적합도) 가중 평균으로
+ * "이 이력서·자소서의 전반적 준비도" 0~100 단일 숫자 제시. 리스트 정렬·대시보드 요약용.
+ */
+export interface OverallHealth {
+  health: number;
+  quality: number;
+  completeness: number;
+  interviewability: number;
+  tier: 'excellent' | 'good' | 'fair' | 'poor';
+}
+
+export function calculateOverallHealth(text: string): OverallHealth {
+  const quality = generateQualityReport(text).overallScore;
+  const completeness = scoreResumeCompleteness(text).overall;
+  const interviewability = scoreInterviewability(text).overall;
+  // 가중: 문체 30%, 완성도 30%, 면접 40%
+  const health = Math.round(quality * 0.3 + completeness * 0.3 + interviewability * 0.4);
+  const tier: OverallHealth['tier'] =
+    health >= 85 ? 'excellent' : health >= 70 ? 'good' : health >= 50 ? 'fair' : 'poor';
+  return { health, quality, completeness, interviewability, tier };
 }
 
 function stripHtml(html: string): string {
