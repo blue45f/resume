@@ -13,6 +13,12 @@ export class SystemConfigController {
     return this.service.getPublicConfig();
   }
 
+  @Get('upload-settings')
+  @Public()
+  getUploadSettings() {
+    return this.service.getUploadSettings();
+  }
+
   @Get('content/:key')
   @Public()
   async getContent(@Req() req: any, @Body() body: any) {

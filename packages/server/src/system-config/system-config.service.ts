@@ -51,6 +51,64 @@ export class SystemConfigService {
     return Object.fromEntries(configs.map((c) => [c.key, c.value]));
   }
 
+  // ── 파일 업로드 설정 (전역 토글) ─────────────────────────────
+  /** 파일 업로드 기능 활성화 여부 — admin이 /admin/system-config 에서 토글 */
+  static readonly UPLOAD_KEY_ENABLED = 'feature.fileUpload.enabled';
+  static readonly UPLOAD_KEY_MAX_MB = 'feature.fileUpload.maxSizeMb';
+  static readonly UPLOAD_KEY_MIME = 'feature.fileUpload.allowedMime';
+  static readonly UPLOAD_DEFAULTS = {
+    enabled: true,
+    maxSizeMb: 10,
+    allowedMime: 'image/*,application/pdf,application/zip',
+  };
+
+  async getUploadSettings(): Promise<{
+    enabled: boolean;
+    maxSizeMb: number;
+    allowedMime: string;
+  }> {
+    const [enabled, maxSizeMb, mime] = await Promise.all([
+      this.getBoolean(
+        SystemConfigService.UPLOAD_KEY_ENABLED,
+        SystemConfigService.UPLOAD_DEFAULTS.enabled,
+      ),
+      this.getNumber(
+        SystemConfigService.UPLOAD_KEY_MAX_MB,
+        SystemConfigService.UPLOAD_DEFAULTS.maxSizeMb,
+      ),
+      this.get(SystemConfigService.UPLOAD_KEY_MIME),
+    ]);
+    return {
+      enabled,
+      maxSizeMb,
+      allowedMime: mime ?? SystemConfigService.UPLOAD_DEFAULTS.allowedMime,
+    };
+  }
+
+  async assertUploadAllowed(file: { size: number; mimetype: string }): Promise<void> {
+    const settings = await this.getUploadSettings();
+    if (!settings.enabled) {
+      throw new Error('파일 업로드가 관리자에 의해 비활성화되었습니다');
+    }
+    const maxBytes = settings.maxSizeMb * 1024 * 1024;
+    if (file.size > maxBytes) {
+      throw new Error(`파일 크기가 ${settings.maxSizeMb}MB 를 초과합니다`);
+    }
+    const patterns = settings.allowedMime
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean);
+    if (patterns.length === 0) return;
+    const matched = patterns.some((p) => {
+      if (p === '*/*') return true;
+      if (p.endsWith('/*')) return file.mimetype.startsWith(p.slice(0, -1));
+      return file.mimetype === p;
+    });
+    if (!matched) {
+      throw new Error(`허용되지 않은 파일 형식입니다 (${file.mimetype})`);
+    }
+  }
+
   // ── Content Permissions ─────────────────────────────────────────────
 
   private static readonly PERMISSION_DEFAULTS: Record<string, string> = {

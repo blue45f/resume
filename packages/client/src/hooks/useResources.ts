@@ -426,6 +426,28 @@ export function useSystemContent<T = any>(key: string, enabled = true) {
   });
 }
 
+// ── File Upload Settings (admin-toggleable) ──
+export interface UploadSettings {
+  enabled: boolean;
+  maxSizeMb: number;
+  allowedMime: string;
+}
+
+export function useUploadSettings() {
+  return useQuery<UploadSettings>({
+    queryKey: ['upload-settings'],
+    queryFn: async () => {
+      const { API_URL } = await import('@/lib/config');
+      const res = await fetch(`${API_URL}/api/system-config/upload-settings`);
+      if (!res.ok) {
+        return { enabled: true, maxSizeMb: 10, allowedMime: 'image/*,application/pdf' };
+      }
+      return (await res.json()) as UploadSettings;
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
 // ── Site Stats (public) ──────────────────────
 export function useSiteStatsPublic() {
   return useQuery<any>({

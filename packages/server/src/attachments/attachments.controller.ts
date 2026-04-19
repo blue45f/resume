@@ -10,23 +10,28 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AttachmentsService } from './attachments.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 @ApiTags('attachments')
 @Controller()
 export class AttachmentsController {
-  constructor(private readonly attachmentsService: AttachmentsService) {}
+  constructor(
+    private readonly attachmentsService: AttachmentsService,
+    private readonly config: SystemConfigService,
+  ) {}
 
   @Post('resumes/:resumeId/attachments')
   @ApiOperation({ summary: '파일 업로드 (소유자 전용)' })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('file'))
-  upload(
+  async upload(
     @Param('resumeId') resumeId: string,
     @UploadedFile() file: Express.Multer.File,
     @Body('category') category: string,
@@ -35,6 +40,11 @@ export class AttachmentsController {
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     if (!file) throw new BadRequestException('파일이 없습니다');
+    try {
+      await this.config.assertUploadAllowed(file);
+    } catch (e: any) {
+      throw new ForbiddenException(e?.message || '파일 업로드가 허용되지 않습니다');
+    }
     return this.attachmentsService.upload(
       resumeId,
       file,
