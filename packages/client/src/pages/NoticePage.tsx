@@ -4,24 +4,27 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { usePublicGet } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 
-const TYPE_INFO: Record<string, { label: string; color: string; icon: string }> = {
+const TYPE_COLOR: Record<string, { color: string; icon: string }> = {
   GENERAL: {
-    label: '공지',
     icon: '📢',
     color: 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
   },
   MAINTENANCE: {
-    label: '점검',
     icon: '🔧',
     color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
   },
   EVENT: {
-    label: '이벤트',
     icon: '🎉',
     color: 'bg-sky-100 text-purple-700 dark:bg-sky-900/30 dark:text-sky-400',
   },
 };
+const getTYPE_INFO = (): Record<string, { label: string; color: string; icon: string }> => ({
+  GENERAL: { label: tx('notice.types.GENERAL'), ...TYPE_COLOR.GENERAL },
+  MAINTENANCE: { label: tx('notice.types.MAINTENANCE'), ...TYPE_COLOR.MAINTENANCE },
+  EVENT: { label: tx('notice.types.EVENT'), ...TYPE_COLOR.EVENT },
+});
 
 function timeAgo(date: string) {
   const diff = Date.now() - new Date(date).getTime();
@@ -66,7 +69,9 @@ function NoticeList() {
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">공지사항</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              {tx('nav.notices')}
+            </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               서비스 공지 및 업데이트를 확인하세요
             </p>
@@ -125,7 +130,7 @@ function NoticeList() {
           <>
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-700">
               {notices.map((notice) => {
-                const typeInfo = TYPE_INFO[notice.type] || TYPE_INFO.GENERAL;
+                const typeInfo = getTYPE_INFO()[notice.type] || getTYPE_INFO().GENERAL;
                 return (
                   <Link
                     key={notice.id}
@@ -212,7 +217,7 @@ function NoticeDetail() {
     { enabled: !!id, staleTime: 60_000 },
   );
 
-  const typeInfo = notice ? TYPE_INFO[notice.type] || TYPE_INFO.GENERAL : null;
+  const typeInfo = notice ? getTYPE_INFO()[notice.type] || getTYPE_INFO().GENERAL : null;
 
   return (
     <>
