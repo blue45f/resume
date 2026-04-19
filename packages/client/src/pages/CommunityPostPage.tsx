@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { toast } from '@/components/Toast';
+import ReportButton from '@/components/ReportButton';
 import SendMessageButton from '@/components/SendMessageButton';
 import {
   communityCommentSchema,
@@ -570,23 +571,31 @@ export default function CommunityPostPage() {
                 </h1>
               </div>
 
-              {(isOwner || isAdmin) && (
-                <div className="flex items-center gap-2 shrink-0">
-                  <Link
-                    to={ROUTES.community.postEdit(post.id)}
-                    className="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    수정
-                  </Link>
-                  <button
-                    onClick={handleDeletePost}
-                    disabled={deleting}
-                    className="px-3 py-1.5 text-xs text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-60"
-                  >
-                    {deleting ? '삭제 중...' : '삭제'}
-                  </button>
-                </div>
-              )}
+              <div className="flex items-center gap-2 shrink-0">
+                {!isOwner && user && (
+                  <ReportButton
+                    endpoint={`/api/community/${post.id}/report`}
+                    targetLabel="게시물"
+                  />
+                )}
+                {(isOwner || isAdmin) && (
+                  <>
+                    <Link
+                      to={ROUTES.community.postEdit(post.id)}
+                      className="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      수정
+                    </Link>
+                    <button
+                      onClick={handleDeletePost}
+                      disabled={deleting}
+                      className="px-3 py-1.5 text-xs text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-60"
+                    >
+                      {deleting ? '삭제 중...' : '삭제'}
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Author & meta */}

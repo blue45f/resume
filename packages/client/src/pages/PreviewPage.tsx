@@ -50,7 +50,7 @@ import ResumeAnalytics from '@/components/ResumeAnalytics';
 import ResumeStats from '@/components/ResumeStats';
 import AICareerAdvisor from '@/components/AICareerAdvisor';
 import { toast } from '@/components/Toast';
-import { API_URL } from '@/lib/config';
+import ReportButton from '@/components/ReportButton';
 import { updateResume } from '@/lib/api';
 import type { Resume } from '@/types/resume';
 import { useQueryClient } from '@tanstack/react-query';
@@ -847,7 +847,9 @@ export default function PreviewPage() {
                       userId={resume.userId!}
                       userName={resume.personalInfo.name || '사용자'}
                     />
-                    {resume.visibility === 'public' && <ReportResumeButton resumeId={id!} />}
+                    {resume.visibility === 'public' && (
+                      <ReportButton endpoint={`/api/resumes/${id!}/report`} targetLabel="이력서" />
+                    )}
                   </>
                 );
               })()}
@@ -1455,139 +1457,6 @@ export default function PreviewPage() {
           <div className="bg-white rounded-2xl shadow-xl px-8 py-6 flex flex-col items-center gap-3 border border-slate-200">
             <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
             <p className="text-sm font-medium text-slate-700">인쇄 준비 중...</p>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-/**
- * 공개 이력서 신고 버튼 — 본인 제외 다른 사용자만 렌더.
- * 클릭 시 reason select + detail textarea 다이얼로그, 서버 누적 임계치 도달 시 autoHidden 전환.
- */
-function ReportResumeButton({ resumeId }: { resumeId: string }) {
-  const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState<'spam' | 'inappropriate' | 'fake' | 'copyright' | 'other'>(
-    'inappropriate',
-  );
-  const [detail, setDetail] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  const submit = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      toast('로그인이 필요합니다', 'error');
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/report`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reason, detail }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: '신고 실패' }));
-        throw new Error(err.message || '신고 실패');
-      }
-      const data = await res.json();
-      toast(
-        data.autoHidden
-          ? `신고 접수 — 누적 ${data.reportCount}건으로 자동 비공개 전환됨`
-          : `신고 접수 완료 (누적 ${data.reportCount}/${data.threshold})`,
-        'success',
-      );
-      setOpen(false);
-      setDetail('');
-    } catch (e) {
-      toast(e instanceof Error ? e.message : '신고 실패', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 h-8 px-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 rounded-md hover:border-red-300 dark:hover:border-red-700 transition-colors"
-        title="부적절한 이력서 신고"
-        aria-label="신고"
-      >
-        🚩 신고
-      </button>
-      {open && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => !submitting && setOpen(false)}
-        >
-          <div
-            className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-5 space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-              이력서 신고
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              동일 이력서를 여러 사용자가 신고하면 자동으로 공개에서 제외됩니다. 잘못된 신고는
-              관리자가 기각할 수 있습니다.
-            </p>
-            <label className="block">
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                신고 사유
-              </span>
-              <select
-                value={reason}
-                onChange={(e) => setReason(e.target.value as typeof reason)}
-                className="mt-1 w-full h-9 px-3 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
-                disabled={submitting}
-              >
-                <option value="inappropriate">부적절한 내용</option>
-                <option value="spam">스팸/광고</option>
-                <option value="fake">허위 정보</option>
-                <option value="copyright">저작권 침해</option>
-                <option value="other">기타</option>
-              </select>
-            </label>
-            <label className="block">
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                상세 설명 (선택, 500자 이내)
-              </span>
-              <textarea
-                value={detail}
-                onChange={(e) => setDetail(e.target.value.slice(0, 500))}
-                rows={3}
-                placeholder="구체적인 내용을 알려주시면 심사에 도움이 됩니다."
-                className="mt-1 w-full px-3 py-2 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 resize-none"
-                disabled={submitting}
-              />
-              <span className="text-[10px] text-slate-400 mt-1 block text-right">
-                {detail.length}/500
-              </span>
-            </label>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                disabled={submitting}
-                className="px-3 h-9 text-sm font-medium border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50"
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                onClick={submit}
-                disabled={submitting}
-                className="px-3 h-9 text-sm font-medium bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
-              >
-                {submitting ? '제출 중...' : '신고 제출'}
-              </button>
-            </div>
           </div>
         </div>
       )}
