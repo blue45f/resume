@@ -61,6 +61,7 @@ model User {
   studyGroupPosts      StudyGroupPost[]     @relation("GroupPost")
   studyGroupPostComments StudyGroupPostComment[] @relation("GroupPostComment")
   studyGroupPostReactions StudyGroupPostReaction[] @relation("GroupPostReaction")
+  resumeReports        ResumeReport[]       @relation("ResumeReporter")
   studyGroupEvents     StudyGroupEvent[]    @relation("GroupEventAuthor")
   studyGroupEventRsvps StudyGroupEventRsvp[] @relation("GroupEventRsvp")
   coachProfile      CoachProfile?
@@ -79,6 +80,10 @@ model Resume {
   viewCount  Int      @default(0) @map("view_count") // 공개 조회수
   visibility String   @default("private")
   isSample   Boolean  @default(false) @map("is_sample")
+  /// 신고 누적 건수 — 임계치 도달 시 autoHidden=true 로 전환
+  reportCount Int     @default(0) @map("report_count")
+  /// 신고 누적으로 자동 숨김된 상태 (admin 이 override 가능)
+  autoHidden  Boolean @default(false) @map("auto_hidden")
   userId     String?  @map("user_id")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
@@ -104,10 +109,29 @@ model Resume {
   scoutMessages      ScoutMessage[]
   coverLetters       CoverLetter[]
   skillEndorsements  SkillEndorsement[]
+  reports            ResumeReport[]
 
   @@index([userId])
   @@index([visibility])
   @@map("resumes")
+}
+
+/// 공개 이력서에 대한 사용자 신고 — (resumeId, reporterId) unique 로 중복 방지
+model ResumeReport {
+  id         String   @id @default(uuid())
+  resumeId   String   @map("resume_id")
+  reporterId String   @map("reporter_id")
+  /// spam | inappropriate | fake | copyright | other
+  reason     String   @default("other")
+  detail     String   @default("") @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  reporter User   @relation("ResumeReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([resumeId, reporterId])
+  @@index([resumeId])
+  @@map("resume_reports")
 }
 
 model PersonalInfo {

@@ -2,12 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { AttachmentsController } from './attachments.controller';
 import { AttachmentsService } from './attachments.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 const mockService = {
   upload: jest.fn(),
   findAll: jest.fn(),
   getFileData: jest.fn(),
   remove: jest.fn(),
+};
+
+const mockConfig = {
+  assertUploadAllowed: jest.fn().mockResolvedValue(undefined),
 };
 
 const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
@@ -28,28 +33,32 @@ describe('AttachmentsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AttachmentsController],
-      providers: [{ provide: AttachmentsService, useValue: mockService }],
+      providers: [
+        { provide: AttachmentsService, useValue: mockService },
+        { provide: SystemConfigService, useValue: mockConfig },
+      ],
     }).compile();
     controller = module.get(AttachmentsController);
     jest.clearAllMocks();
   });
 
   describe('upload', () => {
-    it('비로그인 → Unauthorized', () => {
-      expect(() =>
+    it('비로그인 → Unauthorized', async () => {
+      await expect(
         controller.upload('r1', { buffer: Buffer.from('x') } as any, 'doc', 'desc', reqWith()),
-      ).toThrow(UnauthorizedException);
+      ).rejects.toThrow(UnauthorizedException);
     });
 
-    it('파일 누락 → BadRequest', () => {
-      expect(() =>
+    it('파일 누락 → BadRequest', async () => {
+      await expect(
         controller.upload('r1', undefined as any, 'doc', 'desc', reqWith({ id: 'u1' })),
-      ).toThrow(BadRequestException);
+      ).rejects.toThrow(BadRequestException);
     });
 
-    it('정상 업로드 — service 위임', () => {
-      const file = { buffer: Buffer.from('x') } as any;
-      controller.upload('r1', file, 'doc', 'desc', reqWith({ id: 'u1', role: 'user' }));
+    it('정상 업로드 — service 위임', async () => {
+      const file = { size: 10, mimetype: 'image/png', buffer: Buffer.from('x') } as any;
+      await controller.upload('r1', file, 'doc', 'desc', reqWith({ id: 'u1', role: 'user' }));
+      expect(mockConfig.assertUploadAllowed).toHaveBeenCalledWith(file);
       expect(mockService.upload).toHaveBeenCalledWith('r1', file, 'doc', 'desc', 'u1', 'user');
     });
   });

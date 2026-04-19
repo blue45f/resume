@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 
@@ -44,7 +45,45 @@ export class ResumesService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    private systemConfig: SystemConfigService,
   ) {}
+
+  // ── 이력서 신고 (reportResume) + 임계치 도달 시 자동 숨김 ─────
+  async reportResume(resumeId: string, reporterId: string, reason: string, detail: string) {
+    if (!reporterId) throw new ForbiddenException('로그인이 필요합니다');
+    const resume = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      select: { id: true, userId: true, visibility: true, reportCount: true },
+    });
+    if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+    if (resume.visibility !== 'public') {
+      throw new BadRequestException('공개 이력서만 신고할 수 있습니다');
+    }
+    if (resume.userId === reporterId) {
+      throw new BadRequestException('본인 이력서는 신고할 수 없습니다');
+    }
+
+    const allowedReasons = ['spam', 'inappropriate', 'fake', 'copyright', 'other'];
+    const safeReason = allowedReasons.includes(reason) ? reason : 'other';
+    const safeDetail = (detail || '').slice(0, 500);
+
+    // (resumeId, reporterId) unique — 중복 시 update로 덮어씀
+    await this.prisma.resumeReport.upsert({
+      where: { resumeId_reporterId: { resumeId, reporterId } },
+      create: { resumeId, reporterId, reason: safeReason, detail: safeDetail },
+      update: { reason: safeReason, detail: safeDetail },
+    });
+
+    // reportCount 재계산 (unique 한 신고자 수 = count)
+    const count = await this.prisma.resumeReport.count({ where: { resumeId } });
+    const threshold = await this.systemConfig.getReportThreshold();
+    const autoHidden = count >= threshold;
+    await this.prisma.resume.update({
+      where: { id: resumeId },
+      data: { reportCount: count, autoHidden },
+    });
+    return { reportCount: count, autoHidden, threshold };
+  }
 
   /** 이력서 열람 알림 — 소유자가 다를 때만 1시간 쿨타임으로 알림 생성 */
   /**
@@ -164,7 +203,8 @@ export class ResumesService {
   async findPublic(page = 1, limit = 20) {
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(Math.max(1, limit), 100);
-    const where = { visibility: 'public' as const };
+    // autoHidden=true 인 이력서는 신고 누적으로 숨김 — admin 은 별도 /admin/resumes 에서 조회
+    const where = { visibility: 'public' as const, autoHidden: false };
     const [resumes, total] = await Promise.all([
       this.prisma.resume.findMany({
         where,

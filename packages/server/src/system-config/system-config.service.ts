@@ -51,6 +51,17 @@ export class SystemConfigService {
     return Object.fromEntries(configs.map((c) => [c.key, c.value]));
   }
 
+  // ── 이력서 신고 임계치 (auto-hide threshold) ──────────────────
+  static readonly REPORT_THRESHOLD_KEY = 'moderation.resume.reportThreshold';
+  static readonly REPORT_THRESHOLD_DEFAULT = 5;
+
+  async getReportThreshold(): Promise<number> {
+    return this.getNumber(
+      SystemConfigService.REPORT_THRESHOLD_KEY,
+      SystemConfigService.REPORT_THRESHOLD_DEFAULT,
+    );
+  }
+
   // ── 기능 토글 (feature.X.enabled) ─────────────────────────────
   /** admin 이 on/off 가능한 기능 이름 목록 — 확장 시 여기에 추가 */
   static readonly FEATURE_TOGGLES = [

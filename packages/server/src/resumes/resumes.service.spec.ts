@@ -82,12 +82,20 @@ describe('ResumesService', () => {
     create: jest.fn().mockResolvedValue({}),
   };
 
+  const mockSystemConfig = {
+    getReportThreshold: jest.fn().mockResolvedValue(5),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumesService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationsService, useValue: mockNotifications },
+        {
+          provide: require('../system-config/system-config.service').SystemConfigService,
+          useValue: mockSystemConfig,
+        },
       ],
     }).compile();
     service = module.get(ResumesService);
@@ -113,7 +121,7 @@ describe('ResumesService', () => {
       expect(result.data).toHaveLength(1);
       expect(mockPrisma.resume.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { visibility: 'public' },
+          where: { visibility: 'public', autoHidden: false },
           skip: 0,
           take: 20,
         }),
@@ -702,15 +710,13 @@ describe('ResumesService', () => {
     });
 
     it('북마크 목록', async () => {
-      mockPrisma.bookmark.findMany = jest
-        .fn()
-        .mockResolvedValue([
-          {
-            id: 'b1',
-            resume: { id: 'r1', title: '테스트', personalInfo: { name: '홍길동' } },
-            createdAt: new Date(),
-          },
-        ]);
+      mockPrisma.bookmark.findMany = jest.fn().mockResolvedValue([
+        {
+          id: 'b1',
+          resume: { id: 'r1', title: '테스트', personalInfo: { name: '홍길동' } },
+          createdAt: new Date(),
+        },
+      ]);
       const result = await service.getBookmarks('user-1');
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe('테스트');
