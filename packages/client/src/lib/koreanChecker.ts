@@ -3375,6 +3375,110 @@ export function detectSkillMentions(text: string, topN = 15): SkillMention[] {
   return hits.slice(0, topN);
 }
 
+/**
+ * 문단 구조 분석 — 문단 수 · 길이 분포 · 너무 길거나 짧은 문단 검출.
+ * 이상적 자소서 문단: 100~300자. 50자 이하 "짧은 조각" 혹은 500자 이상 "벽 같은 덩어리" 경고.
+ */
+export interface ParagraphStats {
+  count: number;
+  avgLength: number;
+  shortParagraphs: number; // <50자
+  longParagraphs: number; // >500자
+  idealRatio: number; // 100~300자 범위 비율 (0~1)
+  suggestion: string;
+}
+
+export function analyzeParagraphs(text: string): ParagraphStats {
+  const t = (text ?? '').trim();
+  if (!t) {
+    return {
+      count: 0,
+      avgLength: 0,
+      shortParagraphs: 0,
+      longParagraphs: 0,
+      idealRatio: 0,
+      suggestion: '본문이 비어 있습니다.',
+    };
+  }
+  const paragraphs = t
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+  const count = paragraphs.length;
+  const lengths = paragraphs.map((p) => p.length);
+  const avgLength = count > 0 ? Math.round(lengths.reduce((a, b) => a + b, 0) / count) : 0;
+  const shortParagraphs = lengths.filter((l) => l < 50).length;
+  const longParagraphs = lengths.filter((l) => l > 500).length;
+  const idealCount = lengths.filter((l) => l >= 100 && l <= 300).length;
+  const idealRatio = count > 0 ? Math.round((idealCount / count) * 100) / 100 : 0;
+  let suggestion = '';
+  if (count === 1 && lengths[0] > 300) {
+    suggestion = `본문이 한 문단(${lengths[0]}자)로만 구성 — 빈 줄로 2~4 문단 분리 권장.`;
+  } else if (longParagraphs > 0) {
+    suggestion = `긴 문단(>500자) ${longParagraphs}개 — 독자가 부담스러워 합니다. 분리하세요.`;
+  } else if (shortParagraphs > count / 2) {
+    suggestion = `짧은 문단(<50자) 비율 높음 (${shortParagraphs}/${count}) — 문장을 엮어 흐름을 만드세요.`;
+  } else if (idealRatio >= 0.6) {
+    suggestion = `문단 구성이 안정적입니다 (이상 범위 ${Math.round(idealRatio * 100)}%).`;
+  } else {
+    suggestion = `이상 문단 길이(100~300자) 비율 ${Math.round(idealRatio * 100)}% — 문단을 균일화해 보세요.`;
+  }
+  return { count, avgLength, shortParagraphs, longParagraphs, idealRatio, suggestion };
+}
+
+/**
+ * 동의어 제안 — 이력서·자소서에 자주 남용되는 단어에 대해 대안 3~5개 제시.
+ * 사용자가 동일 단어 반복 시 변주 아이디어로 활용.
+ */
+const SYNONYM_MAP: Record<string, string[]> = {
+  개발: ['구현', '설계', '구축', '제작'],
+  관리: ['운영', '통솔', '감독', '책임'],
+  '문제 해결': ['돌파', '극복', '해결', '대응'],
+  협업: ['협력', '공동 작업', '파트너십', '소통'],
+  경험: ['이력', '프로젝트 수행', '사례', '실무'],
+  참여: ['기여', '동참', '제안', '실행'],
+  효율: ['생산성', '속도', '최적화', '자원 절약'],
+  성과: ['결과', '산출물', '임팩트', '기여도'],
+  학습: ['습득', '내재화', '체화', '연구'],
+  개선: ['업그레이드', '고도화', '최적화', '향상'],
+  능력: ['역량', '스킬', '전문성', '숙련'],
+  노력: ['실행', '추진', '몰입', '집중'],
+};
+
+export interface SynonymSuggestion {
+  word: string;
+  alternatives: string[];
+}
+export function suggestSynonyms(word: string): SynonymSuggestion {
+  const w = (word ?? '').trim();
+  const alt = SYNONYM_MAP[w];
+  return { word: w, alternatives: alt ?? [] };
+}
+
+/**
+ * 본문에서 남용된 단어를 찾아 동의어 후보까지 같이 반환.
+ * analyzeRedundancy 와 연동해 "반복 단어 + 대안 제안" 한 번에 보여주기.
+ */
+export interface OveruseWithSynonyms {
+  word: string;
+  count: number;
+  alternatives: string[];
+}
+export function suggestSynonymsForOveruse(text: string, minCount = 3): OveruseWithSynonyms[] {
+  const t = text ?? '';
+  const results: OveruseWithSynonyms[] = [];
+  for (const [word, alternatives] of Object.entries(SYNONYM_MAP)) {
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(escaped, 'g');
+    const matches = t.match(re);
+    if (matches && matches.length >= minCount) {
+      results.push({ word, count: matches.length, alternatives });
+    }
+  }
+  results.sort((a, b) => b.count - a.count);
+  return results.slice(0, 10);
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
