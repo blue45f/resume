@@ -17,7 +17,7 @@
     "build:client:prod": "cd packages/client && vite build --mode production",
     "build:server": "cd packages/server && nest build",
     "start:server": "node packages/server/dist/main.js",
-    "deploy:gcp": "gcloud run deploy resume-api --source . --region asia-northeast3 --allow-unauthenticated --set-env-vars NODE_ENV=production",
+    "deploy:gcp": "gcloud run deploy resume-api --source . --project resume-platform-prod --region asia-northeast3 --allow-unauthenticated --update-env-vars NODE_ENV=production",
     "lint": "eslint .",
     "format": "prettier --write \"packages/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"packages/**/*.{ts,tsx}\"",
