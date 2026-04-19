@@ -1,5 +1,9 @@
 import { useMemo, useState } from 'react';
-import { generateQualityReport, exportQualityReportMarkdown } from '@/lib/koreanChecker';
+import {
+  generateQualityReport,
+  exportQualityReportMarkdown,
+  prioritizeImprovements,
+} from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
 interface Props {
@@ -127,6 +131,7 @@ export default function KoreanQualityBadge({
             value={`${informal.count}건`}
             hint={informal.hits[0]?.category ?? informal.level}
           />
+          <PriorityActions report={report} />
           {(readability.suggestion || lexical.suggestion || endings.suggestion) && (
             <p className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400">
               💡 {readability.suggestion}
@@ -151,6 +156,37 @@ export default function KoreanQualityBadge({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function PriorityActions({ report }: { report: ReturnType<typeof generateQualityReport> }) {
+  const actions = prioritizeImprovements(report, 3);
+  if (actions.length === 0) return null;
+  return (
+    <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+      <div className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+        🚀 우선 개선 TOP {actions.length}
+      </div>
+      <ol className="space-y-1">
+        {actions.map((a, i) => (
+          <li
+            key={a.dimension}
+            className="flex items-start gap-1.5 text-[10px] text-slate-600 dark:text-slate-400"
+          >
+            <span className="inline-flex w-4 h-4 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold text-[9px]">
+              {i + 1}
+            </span>
+            <span className="leading-snug">
+              <span className="font-medium text-slate-700 dark:text-slate-300">{a.dimension}</span>
+              <span className="text-slate-400 dark:text-slate-500"> · {a.currentScore}점</span>
+              <span className="text-slate-400 dark:text-slate-500"> · -{a.impact}</span>
+              <br />
+              {a.targetSuggestion}
+            </span>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
