@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Header from '@/components/Header';
+import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { createStudyGroup } from '@/lib/api';
@@ -106,133 +107,135 @@ export default function NewStudyGroupPage() {
           </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="imp-card p-5 sm:p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700"
-        >
-          <Field label="그룹 이름" error={errors.name?.message} required>
-            <input
-              {...register('name')}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              placeholder="예: 네이버 프론트엔드 면접 스터디"
-              maxLength={100}
-            />
-          </Field>
-
-          <Field label="소개" error={errors.description?.message}>
-            <textarea
-              {...register('description')}
-              rows={4}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 resize-y"
-              placeholder="목표 · 일정 · 진행 방식 등을 설명해주세요"
-              maxLength={1000}
-            />
-          </Field>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="기업 카테고리">
-              <select
-                name="companyTier"
-                defaultValue="etc"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
-              >
-                {getTIERS().map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="카페 유형">
-              <select
-                name="cafeCategory"
-                defaultValue="interview"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
-              >
-                {getCAFES().map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="경력 단계">
-              <select
-                name="experienceLevel"
-                defaultValue="any"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
-              >
-                {getLEVELS().map((l) => (
-                  <option key={l.value} value={l.value}>
-                    {l.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="정원" error={errors.maxMembers?.message} required>
+        <FeatureDisabledBanner feature="studyGroup.create" label="스터디 그룹 생성">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="imp-card p-5 sm:p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700"
+          >
+            <Field label="그룹 이름" error={errors.name?.message} required>
               <input
-                type="number"
-                {...register('maxMembers', { valueAsNumber: true })}
-                min={2}
-                max={30}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
+                {...register('name')}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                placeholder="예: 네이버 프론트엔드 면접 스터디"
+                maxLength={100}
               />
             </Field>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="타겟 회사 (선택)">
-              <input
-                name="companyName"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
-                placeholder="예: 네이버"
+            <Field label="소개" error={errors.description?.message}>
+              <textarea
+                {...register('description')}
+                rows={4}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 resize-y"
+                placeholder="목표 · 일정 · 진행 방식 등을 설명해주세요"
+                maxLength={1000}
               />
             </Field>
-            <Field label="타겟 직무 (선택)">
-              <input
-                name="position"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
-                placeholder="예: 프론트엔드"
-              />
-            </Field>
-          </div>
 
-          <label className="flex items-start gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              {...register('isPrivate')}
-              className="mt-1 w-4 h-4 rounded border-slate-300"
-            />
-            <div>
-              <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                비공개 그룹
-              </span>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                초대받은 멤버만 가입할 수 있습니다. 공개 검색에 노출되지 않습니다.
-              </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="기업 카테고리">
+                <select
+                  name="companyTier"
+                  defaultValue="etc"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
+                >
+                  {getTIERS().map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="카페 유형">
+                <select
+                  name="cafeCategory"
+                  defaultValue="interview"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
+                >
+                  {getCAFES().map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
             </div>
-          </label>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
-            <button
-              type="button"
-              onClick={() => navigate(ROUTES.interview.studyGroups)}
-              className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
-            >
-              {t('common.cancel')}
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="imp-btn px-5 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              {isSubmitting ? t('common.loading') : t('study.create')}
-            </button>
-          </div>
-        </form>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="경력 단계">
+                <select
+                  name="experienceLevel"
+                  defaultValue="any"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
+                >
+                  {getLEVELS().map((l) => (
+                    <option key={l.value} value={l.value}>
+                      {l.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="정원" error={errors.maxMembers?.message} required>
+                <input
+                  type="number"
+                  {...register('maxMembers', { valueAsNumber: true })}
+                  min={2}
+                  max={30}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
+                />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="타겟 회사 (선택)">
+                <input
+                  name="companyName"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
+                  placeholder="예: 네이버"
+                />
+              </Field>
+              <Field label="타겟 직무 (선택)">
+                <input
+                  name="position"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
+                  placeholder="예: 프론트엔드"
+                />
+              </Field>
+            </div>
+
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                {...register('isPrivate')}
+                className="mt-1 w-4 h-4 rounded border-slate-300"
+              />
+              <div>
+                <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                  비공개 그룹
+                </span>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  초대받은 멤버만 가입할 수 있습니다. 공개 검색에 노출되지 않습니다.
+                </p>
+              </div>
+            </label>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => navigate(ROUTES.interview.studyGroups)}
+                className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="imp-btn px-5 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                {isSubmitting ? t('common.loading') : t('study.create')}
+              </button>
+            </div>
+          </form>
+        </FeatureDisabledBanner>
       </main>
       <Footer />
     </>

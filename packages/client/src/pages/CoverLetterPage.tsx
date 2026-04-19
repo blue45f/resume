@@ -13,6 +13,7 @@ import RelatedJobsWidget from '@/features/interview-prep/ui/RelatedJobsWidget';
 import { tx } from '@/lib/i18n';
 import { useResumes } from '@/hooks/useResources';
 import KoreanQualityBadge from '@/components/KoreanQualityBadge';
+import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 
 type PageMode = 'generate' | 'feedback';
 
@@ -437,482 +438,483 @@ export default function CoverLetterPage() {
             AI 자기소개서 생성 · 피드백 분석 · 항목별 작성
           </p>
         </div>
-
-        {/* Mode tabs */}
-        <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit mb-6">
-          {[
-            { id: 'generate' as const, label: '✍️ AI 생성', desc: '이력서 기반 자동 작성' },
-            { id: 'feedback' as const, label: '🔍 피드백 분석', desc: '기존 자소서 분석' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setMode(tab.id)}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${mode === tab.id ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* ─── GENERATE MODE ─── */}
-        {mode === 'generate' && (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {/* Left: Input */}
-            <form
-              onSubmit={handleSubmitGenerate(onGenerateSubmit)}
-              className="space-y-5"
-              noValidate
-            >
-              {/* Resume */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                  이력서 선택 <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={selectedResumeId}
-                  onChange={(e) => setSelectedResumeId(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">이력서를 선택하세요</option>
-                  {resumes.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.title || '제목 없음'} — {r.personalInfo?.name || '이름 없음'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Company & Position */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                    회사명 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    {...registerGenerate('company')}
-                    placeholder="예: 카카오"
-                    className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${generateErrors.company ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
-                  />
-                  {generateErrors.company && (
-                    <p className="text-xs text-red-500 mt-1">{generateErrors.company.message}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                    포지션 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    {...registerGenerate('position')}
-                    placeholder="예: 마케터"
-                    className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${generateErrors.position ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
-                  />
-                  {generateErrors.position && (
-                    <p className="text-xs text-red-500 mt-1">{generateErrors.position.message}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Tone */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                  어조
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {TONES.map((t) => (
-                    <label
-                      key={t.value}
-                      className={`p-3 rounded-xl border cursor-pointer transition-all ${tone === t.value ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'}`}
-                    >
-                      <input
-                        type="radio"
-                        name="tone"
-                        value={t.value}
-                        checked={tone === t.value}
-                        onChange={() => setTone(t.value)}
-                        className="sr-only"
-                      />
-                      <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                        {t.label}
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {t.desc}
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Section mode toggle */}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setUsesSections((v) => !v)}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${usesSections ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'}`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${usesSections ? 'translate-x-4' : 'translate-x-0.5'}`}
-                  />
-                </button>
-                <span className="text-sm text-slate-700 dark:text-slate-300">
-                  항목별 작성 (성장과정, 지원동기 등)
-                </span>
-              </div>
-
-              {/* Section inputs */}
-              {usesSections && (
-                <div className="space-y-3 animate-fade-in-up">
-                  {SECTIONS.map((sec) => {
-                    const limit = sectionLimits[sec.id];
-                    const text = sections[sec.id] || '';
-                    const chars = text.replace(/\s/g, '').length;
-                    const isOver = limit && chars > limit;
-                    return (
-                      <div
-                        key={sec.id}
-                        className="bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-200 dark:border-slate-700 p-3"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                            {sec.label}
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`text-[10px] ${isOver ? 'text-red-500 font-medium' : 'text-slate-400'}`}
-                            >
-                              {chars}자{limit ? ` / ${limit}자` : ''}
-                            </span>
-                            <input
-                              type="number"
-                              value={limit || ''}
-                              onChange={(e) =>
-                                setSectionLimits((prev) => ({
-                                  ...prev,
-                                  [sec.id]: parseInt(e.target.value) || 0,
-                                }))
-                              }
-                              placeholder="글자 제한"
-                              className="w-20 px-2 py-0.5 text-[10px] border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100 focus:outline-none"
-                            />
-                          </div>
-                        </div>
-                        <textarea
-                          value={text}
-                          onChange={(e) =>
-                            setSections((prev) => ({ ...prev, [sec.id]: e.target.value }))
-                          }
-                          placeholder={sec.placeholder}
-                          rows={3}
-                          className={`w-full text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none px-3 py-2 ${isOver ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Job description */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                  채용 공고 <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  {...registerGenerate('jobDescription')}
-                  placeholder="채용 공고 내용을 붙여넣으세요..."
-                  rows={8}
-                  className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${generateErrors.jobDescription ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
-                />
-                {generateErrors.jobDescription && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {generateErrors.jobDescription.message}
-                  </p>
-                )}
-              </div>
-
-              <FeatureGate feature="coverLetter">
-                <button
-                  type="submit"
-                  disabled={isGenerating || !selectedResumeId}
-                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow"
-                >
-                  {isGenerating ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                        />
-                      </svg>
-                      생성 중...
-                    </span>
-                  ) : (
-                    '자기소개서 생성'
-                  )}
-                </button>
-              </FeatureGate>
-            </form>
-
-            {/* Right: Result + Feedback */}
-            <div className="space-y-4">
-              {/* Result area */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                    생성 결과
-                  </label>
-                  {result && (
-                    <span className="text-xs text-slate-400">
-                      {charCount.toLocaleString()}자 (공백 포함 {wordCount.toLocaleString()}자)
-                    </span>
-                  )}
-                </div>
-                {error && (
-                  <div className="p-4 mb-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-400">
-                    {error}
-                  </div>
-                )}
-                <div className="imp-card p-5 min-h-[300px]">
-                  {isGenerating ? (
-                    <div className="flex flex-col items-center justify-center h-48 gap-3">
-                      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                      <p className="text-sm text-slate-500">AI가 자기소개서를 작성 중입니다...</p>
-                    </div>
-                  ) : result ? (
-                    <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                      {result}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-48 text-slate-400">
-                      <svg
-                        className="w-10 h-10 mb-3"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <p className="text-sm">이력서와 채용 공고를 입력하면</p>
-                      <p className="text-sm">AI가 맞춤 자기소개서를 작성합니다</p>
-                    </div>
-                  )}
-                </div>
-
-                {result && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    <button
-                      onClick={() => handleCopy(result)}
-                      className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-100 transition-colors"
-                    >
-                      <svg
-                        className="w-3.5 h-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                        />
-                      </svg>
-                      복사
-                    </button>
-                    <button
-                      onClick={() => handleDownloadPdf(result)}
-                      className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl hover:bg-green-100 transition-colors"
-                    >
-                      <svg
-                        className="w-3.5 h-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      PDF
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSubmitGenerate(onGenerateSubmit)}
-                      disabled={isGenerating}
-                      className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50"
-                    >
-                      <svg
-                        className="w-3.5 h-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                        />
-                      </svg>
-                      재생성
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Related jobs (cross-feature recommendation) */}
-              {(companyName?.trim() || position?.trim()) && (
-                <RelatedJobsWidget
-                  companyName={companyName || ''}
-                  position={position || ''}
-                  limit={5}
-                />
-              )}
-
-              {/* AI Feedback panel */}
-              {(feedback || analyzingFeedback) && (
-                <div className="imp-card p-5 animate-fade-in-up">
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-                    <span className="w-6 h-6 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center text-xs">
-                      🔍
-                    </span>
-                    AI 피드백 분석
-                  </h3>
-
-                  {analyzingFeedback ? (
-                    <div className="flex items-center gap-2 text-sm text-slate-500 py-4">
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                        />
-                      </svg>
-                      분석 중...
-                    </div>
-                  ) : (
-                    feedback && <FeedbackPanel result={feedback} />
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ─── FEEDBACK MODE ─── */}
-        {mode === 'feedback' && (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <form
-              onSubmit={handleSubmitFeedback(onFeedbackSubmit)}
-              className="space-y-4"
-              noValidate
-            >
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                  자기소개서 붙여넣기 <span className="text-red-500">*</span>
-                </label>
-                <KoreanQualityBadge
-                  text={feedbackText || ''}
-                  label="자기소개서"
-                  className="mb-1.5"
-                />
-                <div className="text-xs text-slate-400 mb-1.5">
-                  {(feedbackText || '').replace(/\s/g, '').length}자 (공백 제외)
-                </div>
-                <textarea
-                  {...registerFeedback('content')}
-                  placeholder="분석할 자기소개서를 여기에 붙여넣으세요..."
-                  rows={14}
-                  className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${feedbackErrors.content ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
-                />
-                {feedbackErrors.content && (
-                  <p className="text-xs text-red-500 mt-1">{feedbackErrors.content.message}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                  채용 공고{' '}
-                  <span className="text-slate-400 font-normal">
-                    (선택, 있으면 키워드 매칭 분석)
-                  </span>
-                </label>
-                <textarea
-                  {...registerFeedback('jobDescription')}
-                  placeholder="채용 공고를 붙여넣으면 키워드 적합성을 분석합니다..."
-                  rows={6}
-                  className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${feedbackErrors.jobDescription ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
-                />
-                {feedbackErrors.jobDescription && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {feedbackErrors.jobDescription.message}
-                  </p>
-                )}
-              </div>
+        <FeatureDisabledBanner feature="ai.coverLetter" label="AI 자기소개서">
+          {/* Mode tabs */}
+          <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit mb-6">
+            {[
+              { id: 'generate' as const, label: '✍️ AI 생성', desc: '이력서 기반 자동 작성' },
+              { id: 'feedback' as const, label: '🔍 피드백 분석', desc: '기존 자소서 분석' },
+            ].map((tab) => (
               <button
-                type="submit"
-                disabled={isAnalyzingFeedbackForm}
-                className="w-full py-3 bg-neutral-900 dark:bg-white text-white font-medium rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                key={tab.id}
+                onClick={() => setMode(tab.id)}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${mode === tab.id ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
-                {isAnalyzingFeedbackForm ? '분석 중...' : '피드백 분석'}
+                {tab.label}
               </button>
-            </form>
+            ))}
+          </div>
 
-            <div>
-              {feedbackResult ? (
-                <div className="imp-card p-5 animate-fade-in-up">
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">
-                    분석 결과
-                  </h3>
-                  <FeedbackPanel result={feedbackResult} />
+          {/* ─── GENERATE MODE ─── */}
+          {mode === 'generate' && (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* Left: Input */}
+              <form
+                onSubmit={handleSubmitGenerate(onGenerateSubmit)}
+                className="space-y-5"
+                noValidate
+              >
+                {/* Resume */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    이력서 선택 <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={selectedResumeId}
+                    onChange={(e) => setSelectedResumeId(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">이력서를 선택하세요</option>
+                    {resumes.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.title || '제목 없음'} — {r.personalInfo?.name || '이름 없음'}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              ) : (
-                <div className="imp-card p-8 flex flex-col items-center justify-center text-center min-h-[400px]">
-                  <div className="text-5xl mb-4">🔍</div>
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    자소서 분석 도구
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    자기소개서를 붙여넣으면 AI가
-                    <br />
-                    점수, 키워드 매칭, 개선점을 분석합니다
-                  </p>
-                  <div className="mt-6 grid grid-cols-2 gap-3 text-xs text-left w-full max-w-xs">
-                    {['분량 적절성', '키워드 매칭', '구체성 분석', '전문성 평가'].map((item) => (
-                      <div
-                        key={item}
-                        className="flex items-center gap-2 text-slate-500 dark:text-slate-400"
+
+                {/* Company & Position */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                      회사명 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      {...registerGenerate('company')}
+                      placeholder="예: 카카오"
+                      className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${generateErrors.company ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
+                    />
+                    {generateErrors.company && (
+                      <p className="text-xs text-red-500 mt-1">{generateErrors.company.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                      포지션 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      {...registerGenerate('position')}
+                      placeholder="예: 마케터"
+                      className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${generateErrors.position ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
+                    />
+                    {generateErrors.position && (
+                      <p className="text-xs text-red-500 mt-1">{generateErrors.position.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tone */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    어조
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {TONES.map((t) => (
+                      <label
+                        key={t.value}
+                        className={`p-3 rounded-xl border cursor-pointer transition-all ${tone === t.value ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'}`}
                       >
-                        <span className="text-green-500">✓</span> {item}
-                      </div>
+                        <input
+                          type="radio"
+                          name="tone"
+                          value={t.value}
+                          checked={tone === t.value}
+                          onChange={() => setTone(t.value)}
+                          className="sr-only"
+                        />
+                        <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                          {t.label}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          {t.desc}
+                        </div>
+                      </label>
                     ))}
                   </div>
                 </div>
-              )}
+
+                {/* Section mode toggle */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setUsesSections((v) => !v)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${usesSections ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'}`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${usesSections ? 'translate-x-4' : 'translate-x-0.5'}`}
+                    />
+                  </button>
+                  <span className="text-sm text-slate-700 dark:text-slate-300">
+                    항목별 작성 (성장과정, 지원동기 등)
+                  </span>
+                </div>
+
+                {/* Section inputs */}
+                {usesSections && (
+                  <div className="space-y-3 animate-fade-in-up">
+                    {SECTIONS.map((sec) => {
+                      const limit = sectionLimits[sec.id];
+                      const text = sections[sec.id] || '';
+                      const chars = text.replace(/\s/g, '').length;
+                      const isOver = limit && chars > limit;
+                      return (
+                        <div
+                          key={sec.id}
+                          className="bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-200 dark:border-slate-700 p-3"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                              {sec.label}
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`text-[10px] ${isOver ? 'text-red-500 font-medium' : 'text-slate-400'}`}
+                              >
+                                {chars}자{limit ? ` / ${limit}자` : ''}
+                              </span>
+                              <input
+                                type="number"
+                                value={limit || ''}
+                                onChange={(e) =>
+                                  setSectionLimits((prev) => ({
+                                    ...prev,
+                                    [sec.id]: parseInt(e.target.value) || 0,
+                                  }))
+                                }
+                                placeholder="글자 제한"
+                                className="w-20 px-2 py-0.5 text-[10px] border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100 focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                          <textarea
+                            value={text}
+                            onChange={(e) =>
+                              setSections((prev) => ({ ...prev, [sec.id]: e.target.value }))
+                            }
+                            placeholder={sec.placeholder}
+                            rows={3}
+                            className={`w-full text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none px-3 py-2 ${isOver ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Job description */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    채용 공고 <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    {...registerGenerate('jobDescription')}
+                    placeholder="채용 공고 내용을 붙여넣으세요..."
+                    rows={8}
+                    className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${generateErrors.jobDescription ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
+                  />
+                  {generateErrors.jobDescription && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {generateErrors.jobDescription.message}
+                    </p>
+                  )}
+                </div>
+
+                <FeatureGate feature="coverLetter">
+                  <button
+                    type="submit"
+                    disabled={isGenerating || !selectedResumeId}
+                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow"
+                  >
+                    {isGenerating ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                          />
+                        </svg>
+                        생성 중...
+                      </span>
+                    ) : (
+                      '자기소개서 생성'
+                    )}
+                  </button>
+                </FeatureGate>
+              </form>
+
+              {/* Right: Result + Feedback */}
+              <div className="space-y-4">
+                {/* Result area */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                      생성 결과
+                    </label>
+                    {result && (
+                      <span className="text-xs text-slate-400">
+                        {charCount.toLocaleString()}자 (공백 포함 {wordCount.toLocaleString()}자)
+                      </span>
+                    )}
+                  </div>
+                  {error && (
+                    <div className="p-4 mb-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-400">
+                      {error}
+                    </div>
+                  )}
+                  <div className="imp-card p-5 min-h-[300px]">
+                    {isGenerating ? (
+                      <div className="flex flex-col items-center justify-center h-48 gap-3">
+                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                        <p className="text-sm text-slate-500">AI가 자기소개서를 작성 중입니다...</p>
+                      </div>
+                    ) : result ? (
+                      <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                        {result}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-48 text-slate-400">
+                        <svg
+                          className="w-10 h-10 mb-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        <p className="text-sm">이력서와 채용 공고를 입력하면</p>
+                        <p className="text-sm">AI가 맞춤 자기소개서를 작성합니다</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {result && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <button
+                        onClick={() => handleCopy(result)}
+                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-100 transition-colors"
+                      >
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          />
+                        </svg>
+                        복사
+                      </button>
+                      <button
+                        onClick={() => handleDownloadPdf(result)}
+                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl hover:bg-green-100 transition-colors"
+                      >
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        PDF
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSubmitGenerate(onGenerateSubmit)}
+                        disabled={isGenerating}
+                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50"
+                      >
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                        재생성
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Related jobs (cross-feature recommendation) */}
+                {(companyName?.trim() || position?.trim()) && (
+                  <RelatedJobsWidget
+                    companyName={companyName || ''}
+                    position={position || ''}
+                    limit={5}
+                  />
+                )}
+
+                {/* AI Feedback panel */}
+                {(feedback || analyzingFeedback) && (
+                  <div className="imp-card p-5 animate-fade-in-up">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+                      <span className="w-6 h-6 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center text-xs">
+                        🔍
+                      </span>
+                      AI 피드백 분석
+                    </h3>
+
+                    {analyzingFeedback ? (
+                      <div className="flex items-center gap-2 text-sm text-slate-500 py-4">
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                          />
+                        </svg>
+                        분석 중...
+                      </div>
+                    ) : (
+                      feedback && <FeedbackPanel result={feedback} />
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* ─── FEEDBACK MODE ─── */}
+          {mode === 'feedback' && (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <form
+                onSubmit={handleSubmitFeedback(onFeedbackSubmit)}
+                className="space-y-4"
+                noValidate
+              >
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    자기소개서 붙여넣기 <span className="text-red-500">*</span>
+                  </label>
+                  <KoreanQualityBadge
+                    text={feedbackText || ''}
+                    label="자기소개서"
+                    className="mb-1.5"
+                  />
+                  <div className="text-xs text-slate-400 mb-1.5">
+                    {(feedbackText || '').replace(/\s/g, '').length}자 (공백 제외)
+                  </div>
+                  <textarea
+                    {...registerFeedback('content')}
+                    placeholder="분석할 자기소개서를 여기에 붙여넣으세요..."
+                    rows={14}
+                    className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${feedbackErrors.content ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
+                  />
+                  {feedbackErrors.content && (
+                    <p className="text-xs text-red-500 mt-1">{feedbackErrors.content.message}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    채용 공고{' '}
+                    <span className="text-slate-400 font-normal">
+                      (선택, 있으면 키워드 매칭 분석)
+                    </span>
+                  </label>
+                  <textarea
+                    {...registerFeedback('jobDescription')}
+                    placeholder="채용 공고를 붙여넣으면 키워드 적합성을 분석합니다..."
+                    rows={6}
+                    className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${feedbackErrors.jobDescription ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
+                  />
+                  {feedbackErrors.jobDescription && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {feedbackErrors.jobDescription.message}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={isAnalyzingFeedbackForm}
+                  className="w-full py-3 bg-neutral-900 dark:bg-white text-white font-medium rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                >
+                  {isAnalyzingFeedbackForm ? '분석 중...' : '피드백 분석'}
+                </button>
+              </form>
+
+              <div>
+                {feedbackResult ? (
+                  <div className="imp-card p-5 animate-fade-in-up">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">
+                      분석 결과
+                    </h3>
+                    <FeedbackPanel result={feedbackResult} />
+                  </div>
+                ) : (
+                  <div className="imp-card p-8 flex flex-col items-center justify-center text-center min-h-[400px]">
+                    <div className="text-5xl mb-4">🔍</div>
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      자소서 분석 도구
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      자기소개서를 붙여넣으면 AI가
+                      <br />
+                      점수, 키워드 매칭, 개선점을 분석합니다
+                    </p>
+                    <div className="mt-6 grid grid-cols-2 gap-3 text-xs text-left w-full max-w-xs">
+                      {['분량 적절성', '키워드 매칭', '구체성 분석', '전문성 평가'].map((item) => (
+                        <div
+                          key={item}
+                          className="flex items-center gap-2 text-slate-500 dark:text-slate-400"
+                        >
+                          <span className="text-green-500">✓</span> {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </FeatureDisabledBanner>
       </main>
       <Footer />
     </>
