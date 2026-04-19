@@ -13,6 +13,8 @@ import {
   detectDuplicateSentences,
   analyzeFirstPersonUsage,
   suggestSynonymsForOveruse,
+  estimateExperienceYears,
+  detectExaggeration,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -256,6 +258,26 @@ function WhitespaceAndNumericRows({ text }: { text: string }) {
           title="남용 단어"
           value={`${overuse.length}종`}
           hint={`${overuse[0]?.word}×${overuse[0]?.count}`}
+        />
+      )}
+      <CareerAndExaggerationRows text={text} />
+    </>
+  );
+}
+
+function CareerAndExaggerationRows({ text }: { text: string }) {
+  const exp = estimateExperienceYears(text);
+  const exag = detectExaggeration(text);
+  return (
+    <>
+      {exp.ranges.length > 0 && (
+        <Row title="총 경력" value={`${exp.totalYears}년`} hint={`${exp.ranges.length}개 구간`} />
+      )}
+      {exag.count > 0 && (
+        <Row
+          title="과장 표현"
+          value={`${exag.count}건`}
+          hint={exag.hits[0]?.phrase ?? exag.level}
         />
       )}
     </>
