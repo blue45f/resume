@@ -13,6 +13,7 @@ import ProfileBadges from '@/components/ProfileBadges';
 import { getPlan } from '@/lib/plans';
 import { getTheme, setTheme } from '@/lib/theme';
 import { API_URL } from '@/lib/config';
+import { tx } from '@/lib/i18n';
 import {
   changePassword as apiChangePassword,
   deleteAccount as apiDeleteAccount,
@@ -414,7 +415,9 @@ export default function SettingsPage() {
       >
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-5">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">설정</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+            {tx('nav.settings')}
+          </h1>
           <button
             onClick={() =>
               setOpenSections((prev) =>
