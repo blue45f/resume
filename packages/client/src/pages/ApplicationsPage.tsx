@@ -638,9 +638,12 @@ export default function ApplicationsPage() {
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
               className="px-3 py-2 text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl border-0 focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
-              <option value="recent">최신순</option>
-              <option value="company">회사순</option>
-              <option value="deadline">마감순</option>
+              <option value="recent">최신 업데이트순</option>
+              <option value="oldest">오래된순</option>
+              <option value="company">회사명순</option>
+              <option value="status">상태별</option>
+              <option value="applied">지원일순</option>
+              <option value="deadline">마감 임박순</option>
             </select>
           </div>
         </div>
