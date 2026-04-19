@@ -894,6 +894,101 @@ export const deleteStudyGroupPost = (postId: string) =>
 export const likeStudyGroupPost = (postId: string) =>
   request<StudyGroupPost>(`${BASE}/study-groups/posts/${postId}/like`, { method: 'POST' });
 
+// ── 스터디 그룹 게시글 댓글 ───────────────────────────────
+export interface StudyGroupPostComment {
+  id: string;
+  postId: string;
+  userId: string;
+  parentId: string | null;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  user?: { id: string; name: string; avatar?: string | null };
+}
+
+export const fetchStudyGroupPostComments = (postId: string) =>
+  request<StudyGroupPostComment[]>(`${BASE}/study-groups/posts/${postId}/comments`);
+
+export const createStudyGroupPostComment = (
+  postId: string,
+  data: { content: string; parentId?: string | null },
+) =>
+  request<StudyGroupPostComment>(`${BASE}/study-groups/posts/${postId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const deleteStudyGroupPostComment = (commentId: string) =>
+  request<{ success: boolean }>(`${BASE}/study-groups/comments/${commentId}`, {
+    method: 'DELETE',
+  });
+
+// ── 스터디 그룹 일정 (events + RSVP) ───────────────────────
+export interface StudyGroupEvent {
+  id: string;
+  groupId: string;
+  authorId: string;
+  title: string;
+  description: string;
+  kind: 'online' | 'offline' | 'assignment' | 'deadline';
+  location: string;
+  meetingUrl: string;
+  startsAt: string;
+  endsAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  author?: { id: string; name: string; avatar?: string | null };
+  myRsvp: 'going' | 'maybe' | 'declined' | null;
+  rsvpCount: number;
+}
+
+export const fetchStudyGroupEvents = (groupId: string, limit?: number) => {
+  const qs = limit ? `?limit=${limit}` : '';
+  return request<StudyGroupEvent[]>(`${BASE}/study-groups/${groupId}/events${qs}`);
+};
+
+export const createStudyGroupEvent = (
+  groupId: string,
+  data: {
+    title: string;
+    description?: string;
+    kind?: 'online' | 'offline' | 'assignment' | 'deadline';
+    location?: string;
+    meetingUrl?: string;
+    startsAt: string;
+    endsAt?: string | null;
+  },
+) =>
+  request<StudyGroupEvent>(`${BASE}/study-groups/${groupId}/events`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const deleteStudyGroupEvent = (eventId: string) =>
+  request<{ success: boolean }>(`${BASE}/study-groups/events/${eventId}`, { method: 'DELETE' });
+
+export const rsvpStudyGroupEvent = (eventId: string, status: 'going' | 'maybe' | 'declined') =>
+  request<{ id: string; status: string }>(`${BASE}/study-groups/events/${eventId}/rsvp`, {
+    method: 'POST',
+    body: JSON.stringify({ status }),
+  });
+
+// ── 스터디 그룹 통계 ─────────────────────────────────────
+export interface StudyGroupStats {
+  memberCount: number;
+  postCount: number;
+  questionCount: number;
+  eventCount: number;
+  upcomingEventCount: number;
+  leaderboard: Array<{
+    user: { id: string; name: string; avatar: string | null };
+    postCount: number;
+  }>;
+}
+
+export const fetchStudyGroupStats = (groupId: string) =>
+  request<StudyGroupStats>(`${BASE}/study-groups/${groupId}/stats`);
+
 // ── Coaching ──────────────────────────────────────────────
 export interface CoachUser {
   id: string;

@@ -506,4 +506,257 @@ export class StudyGroupsService {
       },
     });
   }
+
+  // ─────────────────────────────────────────────
+  // 댓글 (StudyGroupPostComment)
+  // ─────────────────────────────────────────────
+
+  async listComments(postId: string, userId?: string) {
+    const post = await this.prisma.studyGroupPost.findUnique({
+      where: { id: postId },
+      select: { id: true, groupId: true },
+    });
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
+    await this.assertMemberOrPublic(post.groupId, userId);
+    return this.prisma.studyGroupPostComment.findMany({
+      where: { postId },
+      orderBy: [{ createdAt: 'asc' }],
+      include: {
+        user: { select: { id: true, name: true, avatar: true } },
+      },
+    });
+  }
+
+  async createComment(
+    postId: string,
+    userId: string,
+    data: { content: string; parentId?: string | null },
+  ) {
+    const post = await this.prisma.studyGroupPost.findUnique({
+      where: { id: postId },
+      select: { id: true, groupId: true },
+    });
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
+    await this.assertMemberOrPublic(post.groupId, userId);
+    const content = (data.content || '').trim();
+    if (content.length < 1 || content.length > 2000) {
+      throw new BadRequestException('댓글은 1~2000자여야 합니다');
+    }
+    if (data.parentId) {
+      const parent = await this.prisma.studyGroupPostComment.findUnique({
+        where: { id: data.parentId },
+        select: { id: true, postId: true, parentId: true },
+      });
+      if (!parent || parent.postId !== postId) {
+        throw new BadRequestException('잘못된 부모 댓글입니다');
+      }
+      if (parent.parentId) {
+        throw new BadRequestException('대대댓글은 지원하지 않습니다');
+      }
+    }
+    const [comment] = await this.prisma.$transaction([
+      this.prisma.studyGroupPostComment.create({
+        data: {
+          post: { connect: { id: postId } },
+          user: { connect: { id: userId } },
+          parent: data.parentId ? { connect: { id: data.parentId } } : undefined,
+          content,
+        },
+        include: { user: { select: { id: true, name: true, avatar: true } } },
+      }),
+      this.prisma.studyGroupPost.update({
+        where: { id: postId },
+        data: { commentCount: { increment: 1 } },
+      }),
+    ]);
+    return comment;
+  }
+
+  async deleteComment(commentId: string, userId: string) {
+    const c = await this.prisma.studyGroupPostComment.findUnique({
+      where: { id: commentId },
+      include: { post: { select: { id: true, groupId: true } } },
+    });
+    if (!c) throw new NotFoundException('댓글을 찾을 수 없습니다');
+    const group = await this.prisma.studyGroup.findUnique({
+      where: { id: c.post.groupId },
+      select: { ownerId: true },
+    });
+    if (c.userId !== userId && group?.ownerId !== userId) {
+      throw new ForbiddenException('댓글 삭제 권한이 없습니다');
+    }
+    await this.prisma.$transaction([
+      this.prisma.studyGroupPostComment.delete({ where: { id: commentId } }),
+      this.prisma.studyGroupPost.update({
+        where: { id: c.postId },
+        data: { commentCount: { decrement: 1 } },
+      }),
+    ]);
+    return { success: true };
+  }
+
+  // ─────────────────────────────────────────────
+  // 일정 (StudyGroupEvent + RSVP)
+  // ─────────────────────────────────────────────
+
+  async listEvents(groupId: string, userId?: string, opts: { from?: Date; limit?: number } = {}) {
+    await this.assertMemberOrPublic(groupId, userId);
+    const from = opts.from ?? new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const limit = Math.min(opts.limit ?? 50, 100);
+    const events = await this.prisma.studyGroupEvent.findMany({
+      where: { groupId, startsAt: { gte: from } },
+      orderBy: [{ startsAt: 'asc' }],
+      take: limit,
+      include: {
+        author: { select: { id: true, name: true, avatar: true } },
+        rsvps: userId ? { where: { userId }, select: { status: true } } : false,
+        _count: { select: { rsvps: true } },
+      },
+    });
+    return events.map((e) => ({
+      ...e,
+      myRsvp: (e as any).rsvps?.[0]?.status ?? null,
+      rsvpCount: (e as any)._count?.rsvps ?? 0,
+      rsvps: undefined,
+      _count: undefined,
+    }));
+  }
+
+  async createEvent(
+    groupId: string,
+    userId: string,
+    data: {
+      title: string;
+      description?: string;
+      kind?: string;
+      location?: string;
+      meetingUrl?: string;
+      startsAt: string | Date;
+      endsAt?: string | Date | null;
+    },
+  ) {
+    const group = await this.prisma.studyGroup.findUnique({
+      where: { id: groupId },
+      select: { id: true, ownerId: true },
+    });
+    if (!group) throw new NotFoundException('스터디 그룹을 찾을 수 없습니다');
+    const m = await this.prisma.studyGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (!m && group.ownerId !== userId) {
+      throw new ForbiddenException('그룹 멤버만 일정을 만들 수 있습니다');
+    }
+    const title = (data.title || '').trim();
+    if (title.length < 2 || title.length > 120) {
+      throw new BadRequestException('제목은 2~120자여야 합니다');
+    }
+    const startsAt = new Date(data.startsAt);
+    if (isNaN(startsAt.getTime())) throw new BadRequestException('시작 시각이 올바르지 않습니다');
+    const endsAt = data.endsAt ? new Date(data.endsAt) : null;
+    if (endsAt && isNaN(endsAt.getTime())) {
+      throw new BadRequestException('종료 시각이 올바르지 않습니다');
+    }
+    if (endsAt && endsAt <= startsAt) {
+      throw new BadRequestException('종료 시각은 시작 이후여야 합니다');
+    }
+    const kind = ['online', 'offline', 'assignment', 'deadline'].includes(data.kind || '')
+      ? (data.kind as string)
+      : 'online';
+    return this.prisma.studyGroupEvent.create({
+      data: {
+        group: { connect: { id: groupId } },
+        author: { connect: { id: userId } },
+        title,
+        description: (data.description || '').slice(0, 5000),
+        kind,
+        location: (data.location || '').slice(0, 300),
+        meetingUrl: (data.meetingUrl || '').slice(0, 500),
+        startsAt,
+        endsAt,
+      },
+      include: { author: { select: { id: true, name: true, avatar: true } } },
+    });
+  }
+
+  async deleteEvent(eventId: string, userId: string) {
+    const ev = await this.prisma.studyGroupEvent.findUnique({ where: { id: eventId } });
+    if (!ev) throw new NotFoundException('일정을 찾을 수 없습니다');
+    const group = await this.prisma.studyGroup.findUnique({
+      where: { id: ev.groupId },
+      select: { ownerId: true },
+    });
+    if (ev.authorId !== userId && group?.ownerId !== userId) {
+      throw new ForbiddenException('일정 삭제 권한이 없습니다');
+    }
+    await this.prisma.studyGroupEvent.delete({ where: { id: eventId } });
+    return { success: true };
+  }
+
+  async rsvpEvent(eventId: string, userId: string, status: string) {
+    const ev = await this.prisma.studyGroupEvent.findUnique({
+      where: { id: eventId },
+      select: { id: true, groupId: true },
+    });
+    if (!ev) throw new NotFoundException('일정을 찾을 수 없습니다');
+    const m = await this.prisma.studyGroupMember.findUnique({
+      where: { groupId_userId: { groupId: ev.groupId, userId } },
+    });
+    const group = await this.prisma.studyGroup.findUnique({
+      where: { id: ev.groupId },
+      select: { ownerId: true },
+    });
+    if (!m && group?.ownerId !== userId) {
+      throw new ForbiddenException('그룹 멤버만 응답할 수 있습니다');
+    }
+    const normalized = ['going', 'maybe', 'declined'].includes(status) ? status : 'going';
+    return this.prisma.studyGroupEventRsvp.upsert({
+      where: { eventId_userId: { eventId, userId } },
+      create: { eventId, userId, status: normalized },
+      update: { status: normalized },
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // 통계 (그룹 활동도)
+  // ─────────────────────────────────────────────
+
+  async stats(groupId: string, userId?: string) {
+    await this.assertMemberOrPublic(groupId, userId);
+    const [memberCount, postCount, questionCount, eventCount, upcomingEventCount, activeMembers] =
+      await Promise.all([
+        this.prisma.studyGroupMember.count({ where: { groupId } }),
+        this.prisma.studyGroupPost.count({ where: { groupId } }),
+        this.prisma.studyGroupQuestion.count({ where: { groupId } }),
+        this.prisma.studyGroupEvent.count({ where: { groupId } }),
+        this.prisma.studyGroupEvent.count({
+          where: { groupId, startsAt: { gte: new Date() } },
+        }),
+        this.prisma.studyGroupPost.groupBy({
+          by: ['userId'],
+          where: {
+            groupId,
+            createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+          },
+          _count: { userId: true },
+          orderBy: { _count: { userId: 'desc' } },
+          take: 5,
+        }),
+      ]);
+    const topAuthors = await this.prisma.user.findMany({
+      where: { id: { in: activeMembers.map((a) => a.userId) } },
+      select: { id: true, name: true, avatar: true },
+    });
+    const leaderboard = activeMembers.map((a) => ({
+      user: topAuthors.find((u) => u.id === a.userId) ?? { id: a.userId, name: '', avatar: null },
+      postCount: a._count.userId,
+    }));
+    return {
+      memberCount,
+      postCount,
+      questionCount,
+      eventCount,
+      upcomingEventCount,
+      leaderboard,
+    };
+  }
 }

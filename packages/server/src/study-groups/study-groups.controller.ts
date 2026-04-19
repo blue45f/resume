@@ -169,4 +169,82 @@ export class StudyGroupsController {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.likePost(postId, req.user.id);
   }
+
+  // ─── 댓글 ──────────────────────────────────────────
+  @Get('posts/:postId/comments')
+  @Public()
+  @ApiOperation({ summary: '게시글 댓글 목록' })
+  listComments(@Param('postId') postId: string, @Req() req: any) {
+    return this.service.listComments(postId, req.user?.id);
+  }
+
+  @Post('posts/:postId/comments')
+  @ApiOperation({ summary: '게시글 댓글 작성' })
+  createComment(
+    @Param('postId') postId: string,
+    @Body() body: { content: string; parentId?: string | null },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.createComment(postId, req.user.id, body);
+  }
+
+  @Delete('comments/:commentId')
+  @ApiOperation({ summary: '댓글 삭제' })
+  deleteComment(@Param('commentId') commentId: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.deleteComment(commentId, req.user.id);
+  }
+
+  // ─── 일정 ──────────────────────────────────────────
+  @Get(':id/events')
+  @Public()
+  @ApiOperation({ summary: '스터디 그룹 일정 목록 (다가오는 순)' })
+  listEvents(@Param('id') id: string, @Req() req: any, @Query('limit') limit?: string) {
+    return this.service.listEvents(id, req.user?.id, {
+      limit: limit ? Number(limit) : undefined,
+    });
+  }
+
+  @Post(':id/events')
+  @ApiOperation({ summary: '스터디 그룹 일정 생성' })
+  createEvent(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      title: string;
+      description?: string;
+      kind?: string;
+      location?: string;
+      meetingUrl?: string;
+      startsAt: string;
+      endsAt?: string | null;
+    },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.createEvent(id, req.user.id, body);
+  }
+
+  @Delete('events/:eventId')
+  @ApiOperation({ summary: '일정 삭제' })
+  deleteEvent(@Param('eventId') eventId: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.deleteEvent(eventId, req.user.id);
+  }
+
+  @Post('events/:eventId/rsvp')
+  @ApiOperation({ summary: '일정 참석 응답 (going/maybe/declined)' })
+  rsvpEvent(@Param('eventId') eventId: string, @Body() body: { status: string }, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.rsvpEvent(eventId, req.user.id, body.status);
+  }
+
+  // ─── 통계 ──────────────────────────────────────────
+  @Get(':id/stats')
+  @Public()
+  @ApiOperation({ summary: '그룹 활동 통계 (게시글·질문·일정·TOP 기여자)' })
+  stats(@Param('id') id: string, @Req() req: any) {
+    return this.service.stats(id, req.user?.id);
+  }
 }

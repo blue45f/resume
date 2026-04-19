@@ -59,6 +59,9 @@ model User {
   studyGroupMemberships StudyGroupMember[]  @relation("GroupMember")
   studyGroupQuestions  StudyGroupQuestion[] @relation("GroupQuestion")
   studyGroupPosts      StudyGroupPost[]     @relation("GroupPost")
+  studyGroupPostComments StudyGroupPostComment[] @relation("GroupPostComment")
+  studyGroupEvents     StudyGroupEvent[]    @relation("GroupEventAuthor")
+  studyGroupEventRsvps StudyGroupEventRsvp[] @relation("GroupEventRsvp")
   coachProfile      CoachProfile?
   coachingSessions  CoachingSession[] @relation("CoachingClient")
   authoredJobQuestions JobInterviewQuestion[]      @relation("JobQuestionAuthor")
@@ -915,6 +918,7 @@ model StudyGroup {
   members StudyGroupMember[]
   questions StudyGroupQuestion[]
   posts   StudyGroupPost[]
+  events  StudyGroupEvent[]
 
   @@index([jobPostId])
   @@index([companyName])
@@ -977,11 +981,76 @@ model StudyGroupPost {
 
   group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user  User       @relation("GroupPost", fields: [userId], references: [id], onDelete: Cascade)
+  comments StudyGroupPostComment[]
 
   @@index([groupId, createdAt])
   @@index([userId])
   @@index([category])
   @@map("study_group_posts")
+}
+
+/// 스터디 그룹 게시글 댓글 — parentId 로 1단계 답글(대댓글) 지원
+model StudyGroupPostComment {
+  id        String   @id @default(uuid())
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  parentId  String?  @map("parent_id")
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  post    StudyGroupPost          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user    User                    @relation("GroupPostComment", fields: [userId], references: [id], onDelete: Cascade)
+  parent  StudyGroupPostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies StudyGroupPostComment[] @relation("CommentReplies")
+
+  @@index([postId, createdAt])
+  @@index([userId])
+  @@index([parentId])
+  @@map("study_group_post_comments")
+}
+
+/// 스터디 그룹 일정 — 화상 스터디/오프라인 모임/과제 마감 등
+model StudyGroupEvent {
+  id          String   @id @default(uuid())
+  groupId     String   @map("group_id")
+  authorId    String   @map("author_id")
+  title       String
+  description String   @default("") @db.Text
+  /// online | offline | assignment | deadline
+  kind        String   @default("online")
+  location    String   @default("")
+  /// 화상회의 링크 (Zoom/Meet 등)
+  meetingUrl  String   @default("") @map("meeting_url")
+  startsAt    DateTime @map("starts_at")
+  endsAt      DateTime? @map("ends_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  group  StudyGroup            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  author User                  @relation("GroupEventAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  rsvps  StudyGroupEventRsvp[]
+
+  @@index([groupId, startsAt])
+  @@map("study_group_events")
+}
+
+/// 일정 참석 응답 (going/maybe/declined)
+model StudyGroupEventRsvp {
+  id        String   @id @default(uuid())
+  eventId   String   @map("event_id")
+  userId    String   @map("user_id")
+  /// going | maybe | declined
+  status    String   @default("going")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  event StudyGroupEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User            @relation("GroupEventRsvp", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([userId])
+  @@map("study_group_event_rsvps")
 }
 
 model JobInterviewQuestion {
