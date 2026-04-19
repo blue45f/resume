@@ -2269,6 +2269,48 @@ export function suggestVerbReplacements(text: string): VerbReplacementSuggestion
 }
 
 /**
+ * N-gram 반복 구절 검출 — 2~3단어 구절이 2회 이상 반복되면 리포트.
+ * analyzeRedundancy(단일 단어) 와 상보 — 다단어 상투적 표현 발견 시 주목할 만한 신호.
+ */
+export interface RepeatedPhrase {
+  phrase: string;
+  count: number;
+  n: 2 | 3;
+}
+
+export function detectRepeatedPhrases(text: string, minCount = 2): RepeatedPhrase[] {
+  const t = (text ?? '').replace(/\s+/g, ' ').trim();
+  if (!t) return [];
+  // 한글 어절·영문 토큰 시퀀스 추출
+  const tokens = t.match(/[가-힣A-Za-z0-9]+/g) ?? [];
+  if (tokens.length < 4) return [];
+  const counts = new Map<string, { count: number; n: 2 | 3 }>();
+  for (const n of [2, 3] as const) {
+    for (let i = 0; i + n <= tokens.length; i++) {
+      const slice = tokens.slice(i, i + n);
+      // 너무 짧은 조각 제외 (단어 1글자만 연속)
+      if (slice.some((s) => s.length < 2)) continue;
+      const key = slice.join(' ');
+      const prev = counts.get(key);
+      counts.set(key, { count: (prev?.count ?? 0) + 1, n });
+    }
+  }
+  const hits: RepeatedPhrase[] = [];
+  for (const [phrase, { count, n }] of counts.entries()) {
+    if (count >= minCount) hits.push({ phrase, count, n });
+  }
+  // 긴 구절 우선, 빈도 높은 순
+  hits.sort((a, b) => (b.n - a.n) * 10 + (b.count - a.count));
+  // 짧은 구절이 더 긴 구절에 포함되어 있으면 제거 (예: "나는 학교" vs "나는 학교 갔" 있으면 후자만 유지)
+  const filtered: RepeatedPhrase[] = [];
+  for (const h of hits) {
+    const swallowed = filtered.some((f) => f.n > h.n && f.phrase.includes(h.phrase));
+    if (!swallowed) filtered.push(h);
+  }
+  return filtered.slice(0, 15);
+}
+
+/**
  * 모든 분석기를 합쳐 한 번에 호출하는 통합 리포트.
  * 실사용 컴포넌트에서 여러 함수 호출 대신 한 번의 호출로 품질 스코어·지표 전부 가져올 수 있음.
  */
