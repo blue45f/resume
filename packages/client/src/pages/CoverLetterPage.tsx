@@ -13,6 +13,7 @@ import RelatedJobsWidget from '@/features/interview-prep/ui/RelatedJobsWidget';
 import { tx } from '@/lib/i18n';
 import { useResumes } from '@/hooks/useResources';
 import KoreanQualityBadge from '@/components/KoreanQualityBadge';
+import KeywordCloud from '@/components/KeywordCloud';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 
 type PageMode = 'generate' | 'feedback';
@@ -850,6 +851,14 @@ export default function CoverLetterPage() {
                   />
                   {feedbackErrors.content && (
                     <p className="text-xs text-red-500 mt-1">{feedbackErrors.content.message}</p>
+                  )}
+                  {(feedbackText || '').length >= 80 && (
+                    <div className="mt-2">
+                      <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+                        🏷️ 핵심 키워드
+                      </div>
+                      <KeywordCloud text={feedbackText || ''} topN={12} />
+                    </div>
                   )}
                 </div>
                 <div>
