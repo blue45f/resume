@@ -4615,6 +4615,12 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     category: '이력서',
     description: '수치 없는 성과 문장 검출 (문장 단위)',
   },
+  { name: 'generateStarBulletTemplate', category: '파생', description: 'STAR 포맷 bullet 템플릿' },
+  {
+    name: 'analyzePunctuationBalance',
+    category: '구조',
+    description: '문장부호 분포 (느낌표·물음표·쉼표)',
+  },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5244,6 +5250,66 @@ export function detectUnquantifiedClaims(text: string): UnquantifiedClaim[] {
     if (results.length >= 15) break;
   }
   return results;
+}
+
+/**
+ * STAR 포맷 bullet 템플릿 생성 — 스킬·경력 기반으로 "상황·과제·행동·결과" 구조의
+ * 빈 템플릿을 뽑아줌. 이력서 경력 섹션 bullet 작성에 가이드로 활용.
+ */
+export interface StarBulletTemplate {
+  skill: string;
+  template: string;
+  prompts: { situation: string; task: string; action: string; result: string };
+}
+
+export function generateStarBulletTemplate(skill: string, context?: string): StarBulletTemplate {
+  const ctx = context?.trim() || '해당 프로젝트';
+  return {
+    skill,
+    template: `[${ctx}] 상황에서 [문제/기회] 를 발견, ${skill} 를 활용해 [구체 행동] 을 수행, [수치 결과] 를 달성.`,
+    prompts: {
+      situation: `어떤 ${ctx}? (회사·팀 규모·기간)`,
+      task: `왜 해결이 필요했는가? (문제의 크기·임팩트)`,
+      action: `${skill} 로 구체적으로 무엇을 했는가? (자기가 주도한 부분)`,
+      result: '성과를 수치로 표현 (%·배수·기간·비용)',
+    },
+  };
+}
+
+/**
+ * 문장부호 분포 분석 — 마침표/쉼표/물음표/느낌표 비율. 느낌표 과다 · 쉼표 부족(짧은 문장)
+ * · 물음표 많음(확신 부족) 같은 신호를 포착.
+ */
+export interface PunctuationBalance {
+  periods: number;
+  commas: number;
+  questions: number;
+  exclamations: number;
+  total: number;
+  commasPerSentence: number;
+  suggestion: string;
+}
+
+export function analyzePunctuationBalance(text: string): PunctuationBalance {
+  const t = text ?? '';
+  const periods = (t.match(/[.。]/g) ?? []).length;
+  const commas = (t.match(/[,，]/g) ?? []).length;
+  const questions = (t.match(/[?？]/g) ?? []).length;
+  const exclamations = (t.match(/[!！]/g) ?? []).length;
+  const total = periods + commas + questions + exclamations;
+  const sentences = Math.max(1, periods + questions + exclamations);
+  const commasPerSentence = Math.round((commas / sentences) * 100) / 100;
+
+  let suggestion = '';
+  if (total === 0) suggestion = '문장부호가 감지되지 않았습니다.';
+  else if (exclamations > sentences * 0.3)
+    suggestion = `느낌표 과다 (${exclamations}/${sentences}) — 공식 문서 톤으로 줄이세요.`;
+  else if (questions > sentences * 0.2)
+    suggestion = `물음표가 많습니다 (${questions}) — 확신 있는 서술형으로 재구성.`;
+  else if (commasPerSentence < 0.3 && sentences > 5)
+    suggestion = `쉼표 사용이 적습니다 (문장당 ${commasPerSentence}) — 긴 문장에 쉼표로 호흡을 주세요.`;
+  else suggestion = `문장부호 분포 정상 (문장당 쉼표 ${commasPerSentence}).`;
+  return { periods, commas, questions, exclamations, total, commasPerSentence, suggestion };
 }
 
 function stripHtml(html: string): string {
