@@ -29,12 +29,20 @@ describe('ApplicationsController', () => {
 
   it('findAll: userId 전달', () => {
     controller.findAll(reqWith('u1'));
-    expect(mockService.findAll).toHaveBeenCalledWith('u1');
+    expect(mockService.findAll).toHaveBeenCalledWith('u1', {
+      sort: undefined,
+      status: undefined,
+      q: undefined,
+    });
   });
 
   it('findAll: 비로그인이면 undefined 전달 (service가 처리)', () => {
     controller.findAll(reqWith());
-    expect(mockService.findAll).toHaveBeenCalledWith(undefined);
+    expect(mockService.findAll).toHaveBeenCalledWith(undefined, {
+      sort: undefined,
+      status: undefined,
+      q: undefined,
+    });
   });
 
   it('getStats: userId 전달', () => {

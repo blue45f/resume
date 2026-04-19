@@ -29,19 +29,32 @@ export class CommunityService {
       ];
     }
 
+    // sort: recent | oldest | popular | views | trending
+    // trending = 최근 7일 내 + 좋아요순 (최근 인기 글)
+    const trendingCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    if (sort === 'trending') where.createdAt = { gte: trendingCutoff };
+
+    const orderBy: any = (() => {
+      const pinFirst = { isPinned: 'desc' as const };
+      switch (sort) {
+        case 'popular':
+          return [pinFirst, { likeCount: 'desc' }, { viewCount: 'desc' }];
+        case 'views':
+          return [pinFirst, { viewCount: 'desc' }, { createdAt: 'desc' }];
+        case 'trending':
+          return [pinFirst, { likeCount: 'desc' }, { viewCount: 'desc' }];
+        case 'oldest':
+          return [pinFirst, { createdAt: 'asc' }];
+        case 'recent':
+        default:
+          return [pinFirst, { createdAt: 'desc' }];
+      }
+    })();
+
     const [items, total] = await Promise.all([
       this.prisma.communityPost.findMany({
         where,
-        orderBy: [
-          { isPinned: 'desc' },
-          ...(sort === 'popular'
-            ? [{ likeCount: 'desc' as const }, { viewCount: 'desc' as const }]
-            : sort === 'views'
-              ? [{ viewCount: 'desc' as const }]
-              : sort === 'comments'
-                ? []
-                : [{ createdAt: 'desc' as const }]),
-        ],
+        orderBy,
         skip: (page - 1) * limit,
         take: limit,
         include: {

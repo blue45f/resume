@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Req } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Req, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { ApplicationsService } from './applications.service';
@@ -12,8 +12,13 @@ export class ApplicationsController {
 
   @Get()
   @ApiOperation({ summary: '지원 내역 목록' })
-  findAll(@Req() req: any) {
-    return this.service.findAll(req.user?.id);
+  findAll(
+    @Req() req: any,
+    @Query('sort') sort?: string,
+    @Query('status') status?: string,
+    @Query('q') q?: string,
+  ) {
+    return this.service.findAll(req.user?.id, { sort, status, q });
   }
 
   @Get('stats')

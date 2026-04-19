@@ -18,12 +18,39 @@ export class ApplicationsService {
     private notifications: NotificationsService,
   ) {}
 
-  async findAll(userId: string) {
-    const applications = await this.prisma.jobApplication.findMany({
-      where: { userId },
-      orderBy: { updatedAt: 'desc' },
-    });
-    return applications;
+  async findAll(
+    userId: string,
+    opts: {
+      sort?: string;
+      status?: string;
+      q?: string;
+    } = {},
+  ) {
+    const where: any = { userId };
+    if (opts.status && opts.status !== 'all') where.status = opts.status;
+    if (opts.q) {
+      where.OR = [
+        { company: { contains: opts.q, mode: 'insensitive' } },
+        { position: { contains: opts.q, mode: 'insensitive' } },
+        { notes: { contains: opts.q, mode: 'insensitive' } },
+      ];
+    }
+    const orderBy: any = (() => {
+      switch (opts.sort) {
+        case 'oldest':
+          return [{ updatedAt: 'asc' }];
+        case 'company':
+          return [{ company: 'asc' }, { updatedAt: 'desc' }];
+        case 'status':
+          return [{ status: 'asc' }, { updatedAt: 'desc' }];
+        case 'applied':
+          return [{ appliedDate: 'desc' }];
+        case 'recent':
+        default:
+          return [{ updatedAt: 'desc' }];
+      }
+    })();
+    return this.prisma.jobApplication.findMany({ where, orderBy });
   }
 
   async getStats(userId: string) {

@@ -85,6 +85,73 @@ export class ResumesService {
     return { reportCount: count, autoHidden, threshold };
   }
 
+  // ── admin: 신고 관리 ────────────────────────────────
+  async adminListReports(opts: { page?: number; limit?: number } = {}) {
+    const page = Math.max(1, opts.page ?? 1);
+    const limit = Math.min(Math.max(1, opts.limit ?? 20), 100);
+    const [items, total] = await Promise.all([
+      this.prisma.resumeReport.findMany({
+        orderBy: [{ createdAt: 'desc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          resume: {
+            select: {
+              id: true,
+              title: true,
+              reportCount: true,
+              autoHidden: true,
+              visibility: true,
+            },
+          },
+          reporter: { select: { id: true, name: true, email: true } },
+        },
+      }),
+      this.prisma.resumeReport.count(),
+    ]);
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async adminListAutoHidden() {
+    return this.prisma.resume.findMany({
+      where: { autoHidden: true },
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        id: true,
+        title: true,
+        reportCount: true,
+        visibility: true,
+        userId: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  /** admin 이 자동숨김 해제 + reportCount 리셋 */
+  async adminUnhideResume(id: string) {
+    const resume = await this.prisma.resume.findUnique({ where: { id } });
+    if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+    // 기존 신고 기록은 유지하되 resumeReport 테이블은 그대로 (감사 기록), 플래그만 해제
+    return this.prisma.resume.update({
+      where: { id },
+      data: { autoHidden: false, reportCount: 0 },
+    });
+  }
+
+  async adminDeleteReport(reportId: string) {
+    const report = await this.prisma.resumeReport.findUnique({ where: { id: reportId } });
+    if (!report) throw new NotFoundException('신고를 찾을 수 없습니다');
+    await this.prisma.resumeReport.delete({ where: { id: reportId } });
+    // reportCount 재계산
+    const count = await this.prisma.resumeReport.count({ where: { resumeId: report.resumeId } });
+    const threshold = await this.systemConfig.getReportThreshold();
+    await this.prisma.resume.update({
+      where: { id: report.resumeId },
+      data: { reportCount: count, autoHidden: count >= threshold },
+    });
+    return { success: true, newReportCount: count };
+  }
+
   /** 이력서 열람 알림 — 소유자가 다를 때만 1시간 쿨타임으로 알림 생성 */
   /**
    * viewerId가 이 resume과 연결된 CoachingSession의 코치인지 확인.

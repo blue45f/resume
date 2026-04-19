@@ -10,11 +10,13 @@ import {
   Req,
   Query,
   Res,
+  UseGuards,
   UnauthorizedException,
   NotFoundException,
   InternalServerErrorException,
   BadRequestException,
 } from '@nestjs/common';
+import { AdminGuard } from '../common/guards/admin.guard';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Public } from '../auth/auth.guard';
@@ -326,5 +328,37 @@ export class ResumesController {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     if (!skill?.trim()) throw new BadRequestException('기술명이 필요합니다');
     return this.resumesService.toggleEndorse(id, req.user.id, skill.trim());
+  }
+
+  // ── Admin: 이력서 신고 관리 ─────────────────────────
+  @Get('admin/reports')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '(admin) 이력서 신고 목록' })
+  adminListReports(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.resumesService.adminListReports({
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    });
+  }
+
+  @Get('admin/auto-hidden')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '(admin) 자동숨김 처리된 공개 이력서' })
+  adminListAutoHidden() {
+    return this.resumesService.adminListAutoHidden();
+  }
+
+  @Post('admin/:id/unhide')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '(admin) 자동숨김 해제 + reportCount 리셋' })
+  adminUnhide(@Param('id') id: string) {
+    return this.resumesService.adminUnhideResume(id);
+  }
+
+  @Delete('admin/reports/:reportId')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '(admin) 개별 신고 삭제 (잘못된 신고 기각)' })
+  adminDeleteReport(@Param('reportId') reportId: string) {
+    return this.resumesService.adminDeleteReport(reportId);
   }
 }
