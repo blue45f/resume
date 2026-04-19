@@ -15,6 +15,8 @@ import {
   suggestSynonymsForOveruse,
   estimateExperienceYears,
   detectExaggeration,
+  detectContactInfo,
+  validateDateRanges,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -268,6 +270,10 @@ function WhitespaceAndNumericRows({ text }: { text: string }) {
 function CareerAndExaggerationRows({ text }: { text: string }) {
   const exp = estimateExperienceYears(text);
   const exag = detectExaggeration(text);
+  const contact = detectContactInfo(text);
+  const invalidRanges = validateDateRanges(text);
+  const invalidContact =
+    contact.emails.filter((e) => !e.valid).length + contact.phones.filter((p) => !p.valid).length;
   return (
     <>
       {exp.ranges.length > 0 && (
@@ -278,6 +284,24 @@ function CareerAndExaggerationRows({ text }: { text: string }) {
           title="과장 표현"
           value={`${exag.count}건`}
           hint={exag.hits[0]?.phrase ?? exag.level}
+        />
+      )}
+      {(contact.emails.length > 0 || contact.phones.length > 0) && (
+        <Row
+          title="연락처"
+          value={
+            invalidContact > 0
+              ? `잘못된 ${invalidContact}건`
+              : `이메일 ${contact.emails.length} · 전화 ${contact.phones.length}`
+          }
+          hint={invalidContact > 0 ? '형식 확인' : '정상'}
+        />
+      )}
+      {invalidRanges.length > 0 && (
+        <Row
+          title="날짜 오류"
+          value={`${invalidRanges.length}건`}
+          hint={invalidRanges[0]?.raw ?? '-'}
         />
       )}
     </>
