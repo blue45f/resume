@@ -15,7 +15,7 @@ import { useResumes } from '@/hooks/useResources';
 import KoreanQualityBadge from '@/components/KoreanQualityBadge';
 import KeywordCloud from '@/components/KeywordCloud';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
-import { computeJDMatch } from '@/lib/koreanChecker';
+import { computeJDMatch, detectSkillMentions } from '@/lib/koreanChecker';
 
 type PageMode = 'generate' | 'feedback';
 
@@ -860,6 +860,7 @@ export default function CoverLetterPage() {
                         🏷️ 핵심 키워드
                       </div>
                       <KeywordCloud text={feedbackText || ''} topN={12} />
+                      <SkillMentionsBar text={feedbackText || ''} />
                     </div>
                   )}
                 </div>
@@ -1071,6 +1072,30 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
 }
 
 // KoreanQualityBadge 는 @/components/KoreanQualityBadge 로 추출되어 공용화됨.
+
+function SkillMentionsBar({ text }: { text: string }) {
+  const skills = detectSkillMentions(text, 10);
+  if (skills.length === 0) return null;
+  return (
+    <div className="mt-3">
+      <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+        🛠️ 언급된 기술 스킬
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {skills.map((s) => (
+          <span
+            key={s.skill}
+            className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-900/40"
+            title={`${s.skill} — ${s.count}회 언급`}
+          >
+            {s.skill}
+            <span className="text-[9px] text-blue-400 dark:text-blue-500">×{s.count}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function JDMatchBadge({ resumeText, jdText }: { resumeText: string; jdText: string }) {
   const match = computeJDMatch(resumeText, jdText, 25);
