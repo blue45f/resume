@@ -12,6 +12,10 @@ export interface KoreanIssue {
   severity: 'error' | 'warning' | 'info';
   /** 어느 섹션에서 발견? */
   section: string;
+  /** 섹션 텍스트 내 매치 시작 위치 (UI 하이라이트용) */
+  offset: number;
+  /** 매치 길이 */
+  length: number;
 }
 
 export interface KoreanCheckResult {
@@ -24,6 +28,13 @@ export interface KoreanCheckResult {
   };
   /** 전체 문장 수 */
   totalSentences: number;
+  /** 심각도별 요약 카운트 */
+  summary: { error: number; warning: number; info: number };
+  /**
+   * 0~100 품질 점수 — error=−8, warning=−3, info=−1, 문체혼용 -5, 소수점 반올림.
+   * 섹션 분량(전체 문자 수) 을 고려해 밀도 기반 penalty 적용.
+   */
+  score: number;
 }
 
 /**
@@ -559,6 +570,7 @@ export function checkKorean(resume: Resume): KoreanCheckResult {
   let formalCount = 0;
   let politeCount = 0;
   let totalSentences = 0;
+  let totalChars = 0;
 
   const sections: Array<{ name: string; text: string }> = [
     { name: '자기소개', text: resume.personalInfo.summary || '' },
@@ -574,12 +586,14 @@ export function checkKorean(resume: Resume): KoreanCheckResult {
 
   for (const { name, text } of sections) {
     if (!text) continue;
+    totalChars += text.length;
 
     // 맞춤법 검사
     for (const rule of RULES) {
       const matches = text.matchAll(rule.pattern);
       for (const m of matches) {
         const idx = m.index ?? 0;
+        const matchLength = m[0].length;
         const context = text.slice(Math.max(0, idx - 15), Math.min(text.length, idx + 20));
         issues.push({
           context: cleanContext(context),
@@ -588,6 +602,8 @@ export function checkKorean(resume: Resume): KoreanCheckResult {
           reason: rule.reason,
           severity: rule.severity,
           section: name,
+          offset: idx,
+          length: matchLength,
         });
       }
     }
@@ -619,13 +635,22 @@ export function checkKorean(resume: Resume): KoreanCheckResult {
       reason: '이력서는 보통 "합니다체"로 통일합니다. 해요체와 섞이면 비전문적으로 읽힙니다.',
       severity: 'warning',
       section: '전체',
+      offset: 0,
+      length: 0,
     });
   }
+
+  // 심각도 요약 + 점수 계산
+  const summary = { error: 0, warning: 0, info: 0 };
+  for (const iss of issues) summary[iss.severity]++;
+  const score = computeScore(summary, totalChars, dominant === 'mixed');
 
   return {
     issues,
     toneMix: { formal: formalCount, polite: politeCount, dominant },
     totalSentences,
+    summary,
+    score,
   };
 }
 
@@ -658,6 +683,24 @@ export function autoFixText(
 /** 제안 문자열이 힌트/설명인지 (→·괄호·"권장"·"구체" 등 포함) — 자동치환 금지 */
 function isHintSuggestion(s: string): boolean {
   return /[→(/]|권장|구체|이내|\s등\s|문맥/.test(s);
+}
+
+/**
+ * 품질 점수 계산 — 분량(totalChars)을 고려한 밀도 기반 penalty.
+ * - 기본 100점
+ * - error=−8, warning=−3, info=−1
+ * - 문체 혼용 추가 −5
+ * - 1000자당 penalty 상한 25 적용 (짧은 글에서도 과도하지 않도록)
+ */
+function computeScore(
+  summary: { error: number; warning: number; info: number },
+  totalChars: number,
+  toneMixed: boolean,
+): number {
+  const raw = summary.error * 8 + summary.warning * 3 + summary.info + (toneMixed ? 5 : 0);
+  const cap = Math.max(10, Math.min(100, Math.round((totalChars / 1000) * 25 + 25)));
+  const penalty = Math.min(raw, cap);
+  return Math.max(0, Math.min(100, 100 - penalty));
 }
 
 /** 외부 확장 (테스트·진단용) — 현재 등록된 규칙 수 */
