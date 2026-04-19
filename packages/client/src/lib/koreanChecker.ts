@@ -3912,6 +3912,124 @@ export function scoreResumeCompleteness(text: string): ResumeCompletenessScore {
   return { overall, breakdown, suggestion };
 }
 
+/**
+ * 민감정보(PII) 검출 — 주민등록번호/카드번호/생년월일(YYYYMMDD)/상세 주소처럼
+ * 공개 이력서에 노출되면 위험한 항목. PIPA 준수 + 구직자 개인정보 보호 관점.
+ */
+export interface PiiHit {
+  type: 'rrn' | 'card' | 'birthYmd' | 'address' | 'zipcode';
+  sample: string;
+  index: number;
+  reason: string;
+}
+export interface PiiAnalysis {
+  hits: PiiHit[];
+  count: number;
+  severity: 'none' | 'warning' | 'critical';
+  suggestion: string;
+}
+
+export function detectPersonalInfo(text: string): PiiAnalysis {
+  const t = text ?? '';
+  const hits: PiiHit[] = [];
+  // 주민등록번호 YYMMDD-XXXXXXX
+  const rrnRe = /\b\d{6}[-\s]?[1-4]\d{6}\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = rrnRe.exec(t))) {
+    hits.push({
+      type: 'rrn',
+      sample: m[0].slice(0, 6) + '-*******',
+      index: m.index,
+      reason: '주민등록번호는 절대 이력서에 포함하지 마세요.',
+    });
+  }
+  // 카드번호 (4-4-4-4)
+  const cardRe = /\b\d{4}[-\s]\d{4}[-\s]\d{4}[-\s]\d{4}\b/g;
+  while ((m = cardRe.exec(t))) {
+    hits.push({
+      type: 'card',
+      sample: '****-****-****-' + m[0].slice(-4),
+      index: m.index,
+      reason: '신용카드 번호로 추정 — 즉시 제거하세요.',
+    });
+  }
+  // 생년월일 YYYYMMDD (1920~2015 범위)
+  const birthRe = /\b(19[2-9]\d|20[01]\d)(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\b/g;
+  while ((m = birthRe.exec(t))) {
+    hits.push({
+      type: 'birthYmd',
+      sample: m[0].slice(0, 4) + '****',
+      index: m.index,
+      reason: '생년월일(YYYYMMDD)은 개인정보 — 연도만 표기 권장.',
+    });
+  }
+  // 상세 주소 — 동/읍/면 + 번지
+  const addrRe = /[가-힣]{1,10}(?:동|읍|면)\s?\d+(?:-\d+)?(?:번지)?/g;
+  while ((m = addrRe.exec(t))) {
+    hits.push({
+      type: 'address',
+      sample: m[0],
+      index: m.index,
+      reason: '상세 주소 — 이력서에는 시/구 정도만 표기 권장.',
+    });
+  }
+  // 우편번호 5자리
+  const zipRe = /\b\d{5}\b(?=[\s,.])/g;
+  while ((m = zipRe.exec(t))) {
+    hits.push({
+      type: 'zipcode',
+      sample: m[0],
+      index: m.index,
+      reason: '우편번호가 감지되었습니다 — 필요한지 검토.',
+    });
+  }
+  hits.sort((a, b) => a.index - b.index);
+  const count = hits.length;
+  const hasCritical = hits.some((h) => h.type === 'rrn' || h.type === 'card');
+  const severity: PiiAnalysis['severity'] =
+    count === 0 ? 'none' : hasCritical ? 'critical' : 'warning';
+  const suggestion =
+    severity === 'none'
+      ? '민감정보가 감지되지 않았습니다.'
+      : severity === 'critical'
+        ? `⚠️ 주민번호·카드번호 등 고위험 정보 ${count}건 — 즉시 제거하세요.`
+        : `주의 — 개인정보 ${count}건 (${[...new Set(hits.map((h) => h.type))].join(', ')}) 감지. 꼭 필요한지 검토하세요.`;
+  return { hits: hits.slice(0, 20), count, severity, suggestion };
+}
+
+/**
+ * 한국어 본문 내 영어 혼재 비율 — 불필요한 영어 삽입(카더라체/버즈워드) 과잉을 포착.
+ * 한글 vs 영문 토큰 비율로 평가. 기술·전문 용어는 제외(detectSkillMentions 이 걸러줌).
+ */
+export interface EnglishMixAnalysis {
+  koreanChars: number;
+  englishChars: number;
+  englishRatio: number; // 0~1
+  level: 'low' | 'medium' | 'high';
+  suggestion: string;
+}
+
+export function analyzeEnglishMix(text: string): EnglishMixAnalysis {
+  const t = text ?? '';
+  const koreanChars = (t.match(/[가-힣]/g) ?? []).length;
+  const englishChars = (t.match(/[A-Za-z]/g) ?? []).length;
+  const total = koreanChars + englishChars;
+  const englishRatio = total === 0 ? 0 : Math.round((englishChars / total) * 1000) / 1000;
+  let level: EnglishMixAnalysis['level'];
+  if (englishRatio < 0.1) level = 'low';
+  else if (englishRatio < 0.25) level = 'medium';
+  else level = 'high';
+  const suggestion =
+    total === 0
+      ? '분석할 본문이 없습니다.'
+      : level === 'low'
+        ? '한국어 중심 문체입니다.'
+        : level === 'medium'
+          ? `영문 비율 ${Math.round(englishRatio * 100)}% — 기술 용어 외 일반 어휘는 한국어로 표현할 수 있는지 검토.`
+          : `영문 비율이 ${Math.round(englishRatio * 100)}% 로 높습니다. 한국어로 대체 가능한 표현을 우선 사용하세요.`;
+  return { koreanChars, englishChars, englishRatio, level, suggestion };
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
