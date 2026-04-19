@@ -15,6 +15,7 @@ import { useResumes } from '@/hooks/useResources';
 import KoreanQualityBadge from '@/components/KoreanQualityBadge';
 import KeywordCloud from '@/components/KeywordCloud';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
+import { computeJDMatch } from '@/lib/koreanChecker';
 
 type PageMode = 'generate' | 'feedback';
 
@@ -297,6 +298,7 @@ export default function CoverLetterPage() {
     defaultValues: { content: '', jobDescription: '' },
   });
   const feedbackText = watchFeedback('content');
+  const feedbackJd = watchFeedback('jobDescription');
 
   useEffect(() => {
     document.title = '자기소개서 — 이력서공방';
@@ -879,6 +881,9 @@ export default function CoverLetterPage() {
                       {feedbackErrors.jobDescription.message}
                     </p>
                   )}
+                  {(feedbackText || '').length >= 100 && (feedbackJd || '').length >= 80 && (
+                    <JDMatchBadge resumeText={feedbackText || ''} jdText={feedbackJd || ''} />
+                  )}
                 </div>
                 <button
                   type="submit"
@@ -1066,3 +1071,56 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
 }
 
 // KoreanQualityBadge 는 @/components/KoreanQualityBadge 로 추출되어 공용화됨.
+
+function JDMatchBadge({ resumeText, jdText }: { resumeText: string; jdText: string }) {
+  const match = computeJDMatch(resumeText, jdText, 25);
+  const tone =
+    match.score >= 75
+      ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-200'
+      : match.score >= 50
+        ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-200'
+        : 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200';
+  return (
+    <div className={`mt-2 p-3 rounded-lg border text-[12px] leading-relaxed ${tone}`}>
+      <div className="flex items-baseline justify-between mb-1.5">
+        <span className="font-semibold">🎯 JD 적합도</span>
+        <span className="text-[14px] font-bold">{match.score}%</span>
+      </div>
+      <p className="text-[11px] opacity-90 mb-2">{match.suggestion}</p>
+      {match.missing.length > 0 && (
+        <div>
+          <div className="text-[10px] font-medium opacity-80 mb-1">
+            🔴 이력서에 누락된 JD 키워드
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {match.missing.slice(0, 8).map((w) => (
+              <span
+                key={w}
+                className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/60 dark:bg-slate-800/60 border border-current/20"
+              >
+                {w}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {match.matched.length > 0 && (
+        <div className="mt-2">
+          <div className="text-[10px] font-medium opacity-80 mb-1">
+            🟢 공통 키워드 ({match.matched.length})
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {match.matched.slice(0, 8).map((w) => (
+              <span
+                key={w}
+                className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/60 dark:bg-slate-800/60 border border-current/20"
+              >
+                {w}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
