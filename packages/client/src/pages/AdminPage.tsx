@@ -9,6 +9,7 @@ import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { PLANS } from '@/lib/plans';
 import { API_URL } from '@/lib/config';
+import { tx } from '@/lib/i18n';
 import AdminPostsTab from '@/features/admin/ui/AdminPostsTab';
 import AdminStudyGroupsTab from '@/features/admin/ui/AdminStudyGroupsTab';
 import AdminInterviewQuestionsTab from '@/features/admin/ui/AdminInterviewQuestionsTab';
@@ -181,7 +182,7 @@ export default function AdminPage() {
       >
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-            관리자 대시보드
+            {tx('nav.admin')} · {tx('admin.dashboard')}
           </h1>
           <div className="flex items-center gap-2">
             {isSuperAdmin && (
