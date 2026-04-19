@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useRecentViews } from '@/features/recent-views/model/useRecentViews';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 
 export default function NotFoundPage() {
   const { views: recentViews } = useRecentViews();
@@ -40,19 +41,19 @@ export default function NotFoundPage() {
             </div>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
-            페이지를 찾을 수 없습니다
+            {tx('notFound.title')}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
-            요청하신 페이지가 존재하지 않거나 이동되었습니다.
+            {tx('notFound.description')}
             <br className="hidden sm:block" />
-            주소를 확인하거나 아래 링크를 이용해 주세요.
+            {tx('notFound.descriptionHint')}
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link
               to={ROUTES.home}
               className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md shadow-blue-500/20"
             >
-              홈으로
+              {tx('notFound.goHome')}
             </Link>
             <Link
               to={ROUTES.resume.explore}
@@ -63,7 +64,9 @@ export default function NotFoundPage() {
           </div>
           {recentViews.length > 0 && (
             <div className="mt-8 max-w-md animate-fade-in">
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">최근 본 이력서</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
+                {tx('notFound.recentlyViewed')}
+              </p>
               <div className="flex flex-wrap justify-center gap-2">
                 {recentViews.slice(0, 4).map((v) => (
                   <Link

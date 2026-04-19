@@ -393,6 +393,13 @@
     "title": "サイトマップ",
     "subtitle": "履歴書工房のすべてのページを一覧で確認できます"
   },
+  "notFound": {
+    "title": "ページが見つかりません",
+    "description": "お探しのページは存在しないか、移動されました。",
+    "descriptionHint": "URLをご確認いただくか、以下のリンクをご利用ください。",
+    "goHome": "ホームへ",
+    "recentlyViewed": "最近閲覧した履歴書"
+  },
   "plans": {
     "free": {
       "name": "無料",

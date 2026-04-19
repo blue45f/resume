@@ -493,6 +493,13 @@
     "title": "Sitemap",
     "subtitle": "Browse all pages in Resume Workshop at a glance"
   },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The requested page does not exist or has been moved.",
+    "descriptionHint": "Please check the URL or use one of the links below.",
+    "goHome": "Go home",
+    "recentlyViewed": "Recently viewed"
+  },
   "plans": {
     "free": {
       "name": "Free",
