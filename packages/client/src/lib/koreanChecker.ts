@@ -4030,6 +4030,108 @@ export function analyzeEnglishMix(text: string): EnglishMixAnalysis {
   return { koreanChars, englishChars, englishRatio, level, suggestion };
 }
 
+/**
+ * 감성 분석 — 본문의 긍정/부정 어휘 비율로 전반적 어조(tone) 추정. 이력서·자소서는
+ * 일반적으로 긍정 우세가 자연스럽지만, 과잉 긍정은 경계 신호.
+ */
+const POSITIVE_WORDS = [
+  '성장',
+  '성공',
+  '달성',
+  '우수',
+  '탁월',
+  '도전',
+  '열정',
+  '성실',
+  '책임',
+  '기여',
+  '협력',
+  '극복',
+  '개선',
+  '혁신',
+  '효율',
+  '최적화',
+  '성과',
+  '경험',
+  '배움',
+  '자신감',
+  '즐거움',
+  '보람',
+  '만족',
+  '감사',
+];
+const NEGATIVE_WORDS = [
+  '실패',
+  '어려움',
+  '힘들',
+  '부족',
+  '한계',
+  '좌절',
+  '후회',
+  '아쉬움',
+  '고민',
+  '스트레스',
+  '불안',
+  '걱정',
+  '고민',
+  '갈등',
+  '위기',
+  '문제점',
+  '약점',
+  '단점',
+  '실수',
+];
+
+export interface SentimentAnalysis {
+  positiveCount: number;
+  negativeCount: number;
+  ratio: number; // positive / (pos + neg), 0~1
+  tone: 'positive' | 'balanced' | 'negative' | 'none';
+  suggestion: string;
+}
+
+export function analyzeSentiment(text: string): SentimentAnalysis {
+  const t = text ?? '';
+  let positiveCount = 0;
+  let negativeCount = 0;
+  for (const w of POSITIVE_WORDS) {
+    positiveCount += (t.match(new RegExp(w, 'g')) ?? []).length;
+  }
+  for (const w of NEGATIVE_WORDS) {
+    negativeCount += (t.match(new RegExp(w, 'g')) ?? []).length;
+  }
+  const total = positiveCount + negativeCount;
+  const ratio = total === 0 ? 0.5 : Math.round((positiveCount / total) * 100) / 100;
+  let tone: SentimentAnalysis['tone'];
+  if (total === 0) tone = 'none';
+  else if (ratio >= 0.75) tone = 'positive';
+  else if (ratio >= 0.4) tone = 'balanced';
+  else tone = 'negative';
+  const suggestion =
+    tone === 'none'
+      ? '감성 어휘가 감지되지 않았습니다.'
+      : tone === 'positive'
+        ? ratio >= 0.95
+          ? `과잉 긍정(${Math.round(ratio * 100)}%) — 도전·실패 경험도 녹여 내면 신뢰도 상승.`
+          : `긍정 어조 (${Math.round(ratio * 100)}%) — 자연스러운 이력서 톤.`
+        : tone === 'balanced'
+          ? '긍정·부정 균형. 도전 극복 서사가 드러나면 효과적.'
+          : `부정 어조 비율이 높습니다 (부정 ${Math.round((1 - ratio) * 100)}%) — 극복·배움 위주로 재구성.`;
+  return { positiveCount, negativeCount, ratio, tone, suggestion };
+}
+
+/**
+ * 키워드 → 해시태그 생성. 포트폴리오 공유용 추천 태그 생성. extractKeywords 를
+ * 재사용하되 1자 초과 + 한글/영문 제한 + '#' prefix.
+ */
+export function generateHashtags(text: string, topN = 8): string[] {
+  const kws = extractKeywords(text, topN * 2);
+  return kws
+    .filter((k) => k.word.length >= 2 && /^[가-힣A-Za-z0-9]+$/.test(k.word))
+    .slice(0, topN)
+    .map((k) => `#${k.word}`);
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
