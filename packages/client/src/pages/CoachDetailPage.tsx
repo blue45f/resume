@@ -9,6 +9,7 @@ import { bookCoachingSession, type CoachProfile } from '@/lib/api';
 import { useCoach, useResumes } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 import {
   bookingSchema,
   type BookingFormInput,
@@ -225,17 +226,25 @@ export default function CoachDetailPage() {
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-5 border-t border-slate-100 dark:border-slate-700/60">
                 <Stat
-                  label="시급"
+                  label={tx('coach.hourlyRate')}
                   value={`${(coach.hourlyRate || 0).toLocaleString()}원`}
                   tone="rose"
                 />
                 <Stat
-                  label="평점"
+                  label={tx('coach.rating')}
                   value={coach.avgRating > 0 ? coach.avgRating.toFixed(1) : '—'}
                   tone="amber"
                 />
-                <Stat label="세션" value={`${coach.totalSessions || 0}회`} tone="blue" />
-                <Stat label="경력" value={`${coach.yearsExp || 0}년`} tone="emerald" />
+                <Stat
+                  label={tx('coach.sessions')}
+                  value={`${coach.totalSessions || 0}`}
+                  tone="blue"
+                />
+                <Stat
+                  label={tx('coach.yearsExp')}
+                  value={`${coach.yearsExp || 0}`}
+                  tone="emerald"
+                />
               </div>
             </div>
 
