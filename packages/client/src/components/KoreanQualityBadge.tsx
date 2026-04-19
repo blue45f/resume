@@ -28,6 +28,7 @@ import {
   analyzeActivityChronology,
   detectSoftSkills,
   analyzeBulletMarkerConsistency,
+  analyzePunctuationBalance,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -442,7 +443,33 @@ function SpecificityAndChronologyRows({ text }: { text: string }) {
             .join(' ')}
         />
       )}
+      <PunctuationRow text={text} />
     </>
+  );
+}
+
+function PunctuationRow({ text }: { text: string }) {
+  const p = analyzePunctuationBalance(text);
+  // 느낌표/물음표 과다, 쉼표 부족 케이스에서만 표시
+  const sentences = p.periods + p.questions + p.exclamations;
+  const hasIssue =
+    sentences > 5 &&
+    (p.exclamations > sentences * 0.3 ||
+      p.questions > sentences * 0.2 ||
+      p.commasPerSentence < 0.3);
+  if (!hasIssue) return null;
+  return (
+    <Row
+      title="문장부호"
+      value={
+        p.exclamations > sentences * 0.3
+          ? '느낌표 과다'
+          : p.questions > sentences * 0.2
+            ? '물음표 과다'
+            : '쉼표 부족'
+      }
+      hint={`. ${p.periods} · , ${p.commas} · ? ${p.questions} · ! ${p.exclamations}`}
+    />
   );
 }
 
