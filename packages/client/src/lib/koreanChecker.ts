@@ -4510,6 +4510,88 @@ export function analyzeBulletMarkerConsistency(text: string): BulletMarkerAnalys
   return { markers, distinct, dominant, consistent, suggestion };
 }
 
+/**
+ * 분석기 카탈로그 — 모든 public 분석기의 메타데이터 (이름/카테고리/설명).
+ * UI 에서 "사용 가능한 분석기 목록" 도움말 노출, 혹은 LLM 기능 호출 디스커버리에 활용.
+ */
+export interface AnalyzerInfo {
+  name: string;
+  category: '문체' | '이력서' | '메타' | '구조' | '보안' | '파생';
+  description: string;
+}
+
+export const ANALYZERS: readonly AnalyzerInfo[] = [
+  // 문체
+  { name: 'checkText', category: '문체', description: '맞춤법·어법 오류 검출' },
+  {
+    name: 'analyzeReadability',
+    category: '문체',
+    description: '가독성 (문장 길이·단어 길이 기반)',
+  },
+  { name: 'analyzeLexicalDiversity', category: '문체', description: '어휘 다양성 (TTR)' },
+  { name: 'analyzeSentenceEndings', category: '문체', description: '종결어미 변주' },
+  { name: 'analyzeRedundancy', category: '문체', description: '근접 반복어' },
+  { name: 'detectRepeatedPhrases', category: '문체', description: '반복 N-gram' },
+  { name: 'analyzePassiveVoice', category: '문체', description: '수동태 비율' },
+  { name: 'analyzeParallelism', category: '문체', description: 'bullet 평행구조' },
+  { name: 'analyzeSentenceStarts', category: '문체', description: '문장 시작 변주' },
+  { name: 'analyzeFirstPersonUsage', category: '문체', description: '1인칭 대명사 비율' },
+  { name: 'analyzeSentiment', category: '문체', description: '긍정/부정 어조' },
+  { name: 'analyzeEnglishMix', category: '문체', description: '한영 혼재 비율' },
+  { name: 'detectCliches', category: '문체', description: '상투구 검출' },
+  { name: 'detectInformalLanguage', category: '문체', description: '비격식 표현' },
+  { name: 'detectExaggeration', category: '문체', description: '과장 표현' },
+  { name: 'detectJargon', category: '문체', description: '자곤/버즈워드' },
+  { name: 'detectDuplicateSentences', category: '문체', description: '중복 문장' },
+  { name: 'suggestSynonymsForOveruse', category: '문체', description: '남용 단어 + 동의어' },
+  { name: 'suggestVerbReplacements', category: '문체', description: '약한 동사 → 강한 동사' },
+  // 이력서 신호
+  { name: 'analyzeQuantification', category: '이력서', description: '정량 지표 밀도' },
+  { name: 'analyzeActionVerbs', category: '이력서', description: '강/약 동사 비율' },
+  { name: 'detectSkillMentions', category: '이력서', description: '기술 스킬 빈도' },
+  { name: 'detectSoftSkills', category: '이력서', description: '소프트 스킬 감지' },
+  {
+    name: 'detectInconsistentCasing',
+    category: '이력서',
+    description: '기술 용어 대소문자 일관성',
+  },
+  { name: 'estimateExperienceYears', category: '이력서', description: '총 경력 년수' },
+  { name: 'estimateJobLevel', category: '이력서', description: '주니어/미드/시니어/리드' },
+  { name: 'scoreSpecificity', category: '이력서', description: '구체성 점수' },
+  { name: 'scoreResumeCompleteness', category: '이력서', description: '이력서 완성도' },
+  { name: 'detectMissingResumeSections', category: '이력서', description: '누락 섹션' },
+  { name: 'analyzeActivityChronology', category: '이력서', description: '시간순 정렬' },
+  { name: 'generateInterviewQuestions', category: '이력서', description: '예상 면접 질문' },
+  // 메타
+  { name: 'estimateReadingTime', category: '메타', description: '예상 읽기 시간' },
+  { name: 'analyzeLength', category: '메타', description: '길이·자수 분석' },
+  { name: 'analyzeParagraphs', category: '메타', description: '문단 구성' },
+  { name: 'extractKeywords', category: '메타', description: '핵심 키워드 추출' },
+  { name: 'generateHashtags', category: '메타', description: '해시태그 생성' },
+  { name: 'extractLinks', category: '메타', description: '외부 링크 추출' },
+  { name: 'detectContactInfo', category: '메타', description: '이메일/전화 추출 및 검증' },
+  // 구조
+  { name: 'analyzeBulletMarkerConsistency', category: '구조', description: 'bullet 기호 일관성' },
+  { name: 'analyzeDateConsistency', category: '구조', description: '날짜 포맷 일관성' },
+  { name: 'validateDateRanges', category: '구조', description: '날짜 범위 유효성' },
+  { name: 'analyzeNumericFormat', category: '구조', description: '숫자 포맷 일관성' },
+  { name: 'detectWhitespaceAnomalies', category: '구조', description: '공백 이상' },
+  { name: 'analyzeBracketBalance', category: '구조', description: '괄호 균형' },
+  // 보안
+  { name: 'detectPersonalInfo', category: '보안', description: 'PII 검출 (주민·카드·주소)' },
+  // 파생 (집계/비교/출력)
+  { name: 'generateQualityReport', category: '파생', description: '12개 문체 지표 통합 리포트' },
+  { name: 'prioritizeImprovements', category: '파생', description: '개선 우선순위 TOP-K' },
+  { name: 'compareReports', category: '파생', description: 'Before/After 리포트 비교' },
+  { name: 'applySafeAutoFix', category: '파생', description: '자동수정 + 전후 비교' },
+  { name: 'computeJDMatch', category: '파생', description: '이력서 ↔ JD 키워드 매칭' },
+  { name: 'exportQualityReportMarkdown', category: '파생', description: 'Markdown 리포트' },
+  { name: 'exportQualityReportJson', category: '파생', description: 'JSON 리포트' },
+  { name: 'gradeFromScore', category: '파생', description: '점수 → A+/A/B+/B/C/D/F 등급' },
+  { name: 'getDimensionScores', category: '파생', description: '12 차원별 점수 배열' },
+  { name: 'explainWrongWord', category: '파생', description: '단어별 규칙 설명 조회' },
+] as const;
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
