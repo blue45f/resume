@@ -19,6 +19,18 @@ export class SystemConfigController {
     return this.service.getUploadSettings();
   }
 
+  @Get('feature-toggles')
+  @Public()
+  getFeatureToggles() {
+    return this.service.getAllFeatureToggles();
+  }
+
+  @Patch('feature-toggles')
+  @UseGuards(AdminGuard)
+  setFeatureToggles(@Body() body: Record<string, boolean>) {
+    return this.service.setFeatureToggles(body);
+  }
+
   @Get('content/:key')
   @Public()
   async getContent(@Req() req: any, @Body() body: any) {

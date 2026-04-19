@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Param, Body, Req, Sse, MessageEvent } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Body,
+  Req,
+  Sse,
+  MessageEvent,
+  ForbiddenException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Observable } from 'rxjs';
@@ -7,6 +17,7 @@ import { TransformResumeDto } from './dto/transform-resume.dto';
 import { FeedbackDto, JobMatchDto, InterviewDto, InlineAssistDto } from './dto/analysis.dto';
 import { EnhanceWithDocumentDto } from './dto/auto-generate.dto';
 import { UsageService } from '../health/usage.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 @ApiTags('llm')
 @Controller('resumes/:resumeId/transform')
@@ -14,7 +25,14 @@ export class LlmController {
   constructor(
     private readonly llmService: LlmService,
     private readonly usageService: UsageService,
+    private readonly config: SystemConfigService,
   ) {}
+
+  private async assertAiEnabled(name: string) {
+    if (!(await this.config.isFeatureEnabled(name))) {
+      throw new ForbiddenException('AI 기능이 관리자에 의해 일시 중단되었습니다');
+    }
+  }
 
   @Post()
   @ApiOperation({ summary: 'LLM으로 이력서 양식 변환' })
@@ -24,6 +42,7 @@ export class LlmController {
     @Body() dto: TransformResumeDto,
     @Req() req: any,
   ) {
+    await this.assertAiEnabled('ai.resume');
     if (req.user?.id) {
       await this.usageService.checkAndLog(req.user.id, 'ai_transform');
     }

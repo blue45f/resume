@@ -51,6 +51,67 @@ export class SystemConfigService {
     return Object.fromEntries(configs.map((c) => [c.key, c.value]));
   }
 
+  // ── 기능 토글 (feature.X.enabled) ─────────────────────────────
+  /** admin 이 on/off 가능한 기능 이름 목록 — 확장 시 여기에 추가 */
+  static readonly FEATURE_TOGGLES = [
+    'ai.resume', // AI 이력서 변환/생성
+    'ai.coverLetter', // AI 커버레터
+    'ai.oneLiner', // AI 한줄소개
+    'coaching', // 코칭 예약·세션 생성
+    'messaging', // 1:1 메시지 전송
+    'studyGroup.create', // 스터디 그룹 신규 생성
+    'studyGroup.reactions', // 이모지 리액션
+    'community.create', // 커뮤니티 게시물 작성
+    'community.comment', // 커뮤니티 댓글 작성
+    'publicResume', // 공개 이력서 기능
+  ] as const;
+
+  static readonly FEATURE_DEFAULTS: Record<string, boolean> = {
+    'ai.resume': true,
+    'ai.coverLetter': true,
+    'ai.oneLiner': true,
+    coaching: true,
+    messaging: true,
+    'studyGroup.create': true,
+    'studyGroup.reactions': true,
+    'community.create': true,
+    'community.comment': true,
+    publicResume: true,
+  };
+
+  private featureKey(name: string): string {
+    return `feature.${name}.enabled`;
+  }
+
+  async isFeatureEnabled(name: string): Promise<boolean> {
+    const def = SystemConfigService.FEATURE_DEFAULTS[name] ?? true;
+    return this.getBoolean(this.featureKey(name), def);
+  }
+
+  async assertFeatureEnabled(name: string, errorMsg?: string): Promise<void> {
+    if (!(await this.isFeatureEnabled(name))) {
+      throw new Error(errorMsg || `'${name}' 기능이 관리자에 의해 비활성화되었습니다`);
+    }
+  }
+
+  async getAllFeatureToggles(): Promise<Record<string, boolean>> {
+    const entries = await Promise.all(
+      SystemConfigService.FEATURE_TOGGLES.map(
+        async (name) => [name, await this.isFeatureEnabled(name)] as const,
+      ),
+    );
+    return Object.fromEntries(entries);
+  }
+
+  async setFeatureToggles(toggles: Record<string, boolean>): Promise<Record<string, boolean>> {
+    const validKeys = new Set(SystemConfigService.FEATURE_TOGGLES as readonly string[]);
+    const configs = Object.entries(toggles)
+      .filter(([k]) => validKeys.has(k))
+      .map(([key, value]) => ({ key: this.featureKey(key), value: String(!!value) }));
+    if (configs.length > 0) await this.setMany(configs);
+    return this.getAllFeatureToggles();
+  }
+
   // ── 파일 업로드 설정 (전역 토글) ─────────────────────────────
   /** 파일 업로드 기능 활성화 여부 — admin이 /admin/system-config 에서 토글 */
   static readonly UPLOAD_KEY_ENABLED = 'feature.fileUpload.enabled';

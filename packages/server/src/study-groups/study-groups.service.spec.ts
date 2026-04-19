@@ -7,6 +7,12 @@ import {
 } from '@nestjs/common';
 import { StudyGroupsService } from './study-groups.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SystemConfigService } from '../system-config/system-config.service';
+
+const mockConfig = {
+  isFeatureEnabled: jest.fn().mockResolvedValue(true),
+  assertFeatureEnabled: jest.fn().mockResolvedValue(undefined),
+};
 
 const mockPrisma: any = {
   studyGroup: {
@@ -37,7 +43,11 @@ describe('StudyGroupsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [StudyGroupsService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        StudyGroupsService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: SystemConfigService, useValue: mockConfig },
+      ],
     }).compile();
     service = module.get(StudyGroupsService);
     jest.clearAllMocks();

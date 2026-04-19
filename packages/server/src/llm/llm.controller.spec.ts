@@ -2,6 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LlmController } from './llm.controller';
 import { LlmService } from './llm.service';
 import { UsageService } from '../health/usage.service';
+import { SystemConfigService } from '../system-config/system-config.service';
+
+const mockConfig = {
+  isFeatureEnabled: jest.fn().mockResolvedValue(true),
+};
 
 const mockLlm = {
   transform: jest.fn(),
@@ -28,6 +33,7 @@ describe('LlmController', () => {
       providers: [
         { provide: LlmService, useValue: mockLlm },
         { provide: UsageService, useValue: mockUsage },
+        { provide: SystemConfigService, useValue: mockConfig },
       ],
     }).compile();
     controller = module.get(LlmController);

@@ -6,6 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 export interface StudyGroupListFilters {
   q?: string;
@@ -50,7 +51,10 @@ export interface CreateStudyGroupQuestionDto {
 
 @Injectable()
 export class StudyGroupsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private config: SystemConfigService,
+  ) {}
 
   async findAll(filters: StudyGroupListFilters) {
     const page = filters.page && filters.page > 0 ? filters.page : 1;
@@ -155,6 +159,9 @@ export class StudyGroupsService {
   }
 
   async create(userId: string, data: CreateStudyGroupDto) {
+    if (!(await this.config.isFeatureEnabled('studyGroup.create'))) {
+      throw new ForbiddenException('스터디 그룹 생성이 관리자에 의해 일시 중단되었습니다');
+    }
     if (!data.name || data.name.trim().length === 0) {
       throw new BadRequestException('그룹 이름을 입력하세요');
     }
@@ -613,6 +620,9 @@ export class StudyGroupsService {
   private static readonly ALLOWED_EMOJIS = ['👍', '❤️', '🔥', '👏', '🎉', '🤔'];
 
   async toggleReaction(postId: string, userId: string, emoji: string) {
+    if (!(await this.config.isFeatureEnabled('studyGroup.reactions'))) {
+      throw new ForbiddenException('리액션 기능이 관리자에 의해 일시 중단되었습니다');
+    }
     if (!StudyGroupsService.ALLOWED_EMOJIS.includes(emoji)) {
       throw new BadRequestException('지원하지 않는 이모지입니다');
     }
