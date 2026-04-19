@@ -3574,6 +3574,150 @@ export function analyzeFirstPersonUsage(text: string): FirstPersonAnalysis {
   return { counts, total, per100Chars, level, suggestion };
 }
 
+/**
+ * 경력 연도 범위 추출 — "2020.01 ~ 2023.12", "2020년 1월 ~ 2023년 12월", "2020 - 2023"
+ * 같은 기간 표기를 찾아 총 경력 개월 수·년수로 환산.
+ */
+export interface ExperienceRange {
+  start: { year: number; month: number };
+  end: { year: number; month: number };
+  months: number;
+  raw: string;
+}
+export interface ExperienceEstimate {
+  ranges: ExperienceRange[];
+  totalMonths: number;
+  totalYears: number; // 소수 1자리
+  summary: string;
+}
+
+export function estimateExperienceYears(text: string, currentYear?: number): ExperienceEstimate {
+  const t = text ?? '';
+  const nowYear = currentYear ?? new Date().getFullYear();
+  const nowMonth = new Date().getMonth() + 1;
+  const ranges: ExperienceRange[] = [];
+  const patterns = [
+    /(\d{4})[.\-/년\s]+(\d{1,2})[월\s]*(?:\s*[~\-–—]\s*)(현재|재직\s*중|\d{4}[.\-/년\s]+\d{1,2})/g,
+    /(\d{4})\s*[~\-–—]\s*(현재|재직\s*중|\d{4})/g,
+  ];
+  for (const re of patterns) {
+    let m: RegExpExecArray | null;
+    const r = new RegExp(re.source, 'g');
+    while ((m = r.exec(t))) {
+      const startYear = parseInt(m[1], 10);
+      const startMonth =
+        re.source.includes('\\d{1,2}') && m[2] && /^\d+$/.test(m[2]) ? parseInt(m[2], 10) : 1;
+      let endYear = nowYear;
+      let endMonth = nowMonth;
+      const endRaw = (m[3] ?? m[2] ?? '').trim();
+      if (endRaw && endRaw !== '현재' && !endRaw.includes('재직')) {
+        const endMatch = endRaw.match(/(\d{4})(?:[.\-/년\s]+(\d{1,2}))?/);
+        if (endMatch) {
+          endYear = parseInt(endMatch[1], 10);
+          endMonth = endMatch[2] ? parseInt(endMatch[2], 10) : 12;
+        }
+      }
+      if (startYear < 1900 || startYear > 2100 || endYear < startYear) continue;
+      const months = Math.max(0, (endYear - startYear) * 12 + (endMonth - startMonth) + 1);
+      if (months > 0 && months < 720) {
+        ranges.push({
+          start: { year: startYear, month: startMonth },
+          end: { year: endYear, month: endMonth },
+          months,
+          raw: m[0],
+        });
+      }
+    }
+  }
+  // 중복 제거 (raw 문자열 기반)
+  const seen = new Set<string>();
+  const unique = ranges.filter((r) => {
+    if (seen.has(r.raw)) return false;
+    seen.add(r.raw);
+    return true;
+  });
+  const totalMonths = unique.reduce((a, b) => a + b.months, 0);
+  const totalYears = Math.round((totalMonths / 12) * 10) / 10;
+  const summary =
+    unique.length === 0
+      ? '경력 기간 표기가 감지되지 않았습니다.'
+      : `${unique.length}개 기간 · 총 ${totalYears}년 (${totalMonths}개월)`;
+  return { ranges: unique, totalMonths, totalYears, summary };
+}
+
+/**
+ * 과장 표현 검출 — "세계 최초/유일", "100% 완벽", "무한한 가능성" 같은 검증 불가 과장은
+ * 공식 문서 신뢰도를 떨어뜨림. 10개 패턴 대응.
+ */
+const EXAGGERATION_PATTERNS: Array<{ re: RegExp; phrase: string; reason: string }> = [
+  {
+    re: /세계\s*(최초|최고|유일)/g,
+    phrase: '세계 최초/최고/유일',
+    reason: '증명 어려운 과장. 구체 수치·범위로 한정.',
+  },
+  {
+    re: /국내\s*(최초|최고|유일)/g,
+    phrase: '국내 최초/최고/유일',
+    reason: '증명 어려운 과장. 범위 한정 권장.',
+  },
+  {
+    re: /완벽(?:한|하게|히)/g,
+    phrase: '완벽',
+    reason: '"완벽"은 검증 불가. "누락 없이" 등 구체 기준으로.',
+  },
+  { re: /무한[한히]/g, phrase: '무한한/무한히', reason: '추상 표현. 측정 가능한 값으로.' },
+  {
+    re: /100%\s*(?:완료|달성|완벽)/g,
+    phrase: '100% 완료/달성',
+    reason: '정량 지표는 실제 KPI 기준 명시.',
+  },
+  { re: /유일무이[한하]/g, phrase: '유일무이', reason: '사실 확인 불가 표현.' },
+  { re: /타의 추종을 불허/g, phrase: '타의 추종을 불허', reason: '상투적 과장. 구체 수치로 증명.' },
+  { re: /절대\s*(?:적|로)/g, phrase: '절대적/절대로', reason: '극단 표현. 조건부로 완화.' },
+  { re: /최고\s*수준/g, phrase: '최고 수준', reason: '근거 제시 필요.' },
+  {
+    re: /타사\s*대비\s*(?:월등|우수)/g,
+    phrase: '타사 대비 월등/우수',
+    reason: '비교 근거·수치 필요.',
+  },
+];
+
+export interface ExaggerationHit {
+  phrase: string;
+  index: number;
+  reason: string;
+}
+export interface ExaggerationAnalysis {
+  hits: ExaggerationHit[];
+  count: number;
+  level: 'none' | 'few' | 'many';
+  suggestion: string;
+}
+
+export function detectExaggeration(text: string): ExaggerationAnalysis {
+  const t = text ?? '';
+  const hits: ExaggerationHit[] = [];
+  for (const p of EXAGGERATION_PATTERNS) {
+    const re = new RegExp(p.re.source, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(t))) {
+      hits.push({ phrase: p.phrase, index: m.index, reason: p.reason });
+      if (hits.length > 40) break;
+    }
+    if (hits.length > 40) break;
+  }
+  hits.sort((a, b) => a.index - b.index);
+  const count = hits.length;
+  const level: ExaggerationAnalysis['level'] = count === 0 ? 'none' : count <= 2 ? 'few' : 'many';
+  const suggestion =
+    level === 'none'
+      ? '과장 표현이 없습니다.'
+      : level === 'few'
+        ? `과장 표현 ${count}건 — "${hits[0].phrase}" 를 증거 있는 표현으로 바꿔보세요.`
+        : `과장 표현이 ${count}건으로 많습니다. 신뢰도를 위해 증명 가능한 수치로 대체하세요.`;
+  return { hits: hits.slice(0, 20), count, level, suggestion };
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
