@@ -23,6 +23,7 @@ import {
   analyzeEverything,
   summarizeAnalysis,
   generateResumeTldr,
+  detectUnquantifiedClaims,
 } from '@/lib/koreanChecker';
 
 type PageMode = 'generate' | 'feedback';
@@ -871,6 +872,7 @@ export default function CoverLetterPage() {
                       <KeywordCloud text={feedbackText || ''} topN={12} />
                       <SkillMentionsBar text={feedbackText || ''} />
                       <AnalysisSummaryBar text={feedbackText || ''} />
+                      <UnquantifiedClaimsPanel text={feedbackText || ''} />
                       <OpenerSuggestionsPanel text={feedbackText || ''} />
                       <InterviewQuestionsPanel text={feedbackText || ''} />
                     </div>
@@ -1126,6 +1128,32 @@ function AnalysisSummaryBar({ text }: { text: string }) {
               <span className="font-medium">{f.label}</span>
               <span className="text-slate-500 dark:text-slate-400"> · {f.note}</span>
             </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function UnquantifiedClaimsPanel({ text }: { text: string }) {
+  if (text.length < 200) return null;
+  const claims = detectUnquantifiedClaims(text);
+  if (claims.length === 0) return null;
+  return (
+    <div className="mt-3 p-2.5 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-900/15">
+      <div className="flex items-baseline justify-between mb-1.5">
+        <span className="text-[11px] font-semibold text-amber-800 dark:text-amber-200">
+          📈 수치화 필요 문장
+        </span>
+        <span className="text-[10px] text-amber-600 dark:text-amber-400">{claims.length}건</span>
+      </div>
+      <ul className="space-y-1.5">
+        {claims.slice(0, 4).map((c, i) => (
+          <li key={i} className="text-[10.5px] leading-snug text-slate-700 dark:text-slate-200">
+            <span className="inline-flex items-center px-1 py-0 rounded text-[9px] font-medium bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 mr-1">
+              {c.verb}
+            </span>
+            {c.sentence.length > 80 ? c.sentence.slice(0, 80) + '…' : c.sentence}
           </li>
         ))}
       </ul>
