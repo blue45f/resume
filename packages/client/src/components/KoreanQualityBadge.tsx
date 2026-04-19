@@ -22,6 +22,8 @@ import {
   detectPersonalInfo,
   analyzeEnglishMix,
   analyzeSentiment,
+  extractLinks,
+  estimateJobLevel,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -345,13 +347,44 @@ function PiiAndEnglishRow({ text }: { text: string }) {
 
 function SentimentRow({ text }: { text: string }) {
   const sent = analyzeSentiment(text);
-  if (sent.tone === 'none') return null;
+  const links = extractLinks(text);
+  const job = estimateJobLevel(text);
   return (
-    <Row
-      title="어조"
-      value={sent.tone === 'positive' ? '긍정' : sent.tone === 'balanced' ? '균형' : '부정'}
-      hint={`+${sent.positiveCount} / -${sent.negativeCount} (${Math.round(sent.ratio * 100)}%)`}
-    />
+    <>
+      {sent.tone !== 'none' && (
+        <Row
+          title="어조"
+          value={sent.tone === 'positive' ? '긍정' : sent.tone === 'balanced' ? '균형' : '부정'}
+          hint={`+${sent.positiveCount} / -${sent.negativeCount} (${Math.round(sent.ratio * 100)}%)`}
+        />
+      )}
+      {links.count > 0 && (
+        <Row
+          title="외부 링크"
+          value={`${links.count}개`}
+          hint={
+            links.missingScheme > 0
+              ? `${links.missingScheme}개 스킴 누락`
+              : links.platforms.slice(0, 3).join(', ')
+          }
+        />
+      )}
+      {job.years > 0 && (
+        <Row
+          title="경력 레벨"
+          value={
+            job.level === 'lead'
+              ? '리드'
+              : job.level === 'senior'
+                ? '시니어'
+                : job.level === 'mid'
+                  ? '미드'
+                  : '주니어'
+          }
+          hint={`${job.years}년${job.hasLeadKeyword ? ' · 리딩' : ''}`}
+        />
+      )}
+    </>
   );
 }
 
