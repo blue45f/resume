@@ -17,6 +17,12 @@ export interface StudyGroupListFilters {
   experienceLevel?: string;
   mine?: boolean;
   userId?: string;
+  /** recent | oldest | members | active | seats */
+  sort?: string;
+  /** 빈 자리 있는 그룹만 */
+  openOnly?: boolean;
+  /** 최소 멤버 수 */
+  minMembers?: number;
   page?: number;
   limit?: number;
 }
@@ -76,10 +82,31 @@ export class StudyGroupsService {
       where.isPrivate = false;
     }
 
-    const [items, total] = await Promise.all([
+    if (filters.minMembers && filters.minMembers > 0) {
+      where.memberCount = { gte: filters.minMembers };
+    }
+
+    const orderBy: any = (() => {
+      switch (filters.sort) {
+        case 'oldest':
+          return [{ createdAt: 'asc' }];
+        case 'members':
+          return [{ memberCount: 'desc' }, { createdAt: 'desc' }];
+        case 'seats':
+          // 빈 자리가 많은 순 — memberCount 가 적으면 빈 자리 ↑, 단 maxMembers 와의 차이로 정확 정렬 불가능하므로 근사치
+          return [{ memberCount: 'asc' }];
+        case 'active':
+          return [{ updatedAt: 'desc' }];
+        case 'recent':
+        default:
+          return [{ createdAt: 'desc' }];
+      }
+    })();
+
+    const [rawItems, total] = await Promise.all([
       this.prisma.studyGroup.findMany({
         where,
-        orderBy: [{ createdAt: 'desc' }],
+        orderBy,
         skip: (page - 1) * limit,
         take: limit,
         include: {
@@ -88,6 +115,11 @@ export class StudyGroupsService {
       }),
       this.prisma.studyGroup.count({ where }),
     ]);
+
+    // openOnly 는 Prisma 에서 두 컬럼 비교가 까다로워 애플리케이션 레벨에서 필터링
+    const items = filters.openOnly
+      ? rawItems.filter((g) => g.memberCount < g.maxMembers)
+      : rawItems;
 
     return {
       items,

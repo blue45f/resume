@@ -84,6 +84,9 @@ export default function StudyGroupsPage() {
   const companyTier = params.get('companyTier') || '';
   const cafeCategory = params.get('cafeCategory') || '';
   const experienceLevel = params.get('experienceLevel') || '';
+  const sort = params.get('sort') || 'recent';
+  const openOnly = params.get('openOnly') === '1';
+  const minMembers = params.get('minMembers') || '';
 
   const setFilter = (key: string, value: string) => {
     const next = new URLSearchParams(params);
@@ -93,12 +96,18 @@ export default function StudyGroupsPage() {
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ['study-groups', { companyTier, cafeCategory, experienceLevel, search }],
+    queryKey: [
+      'study-groups',
+      { companyTier, cafeCategory, experienceLevel, sort, openOnly, minMembers, search },
+    ],
     queryFn: async () => {
       const sp = new URLSearchParams();
       if (companyTier) sp.set('companyTier', companyTier);
       if (cafeCategory) sp.set('cafeCategory', cafeCategory);
       if (experienceLevel) sp.set('experienceLevel', experienceLevel);
+      if (sort && sort !== 'recent') sp.set('sort', sort);
+      if (openOnly) sp.set('openOnly', '1');
+      if (minMembers) sp.set('minMembers', minMembers);
       if (search) sp.set('q', search);
       const res = await fetch(`${API_URL}/api/study-groups?${sp}`);
       if (!res.ok) throw new Error('Failed');
@@ -201,6 +210,66 @@ export default function StudyGroupsPage() {
               />
             ))}
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              정렬
+            </label>
+            <select
+              value={sort}
+              onChange={(e) => setFilter('sort', e.target.value === 'recent' ? '' : e.target.value)}
+              className="h-8 px-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+            >
+              <option value="recent">최신순</option>
+              <option value="oldest">오래된순</option>
+              <option value="members">멤버 많은순</option>
+              <option value="seats">여유석 많은순</option>
+              <option value="active">최근 활동순</option>
+            </select>
+          </div>
+          <label className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={openOnly}
+              onChange={(e) => setFilter('openOnly', e.target.checked ? '1' : '')}
+              className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+            />
+            빈 자리만
+          </label>
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="minMembers"
+              className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              최소 인원
+            </label>
+            <input
+              id="minMembers"
+              type="number"
+              min={0}
+              max={200}
+              value={minMembers}
+              onChange={(e) => setFilter('minMembers', e.target.value)}
+              className="h-8 w-16 px-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+              placeholder="0"
+            />
+          </div>
+          {(companyTier ||
+            cafeCategory ||
+            experienceLevel ||
+            sort !== 'recent' ||
+            openOnly ||
+            minMembers) && (
+            <button
+              type="button"
+              onClick={() => setParams(new URLSearchParams())}
+              className="ml-auto text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline underline-offset-2"
+            >
+              필터 초기화
+            </button>
+          )}
         </div>
       </div>
 
