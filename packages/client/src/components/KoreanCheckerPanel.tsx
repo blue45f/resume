@@ -7,7 +7,9 @@ import {
   dedupIssues,
   groupIssuesBySection,
   hasKoreanErrors,
+  issuesBySeverity,
   KOREAN_RULE_COUNT,
+  type KoreanIssue,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 import { aiSpellCheck, type AiSpellIssue } from '@/lib/api';
@@ -30,12 +32,15 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
   const [aiMode, setAiMode] = useState(false);
   const [aiIssues, setAiIssues] = useState<AiSpellIssue[] | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [severityFilter, setSeverityFilter] = useState<'all' | KoreanIssue['severity']>('all');
   const result = useMemo(() => checkKorean(resume), [resume]);
-  // 심각도 정렬 + 동일 (섹션, wrong) 중복 제거 — 같은 오타 반복 시 count 배지로 집계
-  const displayIssues = useMemo(
-    () => dedupIssues(sortKoreanIssues(result.issues)),
-    [result.issues],
-  );
+  // 심각도 정렬 + 동일 (섹션, wrong) 중복 제거 — 같은 오타 반복 시 count 배지로 집계.
+  // severityFilter 가 'all' 이 아니면 issuesBySeverity 로 필터 선제 적용.
+  const displayIssues = useMemo(() => {
+    const base =
+      severityFilter === 'all' ? result.issues : issuesBySeverity(result.issues, severityFilter);
+    return dedupIssues(sortKoreanIssues(base));
+  }, [result.issues, severityFilter]);
   // 섹션별 이슈 수 — 헤더에 "어느 섹션이 문제인지" 한눈에 노출
   const sectionCounts = useMemo(() => {
     const groups = groupIssuesBySection(result.issues);
@@ -301,6 +306,37 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
                   </div>
                 ))
               )}
+            </div>
+          )}
+
+          {/* 심각도 필터 탭 */}
+          {!aiMode && result.issues.length > 0 && (
+            <div className="inline-flex flex-wrap rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden text-[11px]">
+              {(
+                [
+                  { k: 'all' as const, l: '전체', n: result.issues.length },
+                  { k: 'error' as const, l: '❌ 오류', n: errorCount },
+                  { k: 'warning' as const, l: '⚠️ 경고', n: warningCount },
+                  { k: 'info' as const, l: '💡 제안', n: infoCount },
+                ] as const
+              ).map((t) => {
+                const active = severityFilter === t.k;
+                return (
+                  <button
+                    key={t.k}
+                    type="button"
+                    onClick={() => setSeverityFilter(t.k)}
+                    disabled={t.k !== 'all' && t.n === 0}
+                    className={`px-2.5 py-1 font-medium transition-colors disabled:opacity-40 ${
+                      active
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    {t.l} {t.n}
+                  </button>
+                );
+              })}
             </div>
           )}
 
