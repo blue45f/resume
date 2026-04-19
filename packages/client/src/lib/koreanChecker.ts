@@ -637,6 +637,77 @@ const RULES: Array<{
     reason: '외래어 표기법: signature → "시그니처".',
     severity: 'error',
   },
+  // ── 자주 헷갈리는 맞춤법 (3차 확장) ────────────────────
+  {
+    pattern: /\s구지/g,
+    wrong: '구지',
+    suggestion: '굳이',
+    reason: '"일부러·반드시"의 뜻은 "굳이"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /\s곰곰히/g,
+    wrong: '곰곰히',
+    suggestion: '곰곰이',
+    reason: '"-이"로 끝나는 부사 — "곰곰이"가 맞습니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /따듯이/g,
+    wrong: '따듯이',
+    suggestion: '따뜻이',
+    reason: '표준어는 "따뜻이"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /짜집기/g,
+    wrong: '짜집기',
+    suggestion: '짜깁기',
+    reason: '"이것저것 끌어 맞추기"는 "짜깁기"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /제작년/g,
+    wrong: '제작년',
+    suggestion: '재작년',
+    reason: '"지난해의 전해"는 "재작년(再昨年)"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /부주(?=[금을를함])/g,
+    wrong: '부주',
+    suggestion: '부조',
+    reason: '경조사비는 "부조(扶助)"가 맞습니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /\s통채로/g,
+    wrong: '통채로',
+    suggestion: '통째로',
+    reason: '표준어는 "통째로"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /\s덥썩/g,
+    wrong: '덥썩',
+    suggestion: '덥석',
+    reason: '표준어는 "덥석"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /\s아뭏든/g,
+    wrong: '아뭏든',
+    suggestion: '아무튼',
+    reason: '표준어는 "아무튼"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /빈털털이/g,
+    wrong: '빈털털이',
+    suggestion: '빈털터리',
+    reason: '표준어는 "빈털터리"입니다.',
+    severity: 'error',
+  },
 ];
 
 export function checkKorean(resume: Resume): KoreanCheckResult {
