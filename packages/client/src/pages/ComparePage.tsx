@@ -4,6 +4,7 @@ import Footer from '@/components/Footer';
 import { calculateCompleteness } from '@/lib/completeness';
 import type { Resume, ResumeSummary } from '@/types/resume';
 import { useResumes, useResume } from '@/hooks/useResources';
+import { t } from '@/lib/i18n';
 
 /** Analyze strengths and weaknesses of a resume compared to another */
 function analyzeResume(
@@ -238,7 +239,7 @@ export default function ComparePage() {
         role="main"
       >
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-          이력서 비교
+          {t('page.compare')}
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
           두 이력서를 선택하여 섹션별 내용을 비교합니다

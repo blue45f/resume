@@ -8,6 +8,7 @@ import { FormSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 import { timeAgo } from '@/lib/time';
+import { t } from '@/lib/i18n';
 
 interface FeedbackItem {
   id: string;
@@ -164,7 +165,7 @@ export default function FeedbackPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-              피드백 게시판
+              {t('page.feedback')}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               버그 신고, 기능 제안, 의견을 남겨주세요
