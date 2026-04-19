@@ -80,13 +80,7 @@ const RULES: Array<{
     reason: '동사 "바라다"의 명사형은 "바람"입니다.',
     severity: 'error',
   },
-  {
-    pattern: /\s금새/g,
-    wrong: '금새',
-    suggestion: '금세',
-    reason: '"지금 바로"의 뜻은 "금세"가 맞습니다.',
-    severity: 'error',
-  },
+  // (중복 제거 — "금새" 규칙은 아래 "추가 자주 틀리는 맞춤법" 블록으로 통합)
   {
     pattern: /오랫만/g,
     wrong: '오랫만',
@@ -189,11 +183,12 @@ const RULES: Array<{
     severity: 'error',
   },
   {
-    pattern: /왠지(?!\S)/g,
-    wrong: '왠지',
-    suggestion: '웬지→왠지',
-    reason: '"왠지"가 맞는 표현입니다 ("왜인지"의 줄임).',
-    severity: 'info',
+    // "웬지"는 비표준 — "왠지"(왜인지의 줄임)가 맞습니다.
+    pattern: /웬지/g,
+    wrong: '웬지',
+    suggestion: '왠지',
+    reason: '"왜인지"의 줄임은 "왠지"입니다.',
+    severity: 'error',
   },
   {
     pattern: /눈꼽/g,
@@ -324,13 +319,6 @@ const RULES: Array<{
     severity: 'error',
   },
   {
-    pattern: /소프트웨어 엔지니어/g,
-    wrong: '소프트웨어 엔지니어',
-    suggestion: '소프트웨어 엔지니어',
-    reason: '외래어는 붙여 써도 무방.',
-    severity: 'info',
-  },
-  {
     pattern: /어플리케이션/g,
     wrong: '어플리케이션',
     suggestion: '애플리케이션',
@@ -338,25 +326,81 @@ const RULES: Array<{
     severity: 'error',
   },
   {
-    pattern: /스키마/g,
-    wrong: '스키마',
-    suggestion: '스키마',
-    reason: '표준어. (참고)',
-    severity: 'info',
+    pattern: /스케쥴/g,
+    wrong: '스케쥴',
+    suggestion: '스케줄',
+    reason: '외래어 표기법: schedule → "스케줄".',
+    severity: 'error',
   },
   {
-    pattern: /플러그인/g,
-    wrong: '플러그인',
-    suggestion: '플러그인',
-    reason: '표준어. (참고)',
-    severity: 'info',
+    pattern: /메세지/g,
+    wrong: '메세지',
+    suggestion: '메시지',
+    reason: '외래어 표기법: message → "메시지".',
+    severity: 'error',
   },
   {
-    pattern: /아이템/g,
-    wrong: '아이템',
-    suggestion: '아이템',
-    reason: '표준어. (참고)',
-    severity: 'info',
+    pattern: /리더쉽/g,
+    wrong: '리더쉽',
+    suggestion: '리더십',
+    reason: '외래어 표기법: leadership → "리더십".',
+    severity: 'error',
+  },
+  {
+    pattern: /멤버쉽/g,
+    wrong: '멤버쉽',
+    suggestion: '멤버십',
+    reason: '외래어 표기법: membership → "멤버십".',
+    severity: 'error',
+  },
+  {
+    pattern: /파트너쉽/g,
+    wrong: '파트너쉽',
+    suggestion: '파트너십',
+    reason: '외래어 표기법: partnership → "파트너십".',
+    severity: 'error',
+  },
+  {
+    pattern: /워크샵/g,
+    wrong: '워크샵',
+    suggestion: '워크숍',
+    reason: '외래어 표기법: workshop → "워크숍".',
+    severity: 'error',
+  },
+  {
+    pattern: /팀웍(?!크)/g,
+    wrong: '팀웍',
+    suggestion: '팀워크',
+    reason: '외래어 표기법: teamwork → "팀워크".',
+    severity: 'error',
+  },
+  {
+    pattern: /프로포즈/g,
+    wrong: '프로포즈',
+    suggestion: '프러포즈',
+    reason: '외래어 표기법: propose → "프러포즈".',
+    severity: 'error',
+  },
+  {
+    pattern: /악세사리/g,
+    wrong: '악세사리',
+    suggestion: '액세서리',
+    reason: '외래어 표기법: accessory → "액세서리".',
+    severity: 'error',
+  },
+  {
+    pattern: /까페/g,
+    wrong: '까페',
+    suggestion: '카페',
+    reason: '표준어는 "카페"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /비지니스/g,
+    wrong: '비지니스',
+    suggestion: '비즈니스',
+    reason: '외래어 표기법: business → "비즈니스".',
+    severity: 'error',
   },
   // ── 이력서 특화 추가 ──────────────────────────────
   {
@@ -400,6 +444,113 @@ const RULES: Array<{
     suggestion: '신경 써',
     reason: '동사 "쓰다" 앞은 띄어 씁니다.',
     severity: 'warning',
+  },
+  // ── 자주 틀리는 맞춤법 (추가 확장) ──────────────────────────
+  {
+    pattern: /괜찬/g,
+    wrong: '괜찬',
+    suggestion: '괜찮',
+    reason: '표준어는 "괜찮다"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /\s있다가/g,
+    wrong: '있다가',
+    suggestion: '이따가',
+    reason: '"조금 뒤에"의 뜻은 "이따가"입니다. ("있다가"는 머물다 + 가 의미).',
+    severity: 'info',
+  },
+  {
+    pattern: /설레였/g,
+    wrong: '설레였',
+    suggestion: '설렜',
+    reason: '"설레다"의 과거형은 "설렜다"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /(?<![음가나와도])낳(?=다|았|은|는)/g,
+    wrong: '낳다',
+    suggestion: '낫다 (병이 나음) / 낳다 (출산)',
+    reason: '"병이 낫다"는 낫다, "아이를 낳다"는 낳다. 문맥 확인.',
+    severity: 'info',
+  },
+  {
+    pattern: /\s왠만/g,
+    wrong: '왠만',
+    suggestion: '웬만',
+    reason: '"어지간한"의 뜻은 "웬만"입니다.',
+    severity: 'error',
+  },
+  {
+    pattern: /맞추어/g,
+    wrong: '맞추어',
+    suggestion: '맞춰',
+    reason: '"맞추어"의 줄임은 "맞춰"입니다 (구어체).',
+    severity: 'info',
+  },
+  {
+    pattern: /\s몇번/g,
+    wrong: '몇번',
+    suggestion: '몇 번',
+    reason: '"번"은 의존명사 — 띄어 씁니다.',
+    severity: 'warning',
+  },
+  {
+    pattern: /\s몇가지/g,
+    wrong: '몇가지',
+    suggestion: '몇 가지',
+    reason: '"가지"는 의존명사 — 띄어 씁니다.',
+    severity: 'warning',
+  },
+  {
+    pattern: /한번에/g,
+    wrong: '한번에',
+    suggestion: '한 번에 (횟수) / 한번 (시험삼아)',
+    reason: '횟수면 "한 번", 시도/대충이면 "한번". 문맥 확인.',
+    severity: 'info',
+  },
+  // ── 이력서·자기소개서 특화 약한 표현 (추가) ────────────────
+  {
+    pattern: /성격은\s*[^다.]*(활발|외향|적극)/g,
+    wrong: '성격 묘사 (활발/외향/적극)',
+    suggestion: '구체적 행동 사례',
+    reason: '성격 형용사는 검증 불가 — "팀 갈등을 중재한 경험"처럼 사례로.',
+    severity: 'info',
+  },
+  {
+    pattern: /끈기있/g,
+    wrong: '끈기있',
+    suggestion: '끈기 있',
+    reason: '형용사 "있다" 앞은 띄어 씁니다.',
+    severity: 'warning',
+  },
+  {
+    pattern: /\b참여했(?:습니다|어요)/g,
+    wrong: '참여했',
+    suggestion: '기여·주도·설계·구현 등 역할 동사',
+    reason: '"참여" 만으론 기여도 불명확 — 구체 역할을 드러내세요.',
+    severity: 'info',
+  },
+  {
+    pattern: /\b도움을\s?드렸/g,
+    wrong: '도움을 드렸',
+    suggestion: '지원·해결·개선 등 구체 행동 동사',
+    reason: '"도움" 은 모호 — 구체적 기여를 드러내세요.',
+    severity: 'info',
+  },
+  {
+    pattern: /임에도\s불구하고/g,
+    wrong: '임에도 불구하고',
+    suggestion: '이지만 / ~에도',
+    reason: '문장이 장황해짐 — 간결하게.',
+    severity: 'info',
+  },
+  {
+    pattern: /~에\s*있어서?/g,
+    wrong: '~에 있어(서)',
+    suggestion: '~에서 / ~에 대해',
+    reason: '번역투 — 자연스러운 한국어로.',
+    severity: 'info',
   },
 ];
 
@@ -492,8 +643,8 @@ export function autoFixText(
   const changes: Array<{ from: string; to: string }> = [];
   for (const rule of RULES) {
     if (severity === 'error' && rule.severity !== 'error') continue;
-    // info/warning 중 suggestion 이 한국어 단어 치환이 아닌(힌트성) 경우 스킵
-    if (severity === 'all' && /[→(]|\s권장|구체|이내/.test(rule.suggestion)) continue;
+    // 힌트성 제안(치환 문자열이 설명문/선택지 포함) 은 자동 치환 안 함
+    if (isHintSuggestion(rule.suggestion)) continue;
     if (rule.pattern.test(fixed)) {
       const before = fixed;
       // g 플래그 유지를 위해 재생성
@@ -503,6 +654,14 @@ export function autoFixText(
   }
   return { fixed, changes };
 }
+
+/** 제안 문자열이 힌트/설명인지 (→·괄호·"권장"·"구체" 등 포함) — 자동치환 금지 */
+function isHintSuggestion(s: string): boolean {
+  return /[→(/]|권장|구체|이내|\s등\s|문맥/.test(s);
+}
+
+/** 외부 확장 (테스트·진단용) — 현재 등록된 규칙 수 */
+export const KOREAN_RULE_COUNT = RULES.length;
 
 /** Resume 전체 필드에 대해 자동 수정 적용 */
 export function autoFixResume(
