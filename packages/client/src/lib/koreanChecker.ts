@@ -4592,6 +4592,89 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
   { name: 'explainWrongWord', category: '파생', description: '단어별 규칙 설명 조회' },
 ] as const;
 
+/** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
+export function getAnalyzersByCategory(category: AnalyzerInfo['category']): AnalyzerInfo[] {
+  return ANALYZERS.filter((a) => a.category === category);
+}
+
+/** 이름으로 분석기 조회. */
+export function findAnalyzerByName(name: string): AnalyzerInfo | undefined {
+  return ANALYZERS.find((a) => a.name === name);
+}
+
+/**
+ * 축약어 검출 — 확장 없이 사용된 영문 축약어(TLA/FLA) 감지. 심사자가 모를 수 있는 업계
+ * 용어의 첫 등장에 풀어 쓴 설명이 동반되었는지 확인.
+ */
+const COMMON_ACRONYMS = new Set([
+  'AI',
+  'ML',
+  'API',
+  'URL',
+  'UI',
+  'UX',
+  'IT',
+  'OS',
+  'DB',
+  'SQL',
+  'CSS',
+  'HTML',
+  'JS',
+  'TS',
+  'AWS',
+  'GCP',
+  'CI',
+  'CD',
+  'PR',
+  'QA',
+  'KPI',
+  'ROI',
+  'OKR',
+  'PM',
+  'TF',
+  'BM',
+  'FE',
+  'BE',
+]);
+
+export interface AcronymHit {
+  acronym: string;
+  index: number;
+  hasExpansion: boolean;
+}
+export interface AcronymAnalysis {
+  hits: AcronymHit[];
+  unexplained: AcronymHit[];
+  suggestion: string;
+}
+
+export function detectAbbreviations(text: string): AcronymAnalysis {
+  const t = text ?? '';
+  const re = /\b([A-Z]{2,5})\b/g;
+  const hits: AcronymHit[] = [];
+  const seen = new Set<string>();
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(t))) {
+    const acronym = m[1];
+    if (COMMON_ACRONYMS.has(acronym)) continue;
+    const after = t.slice(m.index + acronym.length, m.index + acronym.length + 80);
+    const hasExpansion = /^\s*[(（][^)）]{3,}[)）]/.test(after);
+    hits.push({ acronym, index: m.index, hasExpansion: hasExpansion || seen.has(acronym) });
+    seen.add(acronym);
+  }
+  const unexplained = hits.filter((h) => !h.hasExpansion);
+  const suggestion =
+    hits.length === 0
+      ? '분석 가능한 축약어가 감지되지 않았습니다.'
+      : unexplained.length === 0
+        ? `축약어 ${hits.length}개 — 모두 처음 등장 시 풀어 쓰여 있거나 일반 용어입니다.`
+        : `설명 없이 쓰인 축약어 ${unexplained.length}건 (${unexplained
+            .slice(0, 3)
+            .map((h) => h.acronym)
+            .join(', ')}) — 처음 등장 시 "(풀이)" 를 괄호로 부연 권장.`;
+  return { hits: hits.slice(0, 20), unexplained: unexplained.slice(0, 10), suggestion };
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
