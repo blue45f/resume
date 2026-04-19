@@ -237,21 +237,21 @@ const RULES: Array<{
     severity: 'error',
   },
   {
-    pattern: /\s개재/g,
+    pattern: /(?<![가-힣])개재/g,
     wrong: '개재',
     suggestion: '게재',
     reason: '"신문·잡지에 싣다"는 "게재(揭載)"입니다.',
     severity: 'error',
   },
   {
-    pattern: /\s일일히/g,
+    pattern: /(?<![가-힣])일일히/g,
     wrong: '일일히',
     suggestion: '일일이',
     reason: '표준어는 "일일이"입니다.',
     severity: 'error',
   },
   {
-    pattern: /\s깨끗히/g,
+    pattern: /(?<![가-힣])깨끗히/g,
     wrong: '깨끗히',
     suggestion: '깨끗이',
     reason: '"-이"로 끝나는 부사 — "깨끗이"가 맞습니다.',
@@ -265,7 +265,7 @@ const RULES: Array<{
     severity: 'error',
   },
   {
-    pattern: /\s치루/g,
+    pattern: /(?<![가-힣])치루/g,
     wrong: '치루',
     suggestion: '치르',
     reason: '"어떤 일을 겪어내다"는 "치르다"입니다.',
@@ -279,7 +279,7 @@ const RULES: Array<{
     severity: 'error',
   },
   {
-    pattern: /\s어떻해/g,
+    pattern: /(?<![가-힣])어떻해/g,
     wrong: '어떻해',
     suggestion: '어떻게 해',
     reason: '"어떻게 해"의 줄임은 쓰지 않습니다.',
@@ -459,7 +459,7 @@ const RULES: Array<{
     severity: 'error',
   },
   {
-    pattern: /\s있다가/g,
+    pattern: /(?<![가-힣])있다가/g,
     wrong: '있다가',
     suggestion: '이따가',
     reason: '"조금 뒤에"의 뜻은 "이따가"입니다. ("있다가"는 머물다 + 가 의미).',
@@ -488,14 +488,14 @@ const RULES: Array<{
     severity: 'info',
   },
   {
-    pattern: /\s몇번/g,
+    pattern: /(?<![가-힣])몇번/g,
     wrong: '몇번',
     suggestion: '몇 번',
     reason: '"번"은 의존명사 — 띄어 씁니다.',
     severity: 'warning',
   },
   {
-    pattern: /\s몇가지/g,
+    pattern: /(?<![가-힣])몇가지/g,
     wrong: '몇가지',
     suggestion: '몇 가지',
     reason: '"가지"는 의존명사 — 띄어 씁니다.',
@@ -553,21 +553,21 @@ const RULES: Array<{
   },
   // ── 부사 "-이/-히" 헷갈리는 것들 ─────────────────────────
   {
-    pattern: /\s간간히/g,
+    pattern: /(?<![가-힣])간간히/g,
     wrong: '간간히',
     suggestion: '간간이',
     reason: '"-이"로 끝나는 부사 — "간간이"가 맞습니다.',
     severity: 'error',
   },
   {
-    pattern: /\s번번히/g,
+    pattern: /(?<![가-힣])번번히/g,
     wrong: '번번히',
     suggestion: '번번이',
     reason: '표준어는 "번번이"입니다.',
     severity: 'error',
   },
   {
-    pattern: /\s나즈막/g,
+    pattern: /(?<![가-힣])나즈막/g,
     wrong: '나즈막',
     suggestion: '나지막',
     reason: '표준어는 "나지막하다"입니다.',
@@ -641,7 +641,7 @@ const RULES: Array<{
     severity: 'error',
   },
   {
-    pattern: /\s곰곰히/g,
+    pattern: /(?<![가-힣])곰곰히/g,
     wrong: '곰곰히',
     suggestion: '곰곰이',
     reason: '"-이"로 끝나는 부사 — "곰곰이"가 맞습니다.',
@@ -676,21 +676,21 @@ const RULES: Array<{
     severity: 'error',
   },
   {
-    pattern: /\s통채로/g,
+    pattern: /(?<![가-힣])통채로/g,
     wrong: '통채로',
     suggestion: '통째로',
     reason: '표준어는 "통째로"입니다.',
     severity: 'error',
   },
   {
-    pattern: /\s덥썩/g,
+    pattern: /(?<![가-힣])덥썩/g,
     wrong: '덥썩',
     suggestion: '덥석',
     reason: '표준어는 "덥석"입니다.',
     severity: 'error',
   },
   {
-    pattern: /\s아뭏든/g,
+    pattern: /(?<![가-힣])아뭏든/g,
     wrong: '아뭏든',
     suggestion: '아무튼',
     reason: '표준어는 "아무튼"입니다.',
@@ -1078,8 +1078,13 @@ const SELF_CHECK_CASES: SelfCheckCase[] = [
   { input: '!!', expectedWrong: '!!', description: '느낌표 반복' },
   { input: '스케쥴을 조정', expectedWrong: '스케쥴', description: '외래어 스케줄' },
   { input: '괜찬습니다.', expectedWrong: '괜찬', description: '괜찮' },
-  { input: '구지 말씀드리면', expectedWrong: '구지', description: '굳이' },
+  { input: '구지 말씀드리면', expectedWrong: '구지', description: '굳이 (문장시작)' },
   { input: '역활을 맡아', expectedWrong: '역활', description: '역할' },
+  // 문장시작 lookbehind regression 방지
+  { input: '깨끗히 정리했다', expectedWrong: '깨끗히', description: '깨끗이 (문장시작)' },
+  { input: '일일히 체크', expectedWrong: '일일히', description: '일일이 (문장시작)' },
+  { input: '어떻해 해야 하나', expectedWrong: '어떻해', description: '어떻게 해 (문장시작)' },
+  { input: '몇번 시도', expectedWrong: '몇번', description: '몇 번 (문장시작)' },
 ];
 export function runSelfCheck(): SelfCheckResult {
   const failed: SelfCheckResult['failed'] = [];
