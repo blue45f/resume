@@ -708,6 +708,42 @@ const RULES: Array<{
     reason: '표준어는 "빈털터리"입니다.',
     severity: 'error',
   },
+  // ── 구두점·공백 정리 (복붙 후 자주 남는 잔재) ──────────────
+  {
+    pattern: /!{2,}/g,
+    wrong: '!!',
+    suggestion: '!',
+    reason: '이력서·자기소개서에서 느낌표 반복은 과장된 인상을 줍니다.',
+    severity: 'warning',
+  },
+  {
+    pattern: /\?{2,}/g,
+    wrong: '??',
+    suggestion: '?',
+    reason: '물음표 반복은 비격식 — 공식 문서에서는 단일 사용.',
+    severity: 'warning',
+  },
+  {
+    pattern: /\.{3,}(?!\.)/g,
+    wrong: '...',
+    suggestion: '…',
+    reason: '3개 이상의 점은 말줄임표 "…" (U+2026) 로 통일합니다.',
+    severity: 'info',
+  },
+  {
+    pattern: / {2,}(?=\S)/g,
+    wrong: '  (공백 2개 이상)',
+    suggestion: ' (공백 1개)',
+    reason: '연속된 공백은 한 칸으로 통일합니다. (복붙 잔재)',
+    severity: 'info',
+  },
+  {
+    pattern: /\u3000/g, // Full-width space (U+3000) — ESLint no-irregular-whitespace 회피 위해 이스케이프
+    wrong: '[전각공백]',
+    suggestion: ' ',
+    reason: '전각 공백(U+3000)을 일반 공백으로 통일합니다.',
+    severity: 'warning',
+  },
 ];
 
 export function checkKorean(resume: Resume): KoreanCheckResult {
