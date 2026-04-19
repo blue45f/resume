@@ -3479,6 +3479,101 @@ export function suggestSynonymsForOveruse(text: string, minCount = 3): OveruseWi
   return results.slice(0, 10);
 }
 
+/**
+ * 중복 문장 검출 — 동일하거나 매우 유사한 문장이 2번 이상 반복되면 편집 실수 혹은
+ * 템플릿 복사 흔적. 문장 정규화(공백/조사 일부 제거) 후 빈도 집계.
+ */
+export interface DuplicateSentence {
+  normalized: string;
+  first: { original: string; index: number };
+  duplicates: Array<{ original: string; index: number }>;
+  count: number;
+}
+
+function normalizeSentence(s: string): string {
+  return s
+    .replace(/\s+/g, '')
+    .replace(/[.!?。,"'「」『』()]/g, '')
+    .replace(/(을|를|이|가|은|는|의|에|에서|로|으로|와|과|도)(?=[가-힣])/g, '')
+    .toLowerCase();
+}
+
+export function detectDuplicateSentences(text: string, minLength = 15): DuplicateSentence[] {
+  const t = (text ?? '').replace(/\n/g, ' ').trim();
+  if (!t) return [];
+  const sentences = t.split(/[.!?。]+/).filter((s) => s.trim().length >= minLength);
+  const byNormalized = new Map<
+    string,
+    { original: string; index: number; duplicates: Array<{ original: string; index: number }> }
+  >();
+  let cursor = 0;
+  for (const s of sentences) {
+    const normalized = normalizeSentence(s);
+    if (!normalized) continue;
+    const trimmed = s.trim();
+    const localIndex = t.indexOf(trimmed, cursor);
+    cursor = localIndex >= 0 ? localIndex + trimmed.length : cursor;
+    const existing = byNormalized.get(normalized);
+    if (existing) {
+      existing.duplicates.push({ original: trimmed, index: localIndex });
+    } else {
+      byNormalized.set(normalized, { original: trimmed, index: localIndex, duplicates: [] });
+    }
+  }
+  const results: DuplicateSentence[] = [];
+  for (const [normalized, entry] of byNormalized.entries()) {
+    if (entry.duplicates.length >= 1) {
+      results.push({
+        normalized,
+        first: { original: entry.original, index: entry.index },
+        duplicates: entry.duplicates,
+        count: 1 + entry.duplicates.length,
+      });
+    }
+  }
+  results.sort((a, b) => b.count - a.count);
+  return results.slice(0, 10);
+}
+
+/**
+ * 1인칭 대명사 남용 분석 — "저는/제가/제/저를" 과잉 사용은 유아적 인상. 이력서/자소서에서
+ * 1인칭을 생략해도 한국어는 자연스러움. per-100자 비율로 평가.
+ */
+export interface FirstPersonAnalysis {
+  counts: Record<'저는' | '제가' | '저를' | '저의' | '제', number>;
+  total: number;
+  per100Chars: number;
+  level: 'low' | 'medium' | 'high';
+  suggestion: string;
+}
+
+export function analyzeFirstPersonUsage(text: string): FirstPersonAnalysis {
+  const t = text ?? '';
+  const counts: FirstPersonAnalysis['counts'] = {
+    저는: (t.match(/(?<![가-힣])저는(?![가-힣])/g) ?? []).length,
+    제가: (t.match(/(?<![가-힣])제가(?![가-힣])/g) ?? []).length,
+    저를: (t.match(/(?<![가-힣])저를(?![가-힣])/g) ?? []).length,
+    저의: (t.match(/(?<![가-힣])저의(?![가-힣])/g) ?? []).length,
+    제: (t.match(/(?<![가-힣])제\s/g) ?? []).length,
+  };
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  const chars = t.replace(/\s+/g, '').length || 1;
+  const per100Chars = Math.round((total / chars) * 10000) / 100; // 소수점 2자리
+  let level: FirstPersonAnalysis['level'];
+  if (per100Chars < 0.8) level = 'low';
+  else if (per100Chars < 1.6) level = 'medium';
+  else level = 'high';
+  const suggestion =
+    total === 0
+      ? '1인칭 대명사가 거의 없습니다 — 자연스러운 상태.'
+      : level === 'low'
+        ? `1인칭 사용 ${total}회 (100자당 ${per100Chars}회) — 적정 수준.`
+        : level === 'medium'
+          ? `1인칭 사용 ${total}회 (100자당 ${per100Chars}회) — 일부는 주어 생략 가능한지 검토하세요.`
+          : `1인칭 과다 (${total}회, 100자당 ${per100Chars}회) — 한국어는 주어를 생략해도 자연스럽습니다.`;
+  return { counts, total, per100Chars, level, suggestion };
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
