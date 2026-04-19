@@ -44,6 +44,8 @@ export default function KoreanQualityBadge({
     actionVerbs,
     cliches,
     sentenceStarts,
+    passive,
+    parallelism,
   } = report;
   const { summary } = check;
   const tone =
@@ -108,6 +110,16 @@ export default function KoreanQualityBadge({
             title="시작 변주"
             value={`${Math.round((1 - sentenceStarts.repeatedStartRatio) * 100)}점`}
             hint={sentenceStarts.topStarts[0]?.word ?? '-'}
+          />
+          <Row
+            title="수동태"
+            value={`${Math.round(passive.ratio * 100)}%`}
+            hint={`${passive.passiveCount}/${passive.activeCount} (${passive.level})`}
+          />
+          <Row
+            title="평행구조"
+            value={`${parallelism.consistency}%`}
+            hint={parallelism.styles[0]?.style ?? '-'}
           />
           {(readability.suggestion || lexical.suggestion || endings.suggestion) && (
             <p className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400">

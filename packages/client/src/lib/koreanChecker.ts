@@ -1990,6 +1990,119 @@ export function analyzeSentenceStarts(text: string): SentenceStartAnalysis {
 }
 
 /**
+ * 수동태 남용 검출 — 이력서는 능동태 "~했다/했습니다" 가 원칙. 수동태("되었다/이루어졌다")
+ * 가 많으면 주체성이 흐려지고 성과 주인이 불분명해짐.
+ */
+export interface PassiveVoiceAnalysis {
+  passiveCount: number;
+  activeCount: number;
+  ratio: number; // passive / (passive + active), 낮을수록 좋음
+  level: 'low' | 'medium' | 'high';
+  examples: Array<{ phrase: string; index: number }>;
+  suggestion: string;
+}
+
+const PASSIVE_PATTERNS: RegExp[] = [
+  /이루어지(?:었|게 되)/g,
+  /되어지(?:었|게 되)/g,
+  /되어졌/g,
+  /지어지(?:었|게 되)/g,
+  /(?<![가-힣])되었(?:다|습니다|으며)/g,
+  /(?<![가-힣])시켜지/g,
+  /만들어지(?:었|게 되)/g,
+];
+const ACTIVE_PATTERNS: RegExp[] = [
+  /(?:했|주도했|구현했|달성했|개선했|만들었|진행했|완료했|배포했|설계했)(?:다|습니다|으며)/g,
+];
+
+export function analyzePassiveVoice(text: string): PassiveVoiceAnalysis {
+  const t = text ?? '';
+  const examples: PassiveVoiceAnalysis['examples'] = [];
+  let passiveCount = 0;
+  for (const re of PASSIVE_PATTERNS) {
+    const src = new RegExp(re.source, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = src.exec(t))) {
+      passiveCount++;
+      if (examples.length < 10) examples.push({ phrase: m[0], index: m.index });
+    }
+  }
+  let activeCount = 0;
+  for (const re of ACTIVE_PATTERNS) {
+    const src = new RegExp(re.source, 'g');
+    activeCount += (t.match(src) ?? []).length;
+  }
+  const total = passiveCount + activeCount;
+  const ratio = total === 0 ? 0 : Math.round((passiveCount / total) * 100) / 100;
+  let level: PassiveVoiceAnalysis['level'];
+  if (total < 3) level = 'medium';
+  else if (ratio >= 0.35) level = 'high';
+  else if (ratio >= 0.15) level = 'medium';
+  else level = 'low';
+  const suggestion =
+    total < 3
+      ? '분석을 위한 용언이 부족합니다.'
+      : level === 'low'
+        ? '능동태 비율이 우수합니다.'
+        : level === 'medium'
+          ? `수동태 ${passiveCount}건 — 일부는 능동태로 전환해 주체를 드러내세요.`
+          : `수동태 비율이 ${Math.round(ratio * 100)}% 로 높습니다. "되었다" → "했다/주도했다" 처럼 능동형으로 바꾸세요.`;
+  return { passiveCount, activeCount, ratio, level, examples: examples.slice(0, 5), suggestion };
+}
+
+/**
+ * bullet 평행구조 — 줄 단위 목록에서 종결어미가 섞이면 (습니다/했음/-ㅁ/다.) 인상이 떨어짐.
+ * 줄바꿈 · "- " · "• " 시작 줄을 추출해 어미 분포를 계산.
+ */
+export interface ParallelismAnalysis {
+  lines: number;
+  styles: Array<{ style: string; count: number; percent: number }>;
+  consistency: number; // 0~100, 주류 어미 비율 × 100
+  suggestion: string;
+}
+
+export function analyzeParallelism(text: string): ParallelismAnalysis {
+  const t = text ?? '';
+  const candidates = t
+    .split(/\r?\n/)
+    .map((l) => l.replace(/^[-·•*\s\d.)]+/, '').trim())
+    .filter((l) => l.length >= 5);
+  const counts = new Map<string, number>();
+  const classifiers: Array<{ label: string; re: RegExp }> = [
+    { label: '합니다체', re: /(했|합|입|됩|있|없)습니다[.!?]?\s*$/ },
+    { label: '다./했다', re: /[가-힣]다[.!?]?\s*$/ },
+    { label: '-함/-했음', re: /(함|했음|됨|임|있음|없음)[.!?]?\s*$/ },
+    { label: '-기', re: /기[.!?]?\s*$/ },
+    { label: '해요체', re: /해요[.!?]?\s*$/ },
+  ];
+  for (const line of candidates) {
+    let matched = false;
+    for (const c of classifiers) {
+      if (c.re.test(line)) {
+        counts.set(c.label, (counts.get(c.label) ?? 0) + 1);
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) counts.set('기타', (counts.get('기타') ?? 0) + 1);
+  }
+  const total = candidates.length || 1;
+  const styles = [...counts.entries()]
+    .map(([style, count]) => ({ style, count, percent: (count * 100) / total }))
+    .sort((a, b) => b.count - a.count);
+  const top = styles[0];
+  const consistency = top ? Math.round(top.percent) : 0;
+  let suggestion = '';
+  if (candidates.length < 3) suggestion = '목록 항목이 부족해 분석이 제한적입니다.';
+  else if (consistency >= 85) suggestion = `목록 어미가 "${top.style}" 로 일관됩니다.`;
+  else if (consistency >= 65)
+    suggestion = `주로 "${top.style}" 이지만 다른 어미가 섞여 있습니다. 통일을 권장합니다.`;
+  else
+    suggestion = `어미가 ${styles.length} 가지로 뒤섞여 있습니다. 하나로 통일하세요 (예: 모두 "-했음" 또는 모두 "합니다").`;
+  return { lines: candidates.length, styles: styles.slice(0, 5), consistency, suggestion };
+}
+
+/**
  * 모든 분석기를 합쳐 한 번에 호출하는 통합 리포트.
  * 실사용 컴포넌트에서 여러 함수 호출 대신 한 번의 호출로 품질 스코어·지표 전부 가져올 수 있음.
  */
@@ -2003,6 +2116,8 @@ export interface KoreanQualityReport {
   actionVerbs: ActionVerbAnalysis;
   cliches: ClicheAnalysis;
   sentenceStarts: SentenceStartAnalysis;
+  passive: PassiveVoiceAnalysis;
+  parallelism: ParallelismAnalysis;
   /** 0~100 가중치 평균 — UI 배지에 바로 사용 가능 */
   overallScore: number;
 }
@@ -2017,8 +2132,10 @@ export function generateQualityReport(text: string, sectionName = '본문'): Kor
   const actionVerbs = analyzeActionVerbs(text);
   const cliches = detectCliches(text);
   const sentenceStarts = analyzeSentenceStarts(text);
-  // 가중 평균: 맞춤법 30 + 가독성 18 + 어휘 9 + 어미변주 9 + 반복 9
-  //           + 정량 8 + 동사 7 + 상투구 5 + 시작변주 5 = 100
+  const passive = analyzePassiveVoice(text);
+  const parallelism = analyzeParallelism(text);
+  // 가중 평균: 맞춤법 25 + 가독성 15 + 어휘 8 + 어미변주 8 + 반복 8
+  //           + 정량 7 + 동사 7 + 상투구 5 + 시작변주 5 + 수동태 7 + 평행구조 5 = 100
   const ttrScore = Math.round(lexical.ttr * 100);
   const monotonyScore = 100 - endings.monotonyScore;
   const redundancyScore = Math.max(0, 100 - redundancy.hits.length * 10);
@@ -2033,16 +2150,20 @@ export function generateQualityReport(text: string, sectionName = '본문'): Kor
   const verbScore = actionVerbs.strong + actionVerbs.weak < 3 ? 60 : actionVerbs.ratio * 100;
   const clicheScore = Math.max(0, 100 - cliches.count * 12);
   const startScore = Math.max(0, 100 - Math.round(sentenceStarts.repeatedStartRatio * 100));
+  const passiveScore = passive.level === 'low' ? 100 : passive.level === 'medium' ? 70 : 35;
+  const parallelismScore = parallelism.consistency;
   const overallScore = Math.round(
-    check.score * 0.3 +
-      readability.readabilityScore * 0.18 +
-      ttrScore * 0.09 +
-      monotonyScore * 0.09 +
-      redundancyScore * 0.09 +
-      quantScore * 0.08 +
+    check.score * 0.25 +
+      readability.readabilityScore * 0.15 +
+      ttrScore * 0.08 +
+      monotonyScore * 0.08 +
+      redundancyScore * 0.08 +
+      quantScore * 0.07 +
       verbScore * 0.07 +
       clicheScore * 0.05 +
-      startScore * 0.05,
+      startScore * 0.05 +
+      passiveScore * 0.07 +
+      parallelismScore * 0.05,
   );
   return {
     check,
@@ -2054,6 +2175,8 @@ export function generateQualityReport(text: string, sectionName = '본문'): Kor
     actionVerbs,
     cliches,
     sentenceStarts,
+    passive,
+    parallelism,
     overallScore,
   };
 }
@@ -2096,6 +2219,12 @@ export function exportQualityReportMarkdown(text: string, sectionName = '본문'
   lines.push(
     `- **문장 시작 반복**: 상위 "${r.sentenceStarts.topStarts[0]?.word ?? '-'}" ${r.sentenceStarts.topStarts[0]?.count ?? 0}회 (${Math.round(r.sentenceStarts.repeatedStartRatio * 100)}%)`,
   );
+  lines.push(
+    `- **수동태 비율**: ${Math.round(r.passive.ratio * 100)}% (수동 ${r.passive.passiveCount} / 능동 ${r.passive.activeCount}, ${r.passive.level})`,
+  );
+  lines.push(
+    `- **bullet 평행구조**: ${r.parallelism.consistency}% 일관 (${r.parallelism.lines}줄 분석, 주류 "${r.parallelism.styles[0]?.style ?? '-'}")`,
+  );
   lines.push('');
   if (r.actionVerbs.topStrong.length) {
     lines.push(`**강한 동사 상위**: ${r.actionVerbs.topStrong.join(', ')}`);
@@ -2114,6 +2243,8 @@ export function exportQualityReportMarkdown(text: string, sectionName = '본문'
   if (r.quantification.suggestion) tips.push(`- ${r.quantification.suggestion}`);
   if (r.cliches.suggestion) tips.push(`- ${r.cliches.suggestion}`);
   if (r.sentenceStarts.suggestion) tips.push(`- ${r.sentenceStarts.suggestion}`);
+  if (r.passive.suggestion) tips.push(`- ${r.passive.suggestion}`);
+  if (r.parallelism.suggestion) tips.push(`- ${r.parallelism.suggestion}`);
   if (r.actionVerbs.suggestion) tips.push(`- ${r.actionVerbs.suggestion}`);
   lines.push(tips.length ? tips.join('\n') : '- 개선 포인트가 없습니다. 훌륭합니다!');
   return lines.join('\n');
