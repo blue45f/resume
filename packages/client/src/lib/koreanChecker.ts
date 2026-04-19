@@ -2311,6 +2311,48 @@ export function detectRepeatedPhrases(text: string, minCount = 2): RepeatedPhras
 }
 
 /**
+ * 이력서·자소서 ↔ 채용공고(JD) 키워드 매칭 점수.
+ * 양쪽에서 상위 키워드를 추출해 중복·누락·고유 키워드를 분류. 0~100 match %.
+ */
+export interface JDMatchResult {
+  score: number;
+  matched: string[];
+  missing: string[]; // JD 에만 있는 키워드
+  onlyInResume: string[]; // 이력서에만 있는 키워드
+  suggestion: string;
+}
+
+export function computeJDMatch(resumeText: string, jdText: string, topN = 30): JDMatchResult {
+  if (!resumeText || !jdText) {
+    return {
+      score: 0,
+      matched: [],
+      missing: [],
+      onlyInResume: [],
+      suggestion: '이력서 또는 공고 본문이 비어 있습니다.',
+    };
+  }
+  const resumeKw = new Set(extractKeywords(resumeText, topN * 2).map((k) => k.word));
+  const jdKws = extractKeywords(jdText, topN);
+  const matched: string[] = [];
+  const missing: string[] = [];
+  for (const kw of jdKws) {
+    if (resumeKw.has(kw.word)) matched.push(kw.word);
+    else missing.push(kw.word);
+  }
+  const onlyInResume = [...resumeKw].filter((w) => !jdKws.some((j) => j.word === w)).slice(0, 10);
+  const score = jdKws.length > 0 ? Math.round((matched.length / jdKws.length) * 100) : 0;
+  let suggestion = '';
+  if (jdKws.length < 3) suggestion = '공고 본문이 너무 짧아 분석이 제한적입니다.';
+  else if (score >= 75) suggestion = '공고 키워드 적합도가 우수합니다.';
+  else if (score >= 50)
+    suggestion = `적합도 ${score}% — 공고의 "${missing.slice(0, 3).join(', ')}" 키워드를 이력서에 추가 반영해 보세요.`;
+  else
+    suggestion = `적합도가 ${score}% 로 낮습니다. 공고 핵심 키워드를 이력서 문장에 녹여 내세요: ${missing.slice(0, 5).join(', ')}`;
+  return { score, matched, missing: missing.slice(0, 15), onlyInResume, suggestion };
+}
+
+/**
  * 모든 분석기를 합쳐 한 번에 호출하는 통합 리포트.
  * 실사용 컴포넌트에서 여러 함수 호출 대신 한 번의 호출로 품질 스코어·지표 전부 가져올 수 있음.
  */
