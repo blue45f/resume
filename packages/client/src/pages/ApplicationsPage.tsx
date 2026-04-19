@@ -391,7 +391,7 @@ export default function ApplicationsPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-              지원 관리
+              {tx('applications.title')}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               총 {apps.length}건의 지원 내역
