@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useResume } from '@/hooks/useResources';
+import { tx } from '@/lib/i18n';
 import { ROUTES } from '@/lib/routes';
 import type { Resume } from '@/types/resume';
 
@@ -512,7 +513,7 @@ export default function ResumeReviewPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-              이력서 리뷰
+              {tx('nav.resumes')} · {tx('resume.ai.analyze')}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {resume.title || resume.personalInfo.name || '제목 없음'}
