@@ -10,6 +10,7 @@ import { timeAgo } from '@/lib/time';
 import { deleteCoverLetter } from '@/lib/api';
 import { useCoverLetters } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
+import { t } from '@/lib/i18n';
 
 interface CoverLetter {
   id: string;
@@ -131,7 +132,7 @@ export default function MyCoverLettersPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-              내 자소서
+              {t('nav.myCoverLetters')}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               AI로 생성한 자기소개서 목록
