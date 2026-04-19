@@ -16,7 +16,11 @@ import KoreanQualityBadge from '@/components/KoreanQualityBadge';
 import KeywordCloud from '@/components/KeywordCloud';
 import InterviewQuestionsPanel from '@/components/InterviewQuestionsPanel';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
-import { computeJDMatch, detectSkillMentions } from '@/lib/koreanChecker';
+import {
+  computeJDMatch,
+  detectSkillMentions,
+  recommendCoverLetterOpeners,
+} from '@/lib/koreanChecker';
 
 type PageMode = 'generate' | 'feedback';
 
@@ -862,6 +866,7 @@ export default function CoverLetterPage() {
                       </div>
                       <KeywordCloud text={feedbackText || ''} topN={12} />
                       <SkillMentionsBar text={feedbackText || ''} />
+                      <OpenerSuggestionsPanel text={feedbackText || ''} />
                       <InterviewQuestionsPanel text={feedbackText || ''} />
                     </div>
                   )}
@@ -1074,6 +1079,52 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
 }
 
 // KoreanQualityBadge 는 @/components/KoreanQualityBadge 로 추출되어 공용화됨.
+
+function OpenerSuggestionsPanel({ text }: { text: string }) {
+  if (text.length < 200) return null;
+  const openers = recommendCoverLetterOpeners(text);
+  const copyToClipboard = async (t: string) => {
+    try {
+      await navigator.clipboard.writeText(t);
+    } catch {
+      // ignore
+    }
+  };
+  const styleLabel: Record<(typeof openers)[number]['style'], string> = {
+    achievement: '성과형',
+    passion: '열정형',
+    pragmatic: '실용형',
+  };
+  return (
+    <div className="mt-3">
+      <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+        ✏️ 추천 오프닝 문장
+      </div>
+      <ul className="space-y-1.5">
+        {openers.map((o) => (
+          <li
+            key={o.style}
+            className="p-2 text-[11.5px] rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50"
+          >
+            <div className="flex items-baseline justify-between gap-2 mb-0.5">
+              <span className="inline-flex items-center px-1.5 py-0 rounded text-[9.5px] font-medium bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                {styleLabel[o.style]}
+              </span>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(o.text)}
+                className="text-[9.5px] text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+              >
+                복사
+              </button>
+            </div>
+            <p className="text-slate-700 dark:text-slate-300 leading-snug">{o.text}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 function SkillMentionsBar({ text }: { text: string }) {
   const skills = detectSkillMentions(text, 10);
