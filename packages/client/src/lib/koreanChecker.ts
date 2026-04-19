@@ -4646,6 +4646,11 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     category: '이력서',
     description: '섹션별 길이 균형 및 과소·과대 섹션 감지',
   },
+  {
+    name: 'analyzeSectionOrder',
+    category: '이력서',
+    description: '섹션 배치가 권장 순서(자기소개→경력→프로젝트→기술→학력)에 부합하는지',
+  },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5983,6 +5988,74 @@ export function analyzeSectionBalance(text: string): SectionBalanceReport {
   const verdict: SectionBalanceReport['verdict'] =
     balanceScore >= 75 ? 'balanced' : balanceScore >= 50 ? 'skewed' : 'lopsided';
   return { sections: enriched, totalChars, issues, balanceScore, verdict };
+}
+
+export interface SectionOrderReport {
+  current: string[];
+  recommended: string[];
+  misplaced: Array<{ key: string; currentIndex: number; idealIndex: number }>;
+  isOptimal: boolean;
+  score: number;
+}
+
+const RECOMMENDED_SECTION_ORDER = [
+  '자기소개',
+  '경력',
+  '프로젝트',
+  '기술',
+  '학력',
+  '자격증',
+  '수상',
+] as const;
+
+/**
+ * 섹션 배치 순서 평가 — splitByExperienceSection 결과를 권장 순서와 비교.
+ * 권장: 자기소개→경력→프로젝트→기술→학력→자격증→수상.
+ * score = 100 × (1 - 역전쌍 비율). 역전쌍 = (i<j 인데 ideal[i] > ideal[j])인 모든 쌍.
+ */
+export function analyzeSectionOrder(text: string): SectionOrderReport {
+  const parts = splitByExperienceSection(text);
+  const current = parts.map((p) => p.key);
+  const currentSet = new Set<string>(current);
+  const recommended: string[] = (RECOMMENDED_SECTION_ORDER as readonly string[]).filter((k) =>
+    currentSet.has(k),
+  );
+  if (current.length <= 1) {
+    return {
+      current,
+      recommended,
+      misplaced: [],
+      isOptimal: true,
+      score: 100,
+    };
+  }
+  const idealIndexMap = new Map<string, number>();
+  RECOMMENDED_SECTION_ORDER.forEach((k, i) => idealIndexMap.set(k, i));
+  const idealPositions = current.map((k) => idealIndexMap.get(k) ?? 99);
+  let inversions = 0;
+  let totalPairs = 0;
+  for (let i = 0; i < idealPositions.length; i++) {
+    for (let j = i + 1; j < idealPositions.length; j++) {
+      totalPairs++;
+      if (idealPositions[i] > idealPositions[j]) inversions++;
+    }
+  }
+  const misplaced: SectionOrderReport['misplaced'] = [];
+  for (let i = 0; i < current.length; i++) {
+    const key = current[i];
+    const idealIndex = recommended.indexOf(key);
+    if (idealIndex >= 0 && idealIndex !== i) {
+      misplaced.push({ key, currentIndex: i, idealIndex });
+    }
+  }
+  const score = totalPairs === 0 ? 100 : Math.round(100 * (1 - inversions / totalPairs));
+  return {
+    current,
+    recommended,
+    misplaced,
+    isOptimal: inversions === 0,
+    score,
+  };
 }
 
 function stripHtml(html: string): string {
