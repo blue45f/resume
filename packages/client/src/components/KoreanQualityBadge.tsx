@@ -19,6 +19,8 @@ import {
   validateDateRanges,
   scoreResumeCompleteness,
   detectMissingResumeSections,
+  detectPersonalInfo,
+  analyzeEnglishMix,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -307,6 +309,34 @@ function CareerAndExaggerationRows({ text }: { text: string }) {
         />
       )}
       <CompletenessRow text={text} />
+      <PiiAndEnglishRow text={text} />
+    </>
+  );
+}
+
+function PiiAndEnglishRow({ text }: { text: string }) {
+  const pii = detectPersonalInfo(text);
+  const eng = analyzeEnglishMix(text);
+  return (
+    <>
+      {pii.severity !== 'none' && (
+        <div
+          className={`-mx-1 my-1 px-2 py-1.5 rounded-md text-[10.5px] font-medium ${
+            pii.severity === 'critical'
+              ? 'bg-red-50 dark:bg-red-900/25 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800'
+              : 'bg-amber-50 dark:bg-amber-900/25 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800'
+          }`}
+        >
+          ⚠️ 개인정보 {pii.count}건 ({pii.severity}):{' '}
+          {pii.hits
+            .slice(0, 3)
+            .map((h) => h.type)
+            .join(', ')}
+        </div>
+      )}
+      {eng.level === 'high' && (
+        <Row title="영문 혼재" value={`${Math.round(eng.englishRatio * 100)}%`} hint={eng.level} />
+      )}
     </>
   );
 }
