@@ -7,6 +7,7 @@ import { SystemConfigService } from '../system-config/system-config.service';
 
 const mockSystemConfig = {
   getReportThreshold: jest.fn().mockResolvedValue(5),
+  assertFeatureEnabled: jest.fn().mockResolvedValue(undefined),
 };
 
 const mockPrisma = {

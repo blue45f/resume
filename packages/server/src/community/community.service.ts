@@ -289,6 +289,7 @@ export class CommunityService {
     authorName?: string,
     parentId?: string,
   ) {
+    await this.systemConfig.assertFeatureEnabled('community.comment');
     await this.forbiddenWords.validateOrThrow(content);
     const comment = await this.prisma.communityComment.create({
       data: {

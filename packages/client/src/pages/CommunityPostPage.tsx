@@ -11,6 +11,7 @@ import { ROUTES } from '@/lib/routes';
 import { toast } from '@/components/Toast';
 import ReportButton from '@/components/ReportButton';
 import SendMessageButton from '@/components/SendMessageButton';
+import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import {
   communityCommentSchema,
   type CommunityCommentFormValues,
@@ -837,71 +838,77 @@ export default function CommunityPostPage() {
           </h2>
 
           {/* Comment form */}
-          <form onSubmit={commentForm.handleSubmit(onComment)} className="mb-6">
-            <div className="imp-card overflow-hidden focus-within:border-indigo-400 dark:focus-within:border-indigo-600 transition-colors">
-              {/* Anon name field for non-logged-in users */}
-              {!user && (
-                <div className="px-4 pt-3 pb-2 border-b border-slate-100 dark:border-slate-700">
-                  <input
-                    type="text"
-                    {...commentForm.register('authorName')}
-                    placeholder="닉네임 (선택, 비어 있으면 '익명')"
-                    maxLength={20}
-                    className="w-full text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 bg-transparent focus:outline-none"
-                  />
-                </div>
-              )}
-              <textarea
-                {...commentForm.register('content')}
-                ref={(el) => {
-                  commentForm.register('content').ref(el);
-                  commentRef.current = el;
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                    e.preventDefault();
-                    if (commentText.trim()) commentForm.handleSubmit(onComment)();
-                  }
-                }}
-                placeholder="댓글을 입력하세요... (⌘+Enter로 등록)"
-                rows={3}
-                className="w-full px-4 py-3 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none"
-              />
-              {commentForm.formState.errors.content && (
-                <p className="px-4 pb-1 text-[11px] text-red-500">
-                  {commentForm.formState.errors.content.message}
-                </p>
-              )}
-              <div className="px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {!user && (
-                    <Link
-                      to={ROUTES.login}
-                      className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+          <FeatureDisabledBanner
+            feature="community.comment"
+            label="댓글 작성"
+            disabledClassName="mb-6"
+          >
+            <form onSubmit={commentForm.handleSubmit(onComment)} className="mb-6">
+              <div className="imp-card overflow-hidden focus-within:border-indigo-400 dark:focus-within:border-indigo-600 transition-colors">
+                {/* Anon name field for non-logged-in users */}
+                {!user && (
+                  <div className="px-4 pt-3 pb-2 border-b border-slate-100 dark:border-slate-700">
+                    <input
+                      type="text"
+                      {...commentForm.register('authorName')}
+                      placeholder="닉네임 (선택, 비어 있으면 '익명')"
+                      maxLength={20}
+                      className="w-full text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 bg-transparent focus:outline-none"
+                    />
+                  </div>
+                )}
+                <textarea
+                  {...commentForm.register('content')}
+                  ref={(el) => {
+                    commentForm.register('content').ref(el);
+                    commentRef.current = el;
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                      e.preventDefault();
+                      if (commentText.trim()) commentForm.handleSubmit(onComment)();
+                    }
+                  }}
+                  placeholder="댓글을 입력하세요... (⌘+Enter로 등록)"
+                  rows={3}
+                  className="w-full px-4 py-3 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none"
+                />
+                {commentForm.formState.errors.content && (
+                  <p className="px-4 pb-1 text-[11px] text-red-500">
+                    {commentForm.formState.errors.content.message}
+                  </p>
+                )}
+                <div className="px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {!user && (
+                      <Link
+                        to={ROUTES.login}
+                        className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                      >
+                        로그인하면 이름이 표시됩니다
+                      </Link>
+                    )}
+                    <span
+                      className={`text-xs ${commentText.length > 800 ? 'text-red-500' : 'text-slate-400'}`}
                     >
-                      로그인하면 이름이 표시됩니다
-                    </Link>
-                  )}
-                  <span
-                    className={`text-xs ${commentText.length > 800 ? 'text-red-500' : 'text-slate-400'}`}
+                      {commentText.length} / 1000
+                    </span>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={
+                      !commentText.trim() ||
+                      commentForm.formState.isSubmitting ||
+                      commentText.length > 1000
+                    }
+                    className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {commentText.length} / 1000
-                  </span>
+                    {commentForm.formState.isSubmitting ? '등록 중...' : '댓글 등록'}
+                  </button>
                 </div>
-                <button
-                  type="submit"
-                  disabled={
-                    !commentText.trim() ||
-                    commentForm.formState.isSubmitting ||
-                    commentText.length > 1000
-                  }
-                  className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {commentForm.formState.isSubmitting ? '등록 중...' : '댓글 등록'}
-                </button>
               </div>
-            </div>
-          </form>
+            </form>
+          </FeatureDisabledBanner>
 
           {/* Comment list */}
           {(() => {
