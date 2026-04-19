@@ -10,6 +10,9 @@ import {
   analyzeBracketBalance,
   detectWhitespaceAnomalies,
   analyzeNumericFormat,
+  detectDuplicateSentences,
+  analyzeFirstPersonUsage,
+  suggestSynonymsForOveruse,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -219,6 +222,9 @@ function WhitespaceAndNumericRows({ text }: { text: string }) {
   const ws = detectWhitespaceAnomalies(text);
   const num = analyzeNumericFormat(text);
   const numTotal = num.comma + num.plain + num.korean;
+  const dup = detectDuplicateSentences(text);
+  const fp = analyzeFirstPersonUsage(text);
+  const overuse = suggestSynonymsForOveruse(text);
   return (
     <>
       {!ws.clean && (
@@ -237,6 +243,19 @@ function WhitespaceAndNumericRows({ text }: { text: string }) {
           title="숫자 포맷"
           value={`${num.distinct}종 혼재`}
           hint={`주류: ${num.dominant ?? '-'}`}
+        />
+      )}
+      {dup.length > 0 && (
+        <Row title="중복 문장" value={`${dup.length}건`} hint={`${dup[0]?.count}회 반복`} />
+      )}
+      {fp.level === 'high' && (
+        <Row title="1인칭 과다" value={`${fp.total}회`} hint={`100자당 ${fp.per100Chars}`} />
+      )}
+      {overuse.length > 0 && (
+        <Row
+          title="남용 단어"
+          value={`${overuse.length}종`}
+          hint={`${overuse[0]?.word}×${overuse[0]?.count}`}
         />
       )}
     </>
