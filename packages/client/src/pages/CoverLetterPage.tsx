@@ -15,6 +15,7 @@ import { useResumes } from '@/hooks/useResources';
 import KoreanQualityBadge from '@/components/KoreanQualityBadge';
 import KeywordCloud from '@/components/KeywordCloud';
 import InterviewQuestionsPanel from '@/components/InterviewQuestionsPanel';
+import SectionInsightsPanel from '@/components/SectionInsightsPanel';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import {
   computeJDMatch,
@@ -873,6 +874,7 @@ export default function CoverLetterPage() {
                       <KeywordCloud text={feedbackText || ''} topN={12} />
                       <SkillMentionsBar text={feedbackText || ''} />
                       <AnalysisSummaryBar text={feedbackText || ''} />
+                      <SectionInsightsPanel text={feedbackText || ''} />
                       <UnquantifiedClaimsPanel text={feedbackText || ''} />
                       <OpenerSuggestionsPanel text={feedbackText || ''} />
                       <InterviewQuestionsPanel text={feedbackText || ''} />
