@@ -84,6 +84,7 @@ describe('ResumesService', () => {
 
   const mockSystemConfig = {
     getReportThreshold: jest.fn().mockResolvedValue(5),
+    isFeatureEnabled: jest.fn().mockResolvedValue(true),
   };
 
   beforeEach(async () => {

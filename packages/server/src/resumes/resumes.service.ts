@@ -268,6 +268,10 @@ export class ResumesService {
   }
 
   async findPublic(page = 1, limit = 20) {
+    // publicResume 기능 OFF 시 빈 리스트 반환 (관리자가 공개 탐색 일시 중단)
+    if (!(await this.systemConfig.isFeatureEnabled('publicResume'))) {
+      return { data: [], page: 1, limit, total: 0, totalPages: 0 };
+    }
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(Math.max(1, limit), 100);
     // autoHidden=true 인 이력서는 신고 누적으로 숨김 — admin 은 별도 /admin/resumes 에서 조회
@@ -325,6 +329,9 @@ export class ResumesService {
     page: number;
     limit: number;
   }) {
+    if (!(await this.systemConfig.isFeatureEnabled('publicResume'))) {
+      return { data: [], total: 0, page: 1, limit: opts.limit };
+    }
     opts.page = Math.max(1, opts.page);
     opts.limit = Math.min(Math.max(1, opts.limit), 100);
     // autoHidden (신고 누적) 자동 제외 — 공개 탐색 목록에서 영구 감춤
