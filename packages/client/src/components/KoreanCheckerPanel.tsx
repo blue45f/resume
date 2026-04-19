@@ -66,9 +66,7 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
     }
   };
 
-  const errorCount = result.issues.filter((i) => i.severity === 'error').length;
-  const warningCount = result.issues.filter((i) => i.severity === 'warning').length;
-  const infoCount = result.issues.filter((i) => i.severity === 'info').length;
+  const { error: errorCount, warning: warningCount, info: infoCount } = result.summary;
 
   const toneLabel = {
     formal: '합니다체',
@@ -84,6 +82,17 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
         ? 'text-slate-500 bg-slate-50'
         : 'text-green-700 bg-green-50';
 
+  // 품질 점수 배지 색상 (≥90 녹색, 70~89 파랑, 50~69 앰버, <50 적색)
+  const score = result.score;
+  const scoreColor =
+    score >= 90
+      ? 'text-green-700 bg-green-50 border-green-200'
+      : score >= 70
+        ? 'text-blue-700 bg-blue-50 border-blue-200'
+        : score >= 50
+          ? 'text-amber-700 bg-amber-50 border-amber-200'
+          : 'text-red-700 bg-red-50 border-red-200';
+
   return (
     <div className="imp-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
       <button
@@ -98,6 +107,12 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 shrink-0">
             한국어 맞춤법 · 문체 감수
           </h3>
+          <span
+            className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold rounded-full border ${scoreColor} shrink-0`}
+            title={`품질 점수 ${score}점 (100점 만점) — error×8 · warning×3 · info×1 가중치 페널티`}
+          >
+            {score}점
+          </span>
           <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
             {result.issues.length === 0
               ? '깔끔합니다'
