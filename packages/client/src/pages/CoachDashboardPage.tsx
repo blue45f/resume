@@ -6,6 +6,7 @@ import { type CoachingSession, type MySessionsResponse } from '@/lib/api';
 import { useMyCoachingSessions } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 
 function formatDate(iso: string) {
   try {
@@ -137,7 +138,7 @@ export default function CoachDashboardPage() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-                코치 대시보드
+                {tx('nav.coaching')} · {tx('admin.dashboard')}
               </h1>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 {user.name}님의 코칭 현황
