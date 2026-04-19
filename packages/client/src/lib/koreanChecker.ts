@@ -3718,6 +3718,102 @@ export function detectExaggeration(text: string): ExaggerationAnalysis {
   return { hits: hits.slice(0, 20), count, level, suggestion };
 }
 
+/**
+ * 연락처 정보 검증 — 이력서에 포함된 이메일·전화번호 형식 확인.
+ * 이메일 RFC 기본 패턴 / 한국 전화번호 010-xxxx-xxxx 또는 02-xxxx-xxxx 등.
+ */
+export interface ContactInfo {
+  emails: Array<{ address: string; valid: boolean; index: number }>;
+  phones: Array<{ raw: string; normalized: string; valid: boolean; index: number }>;
+  summary: string;
+}
+
+const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+const PHONE_RE =
+  /(?:\+?82[-\s]?|0)1[016789][-\s]?\d{3,4}[-\s]?\d{4}|(?:\+?82[-\s]?|0)2[-\s]?\d{3,4}[-\s]?\d{4}|0\d{1,2}[-\s]?\d{3,4}[-\s]?\d{4}/g;
+
+function isValidEmail(address: string): boolean {
+  if (address.length > 254) return false;
+  const parts = address.split('@');
+  if (parts.length !== 2) return false;
+  return parts[0].length > 0 && parts[1].includes('.') && !address.includes('..');
+}
+
+function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('82')) return '0' + digits.slice(2);
+  return digits;
+}
+
+function isValidPhone(raw: string): boolean {
+  const digits = normalizePhone(raw);
+  return digits.length >= 9 && digits.length <= 11 && digits.startsWith('0');
+}
+
+export function detectContactInfo(text: string): ContactInfo {
+  const t = text ?? '';
+  const emails: ContactInfo['emails'] = [];
+  const phones: ContactInfo['phones'] = [];
+  let m: RegExpExecArray | null;
+  const emailRe = new RegExp(EMAIL_RE.source, 'g');
+  while ((m = emailRe.exec(t))) {
+    emails.push({ address: m[0], valid: isValidEmail(m[0]), index: m.index });
+  }
+  const phoneRe = new RegExp(PHONE_RE.source, 'g');
+  while ((m = phoneRe.exec(t))) {
+    const raw = m[0];
+    phones.push({ raw, normalized: normalizePhone(raw), valid: isValidPhone(raw), index: m.index });
+  }
+  const invalidEmails = emails.filter((e) => !e.valid).length;
+  const invalidPhones = phones.filter((p) => !p.valid).length;
+  const issues: string[] = [];
+  if (invalidEmails) issues.push(`잘못된 이메일 ${invalidEmails}`);
+  if (invalidPhones) issues.push(`잘못된 전화 ${invalidPhones}`);
+  const summary =
+    emails.length === 0 && phones.length === 0
+      ? '연락처 정보가 감지되지 않았습니다.'
+      : issues.length
+        ? `이메일 ${emails.length} · 전화 ${phones.length} — ${issues.join(', ')}`
+        : `연락처 유효 — 이메일 ${emails.length} · 전화 ${phones.length}`;
+  return { emails, phones, summary };
+}
+
+/**
+ * 날짜 범위 논리 검증 — 시작 > 종료인 잘못된 기간(예: 2023.05~2021.01) 포착.
+ * estimateExperienceYears 와 동일 패턴을 재사용하되 여기서는 잘못된 범위만 리포트.
+ */
+export interface InvalidDateRange {
+  raw: string;
+  start: { year: number; month: number };
+  end: { year: number; month: number };
+  reason: string;
+}
+
+export function validateDateRanges(text: string): InvalidDateRange[] {
+  const exp = estimateExperienceYears(text);
+  const invalid: InvalidDateRange[] = [];
+  for (const r of exp.ranges) {
+    const s = r.start.year * 12 + r.start.month;
+    const e = r.end.year * 12 + r.end.month;
+    if (e < s) {
+      invalid.push({
+        raw: r.raw,
+        start: r.start,
+        end: r.end,
+        reason: `시작(${r.start.year}.${r.start.month}) 이 종료(${r.end.year}.${r.end.month}) 보다 늦습니다.`,
+      });
+    } else if (r.months > 600) {
+      invalid.push({
+        raw: r.raw,
+        start: r.start,
+        end: r.end,
+        reason: `기간이 ${Math.round(r.months / 12)}년으로 지나치게 깁니다 — 오타 의심.`,
+      });
+    }
+  }
+  return invalid;
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
