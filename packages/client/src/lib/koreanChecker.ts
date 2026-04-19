@@ -4656,6 +4656,11 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     category: '이력서',
     description: '섹션별 숫자·액션동사·불릿 밀도 — 강화가 필요한 섹션 식별',
   },
+  {
+    name: 'computeSectionHealth',
+    category: '파생',
+    description: '섹션 균형·순서·밀도를 단일 점수로 종합 (섹션 품질 0-100)',
+  },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -6130,6 +6135,52 @@ export function analyzeSectionDensity(text: string): SectionDensity[] {
     }
     return { key: p.key, chars, numbers, actionVerbs, bullets, density, needsBoost, hint };
   });
+}
+
+export interface SectionHealth {
+  overall: number;
+  balanceScore: number;
+  orderScore: number;
+  densityScore: number;
+  tier: 'excellent' | 'good' | 'fair' | 'poor';
+  topHints: string[];
+}
+
+/**
+ * 섹션 품질 종합 점수 — analyzeSectionBalance + analyzeSectionOrder + analyzeSectionDensity
+ * 세 축을 균등 가중 평균(1:1:1)해 0-100 overall 산출.
+ * 각 분석기에서 나온 이슈·힌트를 묶어 topHints (최대 3개) 로 리포트.
+ */
+export function computeSectionHealth(text: string): SectionHealth {
+  const balance = analyzeSectionBalance(text);
+  const order = analyzeSectionOrder(text);
+  const density = analyzeSectionDensity(text);
+  const densityItems = density.filter((d) => d.chars > 0);
+  const boostCount = densityItems.filter((d) => d.needsBoost).length;
+  const densityScore =
+    densityItems.length === 0 ? 0 : Math.round(100 * (1 - boostCount / densityItems.length));
+  const overall = Math.round((balance.balanceScore + order.score + densityScore) / 3);
+  const tier: SectionHealth['tier'] =
+    overall >= 85 ? 'excellent' : overall >= 70 ? 'good' : overall >= 50 ? 'fair' : 'poor';
+  const hints: string[] = [];
+  for (const issue of balance.issues) hints.push(issue.message);
+  if (!order.isOptimal && order.misplaced.length > 0) {
+    const first = order.misplaced[0];
+    hints.push(
+      `${first.key} 섹션 위치 조정 권장 (현재 ${first.currentIndex + 1}번째 → 권장 ${first.idealIndex + 1}번째)`,
+    );
+  }
+  for (const d of densityItems) {
+    if (d.hint) hints.push(d.hint);
+  }
+  return {
+    overall,
+    balanceScore: balance.balanceScore,
+    orderScore: order.score,
+    densityScore,
+    tier,
+    topHints: hints.slice(0, 3),
+  };
 }
 
 function stripHtml(html: string): string {
