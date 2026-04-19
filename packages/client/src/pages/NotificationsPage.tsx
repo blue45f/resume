@@ -7,6 +7,7 @@ import { CardGridSkeleton } from '@/components/Skeleton';
 import EmptyState from '@/components/EmptyState';
 import { timeAgo } from '@/lib/time';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 import {
   fetchNotifications as apiFetchNotifications,
   markAllNotificationsRead,
@@ -219,7 +220,7 @@ export default function NotificationsPage() {
                   />
                 </svg>
               </div>
-              알���
+              {tx('notification.title')}
               {unreadCount > 0 && (
                 <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 text-xs font-bold bg-red-500 text-white rounded-full animate-pulse">
                   {unreadCount > 99 ? '99+' : unreadCount}
