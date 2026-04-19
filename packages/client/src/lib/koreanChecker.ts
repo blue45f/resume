@@ -2149,6 +2149,126 @@ export function analyzeLength(
 }
 
 /**
+ * 핵심 키워드 추출 — 한글 2자↑ 명사·전문용어를 빈도 기반 상위 N 개 반환.
+ * 조사/접속사/불용어 제거. 태그 클라우드·이력서 키워드 배지에 활용.
+ */
+export interface ExtractedKeyword {
+  word: string;
+  count: number;
+  weight: number; // TF 상대 가중치 (0~1)
+}
+
+const KEYWORD_STOPWORDS = new Set([
+  '그리고',
+  '그래서',
+  '하지만',
+  '그러나',
+  '따라서',
+  '하여',
+  '있습',
+  '없습',
+  '있어',
+  '없어',
+  '입니',
+  '합니',
+  '됩니',
+  '것과',
+  '것을',
+  '것이',
+  '것은',
+  '대한',
+  '위해',
+  '통해',
+  '대해',
+  '하지',
+  '에서',
+  '으로',
+  '에게',
+  '까지',
+  '부터',
+  '보다',
+  '처럼',
+  '마저',
+  '역시',
+  '또한',
+  '많은',
+  '다양',
+  '여러',
+  '모든',
+  '저는',
+  '제가',
+  '우리',
+  '사람',
+  '경우',
+  '때문',
+  '정도',
+  '이상',
+  '이하',
+  '관련',
+]);
+
+export function extractKeywords(text: string, topN = 15): ExtractedKeyword[] {
+  const t = (text ?? '').replace(/\s+/g, ' ');
+  if (!t.trim()) return [];
+  // 한글 2자 이상 + 영문 3자 이상 단어 수집
+  const tokens = t.match(/[가-힣]{2,}|[A-Za-z][A-Za-z0-9+#.-]{2,}/g)?.map((s) => s.trim()) ?? [];
+  const freq = new Map<string, number>();
+  for (const tk of tokens) {
+    const lower = /[A-Za-z]/.test(tk) ? tk : tk; // 한글은 casing 없음
+    if (KEYWORD_STOPWORDS.has(lower)) continue;
+    // 조사 제거 heuristic: 3글자 이상 한글 단어 끝 1글자 '을/를/이/가/은/는/의/에/로/와/과'
+    let normalized = lower;
+    if (/[가-힣]{3,}/.test(normalized)) {
+      normalized = normalized.replace(/[을를이가은는의에서로와과및]$/, '') || normalized;
+    }
+    if (normalized.length < 2) continue;
+    if (KEYWORD_STOPWORDS.has(normalized)) continue;
+    freq.set(normalized, (freq.get(normalized) ?? 0) + 1);
+  }
+  const entries = [...freq.entries()].sort((a, b) => b[1] - a[1]);
+  const max = entries[0]?.[1] ?? 1;
+  return entries
+    .slice(0, topN)
+    .map(([word, count]) => ({ word, count, weight: Math.round((count / max) * 100) / 100 }));
+}
+
+/**
+ * 약한 동사 → 강한 대안 매핑. 이력서 bullet 리라이트 힌트.
+ */
+const WEAK_TO_STRONG: Record<string, string[]> = {
+  담당: ['주도', '책임', '총괄'],
+  참여: ['기여', '제안', '실행'],
+  수행: ['구현', '완수', '실행'],
+  도움: ['지원', '서포트', '협력'],
+  했습니다: ['구축했습니다', '구현했습니다', '달성했습니다'],
+  맡았: ['주도했', '총괄했', '책임졌'],
+  배웠: ['습득했', '체득했', '내재화했'],
+  겪었: ['경험했', '돌파했', '학습했'],
+  진행: ['주도', '기획·실행', '추진'],
+  노력: ['실행', '달성', '추진'],
+};
+
+export interface VerbReplacementSuggestion {
+  weak: string;
+  index: number;
+  alternatives: string[];
+}
+
+export function suggestVerbReplacements(text: string): VerbReplacementSuggestion[] {
+  const t = text ?? '';
+  const results: VerbReplacementSuggestion[] = [];
+  for (const [weak, alts] of Object.entries(WEAK_TO_STRONG)) {
+    const re = new RegExp(weak, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(t))) {
+      results.push({ weak, index: m.index, alternatives: alts });
+    }
+  }
+  results.sort((a, b) => a.index - b.index);
+  return results.slice(0, 40);
+}
+
+/**
  * 모든 분석기를 합쳐 한 번에 호출하는 통합 리포트.
  * 실사용 컴포넌트에서 여러 함수 호출 대신 한 번의 호출로 품질 스코어·지표 전부 가져올 수 있음.
  */
