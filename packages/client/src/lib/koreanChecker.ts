@@ -4621,6 +4621,7 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     category: '구조',
     description: '문장부호 분포 (느낌표·물음표·쉼표)',
   },
+  { name: 'extractQuotableLines', category: '파생', description: '인용 가능한 임팩트 문장 Top-N' },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5310,6 +5311,63 @@ export function analyzePunctuationBalance(text: string): PunctuationBalance {
     suggestion = `쉼표 사용이 적습니다 (문장당 ${commasPerSentence}) — 긴 문장에 쉼표로 호흡을 주세요.`;
   else suggestion = `문장부호 분포 정상 (문장당 쉼표 ${commasPerSentence}).`;
   return { periods, commas, questions, exclamations, total, commasPerSentence, suggestion };
+}
+
+/**
+ * 인용 가능한 문장(Quotable Lines) 추출 — 수치·고유명사·강한 동사를 포함한 임팩트 있는
+ * 문장 Top-N. 소셜 카드 / 포트폴리오 헤드라인 / 추천사 스타일 하이라이트에 활용.
+ */
+export interface QuotableLine {
+  sentence: string;
+  score: number;
+  signals: { hasNumber: boolean; hasStrongVerb: boolean; hasProper: boolean };
+}
+
+const STRONG_VERBS_QUOTABLE = [
+  '주도',
+  '달성',
+  '개선',
+  '출시',
+  '구축',
+  '혁신',
+  '최적화',
+  '단축',
+  '절감',
+  '증가',
+  '성장',
+  '구현',
+];
+
+export function extractQuotableLines(text: string, topN = 3): QuotableLine[] {
+  const clean = (text ?? '').replace(/\s+/g, ' ').trim();
+  if (!clean) return [];
+  const sentences = clean
+    .split(/[.!?。]+/)
+    .filter((s) => s.trim().length > 20 && s.trim().length < 200);
+  const results: QuotableLine[] = [];
+  for (const raw of sentences) {
+    const s = raw.trim();
+    const hasNumber =
+      /\d+(?:[.,]\d+)?\s*(?:%|배|년|개월|주|일|시간|원|건|명|회|차|번)|상위\s*\d+/.test(s);
+    const hasStrongVerb = STRONG_VERBS_QUOTABLE.some((v) => s.includes(v));
+    const hasProper =
+      /\b[A-Z][A-Za-z0-9.]+\b/.test(s) ||
+      /(네이버|카카오|삼성|LG|SK|현대|쿠팡|토스|배민|당근|라인|NHN|KT)/.test(s);
+    let score = 0;
+    if (hasNumber) score += 3;
+    if (hasStrongVerb) score += 2;
+    if (hasProper) score += 1;
+    if (score === 0) continue;
+    // 문장 길이 적절(40~120자)에 보너스
+    if (s.length >= 40 && s.length <= 120) score += 1;
+    results.push({
+      sentence: s,
+      score,
+      signals: { hasNumber, hasStrongVerb, hasProper },
+    });
+  }
+  results.sort((a, b) => b.score - a.score);
+  return results.slice(0, topN);
 }
 
 function stripHtml(html: string): string {
