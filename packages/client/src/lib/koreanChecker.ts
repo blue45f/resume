@@ -676,91 +676,11 @@ export function checkKorean(resume: Resume): KoreanCheckResult {
 
   for (const { name, text } of sections) {
     if (!text) continue;
+    const stats = analyzeSectionText(text, name, issues);
     totalChars += text.length;
-
-    // 맞춤법 검사
-    for (const rule of RULES) {
-      const matches = text.matchAll(rule.pattern);
-      for (const m of matches) {
-        const idx = m.index ?? 0;
-        const matchLength = m[0].length;
-        const context = text.slice(Math.max(0, idx - 15), Math.min(text.length, idx + 20));
-        issues.push({
-          context: cleanContext(context),
-          wrong: rule.wrong,
-          suggestion: rule.suggestion,
-          reason: rule.reason,
-          severity: rule.severity,
-          section: name,
-          offset: idx,
-          length: matchLength,
-        });
-      }
-    }
-
-    // 문체 혼용 감지 + 긴 문장 감지
-    const sentences = text.split(/[.!?]|\n/).filter((s) => s.trim().length > 5);
-    totalSentences += sentences.length;
-    let runningOffset = 0;
-    for (const s of sentences) {
-      const trimmed = s.trim();
-      if (/습니다[.!?]?\s*$|합니다[.!?]?\s*$|입니다[.!?]?\s*$/.test(trimmed)) formalCount++;
-      if (/해요[.!?]?\s*$|에요[.!?]?\s*$|예요[.!?]?\s*$/.test(trimmed)) politeCount++;
-
-      // 너무 긴 문장 — 80자 초과 시 가독성 저하
-      if (trimmed.length > 80) {
-        const idx = text.indexOf(trimmed, runningOffset);
-        issues.push({
-          context: cleanContext(trimmed.slice(0, 40) + '...'),
-          wrong: `긴 문장 (${trimmed.length}자)`,
-          suggestion: '문장 분리',
-          reason: '문장이 80자를 넘으면 가독성이 떨어집니다. 2~3문장으로 분리하세요.',
-          severity: 'info',
-          section: name,
-          offset: idx >= 0 ? idx : 0,
-          length: trimmed.length,
-        });
-      }
-
-      // 수동태 감지 (되어진/지게 되었/지게 된)
-      if (/되어진|지게\s?되었|지게\s?된/.test(trimmed)) {
-        const m = trimmed.match(/되어진|지게\s?되었|지게\s?된/);
-        const idx = text.indexOf(trimmed, runningOffset);
-        issues.push({
-          context: cleanContext(trimmed.slice(0, 40)),
-          wrong: m?.[0] ?? '수동태',
-          suggestion: '능동태 (~하였다, ~했다)',
-          reason: '이중 수동태 — 한국어에서는 피해야 할 번역투. 능동 표현이 자연스럽습니다.',
-          severity: 'warning',
-          section: name,
-          offset: idx >= 0 ? idx : 0,
-          length: m?.[0].length ?? 0,
-        });
-      }
-
-      runningOffset = Math.max(
-        runningOffset,
-        text.indexOf(trimmed, runningOffset) + trimmed.length,
-      );
-    }
-
-    // 반복어 감지 — "그리고/또한/그래서" 가 3회 이상 반복
-    for (const rep of ['그리고', '또한', '그래서', '그런데']) {
-      const count = (text.match(new RegExp(rep, 'g')) ?? []).length;
-      if (count >= 3) {
-        const firstIdx = text.indexOf(rep);
-        issues.push({
-          context: cleanContext(text.slice(Math.max(0, firstIdx - 10), firstIdx + 20)),
-          wrong: `"${rep}" 반복 (${count}회)`,
-          suggestion: '접속사 다양화 또는 생략',
-          reason: `같은 접속사가 반복되면 단조롭습니다. 문맥에 따라 제거하거나 다른 표현으로.`,
-          severity: 'info',
-          section: name,
-          offset: firstIdx,
-          length: rep.length,
-        });
-      }
-    }
+    totalSentences += stats.sentenceCount;
+    formalCount += stats.formalCount;
+    politeCount += stats.politeCount;
   }
 
   let dominant: KoreanCheckResult['toneMix']['dominant'] = 'none';
@@ -795,6 +715,159 @@ export function checkKorean(resume: Resume): KoreanCheckResult {
     issues,
     toneMix: { formal: formalCount, polite: politeCount, dominant },
     totalSentences,
+    summary,
+    score,
+  };
+}
+
+/**
+ * 한 섹션(임의 텍스트)을 검사해 issues 배열에 push + 문장 통계 반환.
+ * checkKorean() 이 내부에서 섹션마다 호출하고, checkText() 가 임의 텍스트에 노출.
+ */
+function analyzeSectionText(
+  text: string,
+  sectionName: string,
+  issues: KoreanIssue[],
+): { sentenceCount: number; formalCount: number; politeCount: number } {
+  // 규칙 기반 단어 치환
+  for (const rule of RULES) {
+    const matches = text.matchAll(rule.pattern);
+    for (const m of matches) {
+      const idx = m.index ?? 0;
+      const matchLength = m[0].length;
+      const context = text.slice(Math.max(0, idx - 15), Math.min(text.length, idx + 20));
+      issues.push({
+        context: cleanContext(context),
+        wrong: rule.wrong,
+        suggestion: rule.suggestion,
+        reason: rule.reason,
+        severity: rule.severity,
+        section: sectionName,
+        offset: idx,
+        length: matchLength,
+      });
+    }
+  }
+
+  // 문장 단위 분석 (문체·긴문장·수동태)
+  const sentences = text.split(/[.!?]|\n/).filter((s) => s.trim().length > 5);
+  let formalCount = 0;
+  let politeCount = 0;
+  let runningOffset = 0;
+  for (const s of sentences) {
+    const trimmed = s.trim();
+    if (/습니다[.!?]?\s*$|합니다[.!?]?\s*$|입니다[.!?]?\s*$/.test(trimmed)) formalCount++;
+    if (/해요[.!?]?\s*$|에요[.!?]?\s*$|예요[.!?]?\s*$/.test(trimmed)) politeCount++;
+
+    if (trimmed.length > 80) {
+      const idx = text.indexOf(trimmed, runningOffset);
+      issues.push({
+        context: cleanContext(trimmed.slice(0, 40) + '...'),
+        wrong: `긴 문장 (${trimmed.length}자)`,
+        suggestion: '문장 분리',
+        reason: '문장이 80자를 넘으면 가독성이 떨어집니다. 2~3문장으로 분리하세요.',
+        severity: 'info',
+        section: sectionName,
+        offset: idx >= 0 ? idx : 0,
+        length: trimmed.length,
+      });
+    }
+
+    if (/되어진|지게\s?되었|지게\s?된/.test(trimmed)) {
+      const m = trimmed.match(/되어진|지게\s?되었|지게\s?된/);
+      const idx = text.indexOf(trimmed, runningOffset);
+      issues.push({
+        context: cleanContext(trimmed.slice(0, 40)),
+        wrong: m?.[0] ?? '수동태',
+        suggestion: '능동태 (~하였다, ~했다)',
+        reason: '이중 수동태 — 한국어에서 피해야 할 번역투. 능동 표현이 자연스럽습니다.',
+        severity: 'warning',
+        section: sectionName,
+        offset: idx >= 0 ? idx : 0,
+        length: m?.[0].length ?? 0,
+      });
+    }
+
+    runningOffset = Math.max(runningOffset, text.indexOf(trimmed, runningOffset) + trimmed.length);
+  }
+
+  // 반복 접속사
+  for (const rep of ['그리고', '또한', '그래서', '그런데']) {
+    const count = (text.match(new RegExp(rep, 'g')) ?? []).length;
+    if (count >= 3) {
+      const firstIdx = text.indexOf(rep);
+      issues.push({
+        context: cleanContext(text.slice(Math.max(0, firstIdx - 10), firstIdx + 20)),
+        wrong: `"${rep}" 반복 (${count}회)`,
+        suggestion: '접속사 다양화 또는 생략',
+        reason: '같은 접속사가 반복되면 단조롭습니다. 문맥에 따라 제거하거나 다른 표현으로.',
+        severity: 'info',
+        section: sectionName,
+        offset: firstIdx,
+        length: rep.length,
+      });
+    }
+  }
+
+  // 헷지(hedging) 과다 — "것 같다" 류가 3회 이상이면 자신감 부족 인상
+  const hedgePatterns = [/것\s*같습니다/g, /것\s*같다/g, /수도\s*있습니다/g];
+  let hedgeTotal = 0;
+  for (const p of hedgePatterns) hedgeTotal += (text.match(p) ?? []).length;
+  if (hedgeTotal >= 3) {
+    issues.push({
+      context: `"것 같다·수도 있다" 류 ${hedgeTotal}회`,
+      wrong: '과도한 헷지 표현',
+      suggestion: '단정적 표현 (~했습니다, ~입니다)',
+      reason:
+        '"것 같다·수도 있다" 가 반복되면 자신감 없는 인상 — 이력서는 단정적 표현이 설득력을 높입니다.',
+      severity: 'info',
+      section: sectionName,
+      offset: 0,
+      length: 0,
+    });
+  }
+
+  return { sentenceCount: sentences.length, formalCount, politeCount };
+}
+
+/**
+ * Resume 이 아닌 임의 텍스트(커버레터·자소서 단편 등) 를 검사.
+ * checkKorean 과 동일한 KoreanCheckResult 형태를 반환.
+ */
+export function checkText(text: string, sectionName = '본문'): KoreanCheckResult {
+  const issues: KoreanIssue[] = [];
+  const stats = analyzeSectionText(text ?? '', sectionName, issues);
+  const totalChars = (text ?? '').length;
+
+  let dominant: KoreanCheckResult['toneMix']['dominant'] = 'none';
+  const total = stats.formalCount + stats.politeCount;
+  if (total > 0) {
+    const fRatio = stats.formalCount / total;
+    if (fRatio > 0.8) dominant = 'formal';
+    else if (fRatio < 0.2) dominant = 'polite';
+    else dominant = 'mixed';
+  }
+  if (dominant === 'mixed' && total > 3) {
+    issues.push({
+      context: `합니다체 ${stats.formalCount}문장 · 해요체 ${stats.politeCount}문장`,
+      wrong: '문체 혼용',
+      suggestion: '한 가지로 통일',
+      reason: '글 전체가 "합니다체" 또는 "해요체" 중 하나로 통일되어야 합니다.',
+      severity: 'warning',
+      section: sectionName,
+      offset: 0,
+      length: 0,
+    });
+  }
+
+  const summary = { error: 0, warning: 0, info: 0 };
+  for (const iss of issues) summary[iss.severity]++;
+  const score = computeScore(summary, totalChars, dominant === 'mixed');
+
+  return {
+    issues,
+    toneMix: { formal: stats.formalCount, polite: stats.politeCount, dominant },
+    totalSentences: stats.sentenceCount,
     summary,
     score,
   };
