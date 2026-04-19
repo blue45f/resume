@@ -106,6 +106,7 @@ export default function KoreanQualityBadge({
       </button>
       {expanded && (
         <div className="mt-2 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px] leading-relaxed w-full max-w-xs sm:max-w-sm max-h-[70vh] overflow-y-auto shadow-sm">
+          <SectionHeader>📖 문체 · 가독성</SectionHeader>
           <Row
             title="맞춤법"
             value={`${check.score}점`}
@@ -131,6 +132,7 @@ export default function KoreanQualityBadge({
             value={`${redundancy.hits.length}건`}
             hint={redundancy.worst?.word ?? '없음'}
           />
+          <SectionHeader>💼 이력서 신호</SectionHeader>
           <Row title="정량 지표" value={`${quantification.total}건`} hint={quantification.level} />
           <Row
             title="액션 동사"
@@ -138,6 +140,7 @@ export default function KoreanQualityBadge({
             hint={`${Math.round(actionVerbs.ratio * 100)}% 강`}
           />
           <Row title="상투구" value={`${cliches.count}건`} hint={cliches.level} />
+          <SectionHeader>✍️ 문장 구조</SectionHeader>
           <Row
             title="시작 변주"
             value={`${Math.round((1 - sentenceStarts.repeatedStartRatio) * 100)}점`}
@@ -195,6 +198,7 @@ function ExtraRows({ text }: { text: string }) {
   const brackets = analyzeBracketBalance(text);
   return (
     <>
+      <SectionHeader>📊 메타 정보</SectionHeader>
       <Row
         title="읽기 시간"
         value={reading.label}
@@ -438,6 +442,14 @@ function PriorityActions({ report }: { report: ReturnType<typeof generateQuality
           </li>
         ))}
       </ol>
+    </div>
+  );
+}
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mt-1.5 mb-0.5 first:mt-0 text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-0.5">
+      {children}
     </div>
   );
 }
