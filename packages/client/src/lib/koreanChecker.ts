@@ -4631,6 +4631,7 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     category: '파생',
     description: '면접 콜백 가능성 점수 (0-100)',
   },
+  { name: 'detectCareerGaps', category: '이력서', description: '경력 공백(6개월↑) 검출' },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5620,6 +5621,56 @@ export function scoreInterviewability(text: string): InterviewabilityScore {
           ? `보완 필요 (${overall}점). ${weakest.axis} (${weakest.value}) 를 먼저 개선하세요.`
           : `면접 문턱 미달 (${overall}점). 섹션 완성도·정량 지표·구체 경험을 전면 재작성 권장.`;
   return { overall, breakdown, tier, suggestion };
+}
+
+/**
+ * 경력 공백(gap) 검출 — estimateExperienceYears 로 추출한 기간들의 시작~종료를 시간순으로
+ * 정렬 후 인접 구간 사이에 6개월 이상 공백이 있으면 리포트. 채용 심사 시 설명 필요한 신호.
+ */
+export interface CareerGap {
+  from: { year: number; month: number };
+  to: { year: number; month: number };
+  gapMonths: number;
+  severity: 'minor' | 'notable' | 'major';
+}
+export interface CareerGapAnalysis {
+  gaps: CareerGap[];
+  totalGapMonths: number;
+  suggestion: string;
+}
+
+export function detectCareerGaps(text: string): CareerGapAnalysis {
+  const exp = estimateExperienceYears(text);
+  if (exp.ranges.length < 2) {
+    return {
+      gaps: [],
+      totalGapMonths: 0,
+      suggestion: '2개 이상 경력 구간이 있어야 공백 분석 가능.',
+    };
+  }
+  const sorted = [...exp.ranges].sort(
+    (a, b) => a.start.year * 12 + a.start.month - (b.start.year * 12 + b.start.month),
+  );
+  const gaps: CareerGap[] = [];
+  for (let i = 1; i < sorted.length; i++) {
+    const prevEnd = sorted[i - 1].end;
+    const curStart = sorted[i].start;
+    const gapMonths = curStart.year * 12 + curStart.month - (prevEnd.year * 12 + prevEnd.month) - 1;
+    if (gapMonths >= 6) {
+      gaps.push({
+        from: prevEnd,
+        to: curStart,
+        gapMonths,
+        severity: gapMonths >= 24 ? 'major' : gapMonths >= 12 ? 'notable' : 'minor',
+      });
+    }
+  }
+  const totalGapMonths = gaps.reduce((a, b) => a + b.gapMonths, 0);
+  const suggestion =
+    gaps.length === 0
+      ? '경력 공백이 감지되지 않았습니다.'
+      : `${gaps.length}개 공백 (총 ${totalGapMonths}개월) — 이력서 또는 면접 답변으로 설명 준비 필요.`;
+  return { gaps, totalGapMonths, suggestion };
 }
 
 function stripHtml(html: string): string {
