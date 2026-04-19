@@ -9,6 +9,7 @@ import { upsertCoachProfile } from '@/lib/api';
 import { useMyCoachingSessions } from '@/hooks/useResources';
 import { fetchMe, getUser, setAuth, getToken } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 import {
   coachProfileSchema,
   type CoachProfileFormInput,
@@ -167,7 +168,7 @@ export default function CoachProfileEditPage() {
           </div>
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-              코치 프로필
+              {tx('coach.title')}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {hasProfile
