@@ -389,6 +389,10 @@
     "failed": "決済に失敗しました",
     "completed": "決済完了"
   },
+  "sitemap": {
+    "title": "サイトマップ",
+    "subtitle": "履歴書工房のすべてのページを一覧で確認できます"
+  },
   "plans": {
     "free": {
       "name": "無料",

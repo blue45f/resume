@@ -489,6 +489,10 @@
     "failed": "Payment failed",
     "completed": "Payment completed"
   },
+  "sitemap": {
+    "title": "Sitemap",
+    "subtitle": "Browse all pages in Resume Workshop at a glance"
+  },
   "plans": {
     "free": {
       "name": "Free",

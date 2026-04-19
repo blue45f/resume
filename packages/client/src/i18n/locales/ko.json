@@ -489,6 +489,10 @@
     "failed": "결제에 실패했습니다",
     "completed": "결제 완료"
   },
+  "sitemap": {
+    "title": "사이트맵",
+    "subtitle": "이력서공방의 모든 페이지를 한눈에 확인하세요"
+  },
   "plans": {
     "free": {
       "name": "무료",
