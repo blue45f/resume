@@ -17,6 +17,8 @@ import {
   detectExaggeration,
   detectContactInfo,
   validateDateRanges,
+  scoreResumeCompleteness,
+  detectMissingResumeSections,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -302,6 +304,30 @@ function CareerAndExaggerationRows({ text }: { text: string }) {
           title="날짜 오류"
           value={`${invalidRanges.length}건`}
           hint={invalidRanges[0]?.raw ?? '-'}
+        />
+      )}
+      <CompletenessRow text={text} />
+    </>
+  );
+}
+
+function CompletenessRow({ text }: { text: string }) {
+  const completeness = scoreResumeCompleteness(text);
+  const sections = detectMissingResumeSections(text);
+  // 이력서 본문으로 쓸 만큼 긴 텍스트(300자+) 에서만 표시
+  if (text.length < 300) return null;
+  return (
+    <>
+      <Row
+        title="이력서 완성도"
+        value={`${completeness.overall}점`}
+        hint={`약한 축: ${[...completeness.breakdown].sort((a, b) => a.score - b.score)[0].axis}`}
+      />
+      {sections.missing.length > 0 && (
+        <Row
+          title="누락 섹션"
+          value={`${sections.missing.length}/${sections.missing.length + sections.present.length}`}
+          hint={sections.missing.join(', ')}
         />
       )}
     </>
