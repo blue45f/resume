@@ -9,6 +9,7 @@ import { CardGridSkeleton } from '@/components/Skeleton';
 import { timeAgo } from '@/lib/time';
 import { useBookmarks } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 
 export default function BookmarksPage() {
   const queryClient = useQueryClient();
@@ -43,7 +44,7 @@ export default function BookmarksPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-              북마크
+              {tx('community.bookmark')}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               관심 있는 이력서를 저장했습니다
@@ -74,7 +75,7 @@ export default function BookmarksPage() {
                 d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
               />
             </svg>
-            <p className="text-slate-500 dark:text-slate-400 mb-2">저장한 북마크가 없습니다</p>
+            <p className="text-slate-500 dark:text-slate-400 mb-2">{tx('empty.bookmarks')}</p>
             <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">
               탐색 페이지에서 관심 있는 이력서를 북마크하세요
             </p>
