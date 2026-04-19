@@ -4625,6 +4625,7 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
   { name: 'computeTextSimilarity', category: '파생', description: 'Jaccard 텍스트 유사도 비교' },
   { name: 'quickScore', category: '파생', description: '빠른 품질 점수(단일 숫자)' },
   { name: 'detectEmptyClaims', category: '문체', description: '빈 주장(근거 없는 역량 주장) 검출' },
+  { name: 'countAchievements', category: '이력서', description: '수상·성취 키워드 밀도' },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5490,6 +5491,68 @@ export function detectEmptyClaims(text: string): EmptyClaimAnalysis {
         ? `빈 주장 ${count}건 — 각 표현에 증거(수치·사례·산출물) 1개씩 덧붙이세요.`
         : `빈 주장이 ${count}건으로 많습니다. "잘 안다/자신 있다" 같은 주장은 구체 사례로 증명하세요.`;
   return { hits: hits.slice(0, 20), count, level, suggestion };
+}
+
+/**
+ * 수상·성취 카운트 — "수상/1등/1위/금상/대상/입상/장학금/우수상/최우수/선정/인증/자격증"
+ * 등 객관적 성취 흔적의 빈도 집계. 이력서 "실적 밀도" 지표.
+ */
+const ACHIEVEMENT_KEYWORDS = [
+  '수상',
+  '1등',
+  '1위',
+  '금상',
+  '대상',
+  '입상',
+  '장학금',
+  '우수상',
+  '최우수',
+  '선정',
+  '인증',
+  '자격증',
+  '합격',
+  '당선',
+  '우승',
+  '개최',
+];
+
+export interface AchievementCount {
+  total: number;
+  byKeyword: Array<{ keyword: string; count: number }>;
+  density: number; // 100자당 수
+  level: 'low' | 'medium' | 'high';
+  suggestion: string;
+}
+
+export function countAchievements(text: string): AchievementCount {
+  const t = text ?? '';
+  const byKeyword: Array<{ keyword: string; count: number }> = [];
+  let total = 0;
+  for (const k of ACHIEVEMENT_KEYWORDS) {
+    const re = new RegExp(k, 'g');
+    const matches = t.match(re);
+    if (matches) {
+      byKeyword.push({ keyword: k, count: matches.length });
+      total += matches.length;
+    }
+  }
+  byKeyword.sort((a, b) => b.count - a.count);
+  const chars = t.length || 1;
+  const density = Math.round((total / chars) * 10000) / 100; // per 100 chars
+  let level: AchievementCount['level'];
+  if (total === 0) level = 'low';
+  else if (density >= 0.8) level = 'high';
+  else if (density >= 0.3) level = 'medium';
+  else level = 'low';
+  const suggestion =
+    total === 0
+      ? '객관적 성취 키워드가 감지되지 않았습니다 — 수상·자격증·선정 이력을 추가하세요.'
+      : level === 'high'
+        ? `성취 표현이 풍부합니다 (${total}건).`
+        : level === 'medium'
+          ? `성취 ${total}건 — 조금 더 구체 이력(대회·자격증)을 추가하면 임팩트 상승.`
+          : `성취 키워드가 적습니다 (${total}건). 수상·인증·선정 경험 추가 검토.`;
+  return { total, byKeyword: byKeyword.slice(0, 10), density, level, suggestion };
 }
 
 function stripHtml(html: string): string {
