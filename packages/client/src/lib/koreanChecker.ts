@@ -997,6 +997,35 @@ export function dedupIssues(issues: KoreanIssue[]): DedupedKoreanIssue[] {
   return [...seen.values()];
 }
 
+/**
+ * 가장 자주 틀리는 표현 TOP N — 섹션 구분 없이 wrong 기준 집계.
+ * UI 에서 "자주 틀리는 표현 Top 3" 학습 힌트로 노출하면 반복 오타 교정 효과 ↑.
+ */
+export interface TopWrongPattern {
+  wrong: string;
+  suggestion: string;
+  count: number;
+  severity: KoreanIssue['severity'];
+}
+export function getTopWrongPatterns(issues: KoreanIssue[], topN = 3): TopWrongPattern[] {
+  const map = new Map<string, TopWrongPattern>();
+  for (const iss of issues) {
+    const prev = map.get(iss.wrong);
+    if (prev) prev.count++;
+    else
+      map.set(iss.wrong, {
+        wrong: iss.wrong,
+        suggestion: iss.suggestion,
+        count: 1,
+        severity: iss.severity,
+      });
+  }
+  return [...map.values()]
+    .filter((p) => p.count >= 2) // 단발성은 제외 — 반복 오타만 학습 가치 있음
+    .sort((a, b) => b.count - a.count)
+    .slice(0, topN);
+}
+
 /** Resume 전체 필드에 대해 자동 수정 적용 */
 export function autoFixResume(
   resume: Resume,

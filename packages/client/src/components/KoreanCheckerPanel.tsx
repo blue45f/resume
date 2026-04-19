@@ -8,6 +8,7 @@ import {
   groupIssuesBySection,
   hasKoreanErrors,
   issuesBySeverity,
+  getTopWrongPatterns,
   KOREAN_RULE_COUNT,
   type KoreanIssue,
 } from '@/lib/koreanChecker';
@@ -50,6 +51,8 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
       .slice(0, 5);
   }, [result.issues]);
   const hasErrors = hasKoreanErrors(result);
+  // 학습 힌트 — 가장 자주 틀리는 표현 Top 3 (같은 wrong 이 2회+ 반복일 때만)
+  const topWrongs = useMemo(() => getTopWrongPatterns(result.issues, 3), [result.issues]);
 
   const runAiCheck = async () => {
     if (!resumeId) {
@@ -306,6 +309,34 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
                   </div>
                 ))
               )}
+            </div>
+          )}
+
+          {/* 학습 힌트: 가장 자주 틀리는 표현 Top 3 */}
+          {!aiMode && topWrongs.length > 0 && (
+            <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
+              <div className="text-[11px] font-semibold text-indigo-800 dark:text-indigo-200 mb-1.5">
+                📚 자주 틀리는 표현 Top {topWrongs.length}
+              </div>
+              <div className="flex flex-wrap gap-2 text-[11px]">
+                {topWrongs.map((p) => (
+                  <span
+                    key={p.wrong}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700"
+                  >
+                    <span className="font-mono line-through text-red-600 dark:text-red-400">
+                      {p.wrong}
+                    </span>
+                    <span className="text-slate-400">→</span>
+                    <span className="font-mono font-semibold text-green-700 dark:text-green-400">
+                      {p.suggestion}
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-0.5">
+                      ×{p.count}
+                    </span>
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
