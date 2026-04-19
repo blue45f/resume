@@ -8,6 +8,8 @@ import {
   analyzeDateConsistency,
   detectJargon,
   analyzeBracketBalance,
+  detectWhitespaceAnomalies,
+  analyzeNumericFormat,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -206,6 +208,35 @@ function ExtraRows({ text }: { text: string }) {
             .filter((p) => p.unbalanced > 0)
             .map((p) => `${p.open}${p.close}`)
             .join(' ')}
+        />
+      )}
+      <WhitespaceAndNumericRows text={text} />
+    </>
+  );
+}
+
+function WhitespaceAndNumericRows({ text }: { text: string }) {
+  const ws = detectWhitespaceAnomalies(text);
+  const num = analyzeNumericFormat(text);
+  const numTotal = num.comma + num.plain + num.korean;
+  return (
+    <>
+      {!ws.clean && (
+        <Row
+          title="공백 이상"
+          value={`${ws.anomalies.length}건`}
+          hint={
+            (Object.keys(ws.counts) as Array<keyof typeof ws.counts>)
+              .filter((k) => ws.counts[k] > 0)
+              .join(', ') || '-'
+          }
+        />
+      )}
+      {numTotal > 0 && !num.consistent && (
+        <Row
+          title="숫자 포맷"
+          value={`${num.distinct}종 혼재`}
+          hint={`주류: ${num.dominant ?? '-'}`}
         />
       )}
     </>
