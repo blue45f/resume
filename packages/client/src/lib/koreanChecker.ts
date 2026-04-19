@@ -4572,6 +4572,7 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
   { name: 'detectContactInfo', category: '메타', description: '이메일/전화 추출 및 검증' },
   // 구조
   { name: 'analyzeBulletMarkerConsistency', category: '구조', description: 'bullet 기호 일관성' },
+  { name: 'detectAbbreviations', category: '구조', description: '축약어 풀이 누락' },
   { name: 'analyzeDateConsistency', category: '구조', description: '날짜 포맷 일관성' },
   { name: 'validateDateRanges', category: '구조', description: '날짜 범위 유효성' },
   { name: 'analyzeNumericFormat', category: '구조', description: '숫자 포맷 일관성' },
