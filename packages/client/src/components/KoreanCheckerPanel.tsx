@@ -1,6 +1,14 @@
 import { useMemo, useState } from 'react';
 import type { Resume } from '@/types/resume';
-import { checkKorean, autoFixResume, sortKoreanIssues, dedupIssues } from '@/lib/koreanChecker';
+import {
+  checkKorean,
+  autoFixResume,
+  sortKoreanIssues,
+  dedupIssues,
+  groupIssuesBySection,
+  hasKoreanErrors,
+  KOREAN_RULE_COUNT,
+} from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 import { aiSpellCheck, type AiSpellIssue } from '@/lib/api';
 
@@ -28,6 +36,15 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
     () => dedupIssues(sortKoreanIssues(result.issues)),
     [result.issues],
   );
+  // 섹션별 이슈 수 — 헤더에 "어느 섹션이 문제인지" 한눈에 노출
+  const sectionCounts = useMemo(() => {
+    const groups = groupIssuesBySection(result.issues);
+    return Object.entries(groups)
+      .map(([name, list]) => ({ name, count: list.length }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }, [result.issues]);
+  const hasErrors = hasKoreanErrors(result);
 
   const runAiCheck = async () => {
     if (!resumeId) {
@@ -214,7 +231,7 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
           )}
 
           {/* 원클릭 자동 수정 */}
-          {onApplyFix && result.issues.some((i) => i.severity === 'error') && (
+          {onApplyFix && hasErrors && (
             <div className="flex items-center justify-between gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
@@ -287,6 +304,23 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
             </div>
           )}
 
+          {/* 섹션별 이슈 분포 — 어느 섹션에 문제가 몰려있는지 한눈에 */}
+          {!aiMode && sectionCounts.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 text-[10px]">
+              {sectionCounts.map((s) => (
+                <span
+                  key={s.name}
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                >
+                  {s.name}
+                  <span className="font-semibold text-slate-800 dark:text-slate-100">
+                    {s.count}
+                  </span>
+                </span>
+              ))}
+            </div>
+          )}
+
           {/* 이슈 리스트 (규칙 기반, 심각도순 정렬 + 중복 제거) */}
           {!aiMode && displayIssues.length > 0 ? (
             <div className="space-y-2">
@@ -348,9 +382,9 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
           ) : null}
 
           <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed">
-            💡 <strong>규칙 기반</strong>: 66+ 정규식 규칙으로 즉시 검사 (무료·오프라인).{' '}
-            <strong>AI 검수</strong>: LLM 이 문맥까지 분석 (고정밀·유료). 고유명사·인용문은 오탐
-            가능.
+            💡 <strong>규칙 기반</strong>: {KOREAN_RULE_COUNT}개 정규식 규칙으로 즉시 검사
+            (무료·오프라인). <strong>AI 검수</strong>: LLM 이 문맥까지 분석 (고정밀·유료).
+            고유명사·인용문은 오탐 가능.
           </p>
         </div>
       )}
