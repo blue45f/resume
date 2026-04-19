@@ -761,6 +761,48 @@ const RULES: Array<{
     reason: '부사는 "틈틈이"입니다. (~히는 한자어에 주로 붙음)',
     severity: 'error',
   },
+  {
+    pattern: /(?<![가-힣])갯수/g,
+    wrong: '갯수',
+    suggestion: '개수',
+    reason: '한자어 앞에는 사이시옷을 넣지 않습니다. "개수(個數)".',
+    severity: 'error',
+  },
+  {
+    pattern: /(?<![가-힣])꼭지점/g,
+    wrong: '꼭지점',
+    suggestion: '꼭짓점',
+    reason: '표준어는 "꼭짓점"입니다 (사이시옷 포함).',
+    severity: 'error',
+  },
+  {
+    pattern: /(?<![가-힣])윗어른/g,
+    wrong: '윗어른',
+    suggestion: '웃어른',
+    reason: '"웃-"으로 시작하는 몇몇 단어: "웃어른·웃돈·웃비". "윗-"은 아래와 짝이 있을 때만.',
+    severity: 'error',
+  },
+  {
+    pattern: /(?<![가-힣])하므로써/g,
+    wrong: '하므로써',
+    suggestion: '함으로써',
+    reason: '수단·방법은 "-ㅁ으로써". "-므로"는 이유(연결어미).',
+    severity: 'warning',
+  },
+  {
+    pattern: /(?<![가-힣])체근/g,
+    wrong: '체근',
+    suggestion: '최근',
+    reason: '오타로 추정됩니다. "최근" 을 의도한 것으로 보입니다.',
+    severity: 'warning',
+  },
+  {
+    pattern: /(?<![가-힣])않되/g,
+    wrong: '않되',
+    suggestion: '안 되',
+    reason: '부정은 "안", "않-"은 용언 활용. "안 된다"가 맞습니다.',
+    severity: 'error',
+  },
 ];
 
 export function checkKorean(resume: Resume): KoreanCheckResult {
@@ -1539,6 +1581,177 @@ export function analyzeLexicalDiversity(text: string): LexicalDiversityAnalysis 
     suggestion = '같은 단어가 자주 반복됩니다. 주요 명사·동사를 2~3 가지로 다양화하세요.';
   }
   return { tokenCount, uniqueCount, ttr: Math.round(ttr * 1000) / 1000, level, suggestion };
+}
+
+/**
+ * 근접 반복어 검출 — 같은 2자 이상 한글 단어가 windowChars 내에서 재등장하면
+ * 중언부언 후보로 리포트. 이력서에서 "~을 수행하여 ~수행했고 ~수행했다"같은 반복 감지.
+ */
+export interface RedundancyHit {
+  word: string;
+  firstIndex: number;
+  secondIndex: number;
+  distance: number;
+}
+export interface RedundancyAnalysis {
+  hits: RedundancyHit[];
+  worst: RedundancyHit | null;
+  suggestion: string;
+}
+
+export function analyzeRedundancy(text: string, windowChars = 40): RedundancyAnalysis {
+  const clean = (text ?? '').replace(/\s+/g, ' ');
+  if (!clean) return { hits: [], worst: null, suggestion: '' };
+  // 조사/어미로 주로 쓰이는 짧은 단어는 제외 대상 — 2자 이상만 캡처
+  const re = /[가-힣]{2,}/g;
+  const positions: Array<{ word: string; idx: number }> = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(clean))) {
+    positions.push({ word: m[0], idx: m.index });
+  }
+  const STOPWORDS = new Set([
+    '그리고',
+    '그래서',
+    '또한',
+    '하지만',
+    '그러나',
+    '있습',
+    '없습',
+    '있다',
+    '없다',
+    '입니',
+    '합니',
+    '됩니',
+    '대한',
+    '통해',
+    '대해',
+    '많은',
+    '좋은',
+    '다양',
+    '여러',
+  ]);
+  const hits: RedundancyHit[] = [];
+  const seenPair = new Set<string>();
+  for (let i = 0; i < positions.length; i++) {
+    for (let j = i + 1; j < positions.length; j++) {
+      const a = positions[i];
+      const b = positions[j];
+      const distance = b.idx - a.idx;
+      if (distance > windowChars) break;
+      if (a.word !== b.word) continue;
+      if (STOPWORDS.has(a.word)) continue;
+      const pairKey = `${a.idx}|${b.idx}|${a.word}`;
+      if (seenPair.has(pairKey)) continue;
+      seenPair.add(pairKey);
+      hits.push({ word: a.word, firstIndex: a.idx, secondIndex: b.idx, distance });
+    }
+  }
+  hits.sort((a, b) => a.distance - b.distance);
+  const worst = hits[0] ?? null;
+  let suggestion = '';
+  if (!worst) suggestion = '근접 반복어가 발견되지 않았습니다.';
+  else if (hits.length >= 5)
+    suggestion = `"${worst.word}" 등 근접 반복어가 ${hits.length}건 감지되었습니다. 동의어로 변주하거나 문장을 줄여 보세요.`;
+  else
+    suggestion = `근접 반복어 ${hits.length}건 — 특히 "${worst.word}" (${worst.distance}자 간격) 를 확인해 보세요.`;
+  return { hits: hits.slice(0, 20), worst, suggestion };
+}
+
+/**
+ * 가독성 분석 — 평균 문장 길이, 평균 단어 길이, 문장 수 기반 단순 점수.
+ * 이력서·자소서에 적정: 평균 35~60자, 단어 3자 이내.
+ */
+export interface ReadabilityAnalysis {
+  sentenceCount: number;
+  avgSentenceLength: number;
+  maxSentenceLength: number;
+  avgWordLength: number;
+  readabilityScore: number; // 0~100, 높을수록 읽기 편함
+  level: 'easy' | 'ok' | 'hard';
+  suggestion: string;
+}
+
+export function analyzeReadability(text: string): ReadabilityAnalysis {
+  const clean = (text ?? '').replace(/\s+/g, ' ').trim();
+  if (!clean) {
+    return {
+      sentenceCount: 0,
+      avgSentenceLength: 0,
+      maxSentenceLength: 0,
+      avgWordLength: 0,
+      readabilityScore: 0,
+      level: 'ok',
+      suggestion: '분석할 본문이 없습니다.',
+    };
+  }
+  const sentences = clean.split(/[.!?。]+/).filter((s) => s.trim().length > 0);
+  const sentenceLens = sentences.map((s) => s.trim().length);
+  const sentenceCount = sentenceLens.length || 1;
+  const avgSentenceLength = Math.round(sentenceLens.reduce((a, b) => a + b, 0) / sentenceCount);
+  const maxSentenceLength = sentenceLens.reduce((a, b) => (b > a ? b : a), 0);
+  const words = clean.match(/[가-힣A-Za-z0-9]+/g) ?? [];
+  const avgWordLength = words.length
+    ? Math.round((words.reduce((a, w) => a + w.length, 0) / words.length) * 10) / 10
+    : 0;
+  // score: penalize very long sentences
+  let score = 100;
+  if (avgSentenceLength > 80) score -= 35;
+  else if (avgSentenceLength > 60) score -= 20;
+  else if (avgSentenceLength > 45) score -= 10;
+  if (maxSentenceLength > 150) score -= 15;
+  else if (maxSentenceLength > 100) score -= 8;
+  if (avgWordLength > 4) score -= 10;
+  score = Math.max(0, score);
+  const level: ReadabilityAnalysis['level'] = score >= 75 ? 'easy' : score >= 55 ? 'ok' : 'hard';
+  const suggestion =
+    level === 'easy'
+      ? '가독성이 좋습니다.'
+      : level === 'ok'
+        ? '문장 길이를 조금 더 짧게 다듬으면 더 읽기 편해집니다.'
+        : '문장이 너무 깁니다. 한 문장당 한 가지 메시지를 유지하세요.';
+  return {
+    sentenceCount,
+    avgSentenceLength,
+    maxSentenceLength,
+    avgWordLength,
+    readabilityScore: score,
+    level,
+    suggestion,
+  };
+}
+
+/**
+ * 모든 분석기를 합쳐 한 번에 호출하는 통합 리포트.
+ * 실사용 컴포넌트에서 4번의 함수 호출 대신 한 번의 호출로 품질 스코어·지표 전부 가져올 수 있음.
+ */
+export interface KoreanQualityReport {
+  check: KoreanCheckResult;
+  endings: SentenceEndingAnalysis;
+  lexical: LexicalDiversityAnalysis;
+  redundancy: RedundancyAnalysis;
+  readability: ReadabilityAnalysis;
+  /** 0~100 가중치 평균 — UI 배지에 바로 사용 가능 */
+  overallScore: number;
+}
+
+export function generateQualityReport(text: string, sectionName = '본문'): KoreanQualityReport {
+  const check = checkText(text, sectionName);
+  const endings = analyzeSentenceEndings(text);
+  const lexical = analyzeLexicalDiversity(text);
+  const redundancy = analyzeRedundancy(text);
+  const readability = analyzeReadability(text);
+  // 가중 평균: 맞춤법(score) 40% + 가독성 25% + 어휘 다양성 15% + 종결어미 변주 10% + 반복어 10%
+  const ttrScore = Math.round(lexical.ttr * 100);
+  const monotonyScore = 100 - endings.monotonyScore;
+  const redundancyScore = Math.max(0, 100 - redundancy.hits.length * 10);
+  const overallScore = Math.round(
+    check.score * 0.4 +
+      readability.readabilityScore * 0.25 +
+      ttrScore * 0.15 +
+      monotonyScore * 0.1 +
+      redundancyScore * 0.1,
+  );
+  return { check, endings, lexical, redundancy, readability, overallScore };
 }
 
 function stripHtml(html: string): string {
