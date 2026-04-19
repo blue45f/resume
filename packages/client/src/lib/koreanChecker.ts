@@ -4856,6 +4856,7 @@ export interface FullAnalysis {
   endings: EndingTypeCount;
   selfDeprecation: SelfDeprecationAnalysis;
   emptyClaims: EmptyClaimAnalysis;
+  cta: CallToActionAnalysis;
 }
 
 export function analyzeEverything(text: string): FullAnalysis {
@@ -4896,6 +4897,7 @@ export function analyzeEverything(text: string): FullAnalysis {
     endings: countSentencesByEnding(text),
     selfDeprecation: detectSelfDeprecation(text),
     emptyClaims: detectEmptyClaims(text),
+    cta: analyzeCallToAction(text),
   };
 }
 
@@ -5012,6 +5014,15 @@ export function summarizeAnalysis(full: FullAnalysis): {
       severity: 'yellow',
       label: '근거 없는 주장 다수',
       note: `${full.emptyClaims.count}건 — 사례·수치로 증명 필요.`,
+    });
+  }
+
+  // 마무리 CTA 부재 (본문 500자↑ 인 경우에만 체크)
+  if (!full.cta.hasCTA && full.reading.chars >= 500) {
+    flags.push({
+      severity: 'yellow',
+      label: '마무리 CTA 없음',
+      note: '마지막 문단에 "기여하겠습니다" 같은 행동 유발 마무리 추가.',
     });
   }
 
