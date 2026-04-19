@@ -17,6 +17,7 @@ import type { ResumeSummary } from '@/types/resume';
 import Tabs from '@/shared/ui/Tabs';
 import JobQuestionsPanel from '@/features/interview-prep/ui/JobQuestionsPanel';
 import JobStudyGroupsPanel from '@/features/study-groups/ui/JobStudyGroupsPanel';
+import { tx } from '@/lib/i18n';
 
 /* ------------------------------------------------------------------ */
 /*  One-Click Apply: localStorage tracking for applied jobs            */
@@ -653,7 +654,7 @@ function ExternalJobLinks({
                         }}
                         className="shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
                       >
-                        지원하기
+                        {tx('jobs.apply')}
                       </button>
                     </div>
                   ))}
@@ -1907,7 +1908,7 @@ function CuratedJobsTab() {
                         onClick={() => handleClick(job)}
                         className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-xl transition-colors"
                       >
-                        지원하기
+                        {tx('jobs.apply')}
                         <svg
                           className="w-3 h-3"
                           fill="none"
@@ -3074,7 +3075,7 @@ function QuickApplyModal({
                     지원 중...
                   </>
                 ) : (
-                  '지원하기'
+                  tx('jobs.apply')
                 )}
               </button>
             </form>
