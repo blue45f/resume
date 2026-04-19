@@ -4632,6 +4632,7 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     description: '면접 콜백 가능성 점수 (0-100)',
   },
   { name: 'detectCareerGaps', category: '이력서', description: '경력 공백(6개월↑) 검출' },
+  { name: 'analyzeVerbTense', category: '문체', description: '시제 일관성(과거/현재/미래)' },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5671,6 +5672,55 @@ export function detectCareerGaps(text: string): CareerGapAnalysis {
       ? '경력 공백이 감지되지 않았습니다.'
       : `${gaps.length}개 공백 (총 ${totalGapMonths}개월) — 이력서 또는 면접 답변으로 설명 준비 필요.`;
   return { gaps, totalGapMonths, suggestion };
+}
+
+/**
+ * 시제 일관성 분석 — 경력 섹션은 과거시제 통일이 권장됨(현재 재직 중 제외).
+ * 본문에서 과거/현재/미래 시제 동사 비율을 집계해 혼재 여부 판단.
+ */
+export interface TenseAnalysis {
+  past: number; // 했/었/았 등
+  present: number; // 한다/합니다/이다
+  future: number; // 할/할 것
+  total: number;
+  dominant: 'past' | 'present' | 'future' | 'mixed' | 'none';
+  suggestion: string;
+}
+
+export function analyzeVerbTense(text: string): TenseAnalysis {
+  const t = text ?? '';
+  const past = (t.match(/(?:했|였|었|았|왔|갔|봤|냈)(?:습니다|다|고|으며|음|었다)/g) ?? []).length;
+  const present = (
+    t.match(/(?:합니다|입니다|됩니다|있습니다|없습니다|한다|된다)(?=[.!?\s]|$)/g) ?? []
+  ).length;
+  const future = (t.match(/(?:할|될)\s*(?:것|예정|계획)/g) ?? []).length;
+  const total = past + present + future;
+  if (total === 0) {
+    return {
+      past: 0,
+      present: 0,
+      future: 0,
+      total: 0,
+      dominant: 'none',
+      suggestion: '동사 시제가 감지되지 않았습니다.',
+    };
+  }
+  const buckets = [
+    { k: 'past' as const, v: past },
+    { k: 'present' as const, v: present },
+    { k: 'future' as const, v: future },
+  ].sort((a, b) => b.v - a.v);
+  const top = buckets[0];
+  const dominant: TenseAnalysis['dominant'] = top.v / total >= 0.7 ? top.k : 'mixed';
+  const suggestion =
+    dominant === 'mixed'
+      ? `시제가 섞여 있습니다 (과거 ${past} · 현재 ${present} · 미래 ${future}) — 경력 기술은 과거시제로 통일.`
+      : dominant === 'past'
+        ? '과거시제로 일관 — 경력 기술의 표준 톤.'
+        : dominant === 'present'
+          ? `현재시제 우세 (${present}건) — 경력 기술은 과거시제 전환 권장.`
+          : `미래시제 우세 (${future}건) — 입사 후 계획 외에는 과거시제로.`;
+  return { past, present, future, total, dominant, suggestion };
 }
 
 function stripHtml(html: string): string {
