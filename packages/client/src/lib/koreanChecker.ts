@@ -4845,6 +4845,7 @@ export interface FullAnalysis {
   openers: OpenerSuggestion[];
   endings: EndingTypeCount;
   selfDeprecation: SelfDeprecationAnalysis;
+  emptyClaims: EmptyClaimAnalysis;
 }
 
 export function analyzeEverything(text: string): FullAnalysis {
@@ -4884,6 +4885,7 @@ export function analyzeEverything(text: string): FullAnalysis {
     openers: recommendCoverLetterOpeners(text),
     endings: countSentencesByEnding(text),
     selfDeprecation: detectSelfDeprecation(text),
+    emptyClaims: detectEmptyClaims(text),
   };
 }
 
@@ -4991,6 +4993,15 @@ export function summarizeAnalysis(full: FullAnalysis): {
       severity: 'yellow',
       label: '자기비하 과다',
       note: `${full.selfDeprecation.count}건 — 자신감 있는 표현으로.`,
+    });
+  }
+
+  // 빈 주장(근거 없는 역량)
+  if (full.emptyClaims.level === 'many') {
+    flags.push({
+      severity: 'yellow',
+      label: '근거 없는 주장 다수',
+      note: `${full.emptyClaims.count}건 — 사례·수치로 증명 필요.`,
     });
   }
 
