@@ -1721,8 +1721,144 @@ export function analyzeReadability(text: string): ReadabilityAnalysis {
 }
 
 /**
+ * 수치/정량 지표 분석 — 좋은 이력서는 숫자로 성과를 증명한다.
+ * 퍼센트(%)·횟수·기간·금액·순위 등 수량 표현을 세어 정량화 레벨을 평가.
+ */
+export interface QuantificationAnalysis {
+  total: number;
+  percents: number; // N%
+  numerics: number; // 일반 숫자 (10, 100, 1,000)
+  periods: number; // N년/N개월/N주
+  currencies: number; // 원/달러/만원/억
+  rankings: number; // 1위, 상위 N%
+  level: 'none' | 'low' | 'medium' | 'high';
+  suggestion: string;
+}
+
+export function analyzeQuantification(text: string): QuantificationAnalysis {
+  const t = text ?? '';
+  const percents = (t.match(/\d+(?:\.\d+)?\s*%/g) ?? []).length;
+  const periods = (t.match(/\d+\s*(년|개월|달|주|일간|시간)/g) ?? []).length;
+  const currencies = (t.match(/\d[\d,]*\s*(원|만원|억원|억|천만|달러|\$)/g) ?? []).length;
+  const rankings = (t.match(/(상위|TOP|톱|Top)\s*\d+|\d+위|1등/g) ?? []).length;
+  // 일반 숫자 — 위에서 매칭된 것 제외하려 전체 count 에서 빼기 어려우니 간단히 전체 숫자 카운트
+  const allNumbers = (t.match(/\d+/g) ?? []).length;
+  const numerics = Math.max(0, allNumbers - percents - periods - currencies - rankings);
+  const total = percents + numerics + periods + currencies + rankings;
+  let level: QuantificationAnalysis['level'];
+  if (total === 0) level = 'none';
+  else if (total < 2) level = 'low';
+  else if (total < 5) level = 'medium';
+  else level = 'high';
+  const suggestion =
+    level === 'none'
+      ? '수치 지표가 전혀 없습니다. "향상", "개선" 대신 "20% 향상", "3개월 단축" 같은 구체 수치로 표현하세요.'
+      : level === 'low'
+        ? '수치 지표가 부족합니다. 퍼센트·기간·횟수·금액 등으로 성과를 정량화하세요.'
+        : level === 'medium'
+          ? '수치 지표가 적정 수준입니다. 핵심 성과에 숫자를 더 넣어 차별화해 보세요.'
+          : '정량적 성과 표현이 풍부합니다.';
+  return { total, percents, numerics, periods, currencies, rankings, level, suggestion };
+}
+
+/**
+ * 액션 동사 분석 — 이력서는 강한 동사(주도·구현·달성)로 시작하는 bullet이 효과적.
+ * 한국어 이력서 맥락에서 '강한' 동사와 '약한' 동사 비율을 계산.
+ */
+export interface ActionVerbAnalysis {
+  strong: number;
+  weak: number;
+  ratio: number; // strong / (strong + weak)
+  level: 'low' | 'medium' | 'high';
+  suggestion: string;
+  topStrong: string[];
+  topWeak: string[];
+}
+
+const STRONG_VERBS = [
+  '주도',
+  '설계',
+  '구현',
+  '개발',
+  '달성',
+  '개선',
+  '최적화',
+  '구축',
+  '런칭',
+  '출시',
+  '리딩',
+  '제안',
+  '기획',
+  '발굴',
+  '창출',
+  '성장',
+  '확장',
+  '배포',
+  '분석',
+  '도입',
+  '정립',
+  '혁신',
+  '단축',
+  '절감',
+  '증가',
+];
+const WEAK_VERBS = [
+  '담당',
+  '참여',
+  '수행',
+  '도움',
+  '함께',
+  '협업했',
+  '했습니다',
+  '되었',
+  '맡았',
+  '배웠',
+  '겪었',
+];
+
+export function analyzeActionVerbs(text: string): ActionVerbAnalysis {
+  const t = text ?? '';
+  const countStrong: Record<string, number> = {};
+  const countWeak: Record<string, number> = {};
+  for (const v of STRONG_VERBS) {
+    const matches = t.match(new RegExp(v, 'g'));
+    if (matches) countStrong[v] = matches.length;
+  }
+  for (const v of WEAK_VERBS) {
+    const matches = t.match(new RegExp(v, 'g'));
+    if (matches) countWeak[v] = matches.length;
+  }
+  const strong = Object.values(countStrong).reduce((a, b) => a + b, 0);
+  const weak = Object.values(countWeak).reduce((a, b) => a + b, 0);
+  const total = strong + weak;
+  const ratio = total === 0 ? 0 : Math.round((strong / total) * 100) / 100;
+  let level: ActionVerbAnalysis['level'];
+  if (total < 3) level = 'medium';
+  else if (ratio >= 0.7) level = 'high';
+  else if (ratio >= 0.4) level = 'medium';
+  else level = 'low';
+  const suggestion =
+    total < 3
+      ? '동사 표현이 적어 분석이 제한적입니다. 경력 bullet 을 추가하세요.'
+      : level === 'high'
+        ? '강한 액션 동사 비율이 우수합니다.'
+        : level === 'medium'
+          ? '약한 동사("담당", "수행") 를 강한 동사("주도", "구현") 로 바꿔 보세요.'
+          : '약한 동사가 너무 많습니다. 성과 중심으로 다시 써 주세요.';
+  const topStrong = Object.entries(countStrong)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([v]) => v);
+  const topWeak = Object.entries(countWeak)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([v]) => v);
+  return { strong, weak, ratio, level, suggestion, topStrong, topWeak };
+}
+
+/**
  * 모든 분석기를 합쳐 한 번에 호출하는 통합 리포트.
- * 실사용 컴포넌트에서 4번의 함수 호출 대신 한 번의 호출로 품질 스코어·지표 전부 가져올 수 있음.
+ * 실사용 컴포넌트에서 여러 함수 호출 대신 한 번의 호출로 품질 스코어·지표 전부 가져올 수 있음.
  */
 export interface KoreanQualityReport {
   check: KoreanCheckResult;
@@ -1730,6 +1866,8 @@ export interface KoreanQualityReport {
   lexical: LexicalDiversityAnalysis;
   redundancy: RedundancyAnalysis;
   readability: ReadabilityAnalysis;
+  quantification: QuantificationAnalysis;
+  actionVerbs: ActionVerbAnalysis;
   /** 0~100 가중치 평균 — UI 배지에 바로 사용 가능 */
   overallScore: number;
 }
@@ -1740,18 +1878,96 @@ export function generateQualityReport(text: string, sectionName = '본문'): Kor
   const lexical = analyzeLexicalDiversity(text);
   const redundancy = analyzeRedundancy(text);
   const readability = analyzeReadability(text);
-  // 가중 평균: 맞춤법(score) 40% + 가독성 25% + 어휘 다양성 15% + 종결어미 변주 10% + 반복어 10%
+  const quantification = analyzeQuantification(text);
+  const actionVerbs = analyzeActionVerbs(text);
+  // 가중 평균: 맞춤법 35% + 가독성 20% + 어휘 10% + 어미변주 10% + 반복어 10%
+  //           + 정량화 8% + 액션동사 7%
   const ttrScore = Math.round(lexical.ttr * 100);
   const monotonyScore = 100 - endings.monotonyScore;
   const redundancyScore = Math.max(0, 100 - redundancy.hits.length * 10);
+  const quantScore =
+    quantification.level === 'high'
+      ? 100
+      : quantification.level === 'medium'
+        ? 70
+        : quantification.level === 'low'
+          ? 40
+          : 10;
+  const verbScore = actionVerbs.strong + actionVerbs.weak < 3 ? 60 : actionVerbs.ratio * 100;
   const overallScore = Math.round(
-    check.score * 0.4 +
-      readability.readabilityScore * 0.25 +
-      ttrScore * 0.15 +
+    check.score * 0.35 +
+      readability.readabilityScore * 0.2 +
+      ttrScore * 0.1 +
       monotonyScore * 0.1 +
-      redundancyScore * 0.1,
+      redundancyScore * 0.1 +
+      quantScore * 0.08 +
+      verbScore * 0.07,
   );
-  return { check, endings, lexical, redundancy, readability, overallScore };
+  return {
+    check,
+    endings,
+    lexical,
+    redundancy,
+    readability,
+    quantification,
+    actionVerbs,
+    overallScore,
+  };
+}
+
+/**
+ * 품질 리포트를 Markdown 형식 문자열로 내보내기 (공유·PDF 용).
+ * 팀원·멘토에게 피드백 요청 시 바로 붙여 넣을 수 있는 요약본.
+ */
+export function exportQualityReportMarkdown(text: string, sectionName = '본문'): string {
+  const r = generateQualityReport(text, sectionName);
+  const lines: string[] = [];
+  lines.push(`# ${sectionName} 한국어 품질 리포트`);
+  lines.push('');
+  lines.push(`**종합 점수**: ${r.overallScore}점 / 100`);
+  lines.push('');
+  lines.push('## 지표 상세');
+  lines.push('');
+  lines.push(
+    `- **맞춤법 점수**: ${r.check.score}점 (오류 ${r.check.summary.error}, 경고 ${r.check.summary.warning}, 제안 ${r.check.summary.info})`,
+  );
+  lines.push(
+    `- **가독성 점수**: ${r.readability.readabilityScore}점 (${r.readability.level}, 평균 ${r.readability.avgSentenceLength}자/문장)`,
+  );
+  lines.push(
+    `- **어휘 다양성**: ${Math.round(r.lexical.ttr * 100)}% (${r.lexical.uniqueCount}/${r.lexical.tokenCount}, ${r.lexical.level})`,
+  );
+  lines.push(
+    `- **종결어미 변주**: ${100 - r.endings.monotonyScore}점 (상위 ${r.endings.dominantEndings[0]?.ending ?? '-'} ${r.endings.dominantEndings[0]?.percent?.toFixed(0) ?? 0}%)`,
+  );
+  lines.push(
+    `- **근접 반복어**: ${r.redundancy.hits.length}건${r.redundancy.worst ? ` (worst: "${r.redundancy.worst.word}" ${r.redundancy.worst.distance}자 간격)` : ''}`,
+  );
+  lines.push(
+    `- **정량 지표**: ${r.quantification.total}건 (${r.quantification.level}) — %${r.quantification.percents}, 기간${r.quantification.periods}, 금액${r.quantification.currencies}`,
+  );
+  lines.push(
+    `- **액션 동사**: 강 ${r.actionVerbs.strong} / 약 ${r.actionVerbs.weak} (비율 ${Math.round(r.actionVerbs.ratio * 100)}%, ${r.actionVerbs.level})`,
+  );
+  lines.push('');
+  if (r.actionVerbs.topStrong.length) {
+    lines.push(`**강한 동사 상위**: ${r.actionVerbs.topStrong.join(', ')}`);
+  }
+  if (r.actionVerbs.topWeak.length) {
+    lines.push(`**약한 동사 상위**: ${r.actionVerbs.topWeak.join(', ')}`);
+  }
+  lines.push('');
+  lines.push('## 개선 제안');
+  lines.push('');
+  const tips: string[] = [];
+  if (r.readability.suggestion) tips.push(`- ${r.readability.suggestion}`);
+  if (r.lexical.suggestion) tips.push(`- ${r.lexical.suggestion}`);
+  if (r.endings.suggestion) tips.push(`- ${r.endings.suggestion}`);
+  if (r.redundancy.suggestion) tips.push(`- ${r.redundancy.suggestion}`);
+  if (r.quantification.suggestion) tips.push(`- ${r.quantification.suggestion}`);
+  if (r.actionVerbs.suggestion) tips.push(`- ${r.actionVerbs.suggestion}`);
+  lines.push(tips.length ? tips.join('\n') : '- 개선 포인트가 없습니다. 훌륭합니다!');
+  return lines.join('\n');
 }
 
 function stripHtml(html: string): string {

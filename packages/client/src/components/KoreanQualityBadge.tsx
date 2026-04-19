@@ -32,7 +32,16 @@ export default function KoreanQualityBadge({
     return generateQualityReport(text, label);
   }, [text, label, minLength]);
   if (!report) return null;
-  const { overallScore, check, endings, lexical, redundancy, readability } = report;
+  const {
+    overallScore,
+    check,
+    endings,
+    lexical,
+    redundancy,
+    readability,
+    quantification,
+    actionVerbs,
+  } = report;
   const { summary } = check;
   const tone =
     overallScore >= 90
@@ -84,6 +93,12 @@ export default function KoreanQualityBadge({
             title="반복어"
             value={`${redundancy.hits.length}건`}
             hint={redundancy.worst?.word ?? '없음'}
+          />
+          <Row title="정량 지표" value={`${quantification.total}건`} hint={quantification.level} />
+          <Row
+            title="액션 동사"
+            value={`${actionVerbs.strong}/${actionVerbs.weak}`}
+            hint={`${Math.round(actionVerbs.ratio * 100)}% 강`}
           />
           {(readability.suggestion || lexical.suggestion || endings.suggestion) && (
             <p className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400">
