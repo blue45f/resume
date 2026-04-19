@@ -397,26 +397,68 @@ export class StudyGroupsService {
   async listPosts(
     groupId: string,
     userId: string | undefined,
-    opts: { category?: string; page?: number; limit?: number } = {},
+    opts: {
+      category?: string;
+      page?: number;
+      limit?: number;
+      /** 제목·본문 부분 일치 검색 */
+      q?: string;
+      /** 작성자 userId 필터 */
+      authorId?: string;
+      /** 태그 포함 필터 (normalized lower-case) */
+      tag?: string;
+      /** recent | oldest | popular | comments */
+      sort?: string;
+    } = {},
   ) {
     await this.assertMemberOrPublic(groupId, userId);
     const page = opts.page && opts.page > 0 ? opts.page : 1;
     const limit = Math.min(opts.limit ?? 20, 50);
     const where: any = { groupId };
     if (opts.category && opts.category !== 'all') where.category = opts.category;
+    if (opts.authorId) where.userId = opts.authorId;
+    if (opts.q) {
+      where.OR = [
+        { title: { contains: opts.q, mode: 'insensitive' } },
+        { content: { contains: opts.q, mode: 'insensitive' } },
+      ];
+    }
+    if (opts.tag) {
+      // PostgreSQL JSON contains 검사
+      where.tags = { array_contains: [opts.tag.toLowerCase()] };
+    }
+    const orderBy: any = (() => {
+      switch (opts.sort) {
+        case 'oldest':
+          return [{ isPinned: 'desc' }, { createdAt: 'asc' }];
+        case 'popular':
+          return [{ isPinned: 'desc' }, { likeCount: 'desc' }, { createdAt: 'desc' }];
+        case 'comments':
+          return [{ isPinned: 'desc' }, { commentCount: 'desc' }, { createdAt: 'desc' }];
+        case 'recent':
+        default:
+          return [{ isPinned: 'desc' }, { createdAt: 'desc' }];
+      }
+    })();
     const [items, total] = await Promise.all([
       this.prisma.studyGroupPost.findMany({
         where,
-        orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+        orderBy,
         skip: (page - 1) * limit,
         take: limit,
         include: {
           user: { select: { id: true, name: true, avatar: true } },
+          _count: { select: { reactions: true } },
         },
       }),
       this.prisma.studyGroupPost.count({ where }),
     ]);
-    return { items, total, page, limit };
+    const shaped = items.map((p) => ({
+      ...p,
+      reactionCount: (p as any)._count?.reactions ?? 0,
+      _count: undefined,
+    }));
+    return { items: shaped, total, page, limit };
   }
 
   async getPost(postId: string, userId?: string) {
@@ -441,6 +483,7 @@ export class StudyGroupsService {
       content: string;
       category?: string;
       attachments?: Array<{ url: string; name: string; size: number; type: string }>;
+      tags?: string[];
     },
   ) {
     await this.assertMemberOrPublic(groupId, userId);
@@ -456,6 +499,7 @@ export class StudyGroupsService {
       select: { ownerId: true },
     });
     const isPinned = category === 'notice' && group?.ownerId === userId;
+    const tags = this.normalizeTags(data.tags);
     return this.prisma.studyGroupPost.create({
       data: {
         group: { connect: { id: groupId } },
@@ -464,15 +508,37 @@ export class StudyGroupsService {
         content,
         category,
         attachments: (data.attachments ?? []) as any,
+        tags: tags as any,
         isPinned,
       },
     });
   }
 
+  private normalizeTags(raw: unknown): string[] {
+    if (!Array.isArray(raw)) return [];
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const t of raw) {
+      if (typeof t !== 'string') continue;
+      const v = t.trim().toLowerCase().slice(0, 30);
+      if (!v || seen.has(v)) continue;
+      seen.add(v);
+      out.push(v);
+      if (out.length >= 10) break;
+    }
+    return out;
+  }
+
   async updatePost(
     postId: string,
     userId: string,
-    data: Partial<{ title: string; content: string; category: string; isPinned: boolean }>,
+    data: Partial<{
+      title: string;
+      content: string;
+      category: string;
+      isPinned: boolean;
+      tags: string[];
+    }>,
   ) {
     const post = await this.prisma.studyGroupPost.findUnique({ where: { id: postId } });
     if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
@@ -487,6 +553,7 @@ export class StudyGroupsService {
     if (data.content !== undefined) patch.content = data.content.trim().slice(0, 20000);
     if (data.category !== undefined) patch.category = data.category;
     if (data.isPinned !== undefined && group?.ownerId === userId) patch.isPinned = data.isPinned;
+    if (data.tags !== undefined) patch.tags = this.normalizeTags(data.tags);
     return this.prisma.studyGroupPost.update({ where: { id: postId }, data: patch });
   }
 
@@ -537,6 +604,57 @@ export class StudyGroupsService {
         user: { select: { id: true, name: true, avatar: true } },
       },
     });
+  }
+
+  // ─────────────────────────────────────────────
+  // 이모지 리액션 (StudyGroupPostReaction)
+  // ─────────────────────────────────────────────
+
+  private static readonly ALLOWED_EMOJIS = ['👍', '❤️', '🔥', '👏', '🎉', '🤔'];
+
+  async toggleReaction(postId: string, userId: string, emoji: string) {
+    if (!StudyGroupsService.ALLOWED_EMOJIS.includes(emoji)) {
+      throw new BadRequestException('지원하지 않는 이모지입니다');
+    }
+    const post = await this.prisma.studyGroupPost.findUnique({
+      where: { id: postId },
+      select: { id: true, groupId: true },
+    });
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
+    await this.assertMemberOrPublic(post.groupId, userId);
+
+    const existing = await this.prisma.studyGroupPostReaction.findUnique({
+      where: { postId_userId_emoji: { postId, userId, emoji } },
+    });
+    if (existing) {
+      await this.prisma.studyGroupPostReaction.delete({ where: { id: existing.id } });
+      return { toggled: 'off' as const, emoji };
+    }
+    await this.prisma.studyGroupPostReaction.create({
+      data: { postId, userId, emoji },
+    });
+    return { toggled: 'on' as const, emoji };
+  }
+
+  async listReactions(postId: string, userId?: string) {
+    const post = await this.prisma.studyGroupPost.findUnique({
+      where: { id: postId },
+      select: { id: true, groupId: true },
+    });
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
+    await this.assertMemberOrPublic(post.groupId, userId);
+
+    const rows = await this.prisma.studyGroupPostReaction.findMany({
+      where: { postId },
+      select: { emoji: true, userId: true },
+    });
+    const counts: Record<string, number> = {};
+    const mine: string[] = [];
+    for (const r of rows) {
+      counts[r.emoji] = (counts[r.emoji] ?? 0) + 1;
+      if (userId && r.userId === userId) mine.push(r.emoji);
+    }
+    return { counts, mine, total: rows.length };
   }
 
   // ─────────────────────────────────────────────

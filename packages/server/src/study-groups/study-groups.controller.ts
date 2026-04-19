@@ -117,11 +117,19 @@ export class StudyGroupsController {
     @Param('id') id: string,
     @Req() req: any,
     @Query('category') category?: string,
+    @Query('q') q?: string,
+    @Query('authorId') authorId?: string,
+    @Query('tag') tag?: string,
+    @Query('sort') sort?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.service.listPosts(id, req.user?.id, {
       category,
+      q,
+      authorId,
+      tag,
+      sort,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     });
@@ -174,6 +182,25 @@ export class StudyGroupsController {
   likePost(@Param('postId') postId: string, @Req() req: any) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.likePost(postId, req.user.id);
+  }
+
+  // ─── 이모지 리액션 ──────────────────────────────────
+  @Get('posts/:postId/reactions')
+  @Public()
+  @ApiOperation({ summary: '게시글 리액션 요약 (이모지별 카운트 + 내 선택)' })
+  listReactions(@Param('postId') postId: string, @Req() req: any) {
+    return this.service.listReactions(postId, req.user?.id);
+  }
+
+  @Post('posts/:postId/reactions')
+  @ApiOperation({ summary: '게시글 이모지 리액션 토글' })
+  toggleReaction(
+    @Param('postId') postId: string,
+    @Body() body: { emoji: string },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.toggleReaction(postId, req.user.id, body.emoji);
   }
 
   // ─── 댓글 ──────────────────────────────────────────

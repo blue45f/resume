@@ -60,6 +60,7 @@ model User {
   studyGroupQuestions  StudyGroupQuestion[] @relation("GroupQuestion")
   studyGroupPosts      StudyGroupPost[]     @relation("GroupPost")
   studyGroupPostComments StudyGroupPostComment[] @relation("GroupPostComment")
+  studyGroupPostReactions StudyGroupPostReaction[] @relation("GroupPostReaction")
   studyGroupEvents     StudyGroupEvent[]    @relation("GroupEventAuthor")
   studyGroupEventRsvps StudyGroupEventRsvp[] @relation("GroupEventRsvp")
   coachProfile      CoachProfile?
@@ -979,14 +980,36 @@ model StudyGroupPost {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  /// 태그 JSON 배열 ["react","cs","interview"] — 검색/필터용
+  tags      Json     @default("[]")
+
   group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user  User       @relation("GroupPost", fields: [userId], references: [id], onDelete: Cascade)
   comments StudyGroupPostComment[]
+  reactions StudyGroupPostReaction[]
 
   @@index([groupId, createdAt])
   @@index([userId])
   @@index([category])
   @@map("study_group_posts")
+}
+
+/// 스터디 게시물 이모지 리액션 — 유저당 각 이모지 1회 토글
+model StudyGroupPostReaction {
+  id        String   @id @default(uuid())
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  /// 👍 ❤️ 🔥 👏 🎉 🤔 중 하나 (서버에서 화이트리스트 검증)
+  emoji     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post StudyGroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User           @relation("GroupPostReaction", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, emoji])
+  @@index([postId])
+  @@index([userId])
+  @@map("study_group_post_reactions")
 }
 
 /// 스터디 그룹 게시글 댓글 — parentId 로 1단계 답글(대댓글) 지원

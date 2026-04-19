@@ -843,6 +843,8 @@ export interface StudyGroupPost {
   viewCount: number;
   likeCount: number;
   commentCount: number;
+  tags?: string[];
+  reactionCount?: number;
   createdAt: string;
   updatedAt: string;
   user?: { id: string; name: string; avatar?: string | null };
@@ -850,10 +852,22 @@ export interface StudyGroupPost {
 
 export const fetchStudyGroupPosts = (
   groupId: string,
-  params?: { category?: string; page?: number; limit?: number },
+  params?: {
+    category?: string;
+    page?: number;
+    limit?: number;
+    q?: string;
+    authorId?: string;
+    tag?: string;
+    sort?: 'recent' | 'oldest' | 'popular' | 'comments';
+  },
 ) => {
   const q = new URLSearchParams();
   if (params?.category) q.set('category', params.category);
+  if (params?.q) q.set('q', params.q);
+  if (params?.authorId) q.set('authorId', params.authorId);
+  if (params?.tag) q.set('tag', params.tag);
+  if (params?.sort) q.set('sort', params.sort);
   if (params?.page) q.set('page', String(params.page));
   if (params?.limit) q.set('limit', String(params.limit));
   const qs = q.toString();
@@ -872,6 +886,7 @@ export const createStudyGroupPost = (
     content: string;
     category?: string;
     attachments?: StudyGroupPost['attachments'];
+    tags?: string[];
   },
 ) =>
   request<StudyGroupPost>(`${BASE}/study-groups/${groupId}/posts`, {
@@ -881,7 +896,9 @@ export const createStudyGroupPost = (
 
 export const updateStudyGroupPost = (
   postId: string,
-  data: Partial<Pick<StudyGroupPost, 'title' | 'content' | 'category' | 'isPinned'>>,
+  data: Partial<Pick<StudyGroupPost, 'title' | 'content' | 'category' | 'isPinned'>> & {
+    tags?: string[];
+  },
 ) =>
   request<StudyGroupPost>(`${BASE}/study-groups/posts/${postId}`, {
     method: 'PUT',
@@ -893,6 +910,25 @@ export const deleteStudyGroupPost = (postId: string) =>
 
 export const likeStudyGroupPost = (postId: string) =>
   request<StudyGroupPost>(`${BASE}/study-groups/posts/${postId}/like`, { method: 'POST' });
+
+// ── 스터디 게시글 이모지 리액션 ───────────────────────────
+export const STUDY_POST_EMOJIS = ['👍', '❤️', '🔥', '👏', '🎉', '🤔'] as const;
+export type StudyPostEmoji = (typeof STUDY_POST_EMOJIS)[number];
+
+export interface StudyPostReactionSummary {
+  counts: Record<string, number>;
+  mine: string[];
+  total: number;
+}
+
+export const fetchStudyPostReactions = (postId: string) =>
+  request<StudyPostReactionSummary>(`${BASE}/study-groups/posts/${postId}/reactions`);
+
+export const toggleStudyPostReaction = (postId: string, emoji: StudyPostEmoji) =>
+  request<{ toggled: 'on' | 'off'; emoji: string }>(
+    `${BASE}/study-groups/posts/${postId}/reactions`,
+    { method: 'POST', body: JSON.stringify({ emoji }) },
+  );
 
 // ── 스터디 그룹 게시글 댓글 ───────────────────────────────
 export interface StudyGroupPostComment {
