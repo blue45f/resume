@@ -13,7 +13,7 @@ export class CreateApplicationDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(500)
+  @MaxLength(2000)
   url?: string;
 
   @IsOptional()
@@ -26,7 +26,7 @@ export class CreateApplicationDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(500)
+  @MaxLength(2000)
   notes?: string;
 
   @IsOptional()

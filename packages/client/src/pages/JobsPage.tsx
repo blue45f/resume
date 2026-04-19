@@ -1540,7 +1540,7 @@ function CuratedJobsTab() {
 
   const handleClick = (job: CuratedJob) => {
     fetch(`${API_URL}/api/jobs/curated/${job.id}/click`, { method: 'POST' }).catch(() => {});
-    // 로그인 상태에서 외부 채용공고를 클릭하면 지원 내역에 자동 기록 (중복은 서버가 무시)
+    // 로그인 상태에서 외부 채용공고를 클릭하면 지원 내역에 자동 기록 (중복은 서버가 7일 이내 중복 방지)
     const token = localStorage.getItem('token');
     if (token) {
       createApplication({
@@ -1551,9 +1551,14 @@ function CuratedJobsTab() {
         salary: job.salary,
         notes: `자동 기록 — ${job.sourceSite || '외부 사이트'}에서 지원 버튼 클릭`,
         url: job.sourceUrl,
-      }).catch(() => {
-        /* silent — 이미 지원했을 수 있음 */
-      });
+      })
+        .then(() => {
+          toast('지원 내역에 자동 기록되었습니다', 'success');
+        })
+        .catch((err) => {
+          // 이미 같은 공고 지원 기록이 있으면 서버가 update 만 하므로 catch 는 사실상 네트워크 오류만 잡음
+          console.warn('[auto-register application failed]', err);
+        });
     }
     window.open(job.sourceUrl, '_blank', 'noopener,noreferrer');
   };

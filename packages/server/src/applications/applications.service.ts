@@ -47,16 +47,29 @@ export class ApplicationsService {
       location?: string;
       resumeId?: string;
     },
-    userId: string,
+    userId: string | undefined,
   ) {
+    if (!userId) {
+      throw new ForbiddenException('로그인이 필요합니다');
+    }
+    // 입력 정규화 — DTO MaxLength 넘치면 validation 에러 나므로 서비스에서도 한 번 더 방어적 trim
+    const safe = {
+      ...data,
+      company: (data.company || '').trim().slice(0, 100),
+      position: (data.position || '').trim().slice(0, 100),
+      url: data.url?.trim().slice(0, 500),
+      notes: data.notes?.slice(0, 500),
+      location: data.location?.slice(0, 200),
+      salary: data.salary?.slice(0, 100),
+    };
     // 외부 채용공고 자동 등록 중복 방지 — 동일 URL 또는 동일 회사·포지션 조합이 최근 7일 내 있으면 갱신만.
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const existing = await this.prisma.jobApplication.findFirst({
       where: {
         userId,
         OR: [
-          data.url ? { url: data.url } : undefined,
-          { company: data.company, position: data.position },
+          safe.url ? { url: safe.url } : undefined,
+          { company: safe.company, position: safe.position },
         ].filter(Boolean) as any[],
         createdAt: { gte: sevenDaysAgo },
       },
@@ -66,14 +79,14 @@ export class ApplicationsService {
       return this.prisma.jobApplication.update({
         where: { id: existing.id },
         data: {
-          notes: data.notes || existing.notes,
-          status: data.status || existing.status,
-          url: data.url || existing.url,
+          notes: safe.notes || existing.notes,
+          status: safe.status || existing.status,
+          url: safe.url || existing.url,
         },
       });
     }
     return this.prisma.jobApplication.create({
-      data: { ...data, userId },
+      data: { ...safe, userId },
     });
   }
 
