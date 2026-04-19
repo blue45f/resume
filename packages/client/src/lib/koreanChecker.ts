@@ -4641,6 +4641,11 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     description: '종합 건강도 (품질+완성도+면접) 단일 점수',
   },
   { name: 'splitByExperienceSection', category: '메타', description: '이력서를 섹션별로 분할' },
+  {
+    name: 'analyzeSectionBalance',
+    category: '이력서',
+    description: '섹션별 길이 균형 및 과소·과대 섹션 감지',
+  },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5902,6 +5907,82 @@ export function splitByExperienceSection(text: string): SplitSection[] {
   }
   flush(currentStart);
   return sections;
+}
+
+export interface SectionBalanceIssue {
+  key: string;
+  chars: number;
+  kind: 'too_short' | 'too_long' | 'dominant';
+  message: string;
+}
+
+export interface SectionBalanceReport {
+  sections: Array<{ key: string; chars: number; sharePct: number }>;
+  totalChars: number;
+  issues: SectionBalanceIssue[];
+  balanceScore: number;
+  verdict: 'balanced' | 'skewed' | 'lopsided';
+}
+
+/**
+ * 섹션별 길이 균형 분석 — splitByExperienceSection 결과를 기반으로
+ * 과소(<80자)·과대(>2000자) 섹션 및 한 섹션이 전체의 60% 이상을 차지하는 쏠림을 감지.
+ * 균형 점수(0-100) = 100 - (최대섹션 비중 편차 + 과소섹션 페널티).
+ */
+export function analyzeSectionBalance(text: string): SectionBalanceReport {
+  const parts = splitByExperienceSection(text);
+  const sections = parts.map((p) => ({ key: p.key, chars: p.content.length }));
+  const totalChars = sections.reduce((acc, s) => acc + s.chars, 0);
+  const issues: SectionBalanceIssue[] = [];
+  const enriched = sections.map((s) => ({
+    ...s,
+    sharePct: totalChars > 0 ? Math.round((s.chars / totalChars) * 100) : 0,
+  }));
+  if (sections.length === 0 || totalChars === 0) {
+    return {
+      sections: enriched,
+      totalChars,
+      issues,
+      balanceScore: 0,
+      verdict: 'lopsided',
+    };
+  }
+  const SHORT_MIN = 80;
+  const LONG_MAX = 2000;
+  for (const s of enriched) {
+    if (s.chars > 0 && s.chars < SHORT_MIN) {
+      issues.push({
+        key: s.key,
+        chars: s.chars,
+        kind: 'too_short',
+        message: `${s.key} 섹션이 ${s.chars}자로 너무 짧습니다 (최소 ${SHORT_MIN}자 권장)`,
+      });
+    }
+    if (s.chars > LONG_MAX) {
+      issues.push({
+        key: s.key,
+        chars: s.chars,
+        kind: 'too_long',
+        message: `${s.key} 섹션이 ${s.chars}자로 과도하게 깁니다 (${LONG_MAX}자 이하 권장)`,
+      });
+    }
+    if (s.sharePct >= 60 && sections.length >= 2) {
+      issues.push({
+        key: s.key,
+        chars: s.chars,
+        kind: 'dominant',
+        message: `${s.key} 섹션이 전체의 ${s.sharePct}%를 차지해 다른 섹션과 균형이 맞지 않습니다`,
+      });
+    }
+  }
+  const maxShare = enriched.reduce((m, s) => Math.max(m, s.sharePct), 0);
+  const idealShare = 100 / sections.length;
+  const shareDeviation = Math.abs(maxShare - idealShare);
+  const shortPenalty = issues.filter((i) => i.kind === 'too_short').length * 10;
+  const balanceScore = Math.max(0, Math.min(100, Math.round(100 - shareDeviation - shortPenalty)));
+  const verdict: SectionBalanceReport['verdict'] =
+    balanceScore >= 75 ? 'balanced' : balanceScore >= 50 ? 'skewed' : 'lopsided';
+  return { sections: enriched, totalChars, issues, balanceScore, verdict };
 }
 
 function stripHtml(html: string): string {
