@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
+import KoreanQualityBadge from '@/components/KoreanQualityBadge';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
@@ -740,13 +741,16 @@ export default function CommunityWritePage() {
             )}
 
             {/* Status bar */}
-            <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60">
-              <span className="text-xs text-slate-400">
+            <div className="flex items-center justify-between gap-2 px-4 py-2 border-t border-slate-100 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60">
+              <span className="text-xs text-slate-400 truncate">
                 마크다운 지원 · Tab 들여쓰기 · Enter 목록 자동완성
               </span>
-              <span className={`text-xs ${charCount > 5000 ? 'text-red-500' : 'text-slate-400'}`}>
-                {charCount.toLocaleString()}자
-              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <KoreanQualityBadge text={content || ''} label="커뮤니티 글" minLength={100} />
+                <span className={`text-xs ${charCount > 5000 ? 'text-red-500' : 'text-slate-400'}`}>
+                  {charCount.toLocaleString()}자
+                </span>
+              </div>
             </div>
           </div>
           {errors.content?.message && (
