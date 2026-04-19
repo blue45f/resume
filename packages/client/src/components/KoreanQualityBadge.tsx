@@ -4,6 +4,8 @@ import {
   exportQualityReportMarkdown,
   prioritizeImprovements,
   gradeFromScore,
+  estimateReadingTime,
+  analyzeDateConsistency,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -138,6 +140,7 @@ export default function KoreanQualityBadge({
             value={`${informal.count}건`}
             hint={informal.hits[0]?.category ?? informal.level}
           />
+          <ExtraRows text={text} />
           <PriorityActions report={report} />
           {(readability.suggestion || lexical.suggestion || endings.suggestion) && (
             <p className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400">
@@ -164,6 +167,27 @@ export default function KoreanQualityBadge({
         </div>
       )}
     </div>
+  );
+}
+
+function ExtraRows({ text }: { text: string }) {
+  const reading = estimateReadingTime(text);
+  const dates = analyzeDateConsistency(text);
+  return (
+    <>
+      <Row
+        title="읽기 시간"
+        value={reading.label}
+        hint={`${reading.chars}자 · ${reading.words}단어`}
+      />
+      {dates.hits.length > 0 && (
+        <Row
+          title="날짜 포맷"
+          value={dates.consistent ? '일관' : `${dates.distinctFormats}종 혼재`}
+          hint={dates.dominantFormat ?? '-'}
+        />
+      )}
+    </>
   );
 }
 
