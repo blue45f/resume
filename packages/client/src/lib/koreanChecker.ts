@@ -1033,6 +1033,41 @@ function computeScore(
 export const KOREAN_RULE_COUNT = RULES.length;
 
 /**
+ * 자동 수정 전/후 결과 비교 — 개선 성과 리포트용.
+ * - fixed: 이전엔 있었지만 이제 사라진 이슈 (개선 성공)
+ * - introduced: 수정 과정에서 새로 생긴 이슈 (퇴행)
+ * - scoreDelta: 점수 변화 (양수 = 개선)
+ */
+export interface KoreanCompareResult {
+  fixed: KoreanIssue[];
+  introduced: KoreanIssue[];
+  remaining: number;
+  scoreDelta: number;
+  beforeScore: number;
+  afterScore: number;
+}
+export function compareKoreanResults(
+  before: KoreanCheckResult,
+  after: KoreanCheckResult,
+): KoreanCompareResult {
+  const key = (i: KoreanIssue) => `${i.section}::${i.wrong}::${i.offset}`;
+  const beforeKeys = new Map(before.issues.map((i) => [key(i), i]));
+  const afterKeys = new Map(after.issues.map((i) => [key(i), i]));
+  const fixed: KoreanIssue[] = [];
+  const introduced: KoreanIssue[] = [];
+  for (const [k, i] of beforeKeys) if (!afterKeys.has(k)) fixed.push(i);
+  for (const [k, i] of afterKeys) if (!beforeKeys.has(k)) introduced.push(i);
+  return {
+    fixed,
+    introduced,
+    remaining: after.issues.length,
+    scoreDelta: after.score - before.score,
+    beforeScore: before.score,
+    afterScore: after.score,
+  };
+}
+
+/**
  * 이슈 목록을 Markdown 표로 직렬화 — 코치·동료에게 피드백 공유용.
  * 이모지 접두사로 심각도를 시각화 (GitHub 등 일반 Markdown 뷰어 호환).
  */

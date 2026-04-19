@@ -11,6 +11,7 @@ import {
   getTopWrongPatterns,
   computeImprovementTips,
   exportIssuesAsMarkdown,
+  compareKoreanResults,
   KOREAN_RULE_COUNT,
   type KoreanIssue,
 } from '@/lib/koreanChecker';
@@ -105,8 +106,15 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
       return;
     setApplying(true);
     try {
+      // 수정 전후 비교해 점수 개선치 함께 안내
+      const afterResult = checkKorean(fixed);
+      const diff = compareKoreanResults(result, afterResult);
       await onApplyFix(fixed);
-      toast(`${totalChanges}개 오타 자동 수정 완료`, 'success');
+      const deltaLabel = diff.scoreDelta > 0 ? `+${diff.scoreDelta}` : `${diff.scoreDelta}`;
+      toast(
+        `${totalChanges}개 수정 완료 — 점수 ${diff.beforeScore}→${diff.afterScore} (${deltaLabel})`,
+        'success',
+      );
     } catch (e) {
       toast(e instanceof Error ? e.message : '자동 수정 실패', 'error');
     } finally {
