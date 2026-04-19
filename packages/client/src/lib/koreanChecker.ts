@@ -2603,6 +2603,132 @@ export function exportQualityReportMarkdown(text: string, sectionName = '본문'
   return lines.join('\n');
 }
 
+/**
+ * 품질 리포트를 구조화된 JSON 문자열로 내보내기.
+ * API·LLM 컨텍스트·DB 저장용 — 타입 안정성 유지 + 히트 위치까지 직렬화.
+ */
+export function exportQualityReportJson(text: string, sectionName = '본문'): string {
+  const r = generateQualityReport(text, sectionName);
+  return JSON.stringify(
+    { section: sectionName, generatedAt: new Date().toISOString(), report: r },
+    null,
+    2,
+  );
+}
+
+/**
+ * 품질 리포트에서 가장 효용이 높은 개선 작업 Top-K 를 우선순위로 반환.
+ * 각 analyzer 의 sub-score 손실 × 가중치 = impact. 사용자가 가장 빨리 점수를 올릴 수 있는 액션 안내.
+ */
+export interface PrioritizedAction {
+  dimension: string;
+  impact: number; // 전체 overallScore 에서 이 차원이 끌어내린 점수 (0~가중치*100/100)
+  currentScore: number; // 0~100
+  targetSuggestion: string;
+}
+
+export function prioritizeImprovements(report: KoreanQualityReport, topK = 3): PrioritizedAction[] {
+  const dimensions: Array<{
+    dimension: string;
+    weight: number;
+    score: number;
+    suggestion: string;
+  }> = [
+    {
+      dimension: '맞춤법',
+      weight: 0.22,
+      score: report.check.score,
+      suggestion: '맞춤법·띄어쓰기 오류를 먼저 고치세요.',
+    },
+    {
+      dimension: '가독성',
+      weight: 0.13,
+      score: report.readability.readabilityScore,
+      suggestion: report.readability.suggestion,
+    },
+    {
+      dimension: '어휘 다양성',
+      weight: 0.07,
+      score: Math.round(report.lexical.ttr * 100),
+      suggestion: report.lexical.suggestion,
+    },
+    {
+      dimension: '어미 변주',
+      weight: 0.07,
+      score: 100 - report.endings.monotonyScore,
+      suggestion: report.endings.suggestion,
+    },
+    {
+      dimension: '반복어',
+      weight: 0.07,
+      score: Math.max(0, 100 - report.redundancy.hits.length * 10),
+      suggestion: report.redundancy.suggestion,
+    },
+    {
+      dimension: '정량 지표',
+      weight: 0.07,
+      score:
+        report.quantification.level === 'high'
+          ? 100
+          : report.quantification.level === 'medium'
+            ? 70
+            : report.quantification.level === 'low'
+              ? 40
+              : 10,
+      suggestion: report.quantification.suggestion,
+    },
+    {
+      dimension: '액션 동사',
+      weight: 0.07,
+      score:
+        report.actionVerbs.strong + report.actionVerbs.weak < 3
+          ? 60
+          : Math.round(report.actionVerbs.ratio * 100),
+      suggestion: report.actionVerbs.suggestion,
+    },
+    {
+      dimension: '상투구',
+      weight: 0.05,
+      score: Math.max(0, 100 - report.cliches.count * 12),
+      suggestion: report.cliches.suggestion,
+    },
+    {
+      dimension: '문장 시작 변주',
+      weight: 0.05,
+      score: Math.max(0, 100 - Math.round(report.sentenceStarts.repeatedStartRatio * 100)),
+      suggestion: report.sentenceStarts.suggestion,
+    },
+    {
+      dimension: '수동태',
+      weight: 0.07,
+      score: report.passive.level === 'low' ? 100 : report.passive.level === 'medium' ? 70 : 35,
+      suggestion: report.passive.suggestion,
+    },
+    {
+      dimension: '평행구조',
+      weight: 0.05,
+      score: report.parallelism.consistency,
+      suggestion: report.parallelism.suggestion,
+    },
+    {
+      dimension: '비격식',
+      weight: 0.08,
+      score: Math.max(0, 100 - report.informal.count * 15),
+      suggestion: report.informal.suggestion,
+    },
+  ];
+  const ranked = dimensions
+    .map((d) => ({
+      dimension: d.dimension,
+      impact: Math.round((100 - d.score) * d.weight),
+      currentScore: d.score,
+      targetSuggestion: d.suggestion || '',
+    }))
+    .filter((d) => d.impact > 0 && d.targetSuggestion)
+    .sort((a, b) => b.impact - a.impact);
+  return ranked.slice(0, topK);
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, ' ')
