@@ -4604,6 +4604,12 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     description: 'FullAnalysis 요약 (red/yellow/green 플래그 + 한줄평)',
   },
   { name: 'detectSelfDeprecation', category: '문체', description: '자기비하 표현 검출' },
+  { name: 'generateResumeTldr', category: '파생', description: '이력서 3줄 TL;DR 요약' },
+  {
+    name: 'countCharsByCategory',
+    category: '메타',
+    description: '문자 카테고리 분포 (한/영/숫자/공백/기호)',
+  },
 ] as const;
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
@@ -5073,6 +5079,104 @@ export function detectSelfDeprecation(text: string): SelfDeprecationAnalysis {
         ? `자기비하 ${count}건 — 자신감 있는 표현으로 교체하세요.`
         : `자기비하가 ${count}건으로 많습니다. 공식 문서에서는 성과·학습 의지 중심으로 재작성하세요.`;
   return { hits: hits.slice(0, 20), count, level, suggestion };
+}
+
+/**
+ * 이력서 3줄 요약(TL;DR) — 감지된 총 경력 / 상위 스킬 3종 / 경력 레벨 + 완성도 점수를
+ * 가벼운 템플릿 문장으로 조합. 리쿠르터 스카우트 메시지 / 이력서 헤드라인 초안용.
+ */
+export function generateResumeTldr(text: string): {
+  lines: string[];
+  summary: string;
+} {
+  const level = estimateJobLevel(text);
+  const skills = detectSkillMentions(text, 3)
+    .slice(0, 3)
+    .map((s) => s.skill);
+  const completeness = scoreResumeCompleteness(text);
+  const softSkills = detectSoftSkills(text);
+
+  const levelLabel =
+    level.level === 'lead'
+      ? '리드'
+      : level.level === 'senior'
+        ? '시니어'
+        : level.level === 'mid'
+          ? '미드'
+          : '주니어';
+  const skillPart = skills.length > 0 ? skills.join(' · ') : '다양한 기술';
+  const softPart =
+    softSkills.hits
+      .slice(0, 2)
+      .map((h) => h.skill)
+      .join('·') || '학습 의지';
+
+  const yearsText = level.years > 0 ? `${level.years}년` : '경력 초기';
+  const lines = [
+    `${yearsText} 경험의 ${levelLabel} 레벨.`,
+    `${skillPart} 를 중심으로 실전 프로젝트를 수행.`,
+    `${softPart} 에 강점이 있는 동시에 이력서 완성도 ${completeness.overall}점.`,
+  ];
+  return { lines, summary: lines.join(' ') };
+}
+
+/**
+ * 문자 카테고리별 분포 — 한글/영문/숫자/공백/기타 기호 비율을 계산.
+ * 외국어 이력서·영문 CV 간 비교, 또는 "너무 영문 많음" / "숫자 과다" 등 힌트에 활용.
+ */
+export interface CharDistribution {
+  total: number;
+  korean: number;
+  english: number;
+  digits: number;
+  whitespace: number;
+  punctuation: number;
+  other: number;
+  percents: {
+    korean: number;
+    english: number;
+    digits: number;
+    whitespace: number;
+    punctuation: number;
+    other: number;
+  };
+}
+
+export function countCharsByCategory(text: string): CharDistribution {
+  const t = text ?? '';
+  let korean = 0;
+  let english = 0;
+  let digits = 0;
+  let whitespace = 0;
+  let punctuation = 0;
+  let other = 0;
+  for (const ch of t) {
+    if (/[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(ch)) korean++;
+    else if (/[A-Za-z]/.test(ch)) english++;
+    else if (/[0-9]/.test(ch)) digits++;
+    else if (/\s/.test(ch)) whitespace++;
+    else if (/[.,!?;:()"'`\-·\u3000「」『』《》〈〉]/.test(ch)) punctuation++;
+    else other++;
+  }
+  const total = t.length || 1;
+  const p = (n: number) => Math.round((n / total) * 1000) / 10; // 한 자리 소수
+  return {
+    total,
+    korean,
+    english,
+    digits,
+    whitespace,
+    punctuation,
+    other,
+    percents: {
+      korean: p(korean),
+      english: p(english),
+      digits: p(digits),
+      whitespace: p(whitespace),
+      punctuation: p(punctuation),
+      other: p(other),
+    },
+  };
 }
 
 function stripHtml(html: string): string {
