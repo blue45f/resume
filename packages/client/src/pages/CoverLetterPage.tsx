@@ -17,6 +17,7 @@ import KeywordCloud from '@/components/KeywordCloud';
 import InterviewQuestionsPanel from '@/components/InterviewQuestionsPanel';
 import SectionInsightsPanel from '@/components/SectionInsightsPanel';
 import OverallHealthGauge from '@/components/OverallHealthGauge';
+import QuotableHighlights from '@/components/QuotableHighlights';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import {
   computeJDMatch,
@@ -877,6 +878,7 @@ export default function CoverLetterPage() {
                       <SkillMentionsBar text={feedbackText || ''} />
                       <AnalysisSummaryBar text={feedbackText || ''} />
                       <SectionInsightsPanel text={feedbackText || ''} />
+                      <QuotableHighlights text={feedbackText || ''} />
                       <UnquantifiedClaimsPanel text={feedbackText || ''} />
                       <OpenerSuggestionsPanel text={feedbackText || ''} />
                       <InterviewQuestionsPanel text={feedbackText || ''} />
