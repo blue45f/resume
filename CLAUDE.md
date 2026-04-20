@@ -73,14 +73,21 @@ pnpm deploy:gcp           # Cloud Run 배포
 
 ## 현재 알려진 개선 여지 (Known Gaps)
 
-이력서 분석 기능이 풍부해졌지만 아직 마무리 안 된 것:
+최근 사이클(2026-04-20)에서 이전 5개 gap 모두 해결됨:
 
-- 신규 컴포넌트(OverallHealthGauge/QuotableHighlights/CareerGapPanel/SectionInsightsPanel 등)의 **i18n 미적용** — 텍스트 하드코딩. 영문/일문 번역 필요 시 `tx()` 전환.
-- **Client unit test 없음** — `packages/client` 에 jest/vitest 미설치. 분석기는 pure 함수라 test 추가하기 쉬운 구조.
-- **이력서 편집(EditResumePage) 에는 신규 패널 미연결** — 구조화 필드 페이지라 long-form 분석과 다소 맞지 않음. 장문 자소서 입력 시에만 분석 UX 효과.
-- **접근성 전수 감사 미완료** — 주요 컴포넌트에 aria-label 추가했으나 키보드 전수 검증 부분 완료.
-- **성능 프로파일링 없음** — 매우 긴(>10k자) 이력서에서 `analyzeEverything` 비용 측정 필요. 현재는 useMemo 의존.
+- ✅ **i18n** — OverallHealthGauge/QuotableHighlights/CareerGapPanel 전면 `tx()` 적용, ko/en/ja `resumeAnalysis` 블록 추가
+- ✅ **Client unit test** — vitest + @testing-library/react + jsdom 도입, `test:client` 스크립트, 17 smoke test (buildResumePlainText/analyzers)
+- ✅ **EditResumePage 분석 패널** — `buildResumePlainText` 헬퍼로 Partial<Resume> → 텍스트 직렬화, OverallHealthGauge/InterviewabilityRow/CareerGapPanel/QuotableHighlights/UnquantifiedClaimsRewritePanel 노출, grid 반응형
+- ✅ **접근성** — `role="progressbar"` + aria-value, section/h3 랜드마크, aria-hidden 장식, aria-label range
+- ✅ **성능** — `useDeferredValue` (타이핑 레이턴시 보호) + `memoizeByText` (scoreSpecificity/detectMissingResumeSections 중복 호출 제거)
+- ✅ **AI 리라이트** — `UnquantifiedClaimsRewritePanel` 로 `inline-assist: quantify` 엔드포인트 연결, 문장 단위 수치 보강 + 복사
+
+다음 사이클 후보(BENCHMARK.md §4):
+
+- Peer Review 커뮤니티 "이력서 봐주세요" 카테고리 정착 (ReportButton 인프라 재활용)
+- 채용공고 URL 붙여넣기 → 자동 파싱 (원티드/잡코리아 계약 없이 대체)
+- PDF/이미지 OCR 한계 개선
 
 ---
 
-작성일: 2026-04-20
+작성일: 2026-04-20 · 최근 갱신: 이 세션
