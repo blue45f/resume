@@ -12,6 +12,7 @@ import LiveAtsBadge from '@/components/LiveAtsBadge';
 import OverallHealthGauge from '@/components/OverallHealthGauge';
 import QuotableHighlights from '@/components/QuotableHighlights';
 import CareerGapPanel from '@/components/CareerGapPanel';
+import UnquantifiedClaimsRewritePanel from '@/components/UnquantifiedClaimsRewritePanel';
 import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
 import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
@@ -528,16 +529,27 @@ export default function EditResumePage() {
           </>
         )}
 
-        {/* Live resume analysis panels (text ≥ 200자일 때만 렌더) */}
+        {/* Live resume analysis panels (text ≥ 200자일 때만 렌더) — 모바일 1열, sm↑ 2열 그리드 */}
         {deferredAnalysisText.length >= 200 && (
-          <div className="mb-4 space-y-2">
-            <OverallHealthGauge text={deferredAnalysisText} />
-            <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3">
-              <InterviewabilityRow text={deferredAnalysisText} />
+          <section aria-label="이력서 실시간 분석" className="mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+              <OverallHealthGauge text={deferredAnalysisText} />
+              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 text-[11px]">
+                <InterviewabilityRow text={deferredAnalysisText} />
+              </div>
+              <div className="sm:col-span-2">
+                <CareerGapPanel text={deferredAnalysisText} className="mt-0" />
+              </div>
+              <div className="sm:col-span-2">
+                <QuotableHighlights text={deferredAnalysisText} className="mt-0" />
+              </div>
+              {id && (
+                <div className="sm:col-span-2">
+                  <UnquantifiedClaimsRewritePanel resumeId={id} text={deferredAnalysisText} />
+                </div>
+              )}
             </div>
-            <CareerGapPanel text={deferredAnalysisText} />
-            <QuotableHighlights text={deferredAnalysisText} />
-          </div>
+          </section>
         )}
 
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6">

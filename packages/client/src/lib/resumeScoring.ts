@@ -14,6 +14,7 @@ import { detectContactInfo } from './pii';
 import { estimateExperienceYears } from './experience';
 import { analyzeQuantification } from './achievementSignals';
 import { detectSkillMentions } from './jdKeywords';
+import { memoizeByText } from './memoize';
 
 const RESUME_SECTIONS: Array<{ key: string; synonyms: string[] }> = [
   {
@@ -38,8 +39,9 @@ export interface ResumeSectionCoverage {
 
 /**
  * 표준 이력서 섹션 커버리지 — 한국 이력서가 일반적으로 포함해야 할 섹션 존재 여부 체크.
+ * scoreInterviewability + scoreResumeCompleteness 양쪽에서 호출되므로 단일 엔트리 캐시 적용.
  */
-export function detectMissingResumeSections(text: string): ResumeSectionCoverage {
+function computeMissingResumeSections(text: string): ResumeSectionCoverage {
   const t = text ?? '';
   const present: string[] = [];
   const missing: string[] = [];
@@ -60,6 +62,10 @@ export function detectMissingResumeSections(text: string): ResumeSectionCoverage
   else suggestion = `누락된 섹션: ${missing.join(', ')} — 완성도를 위해 추가하세요.`;
   return { present, missing, coverageRatio, suggestion };
 }
+
+export const detectMissingResumeSections: (text: string) => ResumeSectionCoverage = memoizeByText(
+  computeMissingResumeSections,
+);
 
 export interface ResumeCompletenessScore {
   overall: number; // 0-100
@@ -122,8 +128,9 @@ export interface SpecificityScore {
 
 /**
  * 구체성 점수 — 숫자·고유명사(회사/제품명)·기술 용어 밀도 종합.
+ * calculateOverallHealth 와 scoreInterviewability 양쪽에서 호출되므로 단일 엔트리 캐시로 중복 계산 제거.
  */
-export function scoreSpecificity(text: string): SpecificityScore {
+function computeSpecificity(text: string): SpecificityScore {
   const t = text ?? '';
   const chars = t.length || 1;
   const numbers = (t.match(/\d+/g) ?? []).length;
@@ -144,6 +151,9 @@ export function scoreSpecificity(text: string): SpecificityScore {
         : `구체성이 부족합니다 (${overall}점). 추상 표현을 구체 사례·수치로 대체하세요.`;
   return { overall, numbers, properNouns, techTerms, suggestion };
 }
+
+export const scoreSpecificity: (text: string) => SpecificityScore =
+  memoizeByText(computeSpecificity);
 
 const LEAD_KEYWORDS = ['리딩', '팀 리드', '팀 리더', '리더십', 'Tech Lead', '테크 리드', '팀장'];
 
