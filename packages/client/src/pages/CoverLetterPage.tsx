@@ -16,6 +16,7 @@ import KoreanQualityBadge from '@/components/KoreanQualityBadge';
 import KeywordCloud from '@/components/KeywordCloud';
 import InterviewQuestionsPanel from '@/components/InterviewQuestionsPanel';
 import SectionInsightsPanel from '@/components/SectionInsightsPanel';
+import OverallHealthGauge from '@/components/OverallHealthGauge';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import {
   computeJDMatch,
@@ -868,6 +869,7 @@ export default function CoverLetterPage() {
                   {(feedbackText || '').length >= 80 && (
                     <div className="mt-2">
                       <TldrHeadline text={feedbackText || ''} />
+                      <OverallHealthGauge text={feedbackText || ''} className="mb-2" />
                       <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
                         🏷️ 핵심 키워드
                       </div>
