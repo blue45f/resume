@@ -32,6 +32,7 @@ import {
   countAchievements,
   computeSectionHealth,
   analyzeStarPattern,
+  scoreInterviewability,
 } from '@/lib/koreanChecker';
 import { toast } from '@/components/Toast';
 
@@ -151,6 +152,7 @@ export default function KoreanQualityBadge({
           <Row title="상투구" value={`${cliches.count}건`} hint={cliches.level} />
           <SectionHealthRow text={text} />
           <StarPatternRow text={text} />
+          <InterviewabilityRow text={text} />
           <SectionHeader>✍️ 문장 구조</SectionHeader>
           <Row
             title="시작 변주"
@@ -547,6 +549,27 @@ function AchievementsRow({ text }: { text: string }) {
               .map((k) => k.keyword)
               .join(' · ')
       }
+    />
+  );
+}
+
+function InterviewabilityRow({ text }: { text: string }) {
+  const iv = scoreInterviewability(text);
+  if (text.length < 200) return null;
+  const tierLabel =
+    iv.tier === 'call-back'
+      ? '콜백 기대'
+      : iv.tier === 'promising'
+        ? '유망'
+        : iv.tier === 'needs-work'
+          ? '보완 필요'
+          : '문턱 미달';
+  const weakest = [...iv.breakdown].sort((a, b) => a.value - b.value)[0];
+  return (
+    <Row
+      title="면접 적합도"
+      value={`${iv.overall}점 · ${tierLabel}`}
+      hint={`약한 축: ${weakest.axis} ${weakest.value}`}
     />
   );
 }
