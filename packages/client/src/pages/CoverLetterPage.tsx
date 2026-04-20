@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useDeferredValue, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -313,6 +313,8 @@ export default function CoverLetterPage() {
   });
   const feedbackText = watchFeedback('content');
   const feedbackJd = watchFeedback('jobDescription');
+  // 타이핑 레이턴시 보호 — 10+ 분석기 패널을 유휴 시간에 재렌더.
+  const deferredFeedbackText = useDeferredValue(feedbackText || '');
 
   useEffect(() => {
     document.title = '자기소개서 — 이력서공방';
@@ -868,22 +870,22 @@ export default function CoverLetterPage() {
                   {feedbackErrors.content && (
                     <p className="text-xs text-red-500 mt-1">{feedbackErrors.content.message}</p>
                   )}
-                  {(feedbackText || '').length >= 80 && (
+                  {deferredFeedbackText.length >= 80 && (
                     <div className="mt-2">
-                      <TldrHeadline text={feedbackText || ''} />
-                      <OverallHealthGauge text={feedbackText || ''} className="mb-2" />
+                      <TldrHeadline text={deferredFeedbackText} />
+                      <OverallHealthGauge text={deferredFeedbackText} className="mb-2" />
                       <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
                         🏷️ 핵심 키워드
                       </div>
-                      <KeywordCloud text={feedbackText || ''} topN={12} />
-                      <SkillMentionsBar text={feedbackText || ''} />
-                      <AnalysisSummaryBar text={feedbackText || ''} />
-                      <SectionInsightsPanel text={feedbackText || ''} />
-                      <CareerGapPanel text={feedbackText || ''} />
-                      <QuotableHighlights text={feedbackText || ''} />
-                      <UnquantifiedClaimsPanel text={feedbackText || ''} />
-                      <OpenerSuggestionsPanel text={feedbackText || ''} />
-                      <InterviewQuestionsPanel text={feedbackText || ''} />
+                      <KeywordCloud text={deferredFeedbackText} topN={12} />
+                      <SkillMentionsBar text={deferredFeedbackText} />
+                      <AnalysisSummaryBar text={deferredFeedbackText} />
+                      <SectionInsightsPanel text={deferredFeedbackText} />
+                      <CareerGapPanel text={deferredFeedbackText} />
+                      <QuotableHighlights text={deferredFeedbackText} />
+                      <UnquantifiedClaimsPanel text={deferredFeedbackText} />
+                      <OpenerSuggestionsPanel text={deferredFeedbackText} />
+                      <InterviewQuestionsPanel text={deferredFeedbackText} />
                     </div>
                   )}
                 </div>

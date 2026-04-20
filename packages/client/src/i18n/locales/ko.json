@@ -525,5 +525,41 @@
       "teamManagement": "팀 관리",
       "analytics": "고급 분석"
     }
+  },
+  "resumeAnalysis": {
+    "health": {
+      "title": "종합 준비도",
+      "axis": {
+        "quality": "문체",
+        "completeness": "완성도",
+        "interviewability": "면접 적합도"
+      },
+      "tier": {
+        "excellent": "우수",
+        "good": "양호",
+        "fair": "보통",
+        "poor": "취약"
+      },
+      "ariaLabel": "이력서 종합 준비도 {score}점 {tier}"
+    },
+    "quotable": {
+      "title": "인용할 만한 문장",
+      "signal": {
+        "number": "수치",
+        "strongVerb": "강한 동사",
+        "properNoun": "고유명사"
+      }
+    },
+    "careerGap": {
+      "title": "경력 공백 {count}건",
+      "totalLabel": "총 {months}개월",
+      "monthsLabel": "{months}개월",
+      "severity": {
+        "minor": "경미",
+        "notable": "주의",
+        "major": "중요"
+      },
+      "hint": "💡 면접 답변 또는 이력서 내 1~2줄 설명(학습/재충전/프리랜서 등)으로 공백을 투명화하세요."
+    }
   }
 }

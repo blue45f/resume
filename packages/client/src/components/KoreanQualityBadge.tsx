@@ -553,7 +553,7 @@ function AchievementsRow({ text }: { text: string }) {
   );
 }
 
-function InterviewabilityRow({ text }: { text: string }) {
+export function InterviewabilityRow({ text }: { text: string }) {
   const iv = scoreInterviewability(text);
   if (text.length < 200) return null;
   const tierLabel =

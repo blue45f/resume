@@ -525,5 +525,41 @@
       "teamManagement": "Team management",
       "analytics": "Advanced analytics"
     }
+  },
+  "resumeAnalysis": {
+    "health": {
+      "title": "Overall Readiness",
+      "axis": {
+        "quality": "Style",
+        "completeness": "Completeness",
+        "interviewability": "Interview Fit"
+      },
+      "tier": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "poor": "Poor"
+      },
+      "ariaLabel": "Resume overall readiness {score} {tier}"
+    },
+    "quotable": {
+      "title": "Quotable Lines",
+      "signal": {
+        "number": "Number",
+        "strongVerb": "Strong Verb",
+        "properNoun": "Proper Noun"
+      }
+    },
+    "careerGap": {
+      "title": "Career Gaps ({count})",
+      "totalLabel": "Total {months} months",
+      "monthsLabel": "{months} mo",
+      "severity": {
+        "minor": "Minor",
+        "notable": "Notable",
+        "major": "Major"
+      },
+      "hint": "💡 Explain gaps in 1–2 lines (learning / recharge / freelance) either in the resume or interview."
+    }
   }
 }

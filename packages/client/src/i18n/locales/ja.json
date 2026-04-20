@@ -425,5 +425,41 @@
       "teamManagement": "チーム管理",
       "analytics": "高度な分析"
     }
+  },
+  "resumeAnalysis": {
+    "health": {
+      "title": "総合準備度",
+      "axis": {
+        "quality": "文体",
+        "completeness": "完成度",
+        "interviewability": "面接適合度"
+      },
+      "tier": {
+        "excellent": "優秀",
+        "good": "良好",
+        "fair": "普通",
+        "poor": "要改善"
+      },
+      "ariaLabel": "履歴書総合準備度 {score}点 {tier}"
+    },
+    "quotable": {
+      "title": "引用可能な文章",
+      "signal": {
+        "number": "数値",
+        "strongVerb": "強い動詞",
+        "properNoun": "固有名詞"
+      }
+    },
+    "careerGap": {
+      "title": "キャリアギャップ {count}件",
+      "totalLabel": "合計 {months}ヶ月",
+      "monthsLabel": "{months}ヶ月",
+      "severity": {
+        "minor": "軽微",
+        "notable": "注意",
+        "major": "重要"
+      },
+      "hint": "💡 面接回答や履歴書内の1〜2行説明(学習/充電/フリーランス等)でギャップを透明化しましょう。"
+    }
   }
 }

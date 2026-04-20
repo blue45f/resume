@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -9,6 +9,11 @@ import TagSelector from '@/components/TagSelector';
 import AttachmentPanel from '@/components/AttachmentPanel';
 import VersionPanel from '@/components/VersionPanel';
 import LiveAtsBadge from '@/components/LiveAtsBadge';
+import OverallHealthGauge from '@/components/OverallHealthGauge';
+import QuotableHighlights from '@/components/QuotableHighlights';
+import CareerGapPanel from '@/components/CareerGapPanel';
+import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
+import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
 import { useQueryClient } from '@tanstack/react-query';
 import { updateResume, setResumeVisibility } from '@/lib/api';
@@ -396,6 +401,10 @@ export default function EditResumePage() {
     setLiveData(data as Partial<Resume>);
   }, []);
 
+  const liveAnalysisText = useMemo(() => buildResumePlainText(liveData), [liveData]);
+  // 분석기 패널은 타이핑 중에는 뒤로 미루어 입력 레이턴시 보호 — useDeferredValue 가 유휴 시간에 재렌더.
+  const deferredAnalysisText = useDeferredValue(liveAnalysisText);
+
   if (notFound) {
     return (
       <>
@@ -517,6 +526,18 @@ export default function EditResumePage() {
             <LiveCompletenessBar resume={liveData} />
             <LiveAtsBadge resume={liveData} />
           </>
+        )}
+
+        {/* Live resume analysis panels (text ≥ 200자일 때만 렌더) */}
+        {deferredAnalysisText.length >= 200 && (
+          <div className="mb-4 space-y-2">
+            <OverallHealthGauge text={deferredAnalysisText} />
+            <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3">
+              <InterviewabilityRow text={deferredAnalysisText} />
+            </div>
+            <CareerGapPanel text={deferredAnalysisText} />
+            <QuotableHighlights text={deferredAnalysisText} />
+          </div>
         )}
 
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6">

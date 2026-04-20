@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { calculateOverallHealth } from '@/lib/koreanChecker';
+import { tx } from '@/lib/i18n';
 
 interface Props {
   text: string;
@@ -7,33 +8,28 @@ interface Props {
   className?: string;
 }
 
-const TIER_META: Record<
-  'excellent' | 'good' | 'fair' | 'poor',
-  { label: string; dot: string; bar: string; ring: string; text: string }
-> = {
+type Tier = 'excellent' | 'good' | 'fair' | 'poor';
+
+const TIER_META: Record<Tier, { dot: string; bar: string; ring: string; text: string }> = {
   excellent: {
-    label: '우수',
     dot: 'bg-emerald-500',
     bar: 'bg-emerald-500 dark:bg-emerald-400',
     ring: 'ring-emerald-400/60 dark:ring-emerald-500/60',
     text: 'text-emerald-700 dark:text-emerald-300',
   },
   good: {
-    label: '양호',
     dot: 'bg-blue-500',
     bar: 'bg-blue-500 dark:bg-blue-400',
     ring: 'ring-blue-400/60 dark:ring-blue-500/60',
     text: 'text-blue-700 dark:text-blue-300',
   },
   fair: {
-    label: '보통',
     dot: 'bg-amber-500',
     bar: 'bg-amber-500 dark:bg-amber-400',
     ring: 'ring-amber-400/60 dark:ring-amber-500/60',
     text: 'text-amber-700 dark:text-amber-300',
   },
   poor: {
-    label: '취약',
     dot: 'bg-rose-500',
     bar: 'bg-rose-500 dark:bg-rose-400',
     ring: 'ring-rose-400/60 dark:ring-rose-500/60',
@@ -53,12 +49,13 @@ export default function OverallHealthGauge({ text, minLength = 200, className = 
 
   if (!health) return null;
   const meta = TIER_META[health.tier];
+  const tierLabel = tx(`resumeAnalysis.health.tier.${health.tier}`);
 
   return (
     <div
       className={`rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 ${className}`}
       role="status"
-      aria-label={`이력서 종합 준비도 ${health.health}점 ${meta.label}`}
+      aria-label={tx('resumeAnalysis.health.ariaLabel', { score: health.health, tier: tierLabel })}
     >
       <div className="flex items-start gap-3">
         <div
@@ -69,19 +66,29 @@ export default function OverallHealthGauge({ text, minLength = 200, className = 
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between gap-2">
             <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              🎯 종합 준비도
+              {tx('resumeAnalysis.health.title')}
             </span>
             <span
               className={`text-[11px] font-semibold px-2 py-0.5 rounded ${meta.text} bg-slate-50 dark:bg-slate-800`}
             >
-              {meta.label}
+              {tierLabel}
             </span>
           </div>
           <div className="mt-2 space-y-1">
-            <AxisBar label="문체" value={health.quality} weight={30} tier={health.tier} />
-            <AxisBar label="완성도" value={health.completeness} weight={30} tier={health.tier} />
             <AxisBar
-              label="면접 적합도"
+              label={tx('resumeAnalysis.health.axis.quality')}
+              value={health.quality}
+              weight={30}
+              tier={health.tier}
+            />
+            <AxisBar
+              label={tx('resumeAnalysis.health.axis.completeness')}
+              value={health.completeness}
+              weight={30}
+              tier={health.tier}
+            />
+            <AxisBar
+              label={tx('resumeAnalysis.health.axis.interviewability')}
               value={health.interviewability}
               weight={40}
               tier={health.tier}
@@ -102,23 +109,36 @@ function AxisBar({
   label: string;
   value: number;
   weight: number;
-  tier: 'excellent' | 'good' | 'fair' | 'poor';
+  tier: Tier;
 }) {
   const meta = TIER_META[tier];
   const pct = Math.max(0, Math.min(100, value));
   return (
     <div className="flex items-center gap-2 text-[11px]">
       <span className="w-16 shrink-0 text-slate-600 dark:text-slate-400">{label}</span>
-      <div className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+      <div
+        className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"
+        role="progressbar"
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`${label} ${value}점, 가중치 ${weight}%`}
+      >
         <div
           className={`h-full ${meta.bar} transition-[width] duration-500 ease-out`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="w-8 shrink-0 text-right tabular-nums text-slate-700 dark:text-slate-300 font-medium">
+      <span
+        aria-hidden="true"
+        className="w-8 shrink-0 text-right tabular-nums text-slate-700 dark:text-slate-300 font-medium"
+      >
         {value}
       </span>
-      <span className="w-8 shrink-0 text-right tabular-nums text-[9.5px] text-slate-400 dark:text-slate-500">
+      <span
+        aria-hidden="true"
+        className="w-8 shrink-0 text-right tabular-nums text-[9.5px] text-slate-400 dark:text-slate-500"
+      >
         ×{weight}%
       </span>
     </div>

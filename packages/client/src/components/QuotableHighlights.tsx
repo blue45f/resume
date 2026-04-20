@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { extractQuotableLines } from '@/lib/koreanChecker';
+import { tx } from '@/lib/i18n';
 
 interface Props {
   text: string;
@@ -25,18 +26,26 @@ export default function QuotableHighlights({
 
   if (lines.length === 0) return null;
 
+  const titleId = 'quotable-highlights-title';
   return (
-    <div className={`mt-3 ${className}`}>
-      <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
-        💬 인용할 만한 문장
-      </div>
+    <section className={`mt-3 ${className}`} aria-labelledby={titleId}>
+      <h3
+        id={titleId}
+        className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5"
+      >
+        <span aria-hidden="true">💬 </span>
+        {tx('resumeAnalysis.quotable.title')}
+      </h3>
       <ul className="space-y-1">
         {lines.map((q, i) => (
           <li
             key={i}
             className="flex items-start gap-2 rounded-md bg-cyan-50/70 dark:bg-cyan-900/20 border border-cyan-100 dark:border-cyan-900/40 px-2 py-1.5"
           >
-            <span className="shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300 text-[9px] font-bold mt-0.5">
+            <span
+              aria-hidden="true"
+              className="shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300 text-[9px] font-bold mt-0.5"
+            >
               {i + 1}
             </span>
             <div className="flex-1 min-w-0">
@@ -46,17 +55,17 @@ export default function QuotableHighlights({
               <div className="mt-0.5 flex gap-1 text-[9px]">
                 {q.signals.hasNumber && (
                   <span className="px-1 rounded bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                    수치
+                    {tx('resumeAnalysis.quotable.signal.number')}
                   </span>
                 )}
                 {q.signals.hasStrongVerb && (
                   <span className="px-1 rounded bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                    강한 동사
+                    {tx('resumeAnalysis.quotable.signal.strongVerb')}
                   </span>
                 )}
                 {q.signals.hasProper && (
                   <span className="px-1 rounded bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                    고유명사
+                    {tx('resumeAnalysis.quotable.signal.properNoun')}
                   </span>
                 )}
               </div>
@@ -64,6 +73,6 @@ export default function QuotableHighlights({
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }
