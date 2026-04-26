@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { LlmController } from './llm.controller';
 import { AutoGenerateController } from './auto-generate.controller';
 import { LlmService } from './llm.service';
@@ -13,7 +13,7 @@ import { N8nWebhookProvider } from './providers/n8n-webhook.provider';
 import { OpenAiCompatibleProvider } from './providers/openai-compatible.provider';
 
 @Module({
-  imports: [ResumesModule, PrismaModule],
+  imports: [forwardRef(() => ResumesModule), PrismaModule],
   controllers: [LlmController, AutoGenerateController],
   providers: [
     LlmService,

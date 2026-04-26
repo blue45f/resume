@@ -120,6 +120,43 @@ describe('FileTextExtractorService', () => {
     });
   });
 
+  describe('한글 OCR 후처리 (postProcessKoreanOcr)', () => {
+    it('한글 음절 사이 공백 제거: 경 력 → 경력', () => {
+      const out = service.postProcessKoreanOcr('경 력 사 항: 카 카 오 5 년');
+      expect(out).toContain('경력');
+      expect(out).toContain('카카오');
+    });
+
+    it('숫자 + 한글 단위 결합: 5 년 → 5년', () => {
+      expect(service.postProcessKoreanOcr('경력 5 년')).toBe('경력 5년');
+      expect(service.postProcessKoreanOcr('100 명 규모')).toBe('100명 규모');
+    });
+
+    it('4자리 연도 결합: 20 23년 → 2023년', () => {
+      expect(service.postProcessKoreanOcr('20 23년')).toBe('2023년');
+      expect(service.postProcessKoreanOcr('20 23.05')).toBe('2023.05');
+    });
+
+    it('회사·대학 흔한 suffix 결합', () => {
+      expect(service.postProcessKoreanOcr('주식 회사 카카오')).toBe('주식회사 카카오');
+      expect(service.postProcessKoreanOcr('서울 대 학 교')).toBe('서울 대학교');
+    });
+
+    it('NFD 한글 자모 → NFC 결합', () => {
+      // '한글' (자모 분리) → '한글' (NFC)
+      const decomposed = '한글'.normalize('NFD');
+      expect(service.postProcessKoreanOcr(decomposed)).toBe('한글');
+    });
+
+    it('빈 입력 → 빈 출력', () => {
+      expect(service.postProcessKoreanOcr('')).toBe('');
+    });
+
+    it('영문 텍스트 변경 안 함', () => {
+      expect(service.postProcessKoreanOcr('Hello World 2023')).toBe('Hello World 2023');
+    });
+  });
+
   describe('이미지 OCR (Gemini Vision)', () => {
     it('jpg → Gemini extractImageText 호출 → 결과 반환', async () => {
       mockGemini.extractImageText.mockResolvedValueOnce('OCR 결과 텍스트');

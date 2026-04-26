@@ -128,7 +128,45 @@ export class FileTextExtractorService {
       );
     }
     const mime = file.mimetype && file.mimetype.startsWith('image/') ? file.mimetype : 'image/jpeg';
-    return this.gemini.extractImageText(file.buffer, mime);
+    const raw = await this.gemini.extractImageText(file.buffer, mime);
+    return this.postProcessKoreanOcr(raw);
+  }
+
+  /**
+   * Gemini Vision 한글 OCR 결과의 흔한 오류 휴리스틱 보정.
+   *
+   * 발견되는 패턴(이력서 OCR 사례 기반):
+   * 1. 한글 음절 사이에 공백 삽입: '경 력' → '경력', '회 사' → '회사'
+   * 2. 영문/숫자와 한글 사이 spacing 변화: '5 년' → '5년', '20 23' → '2023'
+   * 3. 줄바꿈을 공백으로 처리: 단락 경계 손실
+   * 4. 한글 자모 분리 NFD: 'ㅎㅏㄴ글' → 'NFC 정규화'
+   *
+   * 보수적으로 — 잘못 결합하면 의미 망가지므로 confident 패턴만.
+   */
+  postProcessKoreanOcr(text: string): string {
+    if (!text) return text;
+    let out = text;
+    // 1. NFD → NFC (자모 분리된 한글을 음절로 결합)
+    out = out.normalize('NFC');
+    // 2. 단일 한글 음절이 공백으로 3+ 연속 분리된 경우만 결합:
+    //    '경 력 사 항' → '경력사항' (OCR 가 단어를 글자별로 쪼개는 흔한 패턴)
+    //    단, '결과 텍스트' 처럼 다음 음절이 multi-char 단어면 영향 없음.
+    out = out.replace(/(?:^|(?<![가-힣]))([가-힣])(?: ([가-힣])){2,}(?![가-힣])/g, (match) =>
+      match.replace(/ /g, ''),
+    );
+    // 3. 숫자와 한글 단위(년/월/일/주/회/명/개/원/세/등) 사이 공백 제거
+    out = out.replace(/(\d) (년|월|일|주|회|명|개|원|세|등|차|분|시간|이상|이하|미만|초)/g, '$1$2');
+    // 4. 4자리 연도 사이 공백 (예: '20 23' → '2023')
+    out = out.replace(/\b(\d{2}) (\d{2})\b(?=[년.\-/])/g, '$1$2');
+    // 5. 회사·기관명 흔한 suffix 결합 — 보수적으로 명확한 패턴만
+    out = out
+      .replace(/주식 회사/g, '주식회사')
+      .replace(/유한 회사/g, '유한회사')
+      // '대 학 교' / '대 학' (3+ run 으로 위에서 이미 처리되지만 2-char 인 '대 학교' 별도 보강)
+      .replace(/대학 교/g, '대학교');
+    // 6. 다중 공백 정리
+    out = out.replace(/[ \t]+/g, ' ').replace(/ ?\n ?/g, '\n');
+    return out;
   }
 
   /** RTF control words / groups 제거 — 매우 단순한 구현 (완전한 RTF parser 아님). */

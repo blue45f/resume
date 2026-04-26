@@ -655,6 +655,7 @@ export class AuthService {
       username?: string;
       marketingOptIn?: boolean;
       llmOptIn?: boolean;
+      preferredLocale?: string;
     },
   ) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -673,6 +674,13 @@ export class AuthService {
     if (data.companyTitle !== undefined) updateData.companyTitle = data.companyTitle;
     if (data.isOpenToWork !== undefined) updateData.isOpenToWork = data.isOpenToWork;
     if (data.openToWorkRoles !== undefined) updateData.openToWorkRoles = data.openToWorkRoles;
+    if (data.preferredLocale !== undefined) {
+      const validLocales = ['', 'ko', 'en', 'ja'];
+      if (!validLocales.includes(data.preferredLocale)) {
+        throw new Error('유효하지 않은 언어입니다');
+      }
+      updateData.preferredLocale = data.preferredLocale;
+    }
     if (data.username !== undefined) {
       // Validate username: 3-30 chars, alphanumeric + - _
       const clean = data.username.toLowerCase().replace(/[^a-z0-9_-]/g, '');

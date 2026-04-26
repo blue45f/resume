@@ -66,6 +66,17 @@ export class AdminStatsService {
       select: { id: true, name: true, email: true, provider: true, createdAt: true },
     });
 
+    // i18n 통계 — preferredLocale 별 사용자 수. 빈 문자열은 'unset' 으로.
+    const localeGroups = await this.prisma.user.groupBy({
+      by: ['preferredLocale'],
+      _count: { _all: true },
+    });
+    const localeStats: Record<string, number> = { unset: 0, ko: 0, en: 0, ja: 0 };
+    for (const g of localeGroups) {
+      const key = g.preferredLocale || 'unset';
+      localeStats[key] = (localeStats[key] || 0) + (g._count?._all || 0);
+    }
+
     // Aggregate coaching status counts
     const statusList = Array.isArray(sessionsByStatus) ? sessionsByStatus : [];
     const statusCounts: Record<string, number> = {
@@ -110,6 +121,7 @@ export class AdminStatsService {
         totalCommission,
         byStatus: statusCounts,
       },
+      locales: localeStats,
       recentUsers: recentUsers.map((u) => ({
         id: u.id,
         name: u.name,

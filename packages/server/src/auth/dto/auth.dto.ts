@@ -60,4 +60,8 @@ export class UpdateProfileDto {
   openToWorkRoles?: string[];
   @ApiPropertyOptional() @IsOptional() @IsBoolean() marketingOptIn?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() llmOptIn?: boolean;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsIn(['', 'ko', 'en', 'ja'])
+  preferredLocale?: string;
 }

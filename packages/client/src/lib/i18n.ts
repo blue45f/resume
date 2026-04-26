@@ -19,6 +19,19 @@ export function setLocale(locale: Locale) {
   localStorage.setItem(LOCALE_KEY, locale);
   document.documentElement.lang = langMap[locale] || 'ko';
   document.documentElement.dir = isRtl(locale) ? 'rtl' : 'ltr';
+  // 로그인된 사용자라면 서버에 preferredLocale 동기화 (i18n 통계 + 다른 디바이스 일관성).
+  // 실패는 silent — 로컬 설정이 source of truth.
+  const token = localStorage.getItem('token');
+  if (token) {
+    fetch(
+      `${(import.meta as unknown as { env: Record<string, string> }).env.VITE_API_URL || ''}/api/auth/profile`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ preferredLocale: locale }),
+      },
+    ).catch(() => {});
+  }
   window.location.reload();
 }
 

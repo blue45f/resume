@@ -134,35 +134,70 @@ function DiffBadge({ type }: { type: DiffChangeType }) {
   return <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${c.color}`}>{c.label}</span>;
 }
 
-/** word 단위 LCS 기반 inline 강조 — changed 타입 시 add/remove 토큰 mark. */
+/**
+ * LCS (Longest Common Subsequence) 기반 word-level diff.
+ *
+ * Set 기반 휴리스틱과 달리 토큰 순서/중복을 정확히 처리.
+ * 예: '나는 카카오 다녔다' vs '카카오 나는 다녔다' — Set 은 차이 없다고 판단하지만
+ * LCS 는 '나는' / '카카오' 위치 변경을 인식.
+ *
+ * O(N*M) 시간 — 이력서 문장(수백 토큰)에서 충분히 빠름.
+ */
 function wordDiff(oldText: string, newText: string): { old: ReactNode; nw: ReactNode } {
   const oldTokens = oldText.split(/(\s+)/);
   const newTokens = newText.split(/(\s+)/);
-  // 간단한 Set 기반 — token 중복 시 단순 set diff (perfect 아니지만 시각화 충분)
-  const newSet = new Set(newTokens);
-  const oldSet = new Set(oldTokens);
-  const oldRendered = oldTokens.map((t, i) =>
-    !newSet.has(t) && t.trim() ? (
+  const N = oldTokens.length;
+  const M = newTokens.length;
+
+  // dp[i][j] = LCS length of oldTokens[0..i) vs newTokens[0..j)
+  const dp: number[][] = Array.from({ length: N + 1 }, () => new Array(M + 1).fill(0));
+  for (let i = 1; i <= N; i++) {
+    for (let j = 1; j <= M; j++) {
+      if (oldTokens[i - 1] === newTokens[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
+      else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+    }
+  }
+
+  // backtrack — 각 토큰을 'common' / 'removed' / 'added' 로 분류
+  const oldFlags: Array<'common' | 'removed'> = new Array(N).fill('removed');
+  const newFlags: Array<'common' | 'added'> = new Array(M).fill('added');
+  let i = N;
+  let j = M;
+  while (i > 0 && j > 0) {
+    if (oldTokens[i - 1] === newTokens[j - 1]) {
+      oldFlags[i - 1] = 'common';
+      newFlags[j - 1] = 'common';
+      i--;
+      j--;
+    } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+      i--;
+    } else {
+      j--;
+    }
+  }
+
+  const oldRendered = oldTokens.map((t, idx) =>
+    oldFlags[idx] === 'removed' && t.trim() ? (
       <mark
-        key={i}
+        key={idx}
         className="bg-red-200/70 dark:bg-red-900/40 text-red-800 dark:text-red-300 rounded px-0.5"
       >
         {t}
       </mark>
     ) : (
-      <span key={i}>{t}</span>
+      <span key={idx}>{t}</span>
     ),
   );
-  const newRendered = newTokens.map((t, i) =>
-    !oldSet.has(t) && t.trim() ? (
+  const newRendered = newTokens.map((t, idx) =>
+    newFlags[idx] === 'added' && t.trim() ? (
       <mark
-        key={i}
+        key={idx}
         className="bg-emerald-200/70 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 rounded px-0.5"
       >
         {t}
       </mark>
     ) : (
-      <span key={i}>{t}</span>
+      <span key={idx}>{t}</span>
     ),
   );
   return { old: oldRendered, nw: newRendered };

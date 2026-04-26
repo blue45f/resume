@@ -24,6 +24,8 @@ model User {
   isSample                Boolean                    @default(false) @map("is_sample")
   isOpenToWork            Boolean                    @default(false) @map("is_open_to_work") // 구직 중 상태 공개
   openToWorkRoles         String                     @default("") @map("open_to_work_roles") // 희망 직무 (콤마 구분)
+  /// 사용자 선호 언어 (UI 표시 + i18n 통계). 빈 문자열 = 미설정 (browser 기본 사용)
+  preferredLocale         String                     @default("") @map("preferred_locale")
   marketingOptIn          Boolean                    @default(false) @map("marketing_opt_in") // PIPA: 마케팅 수신 동의
   llmOptIn                Boolean                    @default(false) @map("llm_opt_in") // PIPA: 국외 LLM 이전 동의
   isSuspended             Boolean                    @default(false) @map("is_suspended") // 관리자에 의한 계정 정지

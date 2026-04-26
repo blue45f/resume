@@ -67,6 +67,7 @@ interface Stats {
   dailyResumes?: number[];
   topFeatures?: { name: string; count: number }[];
   revenue?: { thisMonth: number; lastMonth: number };
+  locales?: { unset: number; ko: number; en: number; ja: number };
 }
 
 type TabId =
