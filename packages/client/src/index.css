@@ -2862,11 +2862,30 @@ button:active:not(:disabled) {
     0 0 0 3px rgba(37, 99, 235, 0.55),
     0 4px 12px rgba(0, 0, 0, 0.18);
 }
+.banner-swiper-root .swiper-button-prev,
+.banner-swiper-root .swiper-button-next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
 .banner-swiper-root .swiper-button-prev::after,
 .banner-swiper-root .swiper-button-next::after {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
+  line-height: 1;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  position: static;
+  margin: 0;
+  width: auto;
+  height: auto;
+}
+/* 시각 보정: prev 화살표가 살짝 왼쪽으로 보이도록 (한글 비대칭 폰트 보정) */
+.banner-swiper-root .swiper-button-prev::after {
+  transform: translateX(-1px);
+}
+.banner-swiper-root .swiper-button-next::after {
+  transform: translateX(1px);
 }
 .banner-swiper-root .swiper-button-disabled {
   opacity: 0.35 !important;
