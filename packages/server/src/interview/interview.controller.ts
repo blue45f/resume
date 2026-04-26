@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { InterviewService, CreateInterviewAnswerDto } from './interview.service';
 
 @ApiTags('interview')
@@ -35,5 +36,18 @@ export class InterviewController {
   remove(@Param('id') id: string, @Req() req: any) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.remove(id, req.user.id);
+  }
+
+  @Post('answers/analyze')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @ApiOperation({
+    summary: 'AI 기반 면접 답변 분석 — 강점/약점/개선/리라이트 (LLM 호출, 5 req/min)',
+  })
+  analyzeAnswer(
+    @Body() body: { question: string; answer: string; jobRole?: string },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.analyzeAnswer(req.user.id, body);
   }
 }

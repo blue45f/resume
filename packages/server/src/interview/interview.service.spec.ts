@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InterviewService } from './interview.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { LlmService } from '../llm/llm.service';
 
 const mockPrisma: any = {
   interviewAnswer: {
@@ -12,12 +13,18 @@ const mockPrisma: any = {
   },
 };
 
+const mockLlm = { generateWithFallback: jest.fn() };
+
 describe('InterviewService', () => {
   let service: InterviewService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [InterviewService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        InterviewService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: LlmService, useValue: mockLlm },
+      ],
     }).compile();
     service = module.get(InterviewService);
     jest.clearAllMocks();
@@ -104,6 +111,93 @@ describe('InterviewService', () => {
       });
       mockPrisma.interviewAnswer.delete.mockResolvedValueOnce({});
       await expect(service.remove('a1', 'u1')).resolves.toEqual({ success: true });
+    });
+  });
+
+  describe('analyzeAnswer', () => {
+    const validResp = {
+      text: JSON.stringify({
+        overallScore: 75,
+        strengths: ['STAR 구조 명확', '정량 결과 포함'],
+        weaknesses: ['약점 표현 부족'],
+        improvements: ['더 구체적인 숫자 추가', '1인칭 강화'],
+        rewrittenAnswer: '저는 ...',
+        starBreakdown: { situation: 'A', task: 'B', action: 'C', result: 'D' },
+      }),
+    };
+
+    it('비로그인 → ForbiddenException', async () => {
+      await expect(service.analyzeAnswer('', { question: 'q', answer: 'a' })).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('빈 question/answer → BadRequestException', async () => {
+      await expect(service.analyzeAnswer('u1', { question: '', answer: 'a' })).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.analyzeAnswer('u1', { question: 'q', answer: '   ' })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('답변 3000자 초과 → BadRequestException', async () => {
+      await expect(
+        service.analyzeAnswer('u1', { question: 'q', answer: 'a'.repeat(3001) }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('LLM 응답 파싱 + 스코어 clamp', async () => {
+      mockLlm.generateWithFallback.mockResolvedValueOnce(validResp);
+      const r = await service.analyzeAnswer('u1', {
+        question: '본인을 소개해주세요',
+        answer: '저는 백엔드 개발자입니다.',
+      });
+      expect(r.overallScore).toBe(75);
+      expect(r.strengths).toHaveLength(2);
+      expect(r.improvements).toHaveLength(2);
+      expect(r.rewrittenAnswer).toBe('저는 ...');
+      expect(r.starBreakdown.situation).toBe('A');
+    });
+
+    it('스코어 100 초과 → 100 으로 clamp', async () => {
+      mockLlm.generateWithFallback.mockResolvedValueOnce({
+        text: JSON.stringify({
+          overallScore: 150,
+          strengths: [],
+          weaknesses: [],
+          improvements: [],
+          rewrittenAnswer: '',
+          starBreakdown: {},
+        }),
+      });
+      const r = await service.analyzeAnswer('u1', { question: 'q', answer: 'a' });
+      expect(r.overallScore).toBe(100);
+    });
+
+    it('LLM 응답에 ```json``` 마커 → 정상 파싱', async () => {
+      mockLlm.generateWithFallback.mockResolvedValueOnce({
+        text:
+          '```json\n' +
+          JSON.stringify({
+            overallScore: 60,
+            strengths: ['s1'],
+            weaknesses: [],
+            improvements: [],
+            rewrittenAnswer: '',
+            starBreakdown: {},
+          }) +
+          '\n```',
+      });
+      const r = await service.analyzeAnswer('u1', { question: 'q', answer: 'a' });
+      expect(r.overallScore).toBe(60);
+    });
+
+    it('LLM 응답이 JSON 아님 → BadRequestException', async () => {
+      mockLlm.generateWithFallback.mockResolvedValueOnce({ text: '평범한 텍스트만 반환' });
+      await expect(service.analyzeAnswer('u1', { question: 'q', answer: 'a' })).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

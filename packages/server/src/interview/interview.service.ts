@@ -1,10 +1,13 @@
 import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
-  ForbiddenException,
-  BadRequestException,
+  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { LlmService } from '../llm/llm.service';
 
 export interface CreateInterviewAnswerDto {
   question: string;
@@ -13,9 +16,110 @@ export interface CreateInterviewAnswerDto {
   jobRole?: string;
 }
 
+export interface AiAnswerFeedback {
+  overallScore: number; // 1-100
+  strengths: string[];
+  weaknesses: string[];
+  improvements: string[];
+  rewrittenAnswer: string;
+  starBreakdown: { situation: string; task: string; action: string; result: string };
+}
+
 @Injectable()
 export class InterviewService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => LlmService)) private llm: LlmService,
+  ) {}
+
+  /**
+   * LLM 기반 면접 답변 분석 — 휴리스틱 클라이언트 분석기 + 깊이감 위해 LLM 호출.
+   * heuristic 보다 풍부한 피드백 (구체적 강점/약점/개선안/리라이트 답변).
+   * 비용: 매 호출당 ~500-1000 토큰. throttle: 5 req/min/user (controller 측).
+   */
+  async analyzeAnswer(
+    userId: string,
+    body: { question: string; answer: string; jobRole?: string },
+  ): Promise<AiAnswerFeedback> {
+    if (!userId) throw new ForbiddenException('로그인이 필요합니다');
+    if (!body?.question?.trim() || !body?.answer?.trim()) {
+      throw new BadRequestException('질문과 답변이 필요합니다');
+    }
+    if (body.answer.length > 3000) {
+      throw new BadRequestException('답변은 3000자 이내여야 합니다');
+    }
+
+    const systemPrompt = `당신은 한국 채용 시장 전문 면접 코치입니다. 면접 답변을 분석하여 JSON 으로 응답하세요. 마크다운/추가 설명 금지.
+
+스키마:
+{
+  "overallScore": number (1-100, 면접관 관점 종합 점수),
+  "strengths": string[] (2-3개, 답변의 잘된 점),
+  "weaknesses": string[] (2-3개, 부족한 점, 신랄하지 않게 친절히),
+  "improvements": string[] (3-5개, 구체적 개선 행동),
+  "rewrittenAnswer": string (개선된 모범 답변, 200-400자, 자연스러운 한국어),
+  "starBreakdown": {
+    "situation": string (1줄, 답변에서 추출 또는 보강 제안),
+    "task": string (1줄),
+    "action": string (1줄),
+    "result": string (1줄)
+  }
+}
+
+평가 기준:
+- STAR 구조 명확성, 정량적 결과, 1인칭 책임감, 구체성, 한국 면접 문화 적합성.
+- rewrittenAnswer 는 사용자의 사실 관계는 유지하되 표현/구조만 개선.`;
+
+    const userMessage = `[질문]
+${body.question}
+
+${body.jobRole ? `[지원 직무] ${body.jobRole}\n\n` : ''}[답변]
+${body.answer}`;
+
+    const res = await this.llm.generateWithFallback(systemPrompt, userMessage);
+    const parsed = this.parseLlmJson(res.text);
+    return parsed;
+  }
+
+  private parseLlmJson(text: string): AiAnswerFeedback {
+    const cleaned = (text || '')
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim();
+    let obj: Record<string, unknown>;
+    try {
+      obj = JSON.parse(cleaned);
+    } catch {
+      const start = cleaned.indexOf('{');
+      const end = cleaned.lastIndexOf('}');
+      if (start === -1 || end === -1) {
+        throw new BadRequestException('AI 응답을 파싱하지 못했습니다. 다시 시도해주세요.');
+      }
+      obj = JSON.parse(cleaned.slice(start, end + 1));
+    }
+    const arr = (v: unknown): string[] => {
+      if (!Array.isArray(v)) return [];
+      return v
+        .filter((x): x is string => typeof x === 'string')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    };
+    const star = (obj.starBreakdown as Record<string, unknown>) || {};
+    const score = Math.max(1, Math.min(100, Number(obj.overallScore) || 50));
+    return {
+      overallScore: score,
+      strengths: arr(obj.strengths).slice(0, 5),
+      weaknesses: arr(obj.weaknesses).slice(0, 5),
+      improvements: arr(obj.improvements).slice(0, 7),
+      rewrittenAnswer: String(obj.rewrittenAnswer || '').slice(0, 1500),
+      starBreakdown: {
+        situation: String(star.situation || ''),
+        task: String(star.task || ''),
+        action: String(star.action || ''),
+        result: String(star.result || ''),
+      },
+    };
+  }
 
   async create(userId: string, data: CreateInterviewAnswerDto) {
     if (!data?.question || typeof data.question !== 'string' || !data.question.trim()) {

@@ -7,6 +7,7 @@ const mockService = {
   findAll: jest.fn(),
   create: jest.fn(),
   remove: jest.fn(),
+  analyzeAnswer: jest.fn(),
 };
 
 const reqWith = (userId?: string): any => ({ user: userId ? { id: userId } : undefined });
