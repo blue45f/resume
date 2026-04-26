@@ -113,6 +113,8 @@ export const ROUTES = {
     following: '/social/follows?tab=following',
     messages: '/messages',
     conversation: (otherUserId: string) => `/messages?to=${otherUserId}`,
+    coffeeChats: '/coffee-chats',
+    coffeeChatRoom: (id: string) => `/coffee-chats/${id}/room`,
   },
 
   // ─── 프로필/알림/설정 ──────────────────────────

@@ -750,6 +750,14 @@ export default function Header() {
                         내 코칭 세션
                       </Link>
                       <Link
+                        to={ROUTES.social.coffeeChats}
+                        onClick={() => setProfileMenuOpen(false)}
+                        role="menuitem"
+                        className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none"
+                      >
+                        ☕ 커피챗
+                      </Link>
+                      <Link
                         to={ROUTES.settings}
                         onClick={() => setProfileMenuOpen(false)}
                         role="menuitem"
