@@ -23,6 +23,8 @@ interface Snapshot {
   top: (CompletionItem & { resumeId: string; resumeTitle: string }) | null;
   projectedPct: number;
   delta: number;
+  /** 카테고리별 평균 비율 (0..1) — segmented arc 시각화용 */
+  categoryStats: Array<{ key: string; pct: number }>;
 }
 
 function buildSnapshot(resumes: ResumeSummary[]): Snapshot | null {
@@ -50,7 +52,23 @@ function buildSnapshot(resumes: ResumeSummary[]): Snapshot | null {
     delta = Math.max(0, projectedPct - avgPct);
   }
 
-  return { avgPct, totalCount: resumes.length, top, projectedPct, delta };
+  // 카테고리별 가중 평균 — segmented arc 시각화용
+  const categories = ['identity', 'depth', 'web', 'discoverability'] as const;
+  const categoryStats = categories.map((cat) => {
+    let s = 0;
+    let m = 0;
+    summaries.forEach(({ c }) => {
+      c.items
+        .filter((i) => i.category === cat)
+        .forEach((i) => {
+          s += i.score;
+          m += i.max;
+        });
+    });
+    return { key: cat, pct: m > 0 ? s / m : 0 };
+  });
+
+  return { avgPct, totalCount: resumes.length, top, projectedPct, delta, categoryStats };
 }
 
 const RADIUS = 40;
@@ -101,7 +119,34 @@ export default function ResumeHealthBoost({ resumes }: Props) {
                 strokeWidth="6"
                 className="text-slate-100 dark:text-slate-800"
               />
-              {/* progress */}
+              {/* segmented progress — 4 카테고리 호 (각 90°, 2° gap).
+                  Identity / Depth / Web / Discoverability 가 동시에 visualized. */}
+              {(() => {
+                const segColors = ['#0c4a6e', '#0891b2', '#10b981', '#f59e0b'];
+                const segLen = C / 4 - 2; // 90° per segment, with 1° gap each side
+                return snap.categoryStats.map((stat, i) => {
+                  const segOffset = -i * (C / 4) + 1;
+                  const filledLen = segLen * stat.pct;
+                  return (
+                    <circle
+                      key={stat.key}
+                      cx="52"
+                      cy="52"
+                      r={RADIUS}
+                      fill="none"
+                      stroke={segColors[i]}
+                      strokeWidth="6"
+                      strokeLinecap="round"
+                      strokeDasharray={`${filledLen} ${C - filledLen}`}
+                      strokeDashoffset={segOffset}
+                      style={{
+                        transition: 'stroke-dasharray 1.1s cubic-bezier(0.25, 1, 0.5, 1)',
+                      }}
+                    />
+                  );
+                });
+              })()}
+              {/* fallback overall ring (lower opacity) — average baseline 시각 표시 */}
               <circle
                 cx="52"
                 cy="52"
@@ -115,6 +160,7 @@ export default function ResumeHealthBoost({ resumes }: Props) {
                 strokeDashoffset={C * (1 - snap.avgPct / 100)}
                 style={{
                   transition: 'stroke-dashoffset 1.1s cubic-bezier(0.25, 1, 0.5, 1)',
+                  opacity: 0,
                 }}
               />
               {/* tick marks — refined dial vibe (12 ticks, every 30°) */}
