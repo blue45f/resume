@@ -323,10 +323,7 @@ export default function SalaryEstimate({ resume }: Props) {
     return (['IT', '금융', '제조', '서비스'] as JobCategory[]).map((cat) => ({
       label: cat,
       value: Math.round((INDUSTRY_BASE[cat] + experienceYears * 350) / 100) * 100,
-      color:
-        cat === jobCategory
-          ? 'bg-gradient-to-r from-emerald-400 to-emerald-500'
-          : 'bg-gradient-to-r from-blue-300 to-blue-400',
+      color: cat === jobCategory ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-300 to-blue-400',
     }));
   }, [experienceYears, jobCategory]);
 
@@ -508,7 +505,7 @@ export default function SalaryEstimate({ resume }: Props) {
                     {
                       label: '나의 예상',
                       value: salary.mine,
-                      color: 'bg-gradient-to-r from-emerald-400 to-emerald-500',
+                      color: 'bg-emerald-500',
                     },
                     {
                       label: '시장 평균',

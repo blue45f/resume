@@ -178,7 +178,7 @@ export default function PortfolioPage() {
                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md"
                   />
                 ) : (
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-sky-400 to-sky-500 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-md">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-sky-500 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-md">
                     <span className="text-3xl font-bold text-white">
                       {(user.name || user.username || 'U')[0].toUpperCase()}
                     </span>

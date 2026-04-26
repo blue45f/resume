@@ -130,7 +130,7 @@ export default function ProfileCompleteness() {
       {/* Progress bar */}
       <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-500"
+          className="h-full bg-emerald-500 rounded-full transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>

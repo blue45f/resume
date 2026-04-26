@@ -426,7 +426,7 @@ export default function CoachDetailPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full px-4 py-2.5 text-sm font-semibold rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 transition-all shadow-sm"
+                className="w-full px-4 py-2.5 text-sm font-semibold rounded-lg bg-sky-700 text-white hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 transition-all shadow-sm"
               >
                 {isSubmitting ? '예약 요청 중...' : '매칭 요청 보내기'}
               </button>

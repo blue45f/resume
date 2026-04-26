@@ -173,7 +173,7 @@ export default function CompanyInfoCard({ job, allJobs, onSelectJob }: Props) {
           <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">연봉 범위</p>
           <div className="relative h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
             <div
-              className="absolute inset-y-0 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full"
+              className="absolute inset-y-0 bg-emerald-500 rounded-full"
               style={{
                 left: `${(salaryStats.min / salaryStats.max) * 70}%`,
                 right: '0%',

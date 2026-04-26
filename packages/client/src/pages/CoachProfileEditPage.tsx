@@ -150,7 +150,7 @@ export default function CoachProfileEditPage() {
         role="main"
       >
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-sm">
+          <div className="w-10 h-10 bg-sky-700 rounded-xl flex items-center justify-center shadow-sm">
             <svg
               className="w-5 h-5 text-white"
               fill="none"
@@ -179,7 +179,7 @@ export default function CoachProfileEditPage() {
           {hasProfile && (
             <Link
               to={ROUTES.coaching.dashboard}
-              className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-sm whitespace-nowrap"
+              className="px-3.5 py-2 text-xs font-medium rounded-lg bg-sky-700 text-white hover:from-blue-700 hover:to-cyan-700 shadow-sm whitespace-nowrap"
             >
               코치 대시보드 →
             </Link>
@@ -427,7 +427,7 @@ export default function CoachProfileEditPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-5 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 shadow-sm"
+                className="px-5 py-2 text-sm font-semibold rounded-lg bg-sky-700 text-white hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 shadow-sm"
               >
                 {isSubmitting ? '저장 중...' : '프로필 저장'}
               </button>

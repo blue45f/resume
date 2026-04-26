@@ -84,7 +84,7 @@ function JobStatsSection() {
   return (
     <div className="mt-8 space-y-6">
       <div className="flex items-center gap-3 mb-2">
-        <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-sm">
+        <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center shadow-sm">
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -170,7 +170,7 @@ function JobStatsSection() {
                   </div>
                   <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full"
+                      className="h-full bg-amber-500 rounded-full"
                       style={{ width: `${(c.count / (data.byCompany[0]?.count || 1)) * 100}%` }}
                     />
                   </div>
@@ -204,7 +204,7 @@ function JobStatsSection() {
                   </div>
                   <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-400 to-sky-500 rounded-full"
+                      className="h-full bg-sky-500 rounded-full"
                       style={{ width: `${(l.count / (data.byLocation[0]?.count || 1)) * 100}%` }}
                     />
                   </div>
@@ -305,7 +305,7 @@ export default function StatsPage() {
         role="main"
       >
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-sky-700 rounded-xl flex items-center justify-center shadow-sm">
+          <div className="w-10 h-10 bg-sky-700 rounded-xl flex items-center justify-center shadow-sm">
             <svg
               className="w-5 h-5 text-white"
               fill="none"
@@ -451,7 +451,7 @@ export default function StatsPage() {
                       <span
                         className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                           i < 3
-                            ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white'
+                            ? 'bg-amber-500 text-white'
                             : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
                         }`}
                       >
@@ -521,7 +521,7 @@ export default function StatsPage() {
                         </div>
                         <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full transition-all duration-500"
+                            className="h-full bg-emerald-500 rounded-full transition-all duration-500"
                             style={{ width: `${pct}%` }}
                           />
                         </div>

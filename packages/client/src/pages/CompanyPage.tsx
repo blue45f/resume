@@ -703,7 +703,7 @@ export default function CompanyPage() {
                 </h3>
                 <div className="relative h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mb-2">
                   <div
-                    className="absolute inset-y-0 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full"
+                    className="absolute inset-y-0 bg-emerald-500 rounded-full"
                     style={{ left: `${(salaryStats.min / salaryStats.max) * 70}%`, right: '0%' }}
                   />
                 </div>

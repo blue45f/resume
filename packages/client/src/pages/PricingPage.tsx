@@ -104,7 +104,7 @@ export default function PricingPage() {
       <main id="main-content" className="flex-1" role="main">
         {/* 유료화 OFF 배너 */}
         {!isMonetizationEnabled() && (
-          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-center py-3 px-4">
+          <div className="bg-emerald-500 text-white text-center py-3 px-4">
             <p className="text-sm font-medium">
               🎉 현재 베타 운영 기간으로 <strong>모든 기능을 무료</strong>로 제공하고 있습니다.
               로그인 후 바로 사용해보세요!
@@ -152,7 +152,7 @@ export default function PricingPage() {
               ) : (
                 <>
                   지금은{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">
+                  <span className="text-transparent bg-clip-text bg-emerald-500">
                     모든 기능이 무료
                   </span>
                   입니다
@@ -225,7 +225,7 @@ export default function PricingPage() {
                 }`}
               >
                 {plan.popular && (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-blue-600 to-sky-700 text-white text-xs font-bold rounded-full shadow-md shadow-blue-600/20">
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-sky-700 text-white text-xs font-bold rounded-full shadow-md shadow-blue-600/20">
                     가장 인기
                   </span>
                 )}
@@ -526,7 +526,7 @@ export default function PricingPage() {
                     to={ROUTES.resume.new}
                     className={`block w-full py-3 text-center text-sm font-semibold rounded-xl transition-all duration-200 ${
                       plan.popular
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 hover:-translate-y-0.5'
+                        ? 'bg-emerald-500 text-white hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 hover:-translate-y-0.5'
                         : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30'
                     }`}
                   >
@@ -541,7 +541,7 @@ export default function PricingPage() {
                     }
                     className={`block w-full py-3 text-center text-sm font-semibold rounded-xl transition-all duration-200 ${
                       plan.popular
-                        ? 'bg-gradient-to-r from-blue-600 to-sky-700 text-white hover:from-blue-700 hover:to-sky-700 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:-translate-y-0.5'
+                        ? 'bg-sky-700 text-white hover:from-blue-700 hover:to-sky-700 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:-translate-y-0.5'
                         : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
                     }`}
                   >

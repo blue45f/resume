@@ -18,7 +18,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Brand */}
           <Link to={ROUTES.home} className="inline-flex items-center gap-2 group">
-            <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-md flex items-center justify-center">
+            <div className="w-6 h-6 bg-sky-700 rounded-md flex items-center justify-center">
               <svg
                 className="w-3 h-3 text-white"
                 fill="none"

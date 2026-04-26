@@ -193,7 +193,7 @@ function AchievementBadges({ resume }: Props) {
         <div className="flex items-center gap-2">
           <div className="w-20 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
             <div
-              className="h-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-700"
+              className="h-1.5 rounded-full bg-amber-500 transition-all duration-700"
               style={{ width: `${(earnedCount / badges.length) * 100}%` }}
             />
           </div>

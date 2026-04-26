@@ -121,7 +121,7 @@ export default function ThemePreviewCard({
             {theme.name}
           </h3>
           {theme.premium && (
-            <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-full leading-none">
+            <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold bg-amber-500 text-white rounded-full leading-none">
               프리미엄
             </span>
           )}

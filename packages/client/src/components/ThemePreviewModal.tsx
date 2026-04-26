@@ -29,7 +29,7 @@ export default function ThemePreviewModal({ theme, onClose, onSelect }: Props) {
                 {theme.name}
               </RadixDialog.Title>
               {theme.premium && (
-                <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-full">
+                <span className="px-2 py-1 text-xs font-bold bg-amber-500 text-white rounded-full">
                   프리미엄
                 </span>
               )}

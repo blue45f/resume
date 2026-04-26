@@ -651,7 +651,7 @@ export default function CoverLetterPage() {
                   <button
                     type="submit"
                     disabled={isGenerating || !selectedResumeId}
-                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow"
+                    className="w-full py-3 bg-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow"
                   >
                     {isGenerating ? (
                       <span className="flex items-center justify-center gap-2">

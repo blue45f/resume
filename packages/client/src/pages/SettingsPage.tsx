@@ -517,7 +517,7 @@ export default function SettingsPage() {
                 className="w-16 h-16 rounded-full border-2 border-slate-200 dark:border-slate-600 shrink-0"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-sky-400 to-sky-500 flex items-center justify-center text-white text-xl font-bold shrink-0">
+              <div className="w-16 h-16 rounded-full bg-sky-500 flex items-center justify-center text-white text-xl font-bold shrink-0">
                 {(user.name || user.email || '?')[0].toUpperCase()}
               </div>
             )}
@@ -963,7 +963,7 @@ export default function SettingsPage() {
             </div>
             <Link
               to={ROUTES.pricing}
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-sky-700 text-white text-xs font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 transition-all duration-200"
+              className="px-4 py-2 bg-sky-700 text-white text-xs font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 transition-all duration-200"
             >
               {user.plan === 'free' || !user.plan ? '업그레이드' : '플랜 변경'}
             </Link>

@@ -1090,7 +1090,7 @@ export default function InterviewPrepPage() {
                 <div className="flex justify-center">
                   <button
                     onClick={handleMockNextQuestion}
-                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 transition-all shadow-sm text-sm"
+                    className="px-8 py-3 bg-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 transition-all shadow-sm text-sm"
                   >
                     {mockCurrentIdx + 1 >= questions.length ? '결과 보기' : '다음 질문 →'}
                   </button>
@@ -1142,7 +1142,7 @@ export default function InterviewPrepPage() {
                   <button
                     onClick={handleMockSubmitAnswer}
                     disabled={mockEvaluating || !mockAnswer.trim()}
-                    className="px-8 py-2.5 bg-gradient-to-r from-blue-600 to-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 disabled:opacity-50 transition-all shadow-sm text-sm flex items-center gap-2"
+                    className="px-8 py-2.5 bg-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 disabled:opacity-50 transition-all shadow-sm text-sm flex items-center gap-2"
                   >
                     {mockEvaluating ? (
                       <>
@@ -1195,7 +1195,7 @@ export default function InterviewPrepPage() {
         <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="imp-card overflow-hidden">
             {/* Report header */}
-            <div className="bg-gradient-to-br from-blue-600 to-sky-700 px-6 py-10 text-center text-white">
+            <div className="bg-sky-700 px-6 py-10 text-center text-white">
               <h1 className="text-2xl font-bold mb-2">면접 연습 리포트</h1>
               <p className="text-blue-200 text-sm">
                 {new Date(currentReport.date).toLocaleDateString('ko-KR')} | {currentReport.jobRole}{' '}
@@ -1304,7 +1304,7 @@ export default function InterviewPrepPage() {
             <div className="px-6 py-6 flex flex-col sm:flex-row items-center gap-3 justify-center">
               <button
                 onClick={restartMock}
-                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 transition-all shadow-sm text-sm"
+                className="w-full sm:w-auto px-6 py-3 bg-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 transition-all shadow-sm text-sm"
               >
                 다시 연습하기
               </button>
@@ -1587,7 +1587,7 @@ export default function InterviewPrepPage() {
           <button
             onClick={handleGenerate}
             disabled={loading || !selectedResumeId}
-            className="w-full py-3 min-h-[48px] bg-gradient-to-r from-blue-600 to-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 disabled:opacity-50 transition-all duration-200 shadow-sm"
+            className="w-full py-3 min-h-[48px] bg-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 disabled:opacity-50 transition-all duration-200 shadow-sm"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
