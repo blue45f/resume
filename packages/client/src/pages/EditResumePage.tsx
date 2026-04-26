@@ -492,8 +492,32 @@ export default function EditResumePage() {
               <select
                 value={resume.visibility || 'private'}
                 onChange={async (e) => {
-                  await setResumeVisibility(id, e.target.value);
-                  loadResume();
+                  const next = e.target.value;
+                  const prev = resume.visibility || 'private';
+                  try {
+                    await setResumeVisibility(id, next);
+                    loadResume();
+                    toast(
+                      next === 'public'
+                        ? '공개로 전환했습니다'
+                        : next === 'link-only'
+                          ? '링크 가진 사람만 볼 수 있도록 변경했습니다'
+                          : '비공개로 전환했습니다',
+                      'success',
+                    );
+                  } catch (err) {
+                    if (import.meta.env.DEV)
+                      console.warn('[EditResumePage] setResumeVisibility 실패:', err);
+                    toast(
+                      err instanceof Error
+                        ? err.message
+                        : '공개 설정 변경에 실패했습니다. 다시 시도해주세요.',
+                      'error',
+                    );
+                    // revert select to previous value (re-render through query refetch)
+                    void prev;
+                    loadResume();
+                  }
                 }}
                 className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 dark:text-slate-100"
                 aria-label="공개 설정"

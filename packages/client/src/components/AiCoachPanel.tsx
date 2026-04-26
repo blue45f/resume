@@ -405,27 +405,39 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
+      // Defensive — Resume 의 sub-fields 가 일시적으로 undefined 인 경우(첫 로드,
+      // 부분 응답) 에도 throw 되지 않도록 optional chaining + fallback.
+      const pi = data?.personalInfo;
+      const skills = data?.skills ?? [];
+      const experiences = data?.experiences ?? [];
+      const educations = data?.educations ?? [];
+      const projects = data?.projects ?? [];
+
       const prompt = `다음 이력서를 분석하고 JSON 배열로 개선 팁을 제공하세요. 각 팁은 {"category": "completeness"|"keywords"|"ats"|"readability", "severity": "info"|"warning"|"critical", "title": "한줄 제목", "description": "구체적 개선 방법"} 형식입니다. 최대 5개만 반환하세요. JSON 배열만 반환하고 다른 텍스트는 포함하지 마세요.
 
 이력서 요약:
-- 이름: ${data.personalInfo.name || '미입력'}
-- 자기소개: ${stripHtml(data.personalInfo.summary).substring(0, 200) || '미입력'}
-- 경력 수: ${data.experiences.length}개
+- 이름: ${pi?.name || '미입력'}
+- 자기소개: ${stripHtml(pi?.summary || '').substring(0, 200) || '미입력'}
+- 경력 수: ${experiences.length}개
 - 기술: ${
-        data.skills
+        skills
           .map((s) => s.items)
           .join(', ')
           .substring(0, 200) || '미입력'
       }
-- 학력 수: ${data.educations.length}개
-- 프로젝트 수: ${data.projects.length}개`;
+- 학력 수: ${educations.length}개
+- 프로젝트 수: ${projects.length}개`;
 
       const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ templateType: 'custom', jobDescription: prompt }),
       });
-      if (!res.ok) throw new Error('AI 분석 실패');
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        if (import.meta.env.DEV) console.warn('[AiCoachPanel]', res.status, errText);
+        throw new Error(`AI 분석 실패 (${res.status})`);
+      }
       const result = await res.json();
       const text = result.text || '';
       // Parse JSON array from response
@@ -438,9 +450,17 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
           description: string;
         }>;
         setAiTips(parsed.map((t, i) => ({ ...t, id: `ai-${i}` })));
+      } else if (import.meta.env.DEV) {
+        console.warn('[AiCoachPanel] LLM 응답에 JSON 배열 없음:', text.slice(0, 200));
       }
-    } catch {
-      toast('AI 코칭을 불러올 수 없습니다.', 'error');
+    } catch (err) {
+      if (import.meta.env.DEV) console.warn('[AiCoachPanel] error:', err);
+      toast(
+        err instanceof Error && err.message.includes('실패')
+          ? err.message
+          : 'AI 코칭을 불러올 수 없습니다.',
+        'error',
+      );
     } finally {
       setLoadingAi(false);
     }
