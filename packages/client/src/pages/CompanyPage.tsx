@@ -618,7 +618,7 @@ export default function CompanyPage() {
                 <span className="px-2.5 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
                   {industry}
                 </span>
-                <span className="px-2.5 py-1 text-xs font-medium bg-sky-100 dark:bg-sky-900/30 text-violet-700 dark:text-sky-400 rounded-full">
+                <span className="px-2.5 py-1 text-xs font-medium bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded-full">
                   {estimatedSize}
                 </span>
                 {locations.map((loc) => (

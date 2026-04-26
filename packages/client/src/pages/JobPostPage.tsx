@@ -124,9 +124,14 @@ export default function JobPostPage() {
       const salary =
         values.salaryText ||
         `${values.salaryMin.toLocaleString()}~${values.salaryMax.toLocaleString()}만원`;
-      await createJob({ ...values, salary });
+      const created = await createJob({ ...values, salary });
       toast('채용 공고가 등록되었습니다', 'success');
-      navigate(ROUTES.jobs.list);
+      const newId = (created as any)?.id;
+      if (newId) {
+        navigate(ROUTES.jobs.detail(newId));
+      } else {
+        navigate(ROUTES.recruiter.dashboard);
+      }
     } catch (e: any) {
       toast(e.message || '등록에 실패했습니다', 'error');
     }

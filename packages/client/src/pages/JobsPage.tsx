@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -11,7 +11,7 @@ import { getUser } from '@/lib/auth';
 import { ROUTES, withQuery } from '@/lib/routes';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
-import { fetchResumes, createApplication } from '@/lib/api';
+import { fetchResumes, createApplication, updateJob } from '@/lib/api';
 import { toast } from '@/components/Toast';
 import type { ResumeSummary } from '@/types/resume';
 import Tabs from '@/shared/ui/Tabs';
@@ -2800,6 +2800,7 @@ export default function JobsPage() {
                       <JobDetailPanel
                         job={selected}
                         isPersonal={isPersonal}
+                        currentUserId={user?.id}
                         userSkills={userSkills}
                         allJobs={jobs}
                         onSelectJob={handleSelectJob}
@@ -2958,6 +2959,7 @@ export default function JobsPage() {
                         <JobDetailPanel
                           job={selected}
                           isPersonal={isPersonal}
+                          currentUserId={user?.id}
                           userSkills={userSkills}
                           allJobs={jobs}
                           onSelectJob={handleSelectJob}
@@ -3219,6 +3221,7 @@ function QuickApplyModal({
 function JobDetailPanel({
   job,
   isPersonal,
+  currentUserId,
   userSkills,
   allJobs,
   onSelectJob,
@@ -3229,6 +3232,7 @@ function JobDetailPanel({
 }: {
   job: JobPost;
   isPersonal: boolean;
+  currentUserId?: string;
   userSkills: Set<string>;
   allJobs: JobPost[];
   onSelectJob: (id: string) => void;
@@ -3238,6 +3242,22 @@ function JobDetailPanel({
   onQuickApply: (job: JobPost) => void;
   userResumes: ResumeSummary[];
 }) {
+  const isOwner = !!currentUserId && job.user?.id === currentUserId;
+  const queryClient = useQueryClient();
+  const closeMutation = useMutation({
+    mutationFn: async () => {
+      await updateJob(job.id, { status: job.status === 'closed' ? 'active' : 'closed' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['job', job.id] });
+      toast(
+        job.status === 'closed' ? '공고를 다시 활성화했습니다' : '공고를 마감했습니다',
+        'success',
+      );
+    },
+    onError: () => toast('상태 변경 실패', 'error'),
+  });
   const matchScore =
     userSkills.size > 0 && job.skills ? calculateMatchScore(userSkills, job.skills) : 0;
   const jobSkillsList = job.skills ? job.skills.split(',').map((s) => s.trim()) : [];
@@ -3419,6 +3439,28 @@ function JobDetailPanel({
           <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">
             {job.description}
           </p>
+        </div>
+      )}
+
+      {/* Owner-only CTAs */}
+      {isOwner && (
+        <div className="flex flex-wrap gap-2 mt-6 pt-4 border-t border-blue-100 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-900/10 -mx-2 px-2 py-3 rounded-lg">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 self-center mr-1">
+            내 공고
+          </span>
+          <Link
+            to={ROUTES.recruiter.dashboard}
+            className="px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            📋 지원자 보기
+          </Link>
+          <button
+            onClick={() => closeMutation.mutate()}
+            disabled={closeMutation.isPending}
+            className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+          >
+            {job.status === 'closed' ? '🔓 다시 활성화' : '🔒 공고 마감'}
+          </button>
         </div>
       )}
 
