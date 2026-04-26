@@ -17,6 +17,7 @@ import { t } from '@/lib/i18n';
 import { timeAgo } from '@/lib/time';
 import { toast } from '@/components/Toast';
 import SendMessageButton from '@/components/SendMessageButton';
+import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { useScouts, useSentScouts } from '@/hooks/useResources';
 
@@ -134,6 +135,7 @@ export default function ScoutsPage() {
     [sentQuery.data],
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [shareScoutOpen, setShareScoutOpen] = useState(false);
 
   // Bulk scout
   const [bulkMode, setBulkMode] = useState(false);
@@ -914,6 +916,28 @@ export default function ScoutsPage() {
                         >
                           답장하기
                         </Link>
+                        <button
+                          type="button"
+                          onClick={() => setShareScoutOpen(true)}
+                          className="px-4 py-2 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors inline-flex items-center gap-1.5"
+                          title={`${selected.sender.name}님에게 내 이력서를 선택 공개로 공유`}
+                        >
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                            />
+                          </svg>
+                          이력서 공유
+                        </button>
                         {(!selected.status || selected.status === 'pending') && (
                           <>
                             <button
@@ -952,6 +976,15 @@ export default function ScoutsPage() {
         )}
       </main>
       <Footer />
+      {selected && tab === 'received' && selected.sender?.id && (
+        <ShareResumeWithUserDialog
+          open={shareScoutOpen}
+          onOpenChange={setShareScoutOpen}
+          targetUserId={selected.sender.id}
+          targetUserName={selected.sender.name || '리쿠르터'}
+          context="recruiter"
+        />
+      )}
     </>
   );
 }
