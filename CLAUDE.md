@@ -87,15 +87,18 @@ pnpm deploy:gcp           # Cloud Run 배포
 - ✅ **Peer Review** — HomePage '🙋 피드백 받기' CTA → `/community/write?category=resume&body=...` 템플릿 prefill. 기존 community 의 `resume` 카테고리 진입점 확보.
 - ✅ **채용공고 URL 자동 파싱** — `POST /api/jobs/parse-url` (JSON-LD JobPosting → OG → LLM fallback, 24h DB 캐시, 6 req/min throttle, SSRF 차단). 한국 사이트(원티드/잡코리아/사람인/점핏/프로그래머스/로켓펀치/그리팅) 자동 감지.
 - ✅ **PDF/이미지 OCR** — `FileTextExtractorService`: PDF (pdf-parse) / DOCX (mammoth) / TXT / RTF / **이미지(.jpg/.png/.webp via Gemini Vision)** 모두 지원. AutoGeneratePage 파일 업로드 흐름 server side 완성.
-- ✅ **선택 공개 (selective)** — `Resume.visibility="selective"` + `ResumeViewer` 화이트리스트 (expiresAt/message/lastViewedAt/viewCount). 진입점 4종: EditResume / CoachDetail / Scouts / Messages. 알림 자동 발송 + view 시 owner 알림.
+- ✅ **선택 공개 (selective)** — `Resume.visibility="selective"` + `ResumeViewer` 화이트리스트 (expiresAt/message/lastViewedAt/viewCount). 진입점 4종: EditResume / CoachDetail / Scouts / Messages. 알림 자동 발송 + view 시 owner 알림. 권한 없는 viewer 에는 🔒 안내 (PreviewPage).
 - ✅ **JobUrlInput 통합** — CoverLetter / Applications / JobPost / AutoGenerate 4개 페이지에서 URL 붙여넣기 → 폼 자동 채우기.
+- ✅ **운영 hygiene cron** — `ResumeViewerCleanupService` (@nestjs/schedule, 매일 03:00 UTC) — 만료된 ResumeViewer + 24h 지난 JobUrlCache 자동 정리.
+- ✅ **i18n 신규 컴포넌트** — sharing._ / jobUrl._ / resume.visibility.\* / common.anonymous 키 추가, ko/en/ja 3개 locale 모두. SharedWithMeSection / AllowedViewersDialog / JobUrlInput / ShareResumeWithUserDialog + 4개 caller 모두 `tx()` 적용.
 
 다음 사이클 후보:
 
 - 스캔 PDF: PDF → 페이지별 이미지 변환 후 Vision OCR (poppler 시스템 deps 필요)
 - 모바일 UX 종합 audit (사진 업로드 flow / 필터 UX)
-- ResumeViewer 만료 자동 정리 cron (운영 hygiene)
-- 영어/일본어 i18n 신규 컴포넌트 (SharedWithMe / AllowedViewers / JobUrlInput / ShareResumeWithUserDialog)
+- 이력서 버전 비교 (side-by-side diff)
+- AI 코칭 자동화 (정기 분석 → 개선 제안 알림)
+- Performance: bundle 분석 + 추가 lazy loading
 
 ---
 
