@@ -183,7 +183,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
               }}
               className={`flex-1 py-2.5 text-sm font-medium text-center transition-colors focus:outline-none ${
                 mode === 'llm'
-                  ? 'text-sky-600 border-b-2 border-purple-600'
+                  ? 'text-sky-600 border-b-2 border-sky-700'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
@@ -291,7 +291,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                         onClick={() => setTemplateType(opt.value)}
                         className={`px-3 py-2.5 text-sm rounded-lg border text-left transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500 ${
                           templateType === opt.value
-                            ? 'border-purple-500 bg-sky-50 dark:bg-sky-900/30 text-sky-700 font-medium'
+                            ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/30 text-sky-700 font-medium'
                             : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                         }`}
                       >

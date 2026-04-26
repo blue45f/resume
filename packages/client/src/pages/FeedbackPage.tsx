@@ -35,7 +35,7 @@ const TYPE_CONFIG = {
   },
   opinion: {
     label: '의견',
-    color: 'bg-sky-100 text-purple-700 dark:bg-sky-900/30 dark:text-sky-400',
+    color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
     icon: '💬',
   },
   question: {

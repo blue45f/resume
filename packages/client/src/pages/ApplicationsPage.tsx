@@ -33,7 +33,7 @@ const STATUS_DEFS: StatusDef[] = [
   {
     value: 'screening',
     key: 'applications.status.screening',
-    color: 'bg-sky-100 text-purple-700 dark:bg-sky-900/30 dark:text-sky-400',
+    color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
   },
   {
     value: 'interview',
@@ -540,7 +540,7 @@ export default function ApplicationsPage() {
                       s.value === 'applied'
                         ? 'bg-blue-400'
                         : s.value === 'screening'
-                          ? 'bg-purple-400'
+                          ? 'bg-sky-400'
                           : s.value === 'interview'
                             ? 'bg-amber-400'
                             : s.value === 'offer'

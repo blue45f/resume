@@ -227,7 +227,7 @@ export default function LoginPage() {
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16">
           {/* Logo badge */}
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 shadow-lg">
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center border border-white/30 shadow-lg">
               <span className="text-white text-xl font-bold">이</span>
             </div>
             <span className="text-white/90 font-bold text-lg tracking-tight">이력서공방</span>
@@ -251,7 +251,7 @@ export default function LoginPage() {
             ].map((stat, i) => (
               <div
                 key={i}
-                className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20"
+                className="text-center p-3 bg-white/10 rounded-xl border border-white/20"
               >
                 <div className="text-xl font-extrabold text-white">{stat.num}</div>
                 <div className="text-xs text-blue-100/90 mt-0.5">{stat.label}</div>

@@ -1857,7 +1857,7 @@ function CuratedJobsTab() {
                 className={`imp-card hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200 overflow-hidden ${isExpired ? 'opacity-60 relative' : ''}`}
               >
                 {isExpired && (
-                  <div className="absolute top-3 right-3 z-10 px-3 py-1 bg-slate-700/80 text-white text-xs font-bold rounded-full backdrop-blur-sm">
+                  <div className="absolute top-3 right-3 z-10 px-3 py-1 bg-slate-700/80 text-white text-xs font-bold rounded-full">
                     마감됨
                   </div>
                 )}

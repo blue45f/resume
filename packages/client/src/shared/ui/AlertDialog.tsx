@@ -43,7 +43,7 @@ export default function AlertDialog({
     <RadixAlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixAlertDialog.Portal>
         <RadixAlertDialog.Overlay
-          className="fixed inset-0 z-[90] bg-neutral-950/50 backdrop-blur-[2px]
+          className="fixed inset-0 z-[90] bg-neutral-950/50
                      data-[state=open]:animate-in data-[state=open]:fade-in-0
                      data-[state=closed]:animate-out data-[state=closed]:fade-out-0
                      motion-reduce:animate-none"

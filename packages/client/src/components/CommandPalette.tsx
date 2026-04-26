@@ -237,7 +237,7 @@ export default function CommandPalette() {
     <RadixDialog.Root open={open} onOpenChange={setOpen}>
       <RadixDialog.Portal>
         <RadixDialog.Overlay
-          className="fixed inset-0 z-[200] bg-neutral-950/50 backdrop-blur-sm
+          className="fixed inset-0 z-[200] bg-neutral-950/50
                      data-[state=open]:animate-in data-[state=open]:fade-in-0
                      data-[state=closed]:animate-out data-[state=closed]:fade-out-0
                      motion-reduce:animate-none"

@@ -825,7 +825,7 @@ export default function Header() {
                       className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
                         isRecruiter
                           ? 'border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 bg-white dark:bg-slate-800 hover:bg-green-50'
-                          : 'border-sky-300 dark:border-purple-700 text-sky-700 dark:text-sky-300 bg-white dark:bg-slate-800 hover:bg-sky-50'
+                          : 'border-sky-300 dark:border-sky-700 text-sky-700 dark:text-sky-300 bg-white dark:bg-slate-800 hover:bg-sky-50'
                       }`}
                     >
                       {switching
@@ -848,14 +848,14 @@ export default function Header() {
                   <Link
                     to={ROUTES.recruiter.dashboard}
                     onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 rounded-lg hover:bg-sky-50 dark:hover:bg-purple-900/20"
+                    className="block px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 rounded-lg hover:bg-sky-50 dark:hover:bg-sky-900/20"
                   >
                     채용 대시보드
                   </Link>
                   <Link
                     to={ROUTES.jobs.scouts}
                     onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 rounded-lg hover:bg-sky-50 dark:hover:bg-purple-900/20"
+                    className="block px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 rounded-lg hover:bg-sky-50 dark:hover:bg-sky-900/20"
                   >
                     스카우트 관리
                   </Link>
@@ -869,7 +869,7 @@ export default function Header() {
                   <Link
                     to={ROUTES.jobs.new}
                     onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2.5 text-sm font-medium text-sky-600 dark:text-sky-400 rounded-lg hover:bg-sky-50 dark:hover:bg-purple-900/30"
+                    className="block px-3 py-2.5 text-sm font-medium text-sky-600 dark:text-sky-400 rounded-lg hover:bg-sky-50 dark:hover:bg-sky-900/30"
                   >
                     공고 등록
                   </Link>
@@ -933,7 +933,7 @@ export default function Header() {
                   <Link
                     to={ROUTES.resume.autoGenerate}
                     onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2.5 text-sm font-medium text-sky-600 dark:text-sky-400 rounded-lg hover:bg-sky-50 dark:hover:bg-purple-900/30"
+                    className="block px-3 py-2.5 text-sm font-medium text-sky-600 dark:text-sky-400 rounded-lg hover:bg-sky-50 dark:hover:bg-sky-900/30"
                   >
                     AI 자동 생성
                   </Link>

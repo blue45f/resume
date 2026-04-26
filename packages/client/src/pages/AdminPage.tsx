@@ -186,7 +186,7 @@ export default function AdminPage() {
           </h1>
           <div className="flex items-center gap-2">
             {isSuperAdmin && (
-              <span className="text-xs px-2 py-1 bg-sky-100 dark:bg-sky-900/30 text-purple-700 dark:text-sky-400 rounded-full">
+              <span className="text-xs px-2 py-1 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded-full">
                 SuperAdmin
               </span>
             )}
@@ -379,7 +379,7 @@ export default function AdminPage() {
                 </section>
                 <section>
                   <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-purple-500 rounded" />
+                    <span className="w-1.5 h-4 bg-sky-500 rounded" />
                     공개 이력서 신고 (autoHidden)
                   </h2>
                   <ResumeReportsQueue />
@@ -1008,7 +1008,7 @@ function ReportedContentQueue() {
                         className={`text-xs px-2 py-0.5 rounded-full ${
                           item.type === 'resume'
                             ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                            : 'bg-sky-100 dark:bg-sky-900/30 text-purple-700 dark:text-sky-400'
+                            : 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400'
                         }`}
                       >
                         {item.type === 'resume' ? '이력서' : '댓글'}
@@ -1117,7 +1117,7 @@ const BANNER_COLORS = [
   {
     label: '인디고',
     value: 'linear-gradient(135deg, #6366f1, #9333ea)',
-    preview: 'from-indigo-500 to-purple-600',
+    preview: 'from-indigo-500 to-sky-700',
   },
   {
     label: '에메랄드',
@@ -1158,7 +1158,7 @@ function AdminBannersTab() {
     subtitle: '',
     imageUrl: '',
     linkUrl: '',
-    bgColor: 'from-indigo-600 to-purple-600',
+    bgColor: 'from-indigo-600 to-sky-700',
     isActive: true,
   };
   const [form, setForm] = useState({ ...emptyBanner });
@@ -1822,7 +1822,7 @@ function AdminNoticesTab() {
                       </span>
                     )}
                     {n.isPopup && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-purple-700 dark:text-sky-400">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400">
                         팝업
                       </span>
                     )}
@@ -1948,7 +1948,7 @@ function AdminCommunityTab() {
     free: 'bg-slate-100 text-slate-600',
     tips: 'bg-yellow-100 text-yellow-700',
     resume: 'bg-blue-100 text-blue-700',
-    'cover-letter': 'bg-sky-100 text-purple-700',
+    'cover-letter': 'bg-sky-100 text-sky-700',
     question: 'bg-green-100 text-green-700',
   };
 
@@ -2719,7 +2719,7 @@ function SystemSettings() {
                   info: 'bg-blue-600',
                   warning: 'bg-amber-500',
                   success: 'bg-emerald-600',
-                  promo: 'bg-gradient-to-r from-purple-600 to-indigo-600',
+                  promo: 'bg-gradient-to-r from-sky-700 to-indigo-600',
                 }[bannerType]
               }`}
             >
@@ -3898,8 +3898,8 @@ const PERM_ROLES = [
   {
     key: 'recruiter',
     label: '채용담당자',
-    color: 'bg-sky-100 text-purple-700 dark:bg-sky-900/30 dark:text-sky-400',
-    border: 'border-purple-300 dark:border-purple-700',
+    color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
+    border: 'border-sky-300 dark:border-sky-700',
   },
   {
     key: 'admin',

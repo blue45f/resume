@@ -347,7 +347,7 @@ function EditGroupDialog({
   return (
     <RadixDialog.Root open onOpenChange={(v) => !v && onClose()}>
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-neutral-950/50 backdrop-blur-[2px]" />
+        <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-neutral-950/50" />
         <RadixDialog.Content className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-lg bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-xl">
           <RadixDialog.Title className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-3">
             스터디 그룹 수정

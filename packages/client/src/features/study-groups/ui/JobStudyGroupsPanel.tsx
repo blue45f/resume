@@ -245,7 +245,7 @@ export default function JobStudyGroupsPanel({
 
       <RadixDialog.Root open={showCreate} onOpenChange={setShowCreate}>
         <RadixDialog.Portal>
-          <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm animate-fade-in" />
+          <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/40 animate-fade-in" />
           <RadixDialog.Content className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl p-6 animate-fade-in-up focus:outline-none">
             <RadixDialog.Title className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">
               스터디 그룹 만들기

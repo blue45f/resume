@@ -251,7 +251,7 @@ export default function EmptyState({ type, query }: Props) {
       {/* Floating icon with layered glow */}
       <div className="relative mb-8 animate-float">
         {/* Outer glow */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-full scale-[1.8] blur-3xl opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-sky-100 dark:from-indigo-900/30 dark:to-sky-900/30 rounded-full scale-[1.8] blur-3xl opacity-60" />
         {/* Middle ring */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-full scale-125 blur-xl opacity-70" />
         {/* Icon container */}
@@ -280,7 +280,7 @@ export default function EmptyState({ type, query }: Props) {
               to={action.to}
               className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
                 action.variant === 'primary'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5'
+                  ? 'bg-gradient-to-r from-indigo-600 to-sky-700 text-white hover:from-indigo-700 hover:to-sky-700 shadow-md shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
               }`}
             >

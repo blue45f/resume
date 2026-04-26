@@ -207,12 +207,12 @@ export default function ApplicationTimeline({
   // Bar color based on terminal status
   const barColor =
     status === 'rejected'
-      ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-red-500'
+      ? 'bg-gradient-to-r from-blue-500 via-sky-500 to-red-500'
       : status === 'withdrawn'
         ? 'bg-gradient-to-r from-blue-500 to-slate-400'
         : status === 'offer'
-          ? 'bg-gradient-to-r from-blue-500 via-purple-500 via-amber-500 to-green-500'
-          : 'bg-gradient-to-r from-blue-500 via-purple-500 to-amber-500';
+          ? 'bg-gradient-to-r from-blue-500 via-sky-500 via-amber-500 to-green-500'
+          : 'bg-gradient-to-r from-blue-500 via-sky-500 to-amber-500';
 
   return (
     <div className="mt-3">

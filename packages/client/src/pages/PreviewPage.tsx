@@ -437,7 +437,7 @@ export default function PreviewPage() {
           }}
         />
         {/* Toolbar — hidden on mobile (actions moved to sticky bottom bar) */}
-        <div className="no-print sticky top-14 sm:top-16 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-200/80">
+        <div className="no-print sticky top-14 sm:top-16 z-40 bg-white/80 border-b border-slate-200/80">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <button
@@ -1318,7 +1318,7 @@ export default function PreviewPage() {
         </div>
 
         {/* Sticky bottom action bar — mobile only */}
-        <div className="sm:hidden no-print fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
+        <div className="sm:hidden no-print fixed bottom-0 left-0 right-0 z-50 bg-white/95 border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
           <div className="flex items-center justify-around px-2 py-2 gap-1">
             <div className="relative" ref={shareMenuRef}>
               <button
@@ -1453,7 +1453,7 @@ export default function PreviewPage() {
 
       {/* Print preparing overlay */}
       {printPreparing && (
-        <div className="fixed inset-0 z-[9999] bg-white/80 backdrop-blur-sm flex items-center justify-center no-print">
+        <div className="fixed inset-0 z-[9999] bg-white/80 flex items-center justify-center no-print">
           <div className="bg-white rounded-2xl shadow-xl px-8 py-6 flex flex-col items-center gap-3 border border-slate-200">
             <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
             <p className="text-sm font-medium text-slate-700">인쇄 준비 중...</p>

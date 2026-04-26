@@ -137,7 +137,7 @@ export function SkillSuggestDropdown({
         </p>
         <button
           onClick={() => setDismissed(true)}
-          className="p-0.5 text-purple-400 hover:text-sky-600 transition-colors shrink-0"
+          className="p-0.5 text-sky-400 hover:text-sky-600 transition-colors shrink-0"
           aria-label="닫기"
         >
           <svg
@@ -157,7 +157,7 @@ export function SkillSuggestDropdown({
             key={skill}
             type="button"
             onClick={() => onAdd(skill)}
-            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-sky-700 dark:text-sky-300 bg-white dark:bg-slate-800 border border-sky-200 dark:border-purple-700 rounded-md hover:bg-sky-100 dark:hover:bg-purple-900/30 transition-colors"
+            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-sky-700 dark:text-sky-300 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-700 rounded-md hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
           >
             <svg
               className="w-3 h-3 shrink-0"

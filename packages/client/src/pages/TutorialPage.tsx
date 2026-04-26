@@ -21,9 +21,9 @@ const steps = [
               채워나갑니다.
             </p>
           </div>
-          <div className="p-4 bg-sky-50 rounded-lg border border-purple-100">
-            <h4 className="font-semibold text-purple-800 mb-1">AI 자동 생성</h4>
-            <p className="text-sm text-purple-700">
+          <div className="p-4 bg-sky-50 rounded-lg border border-sky-100">
+            <h4 className="font-semibold text-sky-800 mb-1">AI 자동 생성</h4>
+            <p className="text-sm text-sky-700">
               <strong>"AI 생성"</strong> 버튼을 클릭하고, 기존 이력서나 경력 메모를 붙여넣으면 AI가
               구조화된 이력서를 자동으로 만들어줍니다.
             </p>

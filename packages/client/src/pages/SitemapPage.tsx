@@ -79,7 +79,7 @@ const SITEMAP = [
   {
     title: '정보',
     icon: '📌',
-    color: 'from-indigo-500 to-purple-500',
+    color: 'from-indigo-500 to-sky-500',
     links: [
       { to: '/about', label: '서비스 소개', desc: '이력서공방 소개' },
       { to: '/tutorial', label: '사용 가이드', desc: '주요 기능 사용법' },

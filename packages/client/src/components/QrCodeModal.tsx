@@ -56,7 +56,7 @@ export default function QrCodeModal({ url, title, onClose }: Props) {
       }}
     >
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-slate-900/60 backdrop-blur-[2px] animate-fade-in" />
+        <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-slate-900/60 animate-fade-in" />
         <RadixDialog.Content
           aria-describedby={undefined}
           className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl p-6 animate-scale-in max-h-[90vh] overflow-y-auto focus:outline-none border border-slate-200 dark:border-neutral-700 relative"

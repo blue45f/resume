@@ -162,7 +162,7 @@ export default function CoachingSessionsPage() {
 
         <FeatureDisabledBanner feature="coaching" label="코칭 예약">
           {/* Tabs */}
-          <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-600 p-0.5 mb-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur">
+          <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-600 p-0.5 mb-5 bg-white/60 dark:bg-slate-800/40">
             <button
               onClick={() => setTab('client')}
               className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${

@@ -17,7 +17,7 @@ const TYPE_COLOR: Record<string, { color: string; icon: string }> = {
   },
   EVENT: {
     icon: '🎉',
-    color: 'bg-sky-100 text-purple-700 dark:bg-sky-900/30 dark:text-sky-400',
+    color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
   },
 };
 const getTYPE_INFO = (): Record<string, { label: string; color: string; icon: string }> => ({

@@ -1355,7 +1355,7 @@ export default function NewResumePage() {
                   onClick={() => setStartMode('ai-upload')}
                   className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
                     startMode === 'ai-upload'
-                      ? 'border-purple-500 bg-sky-50 dark:bg-sky-900/20 ring-1 ring-purple-500'
+                      ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20 ring-1 ring-sky-500'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                 >
@@ -1498,10 +1498,10 @@ export default function NewResumePage() {
                       '경력 메모, LinkedIn 프로필, 이전 이력서 내용 등을 자유롭게 붙여넣기...\n\n예시:\n이름: 홍길동\n경력: 네이버 프론트엔드 개발자 3년\n기술: React, TypeScript, Node.js'
                     }
                     rows={6}
-                    className="w-full px-3 py-2 text-sm border border-sky-200 dark:border-purple-700 rounded-xl dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 resize-none mb-3"
+                    className="w-full px-3 py-2 text-sm border border-sky-200 dark:border-sky-700 rounded-xl dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 resize-none mb-3"
                   />
                   <div className="flex items-center gap-3 mb-3">
-                    <label className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-sky-200 dark:border-purple-700 rounded-lg cursor-pointer hover:bg-sky-50 dark:hover:bg-purple-900/20 transition-colors text-sm">
+                    <label className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-700 rounded-lg cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-colors text-sm">
                       <svg
                         className="w-4 h-4 text-sky-500"
                         fill="none"
@@ -1538,7 +1538,7 @@ export default function NewResumePage() {
                   <button
                     onClick={handleAiUpload}
                     disabled={aiLoading || (!uploadText.trim() && !uploadFile)}
-                    className="w-full py-2.5 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-2.5 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                   >
                     {aiLoading ? (
                       <>

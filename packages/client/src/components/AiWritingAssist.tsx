@@ -78,7 +78,7 @@ export default function AiWritingAssist({ resumeId, value, onAccept }: Props) {
           setResult(null);
           setError('');
         }}
-        className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs text-sky-600 hover:text-purple-800 hover:bg-sky-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400"
+        className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs text-sky-600 hover:text-sky-800 hover:bg-sky-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-sky-400"
         title="AI 문장 개선"
         aria-label="AI 작성 도우미"
         aria-expanded={open}
@@ -102,7 +102,7 @@ export default function AiWritingAssist({ resumeId, value, onAccept }: Props) {
       {open && (
         <div className="absolute left-0 top-full mt-1 z-50 w-72 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
           {/* Header */}
-          <div className="px-3 py-2 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-b border-slate-100 dark:border-slate-700">
+          <div className="px-3 py-2 bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 border-b border-slate-100 dark:border-slate-700">
             <p className="text-xs font-semibold text-sky-700 dark:text-sky-400">AI 작성 도우미</p>
             {plainText.length > 0 && (
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
@@ -186,7 +186,7 @@ export default function AiWritingAssist({ resumeId, value, onAccept }: Props) {
                   disabled={plainText.length < 2}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors group"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center shrink-0 group-hover:bg-purple-200 dark:group-hover:bg-purple-800/40 transition-colors">
+                  <div className="w-7 h-7 rounded-lg bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center shrink-0 group-hover:bg-sky-200 dark:group-hover:bg-sky-800/40 transition-colors">
                     {opt.type === 'improve' && (
                       <svg
                         className="w-3.5 h-3.5 text-sky-600"

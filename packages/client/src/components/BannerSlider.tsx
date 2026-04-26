@@ -107,7 +107,7 @@ export default function BannerSlider() {
                 </p>
               )}
               {banner.linkUrl && (
-                <span className="mt-3 inline-flex items-center gap-1 text-white text-xs font-semibold bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full w-fit">
+                <span className="mt-3 inline-flex items-center gap-1 text-white text-xs font-semibold bg-white/20 px-3 py-1 rounded-full w-fit">
                   자세히 보기 →
                 </span>
               )}

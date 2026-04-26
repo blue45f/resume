@@ -25,7 +25,7 @@ const PIPELINE_STAGES = [
   {
     key: 'interview',
     label: '면접',
-    color: 'bg-sky-100 dark:bg-sky-900/30 text-purple-700 dark:text-sky-400',
+    color: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400',
     icon: '🗓',
   },
   {

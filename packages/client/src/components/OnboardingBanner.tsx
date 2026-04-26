@@ -31,7 +31,7 @@ const DEFAULT_STEPS: Step[] = [
     title: '공유/지원',
     desc: '링크 공유, PDF 내보내기',
     href: '/explore',
-    color: 'from-purple-500 to-purple-600',
+    color: 'from-sky-500 to-sky-700',
   },
 ];
 
@@ -135,7 +135,7 @@ export default function OnboardingBanner() {
           <Link
             key={step.num}
             to={step.href}
-            className="group flex items-center gap-3 p-3.5 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-200 hover:-translate-y-0.5"
+            className="group flex items-center gap-3 p-3.5 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-200 hover:-translate-y-0.5"
           >
             <span
               className={`shrink-0 w-9 h-9 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-sm font-bold shadow-sm`}

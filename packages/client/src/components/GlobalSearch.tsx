@@ -178,7 +178,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
       }}
     >
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm animate-fade-in" />
+        <RadixDialog.Overlay className="fixed inset-0 z-[100] bg-black/40 animate-fade-in" />
         <RadixDialog.Content
           aria-describedby={undefined}
           onOpenAutoFocus={(e) => {

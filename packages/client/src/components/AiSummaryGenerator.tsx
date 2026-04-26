@@ -108,7 +108,7 @@ export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props
   };
 
   return (
-    <div className="mt-2 rounded-xl border border-dashed border-sky-300 dark:border-purple-700 bg-sky-50/50 dark:bg-sky-900/10 p-4">
+    <div className="mt-2 rounded-xl border border-dashed border-sky-300 dark:border-sky-700 bg-sky-50/50 dark:bg-sky-900/10 p-4">
       {/* Header */}
       <div className="flex items-center gap-2 mb-2">
         <svg
@@ -185,7 +185,7 @@ export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props
             <button
               type="button"
               onClick={handleRegenerate}
-              className="flex-1 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/30 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-colors"
+              className="flex-1 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/30 rounded-lg hover:bg-sky-200 dark:hover:bg-sky-800/40 transition-colors"
             >
               다시 생성
             </button>

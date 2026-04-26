@@ -230,13 +230,13 @@ function JobStatsSection() {
               return (
                 <span
                   key={s.skill || s.name}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm border border-sky-200 dark:border-sky-800 transition-colors hover:bg-sky-50 dark:hover:bg-purple-900/20"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm border border-sky-200 dark:border-sky-800 transition-colors hover:bg-sky-50 dark:hover:bg-sky-900/20"
                   style={{ opacity }}
                 >
-                  <span className="font-medium text-purple-700 dark:text-sky-300">
+                  <span className="font-medium text-sky-700 dark:text-sky-300">
                     {s.skill || s.name}
                   </span>
-                  <span className="text-xs text-purple-400">{s.count}</span>
+                  <span className="text-xs text-sky-400">{s.count}</span>
                 </span>
               );
             })}
@@ -305,7 +305,7 @@ export default function StatsPage() {
         role="main"
       >
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm">
+          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-sky-700 rounded-xl flex items-center justify-center shadow-sm">
             <svg
               className="w-5 h-5 text-white"
               fill="none"

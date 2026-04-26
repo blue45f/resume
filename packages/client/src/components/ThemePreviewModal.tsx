@@ -18,7 +18,7 @@ export default function ThemePreviewModal({ theme, onClose, onSelect }: Props) {
       }}
     >
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm animate-fade-in" />
+        <RadixDialog.Overlay className="fixed inset-0 z-[100] bg-black/60 animate-fade-in" />
         <RadixDialog.Content
           aria-describedby={undefined}
           className="fixed z-[101] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-3xl bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden animate-fade-in-up flex flex-col focus:outline-none"

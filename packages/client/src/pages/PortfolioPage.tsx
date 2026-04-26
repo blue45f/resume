@@ -178,7 +178,7 @@ export default function PortfolioPage() {
                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md"
                   />
                 ) : (
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-md">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-indigo-400 to-sky-500 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-md">
                     <span className="text-3xl font-bold text-white">
                       {(user.name || user.username || 'U')[0].toUpperCase()}
                     </span>
@@ -327,7 +327,7 @@ export default function PortfolioPage() {
                           className="w-10 h-10 rounded-full object-cover shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-sky-100 dark:from-indigo-900/30 dark:to-sky-900/30 flex items-center justify-center shrink-0">
                           <span className="text-indigo-600 dark:text-indigo-400 text-sm font-bold">
                             {(resume.name || resume.title || '?')[0].toUpperCase()}
                           </span>

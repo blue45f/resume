@@ -51,7 +51,7 @@ export default function AiCoachTip({ resumeId, section, currentText, onApply }: 
         <button
           onClick={expanded ? () => setExpanded(false) : getSuggestion}
           disabled={loading}
-          className="inline-flex items-center gap-1 text-xs text-sky-600 dark:text-sky-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1 text-xs text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 transition-colors disabled:opacity-50"
         >
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -80,7 +80,7 @@ export default function AiCoachTip({ resumeId, section, currentText, onApply }: 
                 </button>
               )}
             </div>
-            <p className="text-xs text-purple-800 dark:text-sky-300 whitespace-pre-wrap leading-relaxed">
+            <p className="text-xs text-sky-800 dark:text-sky-300 whitespace-pre-wrap leading-relaxed">
               {suggestion}
             </p>
           </div>

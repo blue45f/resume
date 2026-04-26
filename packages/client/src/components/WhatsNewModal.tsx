@@ -58,7 +58,7 @@ export default function WhatsNewModal() {
       }}
     >
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm animate-fade-in" />
+        <RadixDialog.Overlay className="fixed inset-0 z-[100] bg-black/50 animate-fade-in" />
         <RadixDialog.Content
           aria-label="새로운 기능 안내"
           className="fixed z-[101] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-lg bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl animate-fade-in-up overflow-hidden max-h-[90vh] focus:outline-none flex flex-col"
