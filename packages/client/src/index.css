@@ -306,6 +306,142 @@ a[aria-label]:not([class*='bg-']):active {
   transform: scale(0.96);
 }
 
+/* 6) Stagger reveal — grid 부모에 .stagger-children 부착 시 자식들이
+      순차 fade-up 으로 등장. nth-child(N) 마다 80ms 씩 지연. */
+.stagger-children > * {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: stagger-fade-up 480ms cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+.stagger-children > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger-children > *:nth-child(2) {
+  animation-delay: 80ms;
+}
+.stagger-children > *:nth-child(3) {
+  animation-delay: 160ms;
+}
+.stagger-children > *:nth-child(4) {
+  animation-delay: 240ms;
+}
+.stagger-children > *:nth-child(5) {
+  animation-delay: 320ms;
+}
+.stagger-children > *:nth-child(6) {
+  animation-delay: 400ms;
+}
+.stagger-children > *:nth-child(n + 7) {
+  animation-delay: 480ms;
+}
+@keyframes stagger-fade-up {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stagger-children > * {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* 7) Page mount fade — route 진입 시 main 콘텐츠 부드럽게 등장.
+      <main> 또는 .page-enter 에 자동 적용. body level 에서 한 번만 동작
+      되도록 reveal-on-scroll 과 별개 short animation. */
+main:not(.no-page-enter),
+.page-enter {
+  animation: page-mount-fade 300ms cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+@keyframes page-mount-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  main,
+  .page-enter {
+    animation: none !important;
+  }
+}
+
+/* 8) Primary CTA 의 subtle shimmer (shine) — 큰 sapphire 버튼이 hover 시
+      좌→우 흐르는 빛 효과. .btn-shine 부착. */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 70%
+  );
+  transform: translateX(-110%);
+  transition: transform 600ms cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none;
+}
+.btn-shine:hover::after {
+  transform: translateX(110%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-shine::after {
+    display: none;
+  }
+}
+
+/* 9) Input focus underline — text input 류가 focus 시 하단에 accent line.
+      .input-with-underline 부착. */
+.input-with-underline {
+  position: relative;
+}
+.input-with-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--active-theme-accent, var(--color-accent, #2563eb));
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 280ms cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none;
+  border-radius: 2px;
+}
+.input-with-underline:focus-within::after {
+  transform: scaleX(1);
+}
+
+/* 10) Heading accent — h1/h2 가 .heading-accent 일 때 좌측 vertical bar.
+       editorial 인상 강화. */
+.heading-accent {
+  position: relative;
+  padding-left: 0.875rem;
+}
+.heading-accent::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.2em;
+  bottom: 0.2em;
+  width: 3px;
+  background: var(--active-theme-accent, var(--color-accent, #0369a1));
+  border-radius: 2px;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════
    ░░░ SITE-WIDE THEME PROPAGATION — html[data-active-resume-theme] ░░░
    PreviewPage 가 활성화되면 <html> 에 data-active-resume-theme + CSS 변수

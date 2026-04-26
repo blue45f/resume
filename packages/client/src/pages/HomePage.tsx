@@ -808,7 +808,7 @@ export default function HomePage() {
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-10">
                   <Link
                     to={ROUTES.resume.new}
-                    className="imp-btn group inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold rounded-xl hover:bg-slate-800 dark:hover:bg-white transition-colors duration-200 text-base shadow-sm focus-ring-accent"
+                    className="btn-shine imp-btn group inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold rounded-xl hover:bg-slate-800 dark:hover:bg-white transition-colors duration-200 text-base shadow-sm focus-ring-accent"
                   >
                     무료로 시작하기
                     <svg
@@ -911,7 +911,7 @@ export default function HomePage() {
 
             {/* Action grid — asymmetric (1 feature + 3 secondary).
                 동일 카드 4개 반복 → primary 1개 강조 + secondary 3개 컴팩트. */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 max-w-3xl mx-auto mb-10 mt-12">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 max-w-3xl mx-auto mb-10 mt-12">
               {/* Primary feature — 새 이력서 */}
               <Link
                 to={ROUTES.resume.new}
