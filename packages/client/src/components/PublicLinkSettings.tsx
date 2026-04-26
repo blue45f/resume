@@ -122,13 +122,13 @@ export default function PublicLinkSettings({
       </div>
 
       {/* Short URL */}
-      <div className="mb-2 px-3 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+      <div className="mb-2 px-3 py-2 bg-sky-50 dark:bg-sky-900/20 rounded-lg border border-sky-200 dark:border-sky-800">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] text-blue-500 dark:text-blue-400 font-medium mb-0.5">
+            <p className="text-[10px] text-sky-700 dark:text-sky-400 font-semibold uppercase tracking-[0.15em] mb-0.5">
               숏링크
             </p>
-            <p className="text-sm text-blue-700 dark:text-blue-300 font-mono font-medium">
+            <p className="text-sm text-sky-900 dark:text-sky-200 font-mono font-medium break-all">
               {shortUrl}
             </p>
           </div>

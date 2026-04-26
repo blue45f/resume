@@ -301,6 +301,40 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
         </div>
       )}
 
+      {/* Category breakdown — identity/depth/web/discoverability 4-stripe mini progress.
+          단일 % 보다 어느 카테고리가 약점인지 한눈에 보여주는 인터랙티브 확장 (#12). */}
+      {(() => {
+        const cats = [
+          { key: 'identity', label: '본인 정보', color: '#0c4a6e' },
+          { key: 'depth', label: '내용 깊이', color: '#0891b2' },
+          { key: 'web', label: '외부 링크', color: '#10b981' },
+          { key: 'discoverability', label: '공개도', color: '#f59e0b' },
+        ] as const;
+        const breakdown = cats.map((c) => {
+          const items = completionResult.items.filter((i) => i.category === c.key);
+          const score = items.reduce((s, i) => s + i.score, 0);
+          const max = items.reduce((s, i) => s + i.max, 0);
+          const pct = max > 0 ? Math.round((score / max) * 100) : 0;
+          return { ...c, pct };
+        });
+        return (
+          <div className="absolute bottom-6 left-2 right-2 flex gap-0.5" aria-hidden="true">
+            {breakdown.map((b) => (
+              <div
+                key={b.key}
+                className="relative flex-1 h-[3px] rounded-full bg-slate-200/80 dark:bg-slate-700/80 overflow-hidden"
+                title={`${b.label}: ${b.pct}%`}
+              >
+                <div
+                  className="h-full rounded-full transition-[width] duration-700 ease-out"
+                  style={{ width: `${b.pct}%`, backgroundColor: b.color }}
+                />
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* Bottom info bar */}
       <div className="absolute bottom-0 left-0 right-0 px-2.5 py-1.5 flex items-center justify-between bg-gradient-to-t from-white/95 to-transparent dark:from-slate-800/95">
         {relativeTime && (
