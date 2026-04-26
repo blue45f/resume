@@ -442,6 +442,82 @@ main:not(.no-page-enter),
   border-radius: 2px;
 }
 
+/* 11) Display typography scale — fluid clamp() 으로 sub-pixel 정밀.
+       .display-{xs,sm,md,lg,xl,2xl} 사용 시 일관된 type rhythm.
+       .impeccable.md 의 'fluid scale' 권장 따름. */
+:root {
+  --display-xs: clamp(1.125rem, 1vw + 1rem, 1.375rem);
+  --display-sm: clamp(1.375rem, 1.5vw + 1rem, 1.75rem);
+  --display-md: clamp(1.75rem, 2.5vw + 1rem, 2.5rem);
+  --display-lg: clamp(2.25rem, 4vw + 1rem, 3.5rem);
+  --display-xl: clamp(2.75rem, 6vw + 1rem, 4.75rem);
+  --display-2xl: clamp(3rem, 7vw + 1rem, 6rem);
+}
+.display-xs {
+  font-size: var(--display-xs);
+}
+.display-sm {
+  font-size: var(--display-sm);
+}
+.display-md {
+  font-size: var(--display-md);
+}
+.display-lg {
+  font-size: var(--display-lg);
+}
+.display-xl {
+  font-size: var(--display-xl);
+}
+.display-2xl {
+  font-size: var(--display-2xl);
+}
+/* display 류 헤드라인의 기본 letter-spacing/line-height 동시 부착 */
+[class*='display-'] {
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+/* 12) Marquee divider — 페이지 큰 섹션 구분에 사용 가능. tracker dot 가 좌→우
+       이동하며 시각적 리듬. .impeccable 톤 안에서 유희 (subtle). */
+.marquee-divider {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--active-theme-accent, #0369a1) 40%, transparent),
+    transparent
+  );
+}
+.marquee-divider::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 6px;
+  height: 5px;
+  background: var(--active-theme-accent, #0369a1);
+  border-radius: 50%;
+  animation: marquee-trip 4s ease-in-out infinite;
+}
+@keyframes marquee-trip {
+  0%,
+  100% {
+    left: 0;
+    opacity: 0.6;
+  }
+  50% {
+    left: calc(100% - 6px);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-divider::before {
+    animation: none;
+    left: 50%;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════
    ░░░ SITE-WIDE THEME PROPAGATION — html[data-active-resume-theme] ░░░
    PreviewPage 가 활성화되면 <html> 에 data-active-resume-theme + CSS 변수
