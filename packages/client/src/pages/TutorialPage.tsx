@@ -401,9 +401,295 @@ const recruiterSteps = [
   },
 ];
 
+// ── 추가 가이드: 면접 코칭 ─────────────────────────────────────────
+const coachingSteps = [
+  {
+    id: 'browse-coaches',
+    title: '1. 코치 둘러보기',
+    icon: '1',
+    content: (
+      <div className="space-y-3">
+        <p>
+          <strong>"코칭"</strong> 메뉴에서 활동 중인 코치 목록을 확인하세요. 직무·경력·시간당 요금
+          으로 필터링할 수 있습니다.
+        </p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          각 코치의 프로필에는 경력, 전문 분야, 평균 평점, 후기가 노출됩니다.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'book-session',
+    title: '2. 세션 신청',
+    icon: '2',
+    content: (
+      <div className="space-y-3">
+        <p>
+          코치 프로필 페이지에서 <strong>"세션 신청"</strong>을 눌러 원하는 일정·주제를 적고
+          요청하세요. 코치가 수락하면 세션이 확정됩니다.
+        </p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          모의 면접·이력서 리뷰·커리어 상담 중 선택할 수 있습니다.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'session',
+    title: '3. 세션 진행',
+    icon: '3',
+    content: (
+      <div className="space-y-3">
+        <p>
+          확정된 세션은 <strong>"내 코칭 세션"</strong>에서 관리됩니다. 약속한 시간에 화상 미팅
+          링크로 입장하거나 메시지로 진행할 수 있습니다.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'review',
+    title: '4. 후기 작성',
+    icon: '4',
+    content: (
+      <div className="space-y-3">
+        <p>세션이 끝나면 별점·후기를 남겨 다른 사용자가 코치를 선택할 때 참고하도록 도와주세요.</p>
+        <p className="text-xs text-slate-400">
+          플랫폼 수수료 15%가 자동 정산되며 코치는 시간당 요금을 즉시 받습니다.
+        </p>
+      </div>
+    ),
+  },
+];
+
+// ── 추가 가이드: 스터디 그룹 ───────────────────────────────────────
+const studySteps = [
+  {
+    id: 'browse-studies',
+    title: '1. 스터디 둘러보기',
+    icon: '1',
+    content: (
+      <div className="space-y-3">
+        <p>
+          <strong>"스터디"</strong> 메뉴에서 직무·관심사별 스터디를 검색하세요. 모집 중·진행 중
+          상태와 멤버 수를 확인할 수 있습니다.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'join-or-create',
+    title: '2. 참여 또는 새 스터디 만들기',
+    icon: '2',
+    content: (
+      <div className="space-y-3">
+        <p>
+          관심 가는 스터디는 <strong>"참여"</strong>를 누르면 즉시 가입됩니다. 본인이 만들고 싶다면
+          <strong>"+ 새 스터디"</strong>로 직무·일정·운영 방식을 명시해 모집하세요.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'study-content',
+    title: '3. 게시글·이벤트',
+    icon: '3',
+    content: (
+      <div className="space-y-3">
+        <p>
+          스터디 안에서 면접 질문 공유, 자료 업로드, 댓글·반응을 통해 협업합니다. 정기 모임은
+          <strong>"이벤트"</strong>로 등록해 RSVP를 받으세요.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'practice-together',
+    title: '4. 함께 면접 연습',
+    icon: '4',
+    content: (
+      <div className="space-y-3">
+        <p>
+          멤버끼리 직무별 면접 질문을 돌아가며 출제하고, 모의 면접 결과를 공유하면서 서로 피드백을
+          주고받습니다.
+        </p>
+      </div>
+    ),
+  },
+];
+
+// ── 추가 가이드: 자기소개서 ─────────────────────────────────────────
+const coverLetterSteps = [
+  {
+    id: 'cl-new',
+    title: '1. 새 자기소개서',
+    icon: '1',
+    content: (
+      <div className="space-y-3">
+        <p>
+          상단 <strong>"자소서"</strong> 메뉴 → <strong>"+ 새 자소서"</strong>로 시작하세요. 회사
+          이름·지원 직무를 먼저 적으면 AI 첨삭이 더 정확해집니다.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'cl-write',
+    title: '2. 항목별 작성',
+    icon: '2',
+    content: (
+      <div className="space-y-3">
+        <p>
+          지원동기·강점·약점·입사 후 포부 등 항목별로 작성합니다. 각 항목은 글자 수 표시와 가이드
+          질문이 함께 노출됩니다.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'cl-ai',
+    title: '3. AI 첨삭·재작성',
+    icon: '3',
+    content: (
+      <div className="space-y-3">
+        <p>
+          작성한 문단을 선택하고 <strong>"AI 첨삭"</strong>을 누르면 회사·직무 톤에 맞게 다듬어
+          줍니다. 정량 표현 부족 / 추상적 표현은 자동으로 짚어줍니다.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'cl-share',
+    title: '4. 공유·내보내기',
+    icon: '4',
+    content: (
+      <div className="space-y-3">
+        <p>완성된 자소서는 PDF로 내보내거나 공유 링크로 다른 사람에게 보낼 수 있습니다.</p>
+      </div>
+    ),
+  },
+];
+
+// ── 추가 가이드: 모의 면접·면접 준비 ─────────────────────────────────
+const interviewSteps = [
+  {
+    id: 'iv-prep',
+    title: '1. 면접 준비 시작',
+    icon: '1',
+    content: (
+      <div className="space-y-3">
+        <p>
+          <strong>"면접"</strong> 메뉴에서 직무·경력 단계를 선택하면 그에 맞는 예상 질문이
+          노출됩니다.
+        </p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          질문은 인성·기술·상황·발표(PT) 카테고리로 분류되어 있습니다.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'iv-camera',
+    title: '2. 카메라 모의 면접',
+    icon: '2',
+    content: (
+      <div className="space-y-3">
+        <p>
+          질문을 고르면 카메라·마이크 권한 후 <strong>"녹화 시작"</strong>으로 답변을 기록합니다.
+          답변 후 본인 영상을 다시 보며 표정·억양·구조를 점검할 수 있습니다.
+        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          🎙️ 차분한 톤 / ☕ 따뜻한 톤 / ✨ 또렷한 톤 / 🪶 부드러운 톤 — 면접관 음성을 4가지 중
+          선택해 실제 면접 분위기를 체험할 수 있습니다.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'iv-analysis',
+    title: '3. 답변 자동 분석',
+    icon: '3',
+    content: (
+      <div className="space-y-3">
+        <p>녹화된 답변은 음성 인식을 거쳐 키워드 누락·반복 표현·말 빠르기를 자동 분석합니다.</p>
+      </div>
+    ),
+  },
+  {
+    id: 'iv-followup',
+    title: '4. 약점 보완 사이클',
+    icon: '4',
+    content: (
+      <div className="space-y-3">
+        <p>
+          반복된 답변 약점은 자동으로 다음 세션의 질문 추천에 반영됩니다. 스터디 그룹·코치와도 답변
+          영상을 공유해 피드백을 받을 수 있습니다.
+        </p>
+      </div>
+    ),
+  },
+];
+
+const GUIDE_REGISTRY = {
+  personal: { steps, label: '구직자', icon: '👤' },
+  recruiter: { steps: recruiterSteps, label: '채용 담당자', icon: '🏢' },
+  coaching: { steps: coachingSteps, label: '면접 코칭', icon: '🎯' },
+  study: { steps: studySteps, label: '스터디 그룹', icon: '🤝' },
+  'cover-letter': { steps: coverLetterSteps, label: '자기소개서', icon: '✍️' },
+  interview: { steps: interviewSteps, label: '모의 면접', icon: '🎥' },
+} as const;
+type GuideType = keyof typeof GUIDE_REGISTRY;
+
+/** 가이드 유형별 메인 CTA — 각 유형의 가장 자주 쓰이는 진입점 1-3개 */
+function GuideCallToAction({ guideType }: { guideType: GuideType }) {
+  const ctas: Record<GuideType, Array<{ to: string; label: string; primary?: boolean }>> = {
+    personal: [
+      { to: ROUTES.resume.new, label: '이력서 만들기', primary: true },
+      { to: ROUTES.resume.autoGenerate, label: 'AI 자동 생성' },
+      { to: ROUTES.resume.explore, label: '이력서 둘러보기' },
+    ],
+    recruiter: [
+      { to: ROUTES.jobs.new, label: '채용 공고 등록', primary: true },
+      { to: ROUTES.resume.explore, label: '인재 검색' },
+    ],
+    coaching: [
+      { to: ROUTES.coaching.coaches, label: '코치 둘러보기', primary: true },
+      { to: ROUTES.coaching.sessions, label: '내 코칭 세션' },
+    ],
+    study: [
+      { to: ROUTES.interview.studyGroups, label: '스터디 둘러보기', primary: true },
+      { to: ROUTES.interview.newStudyGroup, label: '+ 새 스터디' },
+    ],
+    'cover-letter': [
+      { to: ROUTES.coverLetter.new(), label: '새 자기소개서', primary: true },
+      { to: ROUTES.coverLetter.list, label: '내 자기소개서' },
+    ],
+    interview: [{ to: ROUTES.interview.prep, label: '면접 준비 시작', primary: true }],
+  };
+  return (
+    <div className="mt-8 flex flex-wrap justify-center gap-3">
+      {ctas[guideType].map((cta) => (
+        <Link
+          key={cta.to}
+          to={cta.to}
+          className={
+            cta.primary
+              ? 'btn-shine inline-flex items-center px-6 py-3 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold rounded-xl hover:bg-slate-800 dark:hover:bg-white shadow-sm transition-colors duration-200'
+              : 'inline-flex items-center px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200'
+          }
+        >
+          {cta.label}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export default function TutorialPage() {
   const [openStep, setOpenStep] = useState<string | null>('create');
-  const [guideType, setGuideType] = useState<'personal' | 'recruiter'>('personal');
+  const [guideType, setGuideType] = useState<GuideType>('personal');
 
   useEffect(() => {
     document.title = '사용 가이드 — 이력서공방';
@@ -429,40 +715,40 @@ export default function TutorialPage() {
           </p>
         </div>
 
-        {/* segmented toggle — 두 버튼을 하나의 round 컨테이너로 묶어 외곽선 일관 */}
+        {/* 6개 가이드 segmented toggle — overflow-x-auto 로 모바일도 수용 */}
         <div
           role="tablist"
           aria-label="가이드 유형 선택"
-          className="inline-flex items-center justify-center mx-auto mb-6 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full max-w-sm"
+          className="mb-6 -mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto"
         >
-          <button
-            role="tab"
-            aria-selected={guideType === 'personal'}
-            onClick={() => setGuideType('personal')}
-            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              guideType === 'personal'
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
-          >
-            👤 구직자 가이드
-          </button>
-          <button
-            role="tab"
-            aria-selected={guideType === 'recruiter'}
-            onClick={() => setGuideType('recruiter')}
-            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              guideType === 'recruiter'
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
-          >
-            🏢 채용 담당자 가이드
-          </button>
+          <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 mx-auto whitespace-nowrap min-w-full sm:min-w-0 sm:w-fit">
+            {(Object.keys(GUIDE_REGISTRY) as GuideType[]).map((key) => {
+              const g = GUIDE_REGISTRY[key];
+              const active = guideType === key;
+              return (
+                <button
+                  key={key}
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setGuideType(key)}
+                  className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                    active
+                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  }`}
+                >
+                  <span className="mr-1.5" aria-hidden="true">
+                    {g.icon}
+                  </span>
+                  {g.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="space-y-3">
-          {(guideType === 'personal' ? steps : recruiterSteps).map((step) => (
+          {GUIDE_REGISTRY[guideType].steps.map((step) => (
             <div
               key={step.id}
               className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"
@@ -503,43 +789,24 @@ export default function TutorialPage() {
           ))}
         </div>
 
-        {guideType === 'recruiter' ? (
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <GuideCallToAction guideType={guideType} />
+
+        {/* 친절 안내 — 어디서 막혔을 때 어떻게 도움 받을지 */}
+        <div className="mt-8 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          <p className="font-semibold text-slate-800 dark:text-slate-200 mb-1">
+            도움이 더 필요하신가요?
+          </p>
+          <p>
+            우측 상단 <strong>도움말(?)</strong> 메뉴 또는{' '}
             <Link
-              to={ROUTES.jobs.new}
-              className="px-6 py-3 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-all"
+              to={ROUTES.feedback}
+              className="text-sky-700 dark:text-sky-400 link-underline-reveal"
             >
-              채용 공고 등록
+              피드백 보내기
             </Link>
-            <Link
-              to={ROUTES.resume.explore}
-              className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-200 transition-all"
-            >
-              인재 검색
-            </Link>
-          </div>
-        ) : (
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link
-              to={ROUTES.resume.new}
-              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
-            >
-              이력서 만들기
-            </Link>
-            <Link
-              to={ROUTES.resume.autoGenerate}
-              className="inline-flex items-center px-6 py-3 bg-sky-600 text-white font-medium rounded-xl hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
-            >
-              AI 자동 생성
-            </Link>
-            <Link
-              to={ROUTES.resume.explore}
-              className="inline-flex items-center px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
-            >
-              이력서 둘러보기
-            </Link>
-          </div>
-        )}
+            로 언제든 문의주세요. 궁금한 기능이 가이드에 없다면 같이 만들어 가겠습니다.
+          </p>
+        </div>
       </main>
       <Footer />
     </>
