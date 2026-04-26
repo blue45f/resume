@@ -19,8 +19,56 @@ interface WhatsNewData {
 }
 
 const FALLBACK: WhatsNewData = {
-  version: '2.8.0',
-  features: [],
+  version: '2.9.0',
+  title: '✨ 새로운 기능이 추가됐어요',
+  subtitle: '2026년 4월 사이클 — 8개 신규 기능',
+  features: [
+    {
+      icon: '📸',
+      title: '사진/PDF 만으로 이력서 자동 생성',
+      desc: '기존 종이 이력서를 사진 찍거나 PDF 업로드 → AI 가 텍스트 추출 + 구조화 이력서 생성. iPhone HEIC 자동 변환.',
+      badge: 'NEW',
+    },
+    {
+      icon: '🔗',
+      title: '채용공고 URL 만으로 자동 채움',
+      desc: '원티드/잡코리아/사람인 등 공고 URL 붙여넣기 → 회사·포지션·요구사항 자동 입력. 자기소개서/지원/이력서 생성 모두.',
+      badge: 'NEW',
+    },
+    {
+      icon: '🔒',
+      title: '선택 사용자만 공개',
+      desc: '특정 코치·헤드헌터에게만 이력서를 공개. 7일/30일/90일 만료일 설정 가능.',
+      badge: 'NEW',
+    },
+    {
+      icon: '☕',
+      title: '커피챗 + WebRTC 통화',
+      desc: '코치/시니어와 1:1 만남 신청. 음성·화상 P2P 통화 (서버 거치지 않음).',
+      badge: 'NEW',
+    },
+    {
+      icon: '🎤',
+      title: 'AI 면접 답변 분석',
+      desc: '모의 면접 답변을 STAR 구조/정량/필러 기준 자동 채점. 심층 분석으로 강점·약점·리라이트 답변까지.',
+      badge: 'NEW',
+    },
+    {
+      icon: '💡',
+      title: '주간 AI 코칭 알림',
+      desc: '매주 일요일 이력서 분석 → 가장 영향 큰 개선 1개 알림. Pro 플랜은 LLM 개인화.',
+    },
+    {
+      icon: '🎨',
+      title: '프로필 아바타',
+      desc: '직접 업로드 (자동 face crop) 또는 12개 preset 선택. HEIC 자동 변환.',
+    },
+    {
+      icon: '🔍',
+      title: '버전 비교 word-level diff',
+      desc: '두 이력서 버전을 단어 단위 추가/삭제 색상 표시. LCS 알고리즘.',
+    },
+  ],
 };
 
 export default function WhatsNewModal() {
@@ -126,20 +174,29 @@ export default function WhatsNewModal() {
             ))}
           </div>
 
-          <div className="px-6 py-4 border-t border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
+          <div className="px-6 py-4 border-t border-neutral-100 dark:border-neutral-700 flex items-center justify-between gap-2">
             <a
-              href="/notices"
-              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+              href="/tutorial?guide=new-features"
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline whitespace-nowrap"
               onClick={handleClose}
             >
-              전체 공지사항 보기 →
+              📖 전체 가이드 보기 →
             </a>
-            <button
-              onClick={handleClose}
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
-            >
-              확인했어요
-            </button>
+            <div className="flex items-center gap-2">
+              <a
+                href="/notices"
+                className="text-xs text-slate-500 dark:text-slate-400 hover:underline whitespace-nowrap hidden sm:inline"
+                onClick={handleClose}
+              >
+                공지 전체
+              </a>
+              <button
+                onClick={handleClose}
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm whitespace-nowrap"
+              >
+                확인했어요
+              </button>
+            </div>
           </div>
         </RadixDialog.Content>
       </RadixDialog.Portal>
