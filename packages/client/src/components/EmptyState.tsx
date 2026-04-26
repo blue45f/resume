@@ -1,18 +1,20 @@
 import { Link } from 'react-router-dom';
 
+type EmptyType =
+  | 'search'
+  | 'resume'
+  | 'application'
+  | 'template'
+  | 'tag'
+  | 'version'
+  | 'attachment'
+  | 'scout'
+  | 'cover-letter'
+  | 'message'
+  | 'notification';
+
 interface Props {
-  type:
-    | 'search'
-    | 'resume'
-    | 'application'
-    | 'template'
-    | 'tag'
-    | 'version'
-    | 'attachment'
-    | 'scout'
-    | 'cover-letter'
-    | 'message'
-    | 'notification';
+  type: EmptyType;
   query?: string;
 }
 
@@ -243,60 +245,82 @@ const configs = {
   },
 };
 
+/** Eyebrow text per type — teaches what state this is */
+const EYEBROW: Record<EmptyType, string> = {
+  search: '검색 결과',
+  resume: '시작하기',
+  application: '지원 내역',
+  template: '템플릿',
+  tag: '태그',
+  version: '버전',
+  attachment: '첨부',
+  scout: '스카우트',
+  'cover-letter': '자소서',
+  message: '메시지',
+  notification: '알림',
+};
+
 export default function EmptyState({ type, query }: Props) {
   const config = configs[type];
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 sm:py-20 animate-fade-in">
-      {/* Floating icon with layered glow */}
-      <div className="relative mb-8 animate-float">
-        {/* Outer glow */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-sky-100 dark:from-indigo-900/30 dark:to-sky-900/30 rounded-full scale-[1.8] blur-3xl opacity-60" />
-        {/* Middle ring */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-full scale-125 blur-xl opacity-70" />
-        {/* Icon container */}
-        <div className="relative bg-white dark:bg-slate-800 rounded-2xl p-7 border border-slate-200/80 dark:border-slate-700/80 shadow-lg shadow-indigo-100/50 dark:shadow-indigo-900/20">
-          {config.icon}
-        </div>
+    <div className="flex flex-col items-center justify-center py-16 sm:py-24 animate-fade-in max-w-md mx-auto px-4">
+      {/* Refined icon container — no glow, no float, no scaling. Solid surface + subtle border. */}
+      <div className="mb-7 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+        <span className="[&>svg]:w-6 [&>svg]:h-6">{config.icon}</span>
       </div>
 
-      <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2 text-center">
+      {/* Eyebrow — teaches the state name in micro-typography */}
+      <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-500 mb-3">
+        {EYEBROW[type]}
+      </div>
+
+      <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-50 mb-3 text-center tracking-[-0.02em] leading-tight text-balance">
         {query ? `"${query}"에 대한 결과가 없습니다` : config.title}
       </h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs text-center leading-relaxed mb-1">
+
+      <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 text-center leading-relaxed max-w-sm">
         {config.description}
       </p>
       {type === 'resume' && !query && (
-        <p className="text-xs text-slate-400 dark:text-slate-500 text-center mt-1">
+        <p className="text-xs text-slate-500 dark:text-slate-500 text-center mt-1.5">
           AI가 3분 안에 전문적인 이력서를 완성해드립니다.
         </p>
       )}
 
       {config.actions.length > 0 && (
-        <div className="flex items-center gap-3 mt-7">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-7 w-full sm:w-auto">
           {config.actions.map((action) => (
             <Link
               key={action.to}
               to={action.to}
-              className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
+              className={`inline-flex items-center justify-center gap-1.5 px-5 py-2.5 text-sm font-semibold rounded-xl transition-colors duration-200 ${
                 action.variant === 'primary'
-                  ? 'bg-gradient-to-r from-indigo-600 to-sky-700 text-white hover:from-indigo-700 hover:to-sky-700 shadow-md shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
+                  ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white shadow-sm'
+                  : 'bg-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-600'
               }`}
             >
-              {action.variant === 'primary' && <span className="mr-1.5">✨</span>}
               {action.label}
+              {action.variant === 'primary' && (
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
+              )}
             </Link>
           ))}
         </div>
       )}
-
-      {/* Decorative dots */}
-      <div className="flex items-center gap-2 mt-10">
-        <span className="w-1 h-1 rounded-full bg-indigo-300 dark:bg-indigo-700" />
-        <span className="w-2 h-2 rounded-full bg-indigo-200 dark:bg-indigo-800" />
-        <span className="w-1 h-1 rounded-full bg-indigo-300 dark:bg-indigo-700" />
-      </div>
     </div>
   );
 }
