@@ -772,57 +772,47 @@ export default function HomePage() {
           </div>
         )}
         {resumes.length === 0 ? (
-          <div className="py-12 sm:py-20 animate-fade-in">
-            {/* Hero section */}
-            <div className="relative text-center mb-16 overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-6 pb-10 rounded-3xl mesh-gradient-light">
-              {/* Ambient SVG blur blobs */}
-              <div
-                className="mesh-blob mesh-blob-blue animate-float-soft"
-                style={{ width: 360, height: 360, top: -80, left: -60 }}
-                aria-hidden="true"
-              />
-              <div
-                className="mesh-blob mesh-blob-cyan animate-float-soft-slow"
-                style={{ width: 280, height: 280, top: 40, right: -80 }}
-                aria-hidden="true"
-              />
-              <div
-                className="mesh-blob mesh-blob-slate animate-float-soft"
-                style={{ width: 220, height: 220, bottom: -60, left: '30%', opacity: 0.35 }}
-                aria-hidden="true"
-              />
-
-              <div className="relative">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded-full text-xs font-medium mb-8 animate-bounce-in-subtle border border-neutral-200 dark:border-neutral-700 shadow-sm">
+          <div className="py-10 sm:py-16 animate-fade-in">
+            {/* Hero — Editorial typographic. left-aligned, asymmetric, no gradient text or mesh blobs.
+                ".impeccable.md" 톤(refined/professional/calm) + 진중한 데이터 신뢰감. */}
+            <section
+              aria-label="이력서공방 소개"
+              className="relative mb-12 sm:mb-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10"
+            >
+              {/* main column — 헤드라인 + 카피 + CTA */}
+              <div className="lg:col-span-8">
+                <div className="inline-flex items-center gap-2 mb-6 sm:mb-8 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700 dark:text-slate-300">
                   <span className="relative flex w-2 h-2" aria-hidden="true">
                     <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                   </span>
-                  AI 기반 이력서 관리 플랫폼
+                  AI 기반 이력서·자기소개서 플랫폼
                 </div>
+
                 <h1
-                  className="font-extrabold text-neutral-900 dark:text-neutral-50 mb-6 tracking-[-0.03em] leading-[1.05]"
-                  style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)' }}
+                  className="font-black text-slate-900 dark:text-slate-50 mb-6 tracking-[-0.035em] leading-[0.95] text-balance"
+                  style={{ fontSize: 'clamp(2.5rem, 7vw, 5.25rem)' }}
                 >
-                  커리어의 시작,{' '}
-                  <span className="bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
-                    AI와 함께
-                  </span>
-                  <br className="hidden sm:block" />
-                  스마트하게
+                  서류 합격률,
+                  <br />
+                  <span className="text-sky-700 dark:text-sky-400">데이터로</span> 올립니다.
                 </h1>
-                <p className="text-lg sm:text-xl text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto leading-relaxed mb-10 tracking-tight">
-                  5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기까지.
-                  <br className="hidden sm:block" />
-                  서류 합격률을 높이는 데이터 기반 이력서 플랫폼
+
+                <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed mb-9">
+                  5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기.{' '}
+                  <span className="text-slate-800 dark:text-slate-200 font-medium">
+                    합격으로 가는 거리를 가장 짧게.
+                  </span>
                 </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-10">
                   <Link
                     to={ROUTES.resume.new}
-                    className="imp-btn group inline-flex items-center gap-2 px-8 py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all duration-200 text-base shadow-md hover:shadow-xl focus-ring-accent"
+                    className="imp-btn group inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold rounded-xl hover:bg-slate-800 dark:hover:bg-white transition-colors duration-200 text-base shadow-sm focus-ring-accent"
                   >
+                    무료로 시작하기
                     <svg
-                      className="w-5 h-5 transition-transform duration-300 group-hover:rotate-90"
+                      className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -832,14 +822,13 @@ export default function HomePage() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M12 4v16m8-8H4"
+                        d="M13 7l5 5m0 0l-5 5m5-5H6"
                       />
                     </svg>
-                    무료로 시작하기
                   </Link>
                   <Link
                     to={ROUTES.resume.explore}
-                    className="imp-btn group inline-flex items-center gap-2 px-6 py-3.5 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 font-medium rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200 text-base focus-ring-accent"
+                    className="imp-btn group inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-transparent text-slate-700 dark:text-slate-300 font-medium rounded-xl border border-slate-300 dark:border-slate-600 hover:border-slate-500 dark:hover:border-slate-400 transition-colors duration-200 text-base focus-ring-accent"
                   >
                     이력서 탐색
                     <svg
@@ -859,9 +848,59 @@ export default function HomePage() {
                   </Link>
                 </div>
               </div>
-            </div>
 
-            {/* Platform stats */}
+              {/* aside column — typographic data points (큰 숫자 + uppercase label).
+                  데이터 신뢰감 강조: 사용자가 "5종 AI 분석"이 진짜 임을 한눈에. */}
+              <aside
+                aria-label="플랫폼 핵심 지표"
+                className="lg:col-span-4 lg:border-l lg:border-slate-200 dark:lg:border-slate-800 lg:pl-8 flex lg:flex-col gap-6 lg:gap-7 items-start"
+              >
+                <div className="flex-1 lg:flex-initial">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500 mb-1">
+                    AI 분석
+                  </div>
+                  <div
+                    className="font-black text-slate-900 dark:text-slate-100 tabular-nums leading-none tracking-tight"
+                    style={{ fontSize: 'clamp(1.75rem, 3vw, 2.5rem)' }}
+                  >
+                    5
+                    <span className="text-sky-700 dark:text-sky-400 text-[0.55em] font-bold align-top ml-0.5">
+                      종
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-1 lg:flex-initial">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500 mb-1">
+                    직종 템플릿
+                  </div>
+                  <div
+                    className="font-black text-slate-900 dark:text-slate-100 tabular-nums leading-none tracking-tight"
+                    style={{ fontSize: 'clamp(1.75rem, 3vw, 2.5rem)' }}
+                  >
+                    26
+                    <span className="text-sky-700 dark:text-sky-400 text-[0.55em] font-bold align-top ml-0.5">
+                      개
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-1 lg:flex-initial">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500 mb-1">
+                    실시간
+                  </div>
+                  <div
+                    className="font-black text-slate-900 dark:text-slate-100 leading-none tracking-tight"
+                    style={{ fontSize: 'clamp(1.75rem, 3vw, 2.5rem)' }}
+                  >
+                    Live
+                    <span className="text-emerald-600 dark:text-emerald-400 text-[0.55em] font-bold align-top ml-0.5">
+                      ●
+                    </span>
+                  </div>
+                </div>
+              </aside>
+            </section>
+
+            {/* Platform stats — 동적 운영 데이터 (SiteStatsBar는 그대로 유지) */}
             <SiteStatsBar />
 
             {/* Action cards — 브레이크포인트별 단계 명시 */}
