@@ -632,8 +632,183 @@ const interviewSteps = [
   },
 ];
 
+const newFeatureSteps = [
+  {
+    id: 'auto-generate',
+    title: '1. 사진/PDF 만으로 이력서 자동 생성',
+    icon: '1',
+    content: (
+      <div className="space-y-3">
+        <p>
+          기존 종이 이력서를 사진 찍거나 PDF 가 있다면 <strong>"AI 자동 생성"</strong> 페이지에서
+          업로드만 하면 끝.
+        </p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>
+            <strong>이미지(JPG/PNG/HEIC)</strong> — Gemini Vision 으로 텍스트 추출
+          </li>
+          <li>
+            <strong>스캔 PDF</strong> — pdf-parse 로 임베드 텍스트, 실패 시 자동 OCR 폴백
+          </li>
+          <li>
+            <strong>DOCX/TXT/RTF</strong> — 모두 지원
+          </li>
+          <li>iPhone 사진(HEIC)은 자동으로 JPEG 변환, 큰 이미지는 자동 압축</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'job-url-paste',
+    title: '2. 채용공고 URL 붙여넣기 → 폼 자동 채움',
+    icon: '2',
+    content: (
+      <div className="space-y-3">
+        <p>
+          원티드 / 잡코리아 / 사람인 / 점핏 등 공고 URL 만 붙여넣으면 회사명·포지션·요구사항이
+          자동으로 채워집니다.
+        </p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">사용 가능 화면:</p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>
+            <strong>자기소개서 작성</strong> — 회사·포지션·요구사항 자동
+          </li>
+          <li>
+            <strong>지원 추가</strong> — 회사·포지션·근무지·연봉·메모
+          </li>
+          <li>
+            <strong>채용 공고 등록</strong> — 다른 사이트 공고 옮겨오기
+          </li>
+          <li>
+            <strong>AI 이력서 자동 생성</strong> — 공고에 맞춘 강조 포인트 작성
+          </li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'selective-share',
+    title: '3. 선택 사용자만 공개 (whitelist)',
+    icon: '3',
+    content: (
+      <div className="space-y-3">
+        <p>
+          이력서 공개 설정에서 <strong>"선택 사용자만 공개"</strong> 선택 → 특정 코치·헤드헌터·동료
+          만 볼 수 있도록 화이트리스트 관리.
+        </p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>username 또는 이메일로 추가 (가입자 한정)</li>
+          <li>
+            <strong>만료일 설정</strong> 가능 — 7일/30일/90일/직접 (지원 1주일, 면접 30일 등)
+          </li>
+          <li>추가 즉시 알림 발송 + 즉시 열람 가능</li>
+          <li>
+            코치 상세 페이지의 <strong>"내 이력서 공유"</strong> 버튼으로 1-click 공유
+          </li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'coffee-chat',
+    title: '4. 커피챗 + WebRTC P2P 통화',
+    icon: '4',
+    content: (
+      <div className="space-y-3">
+        <p>
+          코치/시니어와 가벼운 1:1 만남. <strong>음성·화상 통화는 P2P 직접 연결</strong>(서버 거치지
+          않음)이라 비용 없음.
+        </p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>
+            코치 상세 → <strong>"☕ 커피챗 신청"</strong> 버튼
+          </li>
+          <li>음성 / 화상 / 텍스트 모드 선택 + 시간 (15/30/60분)</li>
+          <li>호스트 수락 시 통화 방 자동 생성 → 입장</li>
+          <li>STUN 만 사용해 일부 NAT 환경에서 실패할 수 있음</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'ai-interview',
+    title: '5. AI 면접 답변 분석',
+    icon: '5',
+    content: (
+      <div className="space-y-3">
+        <p>
+          모의 면접 후 답변 텍스트를 <strong>AI 가 STAR 구조 / 정량 / 필러 / 1인칭 주체성</strong>
+          기준으로 자동 채점.
+        </p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>즉시 점수 + 항목별 개선 tip (휴리스틱, 비용 0)</li>
+          <li>
+            심층 분석: LLM 으로 강점/약점/구체 개선/<strong>리라이트 답변</strong> 생성
+          </li>
+          <li>STAR breakdown 으로 답변 구조 시각화</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'weekly-coaching',
+    title: '6. 주간 AI 코칭 알림',
+    icon: '6',
+    content: (
+      <div className="space-y-3">
+        <p>
+          매주 일요일 오후, 활성 사용자에게 이력서 분석 → 가장 영향 큰 개선 1개를 알림으로 발송.
+        </p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>휴리스틱 우선순위 — 자기소개 → 경력 → 기술 스택 → 60일 미수정 → 다양화</li>
+          <li>알림 클릭 시 해당 섹션으로 deeplink</li>
+          <li>Pro 플랜은 LLM 기반 개인화 nudge (이력서 컨텍스트 반영)</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'version-diff',
+    title: '7. 버전 비교 (word-level diff)',
+    icon: '7',
+    content: (
+      <div className="space-y-3">
+        <p>
+          이력서 수정마다 자동 스냅샷 → 두 버전 간 차이를 <strong>단어 단위로 inline 강조</strong>.
+        </p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>제거된 단어는 빨강 / 추가된 단어는 초록 mark</li>
+          <li>LCS 알고리즘으로 정확한 add/remove 인식 (단순 set diff X)</li>
+          <li>긴 텍스트는 expand/collapse 토글</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'avatar',
+    title: '8. 프로필 아바타 + Dicebear preset',
+    icon: '8',
+    content: (
+      <div className="space-y-3">
+        <p>설정 페이지에서 프로필 사진 변경. 직접 업로드 또는 12개 preset 아바타 선택.</p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>
+            <strong>업로드</strong> — Cloudinary 자동 face crop 256x256, HEIC 자동 변환
+          </li>
+          <li>
+            <strong>기본 아바타</strong> — Notionists / Avataaars / Lorelei / Bottts / Fun-emoji
+            12종
+          </li>
+          <li>언제든 삭제하고 이니셜 fallback 으로 복귀 가능</li>
+        </ul>
+      </div>
+    ),
+  },
+];
+
 const GUIDE_REGISTRY = {
   personal: { steps, label: '구직자', icon: '👤' },
+  'new-features': { steps: newFeatureSteps, label: '✨ 신규 기능', icon: '🚀' },
   recruiter: { steps: recruiterSteps, label: '채용 담당자', icon: '🏢' },
   coaching: { steps: coachingSteps, label: '면접 코칭', icon: '🎯' },
   study: { steps: studySteps, label: '스터디 그룹', icon: '🤝' },
@@ -667,6 +842,10 @@ function GuideCallToAction({ guideType }: { guideType: GuideType }) {
       { to: ROUTES.coverLetter.list, label: '내 자기소개서' },
     ],
     interview: [{ to: ROUTES.interview.prep, label: '면접 준비 시작', primary: true }],
+    'new-features': [
+      { to: ROUTES.resume.autoGenerate, label: '🚀 AI 자동 생성 시작', primary: true },
+      { to: ROUTES.coaching.coaches, label: '☕ 커피챗 코치 둘러보기' },
+    ],
   };
   return (
     <div className="mt-8 flex flex-wrap justify-center gap-3">
