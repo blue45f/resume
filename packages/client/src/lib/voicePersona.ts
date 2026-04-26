@@ -10,7 +10,15 @@
  */
 
 export type VoicePersona = {
-  id: 'tone-calm' | 'tone-warm' | 'tone-bright' | 'tone-soft';
+  id:
+    | 'tone-calm'
+    | 'tone-warm'
+    | 'tone-bright'
+    | 'tone-soft'
+    | 'tone-trust'
+    | 'tone-formal'
+    | 'tone-friendly'
+    | 'tone-confident';
   label: string;
   icon: string;
   rate: number;
@@ -18,11 +26,27 @@ export type VoicePersona = {
   lang: 'ko-KR';
 };
 
+/**
+ * 8 톤 — 한국어 native voice 풀이 작아 단일 voice 라도 rate/pitch 조합으로
+ * 서로 분명히 구분되도록 미세 조정. 자연스러운 면접 분위기·낭독 분위기를
+ * 표현하는 데 충분한 다양성.
+ */
 export const VOICE_PERSONAS: VoicePersona[] = [
   { id: 'tone-calm', label: '차분한 톤', icon: '🎙️', rate: 0.92, pitch: 0.9, lang: 'ko-KR' },
   { id: 'tone-warm', label: '따뜻한 톤', icon: '☕', rate: 0.98, pitch: 1.0, lang: 'ko-KR' },
   { id: 'tone-bright', label: '또렷한 톤', icon: '✨', rate: 1.05, pitch: 1.1, lang: 'ko-KR' },
   { id: 'tone-soft', label: '부드러운 톤', icon: '🪶', rate: 1.0, pitch: 0.95, lang: 'ko-KR' },
+  { id: 'tone-trust', label: '신뢰감 있는 톤', icon: '🔒', rate: 0.95, pitch: 0.85, lang: 'ko-KR' },
+  { id: 'tone-formal', label: '정중한 톤', icon: '🎩', rate: 0.95, pitch: 0.92, lang: 'ko-KR' },
+  { id: 'tone-friendly', label: '친근한 톤', icon: '😊', rate: 1.02, pitch: 1.05, lang: 'ko-KR' },
+  {
+    id: 'tone-confident',
+    label: '자신감 있는 톤',
+    icon: '🎤',
+    rate: 1.0,
+    pitch: 1.0,
+    lang: 'ko-KR',
+  },
 ];
 
 export const DEFAULT_PERSONA_ID: VoicePersona['id'] = 'tone-warm';
