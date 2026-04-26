@@ -33,10 +33,18 @@ export default function AudioSummaryPanel({ resume }: Props) {
 
     const loadVoices = () => {
       const list = window.speechSynthesis.getVoices();
-      const korean = list.filter((v) => v.lang.toLowerCase().startsWith('ko'));
-      setVoices(korean.length > 0 ? korean : list);
-      if (!voiceURI && korean.length > 0) {
-        setVoiceURI(korean[0].voiceURI);
+      // 한국어 native voice 만 통과 — 영어 brand fallback / multilingual default 제외해
+      // 어색한 한국어 발음 voice 가 목록에 안 뜨도록.
+      const natural = list.filter((v) => {
+        if (!v.lang.toLowerCase().startsWith('ko')) return false;
+        const n = v.name.toLowerCase();
+        const fallbackHints = ['default', 'eloquence', 'multilingual'];
+        if (fallbackHints.some((h) => n.includes(h))) return false;
+        return true;
+      });
+      setVoices(natural);
+      if (!voiceURI && natural.length > 0) {
+        setVoiceURI(natural[0].voiceURI);
       }
     };
 

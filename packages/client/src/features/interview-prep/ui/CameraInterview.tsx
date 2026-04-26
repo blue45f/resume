@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-/** 면접관 음성 페르소나 — 브라우저 TTS 보이스를 성별·연령대로 휴리스틱 그룹핑 */
+/**
+ * 면접관 음성 페르소나 — 톤(차분/따뜻/또렷/부드러움) 기준으로 그룹핑.
+ * 연령·성별 분류는 브라우저 TTS 가 충분한 한국어 native voice 를 제공하지 않을 때
+ * 어색한 매칭 (영어 voice 가 한국어 시도) 이 발생하던 문제를 해결.
+ * native 한국어 voice 가 있을 때만 페르소나 노출, 없으면 컴포넌트 자체 hidden.
+ */
 export type InterviewerPersona = {
   id: string;
   label: string;
@@ -13,91 +18,94 @@ export type InterviewerPersona = {
 
 const PERSONA_PRESETS: Omit<InterviewerPersona, 'voiceURI'>[] = [
   {
-    id: 'male-senior',
-    label: '시니어 남성 면접관',
-    icon: '👔',
+    id: 'tone-calm',
+    label: '차분한 톤',
+    icon: '🎙️',
     rate: 0.92,
-    pitch: 0.88,
+    pitch: 0.9,
     lang: 'ko-KR',
   },
-  { id: 'male-mid', label: '중년 남성 면접관', icon: '🧑‍💼', rate: 0.98, pitch: 0.95, lang: 'ko-KR' },
   {
-    id: 'male-young',
-    label: '젊은 남성 면접관',
-    icon: '🙋‍♂️',
+    id: 'tone-warm',
+    label: '따뜻한 톤',
+    icon: '☕',
+    rate: 0.98,
+    pitch: 1.0,
+    lang: 'ko-KR',
+  },
+  {
+    id: 'tone-bright',
+    label: '또렷한 톤',
+    icon: '✨',
     rate: 1.05,
-    pitch: 1.05,
+    pitch: 1.1,
     lang: 'ko-KR',
   },
   {
-    id: 'female-senior',
-    label: '시니어 여성 면접관',
-    icon: '👩‍💼',
-    rate: 0.95,
-    pitch: 0.95,
-    lang: 'ko-KR',
-  },
-  {
-    id: 'female-mid',
-    label: '중년 여성 면접관',
-    icon: '🧑‍🏫',
+    id: 'tone-soft',
+    label: '부드러운 톤',
+    icon: '🪶',
     rate: 1.0,
-    pitch: 1.05,
-    lang: 'ko-KR',
-  },
-  {
-    id: 'female-young',
-    label: '젊은 여성 면접관',
-    icon: '👩',
-    rate: 1.08,
-    pitch: 1.15,
+    pitch: 0.95,
     lang: 'ko-KR',
   },
 ];
 
-/** 이름으로 여성/남성 추정 — iOS/macOS/Chrome 한국어 보이스 이름 기준 */
-function guessGender(voice: SpeechSynthesisVoice): 'female' | 'male' | 'unknown' {
+/**
+ * 한국어 native 로 자연스럽게 들리는 voice 만 통과시키는 휴리스틱.
+ * 어색한 case 제외:
+ *  - lang 이 ko-* 가 아닌 voice
+ *  - lang 은 ko 라도 name 이 일반 영어 brand fallback (예: 'Microsoft Default')
+ *  - 명시 native: Yuna/Sora/Heami/SunHi/Inho/Bona/Jiyu (Apple/MS/Google) 또는 한국 이름·한글 포함
+ */
+function isNaturalKorean(voice: SpeechSynthesisVoice): boolean {
+  if (!voice.lang.toLowerCase().startsWith('ko')) return false;
   const n = voice.name.toLowerCase();
-  const femaleHints = [
-    'female',
+  // 명시적 native voice 이름들 (Apple / MS / Google / Samsung)
+  const nativeHints = [
     'yuna',
     'sora',
     'minji',
     'heami',
+    'sunhi',
+    'inho',
+    'bona',
+    'jiyu',
+    'minsu',
+    'junho',
+    'jaehyun',
+    'korean',
+    '한국',
     '유나',
     '소라',
     '민지',
     '해미',
-    '여자',
+    '선희',
+    '인호',
+    '보나',
+    '지유',
+    '민수',
+    '준호',
+    '재현',
   ];
-  const maleHints = ['male', 'minsu', 'junho', 'jaehyun', '민수', '준호', '재현', '남자'];
-  if (femaleHints.some((h) => n.includes(h))) return 'female';
-  if (maleHints.some((h) => n.includes(h))) return 'male';
-  return 'unknown';
+  if (nativeHints.some((h) => n.includes(h))) return true;
+  // ko-KR 인데 name 에 'default' / 'eloquence' 같이 영어 brand fallback 만 있으면 제외
+  const fallbackHints = ['default', 'eloquence', 'multilingual'];
+  if (fallbackHints.some((h) => n.includes(h))) return false;
+  // 그 외 ko-KR voice 는 통과 (ko-KR 명시 자체가 한국어 시스템의 신호)
+  return true;
 }
 
-/** 페르소나에 가장 적합한 보이스를 매칭 */
+/** 페르소나에 가장 적합한 보이스 매칭 — 톤 기준이라 voice index 분산 */
 function matchVoice(
   persona: Omit<InterviewerPersona, 'voiceURI'>,
   voices: SpeechSynthesisVoice[],
 ): SpeechSynthesisVoice | undefined {
-  const korean = voices.filter((v) => v.lang.toLowerCase().startsWith('ko'));
-  if (korean.length === 0) return voices[0];
-  const wantFemale = persona.id.startsWith('female');
-  const pool = korean.filter((v) => {
-    const g = guessGender(v);
-    return wantFemale ? g === 'female' || g === 'unknown' : g === 'male' || g === 'unknown';
-  });
-  const source = pool.length > 0 ? pool : korean;
-  const idx =
-    source.length > 1
-      ? persona.id.includes('young')
-        ? 0
-        : persona.id.includes('senior')
-          ? source.length - 1
-          : Math.floor(source.length / 2)
-      : 0;
-  return source[idx];
+  const natural = voices.filter(isNaturalKorean);
+  if (natural.length === 0) return undefined;
+  // 톤별 voice index 분산 (같은 시스템에 native voice 가 여럿이면 다른 voice 사용)
+  const toneIndex = ['tone-calm', 'tone-warm', 'tone-bright', 'tone-soft'].indexOf(persona.id);
+  return natural[toneIndex % natural.length];
 }
 
 /**
@@ -168,7 +176,7 @@ export default function CameraInterview({
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
   const [announce, setAnnounce] = useState<string>('');
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [personaId, setPersonaId] = useState<string>('male-mid');
+  const [personaId, setPersonaId] = useState<string>('tone-warm');
   const [ttsRate, setTtsRate] = useState<number>(1.0);
   const [speaking, setSpeaking] = useState(false);
   const ttsSupported =
