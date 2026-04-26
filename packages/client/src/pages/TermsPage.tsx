@@ -18,7 +18,9 @@ export default function TermsPage() {
         className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8"
         role="main"
       >
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-8">이용약관</h1>
+        <h1 className="heading-accent text-2xl font-bold text-slate-900 dark:text-slate-100 mb-8">
+          이용약관
+        </h1>
 
         <div className="prose prose-slate max-w-none space-y-8">
           <section>

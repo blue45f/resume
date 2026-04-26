@@ -484,7 +484,7 @@ export default function ExplorePage() {
         className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-in fade-in-0 slide-in-from-bottom-1 duration-300"
         role="main"
       >
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
+        <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
           {tx('explore.title')}
         </h1>
         <p className="text-sm text-slate-500 mb-6">{tx('explore.subtitle')}</p>

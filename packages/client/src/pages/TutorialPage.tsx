@@ -421,7 +421,7 @@ export default function TutorialPage() {
         role="main"
       >
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+          <h1 className="heading-accent text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
             {tx('tutorial.title')}
           </h1>
           <p className="text-slate-500 dark:text-slate-400">

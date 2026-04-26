@@ -205,7 +205,7 @@ export default function AutoGeneratePage() {
         className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
         role="main"
       >
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+        <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
           {t('nav.aiGenerate')}
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">

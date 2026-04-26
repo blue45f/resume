@@ -325,7 +325,7 @@ export default function LoginPage() {
               <div className="w-14 h-14 bg-neutral-900 dark:bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-shadow duration-200 lg:hidden">
                 <span className="text-white text-2xl font-bold">&#xC774;</span>
               </div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              <h1 className="heading-accent text-2xl font-bold text-slate-900 dark:text-slate-100">
                 &#xC774;&#xB825;&#xC11C;&#xACF5;&#xBC29;
               </h1>
             </Link>
