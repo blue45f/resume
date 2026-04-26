@@ -92,13 +92,21 @@ pnpm deploy:gcp           # Cloud Run 배포
 - ✅ **운영 hygiene cron** — `ResumeViewerCleanupService` (@nestjs/schedule, 매일 03:00 UTC) — 만료된 ResumeViewer + 24h 지난 JobUrlCache 자동 정리.
 - ✅ **i18n 신규 컴포넌트** — sharing._ / jobUrl._ / resume.visibility.\* / common.anonymous 키 추가, ko/en/ja 3개 locale 모두. SharedWithMeSection / AllowedViewersDialog / JobUrlInput / ShareResumeWithUserDialog + 4개 caller 모두 `tx()` 적용.
 
+2026-04-27 사이클 — 위 5개 후보 모두 한번에 처리:
+
+- ✅ **스캔 PDF OCR** — pdf-parse 결과 < 50자 시 Gemini Vision (`application/pdf` direct input) 폴백. poppler 등 시스템 deps 불필요.
+- ✅ **모바일 UX** — JobUrlInput stack on mobile + min-h-[44px] 터치 타깃 + inputMode=url. Dialog/viewport meta는 이미 OK.
+- ✅ **버전 비교** — VersionPanel.DiffViewer 의 changed 타입에 word-level inline highlight (oldSet/newSet mark). 긴 텍스트 expand/collapse.
+- ✅ **AI 코칭 자동화** — `AiCoachingNudgeService` (@Cron 매주 일요일 06:00 UTC). 휴리스틱 5순위(자기소개/경력/기술/60일 미수정/경력 1건만) → 가장 영향 큰 개선 1개 알림. LLM 호출 0, 7일 throttle, 주당 최대 500명. NotificationBell + NotificationsPage 에 `coaching_nudge` 매핑 (💡 amber).
+- ✅ **Performance** — HomePage 의 charts 의존(recharts ~437KB) lazy load (`DashboardStats`/`CareerInsights`). 초기 index 235→209KB (-26KB).
+
 다음 사이클 후보:
 
-- 스캔 PDF: PDF → 페이지별 이미지 변환 후 Vision OCR (poppler 시스템 deps 필요)
-- 모바일 UX 종합 audit (사진 업로드 flow / 필터 UX)
-- 이력서 버전 비교 (side-by-side diff)
-- AI 코칭 자동화 (정기 분석 → 개선 제안 알림)
-- Performance: bundle 분석 + 추가 lazy loading
+- 이미지 OCR 정확도: Gemini Vision 결과 후처리 (한글 OCR 오타 보정)
+- Pro 플랜 사용자 한정 LLM 기반 개인화 nudge
+- Diff: 더 정교한 알고리즘 (LCS / Myers diff) + 이력서 섹션별 explore
+- 다국어 i18n 사용 통계 (어떤 locale 사용자가 많은지) → 우선순위 결정
+- 모바일 사진 업로드 flow 개선 (압축 / heic 변환 / 카메라 직접 호출)
 
 ---
 
