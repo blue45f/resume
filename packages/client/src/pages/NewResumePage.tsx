@@ -1852,7 +1852,7 @@ export default function NewResumePage() {
                               <button
                                 key={`rec-${t.id}`}
                                 onClick={() => handleSelectTemplate(t.id)}
-                                className="text-left bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-xl border-2 border-amber-200 dark:border-amber-800 p-4 hover:border-amber-400 dark:hover:border-amber-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 group"
+                                className="text-left bg-amber-50 dark:bg-amber-900/15 rounded-xl border-2 border-amber-200 dark:border-amber-800 p-4 hover:border-amber-400 dark:hover:border-amber-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 group"
                               >
                                 <div className="flex items-center gap-2 mb-2">
                                   <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full uppercase">
