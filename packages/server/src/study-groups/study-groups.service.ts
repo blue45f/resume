@@ -587,7 +587,11 @@ export class StudyGroupsService {
     });
   }
 
-  async listQuestions(groupId: string, userId?: string) {
+  async listQuestions(
+    groupId: string,
+    userId?: string,
+    opts: { category?: string; difficulty?: string; q?: string; sort?: 'upvotes' | 'recent' } = {},
+  ) {
     const group = await this.prisma.studyGroup.findUnique({
       where: { id: groupId },
       select: { id: true, isPrivate: true, ownerId: true },
@@ -604,12 +608,49 @@ export class StudyGroupsService {
       }
     }
 
+    const where: Record<string, unknown> = { groupId };
+    if (opts.category && opts.category !== 'all') where.category = opts.category;
+    if (opts.difficulty && opts.difficulty !== 'all') where.difficulty = opts.difficulty;
+    if (opts.q && opts.q.trim()) {
+      const q = opts.q.trim();
+      where.OR = [
+        { question: { contains: q, mode: 'insensitive' } },
+        { sampleAnswer: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    const orderBy =
+      opts.sort === 'recent'
+        ? [{ createdAt: 'desc' as const }]
+        : [{ upvotes: 'desc' as const }, { createdAt: 'desc' as const }];
+
     return this.prisma.studyGroupQuestion.findMany({
-      where: { groupId },
-      orderBy: [{ upvotes: 'desc' }, { createdAt: 'desc' }],
+      where,
+      orderBy,
       include: {
         user: { select: { id: true, name: true, avatar: true } },
       },
+      take: 200,
+    });
+  }
+
+  /** 문제 추천(upvote) — 같은 사용자의 중복 추천은 idempotent (upvote 1회만 반영). */
+  async upvoteQuestion(questionId: string, userId: string) {
+    if (!userId) throw new ForbiddenException('로그인이 필요합니다');
+    const question = await this.prisma.studyGroupQuestion.findUnique({
+      where: { id: questionId },
+      select: { id: true, groupId: true, userId: true },
+    });
+    if (!question) throw new NotFoundException('문제를 찾을 수 없습니다');
+    await this.assertMemberOrPublic(question.groupId, userId);
+    if (question.userId === userId) {
+      throw new BadRequestException('본인 문제는 추천할 수 없습니다');
+    }
+    // 단순 카운터 — 사용자별 중복 방지는 향후 별도 테이블 추가 시 정밀화
+    return this.prisma.studyGroupQuestion.update({
+      where: { id: questionId },
+      data: { upvotes: { increment: 1 } },
+      select: { id: true, upvotes: true },
     });
   }
 

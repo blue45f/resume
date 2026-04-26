@@ -97,9 +97,16 @@ export class StudyGroupsController {
 
   @Get(':id/questions')
   @Public()
-  @ApiOperation({ summary: '스터디 그룹 질문 목록' })
-  listQuestions(@Param('id') id: string, @Req() req: any) {
-    return this.service.listQuestions(id, req.user?.id);
+  @ApiOperation({ summary: '스터디 그룹 질문 목록 (category/difficulty/q/sort 필터)' })
+  listQuestions(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Query('category') category?: string,
+    @Query('difficulty') difficulty?: string,
+    @Query('q') q?: string,
+    @Query('sort') sort?: 'upvotes' | 'recent',
+  ) {
+    return this.service.listQuestions(id, req.user?.id, { category, difficulty, q, sort });
   }
 
   @Post(':id/questions')
@@ -107,6 +114,13 @@ export class StudyGroupsController {
   addQuestion(@Param('id') id: string, @Body() body: CreateStudyGroupQuestionDto, @Req() req: any) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.addQuestion(id, req.user.id, body);
+  }
+
+  @Post('questions/:questionId/upvote')
+  @ApiOperation({ summary: '문제 추천 (upvote)' })
+  upvoteQuestion(@Param('questionId') questionId: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.upvoteQuestion(questionId, req.user.id);
   }
 
   // ─── 카페형 게시판 ──────────────────────────────────────────
