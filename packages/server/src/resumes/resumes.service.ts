@@ -399,7 +399,13 @@ export class ResumesService {
   }
 
   async findBySlug(username: string, slug: string) {
-    const user = await this.prisma.user.findFirst({ where: { username } });
+    // 사용자 username (handle) 미설정 시 fallback: name 으로도 매칭 (대소문자 무관, 공백 정규화).
+    // 클라이언트 PublicLinkSettings 는 user.name 또는 user.username 을 URL 에 사용하므로
+    // backend 도 양쪽 모두 받아 404 회피.
+    const decoded = decodeURIComponent(username || '').trim();
+    const user = await this.prisma.user.findFirst({
+      where: { OR: [{ username: decoded }, { name: decoded }] },
+    });
     if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다');
     const resume = await this.prisma.resume.findFirst({
       where: { userId: user.id, slug },

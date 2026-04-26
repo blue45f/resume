@@ -200,10 +200,18 @@ main[data-theme-category='tech'] .imp-card {
   border-top-style: dashed;
 }
 
-/* 옵션 B 확대: PreviewPage 인접 영역(sticky toolbar 활성 버튼, 공유/액션
-   primary CTA, focus ring 등)이 이력서 테마 accent 를 따라가게 매핑.
-   사이트 전반은 .impeccable.md 톤 유지하면서, "이력서 미리보기 영역과 그
-   주변 인터랙션 요소" 가 테마에 적응하는 효과. */
+/* ─── 옵션 A 강화: PreviewPage 안 모든 chrome 이 이력서 테마에 적응 ──────
+   사용자 요청: '이력서 미리보기 상세의 테마가 전체 페이지에 적용되도록'.
+   main[style*='--preview-theme-accent'] scope 안에서 사파이어 단일 톤 대신
+   선택된 이력서 테마 색이 다양한 표면에 자동 매핑됨.
+
+   적용 범위 (PreviewPage 한정 — 사이트 전반 Header/메인 등은 그대로):
+   - 명시적 utility class (.resume-theme-accent-*)
+   - blue-* / sky-* 계열 button / link / focus / heading 자동 swap
+   - sticky toolbar 활성 토글 / 숏링크 박스 / share menu 등 인터랙션
+   ────────────────────────────────────────────────────────────────── */
+
+/* 1) 명시적 utility */
 main[style*='--preview-theme-accent'] .resume-theme-accent-bg {
   background-color: var(--preview-theme-accent) !important;
   color: #ffffff;
@@ -217,16 +225,78 @@ main[style*='--preview-theme-accent'] .resume-theme-accent-border {
 main[style*='--preview-theme-accent'] .resume-theme-accent-ring:focus-visible {
   outline-color: var(--preview-theme-accent) !important;
 }
-/* sticky toolbar 활성 토글 (예: 너비 맞춤 버튼 selected 상태) */
 main[style*='--preview-theme-accent'] [data-resume-toolbar-active='true'] {
   background-color: color-mix(in srgb, var(--preview-theme-accent) 12%, transparent) !important;
   border-color: color-mix(in srgb, var(--preview-theme-accent) 50%, transparent) !important;
   color: var(--preview-theme-accent) !important;
 }
-/* PublicLinkSettings 의 숏링크 박스 accent */
 main[style*='--preview-theme-accent'] .resume-theme-accent-soft-bg {
   background-color: color-mix(in srgb, var(--preview-theme-accent) 8%, transparent) !important;
   border-color: color-mix(in srgb, var(--preview-theme-accent) 25%, transparent) !important;
+}
+
+/* 2) blue-* 자동 swap (PreviewPage 안에서만 적용 — 이력서 미리보기 가 sapphire
+      대신 선택된 테마 색을 따라가도록).
+      .resume-preview 내부는 자체 inline style 우선이라 영향 없음. */
+main[style*='--preview-theme-accent'] :is(button, a, span, div) {
+  /* text-blue-{500..700} → accent (high specificity 인 inline 또는 더 specific
+     class 가 있으면 그것이 우선). */
+}
+
+/* primary 버튼 류 — bg-blue-600/700 → accent (PreviewPage 의 share/CTA 등) */
+main[style*='--preview-theme-accent'] .bg-blue-600,
+main[style*='--preview-theme-accent'] .bg-blue-700,
+main[style*='--preview-theme-accent'] .bg-sky-600,
+main[style*='--preview-theme-accent'] .bg-sky-700 {
+  background-color: var(--preview-theme-accent) !important;
+}
+main[style*='--preview-theme-accent'] .hover\:bg-blue-700:hover,
+main[style*='--preview-theme-accent'] .hover\:bg-blue-800:hover,
+main[style*='--preview-theme-accent'] .hover\:bg-sky-700:hover,
+main[style*='--preview-theme-accent'] .hover\:bg-sky-800:hover {
+  background-color: color-mix(in srgb, var(--preview-theme-accent) 88%, black) !important;
+}
+
+/* 텍스트 색 swap — text-blue-* / text-sky-* → accent */
+main[style*='--preview-theme-accent'] .text-blue-600,
+main[style*='--preview-theme-accent'] .text-blue-700,
+main[style*='--preview-theme-accent'] .text-blue-500,
+main[style*='--preview-theme-accent'] .text-sky-600,
+main[style*='--preview-theme-accent'] .text-sky-700,
+main[style*='--preview-theme-accent'] .dark\:text-blue-400,
+main[style*='--preview-theme-accent'] .dark\:text-sky-400 {
+  color: var(--preview-theme-accent) !important;
+}
+
+/* 테두리 — border-blue-* / border-sky-* */
+main[style*='--preview-theme-accent'] .border-blue-200,
+main[style*='--preview-theme-accent'] .border-blue-300,
+main[style*='--preview-theme-accent'] .border-blue-500,
+main[style*='--preview-theme-accent'] .border-blue-600,
+main[style*='--preview-theme-accent'] .border-sky-200,
+main[style*='--preview-theme-accent'] .border-sky-300,
+main[style*='--preview-theme-accent'] .border-sky-700 {
+  border-color: color-mix(in srgb, var(--preview-theme-accent) 70%, transparent) !important;
+}
+
+/* soft tint background — bg-blue-50, bg-sky-50 */
+main[style*='--preview-theme-accent'] .bg-blue-50,
+main[style*='--preview-theme-accent'] .bg-sky-50 {
+  background-color: color-mix(in srgb, var(--preview-theme-accent) 8%, white) !important;
+}
+main[style*='--preview-theme-accent'] .dark\:bg-blue-900\/20,
+main[style*='--preview-theme-accent'] .dark\:bg-sky-900\/20,
+main[style*='--preview-theme-accent'] .dark\:bg-blue-900\/30,
+main[style*='--preview-theme-accent'] .dark\:bg-sky-900\/30 {
+  background-color: color-mix(in srgb, var(--preview-theme-accent) 18%, #0f172a) !important;
+}
+
+/* focus ring — focus:ring-blue-500 / focus:ring-sky-500 */
+main[style*='--preview-theme-accent'] .focus\:ring-blue-500:focus,
+main[style*='--preview-theme-accent'] .focus\:ring-sky-500:focus,
+main[style*='--preview-theme-accent'] .focus-visible\:ring-blue-500:focus-visible,
+main[style*='--preview-theme-accent'] .focus-visible\:ring-sky-500:focus-visible {
+  --tw-ring-color: var(--preview-theme-accent) !important;
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {
