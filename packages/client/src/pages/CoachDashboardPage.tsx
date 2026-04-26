@@ -1,8 +1,13 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { type CoachingSession, type MySessionsResponse } from '@/lib/api';
+import {
+  type CoachingSession,
+  type MySessionsResponse,
+  type CoffeeChat,
+  fetchCoffeeChats,
+} from '@/lib/api';
 import { useMyCoachingSessions } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
@@ -52,6 +57,27 @@ export default function CoachDashboardPage() {
   const error: string | null = sessionsQuery.error
     ? (sessionsQuery.error as any)?.message || '데이터를 불러오지 못했습니다'
     : null;
+  const [coffeeChats, setCoffeeChats] = useState<CoffeeChat[]>([]);
+  const [coffeeChatsLoading, setCoffeeChatsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isCoach) return;
+    let cancelled = false;
+    setCoffeeChatsLoading(true);
+    fetchCoffeeChats('received', 'pending')
+      .then((rows) => {
+        if (!cancelled) setCoffeeChats(rows || []);
+      })
+      .catch(() => {
+        if (!cancelled) setCoffeeChats([]);
+      })
+      .finally(() => {
+        if (!cancelled) setCoffeeChatsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isCoach]);
 
   useEffect(() => {
     document.title = '코치 대시보드 — 이력서공방';
@@ -206,6 +232,85 @@ export default function CoachDashboardPage() {
                     </div>
                   ))}
             </div>
+
+            {/* Pending coffee chat requests */}
+            {(coffeeChatsLoading || coffeeChats.length > 0) && (
+              <section>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                    <span className="text-amber-500" aria-hidden="true">
+                      ☕
+                    </span>
+                    받은 커피챗 신청
+                    {coffeeChats.length > 0 && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 rounded-full">
+                        {coffeeChats.length}
+                      </span>
+                    )}
+                  </h2>
+                  <Link
+                    to={ROUTES.social.coffeeChats}
+                    className="text-xs text-blue-700 hover:underline"
+                  >
+                    전체 보기
+                  </Link>
+                </div>
+                {coffeeChatsLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="imp-card p-4 animate-pulse">
+                        <div className="h-3 w-1/3 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
+                        <div className="h-3 w-2/3 bg-slate-200 dark:bg-slate-700 rounded" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <ul className="space-y-2">
+                    {coffeeChats.slice(0, 5).map((c) => {
+                      const modalityLabel =
+                        c.modality === 'video'
+                          ? '🎥 화상'
+                          : c.modality === 'voice'
+                            ? '🎙 음성'
+                            : '💬 채팅';
+                      return (
+                        <li key={c.id}>
+                          <Link
+                            to={ROUTES.social.coffeeChats}
+                            className="imp-card p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 hover:border-amber-300 dark:hover:border-amber-700 transition-colors"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap mb-1">
+                                <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+                                  {modalityLabel} · {c.durationMin}분
+                                </span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                  {formatRelative(c.createdAt)}
+                                </span>
+                              </div>
+                              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                                {c.requester.name}
+                                {c.topic ? (
+                                  <span className="text-slate-500"> · {c.topic}</span>
+                                ) : null}
+                              </p>
+                              {c.message && (
+                                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">
+                                  {c.message}
+                                </p>
+                              )}
+                            </div>
+                            <span className="shrink-0 px-3 py-1.5 text-xs font-medium rounded-lg bg-amber-500 text-white hover:bg-amber-600 self-start">
+                              응답하기 →
+                            </span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+            )}
 
             {/* Upcoming sessions timeline */}
             <section>
