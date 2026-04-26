@@ -693,6 +693,155 @@ function StatCard({
 }
 
 // ═══════════════════════════════════════════════════════════
+// 0. Announcement Push Panel — 활성 사용자에게 1회성 알림 발송
+// ═══════════════════════════════════════════════════════════
+function AnnouncementPushPanel() {
+  const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState(
+    '✨ 새 기능 가이드 추가 — AI 자동 생성 / 채용공고 URL / 선택 공개 / 커피챗 / AI 면접 분석 등 8종',
+  );
+  const [link, setLink] = useState('/tutorial?guide=new-features');
+  const [activeWithinDays, setActiveWithinDays] = useState(30);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<{
+    sent: number;
+    skipped: number;
+    candidates: number;
+  } | null>(null);
+
+  const handleSend = async () => {
+    if (!message.trim()) {
+      toast('메시지를 입력해주세요', 'error');
+      return;
+    }
+    if (!confirm(`최근 ${activeWithinDays}일 활성 사용자에게 공지 발송할까요?`)) return;
+    setSubmitting(true);
+    setResult(null);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/notifications/admin/announce`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          type: 'announcement',
+          message: message.trim(),
+          link: link.trim() || undefined,
+          activeWithinDays,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: '실패' }));
+        throw new Error(err.message || '실패');
+      }
+      const data = await res.json();
+      setResult(data);
+      toast(`공지 발송 완료: ${data.sent}명 발송, ${data.skipped}명 skip`, 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : '공지 발송 실패', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <section className="imp-card p-4 border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50/40 dark:bg-cyan-900/10">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between text-left"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-base">📢</span>
+          <h3 className="text-sm font-semibold text-cyan-800 dark:text-cyan-300">
+            활성 사용자에게 공지 발송
+          </h3>
+        </div>
+        <span className="text-xs text-cyan-700 dark:text-cyan-400">{open ? '접기' : '펼치기'}</span>
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-3 animate-fade-in-up">
+          <div>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              메시지 (200자 이내)
+            </label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              maxLength={200}
+              rows={2}
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none"
+            />
+            <p className="mt-0.5 text-[10px] text-slate-400 text-right">{message.length}/200</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                링크 (클릭 시 이동)
+              </label>
+              <input
+                type="text"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                placeholder="/tutorial?guide=new-features"
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                활성 기준 (최근 N일)
+              </label>
+              <div className="flex gap-1">
+                {[7, 30, 90, 365].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setActiveWithinDays(d)}
+                    className={`flex-1 px-2 py-2 text-xs rounded-lg border transition-colors ${
+                      activeWithinDays === d
+                        ? 'border-cyan-500 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300'
+                        : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    {d}일
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              ⓘ 같은 (type, message) 이미 받은 사용자는 자동 skip — 재호출 안전. 1000명 cap.
+            </p>
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={submitting || !message.trim()}
+              className="px-4 py-2 text-sm font-semibold rounded-lg bg-cyan-600 text-white hover:bg-cyan-700 disabled:opacity-50 transition-colors"
+            >
+              {submitting ? '발송 중...' : '📢 발송'}
+            </button>
+          </div>
+
+          {result && (
+            <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 text-xs">
+              <p className="font-semibold text-emerald-800 dark:text-emerald-300">결과</p>
+              <p className="text-emerald-700 dark:text-emerald-400 mt-0.5">
+                대상 {result.candidates}명 → 신규 발송 {result.sent}명, 이미 받음 {result.skipped}명
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
 // 1. Dashboard Home Tab
 // ═══════════════════════════════════════════════════════════
 function DashboardHome({ stats }: { stats: Stats }) {
@@ -700,6 +849,8 @@ function DashboardHome({ stats }: { stats: Stats }) {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <AnnouncementPushPanel />
+
       {/* Hero summary cards */}
       <section>
         <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
