@@ -327,7 +327,7 @@ export default function PortfolioPage() {
                           className="w-10 h-10 rounded-full object-cover shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-100 to-sky-100 dark:from-sky-900/30 dark:to-sky-900/30 flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center shrink-0">
                           <span className="text-sky-700 dark:text-sky-400 text-sm font-bold">
                             {(resume.name || resume.title || '?')[0].toUpperCase()}
                           </span>
