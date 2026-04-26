@@ -82,6 +82,20 @@ pnpm deploy:gcp           # Cloud Run 배포
 - ✅ **성능** — `useDeferredValue` (타이핑 레이턴시 보호) + `memoizeByText` (scoreSpecificity/detectMissingResumeSections 중복 호출 제거)
 - ✅ **AI 리라이트** — `UnquantifiedClaimsRewritePanel` 로 `inline-assist: quantify` 엔드포인트 연결, 문장 단위 수치 보강 + 복사
 
+2026-04-27 후속 사이클 (오후) — 신규 기능 + 분석 고도화:
+
+- ✅ **한글 OCR 후처리** — `postProcessKoreanOcr`: NFD→NFC, 단일 한글 음절 3+ 연속 분리 보정 ('경 력 사 항' → '경력사항'), 숫자+단위 결합, 회사/대학 suffix
+- ✅ **Pro 플랜 LLM 개인화 nudge** — `AiCoachingNudgeService.generateLlmNudge`: pro/enterprise 사용자에게 LLM 1줄 코칭 + section, 실패 시 휴리스틱 자연 폴백
+- ✅ **Myers/LCS word diff** — `VersionPanel.wordDiff` Set 기반 → LCS 기반(O(N\*M))으로 정확한 토큰 순서/중복 인식
+- ✅ **i18n 사용 통계** — `User.preferredLocale` 컬럼 + UpdateProfileDto + AdminStatsService.locales (groupBy preferredLocale) + i18n.setLocale 자동 동기화
+- ✅ **프로필 아바타** — `POST /auth/avatar` (Cloudinary 256x256 face crop) + `PATCH /auth/avatar/preset` (Dicebear/Cloudinary/OAuth URL whitelist) + `DELETE /auth/avatar` + AvatarEditor 컴포넌트 (12 preset 갤러리 + 업로드 + 삭제)
+- ✅ **음성 자연성 보강** — `naturalnessScore`: neural/wavenet/premium hint +30, vendor 매칭 +10. 어색한 voice (fred/cellos/whisper 등) 추가 제외. rate/pitch 보수적 범위(0.88~1.05/0.85~1.1)
+- ✅ **면접 답변 분석** — heuristic `interviewAnswerAnalyzer` (길이/필러/STAR/정량/1인칭 점수 + 항목별 tip) + LLM 기반 깊이 분석 endpoint `POST /interview/answers/analyze` (강점/약점/개선/리라이트 답변/STAR breakdown)
+- ✅ **커피챗 + WebRTC P2P** — `CoffeeChat` 모델 + 신청/수락/거절/취소/완료 + `WebrtcSignal` 큐(폴링 모델, 30초 TTL) + `useWebrtcPeer` hook(STUN 만, TURN 없음 = 서버 비용 0). CoachDetailPage `☕ 커피챗 신청` CTA + /coffee-chats/:id/room 통화 페이지
+- ✅ **스터디 문제 검색** — listQuestions 에 category/difficulty/q/sort 필터 + upvote endpoint
+
+총 1305 → 1329 tests green. DB migrations: `add_preferred_locale`, `add_coffee_chat`.
+
 2026-04-26~27 사이클 — BENCHMARK.md §4 의 3개 gap + 추가 feature 모두 해결:
 
 - ✅ **Peer Review** — HomePage '🙋 피드백 받기' CTA → `/community/write?category=resume&body=...` 템플릿 prefill. 기존 community 의 `resume` 카테고리 진입점 확보.
@@ -102,11 +116,11 @@ pnpm deploy:gcp           # Cloud Run 배포
 
 다음 사이클 후보:
 
-- 이미지 OCR 정확도: Gemini Vision 결과 후처리 (한글 OCR 오타 보정)
-- Pro 플랜 사용자 한정 LLM 기반 개인화 nudge
-- Diff: 더 정교한 알고리즘 (LCS / Myers diff) + 이력서 섹션별 explore
-- 다국어 i18n 사용 통계 (어떤 locale 사용자가 많은지) → 우선순위 결정
-- 모바일 사진 업로드 flow 개선 (압축 / heic 변환 / 카메라 직접 호출)
+- 모바일 사진 업로드 (HEIC 변환 / 클라이언트 압축 / 카메라 직접 호출 — `accept="image/*;capture=camera"`)
+- WebRTC TURN 서버 (NAT-strict 환경 통화 성공률 ↑) — 비용 발생 vs 성공률 trade-off
+- 스터디 문제 답변 모델 (`StudyGroupQuestionAnswer` 별도 테이블) — 다중 답변/베스트 답변/upvote 정밀화
+- 커피챗 일정 reminder 알림 (scheduledAt 기준 cron)
+- AI 답변 분석 결과 저장 + 시간별 변화 추적 (사용자가 답변 개선 추세 보기)
 
 ---
 
