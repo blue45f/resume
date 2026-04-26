@@ -165,6 +165,13 @@ export default function PreviewPage() {
   const { data: resumeData, error: resumeError } = useResume(id);
   const resume: Resume | null = (resumeData as Resume | undefined) ?? null;
   const notFound = !!resumeError;
+  // 'selective' 공개 이력서를 권한 없이 열람한 경우와 일반 not-found 를 구분 (UX 차별화)
+  const errorMessage = resumeError instanceof Error ? resumeError.message : '';
+  const isForbiddenSelective =
+    notFound &&
+    (errorMessage.includes('접근 권한이 없') ||
+      errorMessage.includes('접근할 권한이 없') ||
+      errorMessage.includes('선택 공개'));
   const setResume = (r: Resume | ((prev: Resume | null) => Resume | null) | null) => {
     queryClient.setQueryData(['resume', id], typeof r === 'function' ? r(resume) : r);
   };
@@ -371,13 +378,15 @@ export default function PreviewPage() {
         <main id="main-content" className="flex-1 flex items-center justify-center" role="main">
           <div className="empty-delight animate-in fade-in-0 zoom-in-95 duration-300">
             <span className="empty-icon" aria-hidden="true">
-              🔎
+              {isForbiddenSelective ? '🔒' : '🔎'}
             </span>
             <p className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-1.5">
-              이력서를 불러올 수 없습니다
+              {isForbiddenSelective ? '선택 공개 이력서입니다' : '이력서를 불러올 수 없습니다'}
             </p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-              서버가 시작 중이거나 일시적 오류일 수 있어요
+              {isForbiddenSelective
+                ? '소유자가 허용한 사용자만 열람 가능합니다. 소유자에게 공유 요청을 해보세요.'
+                : '서버가 시작 중이거나 일시적 오류일 수 있어요'}
             </p>
             <div className="flex items-center justify-center gap-3">
               <button
