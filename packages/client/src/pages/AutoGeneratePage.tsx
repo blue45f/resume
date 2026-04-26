@@ -404,7 +404,10 @@ export default function AutoGeneratePage() {
                         클릭하여 파일을 선택하세요
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        PDF, DOCX, DOC, TXT, RTF 지원
+                        PDF · DOCX · TXT · RTF · 이미지(JPG/PNG) 지원
+                      </p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5">
+                        종이 이력서 사진도 OK — AI 가 자동으로 텍스트 추출
                       </p>
                     </button>
                   )}
