@@ -200,6 +200,140 @@ main[data-theme-category='tech'] .imp-card {
   border-top-style: dashed;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   ░░░ SITE-WIDE THEME PROPAGATION — html[data-active-resume-theme] ░░░
+   PreviewPage 가 활성화되면 <html> 에 data-active-resume-theme + CSS 변수
+   --active-theme-accent / --active-theme-header-bg 가 부여되어 Header / Footer
+   / 모든 페이지 chrome 까지 이력서 테마 색이 자동 전파됨. 다른 페이지로
+   이동하면 데이터 속성이 제거되어 .impeccable neutral 톤으로 자동 복귀.
+
+   Drama 요소:
+   1) page backdrop 에 accent tint (3% mix)
+   2) Header bottom 1px accent line
+   3) 선택 색·스크롤바·focus ring 모두 accent
+   4) link/button accent + active state shadow
+   5) ALL color/border/background 0.4s smooth transition
+   ═══════════════════════════════════════════════════════════════════════ */
+
+html[data-active-resume-theme] {
+  /* 모든 색 속성을 부드럽게 transition — 테마 전환이 시각적으로 인지됨 */
+  --theme-transition-duration: 0.4s;
+}
+html[data-active-resume-theme] *,
+html[data-active-resume-theme] *::before,
+html[data-active-resume-theme] *::after {
+  transition:
+    color var(--theme-transition-duration) ease,
+    background-color var(--theme-transition-duration) ease,
+    border-color var(--theme-transition-duration) ease,
+    box-shadow var(--theme-transition-duration) ease,
+    outline-color var(--theme-transition-duration) ease;
+}
+
+/* page backdrop 에 미세 accent tint (3%) */
+html[data-active-resume-theme] body {
+  background-color: color-mix(in srgb, var(--active-theme-accent) 3%, white);
+}
+html.dark[data-active-resume-theme] body {
+  background-color: color-mix(in srgb, var(--active-theme-accent) 8%, #0f0f0f);
+}
+
+/* Header — sticky top 에 accent 1px line (테마 활성 신호) */
+html[data-active-resume-theme] header.sticky {
+  border-bottom-color: color-mix(in srgb, var(--active-theme-accent) 35%, transparent);
+}
+
+/* 선택(selection) 색 — 사용자가 텍스트 선택할 때 accent 로 highlight */
+html[data-active-resume-theme] ::selection {
+  background-color: color-mix(in srgb, var(--active-theme-accent) 30%, transparent);
+}
+
+/* scrollbar — webkit 기준, 트랙은 그대로 두고 thumb 만 accent */
+html[data-active-resume-theme] ::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--active-theme-accent) 50%, transparent);
+}
+html[data-active-resume-theme] ::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--active-theme-accent) 75%, transparent);
+}
+
+/* Focus ring — 모든 인터랙티브 요소가 accent 로 outline */
+html[data-active-resume-theme] :focus-visible {
+  outline-color: var(--active-theme-accent);
+}
+
+/* link 일반 색 (a 태그) — 본문 link 도 accent 따라감 */
+html[data-active-resume-theme] a:not([class*='bg-']):not([class*='no-theme-link']) {
+  color: var(--active-theme-accent);
+}
+
+/* primary 버튼 — bg-blue-600/700, bg-sky-600/700, bg-slate-900 (HomePage hero CTA) 도 accent */
+html[data-active-resume-theme] .bg-blue-600,
+html[data-active-resume-theme] .bg-blue-700,
+html[data-active-resume-theme] .bg-sky-600,
+html[data-active-resume-theme] .bg-sky-700 {
+  background-color: var(--active-theme-accent) !important;
+}
+
+/* hover state — accent darken */
+html[data-active-resume-theme] .hover\:bg-blue-700:hover,
+html[data-active-resume-theme] .hover\:bg-blue-800:hover,
+html[data-active-resume-theme] .hover\:bg-sky-700:hover,
+html[data-active-resume-theme] .hover\:bg-sky-800:hover {
+  background-color: color-mix(in srgb, var(--active-theme-accent) 88%, black) !important;
+}
+
+/* text-blue-* / text-sky-* 자동 swap (PreviewPage 외 다른 페이지 chrome 도) */
+html[data-active-resume-theme] .text-blue-500,
+html[data-active-resume-theme] .text-blue-600,
+html[data-active-resume-theme] .text-blue-700,
+html[data-active-resume-theme] .text-sky-600,
+html[data-active-resume-theme] .text-sky-700,
+html[data-active-resume-theme] .dark\:text-blue-400,
+html[data-active-resume-theme] .dark\:text-sky-400 {
+  color: var(--active-theme-accent);
+}
+
+/* border accent */
+html[data-active-resume-theme] .border-blue-200,
+html[data-active-resume-theme] .border-blue-300,
+html[data-active-resume-theme] .border-blue-500,
+html[data-active-resume-theme] .border-blue-600,
+html[data-active-resume-theme] .border-sky-200,
+html[data-active-resume-theme] .border-sky-300 {
+  border-color: color-mix(in srgb, var(--active-theme-accent) 60%, transparent);
+}
+
+/* spinner / loading dot — accent */
+html[data-active-resume-theme] .border-t-transparent.border-blue-600,
+html[data-active-resume-theme] .border-t-transparent.border-sky-600 {
+  border-color: var(--active-theme-accent);
+  border-top-color: transparent;
+}
+
+/* category 별 micro-mood — drama 강도 차별화 */
+html[data-active-resume-theme='creative'] body {
+  background-color: color-mix(in srgb, var(--active-theme-accent) 5%, white);
+}
+html[data-active-resume-theme='creative'] header.sticky {
+  border-bottom-width: 2px;
+  border-bottom-color: var(--active-theme-accent);
+}
+html[data-active-resume-theme='academic'] body {
+  background-color: color-mix(in srgb, var(--active-theme-accent) 4%, #fafaf7);
+}
+html[data-active-resume-theme='tech'] header.sticky {
+  border-bottom-style: dashed;
+}
+
+/* prefers-reduced-motion — transition 비활성 */
+@media (prefers-reduced-motion: reduce) {
+  html[data-active-resume-theme] *,
+  html[data-active-resume-theme] *::before,
+  html[data-active-resume-theme] *::after {
+    transition: none !important;
+  }
+}
+
 /* ─── 옵션 A 강화: PreviewPage 안 모든 chrome 이 이력서 테마에 적응 ──────
    사용자 요청: '이력서 미리보기 상세의 테마가 전체 페이지에 적용되도록'.
    main[style*='--preview-theme-accent'] scope 안에서 사파이어 단일 톤 대신

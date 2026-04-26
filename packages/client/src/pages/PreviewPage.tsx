@@ -183,6 +183,21 @@ export default function PreviewPage() {
     customAccentHex || activeTheme.preview?.accentBar || activeTheme.preview?.headerBg || '#2563eb';
   const themeHeaderBg = activeTheme.preview?.headerBg || '#f8fafc';
   const themeCategory = activeTheme.preview?.category || 'basic';
+
+  // Site-wide theme propagation — PreviewPage 진입 시 <html> 에 data 속성 + CSS 변수
+  // 부여해 Header / Footer / 모든 인접 chrome 까지 테마 색이 미치도록 한다 (드라마틱 시각 변화).
+  // unmount 또는 다른 페이지 이동 시 정리.
+  useEffect(() => {
+    const html = document.documentElement;
+    html.setAttribute('data-active-resume-theme', themeCategory || 'basic');
+    html.style.setProperty('--active-theme-accent', themeAccent);
+    html.style.setProperty('--active-theme-header-bg', themeHeaderBg);
+    return () => {
+      html.removeAttribute('data-active-resume-theme');
+      html.style.removeProperty('--active-theme-accent');
+      html.style.removeProperty('--active-theme-header-bg');
+    };
+  }, [themeAccent, themeHeaderBg, themeCategory]);
   const [customFont, setCustomFont] = useState('');
   const [showQr, setShowQr] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
