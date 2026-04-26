@@ -822,16 +822,25 @@ describe('ResumesService', () => {
       expect(result.id).toBe('resume-1');
     });
 
-    it('사용자 없음 → NotFoundException', async () => {
-      mockPrisma.user.findFirst.mockResolvedValue(null);
+    it('slug 가 없으면 NotFoundException', async () => {
+      // 현재 구현은 username 무관, slug + visibility 만으로 lookup. DB 에 없으면 null → throw.
+      mockPrisma.resume.findFirst.mockResolvedValue(null);
       await expect(service.findBySlug('unknown', 'test')).rejects.toThrow(NotFoundException);
     });
 
-    it('비공개 이력서 → NotFoundException', async () => {
-      mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-1' });
-      mockPrisma.resume.findFirst.mockResolvedValue({ ...mockResume, visibility: 'private' });
-
+    it('visibility 필터: private 는 where 절로 제외 (DB null 반환 시 NotFoundException)', async () => {
+      // 실제 DB 에서는 visibility: { not: 'private' } 가 private 이력서를 제외해 null 반환.
+      mockPrisma.resume.findFirst.mockResolvedValue(null);
       await expect(service.findBySlug('hong', 'private-slug')).rejects.toThrow(NotFoundException);
+      // where 절에 visibility 필터가 들어갔는지 검증
+      expect(mockPrisma.resume.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            slug: 'private-slug',
+            visibility: { not: 'private' },
+          }),
+        }),
+      );
     });
   });
 
