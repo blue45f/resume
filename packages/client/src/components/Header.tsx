@@ -253,11 +253,23 @@ export default function Header() {
                   {/* Recruiter More */}
                   <div className="relative group">
                     <button
-                      className="text-xs lg:text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-1.5 lg:px-2 py-1 rounded whitespace-nowrap"
+                      className="inline-flex items-center gap-1 text-xs lg:text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-1.5 lg:px-2 py-1 rounded whitespace-nowrap"
                       aria-haspopup="true"
                       aria-label={t('common.more')}
                     >
-                      {t('common.more')} <span aria-hidden="true">▾</span>
+                      {t('common.more')}
+                      <svg
+                        className="w-3 h-3 transition-transform duration-200 group-hover:rotate-180 group-focus-within:rotate-180"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
                     </button>
                     <div
                       role="menu"
@@ -352,11 +364,23 @@ export default function Header() {
                   {/* Jobseeker More */}
                   <div className="relative group">
                     <button
-                      className="text-xs lg:text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-1.5 lg:px-2 py-1 rounded whitespace-nowrap"
+                      className="inline-flex items-center gap-1 text-xs lg:text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-1.5 lg:px-2 py-1 rounded whitespace-nowrap"
                       aria-haspopup="true"
                       aria-label={t('common.more')}
                     >
-                      {t('common.more')} <span aria-hidden="true">▾</span>
+                      {t('common.more')}
+                      <svg
+                        className="w-3 h-3 transition-transform duration-200 group-hover:rotate-180 group-focus-within:rotate-180"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
                     </button>
                     <div
                       role="menu"

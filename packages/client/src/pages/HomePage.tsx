@@ -1048,67 +1048,77 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Section divider */}
-            <div className="flex items-center gap-4 max-w-xs mx-auto mt-14 mb-10">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent to-slate-200 dark:to-slate-700" />
-              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">
+            {/* Section divider — left-aligned editorial heading (gradient line 제거) */}
+            <div className="flex items-baseline gap-3 mt-14 mb-7">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-700 dark:text-slate-300">
                 주요 기능
-              </span>
-              <div className="flex-1 h-px bg-gradient-to-l from-transparent to-slate-200 dark:to-slate-700" />
+              </h2>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
             </div>
 
-            {/* Feature highlights */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-3xl mx-auto mb-10">
+            {/* Feature highlights — solid surface + sapphire accent (emoji 카드 정리) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
               {highlights.map((f, i) => (
                 <div
                   key={f.title}
-                  className={`${f.bg} rounded-xl p-5 text-center animate-fade-in-up hover:-translate-y-1 transition-transform duration-200`}
+                  className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 animate-fade-in-up overflow-hidden"
                 >
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm mb-3">
-                    {['🤖', '📋', '💰'][i] || '✨'}
+                  <div
+                    aria-hidden="true"
+                    className="absolute top-0 left-0 right-0 h-px bg-sky-700 dark:bg-sky-400"
+                  />
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-400 mb-2">
+                    {`0${i + 1}`}
                   </div>
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1.5">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-1.5 tracking-tight">
                     {f.title}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                     {f.desc}
                   </p>
                 </div>
               ))}
             </div>
 
-            {/* Bottom links */}
-            <div className="text-center space-x-4 mt-12">
-              <Link
-                to={ROUTES.tutorial}
-                className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
-              >
-                사용 가이드 보기 &rarr;
-              </Link>
-              <Link
-                to={ROUTES.pricing}
-                className="text-sm text-sky-700 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300 transition-colors"
-              >
-                요금제 보기 &rarr;
-              </Link>
-              <Link
-                to={ROUTES.jobs.list}
-                className="text-sm text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors"
-              >
-                채용 공고 보기 &rarr;
-              </Link>
+            {/* Bottom links — 통일 색상 (sky-700) + 화살표 마이크로 인터랙션 */}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-12">
+              {[
+                { to: ROUTES.tutorial, label: '사용 가이드' },
+                { to: ROUTES.pricing, label: '요금제' },
+                { to: ROUTES.jobs.list, label: '채용 공고' },
+              ].map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="group inline-flex items-center gap-1.5 text-sm font-medium text-sky-700 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300 transition-colors"
+                >
+                  {link.label}
+                  <svg
+                    className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                </Link>
+              ))}
             </div>
 
-            {/* Features Grid */}
+            {/* Features Grid — gradient icon → solid + 단색 background */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-12 reveal">
               {features.map((feat, i) => (
                 <div
                   key={i}
-                  className={`reveal stagger-${i + 1} group p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-transparent hover:shadow-lg transition-all duration-300 cursor-default`}
+                  className={`reveal stagger-${i + 1} group p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors duration-200 cursor-default`}
                 >
-                  <div
-                    className={`w-10 h-10 rounded-xl bg-gradient-to-br ${feat.color} flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform duration-300`}
-                  >
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-lg mb-3">
                     {feat.icon}
                   </div>
                   <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm mb-1">

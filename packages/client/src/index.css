@@ -912,12 +912,12 @@ button:active:not(:disabled) {
   transform: scale(0.98);
 }
 
-/* Modern gradient text */
+/* Solid sapphire text — backward-compat name kept (.impeccable.md: gradient text 회피) */
 .gradient-text {
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #0369a1;
+}
+.dark .gradient-text {
+  color: #38bdf8;
 }
 
 /* ===== DESIGN SYSTEM ===== */
@@ -959,51 +959,53 @@ button:active:not(:disabled) {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Glass for dropdowns and modals */
+/* Solid surface for dropdowns/modals/cards (.impeccable.md: glassmorphic 회피).
+   기존 .glass-* 는 backdrop-filter 사용 — class 이름 호환성 위해 keep,
+   구현은 불투명 surface + border 로 변경. */
 .glass-dropdown {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(226, 232, 240, 0.6);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
 }
 .dark .glass-dropdown {
-  background: rgba(30, 41, 59, 0.9);
-  border-color: rgba(71, 85, 105, 0.5);
+  background: #1e293b;
+  border-color: #334155;
 }
 
 .glass-modal {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.18);
 }
 .dark .glass-modal {
-  background: rgba(30, 41, 59, 0.92);
-  border-color: rgba(71, 85, 105, 0.4);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 /* --- Gradient Accents --- */
+/* Solid sapphire button — backward-compat .btn-gradient name kept,
+   구현은 단색 sky-700 hover sky-800 (.impeccable.md: gradient 회피) */
 .btn-gradient {
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  background: #0369a1;
   color: white;
   transition:
+    background-color 0.15s ease,
     box-shadow 0.2s ease,
-    transform 0.15s ease;
+    transform 0.12s ease;
 }
 .btn-gradient:hover {
-  box-shadow: 0 4px 14px -2px rgba(99, 102, 241, 0.5);
-  transform: translateY(-1px);
+  background: #075985;
+  box-shadow: 0 4px 12px -2px rgba(3, 105, 161, 0.35);
 }
 .btn-gradient:active {
-  transform: translateY(0) scale(0.98);
+  transform: scale(0.98);
 }
 .dark .btn-gradient {
-  background: linear-gradient(135deg, #818cf8, #6366f1);
+  background: #0284c7;
 }
 .dark .btn-gradient:hover {
-  box-shadow: 0 4px 14px -2px rgba(129, 140, 248, 0.45);
+  background: #0369a1;
+  box-shadow: 0 4px 12px -2px rgba(2, 132, 199, 0.4);
 }
 
 /* Gradient text for section headers */
@@ -1765,16 +1767,14 @@ button:active:not(:disabled) {
     0 4px 12px -4px rgba(0, 0, 0, 0.25);
 }
 
-/* Glass morphism enhanced */
+/* Solid surface card — backward-compat .glass-card name kept */
 .glass-card {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
 }
 .dark .glass-card {
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #1e293b;
+  border-color: #334155;
 }
 
 /* Input focus animation */
