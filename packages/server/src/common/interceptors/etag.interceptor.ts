@@ -10,18 +10,20 @@ export class ETagInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((data) => {
-        const response = context.switchToHttp().getResponse();
+        if (data === undefined || data === null) return data;
         const body = JSON.stringify(data);
-        const etag = `"${createHash('md5').update(body).digest('hex')}"`;
+        if (typeof body !== 'string') return data;
 
+        const response = context.switchToHttp().getResponse();
+        if (response.headersSent) return data;
+
+        const etag = `"${createHash('md5').update(body).digest('hex')}"`;
         response.setHeader('ETag', etag);
 
-        const ifNoneMatch = request.headers['if-none-match'];
-        if (ifNoneMatch === etag) {
+        if (request.headers['if-none-match'] === etag) {
           response.status(304);
           return null;
         }
-
         return data;
       }),
     );

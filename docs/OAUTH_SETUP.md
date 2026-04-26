@@ -4,13 +4,14 @@
 
 ## 사전 준비
 
-| 항목 | 값 |
-|------|-----|
-| **백엔드 API URL** | `https://resume-api-mm0o.onrender.com` |
-| **프론트엔드 URL** | `https://resume-silk-three.vercel.app` |
-| **콜백 URL 패턴** | `{API_URL}/api/auth/{provider}/callback` |
+| 항목               | 값                                                        |
+| ------------------ | --------------------------------------------------------- |
+| **백엔드 API URL** | `https://resume-api-464016453534.asia-northeast3.run.app` |
+| **프론트엔드 URL** | `https://resume-gongbang.vercel.app`                      |
+| **콜백 URL 패턴**  | `{API_URL}/api/auth/{provider}/callback`                  |
+| **GCP 프로젝트**   | `resume-platform-prod` (project number `464016453534`)    |
 
-> 로컬 개발 시 `http://localhost:3001`을 사용합니다.
+> 로컬 개발 시 `http://localhost:3001`을 사용합니다. OAuth Client는 운영과 로컬 모두 같은 client를 공유 (redirect URI 두 개 등록).
 
 ---
 
@@ -40,10 +41,12 @@
 3. 이름: `Resume Platform`
 4. **승인된 리디렉션 URI** 추가:
    ```
-   https://resume-api-mm0o.onrender.com/api/auth/google/callback
+   https://resume-api-464016453534.asia-northeast3.run.app/api/auth/google/callback
    http://localhost:3001/api/auth/google/callback
    ```
 5. **만들기** → Client ID와 Client Secret 복사
+
+> ⚠️ OAuth Client는 반드시 `resume-platform-prod` 프로젝트에서 발급하세요. 다른 프로젝트(특히 미사용 프로젝트)에서 발급하면 그 프로젝트가 정리·삭제될 때 client가 같이 사라져 운영에서 `deleted_client` 에러가 발생합니다.
 
 ### 1-4. 환경변수 설정
 
@@ -63,10 +66,10 @@ GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxx
 2. **OAuth Apps** → **New OAuth App**
 3. 정보 입력:
    - Application name: `Resume Platform`
-   - Homepage URL: `https://resume-silk-three.vercel.app`
+   - Homepage URL: `https://resume-gongbang.vercel.app`
    - Authorization callback URL:
      ```
-     https://resume-api-mm0o.onrender.com/api/auth/github/callback
+     https://resume-api-464016453534.asia-northeast3.run.app/api/auth/github/callback
      ```
 4. **Register application**
 
@@ -101,7 +104,7 @@ GITHUB_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 1. 좌측 메뉴 → **카카오 로그인** → **활성화 설정** → **ON**
 2. **Redirect URI** 추가:
    ```
-   https://resume-api-mm0o.onrender.com/api/auth/kakao/callback
+   https://resume-api-464016453534.asia-northeast3.run.app/api/auth/kakao/callback
    http://localhost:3001/api/auth/kakao/callback
    ```
 
@@ -126,44 +129,52 @@ KAKAO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 ---
 
-## 4. Render.com 환경변수 설정 (운영)
+## 4. GCP Cloud Run 환경변수 설정 (운영)
 
-로컬 `.env`와 별개로, Render.com 대시보드에도 동일한 환경변수를 설정해야 합니다.
+로컬 `.env`와 별개로, Cloud Run의 `resume-api` 서비스에도 동일한 환경변수를 설정해야 합니다.
 
-1. [Render Dashboard](https://dashboard.render.com/) → resume-api 서비스 선택
-2. **Environment** 탭
-3. 다음 변수 추가:
+```bash
+gcloud run services update resume-api \
+  --region=asia-northeast3 \
+  --project=resume-platform-prod \
+  --update-env-vars 'GOOGLE_CLIENT_ID=...,GOOGLE_CLIENT_SECRET=...'
+```
 
-| Key | Value |
-|-----|-------|
-| `API_URL` | `https://resume-api-mm0o.onrender.com` |
-| `FRONTEND_URL` | `https://resume-silk-three.vercel.app` |
-| `JWT_SECRET` | (안전한 랜덤 문자열, 32자 이상) |
-| `GOOGLE_CLIENT_ID` | (Google에서 발급) |
-| `GOOGLE_CLIENT_SECRET` | (Google에서 발급) |
-| `GITHUB_CLIENT_ID` | (GitHub에서 발급) |
-| `GITHUB_CLIENT_SECRET` | (GitHub에서 발급) |
-| `KAKAO_CLIENT_ID` | (Kakao에서 발급) |
+> ⚠️ **`--set-env-vars` 금지**: 다른 환경변수가 모두 사라집니다. 반드시 `--update-env-vars` 사용 (메모리 `feedback_gcp_deploy_envvars` 참조).
 
-4. **Save Changes** → 서비스 자동 재배포
+| Key                    | Value                                                          |
+| ---------------------- | -------------------------------------------------------------- |
+| `API_URL`              | `https://resume-api-464016453534.asia-northeast3.run.app`      |
+| `FRONTEND_URL`         | `https://resume-gongbang.vercel.app`                           |
+| `ALLOWED_ORIGINS`      | `https://resume-gongbang.vercel.app` (콤마 구분으로 추가 가능) |
+| `JWT_SECRET`           | (안전한 랜덤 문자열, 32자 이상)                                |
+| `GOOGLE_CLIENT_ID`     | (Google에서 발급)                                              |
+| `GOOGLE_CLIENT_SECRET` | (Google에서 발급)                                              |
+| `GITHUB_CLIENT_ID`     | (GitHub에서 발급)                                              |
+| `GITHUB_CLIENT_SECRET` | (GitHub에서 발급)                                              |
+| `KAKAO_CLIENT_ID`      | (Kakao에서 발급)                                               |
+
+업데이트 직후 Cloud Run이 자동으로 새 revision을 배포합니다.
 
 ---
 
 ## 5. 동작 확인
 
-1. 프론트엔드 접속: `https://resume-silk-three.vercel.app/login`
+1. 프론트엔드 접속: `https://resume-gongbang.vercel.app/login`
 2. 각 소셜 로그인 버튼 클릭
 3. 인증 후 홈페이지로 리다이렉트되면 성공
 
 ### 트러블슈팅
 
-| 증상 | 원인 | 해결 |
-|------|------|------|
-| 로그인 버튼 클릭 후 빈 페이지 | OAuth 키 미설정 | `.env`에 키 추가 후 서버 재시작 |
-| `redirect_uri_mismatch` 에러 | 콜백 URL 불일치 | 프로바이더 콘솔에서 URL 정확히 일치시키기 |
-| `login?error=xxx_failed` 리다이렉트 | 토큰 교환 실패 | Client Secret 확인, API_URL 환경변수 확인 |
-| 로그인 후 홈으로 안 감 | FRONTEND_URL 미설정 | `.env`에 `FRONTEND_URL` 추가 |
-| Kakao 로그인만 실패 | 동의항목 미설정 | Kakao 콘솔에서 이메일 동의항목 필수로 설정 |
+| 증상                                | 원인                                        | 해결                                                                                    |
+| ----------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 로그인 버튼 클릭 후 빈 페이지       | OAuth 키 미설정                             | `.env`에 키 추가 후 서버 재시작                                                         |
+| `redirect_uri_mismatch` 에러        | 콜백 URL 불일치                             | 프로바이더 콘솔에서 URL 정확히 일치시키기                                               |
+| `login?error=xxx_failed` 리다이렉트 | 토큰 교환 실패                              | Client Secret 확인, API_URL 환경변수 확인                                               |
+| 로그인 후 홈으로 안 감              | FRONTEND_URL 미설정                         | `.env`에 `FRONTEND_URL` 추가                                                            |
+| Kakao 로그인만 실패                 | 동의항목 미설정                             | Kakao 콘솔에서 이메일 동의항목 필수로 설정                                              |
+| `액세스 차단됨: 401 deleted_client` | OAuth Client가 발급된 GCP 프로젝트가 삭제됨 | `resume-platform-prod`에서 OAuth Client 재발급 후 Cloud Run env 갱신                    |
+| `redirect_uri_mismatch` (운영만)    | Google Console에 운영 콜백 URL 미등록       | `https://resume-api-464016453534.asia-northeast3.run.app/api/auth/google/callback` 추가 |
 
 ---
 

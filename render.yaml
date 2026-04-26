@@ -1,4 +1,8 @@
-# Render Blueprint - 백엔드 API 서버
+# [DEPRECATED] Render Blueprint
+# 운영은 GCP Cloud Run으로 이전됨. (`pnpm deploy:gcp` 또는
+# `gcloud run deploy resume-api --source . --project resume-platform-prod --region asia-northeast3`)
+# 이 파일은 Render 회귀가 필요할 때를 위한 참고용으로 남아 있을 뿐이며,
+# 운영 도메인·환경변수는 Cloud Run 콘솔이 정답입니다.
 services:
   - type: web
     name: resume-api
@@ -14,11 +18,11 @@ services:
       - key: PORT
         value: "3001"
       - key: API_URL
-        value: https://resume-api-mm0o.onrender.com
+        value: https://resume-api-464016453534.asia-northeast3.run.app
       - key: FRONTEND_URL
-        value: https://resume-silk-three.vercel.app
+        value: https://resume-gongbang.vercel.app
       - key: ALLOWED_ORIGINS
-        value: https://resume-silk-three.vercel.app
+        value: https://resume-gongbang.vercel.app
       - key: JWT_SECRET
         sync: false  # 안전한 랜덤 문자열 (32자 이상)
       # OAuth - GitHub
