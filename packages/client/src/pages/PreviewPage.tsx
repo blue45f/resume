@@ -1209,6 +1209,7 @@ export default function PreviewPage() {
             <div className="flex items-center gap-1">
               <button
                 onClick={handleFitToWidth}
+                data-resume-toolbar-active={fitToWidth ? 'true' : 'false'}
                 className={`p-1.5 rounded-lg border transition-colors text-xs font-medium ${
                   fitToWidth
                     ? 'bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-400'

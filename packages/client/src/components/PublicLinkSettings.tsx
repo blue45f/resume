@@ -121,8 +121,8 @@ export default function PublicLinkSettings({
         )}
       </div>
 
-      {/* Short URL */}
-      <div className="mb-2 px-3 py-2 bg-sky-50 dark:bg-sky-900/20 rounded-lg border border-sky-200 dark:border-sky-800">
+      {/* Short URL — main[--preview-theme-accent] 컨텍스트에서 이력서 테마 색 따라감 */}
+      <div className="mb-2 px-3 py-2 bg-sky-50 dark:bg-sky-900/20 rounded-lg border border-sky-200 dark:border-sky-800 resume-theme-accent-soft-bg">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] text-sky-700 dark:text-sky-400 font-semibold uppercase tracking-[0.15em] mb-0.5">
