@@ -155,11 +155,12 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
               {resume.title || '제목 없음'}
             </div>
           </div>
-          {/* Circular progress indicator — grade-colored, hover shows top missing items */}
+          {/* Quick-look profile score (목록 카드 전용 lightweight metric).
+              상세 페이지의 "완성도"는 경력·학력·프로젝트까지 평가하므로 값이 다름. */}
           <div
             className="relative shrink-0 flex items-center justify-center"
-            title={`완성도 ${completion}% (${completionResult.score}/${completionResult.max}점)${missingHint}`}
-            aria-label={`완성도 ${completion}퍼센트, ${completionResult.missingItems.length}개 항목 미완성`}
+            title={`프로필 점수 ${completion}% (${completionResult.score}/${completionResult.max}점)\n— 목록용 빠른 점수입니다. 상세 페이지의 완성도는 모든 섹션을 평가합니다.${missingHint}`}
+            aria-label={`프로필 점수 ${completion}퍼센트, ${completionResult.missingItems.length}개 항목 미완성`}
           >
             <CircularProgress pct={completion} color={progressColor} />
             <span
@@ -315,8 +316,9 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
                 ? 'text-amber-600 dark:text-amber-400'
                 : 'text-red-500 dark:text-red-400'
           }`}
+          title="목록용 빠른 점수. 상세 페이지의 완성도는 별도 계산입니다."
         >
-          {completion >= 80 ? '✓ ' : ''}완성도 {completion}%
+          {completion >= 80 ? '✓ ' : ''}프로필 {completion}%
         </span>
       </div>
     </button>

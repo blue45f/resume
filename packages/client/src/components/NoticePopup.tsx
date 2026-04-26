@@ -12,22 +12,42 @@ interface Notice {
 const DISMISSED_KEY = 'dismissed_notices';
 const TODAY_KEY = 'dismissed_notices_today';
 
+/**
+ * "오늘 하루 보지 않기" 상태는 localStorage에 `{date, ids}` 형태로 저장.
+ * date가 오늘이 아니면 자동으로 만료된 것으로 간주.
+ *
+ * Safari private mode·iOS PWA 등에서 localStorage write가 실패해도 무한루프
+ * 없이 UI가 닫히도록 모든 접근을 try/catch로 감싸고, write 성공 여부를
+ * read-back으로 검증한다 (이전 운영 보고에서 dismiss가 적용 안 되는 사례).
+ */
 function getDismissedToday(): string[] {
   try {
-    const stored = JSON.parse(localStorage.getItem(TODAY_KEY) || '{}');
+    const raw = localStorage.getItem(TODAY_KEY);
+    if (!raw) return [];
+    const stored = JSON.parse(raw) as { date?: string; ids?: string[] };
     const today = new Date().toDateString();
-    return stored.date === today ? stored.ids || [] : [];
+    return stored.date === today && Array.isArray(stored.ids) ? stored.ids : [];
   } catch {
     return [];
   }
 }
 
-function setDismissedToday(id: string) {
-  const existing = getDismissedToday();
-  localStorage.setItem(
-    TODAY_KEY,
-    JSON.stringify({ date: new Date().toDateString(), ids: [...existing, id] }),
-  );
+function setDismissedToday(id: string): boolean {
+  try {
+    const existing = getDismissedToday();
+    if (existing.includes(id)) return true; // idempotent
+    const next = {
+      date: new Date().toDateString(),
+      ids: [...existing, id],
+    };
+    localStorage.setItem(TODAY_KEY, JSON.stringify(next));
+    // Read-back 검증: 어떤 환경(private mode 등)에서는 write가 silently fail.
+    const readBack = getDismissedToday();
+    return readBack.includes(id);
+  } catch (e) {
+    if (import.meta.env.DEV) console.warn('[NoticePopup] dismissToday persist failed:', e);
+    return false;
+  }
 }
 
 const TYPE_CONFIG: Record<string, { label: string; badge: string; border: string }> = {
@@ -79,7 +99,12 @@ export default function NoticePopup() {
   };
 
   const dismissToday = (id: string) => {
-    setDismissedToday(id);
+    const persisted = setDismissedToday(id);
+    if (!persisted && import.meta.env.DEV) {
+      // 이 환경에서 localStorage가 막혀 있으면 다음 새로고침 시 다시 표시될 것.
+      // 사용자에게 토스트로 안내해도 좋지만, 우선 dev 경고만 (운영에선 silent).
+      console.warn('[NoticePopup] "오늘 하루 보지 않기"가 저장되지 않았습니다.');
+    }
     dismiss(id);
   };
 
