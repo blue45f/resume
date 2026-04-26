@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { uploadAvatar, setPresetAvatar, deleteAvatar } from '@/lib/api';
+import { processImageForUpload } from '@/lib/imageProcess';
 import { toast } from '@/components/Toast';
 
 interface Props {
@@ -54,7 +55,9 @@ export default function AvatarEditor({ current, fallbackInitial, onChange, class
   const handleUpload = async (file: File) => {
     setBusy(true);
     try {
-      const res = await uploadAvatar(file);
+      // HEIC (iPhone 기본 포맷) → JPEG 변환 + 큰 파일 자동 압축
+      const processed = await processImageForUpload(file);
+      const res = await uploadAvatar(processed);
       onChange(res.avatar);
       setMode('view');
       toast('프로필 사진을 업데이트했습니다', 'success');
@@ -138,7 +141,7 @@ export default function AvatarEditor({ current, fallbackInitial, onChange, class
           <input
             ref={fileRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
+            accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif"
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) handleUpload(f);
