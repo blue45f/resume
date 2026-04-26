@@ -20,10 +20,10 @@ export default function ThemePreviewCard({
 
   return (
     <div
-      className={`group relative bg-white dark:bg-slate-800 rounded-xl border-2 overflow-hidden transition-all duration-200 cursor-pointer hover:shadow-lg hover:-translate-y-1 focus-within:ring-2 focus-within:ring-blue-500 ${
+      className={`group relative bg-white dark:bg-slate-800 rounded-xl overflow-hidden transition-all duration-200 cursor-pointer hover:shadow-lg hover:-translate-y-1 focus-within:outline focus-within:outline-2 focus-within:outline-blue-500 focus-within:outline-offset-2 outline ${
         selected
-          ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800 shadow-md'
-          : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600'
+          ? 'outline-2 outline-blue-500 outline-offset-2 shadow-md'
+          : 'outline-1 outline-slate-200 dark:outline-slate-700 hover:outline-blue-300 dark:hover:outline-blue-600'
       }`}
       onClick={onClick}
       role="button"

@@ -613,8 +613,8 @@ export default function Header() {
               <button
                 onClick={cycleTheme}
                 className="icon-btn-sm"
-                aria-label={`테마: ${themeLabel}`}
-                title={`테마: ${themeLabel}`}
+                aria-label={`테마: ${themeLabel} — 클릭해서 다음 모드로 (라이트 → 다크 → 자동(OS 설정) → 라이트)`}
+                title={`테마: ${themeLabel}\n클릭해서 다음 모드로 순환:\n라이트 → 다크 → 자동(OS 다크모드 설정 따름) → 라이트`}
               >
                 <span aria-hidden="true">{themeIcon}</span>
               </button>
