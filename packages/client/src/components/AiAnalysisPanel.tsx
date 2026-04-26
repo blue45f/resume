@@ -304,7 +304,7 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
 
                 {jobMatch && (
                   <>
-                    <div className="text-center p-5 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl">
+                    <div className="text-center p-5 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl">
                       <div className="text-4xl font-bold text-green-600">
                         {jobMatch.matchScore}%
                       </div>

@@ -63,7 +63,7 @@ export default function WhatsNewModal() {
           aria-label="새로운 기능 안내"
           className="fixed z-[101] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-lg bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl animate-fade-in-up overflow-hidden max-h-[90dvh] focus:outline-none flex flex-col"
         >
-          <div className="relative px-6 pt-6 pb-4 bg-gradient-to-br from-blue-600 via-sky-600 to-cyan-600 text-white">
+          <div className="relative px-6 pt-6 pb-4 bg-sky-700 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">

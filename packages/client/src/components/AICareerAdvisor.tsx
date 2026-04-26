@@ -275,7 +275,7 @@ export default function AICareerAdvisor({ resume }: Props) {
           style={{ maxHeight: 'min(70vh, 500px)' }}
         >
           {/* Header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-blue-500 to-sky-600 text-white flex items-center justify-between shrink-0">
+          <div className="px-4 py-3 bg-sky-700 text-white flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

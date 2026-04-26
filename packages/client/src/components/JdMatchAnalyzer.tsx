@@ -182,7 +182,7 @@ function SkillsVenn({ skillsGap }: { skillsGap: SkillsGap }) {
         </div>
         <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-700"
+            className="h-full bg-emerald-500 rounded-full transition-all duration-700"
             style={{
               width: `${skillsGap.requiredSkills.length > 0 ? (skillsGap.overlap.length / skillsGap.requiredSkills.length) * 100 : 0}%`,
             }}
