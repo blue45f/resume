@@ -415,7 +415,7 @@ export default function SettingsPage() {
       >
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-5">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+          <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
             {tx('nav.settings')}
           </h1>
           <button

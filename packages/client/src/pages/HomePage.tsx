@@ -1167,7 +1167,7 @@ export default function HomePage() {
         ) : (
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+              <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {t('home.myResumes')} ({filtered.length})
               </h1>
             </div>

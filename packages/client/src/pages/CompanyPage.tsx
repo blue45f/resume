@@ -604,7 +604,7 @@ export default function CompanyPage() {
               {companyName.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+              <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {companyName}
               </h1>
               {companyUser?.companyName && companyUser.companyName !== companyName && (

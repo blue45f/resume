@@ -358,7 +358,7 @@ export default function ScoutsPage() {
       >
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+            <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
               {t('page.scouts')}
               {unreadCount > 0 && (
                 <span className="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded-full">

@@ -209,7 +209,7 @@ export default function StudyGroupDetailPage() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+                <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {group.name}
                 </h1>
                 {group.isPrivate && (

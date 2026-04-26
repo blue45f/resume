@@ -211,7 +211,7 @@ export default function JobPostPage() {
         role="main"
       >
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+          <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
             {copyFromId ? `${tx('jobs.title')} — ${tx('common.copy')}` : tx('jobs.title')}
           </h1>
           <button

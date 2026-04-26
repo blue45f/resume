@@ -193,7 +193,7 @@ export default function CoachDetailPage() {
                   </div>
                 )}
                 <div className="flex-1">
-                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+                  <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
                     {name}
                   </h1>
                   <p className="text-sm text-blue-700 dark:text-blue-400 font-medium mt-0.5">

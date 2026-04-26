@@ -143,7 +143,7 @@ export default function CoachingSessionsPage() {
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+            <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
               {tx('coach.sessions')}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">

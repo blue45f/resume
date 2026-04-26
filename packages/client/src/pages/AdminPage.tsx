@@ -184,7 +184,7 @@ export default function AdminPage() {
         role="main"
       >
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+          <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
             {tx('nav.admin')} · {tx('admin.dashboard')}
           </h1>
           <div className="flex items-center gap-2">

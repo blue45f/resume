@@ -201,7 +201,7 @@ export default function MockInterviewPage() {
       <main id="main-content" className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Title */}
         <div className="mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+          <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
             {t('interview.mock')}
           </h1>
           {company && position ? (
