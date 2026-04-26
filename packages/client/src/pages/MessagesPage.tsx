@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import EmptyState from '@/components/EmptyState';
 import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog';
+import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog';
 import { toast } from '@/components/Toast';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
@@ -116,6 +117,7 @@ export default function MessagesPage() {
   const [messageSearch, setMessageSearch] = useState('');
   const [showMessageSearch, setShowMessageSearch] = useState(false);
   const [shareInChatOpen, setShareInChatOpen] = useState(false);
+  const [coffeeChatOpen, setCoffeeChatOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('전체');
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(loadPinned);
   const [messageReactions, setMessageReactions] = useState<Record<string, string[]>>({});
@@ -537,6 +539,14 @@ export default function MessagesPage() {
                         </svg>
                       </button>
                       <button
+                        onClick={() => setCoffeeChatOpen(true)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                        title={`${selectedConv?.partner.name || '상대'}와 커피챗 신청`}
+                        aria-label="커피챗 신청"
+                      >
+                        <span className="text-base leading-none">☕</span>
+                      </button>
+                      <button
                         onClick={() => setShowMessageSearch(!showMessageSearch)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                         title="대화 내 검색"
@@ -948,6 +958,14 @@ export default function MessagesPage() {
           targetUserId={selectedConv.partner.id}
           targetUserName={selectedConv.partner.name || '상대'}
           context="general"
+        />
+      )}
+      {selectedConv?.partner.id && (
+        <CoffeeChatRequestDialog
+          open={coffeeChatOpen}
+          onOpenChange={setCoffeeChatOpen}
+          hostId={selectedConv.partner.id}
+          hostName={selectedConv.partner.name || '상대'}
         />
       )}
     </>

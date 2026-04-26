@@ -18,6 +18,7 @@ import { timeAgo } from '@/lib/time';
 import { toast } from '@/components/Toast';
 import SendMessageButton from '@/components/SendMessageButton';
 import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog';
+import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { useScouts, useSentScouts } from '@/hooks/useResources';
 
@@ -136,6 +137,7 @@ export default function ScoutsPage() {
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [shareScoutOpen, setShareScoutOpen] = useState(false);
+  const [coffeeScoutOpen, setCoffeeScoutOpen] = useState(false);
 
   // Bulk scout
   const [bulkMode, setBulkMode] = useState(false);
@@ -938,6 +940,14 @@ export default function ScoutsPage() {
                           </svg>
                           이력서 공유
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => setCoffeeScoutOpen(true)}
+                          className="px-4 py-2 border border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-300 text-sm font-medium rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors inline-flex items-center gap-1.5"
+                          title={`${selected.sender.name}님과 커피챗 신청`}
+                        >
+                          ☕ 커피챗
+                        </button>
                         {(!selected.status || selected.status === 'pending') && (
                           <>
                             <button
@@ -977,13 +987,22 @@ export default function ScoutsPage() {
       </main>
       <Footer />
       {selected && tab === 'received' && selected.sender?.id && (
-        <ShareResumeWithUserDialog
-          open={shareScoutOpen}
-          onOpenChange={setShareScoutOpen}
-          targetUserId={selected.sender.id}
-          targetUserName={selected.sender.name || '리쿠르터'}
-          context="recruiter"
-        />
+        <>
+          <ShareResumeWithUserDialog
+            open={shareScoutOpen}
+            onOpenChange={setShareScoutOpen}
+            targetUserId={selected.sender.id}
+            targetUserName={selected.sender.name || '리쿠르터'}
+            context="recruiter"
+          />
+          <CoffeeChatRequestDialog
+            open={coffeeScoutOpen}
+            onOpenChange={setCoffeeScoutOpen}
+            hostId={selected.sender.id}
+            hostName={selected.sender.name || '리쿠르터'}
+            defaultTopic={selected.position || ''}
+          />
+        </>
       )}
     </>
   );
