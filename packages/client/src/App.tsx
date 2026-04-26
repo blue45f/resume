@@ -89,6 +89,8 @@ const CoachDetailPage = lazyRetry(() => import('@/pages/CoachDetailPage'));
 const CoachingSessionsPage = lazyRetry(() => import('@/pages/CoachingSessionsPage'));
 const CoachProfileEditPage = lazyRetry(() => import('@/pages/CoachProfileEditPage'));
 const CoachDashboardPage = lazyRetry(() => import('@/pages/CoachDashboardPage'));
+const CoffeeChatsPage = lazyRetry(() => import('@/pages/CoffeeChatsPage'));
+const CoffeeChatRoomPage = lazyRetry(() => import('@/pages/CoffeeChatRoomPage'));
 
 function PageLoader() {
   // flex-1 (not min-h-screen) so the loader participates in the app shell's
@@ -545,6 +547,26 @@ export default function App() {
                   element={
                     <Suspense fallback={<PageLoader />}>
                       <CoachesPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/coffee-chats"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <CoffeeChatsPage />
+                      </AuthGuard>
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/coffee-chats/:id/room"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AuthGuard>
+                        <CoffeeChatRoomPage />
+                      </AuthGuard>
                     </Suspense>
                   }
                 />

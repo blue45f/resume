@@ -73,6 +73,10 @@ model User {
   jobQuestionVotes        JobInterviewQuestionVote[] @relation("JobQuestionVoter")
   grantedResumeAccess     ResumeViewer[]             @relation("ResumeViewerGranter")
   receivedResumeAccess    ResumeViewer[]             @relation("ResumeViewerRecipient")
+  hostedCoffeeChats       CoffeeChat[]               @relation("CoffeeChatHost")
+  requestedCoffeeChats    CoffeeChat[]               @relation("CoffeeChatRequester")
+  sentWebrtcSignals       WebrtcSignal[]             @relation("WebrtcSignalFrom")
+  receivedWebrtcSignals   WebrtcSignal[]             @relation("WebrtcSignalTo")
 
   @@unique([provider, providerId])
   @@map("users")
@@ -145,6 +149,54 @@ model ResumeViewer {
   @@index([resumeId])
   @@index([expiresAt])
   @@map("resume_viewers")
+}
+
+/// 커피챗 — 가벼운 1:1 만남 신청. 코치/리쿠르터/시니어 등에게 30분 정도 대화 요청.
+/// 수락 시 WebRTC 음성/화상 통화 가능 (서버는 signaling 만, 미디어는 P2P).
+model CoffeeChat {
+  id          String    @id @default(uuid())
+  hostId      String    @map("host_id")
+  requesterId String    @map("requester_id")
+  /// pending | accepted | rejected | completed | cancelled
+  status      String    @default("pending")
+  scheduledAt DateTime? @map("scheduled_at")
+  durationMin Int       @default(30) @map("duration_min")
+  topic       String    @default("")
+  message     String    @default("") @db.Text
+  /// voice | video | chat
+  modality    String    @default("video")
+  /// WebRTC room ID — accepted 시 자동 발급
+  roomId      String?   @map("room_id")
+  hostNote    String    @default("") @db.Text @map("host_note")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  host      User @relation("CoffeeChatHost", fields: [hostId], references: [id], onDelete: Cascade)
+  requester User @relation("CoffeeChatRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+
+  @@index([hostId, status])
+  @@index([requesterId, status])
+  @@index([roomId])
+  @@map("coffee_chats")
+}
+
+/// WebRTC 시그널링 메시지 — offer/answer/ICE candidate 임시 큐.
+/// 30초 후 자동 정리 (cron). 서버는 메시지 전달만 — 미디어는 client-to-client.
+model WebrtcSignal {
+  id         String   @id @default(uuid())
+  roomId     String   @map("room_id")
+  fromUserId String   @map("from_user_id")
+  toUserId   String   @map("to_user_id")
+  /// offer | answer | ice | bye
+  type       String
+  payload    String   @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  fromUser User @relation("WebrtcSignalFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("WebrtcSignalTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([toUserId, roomId, createdAt])
+  @@map("webrtc_signals")
 }
 
 /// 채용공고 URL 파싱 결과 캐시 — 동일 URL 재요청 시 외부 fetch + LLM 호출 절감.

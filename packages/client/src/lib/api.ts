@@ -673,6 +673,80 @@ export const setPresetAvatar = (avatar: string) =>
   });
 export const deleteAvatar = () =>
   request<{ avatar: string }>(`${BASE}/auth/avatar`, { method: 'DELETE' });
+
+// ── 커피챗 ──────────────────────────────────────────────
+export interface CoffeeChat {
+  id: string;
+  hostId: string;
+  requesterId: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
+  scheduledAt: string | null;
+  durationMin: number;
+  topic: string;
+  message: string;
+  modality: 'voice' | 'video' | 'chat';
+  roomId: string | null;
+  hostNote: string;
+  createdAt: string;
+  updatedAt: string;
+  host: { id: string; name: string; username: string; avatar: string };
+  requester: { id: string; name: string; username: string; avatar: string };
+}
+
+export const requestCoffeeChat = (body: {
+  hostId: string;
+  message?: string;
+  topic?: string;
+  modality?: 'voice' | 'video' | 'chat';
+  durationMin?: number;
+  scheduledAt?: string | null;
+}) =>
+  request<CoffeeChat>(`${BASE}/coffee-chats`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
+export const fetchCoffeeChats = (role: 'sent' | 'received' | 'all' = 'all', status?: string) => {
+  const params = new URLSearchParams({ role });
+  if (status) params.set('status', status);
+  return request<CoffeeChat[]>(`${BASE}/coffee-chats?${params.toString()}`);
+};
+
+export const fetchCoffeeChat = (id: string) => request<CoffeeChat>(`${BASE}/coffee-chats/${id}`);
+
+export const respondCoffeeChat = (id: string, decision: 'accepted' | 'rejected', note?: string) =>
+  request<CoffeeChat>(`${BASE}/coffee-chats/${id}/respond`, {
+    method: 'PATCH',
+    body: JSON.stringify({ decision, note }),
+  });
+
+export const cancelCoffeeChat = (id: string) =>
+  request<CoffeeChat>(`${BASE}/coffee-chats/${id}`, { method: 'DELETE' });
+
+export const completeCoffeeChat = (id: string) =>
+  request<CoffeeChat>(`${BASE}/coffee-chats/${id}/complete`, { method: 'PATCH' });
+
+export interface WebrtcSignal {
+  id: string;
+  type: 'offer' | 'answer' | 'ice' | 'bye';
+  fromUserId: string;
+  payload: unknown;
+  createdAt: string;
+}
+
+export const sendWebrtcSignal = (body: {
+  roomId: string;
+  toUserId: string;
+  type: 'offer' | 'answer' | 'ice' | 'bye';
+  payload: unknown;
+}) =>
+  request<{ id: string }>(`${BASE}/coffee-chats/signal`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
+export const drainWebrtcSignals = (roomId: string) =>
+  request<WebrtcSignal[]>(`${BASE}/coffee-chats/signal/${roomId}/poll`);
 export const fetchAdminUsers = (search?: string) => {
   const qs = search ? `?search=${encodeURIComponent(search)}` : '';
   return request<any[]>(`${BASE}/auth/admin/users${qs}`);

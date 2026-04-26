@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog';
+import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog';
 import { bookCoachingSession, type CoachProfile } from '@/lib/api';
 import { useCoach, useResumes } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
@@ -41,6 +42,7 @@ export default function CoachDetailPage() {
     : null;
   const user = getUser();
   const [shareOpen, setShareOpen] = useState(false);
+  const [coffeeChatOpen, setCoffeeChatOpen] = useState(false);
 
   const {
     register,
@@ -251,32 +253,26 @@ export default function CoachDetailPage() {
 
               {/* 1-click 이력서 공유 — 매칭 요청 전 코치에게 미리 보여주기 */}
               {user && coach.user?.id && user.id !== coach.user.id && (
-                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/60 flex flex-col gap-2">
                   <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    매칭 요청 전 코치에게 이력서를 미리 보여주면 더 정확한 견적과 답변을 받을 수
-                    있어요.
+                    매칭 요청 전에 이력서를 공유하거나, 가벼운 커피챗으로 먼저 대화해보세요.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setShareOpen(true)}
-                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                  >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShareOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                      />
-                    </svg>
-                    내 이력서 공유
-                  </button>
+                      📨 내 이력서 공유
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCoffeeChatOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                    >
+                      ☕ 커피챗 신청
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -490,6 +486,15 @@ export default function CoachDetailPage() {
           targetUserId={coach.user.id}
           targetUserName={name}
           context="coach"
+        />
+      )}
+      {coach.user?.id && (
+        <CoffeeChatRequestDialog
+          open={coffeeChatOpen}
+          onOpenChange={setCoffeeChatOpen}
+          hostId={coach.user.id}
+          hostName={name}
+          defaultTopic={coach.specialty || ''}
         />
       )}
     </>
