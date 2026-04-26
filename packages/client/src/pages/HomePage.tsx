@@ -1063,11 +1063,11 @@ export default function HomePage() {
             </div>
 
             {/* Feature highlights — solid surface + sapphire accent (emoji 카드 정리) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+            <div className="stagger-children grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
               {highlights.map((f, i) => (
                 <div
                   key={f.title}
-                  className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 animate-fade-in-up overflow-hidden"
+                  className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 overflow-hidden"
                 >
                   <div
                     aria-hidden="true"
@@ -1118,11 +1118,11 @@ export default function HomePage() {
             </div>
 
             {/* Features Grid — gradient icon → solid + 단색 background */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-12 reveal">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-12">
               {features.map((feat, i) => (
                 <div
                   key={i}
-                  className={`reveal stagger-${i + 1} group p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors duration-200 cursor-default`}
+                  className="group p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors duration-200 cursor-default"
                 >
                   <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-lg mb-3">
                     {feat.icon}
@@ -1142,11 +1142,11 @@ export default function HomePage() {
               <h2 className="text-xl font-bold text-center text-slate-800 dark:text-slate-200 mb-8">
                 {socialProofTitle}
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {testimonials.map((review, i) => (
                   <div
                     key={i}
-                    className={`reveal stagger-${i + 1} p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700`}
+                    className="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
                   >
                     <div className="flex gap-0.5 mb-2">
                       {Array.from({ length: review.stars }).map((_, j) => (
