@@ -96,23 +96,48 @@ const featureIcons = {
 const DEFAULT_FEATURES = [
   {
     emoji: '📄',
-    title: '이력서 관리',
-    desc: '9개 섹션(경력, 학력, 기술, 프로젝트 등)을 체계적으로 관리. 부서, 성과, 기술 스택까지 상세 기록.',
+    title: '이력서 관리 + 버전 비교',
+    desc: '9개 섹션을 체계적으로 관리. 자동 버전 스냅샷 + Myers diff 로 두 버전 word-level 비교.',
   },
   {
     emoji: '🤖',
-    title: 'AI 양식 변환',
-    desc: '무료 AI(Gemini, Groq)로 표준 이력서, 경력기술서, 자기소개서, LinkedIn 등 8가지 양식으로 변환.',
+    title: 'AI 자동 생성 + 양식 변환',
+    desc: '무료 AI 로 PDF/DOCX/이미지/텍스트 → 구조화 이력서. 8가지 양식 변환 (LinkedIn, 경력기술서 등).',
   },
   {
     emoji: '🔗',
-    title: '공유 & 공개',
-    desc: '비밀번호 보호 공유 링크, 만료 시간 설정. 공개 이력서는 탐색 페이지에서 검색 가능.',
+    title: '4가지 공개 모드',
+    desc: '비공개 / 공개 / 링크만 공개 / **선택 사용자만** (whitelist + 만료 + 알림). 코치·헤드헌터에 1:1 공유.',
   },
   {
-    emoji: '🕐',
-    title: '버전 관리',
-    desc: '수정할 때마다 자동 스냅샷. 실수로 삭제해도 이전 버전으로 복원 가능.',
+    emoji: '🔍',
+    title: '채용공고 URL 자동 파싱',
+    desc: '원티드/잡코리아/사람인 등 URL 만 붙여넣으면 회사·포지션·요구사항 자동 채움. JSON-LD + AI fallback.',
+  },
+  {
+    emoji: '📸',
+    title: 'PDF/이미지 OCR',
+    desc: '기존 종이 이력서 사진/PDF 만 업로드하면 Gemini Vision 으로 텍스트 추출 → AI 가 구조화 이력서로.',
+  },
+  {
+    emoji: '☕',
+    title: '커피챗 + WebRTC 통화',
+    desc: '코치/시니어와 1:1 만남 신청 → 브라우저 P2P 음성·화상 통화 (서버 거치지 않음).',
+  },
+  {
+    emoji: '🎤',
+    title: '모의 면접 + AI 분석',
+    desc: '카메라 녹화 + 답변 자동 채점 (STAR 구조/필러/정량). LLM 심층 분석으로 강점·약점·리라이트 답변.',
+  },
+  {
+    emoji: '💡',
+    title: '주간 AI 코칭',
+    desc: '매주 일요일 이력서 분석 → 가장 영향 큰 개선 1개 알림. Pro 플랜은 LLM 개인화 nudge.',
+  },
+  {
+    emoji: '🎨',
+    title: '프로필 아바타',
+    desc: 'Cloudinary 업로드 (face crop) + Dicebear 12 preset + HEIC/큰 이미지 자동 변환·압축.',
   },
   {
     emoji: '🏷️',
@@ -121,18 +146,13 @@ const DEFAULT_FEATURES = [
   },
   {
     emoji: '📎',
-    title: '첨부파일',
-    desc: 'PDF, 이미지, 문서 파일 첨부. 포트폴리오, 자격증 등을 함께 관리.',
+    title: '첨부파일 + 자기소개서',
+    desc: 'PDF/이미지/문서 첨부. 자기소개서 별도 관리 + 채용공고 URL 기반 prefill.',
   },
   {
     emoji: '🔐',
-    title: '소셜 로그인',
-    desc: 'Google, GitHub, Kakao 계정으로 간편 로그인. 비로그인으로도 사용 가능.',
-  },
-  {
-    emoji: '🖨️',
-    title: 'PDF/인쇄',
-    desc: '미리보기 페이지에서 브라우저 인쇄 기능으로 깔끔한 PDF 저장.',
+    title: '소셜 로그인 + i18n',
+    desc: 'Google/GitHub/Kakao 간편 로그인. 한국어/영어/일본어 UI.',
   },
 ];
 
