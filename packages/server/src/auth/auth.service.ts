@@ -719,6 +719,85 @@ export class AuthService {
     await this.prisma.user.delete({ where: { id: userId } });
   }
 
+  // ──────── 프로필 아바타 ────────
+
+  /** Cloudinary 업로드 (설정 시) 또는 base64 data URL fallback. 5MB 제한, 이미지 mime 만. */
+  async uploadAvatar(userId: string, file: Express.Multer.File): Promise<{ avatar: string }> {
+    if (!file?.buffer) throw new Error('파일 데이터가 없습니다');
+    if (!/^image\/(jpe?g|png|webp|gif)$/i.test(file.mimetype || '')) {
+      throw new Error('이미지 파일만 업로드할 수 있습니다 (JPG/PNG/WEBP/GIF)');
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('이미지 크기는 5MB 이하여야 합니다');
+    }
+
+    const cloudName = this.config.get<string>('CLOUDINARY_CLOUD_NAME');
+    const apiKey = this.config.get<string>('CLOUDINARY_API_KEY');
+    const apiSecret = this.config.get<string>('CLOUDINARY_API_SECRET');
+
+    let avatarUrl: string;
+    if (cloudName && apiKey && apiSecret) {
+      // 동적 import — cloudinary 패키지는 attachments.service 가 이미 import 하므로 lazy 로 가져오기.
+      const { v2: cloudinary } = await import('cloudinary');
+      cloudinary.config({
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
+        secure: true,
+      });
+      const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            resource_type: 'image',
+            folder: `avatars/${userId}`,
+            // 자동 face crop + 256x256 — 프로필 사진 최적화
+            transformation: [
+              { width: 256, height: 256, gravity: 'face', crop: 'fill' },
+              { quality: 'auto', fetch_format: 'auto' },
+            ],
+            overwrite: true,
+            invalidate: true,
+          },
+          (err, res) => (err ? reject(err) : resolve(res as { secure_url: string })),
+        );
+        stream.end(file.buffer);
+      });
+      avatarUrl = result.secure_url;
+    } else {
+      // Cloudinary 미설정 시: data URL 폴백 (개발/소규모 환경)
+      avatarUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+    }
+
+    await this.prisma.user.update({ where: { id: userId }, data: { avatar: avatarUrl } });
+    return { avatar: avatarUrl };
+  }
+
+  /**
+   * Preset 아바타 URL 설정 — Dicebear / 기타 외부 호스팅 URL 만 허용 (XSS / SSRF 방지).
+   * Whitelist 도메인 외 URL 거부.
+   */
+  async setPresetAvatar(userId: string, avatar: string): Promise<{ avatar: string }> {
+    if (!avatar) throw new Error('아바타 URL 이 필요합니다');
+    const allowed = [
+      /^https:\/\/api\.dicebear\.com\//,
+      /^https:\/\/res\.cloudinary\.com\//,
+      /^https:\/\/lh\d\.googleusercontent\.com\//, // Google OAuth avatar
+      /^https:\/\/avatars\.githubusercontent\.com\//, // GitHub OAuth avatar
+    ];
+    if (!allowed.some((re) => re.test(avatar))) {
+      throw new Error('허용되지 않는 아바타 URL 입니다');
+    }
+    if (avatar.length > 500) throw new Error('아바타 URL 이 너무 깁니다');
+    await this.prisma.user.update({ where: { id: userId }, data: { avatar } });
+    return { avatar };
+  }
+
+  /** 아바타 제거 — empty string 으로 설정 (이니셜 fallback UI 으로 복귀). */
+  async deleteAvatar(userId: string): Promise<{ avatar: string }> {
+    await this.prisma.user.update({ where: { id: userId }, data: { avatar: '' } });
+    return { avatar: '' };
+  }
+
   async login(email: string, password: string): Promise<string> {
     if (!email || !password) {
       throw new UnauthorizedException('이메일과 비밀번호를 입력해주세요');

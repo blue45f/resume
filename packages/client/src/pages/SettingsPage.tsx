@@ -6,6 +6,7 @@ import { z } from 'zod';
 import * as RadixAlertDialog from '@radix-ui/react-alert-dialog';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import AvatarEditor from '@/components/AvatarEditor';
 import { toast } from '@/components/Toast';
 import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
@@ -509,18 +510,20 @@ export default function SettingsPage() {
           open={openSections.has('sec-profile')}
           onToggle={() => toggleSection('sec-profile')}
         >
+          <div className="mb-4">
+            <AvatarEditor
+              current={user.avatar || ''}
+              fallbackInitial={(user.name || user.email || '?')[0].toUpperCase()}
+              onChange={(newAvatar) => {
+                // user state 업데이트 (auth.ts saveUser 통해 localStorage 동기화)
+                const updated = { ...user, avatar: newAvatar };
+                localStorage.setItem('user', JSON.stringify(updated));
+                window.location.reload();
+              }}
+            />
+          </div>
           <div className="flex items-start gap-4">
-            {user.avatar ? (
-              <img
-                src={user.avatar}
-                alt=""
-                className="w-16 h-16 rounded-full border-2 border-slate-200 dark:border-slate-600 shrink-0"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-sky-500 flex items-center justify-center text-white text-xl font-bold shrink-0">
-                {(user.name || user.email || '?')[0].toUpperCase()}
-              </div>
-            )}
+            <div className="w-16 shrink-0" aria-hidden="true" />
             <div className="flex-1 min-w-0">
               {/* 이름 편집 */}
               {editingName ? (

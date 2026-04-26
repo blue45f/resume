@@ -649,6 +649,30 @@ export const updateProfile = (data: {
 }) => request<any>(`${BASE}/auth/profile`, { method: 'PATCH', body: JSON.stringify(data) });
 export const fetchProfile = () => request<any>(`${BASE}/auth/me`);
 export const fetchLinkedAccounts = () => request<any>(`${BASE}/auth/linked-accounts`);
+
+// ── 프로필 아바타 ───────────────────────────────────────
+export const uploadAvatar = async (file: File): Promise<{ avatar: string }> => {
+  const token = localStorage.getItem('token');
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${BASE}/auth/avatar`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: '업로드 실패' }));
+    throw new Error(err.message || '업로드 실패');
+  }
+  return res.json();
+};
+export const setPresetAvatar = (avatar: string) =>
+  request<{ avatar: string }>(`${BASE}/auth/avatar/preset`, {
+    method: 'PATCH',
+    body: JSON.stringify({ avatar }),
+  });
+export const deleteAvatar = () =>
+  request<{ avatar: string }>(`${BASE}/auth/avatar`, { method: 'DELETE' });
 export const fetchAdminUsers = (search?: string) => {
   const qs = search ? `?search=${encodeURIComponent(search)}` : '';
   return request<any[]>(`${BASE}/auth/admin/users${qs}`);

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -9,8 +10,12 @@ import {
   Req,
   Body,
   Param,
+  UnauthorizedException,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
@@ -327,6 +332,29 @@ export class AuthController {
   getProfile(@Req() req: any) {
     if (!req.user) return null;
     return this.authService.getProfile(req.user.id);
+  }
+
+  @Post('avatar')
+  @ApiOperation({ summary: '프로필 이미지 업로드 (Cloudinary, 최대 5MB)' })
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  async uploadAvatar(@UploadedFile() file: Express.Multer.File, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    if (!file) throw new BadRequestException('파일이 필요합니다');
+    return this.authService.uploadAvatar(req.user.id, file);
+  }
+
+  @Patch('avatar/preset')
+  @ApiOperation({ summary: '프로필 preset 아바타 선택 (URL 직접 지정)' })
+  async setPresetAvatar(@Body('avatar') avatar: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.authService.setPresetAvatar(req.user.id, avatar);
+  }
+
+  @Delete('avatar')
+  @ApiOperation({ summary: '프로필 이미지 삭제 (이니셜 fallback 으로 복귀)' })
+  async deleteAvatar(@Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.authService.deleteAvatar(req.user.id);
   }
 
   @Patch('profile')
