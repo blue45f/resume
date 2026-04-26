@@ -82,12 +82,21 @@ pnpm deploy:gcp           # Cloud Run 배포
 - ✅ **성능** — `useDeferredValue` (타이핑 레이턴시 보호) + `memoizeByText` (scoreSpecificity/detectMissingResumeSections 중복 호출 제거)
 - ✅ **AI 리라이트** — `UnquantifiedClaimsRewritePanel` 로 `inline-assist: quantify` 엔드포인트 연결, 문장 단위 수치 보강 + 복사
 
-다음 사이클 후보(BENCHMARK.md §4):
+2026-04-26~27 사이클 — BENCHMARK.md §4 의 3개 gap + 추가 feature 모두 해결:
 
-- Peer Review 커뮤니티 "이력서 봐주세요" 카테고리 정착 (ReportButton 인프라 재활용)
-- 채용공고 URL 붙여넣기 → 자동 파싱 (원티드/잡코리아 계약 없이 대체)
-- PDF/이미지 OCR 한계 개선
+- ✅ **Peer Review** — HomePage '🙋 피드백 받기' CTA → `/community/write?category=resume&body=...` 템플릿 prefill. 기존 community 의 `resume` 카테고리 진입점 확보.
+- ✅ **채용공고 URL 자동 파싱** — `POST /api/jobs/parse-url` (JSON-LD JobPosting → OG → LLM fallback, 24h DB 캐시, 6 req/min throttle, SSRF 차단). 한국 사이트(원티드/잡코리아/사람인/점핏/프로그래머스/로켓펀치/그리팅) 자동 감지.
+- ✅ **PDF/이미지 OCR** — `FileTextExtractorService`: PDF (pdf-parse) / DOCX (mammoth) / TXT / RTF / **이미지(.jpg/.png/.webp via Gemini Vision)** 모두 지원. AutoGeneratePage 파일 업로드 흐름 server side 완성.
+- ✅ **선택 공개 (selective)** — `Resume.visibility="selective"` + `ResumeViewer` 화이트리스트 (expiresAt/message/lastViewedAt/viewCount). 진입점 4종: EditResume / CoachDetail / Scouts / Messages. 알림 자동 발송 + view 시 owner 알림.
+- ✅ **JobUrlInput 통합** — CoverLetter / Applications / JobPost / AutoGenerate 4개 페이지에서 URL 붙여넣기 → 폼 자동 채우기.
+
+다음 사이클 후보:
+
+- 스캔 PDF: PDF → 페이지별 이미지 변환 후 Vision OCR (poppler 시스템 deps 필요)
+- 모바일 UX 종합 audit (사진 업로드 flow / 필터 UX)
+- ResumeViewer 만료 자동 정리 cron (운영 hygiene)
+- 영어/일본어 i18n 신규 컴포넌트 (SharedWithMe / AllowedViewers / JobUrlInput / ShareResumeWithUserDialog)
 
 ---
 
-작성일: 2026-04-20 · 최근 갱신: 이 세션
+작성일: 2026-04-20 · 최근 갱신: 2026-04-27
