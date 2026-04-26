@@ -398,23 +398,16 @@ export class ResumesService {
     };
   }
 
-  async findBySlug(username: string, slug: string) {
-    // 사용자 username (handle) 미설정 시 fallback: name 으로도 매칭 (대소문자 무관, 공백 정규화).
-    // 클라이언트 PublicLinkSettings 는 user.name 또는 user.username 을 URL 에 사용하므로
-    // backend 도 양쪽 모두 받아 404 회피.
-    const decoded = decodeURIComponent(username || '').trim();
-    const user = await this.prisma.user.findFirst({
-      where: { OR: [{ username: decoded }, { name: decoded }] },
-    });
-    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다');
+  async findBySlug(_username: string, slug: string) {
+    // slug 는 site-wide unique (updateSlug 에서 검증). username (URL path 의 @handle)
+    // 은 user.username, user.name, resume.personalInfo.name 셋 중 어느 것일지 클라이언트
+    // PublicLinkSettings 의 fallback 체인 때문에 일관 보장이 어렵다 — slug 자체가 unique
+    // 하므로 username 무관하게 slug + visibility 만으로 lookup 한다.
     const resume = await this.prisma.resume.findFirst({
-      where: { userId: user.id, slug },
+      where: { slug, visibility: { not: 'private' } },
       include: FULL_INCLUDE,
     });
     if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
-    if (resume.visibility === 'private') {
-      throw new NotFoundException('이력서를 찾을 수 없습니다');
-    }
     // 조회수 증가 (비동기, 에러 무시)
     this.prisma.resume
       .update({ where: { id: resume.id }, data: { viewCount: { increment: 1 } } })
