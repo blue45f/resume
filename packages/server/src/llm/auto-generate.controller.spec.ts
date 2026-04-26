@@ -2,9 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AutoGenerateController } from './auto-generate.controller';
 import { LlmService } from './llm.service';
 import { ResumesService } from '../resumes/resumes.service';
+import { FileTextExtractorService } from './file-text-extractor.service';
 
 const mockLlm = { autoGenerate: jest.fn() };
 const mockResumes = { create: jest.fn() };
+const mockExtractor = { extract: jest.fn() };
 
 const reqWith = (userId?: string): any => ({ user: userId ? { id: userId } : undefined });
 
@@ -17,6 +19,7 @@ describe('AutoGenerateController', () => {
       providers: [
         { provide: LlmService, useValue: mockLlm },
         { provide: ResumesService, useValue: mockResumes },
+        { provide: FileTextExtractorService, useValue: mockExtractor },
       ],
     }).compile();
     controller = module.get(AutoGenerateController);
@@ -73,6 +76,40 @@ describe('AutoGenerateController', () => {
       mockResumes.create.mockResolvedValueOnce({ id: 'r1' });
       await controller.create({ rawText: 'raw' } as any, reqWith());
       expect(mockResumes.create).toHaveBeenCalledWith({}, undefined);
+    });
+  });
+
+  describe('파일 업로드', () => {
+    it('preview: file 첨부 시 fileExtractor.extract 결과를 rawText 로 사용', async () => {
+      mockExtractor.extract.mockResolvedValueOnce('PDF에서 추출된 텍스트');
+      mockLlm.autoGenerate.mockResolvedValueOnce({ resume: {}, tokensUsed: 0 });
+      const fakeFile = { originalname: 'r.pdf', buffer: Buffer.from('x') } as any;
+      await controller.preview({ rawText: '' } as any, fakeFile);
+      expect(mockExtractor.extract).toHaveBeenCalledWith(fakeFile);
+      expect(mockLlm.autoGenerate).toHaveBeenCalledWith('PDF에서 추출된 텍스트', undefined);
+    });
+
+    it('preview: file 없을 때 dto.rawText 그대로 사용 (기존 흐름)', async () => {
+      mockLlm.autoGenerate.mockResolvedValueOnce({ resume: {}, tokensUsed: 0 });
+      await controller.preview({ rawText: '직접 입력' } as any, undefined);
+      expect(mockExtractor.extract).not.toHaveBeenCalled();
+      expect(mockLlm.autoGenerate).toHaveBeenCalledWith('직접 입력', undefined);
+    });
+
+    it('create: file 첨부 → 텍스트 추출 + AI 생성 + DB 저장', async () => {
+      mockExtractor.extract.mockResolvedValueOnce('docx 내용');
+      mockLlm.autoGenerate.mockResolvedValueOnce({
+        resume: { title: 'X' },
+        tokensUsed: 100,
+        provider: 'groq',
+        model: 'llama',
+      });
+      mockResumes.create.mockResolvedValueOnce({ id: 'r1' });
+      const fakeFile = { originalname: 'old.docx', buffer: Buffer.from('x') } as any;
+      const res = await controller.create({ rawText: '' } as any, reqWith('u1'), fakeFile);
+      expect(mockExtractor.extract).toHaveBeenCalledWith(fakeFile);
+      expect(mockLlm.autoGenerate).toHaveBeenCalledWith('docx 내용', undefined);
+      expect(res).toMatchObject({ resume: { id: 'r1' }, tokensUsed: 100 });
     });
   });
 });

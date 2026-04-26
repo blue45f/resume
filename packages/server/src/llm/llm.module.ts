@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { LlmController } from './llm.controller';
 import { AutoGenerateController } from './auto-generate.controller';
 import { LlmService } from './llm.service';
+import { FileTextExtractorService } from './file-text-extractor.service';
 import { UsageService } from '../health/usage.service';
 import { ResumesModule } from '../resumes/resumes.module';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -17,12 +18,13 @@ import { OpenAiCompatibleProvider } from './providers/openai-compatible.provider
   providers: [
     LlmService,
     UsageService,
+    FileTextExtractorService,
     AnthropicProvider,
     GeminiProvider,
     GroqProvider,
     N8nWebhookProvider,
     OpenAiCompatibleProvider,
   ],
-  exports: [LlmService],
+  exports: [LlmService, FileTextExtractorService],
 })
 export class LlmModule {}
