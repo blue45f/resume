@@ -477,7 +477,8 @@ export class ResumesService {
       this.prisma.resume
         .update({ where: { id }, data: { viewCount: { increment: 1 } } })
         .catch(() => {});
-      if (resume.userId && resume.visibility === 'public') {
+      // 공개 + 선택 공개 모두 owner 에게 view 알림. 1시간 throttle 로 스팸 방지(같은 함수 안에서).
+      if (resume.userId && (resume.visibility === 'public' || resume.visibility === 'selective')) {
         this.sendViewNotification(id, resume.title, resume.userId, userId).catch(() => {});
       }
       // selective viewer 의 last view 추적
