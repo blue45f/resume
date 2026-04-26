@@ -63,7 +63,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 
         {/* Tech stack pills */}
         {techItems.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex flex-wrap gap-2 mb-3">
             {techItems.slice(0, expanded ? techItems.length : 6).map((tech) => (
               <span
                 key={tech}
@@ -177,7 +177,7 @@ function ProjectShowcase({ resume }: Props) {
         <div className="mt-4 text-center">
           <button
             onClick={() => navigate(ROUTES.resume.edit(resume.id))}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
           >
             <svg
               className="w-4 h-4"

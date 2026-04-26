@@ -294,7 +294,7 @@ export default function EmptyState({ type, query }: Props) {
             <Link
               key={action.to}
               to={action.to}
-              className={`inline-flex items-center justify-center gap-1.5 px-5 py-2.5 text-sm font-semibold rounded-xl transition-colors duration-200 ${
+              className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl transition-colors duration-200 ${
                 action.variant === 'primary'
                   ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white shadow-sm'
                   : 'bg-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-600'

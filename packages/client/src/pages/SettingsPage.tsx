@@ -479,7 +479,7 @@ export default function SettingsPage() {
         </div>
 
         {/* 빠른 탐색 */}
-        <div className="flex gap-1.5 mb-6 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
           {NAV_ITEMS.filter((n) => n.id !== 'sec-password' || user.provider === 'local')
             .filter((n) => {
               if (!settingsSearch.trim()) return true;

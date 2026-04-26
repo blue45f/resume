@@ -183,7 +183,7 @@ export default function JobStudyGroupsPanel({
               <li key={g.id} className="imp-card p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
                       <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                         {g.name}
                       </h4>

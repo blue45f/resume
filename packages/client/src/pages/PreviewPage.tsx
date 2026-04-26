@@ -475,7 +475,7 @@ export default function PreviewPage() {
             </div>
 
             {/* Desktop action buttons — grouped */}
-            <div className="hidden sm:flex items-center gap-1.5">
+            <div className="hidden sm:flex items-center gap-2">
               {/* Primary: AI 기능 */}
               <button
                 onClick={() => id && navigate(ROUTES.resume.review(id))}
@@ -971,7 +971,7 @@ export default function PreviewPage() {
             return (
               <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-3 flex flex-wrap items-center gap-3">
                 {/* Color presets */}
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <span className="text-[10px] text-slate-400 mr-0.5">색상</span>
                   {PRESET_COLORS.map((c) => (
                     <button
@@ -1007,7 +1007,7 @@ export default function PreviewPage() {
                 </div>
                 <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
                 {/* Font selector */}
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <span className="text-[10px] text-slate-400">폰트</span>
                   <select
                     value={customFont}

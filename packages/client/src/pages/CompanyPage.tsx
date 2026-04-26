@@ -107,7 +107,7 @@ function ReviewCard({ review }: { review: CompanyReview }) {
             {timeAgo(review.createdAt)}
           </p>
         </div>
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+        <div className="flex items-center gap-2 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
           {review.recommend ? '✓ 추천' : '✗ 비추천'}
         </div>
       </div>
@@ -587,7 +587,7 @@ export default function CompanyPage() {
         className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
       >
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-6">
+        <nav className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-6">
           <Link to={ROUTES.jobs.list} className="hover:text-blue-600 transition-colors">
             채용 공고
           </Link>
@@ -728,7 +728,7 @@ export default function CompanyPage() {
                 <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
                   기술 스택
                 </h3>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {allSkills.slice(0, 15).map(([skill, count]) => (
                     <span
                       key={skill}

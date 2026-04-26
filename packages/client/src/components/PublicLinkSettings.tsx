@@ -152,7 +152,7 @@ export default function PublicLinkSettings({
 
       {editing ? (
         <div className="space-y-2">
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <span className="font-mono">/@{username}/</span>
           </div>
           <div className="flex gap-2">
@@ -204,7 +204,7 @@ export default function PublicLinkSettings({
         <div className="flex gap-2">
           <button
             onClick={handleCopy}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
               copied ? 'bg-green-500 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
           >
@@ -235,7 +235,7 @@ export default function PublicLinkSettings({
           onClick={() => setShowEmbed(!showEmbed)}
           className="w-full flex items-center justify-between text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
         >
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-2">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -268,7 +268,7 @@ export default function PublicLinkSettings({
             </div>
             <button
               onClick={handleCopyEmbed}
-              className={`w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              className={`w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                 embedCopied
                   ? 'bg-green-500 text-white'
                   : 'bg-slate-700 text-white hover:bg-slate-600'

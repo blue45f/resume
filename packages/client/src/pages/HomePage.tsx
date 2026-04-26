@@ -1090,7 +1090,7 @@ export default function HomePage() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className="group inline-flex items-center gap-1.5 text-sm font-medium text-sky-700 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300 transition-colors"
+                  className="group inline-flex items-center gap-2 text-sm font-medium text-sky-700 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300 transition-colors"
                 >
                   {link.label}
                   <svg
@@ -1258,7 +1258,7 @@ export default function HomePage() {
               </h2>
               <Link
                 to={ROUTES.resume.new}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -1298,7 +1298,7 @@ export default function HomePage() {
                   className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div className="flex gap-1.5">
+              <div className="flex gap-2">
                 {[
                   { value: 'all', label: '전체', icon: '📋' },
                   { value: 'public', label: '공개', icon: '🌐' },
@@ -1526,7 +1526,7 @@ export default function HomePage() {
                           {resume.tags.map((tag) => (
                             <span
                               key={tag.id}
-                              className="px-2 py-0.5 text-xs rounded-full"
+                              className="px-2 py-1 text-xs rounded-full"
                               style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
                             >
                               {tag.name}

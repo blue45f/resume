@@ -122,7 +122,7 @@ function SkillsVenn({ skillsGap }: { skillsGap: SkillsGap }) {
               {onlyResume.map((s, i) => (
                 <span
                   key={i}
-                  className="px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-full"
+                  className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-full"
                 >
                   {s}
                 </span>
@@ -140,7 +140,7 @@ function SkillsVenn({ skillsGap }: { skillsGap: SkillsGap }) {
               {skillsGap.overlap.map((s, i) => (
                 <span
                   key={i}
-                  className="px-2 py-0.5 text-xs bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 rounded-full font-medium"
+                  className="px-2 py-1 text-xs bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 rounded-full font-medium"
                 >
                   {s}
                 </span>
@@ -158,7 +158,7 @@ function SkillsVenn({ skillsGap }: { skillsGap: SkillsGap }) {
               {onlyRequired.map((s, i) => (
                 <span
                   key={i}
-                  className="px-2 py-0.5 text-xs bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-300 rounded-full"
+                  className="px-2 py-1 text-xs bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-300 rounded-full"
                 >
                   {s}
                 </span>
@@ -552,7 +552,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
                           <span className="text-xs font-medium text-green-700 dark:text-green-400 mb-1 block">
                             발견된 키워드 ({result.keywords.found.length})
                           </span>
-                          <div className="flex flex-wrap gap-1.5">
+                          <div className="flex flex-wrap gap-2">
                             {result.keywords.found.slice(0, 15).map((kw, i) => (
                               <span
                                 key={i}
@@ -567,7 +567,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
                           <span className="text-xs font-medium text-red-700 dark:text-red-400 mb-1 block">
                             누락된 키워드 ({result.keywords.missing.length})
                           </span>
-                          <div className="flex flex-wrap gap-1.5">
+                          <div className="flex flex-wrap gap-2">
                             {result.keywords.missing.slice(0, 15).map((kw, i) => (
                               <span
                                 key={i}

@@ -278,14 +278,14 @@ export default function ApplicationTimeline({
                     </span>
                     {entry.isCurrent && !entry.isTerminal && (
                       <span
-                        className={`px-1.5 py-0.5 text-xs rounded-full ${entry.lightColor} ${entry.textColor} font-medium animate-pulse`}
+                        className={`px-1.5 py-1 text-xs rounded-full ${entry.lightColor} ${entry.textColor} font-medium animate-pulse`}
                       >
                         현재
                       </span>
                     )}
                     {entry.isTerminal && (
                       <span
-                        className={`px-1.5 py-0.5 text-xs rounded-full ${entry.lightColor} ${entry.textColor} font-medium`}
+                        className={`px-1.5 py-1 text-xs rounded-full ${entry.lightColor} ${entry.textColor} font-medium`}
                       >
                         종료
                       </span>

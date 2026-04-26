@@ -290,7 +290,7 @@ function CompletenessBar({ resume, compact }: Props) {
 
                 {/* Actionable tip */}
                 {tip && (
-                  <div className="mt-1 flex items-start gap-1.5">
+                  <div className="mt-1 flex items-start gap-2">
                     <svg
                       className="w-3 h-3 text-amber-500 mt-0.5 shrink-0"
                       fill="none"
@@ -319,7 +319,7 @@ function CompletenessBar({ resume, compact }: Props) {
       {showDetails && (
         <div className="px-3 py-2.5 mb-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <svg
                 className="w-4 h-4 text-blue-500"
                 fill="none"

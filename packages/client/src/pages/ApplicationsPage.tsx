@@ -472,7 +472,7 @@ export default function ApplicationsPage() {
                     50,
                   );
               }}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center gap-1.5"
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -497,7 +497,7 @@ export default function ApplicationsPage() {
             {stats.map((s) => (
               <span
                 key={s.value}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${s.color}`}
+                className={`inline-flex items-center gap-2 px-2.5 py-1 text-xs font-medium rounded-full ${s.color}`}
               >
                 {s.label}
                 <span className="font-bold">{s.count}</span>
@@ -506,7 +506,7 @@ export default function ApplicationsPage() {
             {apps.length > 0 && (
               <>
                 <div className="h-5 w-px bg-slate-200 dark:bg-slate-600" />
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-500 dark:text-slate-400">합격률</span>
                   <span
                     className={`text-xs font-bold ${successRate >= 50 ? 'text-green-600 dark:text-green-400' : successRate >= 20 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-600 dark:text-slate-400'}`}
@@ -1042,11 +1042,11 @@ export default function ApplicationsPage() {
             </div>
             {/* Calendar legend */}
             <div className="flex items-center gap-4 px-5 py-3 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded bg-blue-100 dark:bg-blue-900/30" />
                 지원일
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded bg-amber-100 dark:bg-amber-900/30" />
                 면접일
               </div>

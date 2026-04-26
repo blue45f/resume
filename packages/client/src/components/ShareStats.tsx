@@ -81,7 +81,7 @@ export default function ShareStats({ viewCount }: Props) {
   ];
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-2">
       {stats.map((s) => (
         <span
           key={s.label}

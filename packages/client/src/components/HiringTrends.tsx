@@ -66,7 +66,7 @@ export default function HiringTrends() {
           {trendingSkills.map(([skill, count]) => (
             <span
               key={skill}
-              className="px-2 py-0.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full"
+              className="px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full"
             >
               {skill} ({count})
             </span>

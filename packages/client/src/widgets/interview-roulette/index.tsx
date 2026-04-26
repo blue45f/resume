@@ -210,7 +210,7 @@ export default function InterviewRoulette({ compact = false }: Props) {
           type="button"
           onClick={roll}
           disabled={spinning}
-          className="imp-btn group inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg disabled:opacity-60 focus-ring-accent transition-all"
+          className="imp-btn group inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg disabled:opacity-60 focus-ring-accent transition-all"
           aria-label="다시 굴리기"
         >
           <span
@@ -224,7 +224,7 @@ export default function InterviewRoulette({ compact = false }: Props) {
 
         <Link
           to={practiceHref}
-          className="imp-btn inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus-ring-accent transition-colors"
+          className="imp-btn inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus-ring-accent transition-colors"
         >
           답변 연습하기
           <span aria-hidden>→</span>
@@ -233,7 +233,7 @@ export default function InterviewRoulette({ compact = false }: Props) {
         {question && (
           <Link
             to={`/interview-prep?position=${encodeURIComponent(question.position || '')}`}
-            className="imp-btn inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+            className="imp-btn inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
           >
             모범 답변 보기
           </Link>

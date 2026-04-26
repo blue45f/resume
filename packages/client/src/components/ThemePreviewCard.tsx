@@ -116,7 +116,7 @@ export default function ThemePreviewCard({
 
       {/* Info section */}
       <div className="px-3 py-2.5 border-t border-slate-100 dark:border-slate-700">
-        <div className="flex items-center gap-1.5 mb-0.5">
+        <div className="flex items-center gap-2 mb-0.5">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
             {theme.name}
           </h3>

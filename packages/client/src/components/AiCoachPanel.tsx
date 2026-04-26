@@ -459,7 +459,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 flex items-center gap-1.5 px-2 py-3 bg-sky-600 text-white rounded-l-xl shadow-lg hover:bg-sky-700 transition-all duration-200 group"
+          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 flex items-center gap-2 px-2 py-3 bg-sky-600 text-white rounded-l-xl shadow-lg hover:bg-sky-700 transition-all duration-200 group"
           aria-label="AI 코치 열기"
         >
           <svg
@@ -579,7 +579,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
               </div>
 
               {/* Category filter */}
-              <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700 flex gap-1.5 overflow-x-auto scrollbar-none">
+              <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700 flex gap-2 overflow-x-auto scrollbar-none">
                 <button
                   onClick={() => setActiveCategory('all')}
                   className={`shrink-0 px-2.5 py-1 text-xs rounded-full transition-colors ${
@@ -651,7 +651,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
                           <path strokeLinecap="round" strokeLinejoin="round" d={catMeta.icon} />
                         </svg>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 mb-0.5">
+                          <div className="flex items-center gap-2 mb-0.5">
                             <span className={`text-xs font-semibold ${style.text}`}>
                               {tip.title}
                             </span>

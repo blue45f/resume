@@ -114,7 +114,7 @@ export default function JdMatchPanel({ resume }: Props) {
                   <div className="text-[11px] font-semibold text-green-700 dark:text-green-400 uppercase tracking-wider mb-1.5">
                     ✅ 이미 보유 ({result.matched.length})
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-2">
                     {result.matched.map((k) => (
                       <span
                         key={k}
@@ -133,7 +133,7 @@ export default function JdMatchPanel({ resume }: Props) {
                   <div className="text-[11px] font-semibold text-red-700 dark:text-red-400 uppercase tracking-wider mb-1.5">
                     ⚠️ 이력서에 없음 ({result.missing.length})
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-2">
                     {result.missing.map((k) => (
                       <span
                         key={k}

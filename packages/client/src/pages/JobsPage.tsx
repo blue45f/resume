@@ -796,7 +796,7 @@ function ExternalJobLinks({
       {/* Filters */}
       <div className="space-y-2 mb-4">
         {/* 기업 규모 */}
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
             기업규모
           </span>
@@ -811,7 +811,7 @@ function ExternalJobLinks({
           ))}
         </div>
         {/* 직종 */}
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
             직종
           </span>
@@ -826,7 +826,7 @@ function ExternalJobLinks({
           ))}
         </div>
         {/* 경력 + 고용형태 */}
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
             경력
           </span>
@@ -840,7 +840,7 @@ function ExternalJobLinks({
             </button>
           ))}
         </div>
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
             고용
           </span>
@@ -855,7 +855,7 @@ function ExternalJobLinks({
           ))}
         </div>
         {/* 지역 */}
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
             지역
           </span>
@@ -912,7 +912,7 @@ function ExternalJobLinks({
                   {link.logoEmoji}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span
                       className={`text-xs font-bold leading-tight transition-colors ${hasMatch ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}
                     >
@@ -1631,7 +1631,7 @@ function CuratedJobsTab() {
               setEditingJob(null);
               setShowForm(true);
             }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -1672,7 +1672,7 @@ function CuratedJobsTab() {
 
       {/* Filters */}
       <div className="space-y-2 mb-5">
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           <span className="text-[10px] text-slate-400 self-center w-10 shrink-0">경력</span>
           {[
             { k: 'all', l: '전체' },
@@ -1693,7 +1693,7 @@ function CuratedJobsTab() {
             </button>
           ))}
         </div>
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           <span className="text-[10px] text-slate-400 self-center w-10 shrink-0">고용</span>
           {[
             { k: 'all', l: '전체' },
@@ -1713,7 +1713,7 @@ function CuratedJobsTab() {
             </button>
           ))}
         </div>
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           <span className="text-[10px] text-slate-400 self-center w-10 shrink-0">기업</span>
           {[
             { k: 'all', l: '전체' },
@@ -1756,7 +1756,7 @@ function CuratedJobsTab() {
               <option value="hot">클릭 많은순</option>
             </select>
           </div>
-          <label className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+          <label className="inline-flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
             <input
               type="checkbox"
               checked={urgentOnly}
@@ -1768,7 +1768,7 @@ function CuratedJobsTab() {
             />
             🔥 마감 임박 (7일 이내)
           </label>
-          <label className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+          <label className="inline-flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
             <input
               type="checkbox"
               checked={hasSalaryOnly}
@@ -1780,7 +1780,7 @@ function CuratedJobsTab() {
             />
             💰 연봉 공개
           </label>
-          <label className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+          <label className="inline-flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
             <input
               type="checkbox"
               checked={excludeExpired}
@@ -1900,7 +1900,7 @@ function CuratedJobsTab() {
                       </h3>
 
                       {/* Meta badges */}
-                      <div className="flex flex-wrap gap-1.5 mb-2">
+                      <div className="flex flex-wrap gap-2 mb-2">
                         <span className="badge-xs badge-neutral">📍 {job.location || '미정'}</span>
                         <span className="badge-xs badge-neutral">
                           👤 {EXP_LABELS[job.experienceLevel] || job.experienceLevel}
@@ -2018,7 +2018,7 @@ function CuratedJobsTab() {
                       )}
                       <button
                         onClick={() => handleClick(job)}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-xl transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-xl transition-colors"
                       >
                         {tx('jobs.apply')}
                         <svg
@@ -2044,7 +2044,7 @@ function CuratedJobsTab() {
                   <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 space-y-3 animate-fade-in">
                     {job.requirements && (
                       <div>
-                        <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                        <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-2">
                           <span className="w-4 h-4 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded flex items-center justify-center text-[10px]">
                             ✓
                           </span>
@@ -2057,7 +2057,7 @@ function CuratedJobsTab() {
                     )}
                     {job.benefits && (
                       <div>
-                        <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                        <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-2">
                           <span className="w-4 h-4 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded flex items-center justify-center text-[10px]">
                             ★
                           </span>
@@ -2416,7 +2416,7 @@ export default function JobsPage() {
               <div className="flex justify-end mb-3">
                 <Link
                   to={ROUTES.jobs.new}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -2798,7 +2798,7 @@ export default function JobsPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   {/* Job list */}
-                  <div className="lg:col-span-1 space-y-2 max-h-[calc(100vh-16rem)] overflow-y-auto lg:pr-1">
+                  <div className="lg:col-span-1 space-y-2 max-h-[calc(100dvh-16rem)] overflow-y-auto lg:pr-1">
                     {filteredJobs.map((j) => (
                       <button
                         key={j.id}
@@ -2810,7 +2810,7 @@ export default function JobsPage() {
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-1.5 min-w-0">
+                          <div className="flex items-center gap-2 min-w-0">
                             <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">
                               {j.position}
                             </h3>
@@ -2823,7 +2823,7 @@ export default function JobsPage() {
                               <MatchBadge score={calculateMatchScore(userSkills, j.skills)} />
                             )}
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="flex items-center gap-2 shrink-0">
                             <button
                               onClick={(e) => handleToggleSave(j.id, e)}
                               className={`p-1 rounded-lg transition-colors ${
@@ -2917,14 +2917,14 @@ export default function JobsPage() {
                                 return (
                                   <span
                                     key={i}
-                                    className={`px-1.5 py-0.5 text-xs ${c.bg} ${c.text} rounded`}
+                                    className={`px-1.5 py-1 text-xs ${c.bg} ${c.text} rounded`}
                                   >
                                     {s.trim()}
                                   </span>
                                 );
                               })}
                             {j.skills.split(',').length > 4 && (
-                              <span className="px-1.5 py-0.5 text-xs text-slate-400">
+                              <span className="px-1.5 py-1 text-xs text-slate-400">
                                 +{j.skills.split(',').length - 4}
                               </span>
                             )}
@@ -3341,7 +3341,7 @@ function JobDetailPanel({
               </span>
             )}
           </h4>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {jobSkillsList.map((s, i) => {
               const isMatched = userSkills.has(s.trim().toLowerCase());
               if (userSkills.size > 0) {
@@ -3410,7 +3410,7 @@ function JobDetailPanel({
         {isPersonal ? (
           <>
             {appliedJobs.has(job.id) ? (
-              <div className="flex-1 py-2.5 text-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium rounded-xl flex items-center justify-center gap-1.5">
+              <div className="flex-1 py-2.5 text-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium rounded-xl flex items-center justify-center gap-2">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"

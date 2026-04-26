@@ -244,7 +244,7 @@ export default function CareerPathSuggestion({ resume }: Props) {
                             {p.title}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2">
                           <span className="text-[10px] text-slate-400">{p.timeline}</span>
                           <span
                             className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${

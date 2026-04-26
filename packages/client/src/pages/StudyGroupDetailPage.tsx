@@ -312,7 +312,7 @@ export default function StudyGroupDetailPage() {
             </div>
 
             {/* 카테고리 필터 */}
-            <div className="flex flex-wrap gap-1.5 mb-3">
+            <div className="flex flex-wrap gap-2 mb-3">
               {(
                 [
                   { k: 'all', label: t('study.category.all'), icon: '📋' },

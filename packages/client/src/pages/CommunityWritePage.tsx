@@ -560,7 +560,7 @@ export default function CommunityWritePage() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <span className="hidden sm:inline">Ctrl+B 굵게</span>
             <span className="hidden sm:inline">·</span>
             <span className="hidden sm:inline">Ctrl+I 기울임</span>
@@ -592,7 +592,7 @@ export default function CommunityWritePage() {
                         setCustomCatMode(false);
                         setValue('category', cat.id, { shouldValidate: true, shouldDirty: true });
                       }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-xl border transition-all ${
+                      className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-xl border transition-all ${
                         category === cat.id && !customCatMode
                           ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 font-medium'
                           : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
@@ -615,7 +615,7 @@ export default function CommunityWritePage() {
                     <span aria-hidden>＋</span> 새 카테고리
                   </button>
                 ) : (
-                  <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-xl border border-indigo-400 bg-indigo-50/60 dark:bg-indigo-900/20">
+                  <div className="inline-flex items-center gap-2 px-2 py-1 rounded-xl border border-indigo-400 bg-indigo-50/60 dark:bg-indigo-900/20">
                     <input
                       type="text"
                       value={customCat}
@@ -774,7 +774,7 @@ export default function CommunityWritePage() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading || attachments.length >= 5}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-indigo-600 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-indigo-600 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50 transition-colors"
                 >
                   {uploading ? (
                     <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">

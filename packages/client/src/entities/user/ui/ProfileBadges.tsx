@@ -29,7 +29,7 @@ export default function ProfileBadges(props: Props) {
   if (earned.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-2">
       {earned.map((b) => (
         <span key={b.id} className="badge-sm badge-amber" title={b.label}>
           {b.icon} {b.label}

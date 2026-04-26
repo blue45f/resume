@@ -108,7 +108,7 @@ export default function BannerSlider() {
               )}
               {banner.linkUrl && (
                 <span
-                  className="mt-3 inline-flex items-center gap-1.5 text-white text-xs font-semibold border-b border-white/50 pb-0.5 w-fit transition-colors group-hover:border-white"
+                  className="mt-3 inline-flex items-center gap-2 text-white text-xs font-semibold border-b border-white/50 pb-0.5 w-fit transition-colors group-hover:border-white"
                   style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
                 >
                   자세히 보기

@@ -254,7 +254,7 @@ export default function JobPostPage() {
             </div>
 
             {skillTags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {skillTags.map((tag) => (
                   <span
                     key={tag}
@@ -431,7 +431,7 @@ export default function JobPostPage() {
                 기술 스택
               </label>
               <div
-                className="flex flex-wrap gap-1.5 p-2 border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-800 min-h-[44px] cursor-text"
+                className="flex flex-wrap gap-2 p-2 border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-800 min-h-[44px] cursor-text"
                 onClick={() => skillInputRef.current?.focus()}
               >
                 {skillTags.map((tag) => (

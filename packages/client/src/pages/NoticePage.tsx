@@ -101,7 +101,7 @@ function NoticeList() {
                 setType(t.id);
                 setPage(1);
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl transition-all ${
+              className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-xl transition-all ${
                 type === t.id
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-slate-300'
@@ -138,7 +138,7 @@ function NoticeList() {
                     className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                   >
                     <span
-                      className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-lg ${typeInfo.color}`}
+                      className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg ${typeInfo.color}`}
                     >
                       {typeInfo.icon} {typeInfo.label}
                     </span>
@@ -225,7 +225,7 @@ function NoticeDetail() {
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8">
         <Link
           to={ROUTES.notices}
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-colors mb-6"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-colors mb-6"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -253,7 +253,7 @@ function NoticeDetail() {
             <div className="mb-6 pb-6 border-b border-slate-100 dark:border-slate-700">
               {typeInfo && (
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-lg mb-3 ${typeInfo.color}`}
+                  className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg mb-3 ${typeInfo.color}`}
                 >
                   {typeInfo.icon} {typeInfo.label}
                 </span>

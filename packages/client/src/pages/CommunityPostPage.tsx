@@ -517,7 +517,7 @@ export default function CommunityPostPage() {
           <p className="text-sm text-slate-400 mb-6">삭제되었거나 존재하지 않는 게시글입니다.</p>
           <Link
             to={ROUTES.community.list}
-            className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:underline"
+            className="inline-flex items-center gap-2 text-sm text-indigo-600 hover:underline"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -549,7 +549,7 @@ export default function CommunityPostPage() {
           </svg>
           {catInfo && (
             <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-lg ${catInfo.color}`}
+              className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg ${catInfo.color}`}
             >
               {catInfo.icon} {catInfo.label}
             </span>
@@ -777,7 +777,7 @@ export default function CommunityPostPage() {
                 {/* Scrap */}
                 <button
                   onClick={toggleScrap}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-sm transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
                     scrapped ? 'text-amber-500' : 'text-slate-400 hover:text-amber-500'
                   }`}
                   title={scrapped ? '스크랩 해제' : '스크랩'}
@@ -801,7 +801,7 @@ export default function CommunityPostPage() {
                 {/* Share */}
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -1063,7 +1063,7 @@ export default function CommunityPostPage() {
                         onSubmit={replyForm.handleSubmit(onReply(node.id))}
                         className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl overflow-hidden"
                       >
-                        <div className="px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 border-b border-indigo-100 dark:border-indigo-800/50 flex items-center gap-1.5">
+                        <div className="px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 border-b border-indigo-100 dark:border-indigo-800/50 flex items-center gap-2">
                           <svg
                             className="w-3 h-3"
                             fill="none"
@@ -1158,7 +1158,7 @@ export default function CommunityPostPage() {
         <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
           <Link
             to={ROUTES.community.list}
-            className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path

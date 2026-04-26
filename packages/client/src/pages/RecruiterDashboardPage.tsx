@@ -230,7 +230,7 @@ export default function RecruiterDashboardPage() {
                   return (
                     <div key={stage.key} className="imp-card p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2">
                           <span>{stage.icon}</span>
                           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                             {stage.label}

@@ -101,7 +101,7 @@ export default function InterviewReview({ applicationId }: Props) {
     <div className="mt-3 border-t border-slate-100 dark:border-slate-700 pt-3">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+        className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
       >
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -113,7 +113,7 @@ export default function InterviewReview({ applicationId }: Props) {
         </svg>
         면접 후기
         {review && (
-          <span className={`ml-1 px-1.5 py-0.5 text-xs rounded ${resultInfo?.color}`}>
+          <span className={`ml-1 px-1.5 py-1 text-xs rounded ${resultInfo?.color}`}>
             {resultInfo?.label}
           </span>
         )}
@@ -282,7 +282,7 @@ export default function InterviewReview({ applicationId }: Props) {
               {/* Result */}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-500 dark:text-slate-400 w-16">결과</span>
-                <span className={`px-2 py-0.5 text-xs font-medium rounded ${resultInfo?.color}`}>
+                <span className={`px-2 py-1 text-xs font-medium rounded ${resultInfo?.color}`}>
                   {resultInfo?.label}
                 </span>
               </div>

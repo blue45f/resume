@@ -549,7 +549,7 @@ export default function TemplatesPage() {
 
             {/* Category filter + Sort */}
             <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-              <div className="flex gap-1.5 overflow-x-auto py-1 -my-1 px-1 -mx-1">
+              <div className="flex gap-2 overflow-x-auto py-1 -my-1 px-1 -mx-1">
                 <button
                   onClick={() => setThemeGalleryFilter('all')}
                   className={`px-2.5 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${
@@ -578,7 +578,7 @@ export default function TemplatesPage() {
                 })}
               </div>
 
-              <div className="flex gap-1.5 shrink-0">
+              <div className="flex gap-2 shrink-0">
                 <button
                   onClick={() => setSortBy('name')}
                   className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${
@@ -715,7 +715,7 @@ export default function TemplatesPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full sm:w-64 px-3 py-2 border border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <div className="flex gap-1.5 overflow-x-auto py-1 -my-1 px-1 -mx-1">
+            <div className="flex gap-2 overflow-x-auto py-1 -my-1 px-1 -mx-1">
               <button
                 onClick={() => setFilterCategory('all')}
                 className={`px-2.5 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${filterCategory === 'all' ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-medium' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'}`}
@@ -784,18 +784,18 @@ export default function TemplatesPage() {
                         <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">
                           {t.name}
                         </h3>
-                        <span className="inline-block mt-0.5 px-2 py-0.5 text-xs rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                        <span className="inline-block mt-0.5 px-2 py-1 text-xs rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
                           {categoryLabel}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 ml-2 shrink-0">
+                      <div className="flex items-center gap-2 ml-2 shrink-0">
                         {t.usageCount > 0 && (
                           <span className="px-1.5 py-0.5 text-[10px] bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full">
                             {t.usageCount}명 사용
                           </span>
                         )}
                         {t.isDefault && (
-                          <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
+                          <span className="px-2 py-1 text-xs rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
                             기본
                           </span>
                         )}
@@ -815,14 +815,14 @@ export default function TemplatesPage() {
                         return (
                           <span
                             key={s}
-                            className="px-1.5 py-0.5 text-xs bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded"
+                            className="px-1.5 py-1 text-xs bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded"
                           >
                             {label}
                           </span>
                         );
                       })}
                       {layout.sections.length > 5 && (
-                        <span className="px-1.5 py-0.5 text-xs bg-slate-50 dark:bg-slate-700 text-slate-400 rounded">
+                        <span className="px-1.5 py-1 text-xs bg-slate-50 dark:bg-slate-700 text-slate-400 rounded">
                           +{layout.sections.length - 5}
                         </span>
                       )}

@@ -88,7 +88,7 @@ export default function SectionInsightsPanel({ text, minLength = 200, className 
           {health.topHints.map((h, i) => (
             <li
               key={i}
-              className="flex items-start gap-1.5 text-[11px] leading-snug text-slate-700 dark:text-slate-300"
+              className="flex items-start gap-2 text-[11px] leading-snug text-slate-700 dark:text-slate-300"
             >
               <span className="mt-0.5 text-amber-500 dark:text-amber-400">•</span>
               <span>{h}</span>

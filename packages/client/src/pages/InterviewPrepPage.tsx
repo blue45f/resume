@@ -1642,7 +1642,7 @@ export default function InterviewPrepPage() {
                 {/* Mock interview button */}
                 <button
                   onClick={startMockInterview}
-                  className="flex items-center gap-1.5 text-xs px-4 py-2 bg-neutral-900 dark:bg-white text-white rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all font-medium shadow-sm"
+                  className="flex items-center gap-2 text-xs px-4 py-2 bg-neutral-900 dark:bg-white text-white rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all font-medium shadow-sm"
                 >
                   <svg
                     className="w-3.5 h-3.5"
@@ -1710,7 +1710,7 @@ export default function InterviewPrepPage() {
                 ) : (
                   <button
                     onClick={startTimer}
-                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-xl hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors font-medium"
+                    className="flex items-center gap-2 text-xs px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-xl hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors font-medium"
                   >
                     <svg
                       className="w-3.5 h-3.5"
@@ -1734,7 +1734,7 @@ export default function InterviewPrepPage() {
             {/* Filters row */}
             <div className="flex flex-wrap gap-4">
               {/* Category filter */}
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {categories.map((cat) => (
                   <button
                     key={cat}
@@ -1755,7 +1755,7 @@ export default function InterviewPrepPage() {
                 ))}
               </div>
               {/* Job field filter */}
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {jobFields.map((jf) => (
                   <button
                     key={jf}

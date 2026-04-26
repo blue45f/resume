@@ -300,7 +300,7 @@ export default function MessagesPage() {
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">
           {tx('messages.title')}
           {totalUnread > 0 && (
-            <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
+            <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
               {totalUnread}
             </span>
           )}

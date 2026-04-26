@@ -88,11 +88,11 @@ export default function KeywordAnalysis({ resume }: Props) {
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5">
               주요 키워드 (빈도순)
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {sorted.map(([word, count]) => (
                 <span
                   key={word}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full"
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full"
                 >
                   {word} <span className="text-slate-400 dark:text-slate-500">{count}</span>
                 </span>

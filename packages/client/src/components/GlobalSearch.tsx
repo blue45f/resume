@@ -286,7 +286,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
                         전체 삭제
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-2">
                       {recentSearches.map((s) => (
                         <button
                           key={s}
@@ -318,7 +318,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
                     <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider px-1 block mb-2">
                       인기 기술
                     </span>
-                    <div className="flex flex-wrap gap-1.5 px-1">
+                    <div className="flex flex-wrap gap-2 px-1">
                       {trendingSkills.map((s) => (
                         <button
                           key={s}

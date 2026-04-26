@@ -647,7 +647,7 @@ export default function ExplorePage() {
                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -671,7 +671,7 @@ export default function ExplorePage() {
                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -682,7 +682,7 @@ export default function ExplorePage() {
               </svg>
               사람
               {users.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 rounded-full">
+                <span className="ml-1 px-1.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded-full">
                   {users.length}
                 </span>
               )}
@@ -700,7 +700,7 @@ export default function ExplorePage() {
                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -862,7 +862,7 @@ export default function ExplorePage() {
             <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
               인기 기술
             </h3>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {popularSkills.slice(0, 15).map((skill, i) => {
                 const size =
                   i < 3 ? 'text-sm font-medium' : i < 8 ? 'text-xs' : 'text-xs opacity-70';
@@ -1107,7 +1107,7 @@ export default function ExplorePage() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">
                               {user.name}
                             </h3>
@@ -1134,13 +1134,13 @@ export default function ExplorePage() {
                           {user.skills.slice(0, 5).map((s) => (
                             <span
                               key={s}
-                              className="px-1.5 py-0.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded"
+                              className="px-1.5 py-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded"
                             >
                               {s}
                             </span>
                           ))}
                           {user.skills.length > 5 && (
-                            <span className="px-1.5 py-0.5 text-xs text-slate-400">
+                            <span className="px-1.5 py-1 text-xs text-slate-400">
                               +{user.skills.length - 5}
                             </span>
                           )}
@@ -1250,7 +1250,7 @@ export default function ExplorePage() {
               <p className="text-sm text-slate-500 dark:text-slate-400">최신 커뮤니티 게시글</p>
               <Link
                 to={ROUTES.community.write}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 글쓰기
               </Link>
@@ -1277,7 +1277,7 @@ export default function ExplorePage() {
                 </p>
                 <Link
                   to={ROUTES.community.write}
-                  className="imp-btn inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors focus-ring-accent"
+                  className="imp-btn inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors focus-ring-accent"
                 >
                   <span aria-hidden="true">✏️</span> 첫 글 작성하기
                 </Link>
@@ -1366,7 +1366,7 @@ export default function ExplorePage() {
             <div className="mt-6 text-center">
               <Link
                 to={ROUTES.community.list}
-                className="inline-flex items-center gap-1.5 text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                className="inline-flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
               >
                 커뮤니티 전체 보기 →
               </Link>
@@ -1411,7 +1411,7 @@ export default function ExplorePage() {
             {/* 인기 이력서 */}
             {!query && !tag && page === 1 && result.data.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
                   <span className="badge-xs badge-cyan font-bold">HOT</span>
                   인기 이력서
                 </h3>
@@ -1531,7 +1531,7 @@ export default function ExplorePage() {
                           {resume.tags?.slice(0, 3).map((t) => (
                             <span
                               key={t.id}
-                              className="px-1.5 py-0.5 text-xs rounded-full"
+                              className="px-1.5 py-1 text-xs rounded-full"
                               style={{ backgroundColor: `${t.color}20`, color: t.color }}
                             >
                               {t.name}
@@ -1545,7 +1545,7 @@ export default function ExplorePage() {
                                 e.stopPropagation();
                                 setSearchInput(s);
                               }}
-                              className="px-1.5 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
+                              className="px-1.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                             >
                               {s}
                             </button>
@@ -1613,7 +1613,7 @@ export default function ExplorePage() {
                       </div>
                       <BookmarkButton resumeId={resume.id} size="sm" />
                     </div>
-                    <div className="flex items-center gap-1.5 mb-1 ml-4">
+                    <div className="flex items-center gap-2 mb-1 ml-4">
                       <p className="text-sm text-slate-600 dark:text-slate-400">
                         {resume.personalInfo?.name || '이름 미입력'}
                       </p>
@@ -1642,13 +1642,13 @@ export default function ExplorePage() {
                               e.stopPropagation();
                               setSearchInput(s);
                             }}
-                            className="px-1.5 py-0.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors cursor-pointer"
+                            className="px-1.5 py-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors cursor-pointer"
                           >
                             {s}
                           </button>
                         ))}
                         {skillNames.length > 4 && (
-                          <span className="px-1.5 py-0.5 text-xs text-slate-400">
+                          <span className="px-1.5 py-1 text-xs text-slate-400">
                             +{skillNames.length - 4}
                           </span>
                         )}
@@ -1661,7 +1661,7 @@ export default function ExplorePage() {
                         {resume.tags.map((t) => (
                           <span
                             key={t.id}
-                            className="px-1.5 py-0.5 text-xs rounded-full"
+                            className="px-1.5 py-1 text-xs rounded-full"
                             style={{ backgroundColor: `${t.color}20`, color: t.color }}
                           >
                             {t.name}

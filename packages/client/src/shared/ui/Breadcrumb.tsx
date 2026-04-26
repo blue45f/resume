@@ -14,7 +14,7 @@ export default function Breadcrumb({ items }: Props) {
   const lastIndex = items.length - 1;
   return (
     <nav
-      className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] mb-4 no-print"
+      className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-4 no-print"
       aria-label="breadcrumb"
     >
       <Link
@@ -26,7 +26,7 @@ export default function Breadcrumb({ items }: Props) {
       {items.map((item, i) => {
         const isLast = i === lastIndex;
         return (
-          <span key={i} className="flex items-center gap-1.5">
+          <span key={i} className="flex items-center gap-2">
             <svg
               className="w-3.5 h-3.5 text-[var(--color-border)]"
               fill="none"

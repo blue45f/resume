@@ -122,7 +122,7 @@ export default function QrCodeModal({ url, title, onClose }: Props) {
             <button
               onClick={handleDownloadQr}
               disabled={downloading}
-              className="imp-btn flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 focus-ring-accent"
+              className="imp-btn flex-1 flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 focus-ring-accent"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path

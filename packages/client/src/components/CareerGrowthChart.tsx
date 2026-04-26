@@ -88,7 +88,7 @@ export default function CareerGrowthChart({ resume }: Props) {
       {expanded && (
         <div className="mt-4 space-y-3 animate-in fade-in-0 duration-200">
           {/* 메트릭 선택 */}
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {METRICS.map((m) => (
               <button
                 key={m.key}

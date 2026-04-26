@@ -105,7 +105,7 @@ export default function CareerLevel({ user, resumes }: Props) {
           </span>
           커리어 레벨
         </h3>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <span className="text-[10px] text-slate-400 dark:text-slate-500 tabular-nums">
             EXP {info.totalExp.toLocaleString()}
           </span>

@@ -128,15 +128,15 @@ export default function CompanyInfoCard({ job, allJobs, onSelectJob }: Props) {
       </div>
 
       {/* Badges */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${industryBadge.color}`}>
+      <div className="flex flex-wrap gap-2 mb-3">
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${industryBadge.color}`}>
           {industryBadge.label}
         </span>
-        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${sizeBadge.color}`}>
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${sizeBadge.color}`}>
           {sizeBadge.label}
         </span>
         {job.location && (
-          <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400">
+          <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400">
             {job.location}
           </span>
         )}

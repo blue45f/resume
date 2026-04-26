@@ -338,7 +338,7 @@ export default function ComparePage() {
                   <h4 className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
                     공통 보유 기술
                   </h4>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-2">
                     {skillDiff.shared.map((s) => (
                       <span
                         key={s}
@@ -360,7 +360,7 @@ export default function ComparePage() {
                       {skillDiff.onlyLeft.map((s) => (
                         <span
                           key={s}
-                          className="px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded capitalize ring-1 ring-blue-200 dark:ring-blue-700"
+                          className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded capitalize ring-1 ring-blue-200 dark:ring-blue-700"
                         >
                           {s}
                         </span>
@@ -379,7 +379,7 @@ export default function ComparePage() {
                       {skillDiff.onlyRight.map((s) => (
                         <span
                           key={s}
-                          className="px-2 py-0.5 text-xs bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded capitalize ring-1 ring-emerald-200 dark:ring-emerald-700"
+                          className="px-2 py-1 text-xs bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded capitalize ring-1 ring-emerald-200 dark:ring-emerald-700"
                         >
                           {s}
                         </span>
@@ -598,7 +598,7 @@ export default function ComparePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Resume A analysis */}
                 <div className="bg-white dark:bg-slate-800 rounded-xl border border-blue-200 dark:border-blue-800 p-4">
-                  <h3 className="text-sm font-bold text-blue-600 mb-3 flex items-center gap-1.5">
+                  <h3 className="text-sm font-bold text-blue-600 mb-3 flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
@@ -618,7 +618,7 @@ export default function ComparePage() {
                         {leftAnalysis.strengths.map((s, i) => (
                           <li
                             key={i}
-                            className="text-xs text-slate-600 dark:text-slate-400 flex gap-1.5"
+                            className="text-xs text-slate-600 dark:text-slate-400 flex gap-2"
                           >
                             <span className="text-emerald-500 shrink-0">+</span>
                             <span>{s}</span>
@@ -636,7 +636,7 @@ export default function ComparePage() {
                         {leftAnalysis.weaknesses.map((w, i) => (
                           <li
                             key={i}
-                            className="text-xs text-slate-600 dark:text-slate-400 flex gap-1.5"
+                            className="text-xs text-slate-600 dark:text-slate-400 flex gap-2"
                           >
                             <span className="text-red-500 shrink-0">-</span>
                             <span>{w}</span>
@@ -649,7 +649,7 @@ export default function ComparePage() {
 
                 {/* Resume B analysis */}
                 <div className="bg-white dark:bg-slate-800 rounded-xl border border-emerald-200 dark:border-emerald-800 p-4">
-                  <h3 className="text-sm font-bold text-emerald-600 mb-3 flex items-center gap-1.5">
+                  <h3 className="text-sm font-bold text-emerald-600 mb-3 flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
@@ -669,7 +669,7 @@ export default function ComparePage() {
                         {rightAnalysis.strengths.map((s, i) => (
                           <li
                             key={i}
-                            className="text-xs text-slate-600 dark:text-slate-400 flex gap-1.5"
+                            className="text-xs text-slate-600 dark:text-slate-400 flex gap-2"
                           >
                             <span className="text-emerald-500 shrink-0">+</span>
                             <span>{s}</span>
@@ -687,7 +687,7 @@ export default function ComparePage() {
                         {rightAnalysis.weaknesses.map((w, i) => (
                           <li
                             key={i}
-                            className="text-xs text-slate-600 dark:text-slate-400 flex gap-1.5"
+                            className="text-xs text-slate-600 dark:text-slate-400 flex gap-2"
                           >
                             <span className="text-red-500 shrink-0">-</span>
                             <span>{w}</span>

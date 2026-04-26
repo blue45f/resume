@@ -78,7 +78,7 @@ export default function AiWritingAssist({ resumeId, value, onAccept }: Props) {
           setResult(null);
           setError('');
         }}
-        className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs text-sky-600 hover:text-sky-800 hover:bg-sky-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-sky-400"
+        className="inline-flex items-center gap-1 px-1.5 py-1 text-xs text-sky-600 hover:text-sky-800 hover:bg-sky-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-sky-400"
         title="AI 문장 개선"
         aria-label="AI 작성 도우미"
         aria-expanded={open}

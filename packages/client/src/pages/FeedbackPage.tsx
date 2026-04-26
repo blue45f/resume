@@ -241,7 +241,7 @@ export default function FeedbackPage() {
         )}
 
         {/* 필터 */}
-        <div className="flex gap-1.5 mb-4 overflow-x-auto py-1">
+        <div className="flex gap-2 mb-4 overflow-x-auto py-1">
           <button
             onClick={() => setFilterType('all')}
             className={`px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-colors ${filterType === 'all' ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-medium' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}

@@ -151,7 +151,7 @@ export function SkillSuggestDropdown({
           </svg>
         </button>
       </div>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-2">
         {suggestions.map((skill) => (
           <button
             key={skill}
@@ -229,7 +229,7 @@ export function CompanyRoleSuggest({
               onSelect(role);
               setDismissed(true);
             }}
-            className="px-2 py-0.5 text-xs text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+            className="px-2 py-1 text-xs text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
           >
             {role}
           </button>
@@ -277,7 +277,7 @@ export function InlineContentTip({
     <div className="mt-1.5 p-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg animate-fade-in w-full overflow-hidden">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
-          <div className="flex items-center gap-1.5 mb-1">
+          <div className="flex items-center gap-2 mb-1">
             <svg
               className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400"
               fill="none"

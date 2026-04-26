@@ -91,7 +91,7 @@ export default function Tabs({
                   : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'
               }`}
             >
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-2">
                 {tab.icon && <span aria-hidden>{tab.icon}</span>}
                 <span>{tab.label}</span>
                 {typeof tab.count === 'number' && (

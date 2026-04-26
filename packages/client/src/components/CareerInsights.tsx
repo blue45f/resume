@@ -631,7 +631,7 @@ export default function CareerInsights() {
         </div>
         <div className="flex items-center gap-2">
           <div
-            className={`px-2 py-0.5 text-xs font-bold rounded-full ${
+            className={`px-2 py-1 text-xs font-bold rounded-full ${
               marketValue.total >= 70
                 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
                 : marketValue.total >= 40
@@ -661,7 +661,7 @@ export default function CareerInsights() {
                 내 직종
               </span>
               {myIndustryInfo && (
-                <span className="px-2 py-0.5 text-xs bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-full font-medium">
+                <span className="px-2 py-1 text-xs bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-full font-medium">
                   {myIndustryInfo.icon} {myIndustryInfo.label}
                 </span>
               )}
@@ -851,7 +851,7 @@ export default function CareerInsights() {
                   </p>
                   {salaryTrends.map((st) => (
                     <div key={st.type} className="flex items-center justify-between py-1">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
                           {st.label}
                         </span>
@@ -904,7 +904,7 @@ export default function CareerInsights() {
                         </span>
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-0.5">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-2">
                               <span className="text-sm font-medium text-slate-700 dark:text-slate-300 capitalize">
                                 {sk.name}
                               </span>

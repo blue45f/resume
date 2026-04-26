@@ -245,7 +245,7 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
               onSubmit={replyForm.handleSubmit(onReply(node.id))}
               className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl overflow-hidden"
             >
-              <div className="px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 border-b border-indigo-100 dark:border-indigo-800/50 flex items-center gap-1.5">
+              <div className="px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 border-b border-indigo-100 dark:border-indigo-800/50 flex items-center gap-2">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"

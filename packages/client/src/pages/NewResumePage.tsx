@@ -1422,7 +1422,7 @@ export default function NewResumePage() {
                     6단계로 나누어 이력서를 쉽게 작성합니다. 각 단계에서 팁과 예시를 확인하며 작성할
                     수 있습니다.
                   </p>
-                  <div className="flex gap-1.5 mb-3">
+                  <div className="flex gap-2 mb-3">
                     {['직종 선택', '인적사항', '경력', '학력', '기술', '미리보기'].map(
                       (label, i) => (
                         <span
@@ -1583,7 +1583,7 @@ export default function NewResumePage() {
               </div>
 
               {/* Category filter pills */}
-              <div className="flex gap-1.5 overflow-x-auto py-1 mb-4 -mx-1 px-1">
+              <div className="flex gap-2 overflow-x-auto py-1 mb-4 -mx-1 px-1">
                 <button
                   onClick={() => setThemeFilter('all')}
                   className={`px-2.5 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${
@@ -1933,7 +1933,7 @@ export default function NewResumePage() {
                                     </span>
                                   )}
                                   {t.isDefault && (
-                                    <span className="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full">
+                                    <span className="px-1.5 py-1 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full">
                                       기본
                                     </span>
                                   )}
@@ -2014,17 +2014,17 @@ export default function NewResumePage() {
               </h1>
               <div className="flex items-center gap-2">
                 {selected && (
-                  <span className="px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full">
+                  <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full">
                     {selected.name}
                   </span>
                 )}
                 {startMode === 'sample' && (
-                  <span className="px-2 py-0.5 text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full">
+                  <span className="px-2 py-1 text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full">
                     샘플 데이터
                   </span>
                 )}
                 {startMode === 'copy' && (
-                  <span className="px-2 py-0.5 text-xs bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 rounded-full">
+                  <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 rounded-full">
                     복사본
                   </span>
                 )}

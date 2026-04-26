@@ -323,7 +323,7 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
                           {jobMatch.matchedSkills?.map((s: string, i: number) => (
                             <span
                               key={i}
-                              className="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded"
+                              className="px-1.5 py-1 text-xs bg-green-100 text-green-700 rounded"
                             >
                               {s}
                             </span>
@@ -336,7 +336,7 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
                           {jobMatch.missingSkills?.map((s: string, i: number) => (
                             <span
                               key={i}
-                              className="px-1.5 py-0.5 text-xs bg-red-100 text-red-700 rounded"
+                              className="px-1.5 py-1 text-xs bg-red-100 text-red-700 rounded"
                             >
                               {s}
                             </span>

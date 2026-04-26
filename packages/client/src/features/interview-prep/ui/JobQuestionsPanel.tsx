@@ -369,7 +369,7 @@ export default function JobQuestionsPanel({
                   </button>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
                       <span
                         className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${difficultyClass}`}
                       >

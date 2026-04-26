@@ -71,7 +71,7 @@ export default function ResumeChecklist({ resume, compact }: Props) {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {items.map((item) => (
           <div key={item.label} className="flex items-center gap-2 text-xs">
             {item.done ? (

@@ -232,7 +232,7 @@ function CategorySection({ d, maxCount }: { d: SkillData; maxCount: number }) {
         </svg>
       </button>
       {open && (
-        <div className="px-3 pb-3 pt-1 flex flex-wrap gap-1.5">
+        <div className="px-3 pb-3 pt-1 flex flex-wrap gap-2">
           {d.items.map((item) => (
             <span
               key={item}

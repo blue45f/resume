@@ -236,7 +236,7 @@ export default function CoachProfileEditPage() {
                   style={{ width: `${completeness.percent}%` }}
                 />
               </div>
-              <div className="mt-3 flex flex-wrap gap-1.5">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {completeness.items.map((it) => (
                   <span
                     key={it.label}
@@ -294,7 +294,7 @@ export default function CoachProfileEditPage() {
                   <option key={s} value={s} />
                 ))}
               </datalist>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
+              <div className="mt-1.5 flex flex-wrap gap-2">
                 {SPECIALTIES.map((s) => (
                   <button
                     key={s}

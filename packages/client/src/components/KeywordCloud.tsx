@@ -33,7 +33,7 @@ export default function KeywordCloud({
 
   return (
     <div
-      className={`flex flex-wrap gap-1.5 items-center ${className}`}
+      className={`flex flex-wrap gap-2 items-center ${className}`}
       role="group"
       aria-label="핵심 키워드"
     >

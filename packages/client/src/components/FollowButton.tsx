@@ -57,7 +57,7 @@ export default function FollowButton({
   const showUnfollow = following && hovered;
 
   return (
-    <div className="inline-flex items-center gap-1.5">
+    <div className="inline-flex items-center gap-2">
       <button
         onClick={toggle}
         disabled={loading}

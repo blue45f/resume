@@ -264,7 +264,7 @@ export default function TranslatePage() {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
                 언어 방향
               </label>
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-3 gap-2">
                 {LANGUAGE_PAIRS.map((pair, i) => (
                   <button
                     key={i}

@@ -141,7 +141,7 @@ export default function JobAlert({ jobs }: Props) {
       {/* Alert Bell Button */}
       <button
         onClick={() => setOpen(true)}
-        className="relative inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+        className="relative inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
         title="채용 알림 설정"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -345,7 +345,7 @@ export default function JobAlert({ jobs }: Props) {
                           <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
                             {alert.keywords}
                           </p>
-                          <div className="flex flex-wrap gap-1.5 mt-1">
+                          <div className="flex flex-wrap gap-2 mt-1">
                             {alert.jobType && alert.jobType !== 'all' && (
                               <span className="badge-xs badge-neutral">
                                 {{

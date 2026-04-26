@@ -210,7 +210,7 @@ export default function AdminPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] text-sm rounded-xl whitespace-nowrap transition-all duration-200 ${
+              className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm rounded-xl whitespace-nowrap transition-all duration-200 ${
                 activeTab === tab.id
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
@@ -888,7 +888,7 @@ function CoachingStatsWidget({ coaching }: { coaching?: Stats['coaching'] }) {
               return (
                 <span
                   key={item.key}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full ${item.cls}`}
+                  className={`inline-flex items-center gap-2 px-2.5 py-1 text-[11px] font-medium rounded-full ${item.cls}`}
                 >
                   {item.label} <span className="font-bold">{n}</span>
                 </span>
@@ -1041,7 +1041,7 @@ function ReportedContentQueue() {
                       </option>
                     ))}
                   </select>
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-2">
                     <button
                       onClick={() => handleAction(item.id, 'approve')}
                       className="flex-1 sm:flex-initial text-xs px-4 py-2 min-h-[44px] bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-100 transition-colors font-medium"
@@ -1442,7 +1442,7 @@ function AdminBannersTab() {
                   </p>
                   {b.subtitle && <p className="text-xs text-slate-400 truncate">{b.subtitle}</p>}
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => handleToggleActive(b)}
                     className={`w-10 h-6 rounded-full transition-colors ${b.isActive ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}
@@ -1724,7 +1724,7 @@ function AdminNoticesTab() {
           <div className="flex flex-wrap gap-4">
             <div>
               <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">유형</label>
-              <div className="flex gap-1.5 flex-wrap">
+              <div className="flex gap-2 flex-wrap">
                 {(['GENERAL', 'MAINTENANCE', 'EVENT', 'UPDATE', 'URGENT'] as const).map((t) => (
                   <button
                     key={t}
@@ -1845,7 +1845,7 @@ function AdminNoticesTab() {
                     <span>{new Date(n.createdAt).toLocaleDateString('ko')}</span>
                   </div>
                 </div>
-                <div className="flex gap-1.5 shrink-0 flex-wrap justify-end">
+                <div className="flex gap-2 shrink-0 flex-wrap justify-end">
                   <button
                     onClick={() => handleToggleComments(n)}
                     className={`px-2.5 py-1.5 text-xs rounded-lg transition-colors ${n.allowComments ? 'bg-slate-100 dark:bg-slate-700 text-slate-500' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600'}`}
@@ -1974,7 +1974,7 @@ function AdminCommunityTab() {
           {/* Show hidden toggle */}
           <button
             onClick={() => setShowHidden((v) => !v)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors ${showHidden ? 'bg-slate-800 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200'}`}
+            className={`flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg transition-colors ${showHidden ? 'bg-slate-800 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200'}`}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {showHidden ? (
@@ -1995,7 +1995,7 @@ function AdminCommunityTab() {
             </svg>
             {showHidden ? '숨김 포함 중' : '숨김 제외 중'}
           </button>
-          <div className="flex gap-1.5">
+          <div className="flex gap-2">
             <input
               type="text"
               value={search}
@@ -2015,7 +2015,7 @@ function AdminCommunityTab() {
       </div>
 
       {/* Category filter */}
-      <div className="flex gap-1.5 flex-wrap">
+      <div className="flex gap-2 flex-wrap">
         {CATS.map((cat) => (
           <button
             key={cat}
@@ -2073,7 +2073,7 @@ function AdminCommunityTab() {
                     className={`transition-colors ${post.isHidden ? 'bg-red-50/50 dark:bg-red-900/5 opacity-70' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'} ${actionId === post.id ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     <td className="px-4 py-3 max-w-[250px]">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         {post.isPinned && (
                           <span className="text-amber-500 text-xs shrink-0">📌</span>
                         )}
@@ -2110,7 +2110,7 @@ function AdminCommunityTab() {
                       <span>💬 {post._count?.comments ?? 0}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex items-center justify-center gap-2">
                         {/* Pin toggle */}
                         <button
                           onClick={() => patchPost(post.id, { isPinned: !post.isPinned })}
@@ -2869,7 +2869,7 @@ function RecentResumes() {
               </Link>
               <span className="text-xs text-slate-400">{r.personalInfo?.name || '이름 없음'}</span>
             </div>
-            <div className="flex gap-1.5 shrink-0">
+            <div className="flex gap-2 shrink-0">
               <button
                 onClick={() => handleHide(r.id)}
                 className="text-xs px-3 py-2 min-h-[44px] flex-1 sm:flex-initial bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-lg hover:bg-amber-100 transition-colors"
@@ -3031,7 +3031,7 @@ function PlanConfig() {
                         onChange={(e) =>
                           updateFeature(planIdx, feat.key, parseInt(e.target.value) || 0)
                         }
-                        className="w-16 px-1.5 py-0.5 text-xs text-right border border-slate-200 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-slate-200"
+                        className="w-16 px-1.5 py-1 text-xs text-right border border-slate-200 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-slate-200"
                       />
                     )}
                   </div>
@@ -3189,7 +3189,7 @@ function ResumeReportsQueue() {
                 className="flex items-start justify-between gap-2 p-2 text-xs bg-slate-50 dark:bg-slate-700/30 rounded border border-slate-200 dark:border-slate-700"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[10px] font-semibold">
                       {REPORT_REASON_LABEL[r.reason] ?? r.reason}
                     </span>
@@ -3327,7 +3327,7 @@ function CommunityPostReportsQueue() {
                 className="flex items-start justify-between gap-2 p-2 text-xs bg-slate-50 dark:bg-slate-700/30 rounded border border-slate-200 dark:border-slate-700"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[10px] font-semibold">
                       {REPORT_REASON_LABEL[r.reason] ?? r.reason}
                     </span>
@@ -4042,13 +4042,13 @@ function AdminPermissionsTab() {
                   const isAll = roles.includes('all');
                   return (
                     <div key={action.key}>
-                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2.5 flex items-center gap-1.5">
+                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2.5 flex items-center gap-2">
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${action.key === 'create' ? 'bg-emerald-500' : action.key === 'edit' ? 'bg-blue-500' : 'bg-red-500'}`}
                         />
                         {action.label}
                       </p>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-2">
                         {PERM_ROLES.map((role) => {
                           const active = isAll ? role.key === 'all' : roles.includes(role.key);
                           return (
@@ -4360,7 +4360,7 @@ function AdminForbiddenWordsTab() {
 
       {/* Test panel */}
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
           <span className="w-1.5 h-4 bg-blue-500 rounded" />
           금칙어 테스트
         </h3>
@@ -4403,7 +4403,7 @@ function AdminForbiddenWordsTab() {
       {/* Add form */}
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
             <span className="w-1.5 h-4 bg-indigo-500 rounded" />
             금칙어 등록
           </h3>

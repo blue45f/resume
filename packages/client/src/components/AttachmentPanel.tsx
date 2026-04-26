@@ -180,7 +180,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
                   className={`px-4 py-1.5 text-white text-sm font-medium rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 transition-colors ${uploading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'}`}
                 >
                   {uploading ? (
-                    <span className="inline-flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-2">
                       <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle
                           className="opacity-25"

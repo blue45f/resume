@@ -151,7 +151,7 @@ export default function OnboardingBanner() {
               {step.num}
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-semibold flex items-center gap-1.5">
+              <p className="text-sm font-semibold flex items-center gap-2">
                 {step.title}
                 <svg
                   className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all"

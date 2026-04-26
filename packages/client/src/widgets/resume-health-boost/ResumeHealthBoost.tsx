@@ -176,7 +176,7 @@ export default function ResumeHealthBoost({ resumes }: Props) {
         {snap.top ? (
           <div className="flex flex-col gap-3 min-w-0 sm:border-l sm:border-slate-200 dark:sm:border-slate-700 sm:pl-7">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] text-emerald-700 dark:text-emerald-400 font-bold mb-1.5">
+              <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] text-emerald-700 dark:text-emerald-400 font-bold mb-1.5">
                 <span className="w-1 h-1 rounded-full bg-emerald-500" aria-hidden="true" />
                 다음 한 걸음 · +{snap.delta}%
               </div>
@@ -197,7 +197,7 @@ export default function ResumeHealthBoost({ resumes }: Props) {
             <div className="flex items-center gap-3 flex-wrap">
               <Link
                 to={ROUTES.resume.edit(snap.top.resumeId)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-semibold rounded-lg hover:bg-slate-800 dark:hover:bg-white transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-semibold rounded-lg hover:bg-slate-800 dark:hover:bg-white transition-colors"
               >
                 지금 채우기
                 <svg

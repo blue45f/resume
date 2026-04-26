@@ -310,7 +310,7 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
                         {issue.section}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-baseline gap-1.5">
+                        <div className="flex flex-wrap items-baseline gap-2">
                           <span className="font-mono text-[11px] line-through text-red-600 dark:text-red-400 break-all">
                             {issue.wrong}
                           </span>
@@ -437,7 +437,7 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
 
           {/* 섹션별 이슈 분포 — 어느 섹션에 문제가 몰려있는지 한눈에 */}
           {!aiMode && sectionCounts.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 text-[10px]">
+            <div className="flex flex-wrap gap-2 text-[10px]">
               {sectionCounts.map((s) => (
                 <span
                   key={s.name}
@@ -471,7 +471,7 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
                       {issue.section}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-baseline gap-1.5">
+                      <div className="flex flex-wrap items-baseline gap-2">
                         <span className="font-mono text-[11px] line-through text-red-600 dark:text-red-400">
                           {issue.wrong}
                         </span>

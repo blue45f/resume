@@ -73,7 +73,7 @@ export default function VoiceInput({ onResult, lang = 'ko-KR', className = '' }:
     <button
       type="button"
       onClick={toggle}
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+      className={`inline-flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
         listening
           ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 animate-pulse'
           : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'

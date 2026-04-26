@@ -163,7 +163,7 @@ export default function NoticePopup() {
           </div>
 
           {notices.length > 1 && (
-            <div className="flex justify-center gap-1.5 pb-3">
+            <div className="flex justify-center gap-2 pb-3">
               {notices.map((_, i) => (
                 <button
                   key={i}

@@ -278,7 +278,7 @@ export default function CoachDetailPage() {
                   </dt>
                   <dd className="text-slate-700 dark:text-slate-300">
                     {languages.length > 0 ? (
-                      <span className="flex flex-wrap gap-1.5">
+                      <span className="flex flex-wrap gap-2">
                         {languages.map((l) => (
                           <span
                             key={l}

@@ -324,7 +324,7 @@ export default function CommunityPage() {
             <button
               key={cat.id}
               onClick={() => setCategory(cat.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-all ${
                 category === cat.id
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
@@ -487,7 +487,7 @@ export default function CommunityPage() {
                   <div className="flex items-start gap-3">
                     {/* Category badge */}
                     <span
-                      className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-lg ${CATEGORY_COLORS[post.category] || CATEGORY_COLORS.free}`}
+                      className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg ${CATEGORY_COLORS[post.category] || CATEGORY_COLORS.free}`}
                     >
                       {catInfo.icon} {catInfo.label}
                     </span>
@@ -574,7 +574,7 @@ export default function CommunityPage() {
                           {post.viewCount}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                      <div className="flex items-center gap-2 text-xs text-slate-400">
                         {post.user?.avatar ? (
                           <img
                             src={post.user.avatar}
@@ -609,7 +609,7 @@ export default function CommunityPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-1.5 mt-8">
+          <div className="flex items-center justify-center gap-2 mt-8">
             <button
               onClick={() => setPage(1)}
               disabled={page === 1}

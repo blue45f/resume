@@ -429,7 +429,7 @@ export default function CameraInterview({
           {question}
         </h3>
         {ttsSupported && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <span className="text-[10px] text-slate-400 mr-1">면접관:</span>
             {PERSONA_PRESETS.map((p) => (
               <button

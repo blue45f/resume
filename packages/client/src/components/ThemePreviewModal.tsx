@@ -29,7 +29,7 @@ export default function ThemePreviewModal({ theme, onClose, onSelect }: Props) {
                 {theme.name}
               </RadixDialog.Title>
               {theme.premium && (
-                <span className="px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-full">
+                <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-full">
                   프리미엄
                 </span>
               )}
@@ -127,7 +127,7 @@ export default function ThemePreviewModal({ theme, onClose, onSelect }: Props) {
                         className="h-2 rounded w-1/6"
                         style={{ backgroundColor: p?.accentBar || '#3b82f6', opacity: 0.8 }}
                       />
-                      <div className="flex gap-1.5 flex-wrap">
+                      <div className="flex gap-2 flex-wrap">
                         {[28, 22, 18, 24, 20, 16].map((w, i) => (
                           <div
                             key={i}
@@ -219,7 +219,7 @@ export default function ThemePreviewModal({ theme, onClose, onSelect }: Props) {
                     <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
                       추천 대상
                     </h3>
-                    <div className="flex gap-1.5 flex-wrap">
+                    <div className="flex gap-2 flex-wrap">
                       {p.bestFor.split(', ').map((tag) => (
                         <span
                           key={tag}

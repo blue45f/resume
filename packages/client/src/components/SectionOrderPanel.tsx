@@ -94,7 +94,7 @@ export default function SectionOrderPanel({
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
           <svg
             className="w-4 h-4 text-slate-400"
             fill="none"

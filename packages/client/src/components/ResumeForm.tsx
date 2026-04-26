@@ -68,7 +68,7 @@ function SaveStatusPill({ status, lastSaved }: { status: SaveStatus; lastSaved: 
   const c = config[status];
   return (
     <div
-      className={`fixed top-16 right-4 z-40 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm transition-all duration-300 ${c.color}`}
+      className={`fixed top-16 right-4 z-40 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm transition-all duration-300 ${c.color}`}
       role="status"
       aria-live="polite"
     >

@@ -733,7 +733,7 @@ export default function CoverLetterPage() {
                     <div className="flex flex-wrap gap-2 mt-3">
                       <button
                         onClick={() => handleCopy(result)}
-                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-100 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-100 transition-colors"
                       >
                         <svg
                           className="w-3.5 h-3.5"
@@ -752,7 +752,7 @@ export default function CoverLetterPage() {
                       </button>
                       <button
                         onClick={() => handleDownloadPdf(result)}
-                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl hover:bg-green-100 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl hover:bg-green-100 transition-colors"
                       >
                         <svg
                           className="w-3.5 h-3.5"
@@ -773,7 +773,7 @@ export default function CoverLetterPage() {
                         type="button"
                         onClick={handleSubmitGenerate(onGenerateSubmit)}
                         disabled={isGenerating}
-                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50"
                       >
                         <svg
                           className="w-3.5 h-3.5"
@@ -1065,7 +1065,7 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
             {result.strengths.map((s, i) => (
               <li
                 key={i}
-                className="text-xs text-slate-600 dark:text-slate-400 flex items-start gap-1.5"
+                className="text-xs text-slate-600 dark:text-slate-400 flex items-start gap-2"
               >
                 <span className="text-emerald-500 shrink-0 mt-0.5">✓</span> {s}
               </li>
@@ -1084,7 +1084,7 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
             {result.suggestions.map((s, i) => (
               <li
                 key={i}
-                className="text-xs text-slate-600 dark:text-slate-400 flex items-start gap-1.5 p-2 bg-amber-50 dark:bg-amber-900/10 rounded-lg"
+                className="text-xs text-slate-600 dark:text-slate-400 flex items-start gap-2 p-2 bg-amber-50 dark:bg-amber-900/10 rounded-lg"
               >
                 <span className="text-amber-500 shrink-0 mt-0.5">•</span> {s}
               </li>
@@ -1141,7 +1141,7 @@ function AnalysisSummaryBar({ text }: { text: string }) {
         <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-200">
           📊 종합 진단
         </span>
-        <span className="flex items-center gap-1.5">
+        <span className="flex items-center gap-2">
           <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${tierColor}`}>
             🎯 면접 {interview.overall}점 · {tierLabel}
           </span>
@@ -1152,7 +1152,7 @@ function AnalysisSummaryBar({ text }: { text: string }) {
         {summary.topFlags.map((f, i) => (
           <li
             key={i}
-            className="flex items-start gap-1.5 text-[10.5px] text-slate-600 dark:text-slate-300"
+            className="flex items-start gap-2 text-[10.5px] text-slate-600 dark:text-slate-300"
           >
             <span aria-hidden>
               {f.severity === 'red' ? '🔴' : f.severity === 'yellow' ? '🟡' : '🟢'}
@@ -1248,7 +1248,7 @@ function SkillMentionsBar({ text }: { text: string }) {
       <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
         🛠️ 언급된 기술 스킬
       </div>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-2">
         {skills.map((s) => (
           <span
             key={s.skill}

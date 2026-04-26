@@ -105,7 +105,7 @@ export default function AtsScorePanel({ resume }: Props) {
 
           {/* Passed items pills */}
           {result.passed.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {result.passed.map((p, i) => (
                 <span
                   key={i}

@@ -516,7 +516,7 @@ function PriorityActions({ report }: { report: ReturnType<typeof generateQuality
         {actions.map((a, i) => (
           <li
             key={a.dimension}
-            className="flex items-start gap-1.5 text-[10px] text-slate-600 dark:text-slate-400"
+            className="flex items-start gap-2 text-[10px] text-slate-600 dark:text-slate-400"
           >
             <span className="inline-flex w-4 h-4 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold text-[9px]">
               {i + 1}

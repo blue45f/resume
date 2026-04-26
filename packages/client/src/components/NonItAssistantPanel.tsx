@@ -81,7 +81,7 @@ export default function NonItAssistantPanel({ resume }: Props) {
                 </button>
               )}
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {NON_IT_CATEGORY_KEYS.map((k) => (
                 <button
                   key={k}
@@ -120,7 +120,7 @@ export default function NonItAssistantPanel({ resume }: Props) {
                 role="tab"
                 aria-selected={tab === t.id}
                 onClick={() => setTab(t.id)}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-colors ${
+                className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-colors ${
                   tab === t.id
                     ? 'border-blue-600 text-blue-700 dark:text-blue-300'
                     : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
@@ -165,7 +165,7 @@ export default function NonItAssistantPanel({ resume }: Props) {
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 이 직군에서 채용공고 우대 조건으로 자주 등장하는 자격증입니다.
               </p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {guide.recommendedCertifications.map((c) => (
                   <span
                     key={c}

@@ -204,7 +204,7 @@ export default function ResumeHealthRing({ resumes }: Props) {
           </p>
 
           {/* Nudges */}
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {stats.avg < 100 && (
               <Link
                 to={editLink}

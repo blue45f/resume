@@ -361,7 +361,7 @@ export default function ScoutsPage() {
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
               {t('page.scouts')}
               {unreadCount > 0 && (
-                <span className="ml-2 px-2 py-0.5 text-xs bg-red-500 text-white rounded-full">
+                <span className="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded-full">
                   {unreadCount}
                 </span>
               )}
@@ -777,7 +777,7 @@ export default function ScoutsPage() {
                         )}
                         {tab === 'sent' ? s.receiver?.name || '익명' : s.sender.name}
                       </span>
-                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
                         <SendMessageButton
                           targetUserId={tab === 'sent' ? s.receiver?.id : s.sender.id}
                           targetUserName={tab === 'sent' ? s.receiver?.name : s.sender.name}
@@ -849,7 +849,7 @@ export default function ScoutsPage() {
                       </p>
                       {selected.company && (
                         <div className="flex items-center gap-2 mt-2">
-                          <span className="px-2 py-0.5 text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full">
+                          <span className="px-2 py-1 text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full">
                             {selected.company}
                           </span>
                           <span className="text-sm text-slate-600 dark:text-slate-400">

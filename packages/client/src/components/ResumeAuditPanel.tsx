@@ -312,7 +312,7 @@ export default function ResumeAuditPanel({ resume, compact = false }: Props) {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <svg
             className="w-4 h-4 text-indigo-500"
             fill="none"
@@ -328,7 +328,7 @@ export default function ResumeAuditPanel({ resume, compact = false }: Props) {
           </svg>
           이력서 종합 감사
         </h3>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <span
             className={`text-xs font-bold px-2 py-0.5 rounded-full ${
               score >= 80
@@ -368,7 +368,7 @@ export default function ResumeAuditPanel({ resume, compact = false }: Props) {
       </div>
 
       {/* Summary badges */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
+      <div className="flex flex-wrap gap-2 mb-3">
         {failedHigh > 0 && (
           <span className="text-[11px] px-2 py-0.5 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full font-medium">
             높은중요도 {failedHigh}개 개선 필요
@@ -480,7 +480,7 @@ export default function ResumeAuditPanel({ resume, compact = false }: Props) {
                 )}
               </span>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span
                     className={`font-medium ${item.pass ? 'text-slate-600 dark:text-slate-400' : 'text-slate-700 dark:text-slate-300'}`}
                   >

@@ -229,7 +229,7 @@ export default function StudyGroupsPage() {
               <option value="active">최근 활동순</option>
             </select>
           </div>
-          <label className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+          <label className="inline-flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
             <input
               type="checkbox"
               checked={openOnly}
@@ -316,7 +316,7 @@ export default function StudyGroupsPage() {
               <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-3">
                 {g.description || '(설명 없음)'}
               </p>
-              <div className="flex flex-wrap items-center gap-1.5 mb-3">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
                 {g.companyName && <span className="badge-xs badge-blue">{g.companyName}</span>}
                 <span className="badge-xs badge-cyan">
                   {TIER_LABEL[g.companyTier] || g.companyTier}

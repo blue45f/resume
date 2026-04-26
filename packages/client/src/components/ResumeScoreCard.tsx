@@ -186,11 +186,11 @@ export default function ResumeScoreCard({ resume, onClose }: Props) {
 
               {/* Skills */}
               {topSkills.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-1.5">
+                <div className="mt-4 flex flex-wrap gap-2">
                   {topSkills.map((skill) => (
                     <span
                       key={skill}
-                      className="px-2 py-0.5 text-xs rounded-full border"
+                      className="px-2 py-1 text-xs rounded-full border"
                       style={{ borderColor: `${color}40`, color, backgroundColor: `${color}10` }}
                     >
                       {skill}
@@ -216,19 +216,19 @@ export default function ResumeScoreCard({ resume, onClose }: Props) {
             <div className="flex gap-2">
               <button
                 onClick={handleCopyText}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-2 px-3 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
                 {copied ? '✅ 복사됨' : '📋 텍스트 복사'}
               </button>
               <button
                 onClick={handleShareLinkedIn}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-medium transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-medium transition-colors"
               >
                 💼 LinkedIn
               </button>
               <button
                 onClick={handleShareTwitter}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-medium transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-medium transition-colors"
               >
                 𝕏 Twitter
               </button>

@@ -106,7 +106,7 @@ export default function AudioSummaryPanel({ resume }: Props) {
             {playing ? (
               <button
                 onClick={stop}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 <span aria-hidden="true">⏹️</span> 중지
               </button>
@@ -114,7 +114,7 @@ export default function AudioSummaryPanel({ resume }: Props) {
               <button
                 onClick={play}
                 disabled={!script.trim()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 <span aria-hidden="true">▶️</span> 재생
               </button>
@@ -134,7 +134,7 @@ export default function AudioSummaryPanel({ resume }: Props) {
               </select>
             )}
 
-            <label className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+            <label className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2">
               속도
               <input
                 type="range"

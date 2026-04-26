@@ -61,11 +61,11 @@ export default function TagSelector({ resumeId, currentTags, onUpdate }: Props) 
   return (
     <div ref={ref} className="relative inline-block">
       {/* Current tags + add button */}
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-2">
         {currentTags.map((tag) => (
           <span
             key={tag.id}
-            className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full"
+            className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full"
             style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
           >
             {tag.name}
@@ -80,7 +80,7 @@ export default function TagSelector({ resumeId, currentTags, onUpdate }: Props) 
         ))}
         <button
           onClick={() => setOpen(!open)}
-          className="px-2 py-0.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+          className="px-2 py-1 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
           aria-label="태그 추가"
           aria-expanded={open}
         >

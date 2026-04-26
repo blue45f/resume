@@ -72,7 +72,7 @@ export default function InterviewQuestionsPanel({
               <p className="text-[12px] leading-snug text-slate-800 dark:text-slate-200">
                 {q.question}
               </p>
-              <div className="mt-0.5 flex items-center gap-1.5">
+              <div className="mt-0.5 flex items-center gap-2">
                 <span
                   className={`inline-flex items-center px-1.5 py-0 rounded text-[9px] font-medium border ${CATEGORY_COLORS[q.category]}`}
                   title={q.reason}

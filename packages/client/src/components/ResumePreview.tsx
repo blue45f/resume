@@ -174,7 +174,7 @@ function SkillsDisplay({
             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
               {skill.category}
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {skill.items.split(',').map((item, i) => (
                 <span
                   key={i}
@@ -201,11 +201,11 @@ function SkillsDisplay({
               {skill.category.replace(/\s+/g, '_').toLowerCase()}
               <span className="text-[#484f58]"> = </span>[
             </div>
-            <div className="flex flex-wrap gap-1.5 ml-4">
+            <div className="flex flex-wrap gap-2 ml-4">
               {skill.items.split(',').map((item, i) => (
                 <span
                   key={i}
-                  className="px-2 py-0.5 text-xs font-mono bg-[#161b22] text-[#79c0ff] border border-[#30363d] rounded"
+                  className="px-2 py-1 text-xs font-mono bg-[#161b22] text-[#79c0ff] border border-[#30363d] rounded"
                 >{`"${item.trim()}"`}</span>
               ))}
             </div>
@@ -342,7 +342,7 @@ function TechTags({
         {text.split(',').map((tag, i) => (
           <span
             key={i}
-            className="px-1.5 py-0.5 text-xs font-mono bg-[#161b22] text-[#79c0ff] border border-[#30363d] rounded"
+            className="px-1.5 py-1 text-xs font-mono bg-[#161b22] text-[#79c0ff] border border-[#30363d] rounded"
           >
             {tag.trim()}
           </span>
@@ -354,7 +354,7 @@ function TechTags({
   return (
     <div className="flex flex-wrap gap-1 mt-1.5">
       {text.split(',').map((tag, i) => (
-        <span key={i} className={`px-1.5 py-0.5 text-xs rounded ${bg}`}>
+        <span key={i} className={`px-1.5 py-1 text-xs rounded ${bg}`}>
           {tag.trim()}
         </span>
       ))}

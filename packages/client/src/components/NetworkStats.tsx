@@ -133,7 +133,7 @@ export default function NetworkStats() {
   return (
     <div className="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
           <svg
             className="w-4 h-4 text-blue-500"
             fill="none"

@@ -156,7 +156,7 @@ export default function AuthCallbackPage() {
                     {tp.features.map((f) => (
                       <li
                         key={f}
-                        className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400"
+                        className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400"
                       >
                         <svg
                           className="w-3 h-3 text-emerald-500 shrink-0"

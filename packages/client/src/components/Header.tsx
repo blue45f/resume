@@ -575,7 +575,7 @@ export default function Header() {
               )}
               <button
                 onClick={() => setShowSearch(true)}
-                className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
+                className="flex items-center gap-2 px-2 lg:px-3 py-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
                 aria-label="검색"
               >
                 <svg
@@ -638,7 +638,7 @@ export default function Header() {
                   <button
                     ref={profileTriggerRef}
                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                    className={`text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-1.5 lg:px-2 py-1 transition-colors duration-200 flex items-center gap-1 lg:gap-1.5 border whitespace-nowrap max-w-[140px] lg:max-w-none ${
+                    className={`text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-1.5 lg:px-2 py-1 transition-colors duration-200 flex items-center gap-1 lg:gap-2 border whitespace-nowrap max-w-[140px] lg:max-w-none ${
                       isRecruiter
                         ? 'text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-700 bg-sky-50 dark:bg-sky-900/20 hover:bg-sky-100 dark:hover:bg-sky-900/40'
                         : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border-transparent hover:border-slate-200 dark:hover:border-slate-600'
