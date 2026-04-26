@@ -58,7 +58,7 @@ export default function QuickImportModal({ onClose, onSuccess }: Props) {
     >
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/50 animate-fade-in" />
-        <RadixDialog.Content className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-2xl bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl animate-scale-in max-h-[90vh] flex flex-col focus:outline-none">
+        <RadixDialog.Content className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-2xl bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl animate-scale-in max-h-[90dvh] flex flex-col focus:outline-none">
           <div className="flex items-center justify-between p-5 border-b border-neutral-200 dark:border-neutral-700">
             <div>
               <RadixDialog.Title className="text-lg font-bold text-neutral-900 dark:text-neutral-100">

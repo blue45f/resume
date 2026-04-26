@@ -946,15 +946,14 @@ button:active:not(:disabled) {
     border-color 0.3s ease,
     box-shadow 0.3s ease;
 }
+/* solid surface on scroll (.impeccable.md: glassmorphic 회피) */
 .header-glass.header-scrolled {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: #ffffff;
   border-bottom-color: var(--color-border-subtle);
   box-shadow: var(--shadow-sm);
 }
 .dark .header-glass.header-scrolled {
-  background: rgba(15, 15, 15, 0.88);
+  background: #0f0f0f;
   border-bottom-color: var(--color-border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
@@ -1836,19 +1835,17 @@ button:active:not(:disabled) {
   transform: scale(1.05);
 }
 
-/* Header scrolled enhanced */
+/* Header scrolled enhanced — solid surface (no backdrop-filter) */
 .header-glass.header-scrolled-enhanced {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border-bottom-color: rgba(226, 232, 240, 0.8);
+  background: #ffffff;
+  border-bottom-color: #e2e8f0;
   box-shadow:
     0 2px 16px -4px rgba(0, 0, 0, 0.08),
     0 1px 0 rgba(0, 0, 0, 0.04);
 }
 .dark .header-glass.header-scrolled-enhanced {
-  background: rgba(15, 23, 42, 0.88);
-  border-bottom-color: rgba(51, 65, 85, 0.7);
+  background: #0f172a;
+  border-bottom-color: #334155;
   box-shadow:
     0 2px 16px -4px rgba(0, 0, 0, 0.3),
     0 1px 0 rgba(255, 255, 255, 0.03);

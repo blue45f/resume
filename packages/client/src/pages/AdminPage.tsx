@@ -1634,7 +1634,7 @@ function AdminNoticesTab() {
           onClick={() => setHistoryNotice(null)}
         >
           <div
-            className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xl mx-4 p-6 max-h-[80vh] overflow-y-auto animate-fade-in"
+            className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xl mx-4 p-6 max-h-[80dvh] overflow-y-auto animate-fade-in"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
@@ -3592,7 +3592,7 @@ function AdminExtLinksTab() {
           <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/50 animate-fade-in" />
           <RadixDialog.Content
             aria-describedby={undefined}
-            className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-2xl bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto animate-fade-in focus:outline-none"
+            className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-2xl bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl p-6 max-h-[90dvh] overflow-y-auto animate-fade-in focus:outline-none"
           >
             {editing && (
               <>

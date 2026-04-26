@@ -324,7 +324,7 @@ export default function ProfileResumePage() {
       <RadixDialog.Root open={scoutModalOpen} onOpenChange={setScoutModalOpen}>
         <RadixDialog.Portal>
           <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/50 animate-fade-in" />
-          <RadixDialog.Content className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-2xl p-6 max-h-[90vh] overflow-y-auto focus:outline-none">
+          <RadixDialog.Content className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-2xl p-6 max-h-[90dvh] overflow-y-auto focus:outline-none">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
                 <svg

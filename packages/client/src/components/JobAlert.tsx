@@ -167,7 +167,7 @@ export default function JobAlert({ jobs }: Props) {
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] overflow-y-auto"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[85dvh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700">

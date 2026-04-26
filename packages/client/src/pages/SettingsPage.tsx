@@ -1370,7 +1370,7 @@ export default function SettingsPage() {
       >
         <RadixAlertDialog.Portal>
           <RadixAlertDialog.Overlay className="fixed inset-0 z-[90] bg-black/50 animate-fade-in" />
-          <RadixAlertDialog.Content className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-800 rounded-2xl border border-red-200 dark:border-red-900 shadow-2xl p-6 max-h-[90vh] overflow-y-auto focus:outline-none">
+          <RadixAlertDialog.Content className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-800 rounded-2xl border border-red-200 dark:border-red-900 shadow-2xl p-6 max-h-[90dvh] overflow-y-auto focus:outline-none">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
                 <svg

@@ -47,7 +47,7 @@ export default function KeyboardShortcuts() {
         <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/50 animate-fade-in" />
         <RadixDialog.Content
           aria-describedby={undefined}
-          className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl p-6 animate-scale-in max-h-[90vh] overflow-y-auto focus:outline-none"
+          className="fixed z-[91] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl p-6 animate-scale-in max-h-[90dvh] overflow-y-auto focus:outline-none"
         >
           <div className="flex items-center justify-between mb-4">
             <RadixDialog.Title className="text-lg font-bold text-neutral-900 dark:text-neutral-100">

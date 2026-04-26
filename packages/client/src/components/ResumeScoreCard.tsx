@@ -103,7 +103,7 @@ export default function ResumeScoreCard({ resume, onClose }: Props) {
         <RadixDialog.Overlay className="fixed inset-0 z-[100] bg-black/50 animate-fade-in" />
         <RadixDialog.Content
           aria-describedby={undefined}
-          className="fixed z-[101] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up focus:outline-none max-h-[90vh] overflow-y-auto"
+          className="fixed z-[101] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up focus:outline-none max-h-[90dvh] overflow-y-auto"
         >
           <RadixDialog.Title className="sr-only">이력서 점수</RadixDialog.Title>
           <RadixDialog.Close asChild>

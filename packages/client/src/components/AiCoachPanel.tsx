@@ -503,7 +503,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
             aria-describedby={undefined}
             className={`fixed z-[91] bg-white dark:bg-neutral-800 shadow-2xl border-l border-neutral-200 dark:border-neutral-700 flex flex-col focus:outline-none
               sm:right-0 sm:top-0 sm:h-full sm:w-80 lg:w-96
-              max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:max-h-[70vh] max-sm:rounded-t-2xl max-sm:border-t`}
+              max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:max-h-[70dvh] max-sm:rounded-t-2xl max-sm:border-t`}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 shrink-0">

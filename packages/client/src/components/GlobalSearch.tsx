@@ -185,7 +185,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
             e.preventDefault();
             inputRef.current?.focus();
           }}
-          className="fixed z-[101] top-[12vh] left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fade-in focus:outline-none max-h-[80vh] flex flex-col"
+          className="fixed z-[101] top-[12vh] left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fade-in focus:outline-none max-h-[80dvh] flex flex-col"
           style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
         >
           <RadixDialog.Title className="sr-only">{tx('common.search')}</RadixDialog.Title>
@@ -223,7 +223,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
             </kbd>
           </div>
 
-          <div className="max-h-[50vh] overflow-y-auto">
+          <div className="max-h-[50dvh] overflow-y-auto">
             {query.trim().length >= 2 && results.length > 0 ? (
               <div className="p-2">
                 {results.map((r, i) => {

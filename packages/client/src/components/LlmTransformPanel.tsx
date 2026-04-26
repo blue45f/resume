@@ -125,7 +125,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
         <RadixDialog.Content
           aria-label="이력서 변환"
           aria-describedby={undefined}
-          className="fixed z-[91] left-1/2 bottom-0 sm:top-1/2 sm:-translate-y-1/2 -translate-x-1/2 w-full sm:max-w-2xl bg-white dark:bg-neutral-800 sm:rounded-xl max-h-[92vh] flex flex-col rounded-t-xl overflow-hidden focus:outline-none animate-fade-in-up"
+          className="fixed z-[91] left-1/2 bottom-0 sm:top-1/2 sm:-translate-y-1/2 -translate-x-1/2 w-full sm:max-w-2xl bg-white dark:bg-neutral-800 sm:rounded-xl max-h-[92dvh] flex flex-col rounded-t-xl overflow-hidden focus:outline-none animate-fade-in-up"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-neutral-200 dark:border-neutral-700">
@@ -383,7 +383,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                   </div>
                 </div>
                 <div
-                  className="prose prose-sm max-w-none p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 max-h-[40vh] overflow-y-auto text-slate-800 dark:text-slate-200 whitespace-pre-wrap"
+                  className="prose prose-sm max-w-none p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 max-h-[40dvh] overflow-y-auto text-slate-800 dark:text-slate-200 whitespace-pre-wrap"
                   aria-live="polite"
                 >
                   {result}

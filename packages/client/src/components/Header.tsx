@@ -824,7 +824,7 @@ export default function Header() {
           {/* Mobile menu */}
           {menuOpen && (
             <nav
-              className="lg:hidden pb-4 space-y-0.5 border-t border-slate-100 dark:border-slate-700 pt-3 animate-fade-in max-h-[70vh] overflow-y-auto"
+              className="lg:hidden pb-4 space-y-0.5 border-t border-slate-100 dark:border-slate-700 pt-3 animate-fade-in max-h-[70dvh] overflow-y-auto"
               aria-label={t('a11y.mobileMenu')}
             >
               {/* Mode toggle banner */}

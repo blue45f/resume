@@ -121,7 +121,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
         <RadixDialog.Content
           aria-label="첨부파일 관리"
           aria-describedby={undefined}
-          className="fixed z-[91] left-1/2 bottom-0 sm:top-1/2 sm:-translate-y-1/2 -translate-x-1/2 w-full sm:max-w-xl bg-white dark:bg-neutral-800 sm:rounded-xl max-h-[90vh] flex flex-col rounded-t-xl overflow-hidden focus:outline-none animate-fade-in-up"
+          className="fixed z-[91] left-1/2 bottom-0 sm:top-1/2 sm:-translate-y-1/2 -translate-x-1/2 w-full sm:max-w-xl bg-white dark:bg-neutral-800 sm:rounded-xl max-h-[90dvh] flex flex-col rounded-t-xl overflow-hidden focus:outline-none animate-fade-in-up"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
