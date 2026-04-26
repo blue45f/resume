@@ -31,12 +31,15 @@ export default function PrintFooter({ resume }: Props) {
   const totalYears = resume.experiences.reduce((sum, e) => {
     if (!e.startDate) return sum;
     const start = new Date(e.startDate + '-01').getTime();
+    if (!Number.isFinite(start)) return sum;
     const end = e.current ? Date.now() : new Date((e.endDate || e.startDate) + '-01').getTime();
-    return sum + Math.max(0, (end - start) / (1000 * 60 * 60 * 24 * 365));
+    if (!Number.isFinite(end)) return sum;
+    const years = (end - start) / (1000 * 60 * 60 * 24 * 365);
+    return Number.isFinite(years) && years > 0 ? sum + years : sum;
   }, 0);
 
   const skillCount = resume.skills.reduce(
-    (n, s) => n + s.items.split(',').filter(Boolean).length,
+    (n, s) => n + (s.items?.split(',').filter(Boolean).length ?? 0),
     0,
   );
 
@@ -45,6 +48,12 @@ export default function PrintFooter({ resume }: Props) {
     month: 'long',
     day: 'numeric',
   });
+
+  // 정수+소수 1자리 자연스럽게: 18.0 → "18", 2.5 → "2.5"
+  const yearsLabel = (() => {
+    const r = Math.round(totalYears * 10) / 10;
+    return Number.isInteger(r) ? r.toString() : r.toFixed(1);
+  })();
 
   return (
     <div
@@ -62,25 +71,44 @@ export default function PrintFooter({ resume }: Props) {
         pageBreakInside: 'avoid',
       }}
     >
-      {/* 좌: 메타 정보 */}
-      <div style={{ flex: '0 0 auto' }}>
-        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '9pt' }}>{resume.title}</div>
+      {/* 좌: 메타 정보 — 최대 너비 제한해 가운데 SVG/우측 QR 폭 침범 방지 */}
+      <div style={{ flex: '1 1 0', minWidth: 0, maxWidth: '45%' }}>
+        <div
+          style={{
+            fontWeight: 600,
+            color: '#0f172a',
+            fontSize: '9pt',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {resume.title}
+        </div>
         <div style={{ marginTop: '3pt' }}>
-          {printedAt} · {Math.round(totalYears * 10) / 10}년 경력 · 기술 {skillCount}개
+          {printedAt} · {yearsLabel}년 경력 · 기술 {skillCount}개
         </div>
         <div style={{ marginTop: '2pt', fontFamily: 'monospace', fontSize: '7pt', opacity: 0.7 }}>
           #{dna.hash.slice(0, 8)}
         </div>
       </div>
 
-      {/* 중: Career DNA 핑거프린트 */}
-      <div style={{ flex: '1 1 auto', display: 'flex', justifyContent: 'center' }}>
+      {/* 중: Career DNA 핑거프린트 — 고정 폭 (180px), 줄어들지 않음 */}
+      <div
+        style={{
+          flex: '0 1 180px',
+          display: 'flex',
+          justifyContent: 'center',
+          minWidth: 0,
+        }}
+      >
         <svg
           width="180"
           height="28"
           viewBox="0 0 180 28"
           xmlns="http://www.w3.org/2000/svg"
           aria-label="Career DNA"
+          style={{ maxWidth: '100%', height: 'auto' }}
         >
           {dna.bars.map((h, i) => (
             <rect
@@ -100,9 +128,9 @@ export default function PrintFooter({ resume }: Props) {
         </svg>
       </div>
 
-      {/* 우: QR 코드 */}
+      {/* 우: QR 코드 — 고정 폭 (64px), 줄어들지 않음 */}
       {qrImageUrl && (
-        <div style={{ flex: '0 0 auto', textAlign: 'center' }}>
+        <div style={{ flex: '0 0 64px', textAlign: 'center' }}>
           <img
             src={qrImageUrl}
             alt="QR: 공유 링크"
