@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import JobUrlInput from '@/components/JobUrlInput';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
@@ -314,6 +315,30 @@ export default function JobPostPage() {
             onSubmit={handleSubmit(onSubmit)}
             className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-4"
           >
+            {/* 채용공고 URL → 폼 자동 채우기 (다른 사이트 공고를 옮겨오거나 본인 공고 다시 등록 시) */}
+            <JobUrlInput
+              hint="이미 다른 채용 사이트에 올린 공고가 있다면 URL 만 붙여넣어 자동으로 채워보세요"
+              onParsed={(p) => {
+                if (p.company) setValue('company', p.company, { shouldValidate: true });
+                if (p.position) setValue('position', p.position, { shouldValidate: true });
+                if (p.location) setValue('location', p.location);
+                if (p.skills.length > 0) setValue('skills', p.skills.join(', '));
+                if (p.description)
+                  setValue('description', p.description.slice(0, 5000), { shouldValidate: true });
+                if (p.experienceLevel || p.employmentType) {
+                  const reqLines = [
+                    p.experienceLevel && `경력: ${p.experienceLevel}`,
+                    p.employmentType && `고용형태: ${p.employmentType}`,
+                    p.skills.length > 0 && `기술 스택: ${p.skills.join(', ')}`,
+                  ]
+                    .filter(Boolean)
+                    .join('\n');
+                  if (reqLines) setValue('requirements', reqLines.slice(0, 3000));
+                }
+                if (p.salary) setValue('salaryText', p.salary.slice(0, 50));
+              }}
+            />
+
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
