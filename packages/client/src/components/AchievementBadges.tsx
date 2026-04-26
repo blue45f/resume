@@ -148,7 +148,7 @@ function BadgeIcon({ badge, animateIn }: { badge: Badge; animateIn: boolean }) {
         >
           {badge.label}
         </p>
-        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 max-w-[80px] leading-tight">
+        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 max-w-[80px] leading-tight">
           {badge.description}
         </p>
       </div>
@@ -184,7 +184,7 @@ function AchievementBadges({ resume }: Props) {
             />
           </svg>
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">달성 뱃지</h3>
-          <span className="text-xs text-slate-400 dark:text-slate-500">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             {earnedCount}/{badges.length}
           </span>
         </div>
@@ -197,7 +197,7 @@ function AchievementBadges({ resume }: Props) {
               style={{ width: `${(earnedCount / badges.length) * 100}%` }}
             />
           </div>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
             {Math.round((earnedCount / badges.length) * 100)}%
           </span>
         </div>

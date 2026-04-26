@@ -135,7 +135,7 @@ export default function AdminStudyGroupsTab() {
               {g.isPrivate && <span className="mr-1 text-slate-500">🔒</span>}
               {g.name}
             </p>
-            <p className="text-xs text-slate-400 truncate">
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
               {g.companyName || '—'} · {g.position || '—'}
             </p>
           </div>

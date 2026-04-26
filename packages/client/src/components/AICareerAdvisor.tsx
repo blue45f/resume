@@ -326,7 +326,7 @@ export default function AICareerAdvisor({ resume }: Props) {
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   커리어에 관한 질문을 해보세요.
                 </p>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                   이력서 데이터를 기반으로 맞춤 답변을 드립니다.
                 </p>
               </div>

@@ -152,7 +152,7 @@ function NoticeList() {
                         </span>
                       </div>
                     </div>
-                    <span className="shrink-0 text-xs text-slate-400">
+                    <span className="shrink-0 text-xs text-slate-500 dark:text-slate-400">
                       {timeAgo(notice.createdAt)}
                     </span>
                   </Link>
@@ -264,7 +264,7 @@ function NoticeDetail() {
               <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-2 leading-snug">
                 {notice.title}
               </h1>
-              <div className="flex items-center gap-3 mt-3 text-xs text-slate-400">
+              <div className="flex items-center gap-3 mt-3 text-xs text-slate-500 dark:text-slate-400">
                 <span>관리자</span>
                 <span>·</span>
                 <span>{new Date(notice.createdAt).toLocaleDateString('ko-KR')}</span>

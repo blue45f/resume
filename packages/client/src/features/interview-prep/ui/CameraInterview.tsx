@@ -347,7 +347,7 @@ export default function CameraInterview({
         </h3>
         {ttsSupported && (
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="text-[10px] text-slate-400 mr-1">면접관:</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 mr-1">면접관:</span>
             {PERSONA_PRESETS.map((p) => (
               <button
                 key={p.id}
@@ -525,7 +525,7 @@ export default function CameraInterview({
               </>
             )}
 
-            <span className="ml-auto text-xs text-slate-400 dark:text-slate-500 hidden sm:inline">
+            <span className="ml-auto text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">
               단축키: Space로 시작/정지
             </span>
           </div>
@@ -535,7 +535,7 @@ export default function CameraInterview({
             <button
               type="button"
               onClick={stopStream}
-              className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
             >
               카메라 세션 종료
             </button>

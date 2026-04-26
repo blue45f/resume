@@ -393,7 +393,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-slate-200 dark:border-slate-700" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-white dark:bg-slate-800 px-3 text-xs text-slate-400 dark:text-slate-500">
+                <span className="bg-white dark:bg-slate-800 px-3 text-xs text-slate-500 dark:text-slate-400">
                   &#xB610;&#xB294; &#xC774;&#xBA54;&#xC77C;&#xB85C;
                 </span>
               </div>
@@ -517,7 +517,9 @@ export default function LoginPage() {
                         <span className="text-xs font-medium text-slate-900 dark:text-slate-100">
                           {tp.label}
                         </span>
-                        <span className="text-[10px] text-slate-400 block">{tp.desc}</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
+                          {tp.desc}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -875,7 +877,7 @@ export default function LoginPage() {
             </form>
 
             <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
-              <p className="text-xs text-slate-400 dark:text-slate-500 text-center leading-relaxed">
+              <p className="text-xs text-slate-500 dark:text-slate-400 text-center leading-relaxed">
                 {isRegister ? '가입' : '로그인'}하면{' '}
                 <Link
                   to={ROUTES.terms}
@@ -904,7 +906,7 @@ export default function LoginPage() {
             </Link>
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4 mt-6 text-xs text-slate-400 dark:text-slate-500">
+          <div className="flex flex-wrap justify-center gap-4 mt-6 text-xs text-slate-500 dark:text-slate-400">
             <span className="flex items-center gap-1">
               <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                 <path

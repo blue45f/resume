@@ -94,7 +94,7 @@ function RecentActivityList() {
           <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 truncate">
             {a.desc}
           </span>
-          <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">
+          <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
             {new Date(a.date).toLocaleDateString('ko-KR')}
           </span>
         </div>
@@ -569,17 +569,17 @@ export default function SettingsPage() {
                   </p>
                   <button
                     onClick={() => setEditingName(true)}
-                    className="text-xs text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 transition-colors"
+                    className="text-xs text-slate-500 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 transition-colors"
                   >
                     ✏️
                   </button>
                 </div>
               )}
               <p className="text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {user.provider === 'local' ? '이메일 계정' : `${user.provider} 계정`}
               </p>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {user.plan === 'premium'
                   ? '💎 프리미엄'
                   : user.plan === 'standard'
@@ -607,7 +607,9 @@ export default function SettingsPage() {
                 {editingUsername ? (
                   <form onSubmit={onSaveUsername}>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-400 shrink-0">이력서공방.com/u/</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                        이력서공방.com/u/
+                      </span>
                       <input
                         type="text"
                         {...usernameForm.register('username', {
@@ -648,7 +650,7 @@ export default function SettingsPage() {
                         {usernameForm.formState.errors.username.message}
                       </p>
                     )}
-                    <p className="text-[10px] text-slate-400 mt-1">
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                       영문 소문자, 숫자, -, _ 만 사용 가능 (3-20자)
                     </p>
                   </form>
@@ -659,14 +661,14 @@ export default function SettingsPage() {
                     </code>
                     <Link
                       to={ROUTES.profile.userShort(user.username)}
-                      className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                      className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                       target="_blank"
                     >
                       보기 →
                     </Link>
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     설정하면 <strong>이력서공방.com/u/이름</strong>으로 포트폴리오 공유 가능
                   </p>
                 )}
@@ -1042,7 +1044,9 @@ export default function SettingsPage() {
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-slate-400 mt-2">결제 시스템 준비 중입니다.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                결제 시스템 준비 중입니다.
+              </p>
             </div>
           )}
         </CollapsibleSection>
@@ -1202,7 +1206,7 @@ export default function SettingsPage() {
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
                     {item.label}
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{item.desc}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.desc}</p>
                 </div>
                 <button
                   onClick={() => handleNotificationToggle(item.key)}
@@ -1257,7 +1261,7 @@ export default function SettingsPage() {
           </div>
           {/* 미리보기 */}
           <div className="rounded-xl border border-slate-200 dark:border-slate-600 overflow-hidden">
-            <div className="text-xs text-slate-400 dark:text-slate-500 px-3 py-1.5 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-600">
+            <div className="text-xs text-slate-500 dark:text-slate-400 px-3 py-1.5 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-600">
               미리보기 —{' '}
               {currentTheme === 'light' ? '라이트' : currentTheme === 'dark' ? '다크' : '시스템'}{' '}
               모드

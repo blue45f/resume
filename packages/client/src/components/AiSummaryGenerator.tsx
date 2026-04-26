@@ -219,7 +219,7 @@ export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props
       )}
 
       {!hasEnoughData && !loading && !preview && (
-        <p className="mt-2 text-xs text-slate-400 dark:text-slate-500 text-center">
+        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 text-center">
           경력, 기술, 학력 탭에서 정보를 먼저 입력하면 더 정확한 자기소개를 생성할 수 있습니다.
         </p>
       )}

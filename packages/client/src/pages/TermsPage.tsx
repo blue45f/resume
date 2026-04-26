@@ -151,7 +151,7 @@ export default function TermsPage() {
             </p>
           </section>
 
-          <div className="text-xs text-slate-400 dark:text-slate-500 pt-4 border-t border-slate-100 dark:border-slate-700">
+          <div className="text-xs text-slate-500 dark:text-slate-400 pt-4 border-t border-slate-100 dark:border-slate-700">
             시행일: 2026년 3월 30일
           </div>
         </div>
@@ -272,7 +272,7 @@ export default function TermsPage() {
             </ul>
           </section>
 
-          <div className="text-xs text-slate-400 dark:text-slate-500 pt-4 border-t border-slate-100 dark:border-slate-700">
+          <div className="text-xs text-slate-500 dark:text-slate-400 pt-4 border-t border-slate-100 dark:border-slate-700">
             시행일: 2026년 4월 2일
           </div>
         </div>

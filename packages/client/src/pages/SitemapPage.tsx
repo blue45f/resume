@@ -149,7 +149,7 @@ export default function SitemapPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         {link.desc}
                       </p>
                     </div>
@@ -174,7 +174,7 @@ export default function SitemapPage() {
         </div>
 
         {/* Stats */}
-        <div className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500">
+        <div className="mt-8 text-center text-xs text-slate-500 dark:text-slate-400">
           총 {SITEMAP.reduce((sum, s) => sum + s.links.length, 0)}개 페이지 · 이력서공방
         </div>
       </main>

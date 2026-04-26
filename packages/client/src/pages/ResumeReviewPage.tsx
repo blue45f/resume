@@ -648,7 +648,7 @@ export default function ResumeReviewPage() {
                       <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {cat.label}
                       </h3>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
                         비중 {Math.round(cat.weight * 100)}%
                       </p>
                     </div>
@@ -678,7 +678,7 @@ export default function ResumeReviewPage() {
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2">
                   {cat.description}
                 </p>
               </div>

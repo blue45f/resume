@@ -46,7 +46,7 @@ export default function PitchPanel({ resume }: Props) {
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
             자동 한 줄 소개 생성
           </h3>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:inline">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline">
             LinkedIn · Slack · 커피챗에 바로 사용
           </span>
         </div>
@@ -101,7 +101,7 @@ export default function PitchPanel({ resume }: Props) {
             </button>
           </div>
 
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
             💡 톤을 바꿔 여러 버전을 만들어보세요. 경력·기술·프로젝트 데이터로 즉시 생성되며 LLM
             호출 없어 무료·즉답 · 개인정보 외부 전송 없음.
           </p>

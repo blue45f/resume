@@ -226,7 +226,7 @@ export default function ApplicationTimeline({
         </div>
         <button
           onClick={() => setExpanded(!expanded)}
-          className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors shrink-0"
+          className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors shrink-0"
         >
           {totalDays}일 경과
           <svg
@@ -293,7 +293,7 @@ export default function ApplicationTimeline({
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     {entry.date && (
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
                         {new Date(entry.date).toLocaleDateString('ko-KR', {
                           month: 'short',
                           day: 'numeric',
@@ -301,7 +301,9 @@ export default function ApplicationTimeline({
                       </span>
                     )}
                     {entry.daysInStage !== null && entry.daysInStage > 0 && (
-                      <span className="text-xs text-slate-400">({entry.daysInStage}일)</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                        ({entry.daysInStage}일)
+                      </span>
                     )}
                   </div>
                 </div>

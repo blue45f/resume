@@ -296,7 +296,7 @@ export default function AdminPage() {
                           <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                             {u.email}
                           </p>
-                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                             {new Date(u.createdAt).toLocaleDateString('ko-KR')}
                           </p>
                         </div>
@@ -339,7 +339,7 @@ export default function AdminPage() {
                                   {u.provider}
                                 </span>
                               </td>
-                              <td className="px-4 py-2.5 text-xs text-slate-400 dark:text-slate-500">
+                              <td className="px-4 py-2.5 text-xs text-slate-500 dark:text-slate-400">
                                 {new Date(u.createdAt).toLocaleDateString('ko-KR')}
                               </td>
                             </tr>
@@ -680,7 +680,7 @@ function StatCard({
       <p className={`text-2xl font-bold ${colorMap[color] || 'text-blue-600'}`}>
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
-      {sub && <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{sub}</p>}
       {trend && (
         <p className={`text-xs mt-1 ${trend.value >= 0 ? 'text-green-600' : 'text-red-500'}`}>
           {trend.value >= 0 ? '+' : ''}
@@ -986,7 +986,7 @@ function ReportedContentQueue() {
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-8 text-center">
           <p className="text-3xl mb-2">🎉</p>
           <p className="text-sm text-slate-500 dark:text-slate-400">신고된 콘텐츠가 없습니다</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             신고 API가 아직 연결되지 않았을 수 있습니다. /api/health/admin/reports 엔드포인트를
             확인하세요.
           </p>
@@ -1016,7 +1016,7 @@ function ReportedContentQueue() {
                       >
                         {item.type === 'resume' ? '이력서' : '댓글'}
                       </span>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
                         {relativeTime(item.reportedAt)}
                       </span>
                     </div>
@@ -1088,7 +1088,7 @@ function ReportedContentQueue() {
                     {item.title || item.targetId}
                   </span>
                 </div>
-                <span className="text-xs text-slate-400 shrink-0">
+                <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
                   {relativeTime(item.reportedAt)}
                 </span>
               </div>
@@ -1436,12 +1436,18 @@ function AdminBannersTab() {
                     >
                       {b.isActive ? '활성' : '비활성'}
                     </span>
-                    <span className="text-xs text-slate-400">순서 {b.order}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      순서 {b.order}
+                    </span>
                   </div>
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
                     {b.title}
                   </p>
-                  {b.subtitle && <p className="text-xs text-slate-400 truncate">{b.subtitle}</p>}
+                  {b.subtitle && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      {b.subtitle}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
@@ -1663,7 +1669,7 @@ function AdminNoticesTab() {
                       <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
                         {h.editor?.name || '관리자'}
                       </span>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">
                         {new Date(h.createdAt).toLocaleString('ko')}
                       </span>
                     </div>
@@ -1838,8 +1844,10 @@ function AdminNoticesTab() {
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
                     {n.title}
                   </p>
-                  <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">{n.content}</p>
-                  <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
+                    {n.content}
+                  </p>
+                  <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-500 dark:text-slate-400">
                     <span>👁 {n.viewCount || 0}</span>
                     <span>💬 {n._count?.comments || 0}</span>
                     {n.author && <span>작성: {n.author.name}</span>}
@@ -2868,7 +2876,9 @@ function RecentResumes() {
               >
                 {r.title || '제목 없음'}
               </Link>
-              <span className="text-xs text-slate-400">{r.personalInfo?.name || '이름 없음'}</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                {r.personalInfo?.name || '이름 없음'}
+              </span>
             </div>
             <div className="flex gap-2 shrink-0">
               <button
@@ -2889,7 +2899,7 @@ function RecentResumes() {
       </div>
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-3">
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             {page} / {totalPages} 페이지
           </span>
           <div className="flex gap-1">
@@ -2966,7 +2976,9 @@ function PlanConfig() {
             </div>
             <div className="flex items-center gap-3">
               {plan.id !== 'free' && (
-                <span className="text-xs text-slate-400">{plan.price.toLocaleString()}원/월</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {plan.price.toLocaleString()}원/월
+                </span>
               )}
               <svg
                 className={`w-4 h-4 text-slate-400 transition-transform ${expandedPlan === plan.id ? 'rotate-180' : ''}`}
@@ -2994,7 +3006,7 @@ function PlanConfig() {
                     onChange={(e) => updatePrice(planIdx, parseInt(e.target.value) || 0)}
                     className="w-24 px-2 py-1 text-sm text-right border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
                   />
-                  <span className="text-xs text-slate-400">원</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">원</span>
                 </div>
               )}
               <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
@@ -3048,7 +3060,7 @@ function PlanConfig() {
       >
         {saved ? '\u2713 저장됨' : '설정 저장'}
       </button>
-      <p className="text-xs text-slate-400">-1 = 무제한, 0 = 사용 불가</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400">-1 = 무제한, 0 = 사용 불가</p>
     </div>
   );
 }
@@ -3382,7 +3394,7 @@ function ContentModeration() {
             지원 목록 검토 &rarr;
           </Link>
         </div>
-        <p className="text-xs text-slate-400 dark:text-slate-500 whitespace-pre-line">
+        <p className="text-xs text-slate-500 dark:text-slate-400 whitespace-pre-line">
           관리자 계정으로 이력서를 열면 모든 댓글에 &quot;삭제&quot; 버튼이 표시됩니다.{'\n'}공개
           이력서의 &quot;공개 설정&quot;을 &quot;비공개&quot;로 변경하면 탐색에서 숨겨집니다.
         </p>
@@ -3804,7 +3816,7 @@ function AdminExtLinksTab() {
                           <div className="font-medium text-slate-800 dark:text-slate-100">
                             {link.name}
                           </div>
-                          <div className="text-xs text-slate-400 truncate max-w-[200px]">
+                          <div className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px]">
                             {link.description}
                           </div>
                         </div>
@@ -4032,7 +4044,7 @@ function AdminPermissionsTab() {
                   <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
                     {ct.label}
                   </h3>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500">{ct.desc}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">{ct.desc}</p>
                 </div>
               </div>
             </div>

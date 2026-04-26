@@ -76,7 +76,7 @@ export default function BookmarksPage() {
               />
             </svg>
             <p className="text-slate-500 dark:text-slate-400 mb-2">{tx('empty.bookmarks')}</p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
               탐색 페이지에서 관심 있는 이력서를 북마크하세요
             </p>
             <Link
@@ -97,7 +97,7 @@ export default function BookmarksPage() {
                   <h3 className="font-medium text-slate-900 dark:text-slate-100 truncate hover:text-blue-600 transition-colors">
                     {b.title || '제목 없음'}
                   </h3>
-                  <div className="flex items-center gap-2 mt-1 text-xs text-slate-400 dark:text-slate-500">
+                  <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400">
                     <span>{b.name || '이름 없음'}</span>
                     <span>·</span>
                     <span>{timeAgo(b.createdAt)}</span>

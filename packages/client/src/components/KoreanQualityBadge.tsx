@@ -630,7 +630,7 @@ function Row({ title, value, hint }: { title: string; value: string; hint?: stri
       <span className="text-slate-600 dark:text-slate-400">{title}</span>
       <span className="flex items-baseline gap-2">
         <span className="font-semibold text-slate-900 dark:text-slate-100">{value}</span>
-        {hint && <span className="text-[10px] text-slate-400 dark:text-slate-500">{hint}</span>}
+        {hint && <span className="text-[10px] text-slate-500 dark:text-slate-400">{hint}</span>}
       </span>
     </div>
   );

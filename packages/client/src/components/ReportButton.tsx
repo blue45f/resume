@@ -126,7 +126,7 @@ export default function ReportButton({
                 className="mt-1 w-full px-3 py-2 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 resize-none"
                 disabled={submitting}
               />
-              <span className="text-[10px] text-slate-400 mt-1 block text-right">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block text-right">
                 {detail.length}/500
               </span>
             </label>

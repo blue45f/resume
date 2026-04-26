@@ -742,7 +742,7 @@ export default function CareerInsights() {
                     <span className="text-2xl font-bold text-slate-800 dark:text-slate-200">
                       {marketValue.total}
                     </span>
-                    <span className="text-[10px] text-slate-400">/ 100</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">/ 100</span>
                   </div>
                 </div>
               </div>
@@ -833,7 +833,7 @@ export default function CareerInsights() {
                               style={{ width: `${pct}%` }}
                             />
                           </div>
-                          <span className="text-[10px] text-slate-400 shrink-0 w-10 text-right">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 shrink-0 w-10 text-right">
                             {ind.count}건
                           </span>
                         </div>
@@ -855,7 +855,9 @@ export default function CareerInsights() {
                         <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
                           {st.label}
                         </span>
-                        <span className="text-[10px] text-slate-400">({st.count}건)</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                          ({st.count}건)
+                        </span>
                       </div>
                       <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
                         {st.avgSalary}
@@ -899,7 +901,7 @@ export default function CareerInsights() {
                     const maxCount = skillTrends[0]?.count || 1;
                     return (
                       <div key={sk.name} className="flex items-center gap-2.5">
-                        <span className="w-4 text-[10px] text-slate-400 text-right font-medium">
+                        <span className="w-4 text-[10px] text-slate-500 dark:text-slate-400 text-right font-medium">
                           {i + 1}
                         </span>
                         <div className="flex-1">
@@ -915,7 +917,9 @@ export default function CareerInsights() {
                                 </span>
                               )}
                             </div>
-                            <span className="text-[10px] text-slate-400">{sk.count}건</span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                              {sk.count}건
+                            </span>
                           </div>
                           <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5">
                             <div
@@ -982,7 +986,7 @@ export default function CareerInsights() {
                                 : '강의'}
                           </span>
                         </div>
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                           <span className="capitalize font-medium">{rec.skill}</span> | {rec.reason}{' '}
                           | {rec.impact}
                         </p>
@@ -1049,10 +1053,12 @@ export default function CareerInsights() {
                           뉴스
                         </span>
                         {item.source && (
-                          <span className="text-[10px] text-slate-400">{item.source}</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                            {item.source}
+                          </span>
                         )}
                         {item.pubDate && (
-                          <span className="text-[10px] text-slate-400 ml-auto">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-auto">
                             {new Date(item.pubDate).toLocaleDateString('ko-KR')}
                           </span>
                         )}
@@ -1062,7 +1068,7 @@ export default function CareerInsights() {
                       </p>
                     </a>
                   ))}
-                  <p className="text-[10px] text-slate-400 text-center">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center">
                     Google News 기반 실시간 뉴스
                   </p>
                 </>
@@ -1076,7 +1082,7 @@ export default function CareerInsights() {
 
           {/* Footer */}
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center">
-            <span className="text-[10px] text-slate-400 dark:text-slate-500">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400">
               {jobs.length}개 채용 공고 실시간 데이터 기반
             </span>
             <Link

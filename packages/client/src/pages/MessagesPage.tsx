@@ -424,7 +424,7 @@ export default function MessagesPage() {
                                   )}
                                   {conv.partner.name}
                                 </span>
-                                <span className="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 ml-1">
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 shrink-0 ml-1">
                                   {timeAgo(conv.lastMessage.createdAt)}
                                 </span>
                               </div>
@@ -601,7 +601,7 @@ export default function MessagesPage() {
                         )}
                       </div>
                       {messageSearch && (
-                        <p className="text-[10px] text-slate-400 mt-1">
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                           {groupedMessages.reduce((sum, g) => sum + g.messages.length, 0)}개의
                           메시지 검색됨
                         </p>
@@ -792,7 +792,9 @@ export default function MessagesPage() {
                               style={{ animationDelay: '300ms' }}
                             />
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-0.5">상대방이 입력 중...</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            상대방이 입력 중...
+                          </p>
                         </div>
                       </div>
                     )}

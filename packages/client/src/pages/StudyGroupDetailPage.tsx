@@ -371,7 +371,7 @@ export default function StudyGroupDetailPage() {
                   className="w-full text-sm px-2 py-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 resize-y"
                 />
                 <div className="flex items-center justify-end gap-2 flex-wrap">
-                  <span className="text-[10px] text-slate-400 mr-auto">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 mr-auto">
                     {newPostContent.length}/20,000
                   </span>
                   <KoreanQualityBadge text={newPostContent} label="스터디 글" minLength={100} />
@@ -437,7 +437,7 @@ export default function StudyGroupDetailPage() {
                         <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed whitespace-pre-wrap">
                           {p.content}
                         </p>
-                        <div className="mt-1.5 flex items-center gap-2 text-[10px] text-slate-400">
+                        <div className="mt-1.5 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
                           <span>{p.user?.name || '익명'}</span>
                           <span>·</span>
                           <span>{new Date(p.createdAt).toLocaleDateString('ko-KR')}</span>

@@ -8,6 +8,7 @@ import { ROUTES, withQuery } from '@/lib/routes';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
 import { t } from '@/lib/i18n';
+import SendMessageButton from '@/components/SendMessageButton';
 
 const PIPELINE_STAGES = [
   {
@@ -214,7 +215,7 @@ export default function RecruiterDashboardPage() {
                 <div key={s.label} className="imp-card p-4 text-center">
                   <span className="text-lg block mb-1">{s.icon}</span>
                   <span className={`text-2xl font-bold ${s.color} block`}>{s.value}</span>
-                  <span className="text-xs text-slate-400">{s.label}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{s.label}</span>
                 </div>
               ))}
             </div>
@@ -244,7 +245,9 @@ export default function RecruiterDashboardPage() {
                       </div>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
                         {stCandidates.length === 0 ? (
-                          <p className="text-xs text-slate-400 text-center py-3">비어 있음</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-3">
+                            비어 있음
+                          </p>
                         ) : (
                           stCandidates.map((c) => (
                             <div
@@ -254,7 +257,9 @@ export default function RecruiterDashboardPage() {
                               <p className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">
                                 {c.name}
                               </p>
-                              <p className="text-[10px] text-slate-400 truncate">{c.position}</p>
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                                {c.position}
+                              </p>
                               <div className="flex gap-1 mt-1.5">
                                 {PIPELINE_STAGES.filter((s) => s.key !== stage.key).map((s) => (
                                   <button
@@ -297,10 +302,17 @@ export default function RecruiterDashboardPage() {
                           {(a.name || '?')[0]}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                            {a.name || '익명'}
-                          </p>
-                          <p className="text-xs text-slate-400 truncate">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                              {a.name || '익명'}
+                            </p>
+                            <SendMessageButton
+                              variant="mini"
+                              targetUserId={a.userId || a.id}
+                              targetUserName={a.name || '지원자'}
+                            />
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                             {a.position || '미지정'} · {timeAgo(a.createdAt)}
                           </p>
                         </div>
@@ -314,12 +326,6 @@ export default function RecruiterDashboardPage() {
                             이력서
                           </Link>
                         )}
-                        <Link
-                          to={ROUTES.social.messages}
-                          className="text-xs px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
-                        >
-                          메시지
-                        </Link>
                         <button
                           onClick={() =>
                             navigate(withQuery(ROUTES.jobs.scouts, { target: a.userId || a.id }))
@@ -350,7 +356,7 @@ export default function RecruiterDashboardPage() {
                   <p className="text-sm text-slate-400">
                     공고의 기술 스택과 일치하는 공개 이력서가 없습니다
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     활성 공고에 기술 스택을 추가해보세요
                   </p>
                 </div>
@@ -360,10 +366,17 @@ export default function RecruiterDashboardPage() {
                     <div key={r.id} className="imp-card p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                            {r.name || '익명'}
-                          </p>
-                          <p className="text-xs text-slate-400 truncate">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                              {r.name || '익명'}
+                            </p>
+                            <SendMessageButton
+                              variant="mini"
+                              targetUserId={r.userId || r.id}
+                              targetUserName={r.name || '후보자'}
+                            />
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                             {r.title || '제목 없음'}
                           </p>
                         </div>
@@ -440,7 +453,7 @@ export default function RecruiterDashboardPage() {
                         >
                           {j.position}
                         </Link>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
                           {j.company} · {timeAgo(j.createdAt)}
                         </span>
                       </div>

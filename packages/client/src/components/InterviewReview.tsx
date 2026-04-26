@@ -158,7 +158,7 @@ export default function InterviewReview({ applicationId }: Props) {
                       {star}
                     </button>
                   ))}
-                  <span className="ml-2 text-xs text-slate-400 self-center">
+                  <span className="ml-2 text-xs text-slate-500 dark:text-slate-400 self-center">
                     {form.difficulty <= 1
                       ? '매우 쉬움'
                       : form.difficulty <= 2
@@ -264,7 +264,7 @@ export default function InterviewReview({ applicationId }: Props) {
                     </div>
                   ))}
                 </div>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   (
                   {review.difficulty <= 1
                     ? '매우 쉬움'
@@ -313,7 +313,7 @@ export default function InterviewReview({ applicationId }: Props) {
 
               {/* Meta & Actions */}
               <div className="flex items-center justify-between pt-1">
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   {new Date(review.updatedAt).toLocaleDateString('ko-KR')} 작성
                 </span>
                 <div className="flex gap-2">

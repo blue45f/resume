@@ -172,7 +172,7 @@ function MetricCard({
         >
           {value}
         </span>
-        <span className="text-[10px] text-slate-400">{unit}</span>
+        <span className="text-[10px] text-slate-500 dark:text-slate-400">{unit}</span>
       </div>
       <div className="text-[9px] text-slate-400 mt-0.5">{hint}</div>
     </div>

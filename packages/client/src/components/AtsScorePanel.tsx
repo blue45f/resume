@@ -73,7 +73,7 @@ export default function AtsScorePanel({ resume }: Props) {
           <span className={`text-xs font-bold px-2 py-0.5 rounded ${gradeColors[result.grade]}`}>
             {result.grade} ({result.score}점)
           </span>
-          <span className="text-xs text-slate-400 dark:text-slate-500 hidden sm:inline">
+          <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">
             {passedCount}/{totalCount} 항목 통과
           </span>
         </div>
@@ -217,7 +217,7 @@ export default function AtsScorePanel({ resume }: Props) {
                             {item.label}
                           </span>
                           {item.detail && (
-                            <span className="ml-2 text-xs text-slate-400 dark:text-slate-500">
+                            <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
                               {item.detail}
                             </span>
                           )}

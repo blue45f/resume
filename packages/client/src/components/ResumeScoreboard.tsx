@@ -97,7 +97,7 @@ function ScoreCircle({
         <span className="text-4xl font-extrabold text-slate-900 dark:text-slate-100">
           {animatedScore}
         </span>
-        <span className="text-xs text-slate-400 dark:text-slate-500 -mt-1">/ 100</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400 -mt-1">/ 100</span>
       </div>
     </div>
   );
@@ -210,7 +210,7 @@ export default function ResumeScoreboard({ resume }: Props) {
         <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">이력서 경쟁력</h3>
         <div className="flex items-center gap-2">
           <span className="text-sm font-bold text-blue-600">{overallScore}점</span>
-          <span className="text-xs text-slate-400">상위 {percentile}%</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">상위 {percentile}%</span>
           <svg
             className={`w-4 h-4 text-slate-400 transition-transform ${expanded ? 'rotate-180' : ''}`}
             fill="none"

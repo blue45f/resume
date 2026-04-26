@@ -180,7 +180,7 @@ function CommunityWidget() {
             <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 truncate">
               {post.title}
             </span>
-            <span className="shrink-0 flex items-center gap-1 text-xs text-slate-400">
+            <span className="shrink-0 flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -386,7 +386,7 @@ function WeeklyGoalWidget() {
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
             <span className="text-base">🎯</span> 이번 주 지원 목표
           </h3>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             {new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 주 기준
           </p>
         </div>
@@ -424,7 +424,7 @@ function WeeklyGoalWidget() {
               setTempGoal(goal);
               setEditingGoal(true);
             }}
-            className="text-xs text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 transition-colors"
+            className="text-xs text-slate-500 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 transition-colors"
           >
             목표 변경
           </button>
@@ -458,7 +458,7 @@ function WeeklyGoalWidget() {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-lg font-bold text-slate-800 dark:text-slate-200">{applied}</span>
-            <span className="text-[10px] text-slate-400">/{goal}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400">/{goal}</span>
           </div>
         </div>
 
@@ -477,7 +477,7 @@ function WeeklyGoalWidget() {
                 더 지원하면 목표 달성!
               </p>
             )}
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{pct}% 진행됨</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{pct}% 진행됨</p>
           </div>
           <div className="flex gap-2">
             <button
@@ -1158,7 +1158,9 @@ export default function HomePage() {
                     <p className="text-sm text-slate-700 dark:text-slate-300 mb-3 leading-relaxed">
                       "{review.text}"
                     </p>
-                    <p className="text-xs text-slate-400 font-medium">— {review.author}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      — {review.author}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -1469,7 +1471,7 @@ export default function HomePage() {
                       </p>
                       <div className="flex items-center gap-2 mb-2">
                         <p
-                          className="text-xs text-slate-400"
+                          className="text-xs text-slate-500 dark:text-slate-400"
                           title={new Date(resume.updatedAt).toLocaleString('ko-KR')}
                         >
                           {timeAgo(resume.updatedAt)}

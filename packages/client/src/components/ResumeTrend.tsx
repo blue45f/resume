@@ -38,7 +38,7 @@ export default function ResumeTrend({ resumeId }: Props) {
       >
         <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">변경 추이</h3>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400">{trend.length}개 버전</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">{trend.length}개 버전</span>
           <svg
             className={`w-4 h-4 text-slate-400 transition-transform ${expanded ? 'rotate-180' : ''}`}
             fill="none"
@@ -64,7 +64,7 @@ export default function ResumeTrend({ resumeId }: Props) {
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-xs text-slate-400">
+          <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>v{trend[0].version}</span>
             <span>v{trend[trend.length - 1].version}</span>
           </div>

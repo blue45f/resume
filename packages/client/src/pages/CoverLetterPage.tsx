@@ -255,7 +255,7 @@ function ScoreMeter({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-3xl font-bold text-slate-900 dark:text-slate-100">{score}</span>
-        <span className="text-xs text-slate-400">/ 100</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400">/ 100</span>
       </div>
     </div>
   );
@@ -688,7 +688,7 @@ export default function CoverLetterPage() {
                       생성 결과
                     </label>
                     {result && (
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
                         {charCount.toLocaleString()}자 (공백 포함 {wordCount.toLocaleString()}자)
                       </span>
                     )}
@@ -858,7 +858,7 @@ export default function CoverLetterPage() {
                     label="자기소개서"
                     className="mb-1.5"
                   />
-                  <div className="text-xs text-slate-400 mb-1.5">
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mb-1.5">
                     {(feedbackText || '').replace(/\s/g, '').length}자 (공백 제외)
                   </div>
                   <textarea
@@ -985,7 +985,7 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
                 ? '핵심 개선이 필요합니다'
                 : '전반적인 보완이 필요합니다'}
         </p>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           {result.charCount.toLocaleString()}자 (공백 제외)
         </p>
       </div>
@@ -1005,10 +1005,12 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className="text-[10px] text-slate-400 shrink-0 w-10 text-right">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 shrink-0 w-10 text-right">
                 {cat.score}/{cat.max}
               </span>
-              <span className="text-[10px] text-slate-400 w-20 shrink-0">{cat.comment}</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 w-20 shrink-0">
+                {cat.comment}
+              </span>
             </div>
           );
         })}

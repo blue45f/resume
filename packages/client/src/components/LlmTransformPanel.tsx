@@ -273,7 +273,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                   </fieldset>
                 )}
 
-                <p className="text-xs text-slate-400 dark:text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   로컬 변환은 LLM 없이 데이터를 구조적으로 재배치합니다. 비용이 발생하지 않습니다.
                 </p>
               </>
@@ -346,7 +346,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                     className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white dark:bg-slate-700 dark:text-slate-100"
                     maxLength={3000}
                   />
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     {jobDescription.length}/3000자
                   </p>
                 </div>
@@ -370,7 +370,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                   </span>
                   <div className="flex items-center gap-2">
                     {tokensUsed > 0 && (
-                      <span className="text-xs text-slate-400 dark:text-slate-500">
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
                         {tokensUsed.toLocaleString()} tokens
                       </span>
                     )}

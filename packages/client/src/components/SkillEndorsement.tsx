@@ -94,7 +94,7 @@ export default function SkillEndorsement({ resumeId, skills }: Props) {
         </svg>
         <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">스킬 추천</h4>
         {!user && (
-          <span className="text-xs text-slate-400 dark:text-slate-500">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             로그인하면 추천할 수 있습니다
           </span>
         )}

@@ -48,10 +48,14 @@ export default function SimilarResumes({ resume }: Props) {
               <p className="text-sm text-slate-700 dark:text-slate-300 truncate">
                 {r.title || '제목 없음'}
               </p>
-              <p className="text-xs text-slate-400 truncate">{r.personalInfo?.name}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {r.personalInfo?.name}
+              </p>
             </div>
             {r.viewCount > 0 && (
-              <span className="text-xs text-slate-400 shrink-0">{r.viewCount} 조회</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                {r.viewCount} 조회
+              </span>
             )}
           </Link>
         ))}

@@ -31,7 +31,7 @@ export default function JdMatchPanel({ resume }: Props) {
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 shrink-0">
             JD 키워드 즉시 매칭
           </h3>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:inline">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline">
             채용공고 붙여넣기로 즉시 분석 (LLM 불필요)
           </span>
           {result.totalKeywords > 0 && (
@@ -143,7 +143,7 @@ export default function JdMatchPanel({ resume }: Props) {
                       </span>
                     ))}
                   </div>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 leading-relaxed">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
                     💡 실제 경험이 있다면 이력서에 명시적으로 추가하세요. 같은 기술을 다른 이름으로
                     적었을 수도 있으니 확인 필요 (예: "Next.js" vs "Nextjs").
                   </p>

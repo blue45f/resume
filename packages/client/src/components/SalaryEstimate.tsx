@@ -410,7 +410,9 @@ export default function SalaryEstimate({ resume }: Props) {
                     onChange={(e) => setExperienceYears(Number(e.target.value))}
                     className="w-full mt-2 accent-emerald-500"
                   />
-                  <p className="text-[10px] text-slate-400 text-center">{experienceYears}년</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center">
+                    {experienceYears}년
+                  </p>
                 </div>
                 <div>
                   <label className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -483,7 +485,7 @@ export default function SalaryEstimate({ resume }: Props) {
                   <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                     {salary.mine.toLocaleString()}만원
                   </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     상위 {100 - salary.percentile}% 수준 | {jobCategory} / {region} / {companySize}
                   </p>
                 </div>
@@ -554,7 +556,7 @@ export default function SalaryEstimate({ resume }: Props) {
 
               <div className="stagger-children grid grid-cols-3 gap-2">
                 <div className="text-center p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                  <p className="text-[10px] text-slate-400">현재</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">현재</p>
                   <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
                     {projections[0].salary.toLocaleString()}만
                   </p>
@@ -573,7 +575,7 @@ export default function SalaryEstimate({ resume }: Props) {
                 </div>
               </div>
 
-              <p className="text-[10px] text-slate-400 text-center">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center">
                 예상 5년 누적 성장률: +
                 {Math.round(
                   ((projections[5].salary - projections[0].salary) / projections[0].salary) * 100,
@@ -608,7 +610,7 @@ export default function SalaryEstimate({ resume }: Props) {
             </div>
           )}
 
-          <p className="text-xs text-slate-400 dark:text-slate-500 text-center italic">
+          <p className="text-xs text-slate-500 dark:text-slate-400 text-center italic">
             * AI 추정치이며 실제 연봉과 다를 수 있습니다
           </p>
         </div>

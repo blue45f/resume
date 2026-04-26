@@ -212,7 +212,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
                   />
                 </label>
               </div>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                 PDF, 이미지, 문서 (최대 10MB)
               </p>
             </div>

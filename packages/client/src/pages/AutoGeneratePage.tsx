@@ -304,7 +304,7 @@ export default function AutoGeneratePage() {
                     placeholder={`아무 형식으로 경력/학력/기술 정보를 입력하세요.\n\n예시:\n- 경력 메모\n- LinkedIn 프로필 복사\n- 이전 이력서 텍스트\n- 자기소개 + 경력 나열`}
                   />
                   <div className="flex items-center justify-between mt-1 gap-2 flex-wrap">
-                    <p className="text-xs text-slate-400 dark:text-slate-500">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {rawText.length.toLocaleString()}자
                     </p>
                     <KoreanQualityBadge text={rawText} label="원본 텍스트" minLength={200} />
@@ -381,7 +381,7 @@ export default function AutoGeneratePage() {
                       <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
                         클릭하여 파일을 선택하세요
                       </p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         PDF, DOCX, DOC, TXT, RTF 지원
                       </p>
                     </button>
@@ -430,7 +430,7 @@ export default function AutoGeneratePage() {
                             {t.name}
                           </p>
                           {sections.length > 0 && (
-                            <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                               {sections.join(' / ')}
                             </p>
                           )}
@@ -488,7 +488,7 @@ export default function AutoGeneratePage() {
                 <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                   이런 것들을 입력할 수 있어요:
                 </p>
-                <ul className="text-xs text-slate-400 dark:text-slate-500 space-y-1">
+                <ul className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
                   {EXAMPLES.map((ex, i) => (
                     <li key={i}>- {ex}</li>
                   ))}
@@ -502,7 +502,7 @@ export default function AutoGeneratePage() {
                 <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 space-y-4">
                   <div className="flex items-center justify-between">
                     <h2 className="font-semibold text-slate-900 dark:text-slate-100">생성 결과</h2>
-                    <span className="text-xs text-slate-400 dark:text-slate-500">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
                       {preview.tokensUsed?.toLocaleString()} tokens ({preview.provider})
                     </span>
                   </div>
@@ -588,7 +588,7 @@ export default function AutoGeneratePage() {
                   <p className="text-sm text-blue-600 dark:text-blue-400 font-medium animate-pulse mb-3">
                     {ANALYSIS_PHRASES[analysisPhrase]}
                   </p>
-                  <div className="flex items-center justify-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                  <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                     <span>경과: {elapsedTime}초</span>
                     <span>|</span>
                     <span>예상: 15~30초</span>
@@ -649,7 +649,7 @@ export default function AutoGeneratePage() {
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         {r.personalInfo?.name || ''}
                       </p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         {new Date(r.updatedAt).toLocaleDateString('ko-KR')}
                       </p>
                     </button>

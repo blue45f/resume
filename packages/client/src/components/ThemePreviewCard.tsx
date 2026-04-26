@@ -129,13 +129,13 @@ export default function ThemePreviewCard({
         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{theme.description}</p>
         <div className="flex items-center justify-between mt-1.5">
           <span
-            className="text-[10px] text-slate-400 dark:text-slate-500"
+            className="text-[10px] text-slate-500 dark:text-slate-400"
             style={{ fontFamily: theme.fontFamily }}
           >
             Aa
           </span>
           {usageCount !== undefined && usageCount > 0 && (
-            <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-0.5">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-0.5">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"

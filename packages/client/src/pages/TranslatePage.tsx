@@ -387,7 +387,7 @@ export default function TranslatePage() {
                 {selectedPair.fromFlag} 원본
               </label>
               {originalResume && (
-                <span className="text-xs text-slate-400 dark:text-slate-500">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   {originalResume.title}
                 </span>
               )}
@@ -498,7 +498,7 @@ export default function TranslatePage() {
                   <p className="text-sm text-slate-500 dark:text-slate-400">
                     AI가 이력서를 번역하고 있습니다...
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     예상 소요 시간: 15~30초
                   </p>
                 </div>

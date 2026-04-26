@@ -237,7 +237,7 @@ export default function ExportPanel({ resumeId, resumeTitle, onPrint }: Props) {
                     <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                       {opt.label}
                     </span>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">
                       {opt.format}
                     </span>
                     {opt.comingSoon && (
@@ -246,7 +246,7 @@ export default function ExportPanel({ resumeId, resumeTitle, onPrint }: Props) {
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                     {opt.description}
                   </p>
                 </div>

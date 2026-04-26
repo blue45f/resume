@@ -127,7 +127,9 @@ function SkillsVenn({ skillsGap }: { skillsGap: SkillsGap }) {
                   {s}
                 </span>
               ))}
-              {onlyResume.length === 0 && <span className="text-xs text-slate-400">-</span>}
+              {onlyResume.length === 0 && (
+                <span className="text-xs text-slate-500 dark:text-slate-400">-</span>
+              )}
             </div>
           </div>
         </div>
@@ -145,7 +147,9 @@ function SkillsVenn({ skillsGap }: { skillsGap: SkillsGap }) {
                   {s}
                 </span>
               ))}
-              {skillsGap.overlap.length === 0 && <span className="text-xs text-slate-400">-</span>}
+              {skillsGap.overlap.length === 0 && (
+                <span className="text-xs text-slate-500 dark:text-slate-400">-</span>
+              )}
             </div>
           </div>
         </div>
@@ -163,7 +167,9 @@ function SkillsVenn({ skillsGap }: { skillsGap: SkillsGap }) {
                   {s}
                 </span>
               ))}
-              {onlyRequired.length === 0 && <span className="text-xs text-slate-400">-</span>}
+              {onlyRequired.length === 0 && (
+                <span className="text-xs text-slate-500 dark:text-slate-400">-</span>
+              )}
             </div>
           </div>
         </div>
@@ -506,7 +512,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
                     placeholder="채용공고의 자격 요건, 우대 사항, 직무 설명을 여기에 붙여넣으세요...&#10;&#10;예시:&#10;- 3년 이상의 React/TypeScript 개발 경력&#10;- RESTful API 설계 및 개발 경험&#10;- Git을 활용한 협업 경험"
                   />
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
                       {jd.length}자{jd.length < 20 && jd.length > 0 ? ' (최소 20자 이상 입력)' : ''}
                     </span>
                     <button
@@ -805,7 +811,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
                               <p className="text-sm text-slate-700 dark:text-slate-300 truncate">
                                 {entry.jdSnippet}
                               </p>
-                              <p className="text-xs text-slate-400 mt-0.5">
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                 {new Date(entry.date).toLocaleDateString('ko-KR')} &middot;{' '}
                                 {entry.grade} 등급
                               </p>

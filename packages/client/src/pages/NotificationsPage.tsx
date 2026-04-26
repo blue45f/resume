@@ -372,7 +372,7 @@ export default function NotificationsPage() {
                     {group}
                   </span>
                   <div className="flex-1 h-px bg-gradient-to-r from-slate-200 dark:from-slate-700 to-transparent" />
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">
                     {items.length}개
                   </span>
                 </div>
@@ -456,7 +456,7 @@ export default function NotificationsPage() {
                           >
                             {n.message}
                           </p>
-                          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                             {timeAgo(n.createdAt)}
                           </p>
                         </div>
@@ -570,7 +570,7 @@ export default function NotificationsPage() {
         {/* Summary footer */}
         {!loading && filtered.length > 0 && (
           <div className="mt-8 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
-            <p className="text-xs text-slate-400 dark:text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               최근 50개 알림이 표시됩니다 · 30일이 지난 읽은 알림은 자동 삭제됩니다
             </p>
           </div>

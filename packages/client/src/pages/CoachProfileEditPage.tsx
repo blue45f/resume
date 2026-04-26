@@ -419,7 +419,7 @@ export default function CoachProfileEditPage() {
             </div>
 
             <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-700/60">
-              <p className="text-[11px] text-slate-400 dark:text-slate-500">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 {user?.userType === 'coach'
                   ? '코치 계정으로 활동 중'
                   : '저장 시 코치 계정으로 자동 전환됩니다'}

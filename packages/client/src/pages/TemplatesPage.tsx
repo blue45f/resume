@@ -453,7 +453,9 @@ export default function TemplatesPage() {
                 {/* 선택 안 된 섹션 */}
                 {SECTION_OPTIONS.filter((o) => !formSections.includes(o.value)).length > 0 && (
                   <div className="space-y-1.5">
-                    <p className="text-xs text-slate-400">미포함 섹션 (클릭하여 추가)</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      미포함 섹션 (클릭하여 추가)
+                    </p>
                     {SECTION_OPTIONS.filter((o) => !formSections.includes(o.value)).map((opt) => (
                       <div
                         key={opt.value}
@@ -512,7 +514,9 @@ export default function TemplatesPage() {
                   onChange={(e) => setFormPrompt(e.target.value)}
                   placeholder="AI가 이력서를 변환할 때 사용할 프롬프트를 작성하세요 (선택)"
                 />
-                <p className="text-xs text-slate-400 mt-1">비워두면 로컬 변환만 사용 가능합니다.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  비워두면 로컬 변환만 사용 가능합니다.
+                </p>
               </div>
 
               {/* Actions */}
@@ -542,7 +546,7 @@ export default function TemplatesPage() {
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 테마 갤러리
               </h2>
-              <span className="text-xs text-slate-400 dark:text-slate-500">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 {resumeThemes.length}개 테마
               </span>
             </div>
@@ -633,7 +637,7 @@ export default function TemplatesPage() {
                         <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
                           {catLabel}
                         </h3>
-                        <span className="text-xs text-slate-400 dark:text-slate-500">
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
                           ({themesInCat.length})
                         </span>
                         <div className="flex-1 border-t border-slate-200 dark:border-slate-700 ml-2" />

@@ -797,7 +797,7 @@ function ExternalJobLinks({
       <div className="space-y-2 mb-4">
         {/* 기업 규모 */}
         <div className="flex gap-2 flex-wrap">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 self-center w-12 shrink-0">
             기업규모
           </span>
           {COMPANY_SIZE_OPTIONS.map((o) => (
@@ -812,7 +812,7 @@ function ExternalJobLinks({
         </div>
         {/* 직종 */}
         <div className="flex gap-2 flex-wrap">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 self-center w-12 shrink-0">
             직종
           </span>
           {JOB_CATEGORY_OPTIONS.map((o) => (
@@ -827,7 +827,7 @@ function ExternalJobLinks({
         </div>
         {/* 경력 + 고용형태 */}
         <div className="flex gap-2 flex-wrap">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 self-center w-12 shrink-0">
             경력
           </span>
           {CAREER_LEVEL_EXT_OPTIONS.map((o) => (
@@ -841,7 +841,7 @@ function ExternalJobLinks({
           ))}
         </div>
         <div className="flex gap-2 flex-wrap">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 self-center w-12 shrink-0">
             고용
           </span>
           {JOB_TYPE_EXT_OPTIONS.map((o) => (
@@ -856,7 +856,7 @@ function ExternalJobLinks({
         </div>
         {/* 지역 */}
         <div className="flex gap-2 flex-wrap">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 self-center w-12 shrink-0">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 self-center w-12 shrink-0">
             지역
           </span>
           {LOCATION_EXT_OPTIONS.map((o) => (
@@ -922,7 +922,7 @@ function ExternalJobLinks({
                       <span className="badge-xs badge-neutral">{link.badgeText}</span>
                     )}
                   </div>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                     {link.description}
                   </p>
                   {hasMatch && (
@@ -1673,7 +1673,9 @@ function CuratedJobsTab() {
       {/* Filters */}
       <div className="space-y-2 mb-5">
         <div className="flex gap-2 flex-wrap">
-          <span className="text-[10px] text-slate-400 self-center w-10 shrink-0">경력</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 self-center w-10 shrink-0">
+            경력
+          </span>
           {[
             { k: 'all', l: '전체' },
             { k: 'junior', l: '신입' },
@@ -1694,7 +1696,9 @@ function CuratedJobsTab() {
           ))}
         </div>
         <div className="flex gap-2 flex-wrap">
-          <span className="text-[10px] text-slate-400 self-center w-10 shrink-0">고용</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 self-center w-10 shrink-0">
+            고용
+          </span>
           {[
             { k: 'all', l: '전체' },
             { k: 'fulltime', l: '정규직' },
@@ -1714,7 +1718,9 @@ function CuratedJobsTab() {
           ))}
         </div>
         <div className="flex gap-2 flex-wrap">
-          <span className="text-[10px] text-slate-400 self-center w-10 shrink-0">기업</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 self-center w-10 shrink-0">
+            기업
+          </span>
           {[
             { k: 'all', l: '전체' },
             { k: 'conglomerate', l: '대기업' },
@@ -1740,7 +1746,9 @@ function CuratedJobsTab() {
         {/* Sort + Advanced toggles */}
         <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-slate-400 w-10 shrink-0">정렬</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 w-10 shrink-0">
+              정렬
+            </span>
             <select
               value={sortKey}
               onChange={(e) => {
@@ -1822,7 +1830,7 @@ function CuratedJobsTab() {
         </div>
       </div>
 
-      <p className="text-xs text-slate-400 mb-3">{total}건의 채용 정보</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{total}건의 채용 정보</p>
 
       {/* Job Cards */}
       {loading ? (
@@ -1931,7 +1939,9 @@ function CuratedJobsTab() {
                             );
                           })}
                           {skills.length > 5 && (
-                            <span className="text-[10px] text-slate-400">+{skills.length - 5}</span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                              +{skills.length - 5}
+                            </span>
                           )}
                         </div>
                       )}
@@ -1968,7 +1978,7 @@ function CuratedJobsTab() {
                     </button>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">
                         조회 {job.viewCount} · {job.sourceSite}
                       </span>
                       {canEdit && (
@@ -2558,7 +2568,7 @@ export default function JobsPage() {
                     <span>급여 필터</span>
                   </label>
                   {salaryFilterEnabled && (
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">
                       {salaryMin.toLocaleString()} ~ {salaryMax.toLocaleString()}만원
                     </span>
                   )}
@@ -2566,7 +2576,9 @@ export default function JobsPage() {
                 {salaryFilterEnabled && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-slate-400 w-8">최소</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 w-8">
+                        최소
+                      </span>
                       <input
                         type="range"
                         min={0}
@@ -2584,7 +2596,9 @@ export default function JobsPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-slate-400 w-8">최대</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 w-8">
+                        최대
+                      </span>
                       <input
                         type="range"
                         min={1000}
@@ -2848,7 +2862,7 @@ export default function JobsPage() {
                                 />
                               </svg>
                             </button>
-                            <span className="text-xs text-slate-400 dark:text-slate-500">
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
                               {timeAgo(j.createdAt)}
                             </span>
                           </div>
@@ -2863,7 +2877,7 @@ export default function JobsPage() {
                             회사 정보
                           </Link>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-400">
+                        <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-500 dark:text-slate-400">
                           {j.location && (
                             <span className="flex items-center gap-0.5">
                               <svg
@@ -2925,7 +2939,7 @@ export default function JobsPage() {
                                 );
                               })}
                             {j.skills.split(',').length > 4 && (
-                              <span className="px-1.5 py-1 text-xs text-slate-400">
+                              <span className="px-1.5 py-1 text-xs text-slate-500 dark:text-slate-400">
                                 +{j.skills.split(',').length - 4}
                               </span>
                             )}
@@ -3388,7 +3402,7 @@ function JobDetailPanel({
             })}
           </div>
           {userSkills.size > 0 && missingSkills.length > 0 && (
-            <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
               {missingSkills.map((s) => s.trim()).join(', ')} 기술을 이력서에 추가하면 매칭률이
               올라갑니다
             </p>

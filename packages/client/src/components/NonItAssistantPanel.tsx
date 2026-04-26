@@ -48,7 +48,7 @@ export default function NonItAssistantPanel({ resume }: Props) {
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 shrink-0">
             {guide.label} 이력서 어시스턴트
           </h3>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:inline truncate">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline truncate">
             비-IT 직군 전용 · 성과 표현 · 자격증 · 자소서
           </span>
         </div>
@@ -190,7 +190,7 @@ export default function NonItAssistantPanel({ resume }: Props) {
                 >
                   <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 flex items-center justify-between gap-2 list-none">
                     <span>{t.title}</span>
-                    <span className="text-[10px] text-slate-400">펼치기</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">펼치기</span>
                   </summary>
                   <div className="px-3 pb-3 space-y-1.5">
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 italic">

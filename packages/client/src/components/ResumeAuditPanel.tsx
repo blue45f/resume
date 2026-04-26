@@ -347,7 +347,7 @@ export default function ResumeAuditPanel({ resume, compact = false }: Props) {
 
       {/* Score bar */}
       <div className="mb-3">
-        <div className="flex justify-between text-xs text-slate-400 mb-1">
+        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
           <span>통과 {score}%</span>
           {failedHigh > 0 && <span className="text-red-500">중요 {failedHigh}개 미통과</span>}
         </div>
@@ -431,7 +431,7 @@ export default function ResumeAuditPanel({ resume, compact = false }: Props) {
       {/* Audit items */}
       <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
         {filtered.length === 0 ? (
-          <p className="text-xs text-slate-400 text-center py-4">
+          <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-4">
             {showPassed
               ? '표시할 항목이 없습니다'
               : `모든 ${activeCategory === 'all' ? '' : activeCategory + ' '}항목을 통과했습니다! 🎉`}

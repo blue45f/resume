@@ -136,7 +136,7 @@ export default function AppCommentSection({ applicationId, isPublic }: Props) {
 
           {/* Comments list */}
           {comments.length === 0 ? (
-            <p className="text-xs text-slate-400 dark:text-slate-500 text-center py-2">
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-2">
               아직 의견이 없습니다
             </p>
           ) : (
@@ -151,7 +151,7 @@ export default function AppCommentSection({ applicationId, isPublic }: Props) {
                       <span className="text-xs font-medium text-slate-700 dark:text-slate-200">
                         {c.authorName}
                       </span>
-                      <span className="text-xs text-slate-400 dark:text-slate-500">
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
                         {timeAgo(c.createdAt)}
                       </span>
                     </div>

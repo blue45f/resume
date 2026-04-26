@@ -129,7 +129,7 @@ export default function SkillProficiencyPanel({ resume }: Props) {
                       >
                         {meta.label}
                       </span>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 shrink-0">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 shrink-0">
                         {p.score}점
                       </span>
                     </div>
@@ -150,7 +150,7 @@ export default function SkillProficiencyPanel({ resume }: Props) {
             })}
           </div>
 
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed mt-2">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
             💡 경력 년수 · 프로젝트 사용 · 본문 언급 빈도를 종합한 자동 추정. LLM 없이 이력서
             데이터만 분석하며 면접관 시선에서 예상 숙련도를 미리 확인할 수 있습니다.
           </p>

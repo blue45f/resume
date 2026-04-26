@@ -45,7 +45,7 @@ export default function CareerGapPanel({ text, minLength = 200, className = '' }
           <span aria-hidden="true">📅 </span>
           {tx('resumeAnalysis.careerGap.title', { count: analysis.gaps.length })}
         </h3>
-        <span className="text-[10px] text-slate-400 dark:text-slate-500">
+        <span className="text-[10px] text-slate-500 dark:text-slate-400">
           {tx('resumeAnalysis.careerGap.totalLabel', { months: analysis.totalGapMonths })}
         </span>
       </div>

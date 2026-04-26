@@ -166,7 +166,9 @@ function JobStatsSection() {
                     <span className="text-sm text-slate-700 dark:text-slate-300 truncate">
                       {c.name}
                     </span>
-                    <span className="text-xs text-slate-400 shrink-0">{c.count}건</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                      {c.count}건
+                    </span>
                   </div>
                   <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
@@ -200,7 +202,9 @@ function JobStatsSection() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-sm text-slate-700 dark:text-slate-300">{l.name}</span>
-                    <span className="text-xs text-slate-400 shrink-0">{l.count}건</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                      {l.count}건
+                    </span>
                   </div>
                   <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
@@ -376,7 +380,7 @@ export default function StatsPage() {
                     {s.label}
                   </p>
                   {s.sub && (
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">{s.sub}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{s.sub}</p>
                   )}
                 </div>
               ))}
@@ -461,9 +465,11 @@ export default function StatsPage() {
                         <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
                           {r.title || '제목 없음'}
                         </p>
-                        <p className="text-xs text-slate-400">{r.personalInfo?.name || '익명'}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {r.personalInfo?.name || '익명'}
+                        </p>
                       </div>
-                      <span className="text-xs text-slate-400 shrink-0 flex items-center gap-1">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0 flex items-center gap-1">
                         <svg
                           className="w-3 h-3"
                           fill="none"
@@ -517,7 +523,9 @@ export default function StatsPage() {
                           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                             {s.skill}
                           </span>
-                          <span className="text-xs text-slate-400 shrink-0">{s.count}명</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                            {s.count}명
+                          </span>
                         </div>
                         <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div
@@ -537,7 +545,7 @@ export default function StatsPage() {
         {/* Job Stats Section */}
         <JobStatsSection />
 
-        <div className="mt-6 text-center text-xs text-slate-400 dark:text-slate-500">
+        <div className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
           통계는 실시간으로 업데이트됩니다
         </div>
       </main>

@@ -128,7 +128,7 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
               {u.name || '—'}{' '}
               {u.username && <span className="text-slate-400 text-xs">@{u.username}</span>}
             </p>
-            <p className="text-xs text-slate-400 truncate">{u.email}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{u.email}</p>
           </div>
         ),
       },
@@ -193,7 +193,7 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
         key: 'createdAt',
         header: '가입일',
         render: (u) => (
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             {new Date(u.createdAt).toLocaleDateString('ko-KR')}
           </span>
         ),

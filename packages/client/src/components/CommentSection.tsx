@@ -221,14 +221,16 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
                 </button>
               )}
               {!currentUser && childCount > 0 && (
-                <span className="text-xs text-slate-400">답글 {childCount}개</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  답글 {childCount}개
+                </span>
               )}
               {(currentUser?.role === 'admin' ||
                 currentUser?.role === 'superadmin' ||
                 (currentUser?.id && currentUser.id === node.userId)) && (
                 <button
                   onClick={() => handleDelete(node.id)}
-                  className="text-xs text-slate-400 hover:text-red-500 transition-colors"
+                  className="text-xs text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"
                   aria-label="삭제"
                 >
                   삭제
@@ -325,7 +327,7 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
           </p>
         )}
         <div className="flex items-center justify-between mt-2">
-          <span className="text-xs text-slate-400">{content.length}/500</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">{content.length}/500</span>
           <button
             type="submit"
             disabled={commentForm.formState.isSubmitting || content.trim().length < 5}

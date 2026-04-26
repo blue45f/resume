@@ -369,7 +369,7 @@ export default function RecentActivity() {
                           {act.description}
                         </span>
                         {isSocial && act.resumeTitle && (
-                          <span className="text-xs text-slate-400 dark:text-slate-500 truncate block">
+                          <span className="text-xs text-slate-500 dark:text-slate-400 truncate block">
                             "{act.resumeTitle}"
                           </span>
                         )}
@@ -379,7 +379,7 @@ export default function RecentActivity() {
                           {ACTIVITY_ICONS[act.type]}
                         </span>
                       )}
-                      <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
                         {timeAgo(act.createdAt)}
                       </span>
                     </Link>

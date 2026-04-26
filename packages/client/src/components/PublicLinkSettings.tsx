@@ -146,7 +146,7 @@ export default function PublicLinkSettings({
 
       {/* Full URL */}
       <div className="mb-3 px-3 py-2 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-        <p className="text-[11px] text-slate-400 mb-0.5">전체 공개 URL</p>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-0.5">전체 공개 URL</p>
         <p className="text-xs text-blue-600 dark:text-blue-400 break-all font-mono">{previewUrl}</p>
       </div>
 
@@ -258,7 +258,7 @@ export default function PublicLinkSettings({
 
         {showEmbed && (
           <div className="mt-2 space-y-2">
-            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
               다른 웹사이트나 블로그에 이력서를 삽입하세요
             </p>
             <div className="relative">

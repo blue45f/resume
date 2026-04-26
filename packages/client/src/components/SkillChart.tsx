@@ -186,7 +186,7 @@ function SkillBar({ d, maxCount, delay }: { d: SkillData; maxCount: number; dela
           <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${profColor}`}>
             {profLabel}
           </span>
-          <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+          <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
             {d.count}개
           </span>
         </div>
@@ -219,7 +219,7 @@ function CategorySection({ d, maxCount }: { d: SkillData; maxCount: number }) {
           <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
             {d.category}
           </span>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500">{d.count}개</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400">{d.count}개</span>
         </div>
         <svg
           className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
@@ -330,7 +330,7 @@ function SkillChart({ resume }: Props) {
 
       {/* Proficiency legend */}
       <div className="flex flex-wrap items-center gap-2 mb-4 px-1">
-        <span className="text-[10px] text-slate-400 dark:text-slate-500">숙련도:</span>
+        <span className="text-[10px] text-slate-500 dark:text-slate-400">숙련도:</span>
         {PROFICIENCY_LABELS.map((label, idx) => (
           <span
             key={label}

@@ -589,7 +589,7 @@ export default function ResumeForm({
                     ) : (
                       <label className="flex flex-col items-center justify-center w-28 h-36 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors">
                         <span className="text-2xl text-slate-300 mb-1">📷</span>
-                        <span className="text-xs text-slate-400">증명사진</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">증명사진</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -754,7 +754,7 @@ export default function ResumeForm({
                     </Suspense>
                   )}
                 />
-                <p className="mt-1 text-xs text-slate-400 text-right">
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 text-right">
                   {(getSummary() || '').replace(/<[^>]*>/g, '').length}자
                 </p>
                 <InlineContentTip text={getSummary() || ''} section="summary" />
@@ -910,7 +910,7 @@ export default function ResumeForm({
                                 placeholder="주요 업무를 작성하세요 (볼드, 리스트 지원)"
                               />
                             </Suspense>
-                            <p className="mt-1 text-xs text-slate-400 text-right">
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 text-right">
                               {(field.value || '').replace(/<[^>]*>/g, '').length}자
                             </p>
                             <InlineContentTip text={field.value || ''} section="experience" />
@@ -1114,7 +1114,7 @@ export default function ResumeForm({
                               onChange={(e) => field.onChange(e.target.value)}
                               placeholder="학점, 수상 내역 등"
                             />
-                            <p className="mt-1 text-xs text-slate-400 text-right">
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 text-right">
                               {(field.value || '').length}자
                             </p>
                           </>
@@ -1822,7 +1822,7 @@ export default function ResumeForm({
       )}
 
       <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-slate-500 dark:text-slate-400">
           {isDirty
             ? '변경사항이 있습니다'
             : lastSaved

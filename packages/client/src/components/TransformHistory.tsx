@@ -57,10 +57,14 @@ export default function TransformHistory({ resumeId }: Props) {
                 <span className="text-slate-700 dark:text-slate-300 font-medium">
                   {h.model || 'AI'}
                 </span>
-                <span className="text-xs text-slate-400">{timeAgo(h.createdAt)}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {timeAgo(h.createdAt)}
+                </span>
               </div>
               {h.tokensUsed > 0 && (
-                <span className="text-xs text-slate-400">{h.tokensUsed.toLocaleString()} 토큰</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {h.tokensUsed.toLocaleString()} 토큰
+                </span>
               )}
             </button>
           ))}

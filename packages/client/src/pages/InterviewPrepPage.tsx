@@ -322,7 +322,7 @@ function CircularTimer({
         >
           {formatTime(remaining)}
         </span>
-        <span className="text-xs text-slate-400">남은 시간</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400">남은 시간</span>
       </div>
     </div>
   );
@@ -1110,8 +1110,10 @@ export default function InterviewPrepPage() {
                     disabled={mockEvaluating}
                   />
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-slate-400">{mockAnswer.length}자</span>
-                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      {mockAnswer.length}자
+                    </span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                       <svg
                         className="w-3.5 h-3.5"
                         fill="none"
@@ -1281,7 +1283,7 @@ export default function InterviewPrepPage() {
                         <p className="text-sm text-slate-700 dark:text-slate-300 truncate">
                           {q?.question || `질문 ${r.questionIdx + 1}`}
                         </p>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                           {r.evaluation.score > 0
                             ? `소요 시간: ${formatTime(r.timeSpent)}`
                             : '건너뜀'}
@@ -1346,7 +1348,7 @@ export default function InterviewPrepPage() {
                           <span className="text-slate-500 dark:text-slate-400">{r.jobRole}</span>
                         </div>
                       </div>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
                         {new Date(r.date).toLocaleDateString('ko-KR')}
                       </span>
                     </div>
@@ -1527,7 +1529,7 @@ export default function InterviewPrepPage() {
                   </label>
                   <button
                     onClick={() => setShowCustomInput(false)}
-                    className="text-xs text-slate-400 hover:text-slate-600"
+                    className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-600"
                   >
                     닫기
                   </button>
@@ -1561,7 +1563,7 @@ export default function InterviewPrepPage() {
                   </button>
                 </div>
                 {customQuestions.length > 0 && (
-                  <div className="text-xs text-slate-400 mt-1">
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     커스텀 질문 {customQuestions.length}개 등록됨
                   </div>
                 )}

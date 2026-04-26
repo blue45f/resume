@@ -56,7 +56,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
       <div className="p-4 flex-1 flex flex-col">
         {/* Date range */}
         {(project.startDate || project.endDate) && (
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-2">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
             {formatDate(project.startDate)} ~ {formatDate(project.endDate) || '진행 중'}
           </p>
         )}
@@ -73,7 +73,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               </span>
             ))}
             {!expanded && techItems.length > 6 && (
-              <span className="px-2 py-0.5 text-[11px] text-slate-400 dark:text-slate-500">
+              <span className="px-2 py-0.5 text-[11px] text-slate-500 dark:text-slate-400">
                 +{techItems.length - 6}
               </span>
             )}
@@ -102,7 +102,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               href={project.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
+              className="text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
             >
               <svg
                 className="w-3.5 h-3.5"
@@ -154,7 +154,7 @@ function ProjectShowcase({ resume }: Props) {
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
             프로젝트 쇼케이스
           </h3>
-          <span className="text-xs text-slate-400 dark:text-slate-500">{projects.length}개</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">{projects.length}개</span>
         </div>
       </div>
 

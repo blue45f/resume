@@ -210,7 +210,7 @@ export default function MockInterviewPage() {
               <span className="mx-1.5 text-slate-300">·</span>
               <span>{position}</span>
               {jobQuestions !== null && (
-                <span className="ml-2 text-xs text-slate-400">
+                <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
                   (해당 공고의 예상 질문 {jobQuestions.length}개)
                 </span>
               )}
@@ -320,7 +320,7 @@ export default function MockInterviewPage() {
               >
                 저장 안 함
               </button>
-              <p className="ml-auto text-[11px] text-slate-400 dark:text-slate-500">
+              <p className="ml-auto text-[11px] text-slate-500 dark:text-slate-400">
                 영상 파일은 &quot;다운로드&quot; 버튼으로 저장해주세요 (브라우저에는 보관되지
                 않습니다).
               </p>
@@ -335,7 +335,7 @@ export default function MockInterviewPage() {
               저장된 기록 <span className="text-slate-400 font-normal">({saved.length})</span>
             </h2>
             {saved.length > 0 && (
-              <p className="text-xs text-slate-400 dark:text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 누적 녹화 용량 {(totalBytes / 1024 / 1024).toFixed(1)} MB
               </p>
             )}
@@ -353,7 +353,7 @@ export default function MockInterviewPage() {
                 <li key={s.id} className="imp-card p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
                         {formatDate(s.createdAt)} · {formatDuration(s.durationSec)} ·{' '}
                         {(s.fileSizeBytes / 1024 / 1024).toFixed(2)} MB
                       </p>
@@ -369,7 +369,7 @@ export default function MockInterviewPage() {
                     <button
                       type="button"
                       onClick={() => handleDeleteSaved(s.id)}
-                      className="shrink-0 text-xs text-slate-400 hover:text-blue-700"
+                      className="shrink-0 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-700"
                       aria-label="기록 삭제"
                     >
                       삭제

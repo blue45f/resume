@@ -268,7 +268,7 @@ export default function FeedbackPage() {
           <div className="text-center py-16 animate-fade-in">
             <p className="text-4xl mb-4">📝</p>
             <p className="text-slate-500 dark:text-slate-400 mb-2">등록된 피드백이 없습니다</p>
-            <p className="text-xs text-slate-400 dark:text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               첫 번째 피드백을 남겨주세요!
             </p>
           </div>
@@ -319,7 +319,7 @@ export default function FeedbackPage() {
                       <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
                         {item.content}
                       </p>
-                      <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-400">
+                      <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500 dark:text-slate-400">
                         <span>{item.authorName}</span>
                         <span>{timeAgo(item.createdAt)}</span>
                       </div>

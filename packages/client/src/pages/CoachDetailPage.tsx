@@ -165,7 +165,7 @@ export default function CoachDetailPage() {
         className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
         role="main"
       >
-        <nav aria-label="경로" className="mb-4 text-xs text-slate-400 dark:text-slate-500">
+        <nav aria-label="경로" className="mb-4 text-xs text-slate-500 dark:text-slate-400">
           <Link
             to={ROUTES.coaching.coaches}
             className="hover:text-slate-600 dark:hover:text-slate-300"
@@ -384,7 +384,7 @@ export default function CoachDetailPage() {
                       </option>
                     ))}
                   </select>
-                  <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
+                  <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                     선택한 이력서는 비공개 상태여도 예약 확정 후 코치가 열람할 수 있습니다. 세션
                     취소·환불 시 즉시 차단됩니다.
                   </p>
@@ -430,7 +430,7 @@ export default function CoachDetailPage() {
               >
                 {isSubmitting ? '예약 요청 중...' : '매칭 요청 보내기'}
               </button>
-              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2 text-center">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 text-center">
                 코치 확정 후 결제가 진행됩니다
               </p>
 

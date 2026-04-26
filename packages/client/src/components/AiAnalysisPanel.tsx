@@ -289,7 +289,7 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
                     placeholder="채용공고의 자격 요건, 우대 사항, 직무 설명을 붙여넣으세요..."
                   />
                   <div className="flex justify-between mt-1">
-                    <span className="text-xs text-slate-400 dark:text-slate-500">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
                       {jd.length}자
                     </span>
                     <button

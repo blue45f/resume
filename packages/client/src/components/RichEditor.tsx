@@ -186,7 +186,7 @@ export default function RichEditor({
         </ToolbarBtn>
 
         {/* Markdown hint */}
-        <div className="ml-auto text-[10px] text-slate-400 hidden sm:block">
+        <div className="ml-auto text-[10px] text-slate-500 dark:text-slate-400 hidden sm:block">
           **굵게** &middot; *기울임* &middot; - 목록
         </div>
       </div>
@@ -246,7 +246,7 @@ export default function RichEditor({
 
       {/* Character count bar */}
       <div className="flex items-center justify-between px-2 py-1 bg-slate-50 border-t border-slate-200 dark:bg-slate-800 dark:border-slate-600">
-        <div className="flex items-center gap-2 text-[10px] text-slate-400">
+        <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
           <span>{charCount}자</span>
           {wordCount > 0 && <span>&middot; {wordCount}단어</span>}
         </div>

@@ -455,7 +455,7 @@ const coachingSteps = [
     content: (
       <div className="space-y-3">
         <p>세션이 끝나면 별점·후기를 남겨 다른 사용자가 코치를 선택할 때 참고하도록 도와주세요.</p>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           플랫폼 수수료 15%가 자동 정산되며 코치는 시간당 요금을 즉시 받습니다.
         </p>
       </div>

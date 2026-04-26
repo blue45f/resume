@@ -305,11 +305,13 @@ export default function PricingPage() {
                     )}
                   </div>
                   {yearly && plan.yearlyPrice > 0 && (
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       연 {formatPrice(plan.yearlyPrice)} 결제
                     </p>
                   )}
-                  {plan.price === 0 && <p className="text-xs text-slate-400 mt-1">영구 무료</p>}
+                  {plan.price === 0 && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">영구 무료</p>
+                  )}
                 </div>
 
                 {planType === 'recruiter' ? (

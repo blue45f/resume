@@ -129,7 +129,7 @@ export default function AdminInterviewQuestionsTab() {
         render: (it) => (
           <div className="min-w-0 max-w-[360px]">
             <p className="text-sm text-slate-800 dark:text-slate-200 line-clamp-2">{it.question}</p>
-            <p className="text-xs text-slate-400 mt-0.5 truncate">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
               {it.companyName} · {it.position} · {it.category || '-'} · {it.difficulty}
             </p>
           </div>

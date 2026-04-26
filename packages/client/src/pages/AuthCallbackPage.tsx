@@ -188,7 +188,7 @@ export default function AuthCallbackPage() {
             {saving ? '설정 중...' : '시작하기'}
           </button>
 
-          <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-3">
+          <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-3">
             나중에 설정에서 언제든 변경할 수 있습니다
           </p>
         </div>
@@ -201,7 +201,9 @@ export default function AuthCallbackPage() {
       {error ? (
         <div className="text-center">
           <p className="text-red-600 dark:text-red-400 mb-2">{error}</p>
-          <p className="text-xs text-slate-400">로그인 페이지로 이동합니다...</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            로그인 페이지로 이동합니다...
+          </p>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-3">

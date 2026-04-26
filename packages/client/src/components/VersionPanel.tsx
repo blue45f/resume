@@ -344,7 +344,7 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
       if (!snapshot)
         return (
           <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg mt-2">
-            <p className="text-xs text-slate-400">데이터 없음</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">데이터 없음</p>
           </div>
         );
       const s = snapshot as Record<string, unknown>;
@@ -391,7 +391,7 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
     } catch {
       return (
         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg mt-2">
-          <p className="text-xs text-slate-400">미리보기 불가</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">미리보기 불가</p>
         </div>
       );
     }
@@ -496,7 +496,7 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
             ) : versions.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-slate-500 dark:text-slate-400 mb-1">저장된 버전이 없습니다</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   이력서를 수정하면 자동으로 버전이 생성됩니다
                 </p>
               </div>
@@ -602,7 +602,9 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
                     </div>
                     <div className="p-3">
                       {diffLoading ? (
-                        <p className="text-center text-xs text-slate-400 py-4">비교 분석 중...</p>
+                        <p className="text-center text-xs text-slate-500 dark:text-slate-400 py-4">
+                          비교 분석 중...
+                        </p>
                       ) : (
                         <DiffViewer diffs={diffs} />
                       )}

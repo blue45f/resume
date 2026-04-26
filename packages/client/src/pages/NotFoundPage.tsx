@@ -66,7 +66,7 @@ export default function NotFoundPage() {
           </div>
           {recentViews.length > 0 && (
             <div className="mt-8 max-w-md animate-fade-in">
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                 {tx('notFound.recentlyViewed')}
               </p>
               <div className="flex flex-wrap justify-center gap-2">

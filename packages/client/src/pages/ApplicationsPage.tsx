@@ -844,7 +844,9 @@ export default function ApplicationsPage() {
                   </div>
                   <div className="bg-slate-50 dark:bg-slate-900/50 border border-t-0 border-slate-200 dark:border-slate-700 rounded-b-xl p-2 min-h-[200px] space-y-2">
                     {colApps.length === 0 && (
-                      <div className="text-center py-8 text-xs text-slate-400">비어 있음</div>
+                      <div className="text-center py-8 text-xs text-slate-500 dark:text-slate-400">
+                        비어 있음
+                      </div>
                     )}
                     {colApps.map((app) => {
                       const days = daysSince(app.appliedDate || app.createdAt);
@@ -870,7 +872,7 @@ export default function ApplicationsPage() {
                             {app.position}
                           </p>
                           <div className="flex items-center justify-between mt-2">
-                            <span className="text-xs text-slate-400">
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
                               {days === 0 ? '오늘 지원' : `${days}일 경과`}
                             </span>
                             {app.url && (
@@ -885,7 +887,7 @@ export default function ApplicationsPage() {
                             )}
                           </div>
                           {app.notes && (
-                            <p className="text-xs text-slate-400 mt-1.5 line-clamp-2">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">
                               {app.notes}
                             </p>
                           )}
@@ -1124,7 +1126,7 @@ export default function ApplicationsPage() {
                             </span>
                           )}
                           {i === 0 && (
-                            <span className="text-xs text-slate-400 flex-shrink-0 w-12 text-right">
+                            <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 w-12 text-right">
                               기준
                             </span>
                           )}
@@ -1229,7 +1231,9 @@ export default function ApplicationsPage() {
                                   style={{ height: `${Math.max(heightPct, 5)}%` }}
                                 />
                               </div>
-                              <span className="text-[10px] text-slate-400">{parseInt(mo)}월</span>
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                                {parseInt(mo)}월
+                              </span>
                             </div>
                           );
                         })}
@@ -1385,7 +1389,7 @@ export default function ApplicationsPage() {
                         <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5 ml-7">
                           {app.position}
                         </p>
-                        <div className="flex flex-wrap items-center gap-2 mt-2 ml-7 text-xs text-slate-400">
+                        <div className="flex flex-wrap items-center gap-2 mt-2 ml-7 text-xs text-slate-500 dark:text-slate-400">
                           {app.location && <span>{app.location}</span>}
                           {app.salary && <span>· {app.salary}</span>}
                           {app.appliedDate && <span>· {app.appliedDate}</span>}

@@ -453,10 +453,14 @@ export default function ScoutsPage() {
                 <span className="ml-1.5 badge-xs badge-red">{unreadCount}</span>
               )}
               {t.key === 'sent' && (
-                <span className="ml-1.5 text-xs text-slate-400">({sentScouts.length})</span>
+                <span className="ml-1.5 text-xs text-slate-500 dark:text-slate-400">
+                  ({sentScouts.length})
+                </span>
               )}
               {t.key === 'bookmarks' && (
-                <span className="ml-1.5 text-xs text-slate-400">({bookmarks.length})</span>
+                <span className="ml-1.5 text-xs text-slate-500 dark:text-slate-400">
+                  ({bookmarks.length})
+                </span>
               )}
             </button>
           ))}
@@ -482,7 +486,9 @@ export default function ScoutsPage() {
                         </p>
                         <span className="badge-xs badge-neutral">사용 {tpl.useCount}회</span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{tpl.message}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
+                        {tpl.message}
+                      </p>
                     </div>
                     <div className="flex gap-1 shrink-0">
                       <button
@@ -717,10 +723,16 @@ export default function ScoutsPage() {
                           )}
                         </div>
                       </div>
-                      {bm.note && <p className="text-xs text-slate-400 mt-1 ml-10">{bm.note}</p>}
+                      {bm.note && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 ml-10">
+                          {bm.note}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[10px] text-slate-400">{timeAgo(bm.addedAt)}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                        {timeAgo(bm.addedAt)}
+                      </span>
                       <button
                         onClick={() => removeBookmark(bm.id)}
                         className="text-xs px-2 py-1 rounded bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 transition-colors"
@@ -784,7 +796,9 @@ export default function ScoutsPage() {
                           variant="mini"
                         />
                         {getStatusBadge(s.status)}
-                        <span className="text-xs text-slate-400">{timeAgo(s.createdAt)}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {timeAgo(s.createdAt)}
+                        </span>
                       </div>
                     </div>
                     {s.company && (
@@ -792,7 +806,9 @@ export default function ScoutsPage() {
                         {s.company} · {s.position}
                       </p>
                     )}
-                    <p className="text-xs text-slate-400 truncate mt-1">{s.message}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-1">
+                      {s.message}
+                    </p>
                     {/* Expiry countdown */}
                     {daysLeft !== null && daysLeft > 0 && (
                       <div className="flex items-center gap-1 mt-1.5">
@@ -817,7 +833,9 @@ export default function ScoutsPage() {
                       </div>
                     )}
                     {s.status === 'expired' && (
-                      <span className="text-[10px] text-slate-400 mt-1 block">만료됨</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block">
+                        만료됨
+                      </span>
                     )}
                   </button>
                 );
@@ -878,7 +896,7 @@ export default function ScoutsPage() {
                           </p>
                         )}
                     </div>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
                       {new Date(selected.createdAt).toLocaleDateString('ko-KR')}
                     </span>
                   </div>

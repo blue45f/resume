@@ -161,7 +161,7 @@ export default function TagsPage() {
                   <span className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
                     {tag.name}
                   </span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
                     이력서 {tag.resumeCount}개
                   </span>
                 </div>

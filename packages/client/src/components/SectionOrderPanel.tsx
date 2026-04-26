@@ -113,7 +113,7 @@ export default function SectionOrderPanel({
         <button
           type="button"
           onClick={resetOrder}
-          className="text-xs text-slate-400 hover:text-blue-600 transition-colors"
+          className="text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 transition-colors"
         >
           초기화
         </button>
@@ -263,7 +263,7 @@ export default function SectionOrderPanel({
           );
         })}
       </div>
-      <p className="mt-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+      <p className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">
         드래그하여 순서를 변경하세요. 눈 아이콘으로 섹션을 숨길 수 있습니다.
       </p>
     </div>

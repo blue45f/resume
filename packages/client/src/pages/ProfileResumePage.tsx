@@ -166,12 +166,12 @@ export default function ProfileResumePage() {
                   <span className="font-semibold text-slate-800 dark:text-slate-200 truncate text-sm">
                     {personalInfo.name || `@${username}`}
                   </span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
                     @{username}/{slug}
                   </span>
                 </div>
                 {(personalInfo.email || personalInfo.phone) && (
-                  <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500 truncate">
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 truncate">
                     {personalInfo.email && <span>{personalInfo.email}</span>}
                     {personalInfo.email && personalInfo.phone && <span>·</span>}
                     {personalInfo.phone && <span>{personalInfo.phone}</span>}
@@ -184,7 +184,7 @@ export default function ProfileResumePage() {
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {viewCount != null && viewCount > 0 && (
                 <span
-                  className="hidden sm:flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 px-2.5 py-1 rounded-lg"
+                  className="hidden sm:flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-2.5 py-1 rounded-lg"
                   title="조회수"
                 >
                   <svg
@@ -277,7 +277,7 @@ export default function ProfileResumePage() {
           {/* View count (mobile) + actions row */}
           <div className="max-w-[210mm] mx-auto mt-4 sm:hidden no-print">
             {viewCount != null && viewCount > 0 && (
-              <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500 mb-3">
+              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-3">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"

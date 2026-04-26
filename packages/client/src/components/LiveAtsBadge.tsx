@@ -94,7 +94,7 @@ export default function LiveAtsBadge({ resume }: Props) {
               {result.grade}등급 · {style.label}
             </span>
             {result.issues.length > 0 && (
-              <span className="text-[10px] text-slate-400 dark:text-slate-500">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">
                 개선점 {result.issues.length}
               </span>
             )}
@@ -145,7 +145,7 @@ export default function LiveAtsBadge({ resume }: Props) {
             </p>
           )}
           {result.issues.length > 3 && (
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center">
               + {result.issues.length - 3}건 — 미리보기에서 전체 보기
             </p>
           )}

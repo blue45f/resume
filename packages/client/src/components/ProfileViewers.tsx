@@ -139,7 +139,7 @@ export default function ProfileViewers() {
                   <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
                     {viewer.label}
                   </p>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
                     {timeAgo(viewer.viewedAt)}
                   </p>
                 </div>

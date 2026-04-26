@@ -568,7 +568,7 @@ export default function Header() {
               )}
               <button
                 onClick={() => setShowSearch(true)}
-                className="flex items-center gap-2 px-2 lg:px-3 py-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
+                className="flex items-center gap-2 px-2 lg:px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
                 aria-label="검색"
               >
                 <svg
@@ -706,7 +706,7 @@ export default function Header() {
                       >
                         <div className="flex items-center justify-between">
                           <span>팔로워 / 팔로잉</span>
-                          <span className="text-xs text-slate-400 dark:text-slate-500">
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
                             {followerCount} / {followingCount}
                           </span>
                         </div>

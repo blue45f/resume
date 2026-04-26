@@ -375,7 +375,7 @@ export default function JobQuestionsPanel({
                       >
                         {categoryLabel}
                       </span>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">
                         {q.author?.name || (q.source === 'ai' ? 'AI 생성' : '익명')}
                       </span>
                     </div>

@@ -430,7 +430,7 @@ export default function JobAlert({ jobs }: Props) {
                   <p className="text-sm text-slate-500 dark:text-slate-400">
                     설정된 알림이 없습니다
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     위에서 키워드와 조건을 설정하세요
                   </p>
                 </div>

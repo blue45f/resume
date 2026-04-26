@@ -65,7 +65,7 @@ export default function AttachmentList({ resumeId }: Props) {
               <p className="text-sm text-slate-700 dark:text-slate-300 truncate group-hover:text-blue-600">
                 {a.originalName}
               </p>
-              <div className="flex items-center gap-2 text-xs text-slate-400">
+              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                 <span>{categoryLabels[a.category] || a.category}</span>
                 <span>·</span>
                 <span>{formatSize(a.size)}</span>

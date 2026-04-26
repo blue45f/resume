@@ -669,7 +669,9 @@ export default function CommunityWritePage() {
                 ) : (
                   <span />
                 )}
-                <div className="text-right text-xs text-slate-400">{(title || '').length}/100</div>
+                <div className="text-right text-xs text-slate-500 dark:text-slate-400">
+                  {(title || '').length}/100
+                </div>
               </div>
             </div>
 
@@ -744,7 +746,7 @@ export default function CommunityWritePage() {
 
               {/* Status bar */}
               <div className="flex items-center justify-between gap-2 px-4 py-2 border-t border-slate-100 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60">
-                <span className="text-xs text-slate-400 truncate">
+                <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
                   마크다운 지원 · Tab 들여쓰기 · Enter 목록 자동완성
                 </span>
                 <div className="flex items-center gap-2 shrink-0">
@@ -766,7 +768,7 @@ export default function CommunityWritePage() {
               <div className="flex items-center justify-between mb-2">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   첨부파일{' '}
-                  <span className="text-xs text-slate-400 font-normal">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">
                     ({attachments.length}/5 · 최대 20MB)
                   </span>
                 </label>
@@ -826,7 +828,7 @@ export default function CommunityWritePage() {
                       <span className="flex-1 truncate text-slate-700 dark:text-slate-300">
                         {att.name}
                       </span>
-                      <span className="text-xs text-slate-400 flex-shrink-0">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
                         {(att.size / 1024).toFixed(0)}KB
                       </span>
                       <button

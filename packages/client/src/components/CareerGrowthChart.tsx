@@ -238,7 +238,7 @@ export default function CareerGrowthChart({ resume }: Props) {
             ))}
           </div>
 
-          <p className="text-[10px] text-slate-400 dark:text-slate-500">
+          <p className="text-[10px] text-slate-500 dark:text-slate-400">
             💡 이력서 데이터만으로 자동 계산 — 경력 시작 연도부터 현재까지 연도별 누적 수치.
             면접에서 "지난 5년간 이렇게 성장해왔습니다" 시각적 스토리텔링용.
           </p>

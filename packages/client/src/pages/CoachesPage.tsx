@@ -6,6 +6,7 @@ import { type CoachProfile } from '@/lib/api';
 import { useCoaches, useSystemContent } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
+import SendMessageButton from '@/components/SendMessageButton';
 
 type SortKey = 'rating' | 'rateAsc' | 'rateDesc';
 
@@ -212,7 +213,7 @@ export default function CoachesPage() {
             <div className="mt-3 flex justify-end">
               <button
                 onClick={resetFilters}
-                className="text-xs text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
               >
                 필터 초기화
               </button>
@@ -309,11 +310,16 @@ function CoachCard({ coach }: { coach: CoachProfile }) {
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{name}</h3>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+              {name}
+            </h3>
+            <SendMessageButton variant="mini" targetUserId={coach.user?.id} targetUserName={name} />
+          </div>
           <p className="text-xs text-blue-700 dark:text-blue-400 font-medium truncate">
             {coach.specialty || '전문 분야 미설정'}
           </p>
-          <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+          <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500 dark:text-slate-400">
             <span className="inline-flex items-center gap-0.5">
               <svg
                 className="w-3 h-3 text-amber-400 fill-current"
@@ -338,7 +344,7 @@ function CoachCard({ coach }: { coach: CoachProfile }) {
 
       <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700/60">
         <div>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             시급
           </p>
           <p className="text-base font-bold text-slate-900 dark:text-slate-100">

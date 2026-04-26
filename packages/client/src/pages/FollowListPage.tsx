@@ -99,7 +99,8 @@ export default function FollowListPage() {
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
             }`}
           >
-            팔로워 <span className="text-xs text-slate-400">({followers.length})</span>
+            팔로워{' '}
+            <span className="text-xs text-slate-500 dark:text-slate-400">({followers.length})</span>
           </button>
           <button
             onClick={() => {
@@ -112,7 +113,8 @@ export default function FollowListPage() {
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
             }`}
           >
-            팔로잉 <span className="text-xs text-slate-400">({following.length})</span>
+            팔로잉{' '}
+            <span className="text-xs text-slate-500 dark:text-slate-400">({following.length})</span>
           </button>
         </div>
 
@@ -167,7 +169,7 @@ export default function FollowListPage() {
                     ? '아직 팔로워가 없습니다'
                     : '아직 팔로잉하는 사용자가 없습니다'}
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   탐색 페이지에서 다른 사용자를 찾아보세요
                 </p>
                 <Link
@@ -216,7 +218,7 @@ export default function FollowListPage() {
                         {u.email}
                       </p>
                       {u.recentResumeTitle && (
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                           최근 이력서: {u.recentResumeTitle}
                         </p>
                       )}

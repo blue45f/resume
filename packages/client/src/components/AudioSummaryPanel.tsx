@@ -86,7 +86,7 @@ export default function AudioSummaryPanel({ resume }: Props) {
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 shrink-0">
             이력서 오디오 요약
           </h3>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:inline">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline">
             브라우저 TTS · 접근성 · 면접 연습
           </span>
         </div>
@@ -161,7 +161,7 @@ export default function AudioSummaryPanel({ resume }: Props) {
             </p>
           </details>
 
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed">
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
             💡 브라우저 내장 음성 합성(SpeechSynthesis API) 사용 — 외부 서버 전송 없음. 접근성
             목적으로 화면을 못 보는 사용자에게 이력서 요약을 오디오로 제공할 수 있습니다.
           </p>

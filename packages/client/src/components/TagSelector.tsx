@@ -114,7 +114,7 @@ export default function TagSelector({ resumeId, currentTags, onUpdate }: Props) 
           {/* Tag list */}
           <div className="max-h-48 overflow-y-auto">
             {allTags.length === 0 ? (
-              <p className="px-3 py-2 text-xs text-slate-400 dark:text-slate-500">
+              <p className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">
                 태그가 없습니다
               </p>
             ) : (

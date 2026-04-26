@@ -343,7 +343,7 @@ export default function PortfolioPage() {
                           </p>
                         )}
                       </div>
-                      <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500 flex items-center gap-0.5">
+                      <span className="shrink-0 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-0.5">
                         <svg
                           className="w-3 h-3"
                           fill="none"
@@ -401,7 +401,7 @@ export default function PortfolioPage() {
                           </span>
                         ))}
                       </div>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">
                         {timeAgo(resume.updatedAt)}
                       </span>
                     </div>

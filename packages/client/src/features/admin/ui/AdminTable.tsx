@@ -119,7 +119,7 @@ export function AdminTable<T>(props: Props<T>) {
       {(footer ||
         (typeof page === 'number' && typeof totalPages === 'number' && totalPages > 1)) && (
         <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             {typeof total === 'number' ? `총 ${total}건 · ` : ''}
             {typeof page === 'number' && typeof totalPages === 'number'
               ? `${page} / ${totalPages} 페이지`

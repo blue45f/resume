@@ -298,7 +298,7 @@ export default function ComparePage() {
                   />
                 ))}
               </div>
-              <div className="flex justify-center gap-6 mt-4 text-xs text-slate-400">
+              <div className="flex justify-center gap-6 mt-4 text-xs text-slate-500 dark:text-slate-400">
                 <span className="flex items-center gap-1">
                   <span className="w-3 h-3 rounded-full bg-blue-500" /> 이력서 A
                 </span>
@@ -408,7 +408,7 @@ export default function ComparePage() {
                     <span className="text-xs text-blue-600 font-medium">
                       {left.experiences.length}개
                     </span>
-                    <span className="text-xs text-slate-400">vs</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">vs</span>
                     <span className="text-xs text-emerald-600 font-medium">
                       {right.experiences.length}개
                     </span>
@@ -438,7 +438,7 @@ export default function ComparePage() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-xs text-slate-400 p-2">경력 없음</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 p-2">경력 없음</p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -464,7 +464,7 @@ export default function ComparePage() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-xs text-slate-400 p-2">경력 없음</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 p-2">경력 없음</p>
                     )}
                   </div>
                 </div>
@@ -480,7 +480,7 @@ export default function ComparePage() {
                     <span className="text-xs text-blue-600 font-medium">
                       {left.educations.length}개
                     </span>
-                    <span className="text-xs text-slate-400">vs</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">vs</span>
                     <span className="text-xs text-emerald-600 font-medium">
                       {right.educations.length}개
                     </span>
@@ -503,7 +503,7 @@ export default function ComparePage() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-xs text-slate-400 p-2">학력 없음</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 p-2">학력 없음</p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -522,7 +522,7 @@ export default function ComparePage() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-xs text-slate-400 p-2">학력 없음</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 p-2">학력 없음</p>
                     )}
                   </div>
                 </div>
@@ -538,7 +538,7 @@ export default function ComparePage() {
                     <span className="text-xs text-blue-600 font-medium">
                       {left.projects.length}개
                     </span>
-                    <span className="text-xs text-slate-400">vs</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">vs</span>
                     <span className="text-xs text-emerald-600 font-medium">
                       {right.projects.length}개
                     </span>
@@ -564,7 +564,9 @@ export default function ComparePage() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-xs text-slate-400 p-2">프로젝트 없음</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 p-2">
+                        프로젝트 없음
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -586,7 +588,9 @@ export default function ComparePage() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-xs text-slate-400 p-2">프로젝트 없음</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 p-2">
+                        프로젝트 없음
+                      </p>
                     )}
                   </div>
                 </div>

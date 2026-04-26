@@ -101,7 +101,7 @@ export default function DocumentEnhancePanel({ resumeId, resume, onApplied }: Pr
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 shrink-0">
             외부 문서로 이력서 고도화
           </h3>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:inline truncate">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline truncate">
             기존 이력서 + LinkedIn/예전 이력서 텍스트 → AI 병합·보완
           </span>
         </div>
@@ -132,7 +132,7 @@ export default function DocumentEnhancePanel({ resumeId, resume, onApplied }: Pr
                   className="mt-1.5 w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 resize-y"
                 />
               </label>
-              <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400">
+              <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
                 <label className="inline-flex items-center gap-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
                   <input
                     type="file"
@@ -155,7 +155,7 @@ export default function DocumentEnhancePanel({ resumeId, resume, onApplied }: Pr
                 className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700"
               />
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-[10px] text-slate-400 leading-relaxed max-w-md">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed max-w-md">
                   💡 PDF/DOCX 는 내용을 복사해서 위 영역에 붙여넣어 주세요. 원본 이력서의 모든
                   필드는 보존되며, 누락·중복 정보만 자동 보완됩니다.
                 </p>

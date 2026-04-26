@@ -416,7 +416,7 @@ export default function CommunityPage() {
               </>
             )}
           </p>
-          <span className="text-xs text-slate-400 dark:text-slate-500">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             {page} / {totalPages} 페이지
           </span>
         </div>
@@ -520,7 +520,7 @@ export default function CommunityPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                         {post.content
                           .replace(/<[^>]*>/g, '')
                           .replace(/[#*`~>\-]/g, '')
@@ -530,7 +530,7 @@ export default function CommunityPage() {
 
                     {/* Meta */}
                     <div className="shrink-0 flex flex-col items-end gap-1 ml-2">
-                      <div className="flex items-center gap-2.5 text-xs text-slate-400">
+                      <div className="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400">
                         {post.likeCount > 0 && (
                           <span
                             className={`flex items-center gap-0.5 ${post.likeCount >= 10 ? 'text-red-500 font-medium' : ''}`}
@@ -574,7 +574,7 @@ export default function CommunityPage() {
                           {post.viewCount}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-400">
+                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                         {post.user?.avatar ? (
                           <img
                             src={post.user.avatar}

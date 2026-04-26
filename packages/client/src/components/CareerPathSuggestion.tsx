@@ -216,7 +216,9 @@ export default function CareerPathSuggestion({ resume }: Props) {
             <div className="flex items-center gap-2 mb-3">
               <div className="w-3 h-3 bg-blue-500 rounded-full ring-2 ring-blue-200 dark:ring-blue-800" />
               <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{currentTitle}</p>
-              <span className="text-xs text-slate-400">({resume.experiences.length}년차)</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                ({resume.experiences.length}년차)
+              </span>
             </div>
 
             {/* Path arrows */}
@@ -245,7 +247,9 @@ export default function CareerPathSuggestion({ resume }: Props) {
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-slate-400">{p.timeline}</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                            {p.timeline}
+                          </span>
                           <span
                             className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                               p.match >= 70
@@ -356,7 +360,7 @@ export default function CareerPathSuggestion({ resume }: Props) {
                               </span>
                             ))}
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-1">
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                             보유: {p.currentSkills.length}/{p.requiredSkills.length} ({p.match}%
                             매칭)
                           </p>
@@ -384,7 +388,7 @@ export default function CareerPathSuggestion({ resume }: Props) {
             </div>
           </div>
 
-          <p className="text-xs text-slate-400 dark:text-slate-500 text-center">
+          <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
             현재 기술 스택 기반 AI 추천
           </p>
         </div>

@@ -25,7 +25,7 @@ export default function Footer() {
             <span className="text-xs font-bold tracking-[-0.02em] text-slate-700 dark:text-slate-200 leading-none">
               {tx('footer.brandName')}
             </span>
-            <span className="text-[11px] text-slate-400 dark:text-slate-500 tabular-nums">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
               © {new Date().getFullYear()}
             </span>
           </Link>
@@ -57,7 +57,7 @@ export default function Footer() {
         </div>
 
         {/* Copyright line (mobile visible) */}
-        <div className="mt-3 pt-3 sm:hidden text-center text-[10px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
+        <div className="mt-3 pt-3 sm:hidden text-center text-[10px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
           {tx('footer.copyright')}
         </div>
       </div>

@@ -238,14 +238,14 @@ export default function MyCoverLettersPage() {
                           <span className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">
                             {l.company || '회사 미지정'}
                           </span>
-                          <span className="text-xs text-slate-400 shrink-0 ml-2">
+                          <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0 ml-2">
                             {timeAgo(l.updatedAt)}
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                           {l.position || '포지션 미지정'}
                         </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 line-clamp-2">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                           {getSnippet(l.content)}
                         </p>
                         <div className="flex items-center gap-2 mt-1.5">
@@ -267,7 +267,7 @@ export default function MyCoverLettersPage() {
                           <h2 className="font-semibold text-slate-900 dark:text-slate-100">
                             {selected.company} — {selected.position}
                           </h2>
-                          <p className="text-xs text-slate-400 mt-0.5">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                             {toneLabels[selected.tone]} &middot;{' '}
                             {new Date(selected.createdAt).toLocaleDateString('ko-KR')}
                           </p>

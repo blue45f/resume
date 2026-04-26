@@ -513,7 +513,7 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
           ) : null}
 
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed flex-1 min-w-0">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed flex-1 min-w-0">
               💡 <strong>규칙 기반</strong>: {KOREAN_RULE_COUNT}개 정규식 규칙으로 즉시 검사
               (무료·오프라인). <strong>AI 검수</strong>: LLM 이 문맥까지 분석 (고정밀·유료).
               고유명사·인용문은 오탐 가능.

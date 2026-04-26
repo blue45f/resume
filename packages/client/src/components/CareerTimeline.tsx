@@ -58,7 +58,7 @@ export default function CareerTimeline({ resume }: Props) {
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums shrink-0">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums shrink-0">
                     {item.start} — {item.end}
                   </span>
                 </div>
@@ -76,7 +76,7 @@ export default function CareerTimeline({ resume }: Props) {
           ))}
         </div>
       </div>
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-400">
+      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-blue-500" /> 경력
         </span>

@@ -7,6 +7,7 @@ import { useMyCoachingSessions } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
+import SendMessageButton from '@/components/SendMessageButton';
 
 function formatDate(iso: string) {
   try {
@@ -201,7 +202,7 @@ export default function CoachDashboardPage() {
                     <div key={s.label} className="imp-card p-4 text-center">
                       <span className="text-lg block mb-1">{s.icon}</span>
                       <span className={`text-2xl font-bold ${s.color} block`}>{s.value}</span>
-                      <span className="text-xs text-slate-400">{s.label}</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">{s.label}</span>
                     </div>
                   ))}
             </div>
@@ -264,13 +265,20 @@ export default function CoachDashboardPage() {
                                 >
                                   {statusBadge.label}
                                 </span>
-                                <span className="text-[11px] text-slate-400">
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400">
                                   {formatRelative(s.scheduledAt)}
                                 </span>
                               </div>
-                              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
-                                {clientName} · {s.duration}분
-                              </p>
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                                  {clientName} · {s.duration}분
+                                </p>
+                                <SendMessageButton
+                                  variant="mini"
+                                  targetUserId={s.client?.id || s.clientId}
+                                  targetUserName={clientName}
+                                />
+                              </div>
                               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                 {formatDate(s.scheduledAt)}
                               </p>
@@ -325,10 +333,19 @@ export default function CoachDashboardPage() {
                             {(r.client?.name || 'U').slice(0, 1).toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                              {r.client?.name || '익명'}
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                                {r.client?.name || '익명'}
+                              </p>
+                              <SendMessageButton
+                                variant="mini"
+                                targetUserId={r.client?.id || r.clientId}
+                                targetUserName={r.client?.name || '고객'}
+                              />
+                            </div>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                              {formatDate(r.updatedAt)}
                             </p>
-                            <p className="text-[10px] text-slate-400">{formatDate(r.updatedAt)}</p>
                           </div>
                         </div>
                         <span
@@ -344,7 +361,9 @@ export default function CoachDashboardPage() {
                           "{r.review}"
                         </p>
                       ) : (
-                        <p className="text-xs text-slate-400 italic">코멘트 없음</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+                          코멘트 없음
+                        </p>
                       )}
                     </div>
                   ))}

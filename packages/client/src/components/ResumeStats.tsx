@@ -29,7 +29,7 @@ export default function ResumeStats({ resume }: Props) {
   ].filter((n) => n > 0).length;
 
   return (
-    <div className="flex flex-wrap gap-4 text-xs text-slate-400 dark:text-slate-500 no-print">
+    <div className="flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400 no-print">
       <span>{chars.toLocaleString()}자</span>
       <span>{words.toLocaleString()}단어</span>
       <span>읽기 약 {readingTime}분</span>

@@ -214,7 +214,7 @@ export default function ResumeAnalytics({ resumeId }: Props) {
           <div key={s.label} className="text-center">
             <span className="text-sm block mb-0.5">{s.icon}</span>
             <span className={`text-lg font-bold ${s.color} block`}>{s.value}</span>
-            <span className="text-xs text-slate-400 dark:text-slate-500">{s.label}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{s.label}</span>
           </div>
         ))}
       </div>

@@ -96,7 +96,7 @@ function ThemeSeparator({ themeId }: { themeId: string }) {
       );
     case 'tech':
       return (
-        <div className="my-5 font-mono text-[10px] text-slate-400 tracking-widest text-center select-none">
+        <div className="my-5 font-mono text-[10px] text-slate-500 dark:text-slate-400 tracking-widest text-center select-none">
           /* ─────────────────────────────── */
         </div>
       );
@@ -299,7 +299,7 @@ function SkillsDisplay({
       <div className="space-y-4">
         {skills.map((skill) => (
           <div key={skill.id}>
-            <div className="text-[10px] text-slate-400 uppercase tracking-[0.3em] mb-1">
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mb-1">
               {skill.category}
             </div>
             <div className="text-sm text-slate-500 tracking-wide">{skill.items}</div>
@@ -454,7 +454,7 @@ function ContactInfo({ pi, theme }: { pi: Resume['personalInfo']; theme: ResumeT
         </div>
       )}
       {pi.military && (
-        <div className="flex items-center gap-1 text-xs text-slate-400">
+        <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
           <span className="print:hidden" aria-hidden="true">
             🎖
           </span>
@@ -479,7 +479,7 @@ function ExperienceBlock({ exp, themeId }: { exp: Resume['experiences'][0]; them
             <span className="text-slate-400 ml-1 text-xs">| {exp.department}</span>
           )}
         </div>
-        <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
+        <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap tabular-nums shrink-0">
           {formatDateRange(exp.startDate, exp.endDate, exp.current, getDateLocale(themeId))}
         </span>
       </div>
@@ -534,7 +534,7 @@ function EducationBlock({ edu, themeId }: { edu: Resume['educations'][0]; themeI
             </span>
           )}
         </div>
-        <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
+        <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap tabular-nums shrink-0">
           {formatDateRange(edu.startDate, edu.endDate, undefined, locale)}
         </span>
       </div>
@@ -577,7 +577,7 @@ function RemainingContent({
                       <span className="text-slate-400 ml-2 text-xs">({cert.credentialId})</span>
                     )}
                   </div>
-                  <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap tabular-nums shrink-0">
                     {formatDateRange(
                       cert.issueDate,
                       cert.expiryDate,
@@ -609,7 +609,7 @@ function RemainingContent({
                   )}
                 </div>
                 {lang.testDate && (
-                  <span className="text-xs text-slate-400 tabular-nums">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                     {formatDate(lang.testDate, getDateLocale(theme.id))}
                   </span>
                 )}
@@ -631,7 +631,7 @@ function RemainingContent({
                     )}
                   </div>
                   {award.awardDate && (
-                    <span className="text-xs text-slate-400 tabular-nums">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                       {formatDate(award.awardDate, getDateLocale(theme.id))}
                     </span>
                   )}
@@ -657,7 +657,7 @@ function RemainingContent({
                     )}
                     {act.role && <span className="text-slate-400 ml-1 text-xs">| {act.role}</span>}
                   </div>
-                  <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap tabular-nums shrink-0">
                     {formatDateRange(
                       act.startDate,
                       act.endDate,
@@ -690,7 +690,7 @@ function ProjectBlock({ proj, themeId }: { proj: Resume['projects'][0]; themeId:
           {proj.company && <span className="text-slate-400 ml-1 text-xs">@ {proj.company}</span>}
           {proj.role && <span className="text-slate-600 ml-2 text-sm">| {proj.role}</span>}
         </div>
-        <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
+        <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap tabular-nums shrink-0">
           {formatDateRange(proj.startDate, proj.endDate, undefined, getDateLocale(themeId))}
         </span>
       </div>
@@ -828,7 +828,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                           <span className="text-slate-400 ml-2 text-xs">({cert.credentialId})</span>
                         )}
                       </div>
-                      <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap tabular-nums shrink-0">
                         {formatDateRange(
                           cert.issueDate,
                           cert.expiryDate,
@@ -861,7 +861,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                       )}
                     </div>
                     {lang.testDate && (
-                      <span className="text-xs text-slate-400 tabular-nums">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                         {formatDate(lang.testDate, getDateLocale(theme.id))}
                       </span>
                     )}
@@ -884,7 +884,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                         )}
                       </div>
                       {award.awardDate && (
-                        <span className="text-xs text-slate-400 tabular-nums">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                           {formatDate(award.awardDate, getDateLocale(theme.id))}
                         </span>
                       )}
@@ -918,7 +918,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                           <span className="text-slate-500 ml-2 text-xs">({act.role})</span>
                         )}
                       </div>
-                      <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums shrink-0">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap tabular-nums shrink-0">
                         {formatDateRange(
                           act.startDate,
                           act.endDate,
@@ -1115,7 +1115,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
             <h1 className="text-3xl sm:text-4xl font-light tracking-tight text-slate-800">
               {pi.name || '이름'}
             </h1>
-            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 tracking-wide">
+            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400 tracking-wide">
               {pi.email && <span>{pi.email}</span>}
               {pi.phone && <span>{pi.phone}</span>}
               {pi.address && <span>{pi.address}</span>}
@@ -1143,7 +1143,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                           {exp.company}
                           {exp.position && ` — ${exp.position}`}
                         </span>
-                        <span className="text-[10px] text-slate-400 tabular-nums">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 tabular-nums">
                           {formatDateRange(
                             exp.startDate,
                             exp.endDate,
@@ -1159,7 +1159,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                         />
                       )}
                       {exp.techStack && (
-                        <div className="mt-2 text-xs text-slate-400 tracking-wide">
+                        <div className="mt-2 text-xs text-slate-500 dark:text-slate-400 tracking-wide">
                           {exp.techStack}
                         </div>
                       )}

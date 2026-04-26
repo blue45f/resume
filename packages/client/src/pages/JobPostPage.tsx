@@ -382,7 +382,7 @@ export default function JobPostPage() {
                 </span>
               </label>
               <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-400 shrink-0 w-16 text-right">
+                <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0 w-16 text-right">
                   {formatSalary(form.salaryMin)}
                 </span>
                 <div className="flex-1 space-y-1">
@@ -417,7 +417,7 @@ export default function JobPostPage() {
                     className="w-full accent-blue-600"
                   />
                 </div>
-                <span className="text-xs text-slate-400 shrink-0 w-16">
+                <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0 w-16">
                   {formatSalary(form.salaryMax)}
                 </span>
               </div>
@@ -476,7 +476,11 @@ export default function JobPostPage() {
                 </label>
                 <div className="flex gap-2">
                   {FORMAT_HINTS.map((h) => (
-                    <span key={h.label} className="text-[10px] text-slate-400" title={h.desc}>
+                    <span
+                      key={h.label}
+                      className="text-[10px] text-slate-500 dark:text-slate-400"
+                      title={h.desc}
+                    >
                       <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">{h.label}</code>
                     </span>
                   ))}

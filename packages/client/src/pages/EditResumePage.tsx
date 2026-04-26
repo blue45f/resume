@@ -478,7 +478,7 @@ export default function EditResumePage() {
           ]}
         />
         {resume.updatedAt && (
-          <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
             마지막 저장: {new Date(resume.updatedAt).toLocaleString('ko-KR')}
           </p>
         )}

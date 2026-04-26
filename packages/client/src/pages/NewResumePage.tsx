@@ -538,7 +538,7 @@ function WizardMode({
                   value={wizardData.personalInfo.summary}
                   onChange={(e) => updatePI('summary', e.target.value)}
                 />
-                <p className="mt-1 text-xs text-slate-400 text-right">
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 text-right">
                   {(wizardData.personalInfo.summary || '').length}자
                 </p>
               </div>
@@ -621,7 +621,7 @@ function WizardMode({
                   <div>
                     <label className={labelClass}>
                       종료일
-                      <label className="ml-2 inline-flex items-center gap-1 text-xs text-slate-400">
+                      <label className="ml-2 inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                         <input
                           type="checkbox"
                           checked={exp.current}
@@ -924,7 +924,7 @@ function WizardMode({
                   경력 ({wizardData.experiences.length}개)
                 </h3>
                 {wizardData.experiences.length === 0 ? (
-                  <p className="text-xs text-slate-400">추가된 경력 없음</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">추가된 경력 없음</p>
                 ) : (
                   <div className="space-y-2">
                     {wizardData.experiences.map((exp) => (
@@ -935,7 +935,7 @@ function WizardMode({
                         <p className="font-medium text-slate-900 dark:text-slate-100">
                           {exp.company} - {exp.position}
                         </p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {exp.startDate} ~ {exp.current ? '현재' : exp.endDate}
                         </p>
                       </div>
@@ -950,7 +950,7 @@ function WizardMode({
                   학력 ({wizardData.educations.length}개)
                 </h3>
                 {wizardData.educations.length === 0 ? (
-                  <p className="text-xs text-slate-400">추가된 학력 없음</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">추가된 학력 없음</p>
                 ) : (
                   <div className="space-y-2">
                     {wizardData.educations.map((edu) => (
@@ -961,7 +961,7 @@ function WizardMode({
                         <p className="font-medium text-slate-900 dark:text-slate-100">
                           {edu.school} - {edu.degree} {edu.field}
                         </p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {edu.startDate} ~ {edu.endDate}
                         </p>
                       </div>
@@ -976,7 +976,7 @@ function WizardMode({
                   기술 ({wizardData.skills.length}개 그룹)
                 </h3>
                 {wizardData.skills.length === 0 ? (
-                  <p className="text-xs text-slate-400">추가된 기술 없음</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">추가된 기술 없음</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {wizardData.skills.map((s) => (
@@ -1005,7 +1005,7 @@ function WizardMode({
         >
           &larr; 이전
         </button>
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-slate-500 dark:text-slate-400">
           {wizardStep + 1} / {WIZARD_STEPS.length}
         </span>
         {wizardStep < WIZARD_STEPS.length - 1 ? (
@@ -1577,7 +1577,7 @@ export default function NewResumePage() {
                 <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   테마 선택
                 </h2>
-                <span className="text-xs text-slate-400 dark:text-slate-500">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   {resumeThemes.length}개 테마
                 </span>
               </div>
@@ -1651,7 +1651,7 @@ export default function NewResumePage() {
                           d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                         />
                       </svg>
-                      <p className="text-xs text-slate-400 dark:text-slate-500">기본 양식</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">기본 양식</p>
                     </div>
                   </div>
                   <div className="px-3 py-2.5 border-t border-slate-100 dark:border-slate-700">
@@ -1827,7 +1827,7 @@ export default function NewResumePage() {
                           <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300">
                             직종별 추천
                           </h2>
-                          <span className="text-xs text-slate-400 dark:text-slate-500">
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
                             - 보유 기술 기반 분석
                           </span>
                         </div>
@@ -1945,7 +1945,7 @@ export default function NewResumePage() {
                                 </p>
                               )}
                               {t.usageCount > 0 && (
-                                <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-1.5">
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-1.5">
                                   {t.usageCount.toLocaleString()}회 사용됨
                                 </p>
                               )}

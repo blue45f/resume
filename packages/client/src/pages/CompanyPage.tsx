@@ -247,7 +247,9 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
             <div className="text-center shrink-0">
               <div className="text-5xl font-bold text-amber-500">{avgRatings.rating}</div>
               <StarRating value={Math.round(avgRatings.rating)} size="sm" />
-              <p className="text-xs text-slate-400 mt-1">{reviews.length}개의 리뷰</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {reviews.length}개의 리뷰
+              </p>
               {recommendRate !== null && (
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
                   {recommendRate}% 추천
@@ -381,7 +383,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
         <div className="text-center py-8 imp-card">
           <p className="text-4xl mb-2">💬</p>
           <p className="text-sm text-slate-500 dark:text-slate-400">아직 리뷰가 없습니다</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             이 회사에 지원한 경험이 있으면 리뷰를 남겨주세요
           </p>
         </div>
@@ -742,7 +744,7 @@ export default function CompanyPage() {
                     </span>
                   ))}
                   {allSkills.length > 15 && (
-                    <span className="px-2 py-1 text-xs text-slate-400">
+                    <span className="px-2 py-1 text-xs text-slate-500 dark:text-slate-400">
                       +{allSkills.length - 15}개
                     </span>
                   )}

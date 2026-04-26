@@ -186,7 +186,8 @@ function SectionBar({ scorePct, color }: { scorePct: number; color: string }) {
 /** Benchmark comparison badge */
 function BenchmarkBadge({ scorePct, benchmark }: { scorePct: number; benchmark: number }) {
   const diff = scorePct - benchmark;
-  if (diff === 0) return <span className="text-[10px] text-slate-400">평균</span>;
+  if (diff === 0)
+    return <span className="text-[10px] text-slate-500 dark:text-slate-400">평균</span>;
 
   const isPositive = diff > 0;
   return (
@@ -283,7 +284,7 @@ function CompletenessBar({ resume, compact }: Props) {
                 {/* Progress bar */}
                 <div className="flex items-center gap-2">
                   <SectionBar scorePct={scorePct} color={sectionColor} />
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 w-8 text-right tabular-nums">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 w-8 text-right tabular-nums">
                     {scorePct}%
                   </span>
                 </div>

@@ -480,12 +480,15 @@ export default function PreviewPage() {
               </button>
               {/* Reading time indicator */}
               <span className="text-slate-300 hidden sm:inline">|</span>
-              <span className="hidden sm:inline text-xs text-slate-400" title="예상 읽는 시간">
+              <span
+                className="hidden sm:inline text-xs text-slate-500 dark:text-slate-400"
+                title="예상 읽는 시간"
+              >
                 읽는 시간: ~{readingMinutes}분
               </span>
             </div>
             {/* Share analytics — compact */}
-            <div className="hidden lg:flex items-center gap-2 text-xs text-slate-400">
+            <div className="hidden lg:flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
               <span title="조회수">{resume.viewCount || 0}회 조회</span>
             </div>
 
@@ -987,7 +990,9 @@ export default function PreviewPage() {
               <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-3 flex flex-wrap items-center gap-3">
                 {/* Color presets */}
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-slate-400 mr-0.5">색상</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 mr-0.5">
+                    색상
+                  </span>
                   {PRESET_COLORS.map((c) => (
                     <button
                       key={c.hex || 'default'}
@@ -1009,12 +1014,12 @@ export default function PreviewPage() {
                       className="w-5 h-5 rounded cursor-pointer border border-slate-200 p-0 overflow-hidden"
                       style={{ padding: '1px' }}
                     />
-                    <span className="text-[10px] text-slate-400">커스텀</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">커스텀</span>
                   </label>
                   {customAccentHex && (
                     <button
                       onClick={() => setCustomAccentHex('')}
-                      className="text-[10px] text-slate-400 hover:text-slate-600 underline"
+                      className="text-[10px] text-slate-500 dark:text-slate-400 hover:text-slate-600 underline"
                     >
                       초기화
                     </button>
@@ -1023,7 +1028,7 @@ export default function PreviewPage() {
                 <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
                 {/* Font selector */}
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-slate-400">폰트</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">폰트</span>
                   <select
                     value={customFont}
                     onChange={(e) => setCustomFont(e.target.value)}
@@ -1042,7 +1047,9 @@ export default function PreviewPage() {
 
           {/* Reading time indicator — mobile only (inline in toolbar) */}
           <div className="sm:hidden max-w-6xl mx-auto px-4 pb-2 flex items-center gap-2">
-            <span className="text-[11px] text-slate-400">읽는 시간: ~{readingMinutes}분</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              읽는 시간: ~{readingMinutes}분
+            </span>
           </div>
         </div>
 

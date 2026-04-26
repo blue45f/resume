@@ -562,7 +562,7 @@ export default function ExplorePage() {
                     setRecentSearches([]);
                     localStorage.removeItem('recent-searches');
                   }}
-                  className="text-xs text-slate-400 dark:text-slate-500 hover:text-red-500 transition-colors"
+                  className="text-xs text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"
                 >
                   전체 삭제
                 </button>
@@ -971,7 +971,7 @@ export default function ExplorePage() {
                   <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                     추천 연결
                   </h3>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
                     나와 비슷한 기술 스택을 가진 사용자
                   </span>
                 </div>
@@ -1007,7 +1007,7 @@ export default function ExplorePage() {
                             </span>
                           ))}
                           {user.matchedSkills.length > 3 && (
-                            <span className="px-1.5 py-0.5 text-[10px] text-slate-400">
+                            <span className="px-1.5 py-0.5 text-[10px] text-slate-500 dark:text-slate-400">
                               +{user.matchedSkills.length - 3}
                             </span>
                           )}
@@ -1140,7 +1140,7 @@ export default function ExplorePage() {
                             </span>
                           ))}
                           {user.skills.length > 5 && (
-                            <span className="px-1.5 py-1 text-xs text-slate-400">
+                            <span className="px-1.5 py-1 text-xs text-slate-500 dark:text-slate-400">
                               +{user.skills.length - 5}
                             </span>
                           )}
@@ -1172,7 +1172,7 @@ export default function ExplorePage() {
                           </Link>
                         ))}
                         {user.resumes.length > 3 && (
-                          <p className="text-xs text-slate-400 pl-5">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 pl-5">
                             외 {user.resumes.length - 3}개
                           </p>
                         )}
@@ -1323,7 +1323,7 @@ export default function ExplorePage() {
                       <span className="flex-1 text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
                         {post.title}
                       </span>
-                      <div className="shrink-0 flex items-center gap-3 text-xs text-slate-400">
+                      <div className="shrink-0 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                         <span className="flex items-center gap-1">
                           <svg
                             className="w-3 h-3"
@@ -1384,7 +1384,7 @@ export default function ExplorePage() {
                   </h3>
                   <button
                     onClick={clearViews}
-                    className="text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    className="text-[10px] text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                   >
                     지우기
                   </button>
@@ -1399,7 +1399,7 @@ export default function ExplorePage() {
                       <p className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">
                         {v.title || '이력서'}
                       </p>
-                      <p className="text-[10px] text-slate-400 truncate mt-0.5">
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                         {v.name || '익명'}
                       </p>
                     </Link>
@@ -1431,7 +1431,7 @@ export default function ExplorePage() {
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                           {r.personalInfo?.name}
                         </p>
-                        <div className="flex items-center gap-1 mt-1.5 text-xs text-slate-400">
+                        <div className="flex items-center gap-1 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
                           <svg
                             className="w-3 h-3"
                             fill="none"
@@ -1518,12 +1518,12 @@ export default function ExplorePage() {
                           <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate">
                             {resume.title || '제목 없음'}
                           </h2>
-                          <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">
+                          <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
                             {resume.personalInfo?.name || '이름 미입력'}
                           </span>
                         </div>
                         {resume.personalInfo?.summary && (
-                          <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
                             {resume.personalInfo.summary.replace(/<[^>]*>/g, '')}
                           </p>
                         )}
@@ -1556,11 +1556,11 @@ export default function ExplorePage() {
                       {/* Right side: meta + bookmark */}
                       <div className="flex items-center gap-3 shrink-0">
                         <div className="text-right hidden sm:block">
-                          <span className="text-xs text-slate-400 dark:text-slate-500 block">
+                          <span className="text-xs text-slate-500 dark:text-slate-400 block">
                             {timeAgo(resume.updatedAt)}
                           </span>
                           {resume.viewCount != null && resume.viewCount > 0 && (
-                            <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-0.5 justify-end mt-0.5">
+                            <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-0.5 justify-end mt-0.5">
                               <svg
                                 className="w-3 h-3"
                                 fill="none"
@@ -1626,7 +1626,7 @@ export default function ExplorePage() {
                       )}
                     </div>
                     {resume.personalInfo?.summary && (
-                      <p className="text-xs text-slate-400 line-clamp-2 mb-2">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2">
                         {resume.personalInfo.summary.replace(/<[^>]*>/g, '')}
                       </p>
                     )}
@@ -1648,7 +1648,7 @@ export default function ExplorePage() {
                           </button>
                         ))}
                         {skillNames.length > 4 && (
-                          <span className="px-1.5 py-1 text-xs text-slate-400">
+                          <span className="px-1.5 py-1 text-xs text-slate-500 dark:text-slate-400">
                             +{skillNames.length - 4}
                           </span>
                         )}
@@ -1671,7 +1671,7 @@ export default function ExplorePage() {
                     )}
 
                     {/* Footer: stats + relative time */}
-                    <div className="flex items-center justify-between mt-2 text-xs text-slate-400 dark:text-slate-500">
+                    <div className="flex items-center justify-between mt-2 text-xs text-slate-500 dark:text-slate-400">
                       <div className="flex items-center gap-2.5">
                         <span>{timeAgo(resume.updatedAt)}</span>
                         {skillNames.length > 0 && (

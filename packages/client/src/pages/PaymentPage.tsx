@@ -113,7 +113,7 @@ export default function PaymentPage() {
                 </span>
               </div>
               {period === 'yearly' && (
-                <p className="text-xs text-slate-400 text-right mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 text-right mt-0.5">
                   월 {formatPrice(Math.round(amount / 12))}
                 </p>
               )}
@@ -169,7 +169,7 @@ export default function PaymentPage() {
               {processing ? '결제 처리 중...' : `${formatPrice(amount)} 결제하기`}
             </button>
 
-            <div className="flex items-center justify-center gap-4 mt-4 text-xs text-slate-400 dark:text-slate-500">
+            <div className="flex items-center justify-center gap-4 mt-4 text-xs text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1">
                 <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                   <path

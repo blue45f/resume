@@ -182,7 +182,7 @@ export default function InterviewRoulette({ compact = false }: Props) {
               </span>
             )}
             {question?.companyName && (
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate max-w-[180px]">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[180px]">
                 {question.companyName}
                 {question.position ? ` · ${question.position}` : ''}
               </span>

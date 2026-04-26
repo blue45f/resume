@@ -195,7 +195,7 @@ export default function AdminPostsTab() {
               {p.isHidden && <span className="mr-1 text-slate-400">🙈</span>}
               {p.title}
             </p>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {new Date(p.createdAt).toLocaleDateString('ko-KR')}
             </p>
           </div>
@@ -351,7 +351,9 @@ export default function AdminPostsTab() {
             </select>
             {selected.size > 0 && (
               <div className="flex items-center gap-1">
-                <span className="text-xs text-slate-400">{selected.size}건 선택</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {selected.size}건 선택
+                </span>
                 <button
                   type="button"
                   onClick={() => mBulk.mutate('hide')}

@@ -749,7 +749,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
                   </>
                 )}
               </button>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center mt-1">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center mt-1">
                 LLM을 사용하여 더 상세한 개선안을 제공합니다
               </p>
             </div>

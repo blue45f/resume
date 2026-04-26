@@ -626,10 +626,12 @@ export default function CommunityPostPage() {
                       />
                     )}
                   </div>
-                  <div className="text-xs text-slate-400">{timeAgo(post.createdAt)}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {timeAgo(post.createdAt)}
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 ml-auto text-xs text-slate-400">
+              <div className="flex items-center gap-3 ml-auto text-xs text-slate-500 dark:text-slate-400">
                 <span className="flex items-center gap-1">
                   <svg
                     className="w-3.5 h-3.5"
@@ -700,7 +702,7 @@ export default function CommunityPostPage() {
                       <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 group-hover:text-sky-700 dark:group-hover:text-sky-400 truncate">
                         {att.name}
                       </span>
-                      <span className="text-xs text-slate-400 flex-shrink-0">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
                         {(att.size / 1024).toFixed(0)}KB
                       </span>
                       <svg
@@ -1028,7 +1030,9 @@ export default function CommunityPostPage() {
                             </button>
                           )}
                           {!user && descendantCount > 0 && (
-                            <span className="text-xs text-slate-400">답글 {descendantCount}개</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                              답글 {descendantCount}개
+                            </span>
                           )}
                         </div>
                       </div>
