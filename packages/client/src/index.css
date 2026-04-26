@@ -504,9 +504,9 @@ body {
     sans-serif;
 }
 
-/* 인쇄 전용 요소 기본 숨김 */
+/* 인쇄 전용 요소 기본 숨김 — !important 로 inline style override 방지 */
 .print-only {
-  display: none;
+  display: none !important;
 }
 
 @media print {
