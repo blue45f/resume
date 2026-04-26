@@ -201,7 +201,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                     onClick={() => setLocalSource('preset')}
                     className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                       localSource === 'preset'
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                         : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
                     }`}
                   >
@@ -211,7 +211,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                     onClick={() => setLocalSource('template')}
                     className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                       localSource === 'template'
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                         : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
                     }`}
                   >

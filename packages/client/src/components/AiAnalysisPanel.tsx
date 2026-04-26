@@ -171,9 +171,11 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
                 ) : (
                   <>
                     {/* Score */}
-                    <div className="text-center p-6 bg-sky-50 dark:from-blue-900/30 dark:to-sky-900/30 rounded-xl">
-                      <div className="text-5xl font-bold text-blue-600">{feedback.score}</div>
-                      <div className="text-lg font-semibold text-blue-800 mt-1">
+                    <div className="text-center p-6 bg-sky-50 dark:bg-blue-900/30 rounded-xl">
+                      <div className="text-5xl font-bold text-blue-600 dark:text-blue-300">
+                        {feedback.score}
+                      </div>
+                      <div className="text-lg font-semibold text-blue-800 dark:text-blue-200 mt-1">
                         {feedback.grade}
                       </div>
                       <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
@@ -360,10 +362,10 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
 
                     {jobMatch.coverLetterPoints?.length > 0 && (
                       <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-                        <h3 className="text-xs font-semibold text-blue-700 mb-1">
+                        <h3 className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1">
                           📝 자소서 강조 포인트
                         </h3>
-                        <ul className="text-xs text-blue-800 space-y-0.5">
+                        <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-0.5">
                           {jobMatch.coverLetterPoints.map((p: string, i: number) => (
                             <li key={i}>• {p}</li>
                           ))}
