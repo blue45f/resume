@@ -860,7 +860,7 @@ export default function HomePage() {
                     AI 분석
                   </div>
                   <div
-                    className="font-black text-slate-900 dark:text-slate-100 tabular-nums leading-none tracking-tight"
+                    className="number-ticker font-black text-slate-900 dark:text-slate-100 tabular-nums leading-none tracking-tight"
                     style={{ fontSize: 'clamp(1.75rem, 3vw, 2.5rem)' }}
                   >
                     5
@@ -869,13 +869,16 @@ export default function HomePage() {
                     </span>
                   </div>
                 </div>
-                <div className="flex-1 lg:flex-initial">
+                <div className="flex-1 lg:flex-initial" style={{ animationDelay: '120ms' }}>
                   <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500 mb-1">
                     직종 템플릿
                   </div>
                   <div
-                    className="font-black text-slate-900 dark:text-slate-100 tabular-nums leading-none tracking-tight"
-                    style={{ fontSize: 'clamp(1.75rem, 3vw, 2.5rem)' }}
+                    className="number-ticker font-black text-slate-900 dark:text-slate-100 tabular-nums leading-none tracking-tight"
+                    style={{
+                      fontSize: 'clamp(1.75rem, 3vw, 2.5rem)',
+                      animationDelay: '120ms',
+                    }}
                   >
                     26
                     <span className="text-sky-700 dark:text-sky-400 text-[0.55em] font-bold align-top ml-0.5">
@@ -888,11 +891,14 @@ export default function HomePage() {
                     실시간
                   </div>
                   <div
-                    className="font-black text-slate-900 dark:text-slate-100 leading-none tracking-tight"
-                    style={{ fontSize: 'clamp(1.75rem, 3vw, 2.5rem)' }}
+                    className="number-ticker font-black text-slate-900 dark:text-slate-100 leading-none tracking-tight"
+                    style={{
+                      fontSize: 'clamp(1.75rem, 3vw, 2.5rem)',
+                      animationDelay: '240ms',
+                    }}
                   >
                     Live
-                    <span className="text-emerald-600 dark:text-emerald-400 text-[0.55em] font-bold align-top ml-0.5">
+                    <span className="text-emerald-600 dark:text-emerald-400 text-[0.55em] font-bold align-top ml-0.5 animate-pulse">
                       ●
                     </span>
                   </div>

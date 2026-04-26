@@ -178,25 +178,18 @@ export default function Header() {
           <div className="flex items-center justify-between h-14 sm:h-16">
             <Link
               to={ROUTES.home}
-              className="logo-hover text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded inline-flex items-center gap-2"
+              className="logo-hover group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded inline-flex items-baseline gap-2 select-none"
               aria-label="이력서공방 홈"
             >
-              <div className="w-7 h-7 bg-sky-700 rounded-lg flex items-center justify-center shadow-sm">
-                <svg
-                  className="w-3.5 h-3.5 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-              이력서공방
+              {/* Wordmark — 정제된 typographic logo. 좌측 sapphire serial mark + 본 wordmark.
+                  serial mark 는 hover 시 길이 늘어나는 마이크로 인터랙션. */}
+              <span
+                aria-hidden="true"
+                className="inline-block w-3 h-[2px] bg-sky-700 dark:bg-sky-400 transition-[width] duration-300 ease-out group-hover:w-5"
+              />
+              <span className="text-lg sm:text-xl font-black tracking-[-0.02em] text-slate-900 dark:text-slate-100 leading-none">
+                이력서<span className="text-sky-700 dark:text-sky-400">공방</span>
+              </span>
             </Link>
 
             {/* Desktop nav */}
