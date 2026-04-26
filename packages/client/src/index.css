@@ -2799,44 +2799,119 @@ button:active:not(:disabled) {
 .banner-swiper-root {
   --swiper-theme-color: #2563eb;
   --swiper-navigation-color: #ffffff;
-  --swiper-navigation-size: 20px;
+  --swiper-navigation-size: 18px;
   --swiper-pagination-color: #ffffff;
   --swiper-pagination-bullet-inactive-color: #ffffff;
   --swiper-pagination-bullet-inactive-opacity: 0.5;
   --swiper-pagination-bullet-size: 8px;
   --swiper-pagination-bullet-horizontal-gap: 4px;
 }
+/* nav 버튼 — 유리감(glass) + 살짝 ring + lift on hover. 사용자 요청 '이뿌게 다듬어줘'. */
 .banner-swiper-root .swiper-button-prev,
 .banner-swiper-root .swiper-button-next {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  transition: background-color 150ms ease;
+  background: radial-gradient(
+    circle at 35% 30%,
+    rgba(255, 255, 255, 0.45),
+    rgba(255, 255, 255, 0.18) 60%
+  );
+  backdrop-filter: blur(8px) saturate(1.2);
+  -webkit-backdrop-filter: blur(8px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.18),
+    0 4px 12px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition:
+    transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 200ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease;
+}
+.banner-swiper-root .swiper-button-prev {
+  left: 16px;
+}
+.banner-swiper-root .swiper-button-next {
+  right: 16px;
 }
 .banner-swiper-root .swiper-button-prev:hover,
 .banner-swiper-root .swiper-button-next:hover {
-  background: rgba(255, 255, 255, 0.4);
+  background: radial-gradient(
+    circle at 35% 30%,
+    rgba(255, 255, 255, 0.65),
+    rgba(255, 255, 255, 0.3) 60%
+  );
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.22),
+    0 8px 20px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  transform: translateY(-1px) scale(1.06);
+}
+.banner-swiper-root .swiper-button-prev:active,
+.banner-swiper-root .swiper-button-next:active {
+  transform: translateY(0) scale(0.96);
+  transition-duration: 80ms;
+}
+.banner-swiper-root .swiper-button-prev:focus-visible,
+.banner-swiper-root .swiper-button-next:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.55),
+    0 4px 12px rgba(0, 0, 0, 0.18);
 }
 .banner-swiper-root .swiper-button-prev::after,
 .banner-swiper-root .swiper-button-next::after {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.banner-swiper-root .swiper-button-disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed;
+  transform: none !important;
 }
 .banner-swiper-root .swiper-pagination {
   bottom: 12px !important;
 }
+.banner-swiper-root .swiper-pagination-bullet {
+  transition:
+    width 250ms ease,
+    background-color 250ms ease,
+    opacity 200ms ease;
+}
 .banner-swiper-root .swiper-pagination-bullet-active {
-  width: 20px;
+  width: 24px;
   border-radius: 4px;
-  transition: width 250ms ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 @media (max-width: 640px) {
   .banner-swiper-root .swiper-button-prev,
   .banner-swiper-root .swiper-button-next {
-    display: none;
+    width: 32px;
+    height: 32px;
+  }
+  .banner-swiper-root .swiper-button-prev {
+    left: 8px;
+  }
+  .banner-swiper-root .swiper-button-next {
+    right: 8px;
+  }
+  .banner-swiper-root .swiper-button-prev::after,
+  .banner-swiper-root .swiper-button-next::after {
+    font-size: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .banner-swiper-root .swiper-button-prev,
+  .banner-swiper-root .swiper-button-next {
+    transition: background 200ms ease;
+  }
+  .banner-swiper-root .swiper-button-prev:hover,
+  .banner-swiper-root .swiper-button-next:hover {
+    transform: none;
   }
 }
 
