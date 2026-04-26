@@ -1188,7 +1188,7 @@ export default function HomePage() {
             <NetworkStats />
 
             {user && (!user.plan || user.plan === 'free') && resumes.length >= 2 && (
-              <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center justify-between animate-fade-in">
+              <div className="mb-4 p-3 bg-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center justify-between animate-fade-in">
                 <div>
                   <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
                     프로 플랜으로 업그레이드

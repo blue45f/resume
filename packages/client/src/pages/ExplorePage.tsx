@@ -509,7 +509,7 @@ export default function ExplorePage() {
         {(() => {
           const u = getUser();
           return u && (!u?.plan || u.plan === 'free') ? (
-            <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+            <div className="mb-4 p-3 bg-sky-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
               <p className="text-sm text-blue-900 dark:text-blue-200">
                 <span aria-hidden="true">⭐ </span>
                 <strong>프로 플랜</strong>으로 AI 무제한, 번역, 자소서 기능을 사용하세요

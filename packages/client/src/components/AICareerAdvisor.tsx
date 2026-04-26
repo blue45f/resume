@@ -240,7 +240,7 @@ export default function AICareerAdvisor({ resume }: Props) {
       {/* Chat bubble trigger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="no-print fixed bottom-6 right-6 z-50 w-12 h-12 bg-gradient-to-br from-blue-500 to-sky-600 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center justify-center group"
+        className="no-print fixed bottom-6 right-6 z-50 w-12 h-12 bg-sky-600 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center justify-center group"
         title="AI 커리어 상담"
       >
         {isOpen ? (

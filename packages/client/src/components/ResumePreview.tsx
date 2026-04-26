@@ -1257,7 +1257,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
               </div>
             )}
             {skills.length > 0 && (
-              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-5 shadow-sm border border-blue-100">
+              <div className="bg-sky-50 rounded-2xl p-5 shadow-sm border border-blue-100">
                 <h2 className={theme.sectionTitleStyle}>{t('resume.skills')}</h2>
                 <SkillsDisplay skills={skills} themeId={theme.id} accentColor={theme.accentColor} />
               </div>

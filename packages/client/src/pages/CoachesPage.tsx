@@ -118,7 +118,7 @@ export default function CoachesPage() {
         </div>
 
         {/* 코치 되기 안내 배너 */}
-        <div className="mb-5 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-100 dark:border-blue-900/40">
+        <div className="mb-5 p-4 rounded-xl bg-sky-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-100 dark:border-blue-900/40">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
             <div className="flex items-start gap-3">
               <div className="shrink-0 w-10 h-10 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-xl">
@@ -304,7 +304,7 @@ function CoachCard({ coach }: { coach: CoachProfile }) {
             className="w-14 h-14 rounded-full object-cover bg-slate-100 dark:bg-slate-700"
           />
         ) : (
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          <div className="w-14 h-14 rounded-full bg-sky-700 flex items-center justify-center text-white font-bold text-lg shadow-sm">
             {initials}
           </div>
         )}

@@ -188,7 +188,7 @@ export default function CoachDetailPage() {
                     className="w-20 h-20 rounded-full object-cover bg-slate-100 dark:bg-slate-700"
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white font-bold text-2xl shadow-sm">
+                  <div className="w-20 h-20 rounded-full bg-sky-700 flex items-center justify-center text-white font-bold text-2xl shadow-sm">
                     {initials}
                   </div>
                 )}

@@ -171,7 +171,7 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
                 ) : (
                   <>
                     {/* Score */}
-                    <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-900/30 dark:to-sky-900/30 rounded-xl">
+                    <div className="text-center p-6 bg-sky-50 dark:from-blue-900/30 dark:to-sky-900/30 rounded-xl">
                       <div className="text-5xl font-bold text-blue-600">{feedback.score}</div>
                       <div className="text-lg font-semibold text-blue-800 mt-1">
                         {feedback.grade}

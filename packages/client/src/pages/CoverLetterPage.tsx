@@ -1136,7 +1136,7 @@ function AnalysisSummaryBar({ text }: { text: string }) {
           : '미달';
   if (summary.topFlags.length === 0) return null;
   return (
-    <div className="mt-3 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-slate-50/50 dark:from-slate-800/50 dark:to-slate-800/30">
+    <div className="mt-3 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:from-slate-800/50 dark:to-slate-800/30">
       <div className="flex items-baseline justify-between mb-1.5 gap-2">
         <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-200">
           📊 종합 진단

@@ -102,7 +102,7 @@ export default function AiWritingAssist({ resumeId, value, onAccept }: Props) {
       {open && (
         <div className="absolute left-0 top-full mt-1 z-50 w-72 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
           {/* Header */}
-          <div className="px-3 py-2 bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 border-b border-slate-100 dark:border-slate-700">
+          <div className="px-3 py-2 bg-sky-50 dark:from-sky-900/20 dark:to-blue-900/20 border-b border-slate-100 dark:border-slate-700">
             <p className="text-xs font-semibold text-sky-700 dark:text-sky-400">AI 작성 도우미</p>
             {plainText.length > 0 && (
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">

@@ -605,7 +605,7 @@ export default function CareerInsights() {
         className="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-sky-600 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-sky-600 rounded-lg flex items-center justify-center">
             <svg
               className="w-4 h-4 text-white"
               fill="none"
@@ -957,7 +957,7 @@ export default function CareerInsights() {
                 learningRecs.map((rec) => (
                   <div
                     key={rec.skill}
-                    className="p-3 bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 rounded-lg border border-blue-100 dark:border-blue-800/50"
+                    className="p-3 bg-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 rounded-lg border border-blue-100 dark:border-blue-800/50"
                   >
                     <div className="flex items-start gap-2.5">
                       <span className="text-lg shrink-0">{typeIcon(rec.type)}</span>

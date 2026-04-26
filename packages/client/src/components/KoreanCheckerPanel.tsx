@@ -242,7 +242,7 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
                 type="button"
                 onClick={runAiCheck}
                 disabled={aiLoading}
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:from-sky-600 hover:to-blue-700 disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-sky-700 text-white hover:from-sky-600 hover:to-blue-700 disabled:opacity-50"
               >
                 {aiLoading ? (
                   <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">

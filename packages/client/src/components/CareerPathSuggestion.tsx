@@ -212,7 +212,7 @@ export default function CareerPathSuggestion({ resume }: Props) {
       {expanded && (
         <div className="mt-3 space-y-4 animate-fade-in">
           {/* Visual Roadmap */}
-          <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900/50 dark:to-blue-900/20 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
+          <div className="bg-slate-50 dark:from-slate-900/50 dark:to-blue-900/20 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-3 h-3 bg-blue-500 rounded-full ring-2 ring-blue-200 dark:ring-blue-800" />
               <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{currentTitle}</p>

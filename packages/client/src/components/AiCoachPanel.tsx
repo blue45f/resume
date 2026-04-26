@@ -506,7 +506,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
               max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:max-h-[70dvh] max-sm:rounded-t-2xl max-sm:border-t`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 shrink-0">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-sky-50 dark:from-sky-900/20 dark:to-blue-900/20 shrink-0">
               <div className="flex items-center gap-2">
                 <svg
                   className="w-5 h-5 text-sky-600 dark:text-sky-400"

@@ -199,7 +199,7 @@ export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props
           type="button"
           onClick={handleGenerate}
           disabled={!hasEnoughData}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-sky-600 rounded-lg hover:from-blue-700 hover:to-sky-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-sky-700 rounded-lg hover:from-blue-700 hover:to-sky-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
         >
           <svg
             className="w-4 h-4"

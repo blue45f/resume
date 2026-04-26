@@ -267,7 +267,7 @@ export default function ProfileWizard({ resume, resumeId, onDismiss }: ProfileWi
         </div>
         <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 mb-4">
           <div
-            className="bg-gradient-to-r from-blue-500 to-sky-500 h-2 rounded-full transition-all duration-500 ease-out"
+            className="bg-sky-500 h-2 rounded-full transition-all duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
           />
         </div>

@@ -530,7 +530,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
                 {result && (
                   <div className="space-y-5 animate-fade-in">
                     {/* Overall Score */}
-                    <div className="text-center p-6 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900/50 dark:to-blue-900/20 rounded-2xl">
+                    <div className="text-center p-6 bg-slate-50 dark:from-slate-900/50 dark:to-blue-900/20 rounded-2xl">
                       <CircularProgress value={result.matchScore} />
                       <div className="mt-3">
                         <span className="text-lg font-bold text-slate-800 dark:text-slate-200">

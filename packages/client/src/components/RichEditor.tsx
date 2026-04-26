@@ -208,7 +208,7 @@ export default function RichEditor({
             type="button"
             onClick={handleAiImprove}
             disabled={aiLoading}
-            className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-sky-600 text-white text-xs font-medium rounded-lg shadow-lg hover:from-blue-700 hover:to-sky-700 disabled:opacity-60 transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 bg-sky-700 text-white text-xs font-medium rounded-lg shadow-lg hover:from-blue-700 hover:to-sky-700 disabled:opacity-60 transition-all"
           >
             {aiLoading ? (
               <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">

@@ -321,7 +321,7 @@ export default function CoachDashboardPage() {
                     <div key={r.id} className="imp-card p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-sky-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
                             {(r.client?.name || 'U').slice(0, 1).toUpperCase()}
                           </div>
                           <div className="min-w-0">

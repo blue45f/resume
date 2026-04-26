@@ -24,7 +24,7 @@ export default function FeatureGate({ feature, children, fallback }: Props) {
   if (!isMonetizationEnabled()) return <>{children}</>;
 
   return (
-    <div className="p-4 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border border-blue-200 dark:border-blue-800 rounded-xl text-center">
+    <div className="p-4 bg-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border border-blue-200 dark:border-blue-800 rounded-xl text-center">
       <span className="text-2xl mb-2 block">⭐</span>
       <p className="text-sm font-medium text-blue-800 dark:text-blue-300">프로 플랜 기능</p>
       <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 mb-3">

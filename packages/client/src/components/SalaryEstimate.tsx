@@ -515,7 +515,7 @@ export default function SalaryEstimate({ resume }: Props) {
                     {
                       label: '상위 25%',
                       value: salary.top25,
-                      color: 'bg-gradient-to-r from-sky-400 to-sky-500',
+                      color: 'bg-sky-500',
                     },
                   ]}
                 />

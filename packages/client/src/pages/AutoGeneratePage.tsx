@@ -596,7 +596,7 @@ export default function AutoGeneratePage() {
                   {/* Progress bar */}
                   <div className="mt-4 w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full transition-all duration-1000 ease-linear"
+                      className="h-full bg-sky-500 rounded-full transition-all duration-1000 ease-linear"
                       style={{ width: `${Math.min(95, (elapsedTime / 30) * 100)}%` }}
                     />
                   </div>

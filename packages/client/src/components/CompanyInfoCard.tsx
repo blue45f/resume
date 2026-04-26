@@ -111,7 +111,7 @@ export default function CompanyInfoCard({ job, allJobs, onSelectJob }: Props) {
   const sizeBadge = estimateCompanySize(companyJobs.length);
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 dark:from-slate-800 dark:to-blue-900/10 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-5">
+    <div className="bg-slate-50/30 dark:from-slate-800 dark:to-blue-900/10 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-5">
       <div className="flex items-start gap-3 mb-3">
         {/* Company avatar */}
         <div className="w-11 h-11 bg-blue-600 text-white rounded-xl flex items-center justify-center text-lg font-bold shrink-0">

@@ -187,7 +187,7 @@ export default function CoachProfileEditPage() {
         </div>
 
         {!loading && !hasProfile && (
-          <div className="imp-card p-4 mb-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200/60 dark:border-blue-800/40">
+          <div className="imp-card p-4 mb-4 bg-sky-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200/60 dark:border-blue-800/40">
             <div className="flex items-start gap-3">
               <span className="text-2xl">👋</span>
               <div>
@@ -211,7 +211,7 @@ export default function CoachProfileEditPage() {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="imp-card p-6 space-y-5">
             {/* 프로필 완성도 바 */}
-            <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/15 dark:to-cyan-900/15 border border-blue-100 dark:border-blue-900/30">
+            <div className="p-4 rounded-lg bg-sky-50 dark:from-blue-900/15 dark:to-cyan-900/15 border border-blue-100 dark:border-blue-900/30">
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">

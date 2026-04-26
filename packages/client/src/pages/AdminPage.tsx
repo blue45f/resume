@@ -2722,7 +2722,7 @@ function SystemSettings() {
                   info: 'bg-blue-600',
                   warning: 'bg-amber-500',
                   success: 'bg-emerald-600',
-                  promo: 'bg-gradient-to-r from-sky-700 to-sky-700',
+                  promo: 'bg-sky-700',
                 }[bannerType]
               }`}
             >
