@@ -28,12 +28,13 @@ import {
   usePublicGet,
 } from '@/hooks/useResources';
 import ResumeThumbnail from '@/components/ResumeThumbnail';
-import DashboardStats from '@/components/DashboardStats';
+// 차트 의존(recharts ~437KB)이 무거워 lazy load — 홈 진입 후 점진 로딩.
+const DashboardStats = lazy(() => import('@/components/DashboardStats'));
+const CareerInsights = lazy(() => import('@/components/CareerInsights'));
 import ProfileViewers from '@/components/ProfileViewers';
 import NetworkStats from '@/components/NetworkStats';
 import RecentActivity from '@/components/RecentActivity';
 import HiringTrends from '@/components/HiringTrends';
-import CareerInsights from '@/components/CareerInsights';
 import OnboardingBanner from '@/components/OnboardingBanner';
 import ProfileCompleteness from '@/components/ProfileCompleteness';
 import ProfileWizard from '@/components/ProfileWizard';
@@ -1215,7 +1216,9 @@ export default function HomePage() {
               </div>
             )}
 
-            <DashboardStats />
+            <Suspense fallback={<div className="h-32" />}>
+              <DashboardStats />
+            </Suspense>
 
             <ProfileViewers />
 
@@ -1265,7 +1268,9 @@ export default function HomePage() {
 
             <HiringTrends />
 
-            <CareerInsights />
+            <Suspense fallback={<div className="h-32" />}>
+              <CareerInsights />
+            </Suspense>
 
             <CommunityWidget />
 

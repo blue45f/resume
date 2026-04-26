@@ -29,7 +29,7 @@ interface Notification {
 
 type FilterTab = 'all' | 'unread' | 'system' | 'social';
 
-const SYSTEM_TYPES = ['system', 'scout', 'application_comment', 'resume_shared'];
+const SYSTEM_TYPES = ['system', 'scout', 'application_comment', 'resume_shared', 'coaching_nudge'];
 const SOCIAL_TYPES = ['comment', 'bookmark', 'message'];
 
 const FILTER_TABS: { key: FilterTab; label: string; icon: string }[] = [
@@ -81,6 +81,12 @@ const TYPE_META: Record<string, { icon: string; bg: string; label: string; color
     bg: 'bg-blue-100 dark:bg-blue-900/30',
     label: '이력서 공유',
     color: 'text-blue-600 dark:text-blue-400',
+  },
+  coaching_nudge: {
+    icon: '💡',
+    bg: 'bg-amber-100 dark:bg-amber-900/30',
+    label: '코칭 제안',
+    color: 'text-amber-600 dark:text-amber-400',
   },
 };
 

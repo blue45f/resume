@@ -74,9 +74,13 @@ export default function JobUrlInput({ onParsed, disabled = false, hint, classNam
       <label className="block text-xs font-medium text-blue-800 dark:text-blue-300 mb-1.5">
         {tx('jobUrl.title')}
       </label>
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <input
           type="url"
+          inputMode="url"
+          autoComplete="off"
+          autoCapitalize="off"
+          spellCheck={false}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => {
@@ -87,13 +91,13 @@ export default function JobUrlInput({ onParsed, disabled = false, hint, classNam
           }}
           placeholder={tx('jobUrl.placeholder')}
           disabled={disabled || loading}
-          className="flex-1 min-w-0 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          className="flex-1 min-w-0 px-3 py-2.5 sm:py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         />
         <button
           type="button"
           onClick={handleParse}
           disabled={!url.trim() || loading || disabled}
-          className="shrink-0 px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors inline-flex items-center gap-1.5"
+          className="shrink-0 px-3.5 py-2.5 sm:py-2 text-sm sm:text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors inline-flex items-center justify-center gap-1.5 min-h-[44px] sm:min-h-0"
         >
           {loading ? (
             <>

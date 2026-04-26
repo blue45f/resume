@@ -41,6 +41,17 @@ export class FileTextExtractorService {
     try {
       if (name.endsWith('.pdf') || mime === 'application/pdf') {
         text = await this.extractPdf(file.buffer);
+        // 스캔 이미지 PDF 폴백: pdf-parse 가 50자 미만만 추출 → 텍스트 임베드 안 됨.
+        // Gemini Vision 으로 PDF 직접 OCR (Gemini 가 application/pdf input 지원).
+        if (text.trim().length < 50 && this.gemini.isAvailable && file.size <= MAX_IMAGE_BYTES) {
+          this.logger.log(`스캔 PDF 감지 (${text.length}자) → Gemini Vision 폴백`);
+          try {
+            text = await this.gemini.extractImageText(file.buffer, 'application/pdf');
+          } catch (err) {
+            this.logger.warn(`Gemini PDF OCR 실패: ${(err as Error).message}`);
+            // 텍스트가 일부라도 있으면 그것 유지, 아니면 아래 빈 결과 에러로 떨어짐
+          }
+        }
       } else if (
         name.endsWith('.docx') ||
         mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'

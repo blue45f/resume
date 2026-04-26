@@ -61,6 +61,7 @@ export default function NotificationBell() {
     const icons: Record<string, { icon: string; color: string }> = {
       resume_viewed: { icon: '👀', color: 'bg-blue-100 dark:bg-blue-900/30' },
       resume_shared: { icon: '📨', color: 'bg-blue-100 dark:bg-blue-900/30' },
+      coaching_nudge: { icon: '💡', color: 'bg-amber-100 dark:bg-amber-900/30' },
       follow: { icon: '👤', color: 'bg-sky-100 dark:bg-sky-900/30' },
       comment: { icon: '💬', color: 'bg-green-100 dark:bg-green-900/30' },
       scout: { icon: '🏢', color: 'bg-amber-100 dark:bg-amber-900/30' },

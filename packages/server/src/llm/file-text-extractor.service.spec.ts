@@ -77,6 +77,49 @@ describe('FileTextExtractorService', () => {
     });
   });
 
+  describe('스캔 이미지 PDF 폴백 (Gemini Vision)', () => {
+    // pdf-parse mock — extractPdf 결과 직접 제어
+    let extractPdfSpy: jest.SpyInstance;
+    afterEach(() => extractPdfSpy?.mockRestore());
+
+    it('pdf-parse 결과 < 50자 + Gemini available → Vision 폴백', async () => {
+      extractPdfSpy = jest
+        .spyOn<any, any>(service as any, 'extractPdf')
+        .mockResolvedValue('짧은\n');
+      mockGemini.extractImageText.mockResolvedValueOnce('Vision OCR 결과 — 풍부한 텍스트');
+
+      const file = makeFile('scan.pdf', Buffer.from([0x25, 0x50, 0x44, 0x46]), 'application/pdf');
+      const text = await service.extract(file);
+      expect(text).toContain('Vision OCR');
+      expect(mockGemini.extractImageText).toHaveBeenCalledWith(
+        expect.any(Buffer),
+        'application/pdf',
+      );
+    });
+
+    it('pdf-parse 결과 충분 (>50자) → Vision 폴백 안 함', async () => {
+      extractPdfSpy = jest
+        .spyOn<any, any>(service as any, 'extractPdf')
+        .mockResolvedValue('이력서 본문이 충분히 길어서 OCR 폴백이 불필요한 경우입니다.'.repeat(2));
+
+      const file = makeFile('text.pdf', Buffer.from([0x25, 0x50, 0x44, 0x46]), 'application/pdf');
+      await service.extract(file);
+      expect(mockGemini.extractImageText).not.toHaveBeenCalled();
+    });
+
+    it('Gemini 비활성 시 폴백 시도 안 함 (짧은 텍스트라도 그대로)', async () => {
+      mockGemini.isAvailable = false;
+      extractPdfSpy = jest
+        .spyOn<any, any>(service as any, 'extractPdf')
+        .mockResolvedValue('짧은 텍스트만 있음');
+
+      const file = makeFile('scan.pdf', Buffer.from([0x25, 0x50, 0x44, 0x46]), 'application/pdf');
+      const text = await service.extract(file);
+      expect(text).toBe('짧은 텍스트만 있음');
+      expect(mockGemini.extractImageText).not.toHaveBeenCalled();
+    });
+  });
+
   describe('이미지 OCR (Gemini Vision)', () => {
     it('jpg → Gemini extractImageText 호출 → 결과 반환', async () => {
       mockGemini.extractImageText.mockResolvedValueOnce('OCR 결과 텍스트');

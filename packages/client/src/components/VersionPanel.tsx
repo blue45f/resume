@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { fetchVersions, restoreVersion } from '@/lib/api';
 import { timeAgo } from '@/lib/time';
@@ -134,6 +134,64 @@ function DiffBadge({ type }: { type: DiffChangeType }) {
   return <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${c.color}`}>{c.label}</span>;
 }
 
+/** word 단위 LCS 기반 inline 강조 — changed 타입 시 add/remove 토큰 mark. */
+function wordDiff(oldText: string, newText: string): { old: ReactNode; nw: ReactNode } {
+  const oldTokens = oldText.split(/(\s+)/);
+  const newTokens = newText.split(/(\s+)/);
+  // 간단한 Set 기반 — token 중복 시 단순 set diff (perfect 아니지만 시각화 충분)
+  const newSet = new Set(newTokens);
+  const oldSet = new Set(oldTokens);
+  const oldRendered = oldTokens.map((t, i) =>
+    !newSet.has(t) && t.trim() ? (
+      <mark
+        key={i}
+        className="bg-red-200/70 dark:bg-red-900/40 text-red-800 dark:text-red-300 rounded px-0.5"
+      >
+        {t}
+      </mark>
+    ) : (
+      <span key={i}>{t}</span>
+    ),
+  );
+  const newRendered = newTokens.map((t, i) =>
+    !oldSet.has(t) && t.trim() ? (
+      <mark
+        key={i}
+        className="bg-emerald-200/70 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 rounded px-0.5"
+      >
+        {t}
+      </mark>
+    ) : (
+      <span key={i}>{t}</span>
+    ),
+  );
+  return { old: oldRendered, nw: newRendered };
+}
+
+function DiffValue({ text, kind }: { text: string; kind: 'old' | 'new' }) {
+  const [expanded, setExpanded] = useState(false);
+  const long = text.length > 100;
+  const display = long && !expanded ? text.substring(0, 100) + '…' : text;
+  const cls =
+    kind === 'old'
+      ? 'text-red-700 dark:text-red-400 line-through break-words whitespace-pre-wrap'
+      : 'text-green-700 dark:text-green-400 break-words whitespace-pre-wrap';
+  return (
+    <>
+      <p className={cls}>{display}</p>
+      {long && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 underline"
+        >
+          {expanded ? '접기' : `전체 보기 (+${text.length - 100}자)`}
+        </button>
+      )}
+    </>
+  );
+}
+
 function DiffViewer({ diffs }: { diffs: DiffItem[] }) {
   if (diffs.length === 0) {
     return (
@@ -145,40 +203,50 @@ function DiffViewer({ diffs }: { diffs: DiffItem[] }) {
 
   return (
     <div className="space-y-1.5">
-      {diffs.map((d, i) => (
-        <div
-          key={i}
-          className="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-700"
-        >
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-              {d.label}
-            </span>
-            <DiffBadge type={d.type} />
+      {diffs.map((d, i) => {
+        const wordHighlight =
+          d.type === 'changed' && d.oldValue && d.newValue && d.oldValue.length < 500
+            ? wordDiff(d.oldValue, d.newValue)
+            : null;
+        return (
+          <div
+            key={i}
+            className="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-700"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                {d.label}
+              </span>
+              <DiffBadge type={d.type} />
+            </div>
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              {(d.type === 'removed' || d.type === 'changed') && (
+                <div className="p-1.5 bg-red-50 dark:bg-red-900/10 rounded border border-red-100 dark:border-red-900/20">
+                  {wordHighlight ? (
+                    <p className="text-red-700 dark:text-red-400 line-through break-words whitespace-pre-wrap">
+                      {wordHighlight.old}
+                    </p>
+                  ) : (
+                    <DiffValue text={d.oldValue || ''} kind="old" />
+                  )}
+                </div>
+              )}
+              {d.type === 'added' && <div className="hidden sm:block" />}
+              {(d.type === 'added' || d.type === 'changed') && (
+                <div className="p-1.5 bg-green-50 dark:bg-green-900/10 rounded border border-green-100 dark:border-green-900/20">
+                  {wordHighlight ? (
+                    <p className="text-green-700 dark:text-green-400 break-words whitespace-pre-wrap">
+                      {wordHighlight.nw}
+                    </p>
+                  ) : (
+                    <DiffValue text={d.newValue || ''} kind="new" />
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-          <div className="stagger-children grid grid-cols-2 gap-2 text-xs">
-            {(d.type === 'removed' || d.type === 'changed') && (
-              <div className="p-1.5 bg-red-50 dark:bg-red-900/10 rounded border border-red-100 dark:border-red-900/20">
-                <p className="text-red-700 dark:text-red-400 line-through break-words">
-                  {d.oldValue && d.oldValue.length > 100
-                    ? d.oldValue.substring(0, 100) + '...'
-                    : d.oldValue}
-                </p>
-              </div>
-            )}
-            {d.type === 'added' && <div />}
-            {(d.type === 'added' || d.type === 'changed') && (
-              <div className="p-1.5 bg-green-50 dark:bg-green-900/10 rounded border border-green-100 dark:border-green-900/20">
-                <p className="text-green-700 dark:text-green-400 break-words">
-                  {d.newValue && d.newValue.length > 100
-                    ? d.newValue.substring(0, 100) + '...'
-                    : d.newValue}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
