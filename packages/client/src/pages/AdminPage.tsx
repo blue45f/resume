@@ -32,7 +32,8 @@ import {
 
 // Impeccable chart palette — sapphire/cyan baseline + emerald/amber/rose 시맨틱
 // (.impeccable.md 정의: blue/cyan/sapphire 베이스 + 의미 기반 상태색)
-const CHART_COLORS = ['#0c4a6e', '#0891b2', '#10b981', '#f59e0b', '#f43f5e'];
+// CHART_COLORS 의 단일 정의는 lib/chartColors. 여기는 import.
+import { CHART_COLORS } from '@/lib/chartColors';
 
 interface RecentUser {
   id: string;
