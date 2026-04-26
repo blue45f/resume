@@ -1,6 +1,7 @@
 import { memo, useMemo } from 'react';
 import type { ResumeSummary } from '@/types/resume';
 import { resumeThemes, type ResumeTheme } from '@/lib/resumeThemes';
+import { computeResumeCompletion } from '@/lib/resumeCompletion';
 
 interface Props {
   resume: ResumeSummary;
@@ -43,24 +44,6 @@ function extractHeaderBg(theme: ResumeTheme): string {
   if (theme.headerStyle.includes('bg-blue-50')) return '#eff6ff';
   // Fallback to accent color
   return accentHex[theme.accentColor] || '#475569';
-}
-
-/** Estimate completion percentage from resume summary */
-function calcCompletion(resume: ResumeSummary): number {
-  let score = 0;
-  const checks = [
-    !!resume.title,
-    !!resume.personalInfo.name,
-    !!resume.personalInfo.email,
-    !!resume.personalInfo.phone,
-    !!resume.personalInfo.summary && resume.personalInfo.summary.length > 30,
-    !!resume.personalInfo.address,
-    !!(resume.personalInfo.website || resume.personalInfo.github),
-    !!(resume.skills && resume.skills.length > 0),
-    !!resume.personalInfo.photo,
-  ];
-  for (const c of checks) if (c) score++;
-  return Math.round((score / checks.length) * 100);
 }
 
 /** Format relative time in Korean */
@@ -116,12 +99,31 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
   );
 
   const headerBg = useMemo(() => extractHeaderBg(theme), [theme]);
-  const completion = calcCompletion(resume);
+  const completionResult = useMemo(() => computeResumeCompletion(resume), [resume]);
+  const completion = completionResult.pct;
   const isLightHeader =
     headerBg.startsWith('#fff') || headerBg.startsWith('#eff') || headerBg.startsWith('#fce');
   const headerTextColor = isLightHeader ? '#1e293b' : '#ffffff';
   const accentColor = accentHex[theme.accentColor] || '#6366f1';
-  const progressColor = isLightHeader ? accentColor : '#ffffff';
+  // Grade-based progress color for at-a-glance signal (excellent=emerald, good=blue, fair=amber, low=red)
+  const gradeColor =
+    completionResult.grade === 'excellent'
+      ? '#10b981'
+      : completionResult.grade === 'good'
+        ? '#3b82f6'
+        : completionResult.grade === 'fair'
+          ? '#f59e0b'
+          : '#ef4444';
+  const progressColor = isLightHeader ? gradeColor : '#ffffff';
+  // Tooltip: show top 3 missing items so users know exactly what to improve
+  const missingHint =
+    completionResult.missingItems.length > 0
+      ? '\n부족한 항목:\n' +
+        completionResult.missingItems
+          .slice(0, 3)
+          .map((m) => `• ${m.label}${m.hint ? ` — ${m.hint}` : ''}`)
+          .join('\n')
+      : '';
   const relativeTime = formatRelativeTime(resume.updatedAt);
   const staggerClass = `stagger-${Math.min(index + 1, 6)}`;
   const isPublic = resume.visibility === 'public';
@@ -153,10 +155,11 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
               {resume.title || '제목 없음'}
             </div>
           </div>
-          {/* Circular progress indicator */}
+          {/* Circular progress indicator — grade-colored, hover shows top missing items */}
           <div
             className="relative shrink-0 flex items-center justify-center"
-            title={`완성도 ${completion}%`}
+            title={`완성도 ${completion}% (${completionResult.score}/${completionResult.max}점)${missingHint}`}
+            aria-label={`완성도 ${completion}퍼센트, ${completionResult.missingItems.length}개 항목 미완성`}
           >
             <CircularProgress pct={completion} color={progressColor} />
             <span
