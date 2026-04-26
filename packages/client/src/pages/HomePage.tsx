@@ -903,18 +903,21 @@ export default function HomePage() {
             {/* Platform stats — 동적 운영 데이터 (SiteStatsBar는 그대로 유지) */}
             <SiteStatsBar />
 
-            {/* Action cards — 브레이크포인트별 단계 명시 */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-2xl md:max-w-3xl mx-auto mb-10 mt-12">
+            {/* Action grid — asymmetric (1 feature + 3 secondary).
+                동일 카드 4개 반복 → primary 1개 강조 + secondary 3개 컴팩트. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 max-w-3xl mx-auto mb-10 mt-12">
+              {/* Primary feature — 새 이력서 */}
               <Link
                 to={ROUTES.resume.new}
-                className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
+                className="sm:col-span-2 lg:col-span-6 lg:row-span-1 flex items-center gap-5 p-6 sm:p-7 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-2xl hover:bg-slate-800 dark:hover:bg-white transition-colors group relative overflow-hidden"
               >
-                <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform">
+                <span className="w-12 h-12 flex items-center justify-center rounded-xl bg-white/15 dark:bg-slate-900/10 shrink-0">
                   <svg
-                    className="w-5 h-5 text-blue-600 dark:text-blue-400"
+                    className="w-6 h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -924,23 +927,45 @@ export default function HomePage() {
                     />
                   </svg>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {t('home.directWrite')}
-                </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  템플릿 선택 후 작성
-                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300 dark:text-sky-700 mb-1">
+                    primary
+                  </div>
+                  <div className="font-bold text-base sm:text-lg leading-tight">
+                    {t('home.directWrite')}
+                  </div>
+                  <div className="text-xs text-sky-100/90 dark:text-slate-600 mt-1">
+                    템플릿 선택 후 작성
+                  </div>
+                </div>
+                <svg
+                  className="w-5 h-5 text-sky-200 dark:text-sky-700 group-hover:translate-x-0.5 transition-transform shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
               </Link>
+
+              {/* Secondary 1 — AI 생성 */}
               <Link
                 to={ROUTES.resume.autoGenerate}
-                className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-cyan-200 dark:border-cyan-800 hover:border-cyan-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
+                className="lg:col-span-2 flex flex-col gap-2 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors group"
               >
-                <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-cyan-100 dark:bg-cyan-900/30 group-hover:scale-110 transition-transform">
+                <span className="w-9 h-9 flex items-center justify-center rounded-lg bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300">
                   <svg
-                    className="w-5 h-5 text-cyan-700 dark:text-cyan-300"
+                    className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -950,23 +975,28 @@ export default function HomePage() {
                     />
                   </svg>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {t('home.aiGenerate')}
-                </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  텍스트 붙여넣기만
-                </span>
+                <div>
+                  <div className="font-semibold text-sm text-slate-800 dark:text-slate-200 leading-snug">
+                    {t('home.aiGenerate')}
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    텍스트 붙여넣기만
+                  </div>
+                </div>
               </Link>
+
+              {/* Secondary 2 — Quick import */}
               <button
                 onClick={() => setShowImport(true)}
-                className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-green-200 dark:border-green-800 hover:border-green-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
+                className="lg:col-span-2 flex flex-col gap-2 p-5 text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors group"
               >
-                <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30 group-hover:scale-110 transition-transform">
+                <span className="w-9 h-9 flex items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300">
                   <svg
-                    className="w-5 h-5 text-green-600 dark:text-green-400"
+                    className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -976,23 +1006,28 @@ export default function HomePage() {
                     />
                   </svg>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {t('home.quickImport')}
-                </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  텍스트 붙여넣기
-                </span>
+                <div>
+                  <div className="font-semibold text-sm text-slate-800 dark:text-slate-200 leading-snug">
+                    {t('home.quickImport')}
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    텍스트 붙여넣기
+                  </div>
+                </div>
               </button>
+
+              {/* Secondary 3 — 탐색 */}
               <Link
                 to={ROUTES.resume.explore}
-                className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
+                className="lg:col-span-2 flex flex-col gap-2 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors group"
               >
-                <span className="w-10 h-10 mb-2 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 group-hover:scale-110 transition-transform">
+                <span className="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
                   <svg
-                    className="w-5 h-5 text-slate-600 dark:text-slate-400"
+                    className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -1002,12 +1037,14 @@ export default function HomePage() {
                     />
                   </svg>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {t('home.explore')}
-                </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  공개 이력서 탐색
-                </span>
+                <div>
+                  <div className="font-semibold text-sm text-slate-800 dark:text-slate-200 leading-snug">
+                    {t('home.explore')}
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    공개 이력서 탐색
+                  </div>
+                </div>
               </Link>
             </div>
 

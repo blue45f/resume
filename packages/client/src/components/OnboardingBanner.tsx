@@ -81,22 +81,29 @@ export default function OnboardingBanner() {
 
   return (
     <div
-      className={`mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 sm:p-6 text-white relative overflow-hidden transition-all duration-300 ${hiding ? 'opacity-0 -translate-y-2' : 'animate-fade-in-up'}`}
+      className={`mb-6 bg-sky-900 rounded-2xl p-5 sm:p-6 text-white relative overflow-hidden transition-all duration-300 ${hiding ? 'opacity-0 -translate-y-2' : 'animate-fade-in-up'}`}
     >
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-1/3 w-24 h-24 bg-white/5 rounded-full translate-y-1/2" />
+      {/* refined dot grid — single purposeful texture, no gradient blob decor */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none opacity-15"
+        style={{
+          backgroundImage: 'radial-gradient(circle, rgb(255 255 255 / 0.6) 1px, transparent 1px)',
+          backgroundSize: '22px 22px',
+        }}
+      />
 
-      <div className="absolute top-3 right-3 flex items-center gap-2">
+      <div className="absolute top-3 right-3 flex items-center gap-2 z-20">
         <button
           onClick={handleNeverShow}
-          className="text-white/50 hover:text-white/80 text-xs transition-colors px-2 py-1 rounded hover:bg-white/10"
+          className="text-sky-200 hover:text-white text-xs transition-colors px-2 py-1 rounded hover:bg-sky-800"
           title="다시 보지 않기"
         >
           다시 보지 않기
         </button>
         <button
           onClick={handleDismiss}
-          className="text-white/60 hover:text-white transition-colors p-1 rounded hover:bg-white/10"
+          className="text-sky-200 hover:text-white transition-colors p-1 rounded hover:bg-sky-800"
           aria-label="닫기"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,22 +117,25 @@ export default function OnboardingBanner() {
         </button>
       </div>
 
-      <h2 className="text-lg font-bold mb-1 relative z-10">{title}</h2>
-      <p className="text-blue-100 text-sm mb-5 relative z-10">{subtitle}</p>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300 mb-2 relative z-10">
+        시작하기
+      </div>
+      <h2 className="text-xl font-black mb-1.5 relative z-10 tracking-tight">{title}</h2>
+      <p className="text-sky-200 text-sm mb-5 relative z-10">{subtitle}</p>
 
       <div className="hidden sm:flex items-center justify-center gap-0 mb-5 relative z-10">
         {steps.map((step, i) => (
           <div key={step.num} className="flex items-center">
             <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                 getStepStatus(step.href) === 'active'
-                  ? 'bg-white text-blue-600'
-                  : 'bg-white/20 text-white'
+                  ? 'bg-white text-sky-900'
+                  : 'border border-sky-300 text-sky-100'
               }`}
             >
               {step.num}
             </div>
-            {i < steps.length - 1 && <div className="w-16 h-0.5 bg-white/20 mx-1" />}
+            {i < steps.length - 1 && <div className="w-16 h-px bg-sky-300/40 mx-1" />}
           </div>
         ))}
       </div>
@@ -135,11 +145,9 @@ export default function OnboardingBanner() {
           <Link
             key={step.num}
             to={step.href}
-            className="group flex items-center gap-3 p-3.5 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-200 hover:-translate-y-0.5"
+            className="group flex items-center gap-3 p-3.5 bg-sky-800/60 hover:bg-sky-700 border border-sky-700 hover:border-sky-500 rounded-xl transition-colors duration-200"
           >
-            <span
-              className={`shrink-0 w-9 h-9 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-sm font-bold shadow-sm`}
-            >
+            <span className="shrink-0 w-9 h-9 bg-white text-sky-900 rounded-full flex items-center justify-center text-sm font-black tabular-nums">
               {step.num}
             </span>
             <div className="min-w-0">
@@ -159,7 +167,7 @@ export default function OnboardingBanner() {
                   />
                 </svg>
               </p>
-              <p className="text-xs text-blue-200 truncate">{step.desc}</p>
+              <p className="text-xs text-sky-200 truncate">{step.desc}</p>
             </div>
           </Link>
         ))}

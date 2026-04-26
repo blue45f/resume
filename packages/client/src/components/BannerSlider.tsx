@@ -107,8 +107,25 @@ export default function BannerSlider() {
                 </p>
               )}
               {banner.linkUrl && (
-                <span className="mt-3 inline-flex items-center gap-1 text-white text-xs font-semibold bg-white/20 px-3 py-1 rounded-full w-fit">
-                  자세히 보기 →
+                <span
+                  className="mt-3 inline-flex items-center gap-1.5 text-white text-xs font-semibold border-b border-white/50 pb-0.5 w-fit transition-colors group-hover:border-white"
+                  style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
+                >
+                  자세히 보기
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
                 </span>
               )}
             </div>
