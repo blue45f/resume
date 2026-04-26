@@ -864,6 +864,42 @@ select {
     box-shadow 0.2s;
 }
 
+/* ───────────────────────────────────────────────────────────
+ * Native <select> 일관 chevron + 우측 padding (Impeccable)
+ *
+ * 사이트 전역 native select 들이 브라우저 기본 chevron 을 그대로 사용해
+ * 우측 끝에 너무 붙어 있는 인상이 있었음 (사용자 보고). 모든 single-select
+ * (multiple / size>1 제외) 에 base 로 적용:
+ *  - appearance: none + 커스텀 chevron-down SVG (sapphire-tinted slate)
+ *  - 우측 padding 2.5rem 으로 충분한 시각적 여유 (text vs chevron)
+ *  - 다크 모드용 chevron 색 별도 override
+ *
+ * 개별 select 가 다른 스타일을 원하면 className="no-impeccable-select" 로 opt-out.
+ * .impeccable.md 의 "Card / button" 일관성 원칙과 동일선상.
+ * ─────────────────────────────────────────────────────────── */
+select:not(.no-impeccable-select):not([multiple]):not([size]) {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem 1rem;
+  padding-right: 2.5rem !important;
+}
+
+/* dark-mode chevron — slate-400 */
+.dark select:not(.no-impeccable-select):not([multiple]):not([size]) {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+}
+
+/* compact size variant — for text-xs / py-1 selects */
+select.imp-select-sm:not(.no-impeccable-select):not([multiple]):not([size]) {
+  background-position: right 0.5rem center;
+  background-size: 0.8125rem 0.8125rem;
+  padding-right: 1.875rem !important;
+}
+
 /* Smooth card hover */
 .hover\:shadow-md:hover {
   transition:

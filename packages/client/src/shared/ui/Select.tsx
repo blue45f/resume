@@ -83,12 +83,13 @@ export default function Select({
       <RadixSelect.Trigger
         aria-label={ariaLabel ?? placeholder}
         className={[
-          'inline-flex items-center justify-between gap-2',
-          'h-10 px-3.5 min-w-[140px] w-full',
+          'group inline-flex items-center justify-between gap-3',
+          'h-10 pl-3.5 pr-3 min-w-[140px] w-full',
           'rounded-[var(--radius-md)] border border-[var(--color-border)]',
           'bg-[var(--color-surface)]',
           'text-sm text-[var(--color-text)]',
           'hover:border-[var(--color-text-muted)]',
+          'data-[state=open]:border-[var(--color-accent)]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:border-[var(--color-accent)]',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           'transition-colors duration-150',
@@ -105,7 +106,7 @@ export default function Select({
             )}
           </RadixSelect.Value>
         </span>
-        <RadixSelect.Icon className="text-[var(--color-text-muted)]">
+        <RadixSelect.Icon className="text-[var(--color-text-muted)] group-hover:text-[var(--color-text-secondary)] group-data-[state=open]:rotate-180 transition-all duration-200">
           <ChevronDown />
         </RadixSelect.Icon>
       </RadixSelect.Trigger>
