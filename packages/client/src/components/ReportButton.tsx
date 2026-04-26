@@ -68,7 +68,7 @@ export default function ReportButton({
   };
 
   const defaultButtonClass =
-    'inline-flex items-center gap-1 h-8 px-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 rounded-md hover:border-red-300 dark:hover:border-red-700 transition-colors';
+    'inline-flex items-center gap-1.5 min-h-[36px] px-3 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 rounded-md hover:border-red-300 dark:hover:border-red-700 transition-colors';
 
   return (
     <>
