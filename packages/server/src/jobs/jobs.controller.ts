@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -11,13 +12,32 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from '../auth/auth.guard';
 import { JobsService } from './jobs.service';
+import { JobUrlParserService } from './job-url-parser.service';
 
 @ApiTags('jobs')
 @Controller('jobs')
 export class JobsController {
-  constructor(private readonly service: JobsService) {}
+  constructor(
+    private readonly service: JobsService,
+    private readonly urlParser: JobUrlParserService,
+  ) {}
+
+  // ── URL 파싱 — 외부 fetch + LLM 사용 → 비싸므로 throttle ─────────────
+  @Post('parse-url')
+  @Throttle({ default: { limit: 6, ttl: 60000 } })
+  @ApiOperation({
+    summary: '채용공고 URL → 구조화 JSON. 원티드/잡코리아/사람인 등 한국 사이트 우선 지원',
+  })
+  parseUrl(@Body('url') url: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    if (!url || typeof url !== 'string') {
+      throw new BadRequestException('url 이 필요합니다');
+    }
+    return this.urlParser.parse(url);
+  }
 
   // ── 정적 경로는 반드시 :id 앞에 위치해야 함 ──────────────────────────
 

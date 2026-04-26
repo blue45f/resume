@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { JobsController } from './jobs.controller';
 import { JobsService } from './jobs.service';
+import { JobUrlParserService } from './job-url-parser.service';
 
 const mockService = {
   findAll: jest.fn(),
@@ -33,7 +34,10 @@ describe('JobsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [JobsController],
-      providers: [{ provide: JobsService, useValue: mockService }],
+      providers: [
+        { provide: JobsService, useValue: mockService },
+        { provide: JobUrlParserService, useValue: { parse: jest.fn() } },
+      ],
     }).compile();
     controller = module.get(JobsController);
     jest.clearAllMocks();
