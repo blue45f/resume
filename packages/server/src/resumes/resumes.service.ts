@@ -589,9 +589,12 @@ export class ResumesService {
       },
     });
     // 알림: 새로 추가될 때만 (idempotent 재호출 시 스팸 방지)
-    this.sendSelectiveAccessNotification(resume.title || '이력서', target.id, resume.userId!).catch(
-      () => {},
-    );
+    this.sendSelectiveAccessNotification(
+      resume.title || '이력서',
+      target.id,
+      resume.userId!,
+      resumeId,
+    ).catch(() => {});
     return created;
   }
 
@@ -640,6 +643,7 @@ export class ResumesService {
     resumeTitle: string,
     viewerUserId: string,
     ownerId: string,
+    resumeId: string,
   ) {
     try {
       const owner = await this.prisma.user.findUnique({
@@ -651,6 +655,7 @@ export class ResumesService {
         viewerUserId,
         'resume_shared',
         `${ownerName}님이 '${resumeTitle}' 이력서를 공유했습니다`,
+        `/resume/${resumeId}`,
       );
     } catch {
       // 알림 실패는 silent — viewer 추가 자체는 성공해야 함
