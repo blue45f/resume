@@ -644,6 +644,100 @@ export class JobsService {
     return scored;
   }
 
+  /** Recruiter — pipeline 통계: stage 별 conversion rate + 평균 응답 시간 (interested → contacted). */
+  async getPipelineStats(recruiterUserId: string) {
+    const myJobs = await this.prisma.jobPost.findMany({
+      where: { userId: recruiterUserId },
+      select: { id: true },
+    });
+    if (myJobs.length === 0) {
+      return {
+        total: 0,
+        byStage: {},
+        conversionRates: {},
+        avgResponseHours: null,
+      };
+    }
+    const jobIds = myJobs.map((j) => j.id);
+    const apps = await (this.prisma as any).jobPostApplication.findMany({
+      where: { jobId: { in: jobIds } },
+      select: { stage: true, createdAt: true, updatedAt: true },
+    });
+    const byStage: Record<string, number> = {
+      interested: 0,
+      contacted: 0,
+      interview: 0,
+      hired: 0,
+      rejected: 0,
+      withdrawn: 0,
+    };
+    let respondedCount = 0;
+    let totalResponseMs = 0;
+    for (const a of apps) {
+      byStage[a.stage] = (byStage[a.stage] || 0) + 1;
+      // interested 외 stage 면 회사가 응답한 것 — 응답 시간 = updatedAt - createdAt
+      if (a.stage !== 'interested') {
+        const ms = new Date(a.updatedAt).getTime() - new Date(a.createdAt).getTime();
+        if (ms > 0) {
+          respondedCount++;
+          totalResponseMs += ms;
+        }
+      }
+    }
+    const total = apps.length;
+    // funnel conversion rate (interested → contacted → interview → hired)
+    const conversionRates: Record<string, number> = {};
+    if (total > 0) {
+      const reachedContacted =
+        byStage.contacted + byStage.interview + byStage.hired + byStage.rejected;
+      const reachedInterview = byStage.interview + byStage.hired;
+      const reachedHired = byStage.hired;
+      conversionRates.contactRate = Math.round((reachedContacted / total) * 100);
+      conversionRates.interviewRate =
+        reachedContacted > 0 ? Math.round((reachedInterview / reachedContacted) * 100) : 0;
+      conversionRates.hireRate =
+        reachedInterview > 0 ? Math.round((reachedHired / reachedInterview) * 100) : 0;
+    }
+    const avgResponseHours =
+      respondedCount > 0
+        ? Math.round((totalResponseMs / respondedCount / (1000 * 60 * 60)) * 10) / 10
+        : null;
+    return { total, byStage, conversionRates, avgResponseHours };
+  }
+
+  /** 구직자 — 본인 application 철회 (이유 옵션). 회사에 알림 발송 + 분석용 reason 저장. */
+  async withdrawMyApplication(applicationId: string, applicantId: string, reason?: string) {
+    const app = await (this.prisma as any).jobPostApplication.findUnique({
+      where: { id: applicationId },
+      include: { job: true },
+    });
+    if (!app) throw new NotFoundException('지원 내역을 찾을 수 없습니다');
+    if (app.applicantId !== applicantId)
+      throw new ForbiddenException('본인 지원만 철회할 수 있습니다');
+    if (app.stage === 'withdrawn' || app.stage === 'hired') {
+      throw new BadRequestException(`이미 ${app.stage} 상태입니다`);
+    }
+    // recruiterNote 에 철회 이유 prepend (회사 측만 보임, 50자 cap)
+    const reasonNote = reason ? `[철회 이유] ${reason.slice(0, 200)}\n` : '';
+    const updated = await (this.prisma as any).jobPostApplication.update({
+      where: { id: applicationId },
+      data: {
+        stage: 'withdrawn',
+        recruiterNote: reasonNote + (app.recruiterNote || ''),
+      },
+    });
+    // 회사에 알림
+    await this.notifications
+      .create(
+        app.job.userId,
+        'job_application_stage',
+        `지원자가 [${app.job.position}] 지원을 철회했어요${reason ? ` — ${reason.slice(0, 40)}` : ''}`,
+        `/recruiter`,
+      )
+      .catch(() => {});
+    return updated;
+  }
+
   /** 구직자 — 내가 지원한 공고 목록. */
   async listMyApplications(applicantId: string) {
     const apps = await (this.prisma as any).jobPostApplication.findMany({

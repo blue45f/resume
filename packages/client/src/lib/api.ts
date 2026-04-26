@@ -267,6 +267,27 @@ export interface InterviewScorePoint {
 export const fetchInterviewScoreHistory = () =>
   request<InterviewScorePoint[]>(`${BASE}/interview/answers/history/scores`);
 
+export interface InterviewAnswerDetail {
+  id: string;
+  question: string;
+  answer: string;
+  jobRole: string | null;
+  analysisScore: number | null;
+  analyzedAt: string | null;
+  createdAt: string;
+  analysis: {
+    overallScore: number;
+    strengths: string[];
+    weaknesses: string[];
+    improvements: string[];
+    rewrittenAnswer: string;
+    starBreakdown: { situation: string; task: string; action: string; result: string };
+  } | null;
+}
+
+export const fetchInterviewAnswerDetail = (id: string) =>
+  request<InterviewAnswerDetail>(`${BASE}/interview/answers/${id}`);
+
 export const applyToJobPost = (jobId: string, body: { resumeId?: string; coverLetter?: string }) =>
   request<{ id: string; stage: string }>(`${BASE}/jobs/${jobId}/apply`, {
     method: 'POST',
@@ -277,6 +298,12 @@ export const updatePipelineStage = (applicationId: string, stage: string) =>
   request<{ id: string; stage: string }>(`${BASE}/jobs/pipeline/${applicationId}`, {
     method: 'PATCH',
     body: JSON.stringify({ stage }),
+  });
+
+export const withdrawJobApplication = (applicationId: string, reason?: string) =>
+  request<{ id: string; stage: string }>(`${BASE}/jobs/my-applications/${applicationId}/withdraw`, {
+    method: 'POST',
+    body: JSON.stringify({ reason: reason || undefined }),
   });
 
 export const recordWebrtcTelemetry = (body: {
@@ -294,6 +321,15 @@ export const recordWebrtcTelemetry = (body: {
     },
     body: JSON.stringify(body),
   }).catch(() => {}); // fire-and-forget — 실패해도 통화에 영향 X
+
+export interface PipelineStats {
+  total: number;
+  byStage: Record<string, number>;
+  conversionRates: { contactRate?: number; interviewRate?: number; hireRate?: number };
+  avgResponseHours: number | null;
+}
+
+export const fetchPipelineStats = () => request<PipelineStats>(`${BASE}/jobs/pipeline-stats`);
 
 export const fetchMyJobApplications = () =>
   request<

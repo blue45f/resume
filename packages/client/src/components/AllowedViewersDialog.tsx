@@ -34,6 +34,7 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
   const [suggestions, setSuggestions] = useState<UserSearchResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [pickedUserId, setPickedUserId] = useState<string | null>(null);
+  const [highlightedIdx, setHighlightedIdx] = useState<number>(-1);
   const [message, setMessage] = useState('');
   // 만료일 (선택). 'never' = null, 'D7' = 7일 후, 'D30' = 30일 후, 'custom' = 사용자 입력
   const [expiresPreset, setExpiresPreset] = useState<'never' | 'D7' | 'D30' | 'D90' | 'custom'>(
@@ -75,6 +76,7 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
         .then((rows) => {
           setSuggestions(rows.slice(0, 8));
           setShowSuggestions(true);
+          setHighlightedIdx(-1);
         })
         .catch(() => setSuggestions([]));
     }, 220);
@@ -171,6 +173,23 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 onKeyDown={(e) => {
+                  if (showSuggestions && suggestions.length > 0) {
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setHighlightedIdx((i) => (i + 1) % suggestions.length);
+                      return;
+                    }
+                    if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setHighlightedIdx((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+                      return;
+                    }
+                    if (e.key === 'Enter' && highlightedIdx >= 0) {
+                      e.preventDefault();
+                      pickSuggestion(suggestions[highlightedIdx]);
+                      return;
+                    }
+                  }
                   if (e.key === 'Enter' && query.trim() && !adding) {
                     e.preventDefault();
                     handleAdd();
@@ -187,16 +206,21 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
                   role="listbox"
                   className="absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg divide-y divide-slate-100 dark:divide-slate-700/60"
                 >
-                  {suggestions.map((u) => (
+                  {suggestions.map((u, idx) => (
                     <li
                       key={u.id}
                       role="option"
-                      aria-selected={pickedUserId === u.id}
+                      aria-selected={pickedUserId === u.id || highlightedIdx === idx}
                       onMouseDown={(e) => {
                         e.preventDefault();
                         pickSuggestion(u);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/40"
+                      onMouseEnter={() => setHighlightedIdx(idx)}
+                      className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${
+                        highlightedIdx === idx
+                          ? 'bg-blue-50 dark:bg-blue-900/30'
+                          : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                      }`}
                     >
                       {u.avatar ? (
                         <img

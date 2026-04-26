@@ -237,6 +237,16 @@ export class JobsController {
     return this.service.listMyApplications(req.user.id);
   }
 
+  @Get('pipeline-stats')
+  @ApiOperation({
+    summary: 'recruiter pipeline 통계 — stage 별 count + funnel 전환율 + 평균 응답 시간',
+  })
+  pipelineStats(@Req() req: any) {
+    if (!req.user?.id)
+      return { total: 0, byStage: {}, conversionRates: {}, avgResponseHours: null };
+    return this.service.getPipelineStats(req.user.id);
+  }
+
   // ── 동적 :id 경로 — 반드시 정적 경로 뒤에 위치 ─────────────────────
 
   @Patch('pipeline/:applicationId')
@@ -248,6 +258,17 @@ export class JobsController {
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.updatePipelineStage(applicationId, req.user.id, stage);
+  }
+
+  @Post('my-applications/:applicationId/withdraw')
+  @ApiOperation({ summary: '본인 application 철회 (이유 옵션)' })
+  withdrawApplication(
+    @Param('applicationId') applicationId: string,
+    @Body('reason') reason: string | undefined,
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.withdrawMyApplication(applicationId, req.user.id, reason);
   }
 
   @Post(':id/apply')

@@ -57,4 +57,11 @@ export class InterviewController {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.scoreHistory(req.user.id);
   }
+
+  @Get('answers/:id')
+  @ApiOperation({ summary: '단건 답변 + 분석 결과 조회' })
+  findOne(@Param('id') id: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.findOne(id, req.user.id);
+  }
 }

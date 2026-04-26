@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { fetchInterviewScoreHistory, type InterviewScorePoint } from '@/lib/api';
+import * as RadixDialog from '@radix-ui/react-dialog';
+import {
+  fetchInterviewScoreHistory,
+  fetchInterviewAnswerDetail,
+  type InterviewScorePoint,
+  type InterviewAnswerDetail,
+} from '@/lib/api';
 
 /**
  * 면접 답변 점수 추세 mini-chart — 최근 30개 분석 결과를 가로 bar 로 시각화.
@@ -9,6 +15,8 @@ import { fetchInterviewScoreHistory, type InterviewScorePoint } from '@/lib/api'
 export default function InterviewScoreHistory() {
   const [points, setPoints] = useState<InterviewScorePoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [detail, setDetail] = useState<InterviewAnswerDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
     fetchInterviewScoreHistory()
@@ -16,6 +24,18 @@ export default function InterviewScoreHistory() {
       .catch(() => setPoints([]))
       .finally(() => setLoading(false));
   }, []);
+
+  const openDetail = async (id: string) => {
+    setDetailLoading(true);
+    try {
+      const d = await fetchInterviewAnswerDetail(id);
+      setDetail(d);
+    } catch {
+      // toast 는 request 에서 이미 처리
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   if (loading) return null;
   if (points.length === 0) return null;
@@ -59,20 +79,106 @@ export default function InterviewScoreHistory() {
                   ? 'bg-amber-500'
                   : 'bg-rose-500';
           return (
-            <div
+            <button
               key={p.id}
-              className="flex-1 min-w-[6px] flex flex-col items-center"
-              title={`${p.analysisScore}점 · ${new Date(p.createdAt).toLocaleDateString('ko-KR')}${p.jobRole ? ' · ' + p.jobRole : ''}`}
+              type="button"
+              onClick={() => openDetail(p.id)}
+              className="flex-1 min-w-[6px] flex flex-col items-center group cursor-pointer"
+              title={`클릭: 답변 detail · ${p.analysisScore}점 · ${new Date(p.createdAt).toLocaleDateString('ko-KR')}${p.jobRole ? ' · ' + p.jobRole : ''}`}
             >
               <div
-                className={`w-full ${color} rounded-t transition-colors`}
+                className={`w-full ${color} rounded-t transition-all group-hover:opacity-80 group-hover:-translate-y-0.5`}
                 style={{ height: `${Math.max(4, p.analysisScore * 0.5)}px` }}
-                aria-label={`${p.analysisScore}점`}
+                aria-label={`${p.analysisScore}점 — 클릭해서 답변 보기`}
               />
-            </div>
+            </button>
           );
         })}
       </div>
+
+      <RadixDialog.Root open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
+        <RadixDialog.Portal>
+          <RadixDialog.Overlay className="fixed inset-0 z-[100] bg-black/40 animate-fade-in" />
+          <RadixDialog.Content
+            aria-label="면접 답변 상세"
+            className="fixed z-[101] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-2xl max-h-[90dvh] overflow-y-auto bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl p-6 focus:outline-none"
+          >
+            {detail && (
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <RadixDialog.Title className="text-base font-bold text-slate-900 dark:text-slate-100">
+                      {detail.question}
+                    </RadixDialog.Title>
+                    <RadixDialog.Description className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      {new Date(detail.createdAt).toLocaleString('ko-KR')}
+                      {detail.jobRole && ` · ${detail.jobRole}`}
+                    </RadixDialog.Description>
+                  </div>
+                  <span className="text-2xl font-bold tabular-nums text-blue-600 dark:text-blue-400 shrink-0">
+                    {detail.analysisScore}
+                    <span className="text-xs font-normal text-slate-500 ml-0.5">/100</span>
+                  </span>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    내 답변
+                  </p>
+                  <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                    {detail.answer}
+                  </p>
+                </div>
+                {detail.analysis && (
+                  <>
+                    {detail.analysis.strengths.length > 0 && (
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
+                          강점
+                        </p>
+                        <ul className="text-sm text-slate-700 dark:text-slate-300 space-y-1">
+                          {detail.analysis.strengths.map((s, i) => (
+                            <li key={i}>✓ {s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {detail.analysis.improvements.length > 0 && (
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 mb-1">
+                          개선 행동
+                        </p>
+                        <ul className="text-sm text-slate-700 dark:text-slate-300 space-y-1">
+                          {detail.analysis.improvements.map((s, i) => (
+                            <li key={i}>→ {s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {detail.analysis.rewrittenAnswer && (
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800/40">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 mb-1">
+                          리라이트 답변
+                        </p>
+                        <p className="text-sm text-blue-800 dark:text-blue-200 whitespace-pre-wrap leading-relaxed">
+                          {detail.analysis.rewrittenAnswer}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
+                <RadixDialog.Close asChild>
+                  <button className="w-full py-2 text-sm rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600">
+                    닫기
+                  </button>
+                </RadixDialog.Close>
+              </div>
+            )}
+            {detailLoading && !detail && (
+              <p className="text-sm text-slate-500 text-center py-8">불러오는 중...</p>
+            )}
+          </RadixDialog.Content>
+        </RadixDialog.Portal>
+      </RadixDialog.Root>
     </section>
   );
 }

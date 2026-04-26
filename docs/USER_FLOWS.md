@@ -187,10 +187,64 @@
 
 **결정**: skip — 다른 영역 먼저 정리되면 cosmetic 개선으로 추가.
 
-## 다음 sweep 후보
+## 2026-04-27 sweep #5 — 4개 후보 처리, 1개 deferred (TURN)
 
-- **TURN 서버 도입 (telemetry 데이터 누적 후 결정)** — 1주일 telemetry 수집 → fail rate 집계 → TURN 도입 ROI 계산
-- **회사 dashboard 의 평균 응답 시간 / pipeline 단계별 conversion rate stats**
-- **구직자 application withdrawn → 이유 입력 prompt** — 회사 측 데이터 분석용
-- **InterviewScoreHistory 차트 점수 클릭 → 해당 답변 detail 모달** — 시간별 답변 비교
-- **AllowedViewersDialog autocomplete 키보드 navigation (↑↓ Enter)** — 마우스 외 a11y
+### Recruiter dashboard — 파이프라인 통계 (전환율 + 평균 응답 시간)
+
+**Audit**: pipeline 카드는 stage 별 count 만 보여줌. 채용 효율 (어느 stage 에서 떨어지는지, 응답 시간이 얼마나 걸리는지) 측정 데이터 없음.
+
+**Fix**:
+
+- `GET /api/jobs/pipeline-stats` 신규 endpoint — funnel 전환율 (contact / interview / hire) + 평균 응답 시간 (interested → 다음 stage)
+- RecruiterDashboardPage 파이프라인 위에 4-card 통계 row 추가 (전환율 3개 + 평균 응답 시간), pipelineStats.total === 0 시 hide
+
+### 구직자 — application 철회 + 이유 입력
+
+**Audit**: 지원자가 본인 application 을 철회할 방법 없었음. 회사 측 데이터 (왜 떠나는지) 도 못 모음.
+
+**Fix**:
+
+- `POST /api/jobs/my-applications/:id/withdraw` 신규 endpoint — body.reason (200자 cap) → recruiterNote prepend, 회사에 알림
+- MyPlatformApplications: stage interested/contacted/interview 일 때 "철회" 버튼, prompt 로 reason 수집 후 호출
+
+### InterviewScoreHistory — 차트 점수 클릭 → detail modal
+
+**Audit**: chart 의 mini bar 가 hover 만 있고 클릭 동작 없음. 시간이 지나면 어떤 답변이었는지 못 봄.
+
+**Fix**:
+
+- `GET /api/interview/answers/:id` 신규 endpoint — analysisJson 파싱해서 strengths/weaknesses/improvements/rewrittenAnswer 반환
+- InterviewScoreHistory: bar 를 button 으로 변경, 클릭 시 RadixDialog 모달 — 질문/답변/강점/개선/리라이트 표시
+
+### AllowedViewersDialog — autocomplete 키보드 nav
+
+**Audit**: 자동완성 dropdown 이 마우스만 지원. 키보드 only 사용자는 제안 선택 불가.
+
+**Fix**:
+
+- highlightedIdx state 추가, ↑↓ Enter 처리: ↓/↑ 로 highlight 이동, Enter 로 즉시 pick
+- highlight 된 row 는 `bg-blue-50` + `aria-selected` 동기화
+- mouse hover 도 highlightedIdx 동기화
+
+### TURN 서버 (deferred — 데이터 누적 대기)
+
+**Audit**: sweep #4 에서 telemetry 추가됨. 1주일 데이터 수집 후 success rate 집계해서 TURN 도입 ROI 결정 필요.
+
+**결정**: defer — 2026-05-04 이후 telemetry log 분석 → 결정.
+
+## 누적 통계 (2026-04-27)
+
+- 4 sweeps 완료, 18 영역 처리, 5 deferred (대부분 telemetry/UX 결정 대기)
+- 신규 모델 2개 (InterviewAnswer 확장, JobPostApplication)
+- 신규 endpoints 13개
+- 신규 컴포넌트 3개 (InterviewScoreHistory, MyPlatformApplications, OnboardingBanner 활용)
+- 알림 type 신규 7개 (coaching*review_request/\_received, coffee_chat*_, job*application*_)
+- 1305 → 1368 server tests (+63), 17 → 31 client tests (+14)
+
+## 다음 sweep 후보 (장기)
+
+- TURN 서버 ROI 결정 (telemetry 1주일 후)
+- HomePage 에 "이력서 공유" entry point 신규 → ShareResumeWithUserDialog autocomplete 적용
+- 코치 ↔ 클라이언트 1:1 직접 메시지 (기존 DirectMessage 활용 vs CoffeeChat 통합)
+- 면접 답변 재시도 비교 (같은 질문 재답변 → 점수 변화 표시)
+- 회사 dashboard candidate detail drawer (이력서 + 자소서 + 메모)

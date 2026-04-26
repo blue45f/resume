@@ -498,6 +498,103 @@ describe('JobsService', () => {
     });
   });
 
+  describe('withdrawMyApplication', () => {
+    it('타인 application 철회 → Forbidden', async () => {
+      mockPrisma.jobPostApplication.findUnique.mockResolvedValue({
+        id: 'app-1',
+        applicantId: 'other-user',
+        stage: 'interested',
+        job: { userId: 'r1', position: 'FE' },
+      });
+      await expect(service.withdrawMyApplication('app-1', 'me', 'reason')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('이미 hired 상태 → BadRequest', async () => {
+      mockPrisma.jobPostApplication.findUnique.mockResolvedValue({
+        id: 'app-1',
+        applicantId: 'me',
+        stage: 'hired',
+        job: { userId: 'r1', position: 'FE' },
+      });
+      await expect(service.withdrawMyApplication('app-1', 'me')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('정상 철회 + 회사에 알림 + recruiterNote 에 reason prepend', async () => {
+      mockPrisma.jobPostApplication.findUnique.mockResolvedValue({
+        id: 'app-1',
+        applicantId: 'me',
+        stage: 'interview',
+        recruiterNote: '기존 노트',
+        job: { userId: 'r1', position: 'FE' },
+      });
+      mockPrisma.jobPostApplication.update.mockResolvedValue({ id: 'app-1', stage: 'withdrawn' });
+      mockNotifications.create.mockClear();
+      await service.withdrawMyApplication('app-1', 'me', '연봉 협의 안 됨');
+      expect(mockPrisma.jobPostApplication.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            stage: 'withdrawn',
+            recruiterNote: expect.stringContaining('연봉 협의 안 됨'),
+          }),
+        }),
+      );
+      expect(mockNotifications.create).toHaveBeenCalledWith(
+        'r1',
+        'job_application_stage',
+        expect.stringContaining('철회'),
+        expect.any(String),
+      );
+    });
+  });
+
+  describe('getPipelineStats', () => {
+    it('공고 없으면 zero stats', async () => {
+      mockPrisma.jobPost.findMany.mockResolvedValueOnce([]);
+      const r = await service.getPipelineStats('r1');
+      expect(r.total).toBe(0);
+      expect(r.avgResponseHours).toBeNull();
+    });
+
+    it('funnel 전환율 + 평균 응답 시간 계산', async () => {
+      mockPrisma.jobPost.findMany.mockResolvedValueOnce([{ id: 'j1' }]);
+      const now = Date.now();
+      mockPrisma.jobPostApplication.findMany.mockResolvedValueOnce([
+        // 5 interested (응답 X)
+        ...Array.from({ length: 5 }, (_, i) => ({
+          stage: 'interested',
+          createdAt: new Date(now - 10 * 3600 * 1000),
+          updatedAt: new Date(now - 10 * 3600 * 1000),
+        })),
+        // 3 contacted (응답 평균 5시간)
+        ...Array.from({ length: 3 }, () => ({
+          stage: 'contacted',
+          createdAt: new Date(now - 10 * 3600 * 1000),
+          updatedAt: new Date(now - 5 * 3600 * 1000),
+        })),
+        // 2 interview, 1 hired
+        { stage: 'interview', createdAt: new Date(now), updatedAt: new Date(now) },
+        { stage: 'interview', createdAt: new Date(now), updatedAt: new Date(now) },
+        { stage: 'hired', createdAt: new Date(now), updatedAt: new Date(now) },
+      ]);
+      const r = await service.getPipelineStats('r1');
+      expect(r.total).toBe(11);
+      expect(r.byStage.interested).toBe(5);
+      expect(r.byStage.contacted).toBe(3);
+      expect(r.byStage.hired).toBe(1);
+      // contactRate = (contacted+interview+hired+rejected) / total = 6/11 = 55%
+      expect(r.conversionRates.contactRate).toBe(55);
+      // interviewRate = (interview+hired) / contactedReached = 3/6 = 50%
+      expect(r.conversionRates.interviewRate).toBe(50);
+      // hireRate = hired / interview reached = 1/3 = 33%
+      expect(r.conversionRates.hireRate).toBe(33);
+      expect(r.avgResponseHours).toBeGreaterThan(0);
+    });
+  });
+
   describe('listRecommendedCandidates', () => {
     it('활성 공고 없으면 빈 배열', async () => {
       mockPrisma.jobPost.findMany.mockResolvedValueOnce([]);

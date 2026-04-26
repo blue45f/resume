@@ -104,9 +104,32 @@ export default function RecruiterDashboardPage() {
         enabled: isRecruiterUser,
         staleTime: 30_000,
       },
+      {
+        queryKey: ['recruiter', 'pipelineStats'],
+        queryFn: () =>
+          authedFetch<{
+            total: number;
+            byStage: Record<string, number>;
+            conversionRates: { contactRate?: number; interviewRate?: number; hireRate?: number };
+            avgResponseHours: number | null;
+          }>('/api/jobs/pipeline-stats', {
+            total: 0,
+            byStage: {},
+            conversionRates: {},
+            avgResponseHours: null,
+          }),
+        enabled: isRecruiterUser,
+        staleTime: 30_000,
+      },
     ],
   });
-  const [jobsQ, scoutsQ, applicantsQ, pipelineQ, recommendedQ] = results;
+  const [jobsQ, scoutsQ, applicantsQ, pipelineQ, recommendedQ, pipelineStatsQ] = results;
+  const pipelineStats = (pipelineStatsQ.data as any) ?? {
+    total: 0,
+    byStage: {},
+    conversionRates: {},
+    avgResponseHours: null,
+  };
   const jobs: any[] = (jobsQ.data as any[] | undefined) ?? [];
   const scouts: any[] = (scoutsQ.data as any[] | undefined) ?? [];
   const applicants: any[] = Array.isArray(applicantsQ.data) ? (applicantsQ.data as any[]) : [];
@@ -300,6 +323,47 @@ export default function RecruiterDashboardPage() {
                 </div>
               ))}
             </div>
+
+            {/* Pipeline conversion stats — pipelineStats.total > 0 일 때만 */}
+            {pipelineStats.total > 0 && (
+              <section>
+                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                  파이프라인 통계
+                </h2>
+                <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="imp-card p-4 text-center">
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                      {pipelineStats.conversionRates.contactRate ?? 0}%
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">연락 전환율</p>
+                  </div>
+                  <div className="imp-card p-4 text-center">
+                    <p className="text-2xl font-bold text-sky-600 dark:text-sky-400 tabular-nums">
+                      {pipelineStats.conversionRates.interviewRate ?? 0}%
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">면접 전환율</p>
+                  </div>
+                  <div className="imp-card p-4 text-center">
+                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                      {pipelineStats.conversionRates.hireRate ?? 0}%
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">채용 전환율</p>
+                  </div>
+                  <div className="imp-card p-4 text-center">
+                    <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+                      {pipelineStats.avgResponseHours != null
+                        ? pipelineStats.avgResponseHours < 24
+                          ? `${pipelineStats.avgResponseHours}h`
+                          : `${Math.round(pipelineStats.avgResponseHours / 24)}d`
+                        : '—'}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      평균 응답 시간
+                    </p>
+                  </div>
+                </div>
+              </section>
+            )}
 
             {/* Pipeline */}
             <section>

@@ -194,4 +194,29 @@ ${body.answer}`;
     await this.prisma.interviewAnswer.delete({ where: { id } });
     return { success: true };
   }
+
+  /** 단건 조회 — 시간별 추세 chart 클릭 시 detail modal 용. analysisJson 파싱해서 반환. */
+  async findOne(id: string, userId: string) {
+    const item = await this.prisma.interviewAnswer.findUnique({ where: { id } });
+    if (!item) throw new NotFoundException('답변을 찾을 수 없습니다');
+    if (item.userId !== userId) throw new ForbiddenException('권한이 없습니다');
+    let analysis: any = null;
+    if (item.analysisJson) {
+      try {
+        analysis = JSON.parse(item.analysisJson);
+      } catch {
+        analysis = null;
+      }
+    }
+    return {
+      id: item.id,
+      question: item.question,
+      answer: item.answer,
+      jobRole: item.jobRole,
+      analysisScore: item.analysisScore,
+      analyzedAt: item.analyzedAt,
+      createdAt: item.createdAt,
+      analysis,
+    };
+  }
 }

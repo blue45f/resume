@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchMyJobApplications } from '@/lib/api';
+import { fetchMyJobApplications, withdrawJobApplication } from '@/lib/api';
+import { toast } from '@/components/Toast';
 
 interface PlatformApp {
   id: string;
@@ -53,12 +54,33 @@ export default function MyPlatformApplications() {
   const [apps, setApps] = useState<PlatformApp[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const refresh = () => {
+    fetchMyJobApplications()
+      .then((rows) => setApps(rows || []))
+      .catch(() => setApps([]));
+  };
+
   useEffect(() => {
     fetchMyJobApplications()
       .then((rows) => setApps(rows || []))
       .catch(() => setApps([]))
       .finally(() => setLoading(false));
   }, []);
+
+  const withdraw = async (a: PlatformApp) => {
+    const reason = window.prompt(
+      `[${a.job.position}] 지원을 철회하시겠어요?\n\n철회 이유를 알려주시면 다음 매칭에 도움이 됩니다 (선택, 200자):`,
+      '',
+    );
+    if (reason === null) return; // 취소
+    try {
+      await withdrawJobApplication(a.id, reason || undefined);
+      toast('지원이 철회되었습니다', 'success');
+      refresh();
+    } catch (err: any) {
+      toast(err?.message || '철회에 실패했습니다', 'error');
+    }
+  };
 
   if (loading || apps.length === 0) return null;
 
@@ -80,10 +102,10 @@ export default function MyPlatformApplications() {
         {apps.slice(0, 8).map((a) => {
           const meta = STAGE_META[a.stage] || STAGE_META.interested;
           return (
-            <li key={a.id}>
+            <li key={a.id} className="flex items-stretch gap-2">
               <Link
                 to={`/jobs/${a.jobId}`}
-                className="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors"
+                className="flex-1 flex items-center justify-between gap-3 p-2.5 rounded-lg border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors"
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
@@ -105,6 +127,16 @@ export default function MyPlatformApplications() {
                   {meta.label}
                 </span>
               </Link>
+              {a.stage !== 'withdrawn' && a.stage !== 'hired' && (
+                <button
+                  onClick={() => withdraw(a)}
+                  className="shrink-0 px-2 text-[11px] text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20"
+                  title="지원 철회"
+                  aria-label={`${a.job.position} 지원 철회`}
+                >
+                  철회
+                </button>
+              )}
             </li>
           );
         })}
