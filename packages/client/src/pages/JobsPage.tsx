@@ -2543,16 +2543,16 @@ export default function JobsPage() {
             {/* Salary filter & contribute */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <div className="flex-1 imp-card p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="inline-flex items-center gap-2 text-xs font-medium leading-none text-slate-600 dark:text-slate-400 cursor-pointer">
+                <div className="flex items-center justify-between gap-2 mb-2 min-h-[24px]">
+                  <label className="inline-flex items-center gap-2 cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={salaryFilterEnabled}
                       onChange={(e) => setSalaryFilterEnabled(e.target.checked)}
-                      className="w-4 h-4 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      className="w-4 h-4 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500 align-middle"
                     />
                     <svg
-                      className="w-4 h-4 shrink-0"
+                      className="w-4 h-4 shrink-0 text-slate-500 dark:text-slate-400 align-middle"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -2565,10 +2565,12 @@ export default function JobsPage() {
                         d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    <span>급여 필터</span>
+                    <span className="text-xs font-medium leading-4 text-slate-700 dark:text-slate-200">
+                      급여 필터
+                    </span>
                   </label>
                   {salaryFilterEnabled && (
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                    <span className="text-[10px] leading-4 text-slate-500 dark:text-slate-400 tabular-nums">
                       {salaryMin.toLocaleString()} ~ {salaryMax.toLocaleString()}만원
                     </span>
                   )}
