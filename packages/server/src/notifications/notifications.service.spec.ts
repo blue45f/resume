@@ -17,6 +17,7 @@ const mockPrisma = {
     findMany: jest.fn(),
     count: jest.fn(),
     create: jest.fn(),
+    createMany: jest.fn(),
     updateMany: jest.fn(),
     deleteMany: jest.fn(),
   },
@@ -226,6 +227,40 @@ describe('NotificationsService', () => {
       const result = await service.deleteBulk('user-1', ['n1', 'n2', 'n3']);
       expect(result.success).toBe(true);
       expect(result.deleted).toBe(3);
+    });
+  });
+
+  describe('createBulk (admin announcement)', () => {
+    it('빈 userIds → 즉시 0/0 반환, DB 호출 없음', async () => {
+      const r = await service.createBulk([], 'announcement', 'msg');
+      expect(r).toEqual({ sent: 0, skipped: 0 });
+      expect(mockPrisma.notification.findMany).not.toHaveBeenCalled();
+      expect(mockPrisma.notification.createMany).not.toHaveBeenCalled();
+    });
+
+    it('이미 같은 (type+message) 받은 사용자는 skip', async () => {
+      mockPrisma.notification.findMany.mockResolvedValue([{ userId: 'u1' }, { userId: 'u3' }]);
+      mockPrisma.notification.createMany.mockResolvedValue({ count: 1 });
+      const r = await service.createBulk(['u1', 'u2', 'u3'], 'announcement', '신규 가이드');
+      expect(r).toEqual({ sent: 1, skipped: 2 });
+      expect(mockPrisma.notification.createMany).toHaveBeenCalledWith({
+        data: [{ userId: 'u2', type: 'announcement', message: '신규 가이드', link: undefined }],
+        skipDuplicates: true,
+      });
+    });
+
+    it('전부 신규 사용자 → 모두 발송', async () => {
+      mockPrisma.notification.findMany.mockResolvedValue([]);
+      mockPrisma.notification.createMany.mockResolvedValue({ count: 3 });
+      const r = await service.createBulk(['u1', 'u2', 'u3'], 'announcement', '안내', '/tutorial');
+      expect(r).toEqual({ sent: 3, skipped: 0 });
+    });
+
+    it('모두 이미 받음 → createMany 호출 안 함', async () => {
+      mockPrisma.notification.findMany.mockResolvedValue([{ userId: 'u1' }, { userId: 'u2' }]);
+      const r = await service.createBulk(['u1', 'u2'], 'announcement', '안내');
+      expect(r).toEqual({ sent: 0, skipped: 2 });
+      expect(mockPrisma.notification.createMany).not.toHaveBeenCalled();
     });
   });
 });

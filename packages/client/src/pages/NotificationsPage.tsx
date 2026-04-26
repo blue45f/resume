@@ -29,7 +29,16 @@ interface Notification {
 
 type FilterTab = 'all' | 'unread' | 'system' | 'social';
 
-const SYSTEM_TYPES = ['system', 'scout', 'application_comment', 'resume_shared', 'coaching_nudge'];
+const SYSTEM_TYPES = [
+  'system',
+  'scout',
+  'application_comment',
+  'resume_shared',
+  'coaching_nudge',
+  'announcement',
+  'coffee_chat_request',
+  'coffee_chat_response',
+];
 const SOCIAL_TYPES = ['comment', 'bookmark', 'message'];
 
 const FILTER_TABS: { key: FilterTab; label: string; icon: string }[] = [
@@ -87,6 +96,24 @@ const TYPE_META: Record<string, { icon: string; bg: string; label: string; color
     bg: 'bg-amber-100 dark:bg-amber-900/30',
     label: '코칭 제안',
     color: 'text-amber-600 dark:text-amber-400',
+  },
+  announcement: {
+    icon: '📢',
+    bg: 'bg-cyan-100 dark:bg-cyan-900/30',
+    label: '공지',
+    color: 'text-cyan-700 dark:text-cyan-400',
+  },
+  coffee_chat_request: {
+    icon: '☕',
+    bg: 'bg-amber-100 dark:bg-amber-900/30',
+    label: '커피챗 신청',
+    color: 'text-amber-700 dark:text-amber-400',
+  },
+  coffee_chat_response: {
+    icon: '☕',
+    bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+    label: '커피챗 응답',
+    color: 'text-emerald-700 dark:text-emerald-400',
   },
 };
 

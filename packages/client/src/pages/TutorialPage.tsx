@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { ROUTES } from '@/lib/routes';
@@ -867,8 +867,29 @@ function GuideCallToAction({ guideType }: { guideType: GuideType }) {
 }
 
 export default function TutorialPage() {
-  const [openStep, setOpenStep] = useState<string | null>('create');
-  const [guideType, setGuideType] = useState<GuideType>('personal');
+  const [searchParams, setSearchParams] = useSearchParams();
+  // ?guide= 쿼리로 직접 가이드 진입 (announcement deeplink). 유효하지 않으면 personal.
+  const initialGuide = (() => {
+    const q = searchParams.get('guide');
+    if (q && q in GUIDE_REGISTRY) return q as GuideType;
+    return 'personal' as GuideType;
+  })();
+  const [openStep, setOpenStep] = useState<string | null>(() => {
+    const firstStep = GUIDE_REGISTRY[initialGuide].steps[0]?.id;
+    return firstStep || 'create';
+  });
+  const [guideType, setGuideTypeState] = useState<GuideType>(initialGuide);
+
+  // guideType 변경 시 URL 동기화 (북마크/공유 가능)
+  const setGuideType = (next: GuideType) => {
+    setGuideTypeState(next);
+    const params = new URLSearchParams(searchParams);
+    if (next === 'personal') params.delete('guide');
+    else params.set('guide', next);
+    setSearchParams(params, { replace: true });
+    // 새 가이드의 첫 step 으로 reset
+    setOpenStep(GUIDE_REGISTRY[next].steps[0]?.id || null);
+  };
 
   useEffect(() => {
     document.title = '사용 가이드 — 이력서공방';
