@@ -142,10 +142,55 @@
 
 **결정**: skip — 비용/성공률 trade-off 결정은 사용자 협의 필요. 운영 계측 (성공률 telemetry) 부터 먼저 추가하는 게 합리적.
 
+## 2026-04-27 sweep #4 — 4개 추가 후보 처리, 1개 deferred
+
+### WebRTC 통화 성공/실패 telemetry
+
+**Audit**: STUN-only 환경의 통화 성공률 측정 데이터가 없어서 TURN 도입 결정 근거가 부족함. 통계 없이는 비용 정당화 어려움.
+
+**Fix**:
+
+- `POST /api/coffee-chats/signal/telemetry` 신규 endpoint (30 req/min, fire-and-forget)
+- `recordPeerTelemetry` 가 구조화 JSON 로그 (`event: "webrtc_peer_state"`) 출력 → Cloud Logging jsonPayload 로 인식, DB 저장 X (cost-min)
+- useWebrtcPeer: `connected`/`failed`/`disconnected` state 변화 + getUserMedia 실패 시 errorName 포함 telemetry 발송
+- 향후 admin stats 에서 24h success rate 집계: `gcloud logging read "jsonPayload.event=webrtc_peer_state"` 로 조회
+
+### 구직자 `/applications` 페이지 — 플랫폼 공고 지원 현황 노출
+
+**Audit**: ApplicationsPage 는 legacy JobApplication (구직자 본인 추적용 — 외부 공고 + 본인 입력) 만 보여줌. 신규 pipeline 으로 들어온 JobPostApplication 의 stage 가 안 보여서 회사가 stage 변경해도 구직자는 모름.
+
+**Fix**:
+
+- `<MyPlatformApplications>` 컴포넌트 신규 — fetchMyJobApplications 로 받아서 stage 별 색 badge (interested/contacted/interview/hired/rejected/withdrawn) 표시
+- ApplicationsPage 상단에 mount, 빈 데이터면 자동 hide
+
+### CoachDashboardPage — 새 리뷰 알림 badge
+
+**Audit**: 코치가 새 리뷰 받았을 때 notification 만 가고 dashboard 상의 시각적 단서 없음. 알림 클릭 안 한 코치는 `최근 리뷰` 섹션 새로고침해야 알아챔.
+
+**Fix**:
+
+- CoachDashboardPage 가 `/api/notifications` fetch → `coaching_review_received` 미읽음 count 계산
+- "최근 리뷰" h2 옆에 `⭐ NEW {count}` animate-pulse badge 표시 (count > 0 일 때만)
+
+### Recruiter applicants list — stage badge inline 표시
+
+**Audit**: 최근 지원자 row 에 현재 stage 표시 없어서 recruiter 가 pipeline 섹션과 비교해서 봐야 함.
+
+**Fix**:
+
+- 각 applicant row 에 stage 별 색 mini badge (👀 검토 / 📞 연락 / 🗓 면접 / ✅ 채용 / ✗ 거절) 표시 inline
+
+### JobApplicantsList resumeId hover preview (skipped)
+
+**Audit**: 이력서 클릭 전 미니 preview 는 UX 개선이지만 추가 컴포넌트 + lazy fetch + tooltip 위치 계산 필요. 현재 "이력서" 클릭으로 새 탭 여는 게 충분히 빠름.
+
+**결정**: skip — 다른 영역 먼저 정리되면 cosmetic 개선으로 추가.
+
 ## 다음 sweep 후보
 
-- **WebRTC 통화 성공/실패 telemetry** — peer connection state 변화를 server 로 보내 성공률 측정. TURN 도입 결정 근거 마련.
-- **RecruiterDashboardPage applicants list 의 "📋 파이프라인 추가" 버튼** — 현재는 applicants 가 자동으로 interested 로 들어옴. 명시적 stage 이동 단축 버튼.
-- **구직자 `/applications` 페이지 — 내 지원 현황 + stage 표시** — 현재는 legacy JobApplication 만 보임. fetchMyJobApplications 로 신규 pipeline status 도 보이게.
-- **CoachDashboardPage 의 받은 리뷰 alert badge** — coaching_review_received 알림 미읽음 count 를 dashboard 상단에 표시.
-- **JobApplicantsList 의 resumeId hover preview** — 채용담당자가 이력서 클릭 전에 미니 미리보기.
+- **TURN 서버 도입 (telemetry 데이터 누적 후 결정)** — 1주일 telemetry 수집 → fail rate 집계 → TURN 도입 ROI 계산
+- **회사 dashboard 의 평균 응답 시간 / pipeline 단계별 conversion rate stats**
+- **구직자 application withdrawn → 이유 입력 prompt** — 회사 측 데이터 분석용
+- **InterviewScoreHistory 차트 점수 클릭 → 해당 답변 detail 모달** — 시간별 답변 비교
+- **AllowedViewersDialog autocomplete 키보드 navigation (↑↓ Enter)** — 마우스 외 a11y

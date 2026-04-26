@@ -101,4 +101,25 @@ export class CoffeeChatController {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.drainSignals(req.user.id, roomId);
   }
+
+  @Post('signal/telemetry')
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({
+    summary:
+      'WebRTC peer connection state 변화 telemetry — 성공률 측정용 (비용 X, fire-and-forget)',
+  })
+  recordTelemetry(
+    @Body()
+    body: {
+      roomId: string;
+      state: 'connecting' | 'connected' | 'disconnected' | 'failed';
+      modality?: 'voice' | 'video' | 'chat';
+      durationMs?: number;
+      errorName?: string;
+    },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) return { ok: false };
+    return this.service.recordPeerTelemetry(req.user.id, body);
+  }
 }

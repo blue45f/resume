@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { sendWebrtcSignal, drainWebrtcSignals, type WebrtcSignal } from '@/lib/api';
+import {
+  sendWebrtcSignal,
+  drainWebrtcSignals,
+  recordWebrtcTelemetry,
+  type WebrtcSignal,
+} from '@/lib/api';
 
 /**
  * 1:1 WebRTC P2P 통화 hook (서버는 signaling 만, 미디어는 brower-to-browser).
@@ -124,10 +129,33 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
         }
       };
 
+      const startedAt = Date.now();
       pc.onconnectionstatechange = () => {
-        if (pc.connectionState === 'connected') setState('connected');
-        else if (pc.connectionState === 'failed') setState('failed');
-        else if (pc.connectionState === 'disconnected') setState('disconnected');
+        if (pc.connectionState === 'connected') {
+          setState('connected');
+          void recordWebrtcTelemetry({
+            roomId,
+            state: 'connected',
+            modality,
+            durationMs: Date.now() - startedAt,
+          });
+        } else if (pc.connectionState === 'failed') {
+          setState('failed');
+          void recordWebrtcTelemetry({
+            roomId,
+            state: 'failed',
+            modality,
+            durationMs: Date.now() - startedAt,
+          });
+        } else if (pc.connectionState === 'disconnected') {
+          setState('disconnected');
+          void recordWebrtcTelemetry({
+            roomId,
+            state: 'disconnected',
+            modality,
+            durationMs: Date.now() - startedAt,
+          });
+        }
       };
 
       // 3. Initiator: offer 생성
@@ -156,8 +184,10 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
         }
       }, POLL_INTERVAL_MS);
     } catch (err) {
+      const errorName = (err as any)?.name || 'UnknownError';
       setError(err instanceof Error ? err.message : '통화 시작 실패');
       setState('failed');
+      void recordWebrtcTelemetry({ roomId, state: 'failed', modality, errorName });
       cleanup();
     }
   }, [state, modality, isInitiator, roomId, peerId, cleanup]);

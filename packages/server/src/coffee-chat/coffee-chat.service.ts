@@ -264,6 +264,39 @@ export class CoffeeChatService {
     }
   }
 
+  /**
+   * WebRTC peer connection telemetry — 성공률/실패율 측정용.
+   * DB 저장 없이 console.info 로 기록 → log aggregator 가 집계 (cost-min).
+   * 향후 admin stats 에서 24h success rate 계산 시 이 라인을 grep.
+   */
+  async recordPeerTelemetry(
+    userId: string,
+    body: {
+      roomId: string;
+      state: string;
+      modality?: string;
+      durationMs?: number;
+      errorName?: string;
+    },
+  ) {
+    if (!body?.roomId || !body?.state) return { ok: false };
+    // 구조화 로그 — log aggregator (Cloud Logging) 가 jsonPayload 로 인식
+
+    console.info(
+      JSON.stringify({
+        event: 'webrtc_peer_state',
+        userId,
+        roomId: body.roomId,
+        state: body.state,
+        modality: body.modality || 'video',
+        durationMs: body.durationMs ?? null,
+        errorName: body.errorName || null,
+        timestamp: new Date().toISOString(),
+      }),
+    );
+    return { ok: true };
+  }
+
   /** 만료 신호 정리 — 30초 이상 남은 stale signal 제거. WebRTC race condition 방지. */
   @Cron(CronExpression.EVERY_MINUTE)
   async cleanupStaleSignals() {

@@ -59,6 +59,21 @@ export default function CoachDashboardPage() {
     : null;
   const [coffeeChats, setCoffeeChats] = useState<CoffeeChat[]>([]);
   const [coffeeChatsLoading, setCoffeeChatsLoading] = useState(false);
+  const [unreadReviewNotifs, setUnreadReviewNotifs] = useState<number>(0);
+
+  useEffect(() => {
+    if (!isCoach) return;
+    // 받은 평점/리뷰 알림 미읽음 count
+    fetch('/api/notifications', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` },
+    })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows: any[]) => {
+        const cnt = rows.filter((n) => n?.type === 'coaching_review_received' && !n.read).length;
+        setUnreadReviewNotifs(cnt);
+      })
+      .catch(() => setUnreadReviewNotifs(0));
+  }, [isCoach]);
 
   useEffect(() => {
     if (!isCoach) return;
@@ -410,8 +425,16 @@ export default function CoachDashboardPage() {
             {/* Recent reviews */}
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   최근 리뷰
+                  {unreadReviewNotifs > 0 && (
+                    <span
+                      className="text-[10px] font-bold px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 rounded-full animate-pulse"
+                      title="새로운 리뷰가 있어요"
+                    >
+                      ⭐ NEW {unreadReviewNotifs}
+                    </span>
+                  )}
                 </h2>
               </div>
               {loading ? (

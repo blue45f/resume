@@ -16,6 +16,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { createApplication, updateApplication, deleteApplication } from '@/lib/api';
 import { useApplications, useResumes } from '@/hooks/useResources';
 import type { JobApplication } from '@/lib/api';
+import MyPlatformApplications from '@/components/MyPlatformApplications';
 import type { ResumeSummary } from '@/types/resume';
 import { applicationSchema, type ApplicationFormValues } from '@/shared/lib/schemas/application';
 import { tx } from '@/lib/i18n';
@@ -351,6 +352,9 @@ export default function ApplicationsPage() {
         className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
         role="main"
       >
+        {/* 플랫폼 내부 공고 지원 — 빈 데이터면 자동 hide */}
+        <MyPlatformApplications />
+
         {/* Alerts row */}
         {(interviewApps.length > 0 || upcomingDeadlines.length > 0) && (
           <div className="space-y-2 mb-5">

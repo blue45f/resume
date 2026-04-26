@@ -279,6 +279,22 @@ export const updatePipelineStage = (applicationId: string, stage: string) =>
     body: JSON.stringify({ stage }),
   });
 
+export const recordWebrtcTelemetry = (body: {
+  roomId: string;
+  state: 'connecting' | 'connected' | 'disconnected' | 'failed';
+  modality?: 'voice' | 'video' | 'chat';
+  durationMs?: number;
+  errorName?: string;
+}) =>
+  fetch(`${BASE}/coffee-chats/signal/telemetry`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+    },
+    body: JSON.stringify(body),
+  }).catch(() => {}); // fire-and-forget — 실패해도 통화에 영향 X
+
 export const fetchMyJobApplications = () =>
   request<
     {
