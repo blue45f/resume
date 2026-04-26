@@ -62,7 +62,7 @@ function JobStatsSection() {
       <div className="mt-8 imp-card p-6">
         <div className="animate-pulse space-y-4">
           <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/4" />
-          <div className="grid grid-cols-3 gap-4">
+          <div className="stagger-children grid grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-32 bg-slate-200 dark:bg-slate-700 rounded-xl" />
             ))}
@@ -146,7 +146,7 @@ function JobStatsSection() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="stagger-children grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* By Company */}
         <div className="imp-card p-5">
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
@@ -285,7 +285,7 @@ export default function StatsPage() {
         <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="stagger-children grid grid-cols-2 md:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="h-28 bg-slate-200 dark:bg-slate-700 rounded-2xl" />
               ))}
@@ -333,7 +333,7 @@ export default function StatsPage() {
         {stats && (
           <>
             {/* Main stats grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="stagger-children grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               {[
                 {
                   label: '전체 회원',
@@ -383,7 +383,7 @@ export default function StatsPage() {
             </div>
 
             {/* Secondary stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+            <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
               {[
                 { label: '이번 주 가입', value: stats.users.thisWeek, icon: '📈' },
                 { label: '오늘 이력서', value: stats.resumes.today, icon: '✍️' },
@@ -405,7 +405,7 @@ export default function StatsPage() {
           </>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="stagger-children grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Popular resumes */}
           <div className="imp-card p-5">
             <div className="flex items-center justify-between mb-4">

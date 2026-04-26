@@ -556,7 +556,7 @@ export default function EditResumePage() {
         {/* Live resume analysis panels (text ≥ 200자일 때만 렌더) — 모바일 1열, sm↑ 2열 그리드 */}
         {deferredAnalysisText.length >= 200 && (
           <section aria-label="이력서 실시간 분석" className="mb-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
               <OverallHealthGauge text={deferredAnalysisText} />
               <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 text-[11px]">
                 <InterviewabilityRow text={deferredAnalysisText} />

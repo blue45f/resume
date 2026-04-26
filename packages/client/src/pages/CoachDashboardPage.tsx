@@ -168,7 +168,7 @@ export default function CoachDashboardPage() {
         ) : (
           <div className="space-y-6">
             {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
               {loading
                 ? [1, 2, 3, 4].map((i) => (
                     <div key={i} className="imp-card p-4 animate-pulse">
@@ -302,7 +302,7 @@ export default function CoachDashboardPage() {
                 </h2>
               </div>
               {loading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[1, 2].map((i) => (
                     <div key={i} className="imp-card p-4 animate-pulse">
                       <div className="h-3 w-1/2 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
@@ -316,7 +316,7 @@ export default function CoachDashboardPage() {
                   <p className="text-sm text-slate-500 dark:text-slate-400">아직 리뷰가 없습니다</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {recentReviews.map((r) => (
                     <div key={r.id} className="imp-card p-4">
                       <div className="flex items-center justify-between mb-2">
@@ -357,7 +357,7 @@ export default function CoachDashboardPage() {
               <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
                 빠른 액션
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { label: '프로필 수정', to: '/coach/profile', icon: '✏️' },
                   { label: '세션 내역', to: '/coaching/sessions', icon: '📋' },

@@ -296,7 +296,7 @@ export default function TemplatesPage() {
               {editingId ? '템플릿 수정' : '새 템플릿 만들기'}
             </h2>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="tpl-name" className={labelClass}>
                     템플릿 이름 *
@@ -639,7 +639,7 @@ export default function TemplatesPage() {
                         <div className="flex-1 border-t border-slate-200 dark:border-slate-700 ml-2" />
                       </button>
                       {!isCollapsed && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                        <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                           {themesInCat.map((theme) => (
                             <ThemePreviewCard
                               key={theme.id}
@@ -656,7 +656,7 @@ export default function TemplatesPage() {
               </div>
             ) : (
               /* Flat grid (filtered or sorted by popularity) */
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 {resumeThemes
                   .filter(
                     (t) =>
@@ -752,7 +752,7 @@ export default function TemplatesPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {templates
               .filter((t) => filterCategory === 'all' || t.category === filterCategory)
               .filter(

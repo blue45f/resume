@@ -213,7 +213,7 @@ export default function MyCoverLettersPage() {
                 <p className="text-slate-400 dark:text-slate-500 text-sm">검색 결과가 없습니다</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="stagger-children grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* List */}
                 <div className="lg:col-span-1 space-y-2">
                   {filteredLetters.map((l) => (

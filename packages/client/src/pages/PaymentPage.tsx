@@ -83,7 +83,7 @@ export default function PaymentPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className="stagger-children grid grid-cols-1 gap-6">
           {/* Order Summary */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
             <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
@@ -125,7 +125,7 @@ export default function PaymentPage() {
             <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
               결제 수단
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 gap-2">
               {PAYMENT_METHODS.map((m) => (
                 <button
                   key={m.id}

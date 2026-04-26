@@ -973,7 +973,7 @@ export default function InterviewPrepPage() {
                     </div>
                     <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">/ 10점</div>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                  <div className="stagger-children grid grid-cols-2 gap-x-6 gap-y-2">
                     {(Object.entries(mockCurrentEval.breakdown) as [string, number][]).map(
                       ([key, val]) => (
                         <div key={key} className="flex items-center gap-2">
@@ -1010,7 +1010,7 @@ export default function InterviewPrepPage() {
                 </div>
 
                 {/* Strengths & Improvements */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="bg-green-50 dark:bg-green-900/10 rounded-xl p-4 border border-green-200 dark:border-green-800/50">
                     <h4 className="text-xs font-medium text-green-600 dark:text-green-400 mb-2 flex items-center gap-1">
                       <svg
@@ -1225,7 +1225,7 @@ export default function InterviewPrepPage() {
 
             {/* Analysis */}
             <div className="px-6 py-6 border-b border-slate-200 dark:border-slate-700">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-green-50 dark:bg-green-900/10 rounded-xl p-4 border border-green-200 dark:border-green-800/50">
                   <h4 className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">
                     가장 강한 영역
@@ -1383,7 +1383,7 @@ export default function InterviewPrepPage() {
 
         {/* Setup */}
         <div className="imp-card p-6 mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
                 이력서 선택 *
@@ -1472,7 +1472,7 @@ export default function InterviewPrepPage() {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
               {tx('interview.difficulty.label')}
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 gap-2">
               {(Object.keys(difficultyLabels) as Difficulty[]).map((d) => (
                 <button
                   key={d}

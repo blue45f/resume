@@ -660,7 +660,7 @@ export default function ApplicationsPage() {
             </h3>
 
             {/* Required fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
               <div className="relative">
                 <label className="block text-xs text-slate-500 mb-1">
                   회사명 <span className="text-red-500">*</span>
@@ -694,7 +694,7 @@ export default function ApplicationsPage() {
             </div>
 
             {/* Optional fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
               <div>
                 <label className="block text-xs text-slate-500 mb-1">공고 URL</label>
                 <input
@@ -751,7 +751,7 @@ export default function ApplicationsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
               <div>
                 <label className="block text-xs text-slate-500 mb-1">상태</label>
                 <select
@@ -980,7 +980,7 @@ export default function ApplicationsPage() {
               </button>
             </div>
             {/* Day headers */}
-            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-700">
+            <div className="stagger-children grid grid-cols-7 border-b border-slate-200 dark:border-slate-700">
               {getDAYS().map((d, i) => (
                 <div
                   key={d}
@@ -991,7 +991,7 @@ export default function ApplicationsPage() {
               ))}
             </div>
             {/* Calendar grid */}
-            <div className="grid grid-cols-7">
+            <div className="stagger-children grid grid-cols-7">
               {/* Empty cells for first day offset */}
               {Array.from({ length: calendarData.firstDay }).map((_, i) => (
                 <div
@@ -1135,7 +1135,7 @@ export default function ApplicationsPage() {
                 </div>
 
                 {/* Key stats grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
                     {
                       label: '총 지원',
@@ -1239,7 +1239,7 @@ export default function ApplicationsPage() {
                 })()}
 
                 {/* Top companies & status breakdown */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Top companies */}
                   <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
                     <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">

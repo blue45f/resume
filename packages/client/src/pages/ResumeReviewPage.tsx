@@ -455,7 +455,7 @@ export default function ResumeReviewPage() {
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-64" />
             <div className="h-48 bg-slate-100 dark:bg-slate-800 rounded-2xl" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="h-32 bg-slate-100 dark:bg-slate-800 rounded-xl" />
               ))}
@@ -621,7 +621,7 @@ export default function ResumeReviewPage() {
         <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-4">
           카테고리별 점수
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {CATEGORIES.map((cat) => {
             const score = analysis.categoryScores[cat.id] || 0;
             const avg = AVERAGE_SCORES[cat.id];

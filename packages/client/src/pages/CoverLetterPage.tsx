@@ -476,7 +476,7 @@ export default function CoverLetterPage() {
 
           {/* ─── GENERATE MODE ─── */}
           {mode === 'generate' && (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="stagger-children grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Left: Input */}
               <form
                 onSubmit={handleSubmitGenerate(onGenerateSubmit)}
@@ -503,7 +503,7 @@ export default function CoverLetterPage() {
                 </div>
 
                 {/* Company & Position */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="stagger-children grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                       회사명 <span className="text-red-500">*</span>
@@ -537,7 +537,7 @@ export default function CoverLetterPage() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                     어조
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {TONES.map((t) => (
                       <label
                         key={t.value}
@@ -843,7 +843,7 @@ export default function CoverLetterPage() {
 
           {/* ─── FEEDBACK MODE ─── */}
           {mode === 'feedback' && (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="stagger-children grid grid-cols-1 xl:grid-cols-2 gap-6">
               <form
                 onSubmit={handleSubmitFeedback(onFeedbackSubmit)}
                 className="space-y-4"

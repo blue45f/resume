@@ -724,7 +724,7 @@ export default function SettingsPage() {
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
             역할별로 사용 가능한 기능이 달라집니다. 여러 역할을 병행하는 기능은 준비 중입니다.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
             {(
               [
                 {
@@ -1017,7 +1017,7 @@ export default function SettingsPage() {
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
                 월 한도 초과 시 추가 크레딧을 구매할 수 있습니다.
               </p>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="stagger-children grid grid-cols-3 gap-3">
                 {[
                   { credits: 10, price: 1900, popular: false },
                   { credits: 30, price: 4900, popular: true },
@@ -1231,7 +1231,7 @@ export default function SettingsPage() {
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
             인터페이스 테마를 선택하세요.
           </p>
-          <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="stagger-children grid grid-cols-3 gap-3 mb-4">
             {[
               { value: 'light' as const, label: '라이트', icon: '☀️' },
               { value: 'dark' as const, label: '다크', icon: '🌙' },

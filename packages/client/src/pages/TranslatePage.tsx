@@ -240,7 +240,7 @@ export default function TranslatePage() {
         {/* Controls */}
         <div className="space-y-4 mb-6">
           {/* Resume selection */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
                 이력서 선택 *
@@ -264,7 +264,7 @@ export default function TranslatePage() {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
                 언어 방향
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="stagger-children grid grid-cols-3 gap-2">
                 {LANGUAGE_PAIRS.map((pair, i) => (
                   <button
                     key={i}
@@ -379,7 +379,7 @@ export default function TranslatePage() {
         </div>
 
         {/* Side-by-Side Preview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="stagger-children grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Original */}
           <div>
             <div className="flex items-center justify-between mb-1.5">

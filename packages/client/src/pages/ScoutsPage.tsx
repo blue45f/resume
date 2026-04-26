@@ -398,7 +398,7 @@ export default function ScoutsPage() {
         </div>
 
         {/* Analytics Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="imp-card p-3 text-center">
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               {analytics.total}
@@ -651,7 +651,7 @@ export default function ScoutsPage() {
               <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
                 관심 후보 추가
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <input
                   value={newBookmarkName}
                   onChange={(e) => setNewBookmarkName(e.target.value)}
@@ -740,7 +740,7 @@ export default function ScoutsPage() {
         ) : scouts.length === 0 ? (
           <EmptyState type="scout" />
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="stagger-children grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* List */}
             <div className="lg:col-span-1 space-y-2">
               {scouts.map((s) => {

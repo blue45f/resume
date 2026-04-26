@@ -13,7 +13,7 @@ const steps = [
     content: (
       <div className="space-y-3">
         <p>새 이력서를 만드는 두 가지 방법이 있습니다:</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
             <h4 className="font-semibold text-blue-800 mb-1">직접 작성</h4>
             <p className="text-sm text-blue-700">
@@ -71,7 +71,7 @@ const steps = [
     content: (
       <div className="space-y-3">
         <p>작성된 이력서를 AI가 다양한 양식으로 변환해줍니다:</p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-2">
           {[
             '표준 이력서',
             '경력기술서',
@@ -160,7 +160,7 @@ const steps = [
     icon: '6',
     content: (
       <div className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
             <h4 className="font-medium text-sm text-slate-800 dark:text-slate-200 mb-1">🏷️ 태그</h4>
             <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -254,7 +254,7 @@ const steps = [
     content: (
       <div className="space-y-3">
         <p>10가지 프리뷰 테마로 이력서의 시각적 스타일을 변경할 수 있습니다.</p>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <div className="stagger-children grid grid-cols-2 sm:grid-cols-5 gap-2">
           {[
             '클래식',
             '모던',

@@ -112,7 +112,7 @@ function ReviewCard({ review }: { review: CompanyReview }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+      <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
         {Object.entries(RATING_LABELS).map(([key, label]) => (
           <div key={key} className="text-center">
             <p className="text-[10px] text-slate-500 mb-1">{label}</p>
@@ -281,7 +281,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-sky-200 dark:border-sky-800 p-5 mb-4 space-y-4">
           <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200">리뷰 작성</h4>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                 전체 평점 *
@@ -305,7 +305,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
             {Object.entries(RATING_LABELS).map(([key, label]) => (
               <div key={key}>
                 <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
@@ -529,7 +529,7 @@ export default function CompanyPage() {
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3" />
             <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-2/3" />
-            <div className="grid grid-cols-3 gap-4 mt-6">
+            <div className="stagger-children grid grid-cols-3 gap-4 mt-6">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-24 bg-slate-200 dark:bg-slate-700 rounded-xl" />
               ))}
@@ -633,7 +633,7 @@ export default function CompanyPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="imp-card p-4 text-center">
             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
               {activeJobs.length}
@@ -671,7 +671,7 @@ export default function CompanyPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="stagger-children grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left: Company Details */}
           <div className="lg:col-span-1 space-y-4">
             {/* Job types breakdown */}

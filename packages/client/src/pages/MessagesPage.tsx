@@ -307,7 +307,7 @@ export default function MessagesPage() {
         </h1>
 
         <FeatureDisabledBanner feature="messaging" label="메시지">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[500px]">
+          <div className="stagger-children grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[500px]">
             {/* Conversations list */}
             <div
               className={`lg:col-span-1 imp-card overflow-hidden flex flex-col ${

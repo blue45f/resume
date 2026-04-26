@@ -216,7 +216,7 @@ function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () =
                   placeholder="예: 프론트엔드 개발자"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="stagger-children grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
                     연봉 (만원)
@@ -400,7 +400,7 @@ function ExtLinkForm({
           required
         />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="stagger-children grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-medium text-slate-600 dark:text-slate-400">이모지</label>
           <input
@@ -430,7 +430,7 @@ function ExtLinkForm({
           placeholder="간단 설명"
         />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="stagger-children grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-medium text-slate-600 dark:text-slate-400">기업규모</label>
           <select
@@ -873,7 +873,7 @@ function ExternalJobLinks({
 
       {/* Links grid */}
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-2">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="h-16 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse" />
           ))}
@@ -883,7 +883,7 @@ function ExternalJobLinks({
           조건에 맞는 채용 사이트가 없습니다
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-2">
           {visible.map((link) => {
             const matched = findMatchedJobs(link, internalJobs);
             const hasMatch = matched.length > 0;
@@ -1214,7 +1214,7 @@ function CuratedJobForm({
             </RadixDialog.Close>
           </div>
           <div className="p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="stagger-children grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
                   회사명 *
@@ -1251,7 +1251,7 @@ function CuratedJobForm({
                 required
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="stagger-children grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
                   부서/직군
@@ -1311,7 +1311,7 @@ function CuratedJobForm({
                 placeholder="성과급, 사택, 건강검진"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
                   기술스택 (콤마 구분)
@@ -1335,7 +1335,7 @@ function CuratedJobForm({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
                   고용형태
@@ -1385,7 +1385,7 @@ function CuratedJobForm({
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="stagger-children grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
                   학력
@@ -1409,7 +1409,7 @@ function CuratedJobForm({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="stagger-children grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
                   원본 링크 *
@@ -2648,7 +2648,7 @@ export default function JobsPage() {
                         {userSkills.size}개 스킬 분석
                       </span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-2">
                       {topMatches.map(({ job: j, score }) => (
                         <button
                           key={j.id}
@@ -2685,7 +2685,7 @@ export default function JobsPage() {
             {error ? (
               <ErrorRetry onRetry={() => loadJobs(search)} />
             ) : loading ? (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="stagger-children grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div className="lg:col-span-1 space-y-2">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <div
@@ -2796,7 +2796,7 @@ export default function JobsPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="stagger-children grid grid-cols-1 lg:grid-cols-3 gap-4">
                   {/* Job list */}
                   <div className="lg:col-span-1 space-y-2 max-h-[calc(100dvh-16rem)] overflow-y-auto lg:pr-1">
                     {filteredJobs.map((j) => (

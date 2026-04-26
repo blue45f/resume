@@ -113,12 +113,12 @@ export default function PortfolioPage() {
                 <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-32" />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="stagger-children grid grid-cols-3 gap-4">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-20 bg-slate-200 dark:bg-slate-700 rounded-xl" />
               ))}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[1, 2].map((i) => (
                 <div key={i} className="h-40 bg-slate-200 dark:bg-slate-700 rounded-xl" />
               ))}
@@ -311,7 +311,7 @@ export default function PortfolioPage() {
                 <p className="text-slate-500 dark:text-slate-400">공개된 이력서가 없습니다</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {resumes.map((resume, i) => (
                   <Link
                     key={resume.id}

@@ -245,7 +245,7 @@ export default function ComparePage() {
           두 이력서를 선택하여 섹션별 내용을 비교합니다
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <div>
             <label className="block text-sm font-medium text-blue-600 mb-1.5">이력서 A</label>
             <Selector value={leftId} onChange={setLeftId} exclude={rightId} />
@@ -263,7 +263,7 @@ export default function ComparePage() {
               <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">
                 완성도 비교
               </h3>
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 text-center">
+              <div className="stagger-children grid grid-cols-2 gap-3 sm:gap-4 text-center">
                 <div>
                   <span className="text-2xl sm:text-3xl font-bold text-blue-600">
                     {calculateCompleteness(left).percentage}%
@@ -309,7 +309,7 @@ export default function ComparePage() {
             </div>
 
             {/* Summary comparison */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-white dark:bg-slate-800 rounded-xl border border-blue-200 dark:border-blue-800 p-3 sm:p-4">
                 <h4 className="text-sm font-semibold text-blue-600 mb-2 truncate">
                   {left.personalInfo.name || '이름 없음'}
@@ -350,7 +350,7 @@ export default function ComparePage() {
                   </div>
                 </div>
               )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800/50">
                   <h4 className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1.5">
                     A에만 있는 기술
@@ -414,7 +414,7 @@ export default function ComparePage() {
                     </span>
                   </div>
                 </summary>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                   <div className="space-y-2">
                     {left.experiences.length > 0 ? (
                       left.experiences.map((exp) => (
@@ -486,7 +486,7 @@ export default function ComparePage() {
                     </span>
                   </div>
                 </summary>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                   <div className="space-y-2">
                     {left.educations.length > 0 ? (
                       left.educations.map((edu) => (
@@ -544,7 +544,7 @@ export default function ComparePage() {
                     </span>
                   </div>
                 </summary>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                   <div className="space-y-2">
                     {left.projects.length > 0 ? (
                       left.projects.map((proj) => (
@@ -595,7 +595,7 @@ export default function ComparePage() {
 
             {/* Strengths and Weaknesses */}
             {leftAnalysis && rightAnalysis && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Resume A analysis */}
                 <div className="bg-white dark:bg-slate-800 rounded-xl border border-blue-200 dark:border-blue-800 p-4">
                   <h3 className="text-sm font-bold text-blue-600 mb-3 flex items-center gap-2">

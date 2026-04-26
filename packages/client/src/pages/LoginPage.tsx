@@ -226,7 +226,7 @@ export default function LoginPage() {
           </p>
 
           {/* Stats — borderless typographic, no glass cards */}
-          <div className="grid grid-cols-3 gap-8 mb-12 max-w-md">
+          <div className="stagger-children grid grid-cols-3 gap-8 mb-12 max-w-md">
             {[
               { num: '26', unit: '개', label: '직종 템플릿' },
               { num: '5', unit: '종', label: 'AI 분석' },
@@ -429,7 +429,7 @@ export default function LoginPage() {
                       </p>
                     )}
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="stagger-children grid grid-cols-3 gap-2">
                     {(
                       [
                         {

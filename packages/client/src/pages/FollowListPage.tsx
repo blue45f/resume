@@ -71,7 +71,7 @@ export default function FollowListPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="stagger-children grid grid-cols-2 gap-3 mb-6">
           <div className="imp-card p-4 text-center">
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               {followers.length}

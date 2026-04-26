@@ -261,7 +261,7 @@ export default function AutoGeneratePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="stagger-children grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Input */}
             <div className="space-y-4">
               {/* Input Mode Toggle */}
@@ -402,7 +402,7 @@ export default function AutoGeneratePage() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                     템플릿 선택 (선택사항)
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="stagger-children grid grid-cols-2 gap-2">
                     {templates.map((t) => {
                       const layout = parseLayout(t.layout || '{}');
                       const sections: string[] = (layout.sections || []).slice(0, 3);

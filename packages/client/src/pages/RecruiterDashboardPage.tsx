@@ -184,7 +184,7 @@ export default function RecruiterDashboardPage() {
         ) : (
           <div className="space-y-6">
             {/* Quick Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 {
                   label: '활성 공고 수',
@@ -224,7 +224,7 @@ export default function RecruiterDashboardPage() {
               <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
                 채용 파이프라인
               </h2>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="stagger-children grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {PIPELINE_STAGES.map((stage) => {
                   const stCandidates = getPipelineCandidates(stage.key);
                   return (
@@ -355,7 +355,7 @@ export default function RecruiterDashboardPage() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {recommended.slice(0, 6).map((r: any) => (
                     <div key={r.id} className="imp-card p-4">
                       <div className="flex items-start justify-between mb-2">
@@ -460,7 +460,7 @@ export default function RecruiterDashboardPage() {
               <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
                 빠른 작업
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { label: '인재 검색', to: '/explore', icon: '🔍' },
                   { label: '공고 등록', to: '/jobs/new', icon: '📝' },

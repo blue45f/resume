@@ -113,7 +113,7 @@ export default function SitemapPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="stagger-children grid grid-cols-1 md:grid-cols-2 gap-6">
           {SITEMAP.map((section) => (
             <div
               key={section.title}

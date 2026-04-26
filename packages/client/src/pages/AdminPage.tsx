@@ -424,7 +424,7 @@ export default function AdminPage() {
                     <span className="w-1.5 h-4 bg-slate-500 rounded" />
                     관리 도구
                   </h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
                       { label: '템플릿 관리', to: '/templates', icon: '📄' },
                       { label: '태그 관리', to: '/tags', icon: '🏷' },
@@ -705,7 +705,7 @@ function DashboardHome({ stats }: { stats: Stats }) {
           <span className="w-1.5 h-4 bg-blue-500 rounded" />
           오늘 요약
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard
             label="오늘 가입자"
             value={stats.users.today}
@@ -764,7 +764,7 @@ function DashboardHome({ stats }: { stats: Stats }) {
           <span className="w-1.5 h-4 bg-green-500 rounded" />
           상세 통계
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard label="전체 회원" value={stats.users.total} color="blue" />
           <StatCard label="전체 이력서" value={stats.resumes.total} color="green" />
           <StatCard label="공개 이력서" value={stats.resumes.public} color="amber" />
@@ -782,7 +782,7 @@ function DashboardHome({ stats }: { stats: Stats }) {
           <span className="w-1.5 h-4 bg-sky-500 rounded" />
           7일 추이
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
           <AreaChartCard
             data={stats.dailyUsers || [0, 0, 0, 0, 0, 0, stats.users.today]}
             labels={dayLabels}
@@ -803,7 +803,7 @@ function DashboardHome({ stats }: { stats: Stats }) {
           <span className="w-1.5 h-4 bg-amber-500 rounded" />
           인기 기능 / 플랜 분포
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
           <HorizontalBarChart items={stats.topFeatures || []} title="기능별 사용 횟수" />
           <PlanPieChart stats={stats} />
         </div>
@@ -829,7 +829,7 @@ function CoachingStatsWidget({ coaching }: { coaching?: Stats['coaching'] }) {
 
   return (
     <div className="imp-card p-4 sm:p-5 space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard label="총 코치 수" value={totalCoaches} color="rose" icon="🎓" />
         <StatCard
           label="활성 코치"
@@ -1263,7 +1263,7 @@ function AdminBannersTab() {
           <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
             {editing ? '배너 수정' : '새 배너 만들기'}
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
                 제목 *
@@ -2268,7 +2268,7 @@ function FeatureTogglesSection() {
             <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {group}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-2">
               {items.map((f) => {
                 const on = toggles[f.key] !== false;
                 return (
@@ -2406,7 +2406,7 @@ function UploadSettingsSection() {
             />
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="block">
             <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
               최대 파일 크기 (MB)
@@ -2695,7 +2695,7 @@ function SystemSettings() {
             rows={2}
             className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 resize-none"
           />
-          <div className="grid grid-cols-2 gap-2 mt-2">
+          <div className="stagger-children grid grid-cols-2 gap-2 mt-2">
             <input
               value={bannerLink}
               onChange={(e) => {
@@ -2997,7 +2997,7 @@ function PlanConfig() {
                   <span className="text-xs text-slate-400">원</span>
                 </div>
               )}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+              <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
                 {[
                   { key: 'maxResumes', label: '이력서 수', type: 'number' },
                   { key: 'aiTransformsPerMonth', label: 'AI 변환/월', type: 'number' },
@@ -3599,7 +3599,7 @@ function AdminExtLinksTab() {
                 <RadixDialog.Title className="text-base font-bold text-neutral-900 dark:text-neutral-100 mb-4">
                   {editing.id ? '링크 수정' : '링크 추가'}
                 </RadixDialog.Title>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="stagger-children grid grid-cols-2 gap-3">
                   <div>
                     <label className={labelCls}>사이트명 *</label>
                     <input
@@ -4037,7 +4037,7 @@ function AdminPermissionsTab() {
               </div>
             </div>
             <div className="p-4 sm:p-5">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-5">
                 {PERM_ACTIONS.map((action) => {
                   const roles = getRoles(ct.key, action.key);
                   const isAll = roles.includes('all');
@@ -4082,7 +4082,7 @@ function AdminPermissionsTab() {
         <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">
           권한 등급 설명
         </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {[
             { ...PERM_ROLES[0], desc: '비로그인 사용자 포함 모든 방문자' },
             { ...PERM_ROLES[1], desc: '로그인한 모든 사용자 (개인/기업)' },
@@ -4328,7 +4328,7 @@ function AdminForbiddenWordsTab() {
     <div className="space-y-6 animate-fade-in-up">
       {/* Stats */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             {
               label: '전체',

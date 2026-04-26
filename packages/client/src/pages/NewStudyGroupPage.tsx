@@ -131,7 +131,7 @@ export default function NewStudyGroupPage() {
               />
             </Field>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="기업 카테고리">
                 <select
                   name="companyTier"
@@ -160,7 +160,7 @@ export default function NewStudyGroupPage() {
               </Field>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="경력 단계">
                 <select
                   name="experienceLevel"
@@ -185,7 +185,7 @@ export default function NewStudyGroupPage() {
               </Field>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="타겟 회사 (선택)">
                 <input
                   name="companyName"

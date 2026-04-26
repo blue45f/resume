@@ -202,7 +202,7 @@ export default function AboutPage() {
 
         {/* Stats */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 -mt-8 relative z-10">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { value: '9', label: '이력서 섹션' },
               { value: '26+', label: '직종별 템플릿' },
@@ -225,7 +225,7 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center mb-10">
             주요 기능
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {features.map((f: any, i: number) => (
               <div
                 key={f.title}
@@ -258,7 +258,7 @@ export default function AboutPage() {
                 이력서공방에서 우수 인재를 직접 스카우트하세요
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 {
                   icon: '🔍',

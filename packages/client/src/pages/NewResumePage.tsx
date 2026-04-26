@@ -442,7 +442,7 @@ function WizardMode({
             <p className="text-sm text-slate-500 dark:text-slate-400">
               직종에 맞는 추천 문구와 키워드를 제공합니다. 나중에 변경할 수 있습니다.
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+            <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {JOB_TITLE_LIST.map((title) => (
                 <button
                   key={title}
@@ -474,7 +474,7 @@ function WizardMode({
         {wizardStep === 1 && (
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">인적사항</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>이력서 제목</label>
                 <input
@@ -592,7 +592,7 @@ function WizardMode({
                     삭제
                   </button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className={labelClass}>회사명</label>
                     <input
@@ -716,7 +716,7 @@ function WizardMode({
                     삭제
                   </button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className={labelClass}>학교명</label>
                     <input
@@ -827,7 +827,7 @@ function WizardMode({
                     삭제
                   </button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className={labelClass}>카테고리</label>
                     <input
@@ -882,7 +882,7 @@ function WizardMode({
                 <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                   기본 정보
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-slate-400">이름:</span>{' '}
                     <span className="text-slate-900 dark:text-slate-100">
@@ -1248,7 +1248,7 @@ export default function NewResumePage() {
               <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                 시작 방법
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 {/* Empty */}
                 <button
                   onClick={() => setStartMode('empty')}
@@ -1454,7 +1454,7 @@ export default function NewResumePage() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     복사할 이력서 선택
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                  <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                     {existingResumes.slice(0, 6).map((r) => (
                       <button
                         key={r.id}
@@ -1612,7 +1612,7 @@ export default function NewResumePage() {
                 })}
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {/* Blank / no theme */}
                 <div
                   className={`group relative bg-white dark:bg-slate-800 rounded-xl border-2 border-dashed overflow-hidden transition-all duration-200 cursor-pointer hover:shadow-lg hover:-translate-y-1 ${
@@ -1831,7 +1831,7 @@ export default function NewResumePage() {
                             - 보유 기술 기반 분석
                           </span>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                           {recommendedTemplates.map((t) => {
                             const layout = parseLayout(t.layout || '{}');
                             const sections: string[] = layout.sections || [];
@@ -1910,7 +1910,7 @@ export default function NewResumePage() {
                       <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                         서버 템플릿
                       </h2>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                      <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                         {sortedTemplates.map((t) => {
                           const layout = parseLayout(t.layout || '{}');
                           const sections: string[] = layout.sections || [];

@@ -145,7 +145,7 @@ export default function CoachesPage() {
 
         {/* Filter bar */}
         <div className="imp-card p-4 mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
                 {tx('coach.specialty')}
@@ -222,7 +222,7 @@ export default function CoachesPage() {
 
         {/* Coach grid */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="imp-card p-5 animate-pulse">
                 <div className="flex items-center gap-3">
@@ -270,7 +270,7 @@ export default function CoachesPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedCoaches.map((coach) => (
               <CoachCard key={coach.id} coach={coach} />
             ))}
