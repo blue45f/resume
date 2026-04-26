@@ -36,7 +36,7 @@
     "prisma:push": "cd packages/server && prisma db push",
     "prisma:reset": "cd packages/server && prisma migrate reset",
     "typecheck": "tsc -b --noEmit",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
