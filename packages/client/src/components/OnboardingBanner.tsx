@@ -14,23 +14,23 @@ interface Step {
 const DEFAULT_STEPS: Step[] = [
   {
     num: 1,
-    title: '이력서 작성',
-    desc: '템플릿 선택 후 9개 섹션 편집',
-    href: '/resumes/new',
+    title: 'AI 자동 생성',
+    desc: 'PDF/사진/공고 URL 만으로 시작',
+    href: '/auto-generate',
     color: 'from-blue-500 to-blue-600',
   },
   {
     num: 2,
-    title: 'AI 분석',
-    desc: '피드백, JD매칭, ATS 검사',
-    href: '/tutorial',
+    title: 'AI 분석 + 면접',
+    desc: 'ATS 점수 / JD 매칭 / 모의 면접',
+    href: '/tutorial?guide=new-features',
     color: 'from-sky-500 to-sky-700',
   },
   {
     num: 3,
-    title: '공유/지원',
-    desc: '링크 공유, PDF 내보내기',
-    href: '/explore',
+    title: '공유 + 코칭',
+    desc: '선택 공개·커피챗·코치 매칭',
+    href: '/coaches',
     color: 'from-sky-500 to-sky-700',
   },
 ];
