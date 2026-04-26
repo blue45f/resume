@@ -190,71 +190,58 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left decorative panel - hidden on mobile */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden mesh-gradient-dark">
-        {/* Ambient blur blobs — blue/cyan only */}
+      {/* Left decorative panel - hidden on mobile.
+          Solid sapphire surface + subtle dot grid. mesh blob/floating squares 제거. */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-sky-900">
+        {/* refined dot grid — purposeful texture, not glassmorphic */}
         <div
-          className="mesh-blob mesh-blob-blue animate-float-soft"
-          style={{ width: 420, height: 420, top: -100, left: -80 }}
           aria-hidden="true"
+          className="absolute inset-0 pointer-events-none opacity-25"
+          style={{
+            backgroundImage: 'radial-gradient(circle, rgb(255 255 255 / 0.5) 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
+          }}
         />
-        <div
-          className="mesh-blob mesh-blob-cyan animate-float-soft-slow"
-          style={{ width: 360, height: 360, bottom: -80, right: -60 }}
-          aria-hidden="true"
-        />
-        <div
-          className="mesh-blob mesh-blob-blue animate-float-soft-slow"
-          style={{ width: 200, height: 200, top: '45%', left: '35%', opacity: 0.35 }}
-          aria-hidden="true"
-        />
+        {/* single accent — vertical sapphire band along right edge for editorial anchor */}
+        <div aria-hidden="true" className="absolute right-0 inset-y-0 w-px bg-white/15" />
 
-        {/* Floating geometric shapes — subtle */}
-        <div
-          className="absolute top-24 right-24 w-14 h-14 rounded-2xl border border-white/20 rotate-12 animate-float-soft"
-          style={{ backdropFilter: 'blur(2px)' }}
-          aria-hidden="true"
-        />
-        <div
-          className="absolute bottom-32 left-24 w-10 h-10 rounded-full border border-cyan-200/30 animate-float-soft-slow"
-          aria-hidden="true"
-        />
-        <div
-          className="absolute top-1/3 right-16 w-6 h-6 bg-white/15 rounded-md rotate-45 animate-float-soft"
-          aria-hidden="true"
-        />
-
-        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16">
-          {/* Logo badge */}
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center border border-white/30 shadow-lg">
-              <span className="text-white text-xl font-bold">이</span>
-            </div>
-            <span className="text-white/90 font-bold text-lg tracking-tight">이력서공방</span>
+        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16 py-16">
+          {/* Eyebrow */}
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-200 mb-8">
+            이력서공방 · AI Career Workshop
           </div>
-          <h2 className="text-3xl xl:text-4xl font-extrabold text-white mb-4 leading-tight">
-            AI로 완성하는
+
+          <h2
+            className="font-black text-white mb-6 leading-[0.95] tracking-[-0.035em]"
+            style={{ fontSize: 'clamp(2.5rem, 4vw, 3.5rem)' }}
+          >
+            서류 합격률,
             <br />
-            <span className="text-white/80">나만의 이력서</span>
+            <span className="text-sky-300">데이터로</span> 올립니다.
           </h2>
-          <p className="text-blue-100 text-base leading-relaxed mb-10 max-w-md">
-            5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기까지.
+          <p className="text-sky-100 text-base leading-relaxed mb-12 max-w-md">
+            5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기.
             <br />
-            경력 관리의 새로운 기준을 경험하세요.
+            합격으로 가는 거리를 가장 짧게.
           </p>
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-10">
+
+          {/* Stats — borderless typographic, no glass cards */}
+          <div className="grid grid-cols-3 gap-8 mb-12 max-w-md">
             {[
-              { num: '26+', label: '직종 템플릿' },
-              { num: '5종', label: 'AI 분석' },
-              { num: '100%', label: '무료 시작' },
+              { num: '26', unit: '개', label: '직종 템플릿' },
+              { num: '5', unit: '종', label: 'AI 분석' },
+              { num: 'Live', unit: '●', label: '실시간 미리보기' },
             ].map((stat, i) => (
-              <div
-                key={i}
-                className="text-center p-3 bg-white/10 rounded-xl border border-white/20"
-              >
-                <div className="text-xl font-extrabold text-white">{stat.num}</div>
-                <div className="text-xs text-blue-100/90 mt-0.5">{stat.label}</div>
+              <div key={i}>
+                <div className="text-3xl xl:text-4xl font-black text-white tabular-nums leading-none tracking-tight">
+                  {stat.num}
+                  <span className="text-sky-300 text-sm font-bold align-top ml-0.5">
+                    {stat.unit}
+                  </span>
+                </div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-sky-200 mt-2">
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>
