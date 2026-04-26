@@ -2,7 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JobsService } from './jobs.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
-import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { NotificationsService } from '../notifications/notifications.service';
+import {
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
+
+const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
 
 const mockJob = {
   id: 'j1',
@@ -21,7 +29,7 @@ const mockJob = {
   updatedAt: new Date(),
 };
 
-const mockPrisma = {
+const mockPrisma: any = {
   jobPost: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
@@ -30,6 +38,13 @@ const mockPrisma = {
     delete: jest.fn(),
   },
   user: { findUnique: jest.fn() },
+  resume: { findUnique: jest.fn(), findMany: jest.fn() },
+  jobPostApplication: {
+    create: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    update: jest.fn(),
+  },
 };
 
 describe('JobsService', () => {
@@ -47,6 +62,7 @@ describe('JobsService', () => {
             getPermissions: jest.fn().mockResolvedValue({}),
           },
         },
+        { provide: NotificationsService, useValue: mockNotifications },
       ],
     }).compile();
     service = module.get(JobsService);
@@ -382,6 +398,144 @@ describe('JobsService', () => {
       const result = await service.getJobStats();
       expect(result.total).toBe(0);
       expect(result.byCompany).toEqual([]);
+    });
+  });
+
+  describe('applyToJob', () => {
+    const activeJob = { ...mockJob, status: 'active', userId: 'recruiter-1' };
+
+    it('마감된 공고 → BadRequest', async () => {
+      mockPrisma.jobPost.findUnique.mockResolvedValue({ ...activeJob, status: 'closed' });
+      await expect(service.applyToJob('j1', 'applicant-1', {})).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('본인 공고 지원 → BadRequest', async () => {
+      mockPrisma.jobPost.findUnique.mockResolvedValue({ ...activeJob, userId: 'applicant-1' });
+      await expect(service.applyToJob('j1', 'applicant-1', {})).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('타인 이력서 첨부 → ForbiddenException', async () => {
+      mockPrisma.jobPost.findUnique.mockResolvedValue(activeJob);
+      mockPrisma.resume.findUnique.mockResolvedValue({ id: 'r1', userId: 'someone-else' });
+      await expect(service.applyToJob('j1', 'applicant-1', { resumeId: 'r1' })).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('정상 지원 → 회사에 알림 발송', async () => {
+      mockPrisma.jobPost.findUnique.mockResolvedValue(activeJob);
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'applicant-1', name: '홍길동' });
+      mockPrisma.jobPostApplication.create.mockResolvedValue({ id: 'app-1' });
+      mockNotifications.create.mockClear();
+      await service.applyToJob('j1', 'applicant-1', { coverLetter: '저는...' });
+      expect(mockNotifications.create).toHaveBeenCalledWith(
+        'recruiter-1',
+        'job_application_received',
+        expect.stringContaining('홍길동'),
+        expect.stringContaining('/recruiter'),
+      );
+    });
+
+    it('동일 공고 중복 지원 → ConflictException', async () => {
+      mockPrisma.jobPost.findUnique.mockResolvedValue(activeJob);
+      mockPrisma.jobPostApplication.create.mockRejectedValue({ code: 'P2002' });
+      await expect(service.applyToJob('j1', 'applicant-1', {})).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('updatePipelineStage', () => {
+    it('유효하지 않은 stage → BadRequest', async () => {
+      await expect(service.updatePipelineStage('app-1', 'r-1', 'bogus')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('타인 공고의 application → Forbidden', async () => {
+      mockPrisma.jobPostApplication.findUnique.mockResolvedValue({
+        id: 'app-1',
+        applicantId: 'a1',
+        stage: 'interested',
+        job: { userId: 'other-recruiter' },
+      });
+      await expect(
+        service.updatePipelineStage('app-1', 'recruiter-1', 'interview'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('stage 변경 + 지원자에게 알림 (interested 제외)', async () => {
+      mockPrisma.jobPostApplication.findUnique.mockResolvedValue({
+        id: 'app-1',
+        applicantId: 'a1',
+        stage: 'interested',
+        job: { userId: 'recruiter-1', position: 'FE' },
+      });
+      mockPrisma.jobPostApplication.update.mockResolvedValue({ id: 'app-1', stage: 'interview' });
+      mockNotifications.create.mockClear();
+      await service.updatePipelineStage('app-1', 'recruiter-1', 'interview');
+      expect(mockNotifications.create).toHaveBeenCalledWith(
+        'a1',
+        'job_application_stage',
+        expect.stringContaining('면접'),
+        '/applications',
+      );
+    });
+
+    it('동일 stage 로 변경 → no-op (알림 X)', async () => {
+      mockPrisma.jobPostApplication.findUnique.mockResolvedValue({
+        id: 'app-1',
+        applicantId: 'a1',
+        stage: 'contacted',
+        job: { userId: 'recruiter-1', position: 'FE' },
+      });
+      mockNotifications.create.mockClear();
+      const r = await service.updatePipelineStage('app-1', 'recruiter-1', 'contacted');
+      expect(r.stage).toBe('contacted');
+      expect(mockNotifications.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('listRecommendedCandidates', () => {
+    it('활성 공고 없으면 빈 배열', async () => {
+      mockPrisma.jobPost.findMany.mockResolvedValueOnce([]);
+      const r = await service.listRecommendedCandidates('r1');
+      expect(r).toEqual([]);
+    });
+
+    it('skill 매칭 점수 기준 정렬', async () => {
+      mockPrisma.jobPost.findMany.mockResolvedValueOnce([
+        { id: 'j1', position: 'FE', skills: 'react,typescript,node' },
+      ]);
+      mockPrisma.resume.findMany.mockResolvedValueOnce([
+        {
+          id: 'r1',
+          title: '풀스택',
+          user: { id: 'u1', name: 'A', avatar: '' },
+          personalInfo: { name: 'A' },
+          skills: [{ items: 'react,typescript,node' }], // 3/3 매칭
+        },
+        {
+          id: 'r2',
+          title: 'BE',
+          user: { id: 'u2', name: 'B', avatar: '' },
+          personalInfo: { name: 'B' },
+          skills: [{ items: 'react' }], // 1/3 매칭
+        },
+        {
+          id: 'r3',
+          title: 'Designer',
+          user: { id: 'u3', name: 'C', avatar: '' },
+          personalInfo: { name: 'C' },
+          skills: [{ items: 'figma,sketch' }], // 0 매칭 → 제외
+        },
+      ]);
+      const r = await service.listRecommendedCandidates('r1');
+      expect(r).toHaveLength(2);
+      expect(r[0].matchScore).toBeGreaterThan(r[1].matchScore);
+      expect(r[0].userId).toBe('u1');
     });
   });
 });

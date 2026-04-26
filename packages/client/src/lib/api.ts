@@ -267,6 +267,31 @@ export interface InterviewScorePoint {
 export const fetchInterviewScoreHistory = () =>
   request<InterviewScorePoint[]>(`${BASE}/interview/answers/history/scores`);
 
+export const applyToJobPost = (jobId: string, body: { resumeId?: string; coverLetter?: string }) =>
+  request<{ id: string; stage: string }>(`${BASE}/jobs/${jobId}/apply`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
+export const updatePipelineStage = (applicationId: string, stage: string) =>
+  request<{ id: string; stage: string }>(`${BASE}/jobs/pipeline/${applicationId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ stage }),
+  });
+
+export const fetchMyJobApplications = () =>
+  request<
+    {
+      id: string;
+      jobId: string;
+      job: { id: string; position: string; company: string; location: string; status: string };
+      stage: string;
+      resumeId: string | null;
+      createdAt: string;
+      updatedAt: string;
+    }[]
+  >(`${BASE}/jobs/my-applications`);
+
 export const analyzeInterviewAnswer = (body: {
   question: string;
   answer: string;

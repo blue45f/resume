@@ -77,6 +77,7 @@ model User {
   requestedCoffeeChats    CoffeeChat[]               @relation("CoffeeChatRequester")
   sentWebrtcSignals       WebrtcSignal[]             @relation("WebrtcSignalFrom")
   receivedWebrtcSignals   WebrtcSignal[]             @relation("WebrtcSignalTo")
+  jobPostApplications     JobPostApplication[]       @relation("JobApplicant")
 
   @@unique([provider, providerId])
   @@map("users")
@@ -679,10 +680,37 @@ model JobPost {
 
   user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   interviewQuestions JobInterviewQuestion[]
+  applications       JobPostApplication[]
 
   @@index([userId])
   @@index([status])
   @@map("job_posts")
+}
+
+/// 구직자가 회사 채용공고(JobPost)에 직접 지원한 기록.
+/// 구직자 자기 지원 기록(JobApplication 모델)과는 별개 — 그 모델은 외부 공고 추적용.
+/// 여기는 플랫폼 내부 공고 → 회사 dashboard 에 surface 되는 application.
+model JobPostApplication {
+  id          String   @id @default(uuid())
+  jobId       String   @map("job_id")
+  applicantId String   @map("applicant_id")
+  resumeId    String?  @map("resume_id")
+  coverLetter String   @default("") @map("cover_letter") @db.Text
+  /// 회사가 관리하는 pipeline stage. interested → contacted → interview → hired (또는 rejected/withdrawn).
+  stage       String   @default("interested")
+  /// 회사 내부 메모 (지원자에게 보이지 않음)
+  recruiterNote String @default("") @map("recruiter_note") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  job       JobPost @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  applicant User    @relation("JobApplicant", fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, applicantId]) // 동일 공고 중복 지원 방지
+  @@index([jobId])
+  @@index([applicantId])
+  @@index([stage])
+  @@map("job_post_applications")
 }
 
 model Banner {

@@ -11,7 +11,7 @@ import { getUser } from '@/lib/auth';
 import { ROUTES, withQuery } from '@/lib/routes';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
-import { fetchResumes, createApplication, updateJob } from '@/lib/api';
+import { fetchResumes, createApplication, updateJob, applyToJobPost } from '@/lib/api';
 import { toast } from '@/components/Toast';
 import type { ResumeSummary } from '@/types/resume';
 import Tabs from '@/shared/ui/Tabs';
@@ -3036,6 +3036,7 @@ function QuickApplyModal({
     }
     setSubmitting(true);
     try {
+      // 1) 사용자 local 지원 트래킹 (JobApplication — 본인이 기록)
       await createApplication({
         company: job.company,
         position: job.position,
@@ -3045,6 +3046,18 @@ function QuickApplyModal({
         location: job.location,
         salary: job.salary,
       });
+      // 2) 회사 dashboard 에 surface 되는 지원 (JobPostApplication, 알림 자동)
+      try {
+        await applyToJobPost(job.id, {
+          resumeId: selectedResumeId,
+          coverLetter: coverLetter || undefined,
+        });
+      } catch (e: any) {
+        // 409 conflict (중복 지원) 등은 silent — 로컬 기록은 이미 됨
+        if (e?.message && !/이미 지원/.test(e.message)) {
+          console.warn('[apply] pipeline push 실패:', e.message);
+        }
+      }
       toast('지원이 완료되었습니다!', 'success');
       onSuccess(job.id);
     } catch (err: any) {

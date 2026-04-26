@@ -1,12 +1,22 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
+import { NotificationsService } from '../notifications/notifications.service';
+
+const VALID_STAGES = ['interested', 'contacted', 'interview', 'hired', 'rejected', 'withdrawn'];
 
 @Injectable()
 export class JobsService {
   constructor(
     private prisma: PrismaService,
     private config: SystemConfigService,
+    private notifications: NotificationsService,
   ) {}
 
   async findAll(status = 'active', query?: string) {
@@ -423,5 +433,237 @@ export class JobsService {
     if (!job) throw new NotFoundException();
     await this.prisma.curatedJob.update({ where: { id }, data: { clickCount: { increment: 1 } } });
     return { sourceUrl: job.sourceUrl };
+  }
+
+  // ── 채용공고 applications (recruiter dashboard surface) ──
+
+  /** 구직자가 내부 공고에 직접 지원. 동일 공고 중복 지원 차단. 회사에 알림 발송. */
+  async applyToJob(
+    jobId: string,
+    applicantId: string,
+    body: { resumeId?: string; coverLetter?: string },
+  ) {
+    const job = await this.prisma.jobPost.findUnique({
+      where: { id: jobId },
+      include: { user: true },
+    });
+    if (!job) throw new NotFoundException('채용 공고를 찾을 수 없습니다');
+    if (job.status !== 'active')
+      throw new BadRequestException('마감된 공고에는 지원할 수 없습니다');
+    if (job.userId === applicantId) throw new BadRequestException('본인 공고에 지원할 수 없습니다');
+
+    // resumeId 검증 — 본인 소유 + private 아님
+    if (body.resumeId) {
+      const resume = await this.prisma.resume.findUnique({ where: { id: body.resumeId } });
+      if (!resume) throw new BadRequestException('이력서를 찾을 수 없습니다');
+      if (resume.userId !== applicantId)
+        throw new ForbiddenException('본인 이력서만 첨부할 수 있습니다');
+    }
+
+    try {
+      const created = await (this.prisma as any).jobPostApplication.create({
+        data: {
+          jobId,
+          applicantId,
+          resumeId: body.resumeId ?? null,
+          coverLetter: (body.coverLetter || '').slice(0, 5000),
+          stage: 'interested',
+        },
+      });
+      // 회사에 신규 지원 알림
+      const applicant = await this.prisma.user.findUnique({ where: { id: applicantId } });
+      await this.notifications
+        .create(
+          job.userId,
+          'job_application_received',
+          `${applicant?.name || '익명'}님이 [${job.position}] 공고에 지원했어요`,
+          `/recruiter?tab=pipeline`,
+        )
+        .catch(() => {});
+      return created;
+    } catch (err: any) {
+      // unique 충돌 — 이미 지원함
+      if (err?.code === 'P2002') {
+        throw new ConflictException('이미 지원한 공고입니다');
+      }
+      throw err;
+    }
+  }
+
+  /** Recruiter — 내가 등록한 모든 공고에 들어온 application 목록 (최근순). */
+  async listApplicantsForRecruiter(recruiterUserId: string) {
+    const myJobs = await this.prisma.jobPost.findMany({
+      where: { userId: recruiterUserId },
+      select: { id: true, position: true },
+    });
+    if (myJobs.length === 0) return [];
+    const jobIds = myJobs.map((j) => j.id);
+    const positionByJobId: Record<string, string> = {};
+    myJobs.forEach((j) => (positionByJobId[j.id] = j.position));
+
+    const apps = await (this.prisma as any).jobPostApplication.findMany({
+      where: { jobId: { in: jobIds } },
+      include: {
+        applicant: {
+          select: { id: true, name: true, username: true, email: true, avatar: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    return apps.map((a: any) => ({
+      id: a.id,
+      jobId: a.jobId,
+      position: positionByJobId[a.jobId] || '',
+      stage: a.stage,
+      resumeId: a.resumeId,
+      coverLetter: a.coverLetter,
+      createdAt: a.createdAt,
+      // RecruiterDashboardPage 가 기대하는 shape 와 일치
+      userId: a.applicant.id,
+      name: a.applicant.name,
+      email: a.applicant.email,
+      avatar: a.applicant.avatar,
+    }));
+  }
+
+  /** Recruiter — pipeline view: stage 별 applicant 조회. */
+  async listPipelineForRecruiter(recruiterUserId: string) {
+    const all = await this.listApplicantsForRecruiter(recruiterUserId);
+    return all.map((a: any) => ({
+      id: a.id,
+      name: a.name,
+      email: a.email,
+      resumeId: a.resumeId,
+      stage: a.stage,
+      position: a.position,
+      updatedAt: a.createdAt,
+    }));
+  }
+
+  /** Recruiter — application 의 stage 변경 (소유 공고만). 변경 시 지원자에게 알림. */
+  async updatePipelineStage(applicationId: string, recruiterUserId: string, newStage: string) {
+    if (!VALID_STAGES.includes(newStage)) {
+      throw new BadRequestException(`유효하지 않은 stage: ${newStage}`);
+    }
+    const app = await (this.prisma as any).jobPostApplication.findUnique({
+      where: { id: applicationId },
+      include: { job: true },
+    });
+    if (!app) throw new NotFoundException('지원 내역을 찾을 수 없습니다');
+    if (app.job.userId !== recruiterUserId)
+      throw new ForbiddenException('본인 공고의 지원만 관리할 수 있습니다');
+    if (app.stage === newStage) return app;
+
+    const updated = await (this.prisma as any).jobPostApplication.update({
+      where: { id: applicationId },
+      data: { stage: newStage },
+    });
+
+    // 지원자에게 stage 변경 알림 (interested 는 noise 라 skip)
+    if (newStage !== 'interested' && newStage !== 'withdrawn') {
+      const stageLabel: Record<string, string> = {
+        contacted: '연락',
+        interview: '면접',
+        hired: '채용',
+        rejected: '거절',
+      };
+      await this.notifications
+        .create(
+          app.applicantId,
+          'job_application_stage',
+          `[${app.job.position}] 지원 단계가 '${stageLabel[newStage] || newStage}'(으)로 변경됐어요`,
+          `/applications`,
+        )
+        .catch(() => {});
+    }
+    return updated;
+  }
+
+  /** Recruiter — 내 활성 공고 skills 와 매칭되는 공개 이력서 보유 user 추천. */
+  async listRecommendedCandidates(recruiterUserId: string) {
+    const activeJobs = await this.prisma.jobPost.findMany({
+      where: { userId: recruiterUserId, status: 'active' },
+      select: { id: true, skills: true, position: true },
+    });
+    if (activeJobs.length === 0) return [];
+
+    // 모든 활성 공고의 skill 합집합
+    const skillSet = new Set<string>();
+    activeJobs.forEach((j) => {
+      (j.skills || '')
+        .split(',')
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean)
+        .forEach((s) => skillSet.add(s));
+    });
+    if (skillSet.size === 0) return [];
+
+    // 공개 이력서 + 스킬 join
+    const publicResumes = await this.prisma.resume.findMany({
+      where: { visibility: 'public', userId: { not: null } },
+      include: {
+        user: { select: { id: true, name: true, avatar: true } },
+        skills: { select: { items: true } },
+        personalInfo: { select: { name: true } },
+      },
+      take: 50,
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    const scored = publicResumes
+      .map((r) => {
+        const userSkills = new Set<string>();
+        r.skills.forEach((s) => {
+          (s.items || '')
+            .split(',')
+            .map((x) => x.trim().toLowerCase())
+            .filter(Boolean)
+            .forEach((x) => userSkills.add(x));
+        });
+        const matched: string[] = [];
+        skillSet.forEach((s) => {
+          if (userSkills.has(s)) matched.push(s);
+        });
+        if (matched.length === 0) return null;
+        const matchScore = Math.round((matched.length / skillSet.size) * 100);
+        return {
+          id: r.id,
+          resumeId: r.id,
+          userId: r.user?.id,
+          name: r.personalInfo?.name || r.user?.name || '익명',
+          title: r.title || '',
+          skills: matched.slice(0, 8),
+          matchScore,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null)
+      .sort((a, b) => b.matchScore - a.matchScore)
+      .slice(0, 12);
+
+    return scored;
+  }
+
+  /** 구직자 — 내가 지원한 공고 목록. */
+  async listMyApplications(applicantId: string) {
+    const apps = await (this.prisma as any).jobPostApplication.findMany({
+      where: { applicantId },
+      include: {
+        job: {
+          select: { id: true, position: true, company: true, location: true, status: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    return apps.map((a: any) => ({
+      id: a.id,
+      jobId: a.jobId,
+      job: a.job,
+      stage: a.stage,
+      resumeId: a.resumeId,
+      createdAt: a.createdAt,
+      updatedAt: a.updatedAt,
+    }));
   }
 }

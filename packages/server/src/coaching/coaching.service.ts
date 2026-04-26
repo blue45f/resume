@@ -290,6 +290,22 @@ export class CoachingService {
       data: { avgRating: aggregate._avg.rating ?? 0 },
     });
 
+    // 코치에게 신규 리뷰 알림
+    const coach = await this.coach.findUnique({ where: { id: session.coachId } });
+    if (coach?.userId) {
+      const reviewSnippet = data.review
+        ? `: "${data.review.slice(0, 60)}${data.review.length > 60 ? '…' : ''}"`
+        : '';
+      await this.notifications
+        .create(
+          coach.userId,
+          'coaching_review_received',
+          `새 코칭 평점 ${rating}/5 ⭐${reviewSnippet}`,
+          `/coach/dashboard`,
+        )
+        .catch(() => {});
+    }
+
     return updated;
   }
 }

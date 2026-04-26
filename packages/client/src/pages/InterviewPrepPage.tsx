@@ -8,6 +8,7 @@ import { API_URL } from '@/lib/config';
 import { useResume, useResumes, usePublicGet } from '@/hooks/useResources';
 import RelatedGroupsWidget from '@/features/study-groups/ui/RelatedGroupsWidget';
 import InterviewScoreHistory from '@/components/InterviewScoreHistory';
+import { analyzeInterviewAnswer } from '@/lib/api';
 import { tx } from '@/lib/i18n';
 
 // ── Types ──
@@ -394,6 +395,37 @@ export default function InterviewPrepPage() {
   // ── Report State ──
   const [currentReport, setCurrentReport] = useState<InterviewReport | null>(null);
   const [savedReports, setSavedReports] = useState<InterviewReport[]>(loadJSON(REPORTS_KEY, []));
+
+  // ── AI 깊이 분석 (LLM endpoint, save=true 로 score history 누적) ──
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<{
+    overallScore: number;
+    strengths: string[];
+    weaknesses: string[];
+    improvements: string[];
+    rewrittenAnswer: string;
+    starBreakdown: { situation: string; task: string; action: string; result: string };
+  } | null>(null);
+
+  const runAiAnalysis = async (question: string, answer: string) => {
+    if (!answer.trim()) return;
+    setAiAnalyzing(true);
+    setAiAnalysis(null);
+    try {
+      const result = await analyzeInterviewAnswer({
+        question,
+        answer,
+        jobRole: jobRole || undefined,
+        save: true,
+      });
+      setAiAnalysis(result);
+      toast(`AI 분석 완료 — ${result.overallScore}점`, 'success');
+    } catch (err: any) {
+      toast(err?.message || 'AI 분석 실패', 'error');
+    } finally {
+      setAiAnalyzing(false);
+    }
+  };
 
   // ── Related study groups (cross-feature recommendation) ──
   const selectedResumeQuery = useResume(selectedResumeId || undefined);
@@ -1087,10 +1119,119 @@ export default function InterviewPrepPage() {
                   </div>
                 )}
 
+                {/* AI 깊이 분석 — heuristic 위에 LLM 한 단계 더 */}
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+                  {!aiAnalysis ? (
+                    <button
+                      onClick={() =>
+                        runAiAnalysis(questions[mockCurrentIdx]?.question || '', mockAnswer)
+                      }
+                      disabled={aiAnalyzing || !mockAnswer.trim()}
+                      className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                    >
+                      {aiAnalyzing ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          AI 깊이 분석 중...
+                        </>
+                      ) : (
+                        <>🤖 AI 깊이 분석 (점수 추세 누적)</>
+                      )}
+                    </button>
+                  ) : (
+                    <div className="space-y-3 animate-fade-in">
+                      <div className="flex items-baseline justify-between">
+                        <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                          🤖 AI 깊이 분석
+                        </h4>
+                        <span className="text-2xl font-bold tabular-nums text-blue-600 dark:text-blue-400">
+                          {aiAnalysis.overallScore}
+                          <span className="text-xs font-normal text-slate-500 ml-1">/100</span>
+                        </span>
+                      </div>
+                      {aiAnalysis.strengths.length > 0 && (
+                        <div>
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
+                            강점
+                          </p>
+                          <ul className="text-xs text-slate-700 dark:text-slate-300 space-y-1">
+                            {aiAnalysis.strengths.map((s, i) => (
+                              <li key={i} className="flex gap-1">
+                                <span className="text-emerald-500">✓</span>
+                                {s}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {aiAnalysis.weaknesses.length > 0 && (
+                        <div>
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1">
+                            약점
+                          </p>
+                          <ul className="text-xs text-slate-700 dark:text-slate-300 space-y-1">
+                            {aiAnalysis.weaknesses.map((s, i) => (
+                              <li key={i} className="flex gap-1">
+                                <span className="text-amber-500">!</span>
+                                {s}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {aiAnalysis.improvements.length > 0 && (
+                        <div>
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 mb-1">
+                            개선 행동
+                          </p>
+                          <ul className="text-xs text-slate-700 dark:text-slate-300 space-y-1">
+                            {aiAnalysis.improvements.map((s, i) => (
+                              <li key={i} className="flex gap-1">
+                                <span className="text-sky-500">→</span>
+                                {s}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {aiAnalysis.rewrittenAnswer && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800/40">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">
+                              리라이트 답변
+                            </p>
+                            <button
+                              onClick={() => {
+                                setMockAnswer(aiAnalysis.rewrittenAnswer);
+                                toast('리라이트 답변이 적용되었습니다', 'success');
+                              }}
+                              className="text-[10px] px-2 py-0.5 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                              적용
+                            </button>
+                          </div>
+                          <p className="text-xs text-blue-800 dark:text-blue-200 leading-relaxed whitespace-pre-wrap">
+                            {aiAnalysis.rewrittenAnswer}
+                          </p>
+                        </div>
+                      )}
+                      <button
+                        onClick={() => setAiAnalysis(null)}
+                        className="w-full py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                      >
+                        AI 분석 닫기
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 {/* Next button */}
                 <div className="flex justify-center">
                   <button
-                    onClick={handleMockNextQuestion}
+                    onClick={() => {
+                      setAiAnalysis(null);
+                      handleMockNextQuestion();
+                    }}
                     className="px-8 py-3 bg-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 transition-all shadow-sm text-sm"
                   >
                     {mockCurrentIdx + 1 >= questions.length ? '결과 보기' : '다음 질문 →'}

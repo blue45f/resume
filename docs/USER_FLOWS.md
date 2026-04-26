@@ -93,10 +93,59 @@
 
 **Audit**: RecruiterDashboardPage 가 호출하는 `/api/jobs/applicants`, `/api/jobs/pipeline`, `/api/jobs/recommended-candidates` 가 server 에 존재하지 않음. authedFetch fallback 으로 [] 반환되어 빈 dashboard 처럼 보임. JobApplication 모델은 구직자 자기 기록용이라 recruiter 발신 적용 안 됨. 이 기능 풀 구현은 model/endpoint/UI 다 만들어야 해서 별도 사이클 필요. 현재는 노트만 추가, 다음 sweep 에서 처리.
 
+## 2026-04-27 sweep #3 — 4개 후보 전부 처리, 1개 deferred
+
+### 회사 — recruiter-side applicant pipeline (서버 + UI 풀구현)
+
+**Audit**: RecruiterDashboardPage 가 `/api/jobs/applicants`, `/api/jobs/pipeline`, `/api/jobs/recommended-candidates` 호출했지만 endpoint 자체가 미구현. fallback 으로 [] 반환되어 빈 dashboard 처럼 보임. 또한 구직자가 `이력서로 즉시 지원` 해도 회사 dashboard 에는 surface 안 됨 (legacy JobApplication 은 본인 추적용).
+
+**Fix**:
+
+- 신규 model `JobPostApplication` (jobId/applicantId/resumeId/coverLetter/stage/recruiterNote, unique [jobId, applicantId] — 중복 지원 차단) + migration `20260428010000_add_job_post_application`
+- 신규 endpoints:
+  - `POST /api/jobs/:id/apply` — 구직자가 내부 공고 직접 지원 (10 req/min throttle, 본인 공고 차단, 마감 차단, 이력서 ownership 검증, 회사에 알림 자동)
+  - `GET /api/jobs/applicants` — recruiter 가 내 모든 공고에 들어온 application
+  - `GET /api/jobs/pipeline` — stage 별 (interested/contacted/interview/hired/rejected/withdrawn)
+  - `PATCH /api/jobs/pipeline/:id` — stage 변경 (소유 공고만, 변경 시 지원자에게 알림 — interested/withdrawn 제외)
+  - `GET /api/jobs/recommended-candidates` — 활성 공고 skills 합집합 + 공개 이력서 user 매칭, matchScore 정렬 top 12
+  - `GET /api/jobs/my-applications` — 구직자가 지원한 내부 공고 목록
+- QuickApplyModal 이 createApplication (legacy) + applyToJobPost (신규) 모두 호출 — 본인 추적 + 회사 dashboard surface 동시. 중복 지원은 silent
+- NotificationBell + NotificationsPage 에 `job_application_received` (📥) / `job_application_stage` (📋) 매핑
+
+### 구직자 — InterviewPrepPage mock interview → AI 깊이 분석 wiring
+
+**Audit**: 지난 sweep 에서 LLM `/analyze` endpoint + score history 컴포넌트는 추가했으나 실제 호출하는 UI 가 없어 dead-code 였음.
+
+**Fix**:
+
+- InterviewPrepPage mock interview feedback 패널 하단에 `🤖 AI 깊이 분석` 버튼 추가, save=true 로 호출 → InterviewAnswer row 누적 → InterviewScoreHistory chart 데이터로 흐름 연결
+- AI 분석 결과: 점수/강점/약점/개선/리라이트 답변 inline 표시, "리라이트 답변 적용" 버튼으로 mockAnswer 교체 가능
+
+### 코치 — 새 리뷰/평점 받았을 때 코치에게 알림
+
+**Audit**: 클라이언트가 평점/리뷰 작성 시 코치는 dashboard 를 직접 열어서만 확인 가능. 즉시 푸시 알림 없음.
+
+**Fix**:
+
+- `reviewSession` 처리 끝에 코치에게 `coaching_review_received` 알림 발송 — 평점/리뷰 snippet 60자 포함, link `/coach/dashboard`
+- NotificationBell + NotificationsPage 에 매핑 추가
+
+### 공유 — ShareResumeWithUserDialog autocomplete (skipped)
+
+**Audit**: 이 dialog 는 항상 parent 가 targetUserId 를 prop 으로 넘겨 호출됨 (커피챗 응답, 코치 상세, 스카우트 reply 등). 사용자가 검색해서 골라야 하는 entry point 가 현재는 AllowedViewersDialog 뿐 (지난 sweep 에서 처리됨). ShareResumeWithUserDialog 에 검색 기능 추가는 별도 entry point (예: HomePage `이력서 공유` 버튼) 가 생긴 후에 처리하는 게 더 자연스러움.
+
+**결정**: skip — 별도 entry point UX 가 정의되면 그때 적용.
+
+### WebRTC TURN 서버 (skipped)
+
+**Audit**: STUN-only 로 strict NAT 환경 통화 실패율 미상. TURN 서버는 자체 운영 (coturn) 또는 Twilio/Xirsys 같은 매니지드 서비스가 필요해 비용 발생.
+
+**결정**: skip — 비용/성공률 trade-off 결정은 사용자 협의 필요. 운영 계측 (성공률 telemetry) 부터 먼저 추가하는 게 합리적.
+
 ## 다음 sweep 후보
 
-- **회사 flow recruiter-side applicant pipeline** — 이번 sweep 에서 deferred 됨. JobApplicationReceived 모델 신규 + 4개 stage 전이 + applicants 받으면 알림.
-- **InterviewPrepPage mock interview → analyzeInterviewAnswer 호출 wiring** — 답변 후 "AI 분석" 버튼 노출, save=true 로 점수 자동 누적.
-- **WebRTC TURN 서버** — strict NAT 환경 통화 성공률 ↑. 비용 vs 성공률 trade-off 결정 필요.
-- **선택 공개 viewer 검색 → ShareResumeWithUserDialog 도 동일 autocomplete** — 현재는 AllowedViewersDialog 만 적용.
-- **코치 dashboard 받은 평점/리뷰 자동 push 알림** — 클라이언트가 새 리뷰 작성 시 코치에게 알림 (현재는 코치가 dashboard 새로고침해야 봄).
+- **WebRTC 통화 성공/실패 telemetry** — peer connection state 변화를 server 로 보내 성공률 측정. TURN 도입 결정 근거 마련.
+- **RecruiterDashboardPage applicants list 의 "📋 파이프라인 추가" 버튼** — 현재는 applicants 가 자동으로 interested 로 들어옴. 명시적 stage 이동 단축 버튼.
+- **구직자 `/applications` 페이지 — 내 지원 현황 + stage 표시** — 현재는 legacy JobApplication 만 보임. fetchMyJobApplications 로 신규 pipeline status 도 보이게.
+- **CoachDashboardPage 의 받은 리뷰 alert badge** — coaching_review_received 알림 미읽음 count 를 dashboard 상단에 표시.
+- **JobApplicantsList 의 resumeId hover preview** — 채용담당자가 이력서 클릭 전에 미니 미리보기.

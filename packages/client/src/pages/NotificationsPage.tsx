@@ -40,6 +40,9 @@ const SYSTEM_TYPES = [
   'coffee_chat_response',
   'coffee_chat_reminder',
   'coaching_review_request',
+  'coaching_review_received',
+  'job_application_received',
+  'job_application_stage',
 ];
 const SOCIAL_TYPES = ['comment', 'bookmark', 'message'];
 
@@ -128,6 +131,24 @@ const TYPE_META: Record<string, { icon: string; bg: string; label: string; color
     bg: 'bg-yellow-100 dark:bg-yellow-900/30',
     label: '코칭 리뷰 요청',
     color: 'text-yellow-700 dark:text-yellow-400',
+  },
+  coaching_review_received: {
+    icon: '⭐',
+    bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+    label: '코칭 리뷰 받음',
+    color: 'text-yellow-700 dark:text-yellow-400',
+  },
+  job_application_received: {
+    icon: '📥',
+    bg: 'bg-blue-100 dark:bg-blue-900/30',
+    label: '신규 지원자',
+    color: 'text-blue-700 dark:text-blue-400',
+  },
+  job_application_stage: {
+    icon: '📋',
+    bg: 'bg-sky-100 dark:bg-sky-900/30',
+    label: '지원 단계 변경',
+    color: 'text-sky-700 dark:text-sky-400',
   },
 };
 

@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Param,
   Body,
@@ -206,7 +207,60 @@ export class JobsController {
     return this.service.recordCuratedJobClick(id);
   }
 
+  // ── Recruiter — 받은 application / pipeline (정적 경로) ─────────────
+
+  @Get('applicants')
+  @ApiOperation({ summary: '내가 등록한 공고에 들어온 application 목록 (recruiter)' })
+  listApplicants(@Req() req: any) {
+    if (!req.user?.id) return [];
+    return this.service.listApplicantsForRecruiter(req.user.id);
+  }
+
+  @Get('pipeline')
+  @ApiOperation({ summary: 'recruiter pipeline view — stage 별 applicants' })
+  listPipeline(@Req() req: any) {
+    if (!req.user?.id) return [];
+    return this.service.listPipelineForRecruiter(req.user.id);
+  }
+
+  @Get('recommended-candidates')
+  @ApiOperation({ summary: '내 활성 공고 skills 와 매칭되는 공개 이력서 user 추천' })
+  listRecommendedCandidates(@Req() req: any) {
+    if (!req.user?.id) return [];
+    return this.service.listRecommendedCandidates(req.user.id);
+  }
+
+  @Get('my-applications')
+  @ApiOperation({ summary: '내가 지원한 내부 공고 목록 (구직자)' })
+  listMyApplications(@Req() req: any) {
+    if (!req.user?.id) return [];
+    return this.service.listMyApplications(req.user.id);
+  }
+
   // ── 동적 :id 경로 — 반드시 정적 경로 뒤에 위치 ─────────────────────
+
+  @Patch('pipeline/:applicationId')
+  @ApiOperation({ summary: 'application stage 변경 (recruiter)' })
+  updatePipelineStage(
+    @Param('applicationId') applicationId: string,
+    @Body('stage') stage: string,
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.updatePipelineStage(applicationId, req.user.id, stage);
+  }
+
+  @Post(':id/apply')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: '채용 공고에 지원' })
+  apply(
+    @Param('id') id: string,
+    @Body() body: { resumeId?: string; coverLetter?: string },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.applyToJob(id, req.user.id, body);
+  }
 
   @Get(':id')
   @Public()
