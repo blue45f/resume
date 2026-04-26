@@ -2,20 +2,32 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { JobUrlParserService } from './job-url-parser.service';
 import { LlmService } from '../llm/llm.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 describe('JobUrlParserService', () => {
   let service: JobUrlParserService;
   let mockLlm: { generateWithFallback: jest.Mock };
+  let mockPrisma: { jobUrlCache: { findUnique: jest.Mock; upsert: jest.Mock } };
   let mockFetch: jest.Mock;
   const originalFetch = global.fetch;
 
   beforeEach(async () => {
     mockLlm = { generateWithFallback: jest.fn() };
+    mockPrisma = {
+      jobUrlCache: {
+        findUnique: jest.fn().mockResolvedValue(null),
+        upsert: jest.fn().mockResolvedValue({}),
+      },
+    };
     mockFetch = jest.fn();
     global.fetch = mockFetch as any;
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [JobUrlParserService, { provide: LlmService, useValue: mockLlm }],
+      providers: [
+        JobUrlParserService,
+        { provide: LlmService, useValue: mockLlm },
+        { provide: PrismaService, useValue: mockPrisma },
+      ],
     }).compile();
     service = module.get(JobUrlParserService);
   });
@@ -180,6 +192,76 @@ describe('JobUrlParserService', () => {
     it('fetch 자체가 throw → BadRequestException 으로 wrap', async () => {
       mockFetch.mockRejectedValue(new Error('network down'));
       await expect(service.parse('https://example.com/x')).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('24시간 캐시', () => {
+    const cachedJob = {
+      url: 'https://cached.example.com/job',
+      source: 'json-ld' as const,
+      title: '캐시된 공고',
+      company: '캐시 컴퍼니',
+      position: '백엔드',
+      location: '',
+      employmentType: '',
+      experienceLevel: '',
+      salary: '',
+      skills: [],
+      description: '',
+      rawText: '',
+    };
+
+    it('캐시 hit (24h 이내) → fetch 호출 없이 즉시 반환', async () => {
+      mockPrisma.jobUrlCache.findUnique.mockResolvedValue({
+        url: cachedJob.url,
+        data: JSON.stringify(cachedJob),
+        createdAt: new Date(Date.now() - 60_000), // 1분 전
+      });
+      const result = await service.parse(cachedJob.url);
+      expect(result.title).toBe('캐시된 공고');
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(mockLlm.generateWithFallback).not.toHaveBeenCalled();
+    });
+
+    it('캐시 만료(>24h) → 무시하고 새로 파싱', async () => {
+      mockPrisma.jobUrlCache.findUnique.mockResolvedValue({
+        url: cachedJob.url,
+        data: JSON.stringify(cachedJob),
+        createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000), // 25시간 전
+      });
+      const html = `<html><script type="application/ld+json">
+{"@type":"JobPosting","title":"새 공고","hiringOrganization":"새 회사"}
+</script></html>`;
+      mockHtmlResponse(html);
+
+      const result = await service.parse(cachedJob.url);
+      expect(result.title).toBe('새 공고');
+      expect(mockFetch).toHaveBeenCalled();
+    });
+
+    it('파싱 성공 → 캐시 upsert 호출됨', async () => {
+      const html = `<html><script type="application/ld+json">
+{"@type":"JobPosting","title":"신규","hiringOrganization":"X"}
+</script></html>`;
+      mockHtmlResponse(html);
+
+      await service.parse('https://new.example.com/x');
+      expect(mockPrisma.jobUrlCache.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { url: 'https://new.example.com/x' },
+          create: expect.objectContaining({ url: 'https://new.example.com/x' }),
+        }),
+      );
+    });
+
+    it('LLM 실패로 partial 결과 → 캐시 저장 안 함 (다음 호출 시 재시도)', async () => {
+      const html = `<html><meta property="og:title" content="t"></html>`;
+      mockHtmlResponse(html);
+      mockLlm.generateWithFallback.mockRejectedValue(new Error('LLM down'));
+
+      const result = await service.parse('https://transient.example.com/x');
+      expect(result.source).toBe('partial');
+      expect(mockPrisma.jobUrlCache.upsert).not.toHaveBeenCalled();
     });
   });
 

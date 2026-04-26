@@ -145,6 +145,16 @@ model ResumeViewer {
   @@map("resume_viewers")
 }
 
+/// 채용공고 URL 파싱 결과 캐시 — 동일 URL 재요청 시 외부 fetch + LLM 호출 절감.
+/// TTL: 24시간 (서비스에서 createdAt 비교로 만료 판정).
+model JobUrlCache {
+  url       String   @id @db.Text
+  data      String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("job_url_cache")
+}
+
 /// 공개 이력서에 대한 사용자 신고 — (resumeId, reporterId) unique 로 중복 방지
 model ResumeReport {
   id         String   @id @default(uuid())

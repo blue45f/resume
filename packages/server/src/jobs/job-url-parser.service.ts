@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../llm/llm.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 export interface ParsedJob {
   url: string;
@@ -19,6 +20,7 @@ export interface ParsedJob {
 const TIMEOUT_MS = 7000;
 const MAX_HTML_BYTES = 1_500_000; // 1.5MB safety
 const MAX_TEXT_LEN = 8000;
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24시간
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
 const PRIVATE_HOST_RE = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.)/;
 
@@ -38,47 +40,86 @@ const PRIVATE_HOST_RE = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-
 export class JobUrlParserService {
   private readonly logger = new Logger(JobUrlParserService.name);
 
-  constructor(private llm: LlmService) {}
+  constructor(
+    private llm: LlmService,
+    private prisma: PrismaService,
+  ) {}
 
   async parse(url: string): Promise<ParsedJob> {
     this.validateUrl(url);
 
+    // 0차: 24시간 캐시 hit 시 즉시 반환 (외부 fetch + LLM 비용 절감)
+    const cached = await this.readCache(url);
+    if (cached) {
+      this.logger.log(`cache hit: ${url}`);
+      return cached;
+    }
+
     const html = await this.fetchHtml(url);
     const text = this.htmlToText(html);
 
+    let result: ParsedJob;
     // 1차: JSON-LD JobPosting
     const jsonLd = this.extractJsonLdJobPosting(html);
     if (jsonLd) {
       this.logger.log(`parsed via JSON-LD: ${url}`);
-      return this.fromJsonLd(jsonLd, url, text);
+      result = this.fromJsonLd(jsonLd, url, text);
+    } else {
+      // 2차: OpenGraph + meta
+      const og = this.extractOpenGraph(html);
+
+      // 3차: LLM 추출 (og 정보 + 본문 텍스트로 enrich)
+      try {
+        const llmResult = await this.extractWithLlm(text, og, url);
+        this.logger.log(`parsed via LLM: ${url}`);
+        result = { ...llmResult, url, source: 'llm', rawText: text.slice(0, MAX_TEXT_LEN) };
+      } catch (err) {
+        this.logger.warn(`LLM 파싱 실패 → og 정보만 반환: ${(err as Error).message}`);
+        // LLM 실패 시 partial 결과 반환 — 캐시는 하지 않음 (다음에 LLM 정상화 시 재시도)
+        return {
+          url,
+          source: 'partial',
+          title: og.title || '',
+          company: og.siteName || '',
+          position: og.title || '',
+          location: '',
+          employmentType: '',
+          experienceLevel: '',
+          salary: '',
+          skills: [],
+          description: og.description || '',
+          rawText: text.slice(0, MAX_TEXT_LEN),
+        };
+      }
     }
 
-    // 2차: OpenGraph + meta
-    const og = this.extractOpenGraph(html);
+    // 성공 시 캐시 저장 (실패는 silent)
+    this.writeCache(url, result).catch((err) =>
+      this.logger.warn(`cache write 실패: ${err?.message || err}`),
+    );
+    return result;
+  }
 
-    // 3차: LLM 추출 (og 정보 + 본문 텍스트로 enrich)
+  /** 캐시 read — 24시간 이내 entry 만 유효. 만료/누락은 null. */
+  private async readCache(url: string): Promise<ParsedJob | null> {
     try {
-      const llmResult = await this.extractWithLlm(text, og, url);
-      this.logger.log(`parsed via LLM: ${url}`);
-      return { ...llmResult, url, source: 'llm', rawText: text.slice(0, MAX_TEXT_LEN) };
-    } catch (err) {
-      this.logger.warn(`LLM 파싱 실패 → og 정보만 반환: ${(err as Error).message}`);
-      // LLM 실패 시 partial 결과 반환 (사용자가 직접 수정 가능)
-      return {
-        url,
-        source: 'partial',
-        title: og.title || '',
-        company: og.siteName || '',
-        position: og.title || '',
-        location: '',
-        employmentType: '',
-        experienceLevel: '',
-        salary: '',
-        skills: [],
-        description: og.description || '',
-        rawText: text.slice(0, MAX_TEXT_LEN),
-      };
+      const row = await this.prisma.jobUrlCache.findUnique({ where: { url } });
+      if (!row) return null;
+      if (Date.now() - row.createdAt.getTime() > CACHE_TTL_MS) return null;
+      return JSON.parse(row.data) as ParsedJob;
+    } catch {
+      return null;
     }
+  }
+
+  /** 캐시 write — upsert (기존 entry 가 있으면 갱신). */
+  private async writeCache(url: string, data: ParsedJob): Promise<void> {
+    const json = JSON.stringify(data);
+    await this.prisma.jobUrlCache.upsert({
+      where: { url },
+      create: { url, data: json },
+      update: { data: json, createdAt: new Date() },
+    });
   }
 
   private validateUrl(url: string) {
