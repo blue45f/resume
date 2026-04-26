@@ -381,7 +381,7 @@ export default function SalaryEstimate({ resume }: Props) {
           {activeTab === 'calculator' && (
             <div className="space-y-3">
               {/* Input controls */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="stagger-children grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     직종
@@ -552,7 +552,7 @@ export default function SalaryEstimate({ resume }: Props) {
             <div className="space-y-3">
               <GrowthChart projections={projections} />
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="stagger-children grid grid-cols-3 gap-2">
                 <div className="text-center p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
                   <p className="text-[10px] text-slate-400">현재</p>
                   <p className="text-sm font-bold text-slate-700 dark:text-slate-300">

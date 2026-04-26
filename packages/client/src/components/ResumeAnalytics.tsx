@@ -61,7 +61,7 @@ const COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 function HourHeatmap({ hours }: { hours: HourStat[] }) {
   const maxCount = Math.max(...hours.map((h) => h.count), 1);
   return (
-    <div className="grid grid-cols-12 gap-1">
+    <div className="stagger-children grid grid-cols-12 gap-1">
       {hours.map((h) => {
         const intensity = h.count / maxCount;
         const bg =
@@ -209,7 +209,7 @@ export default function ResumeAnalytics({ resumeId }: Props) {
       </div>
 
       {/* 숫자 스탯 */}
-      <div className="grid grid-cols-5 gap-2 mb-3">
+      <div className="stagger-children grid grid-cols-5 gap-2 mb-3">
         {stats.map((s) => (
           <div key={s.label} className="text-center">
             <span className="text-sm block mb-0.5">{s.icon}</span>

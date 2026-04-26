@@ -217,7 +217,7 @@ export default function JobAlert({ jobs }: Props) {
                     className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="stagger-children grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                       채용 형태
@@ -247,7 +247,7 @@ export default function JobAlert({ jobs }: Props) {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="stagger-children grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                       최소 연봉 (만원)

@@ -52,7 +52,7 @@ export default function ThemePreviewModal({ theme, onClose, onSelect }: Props) {
           </div>
 
           <div className="flex-1 overflow-y-auto p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="stagger-children grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="border border-neutral-200 dark:border-neutral-600 rounded-xl overflow-hidden shadow-sm">
                 <div className="aspect-[210/297] relative bg-white">
                   <div

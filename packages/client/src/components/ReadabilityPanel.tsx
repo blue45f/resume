@@ -61,7 +61,7 @@ export default function ReadabilityPanel({ resume }: Props) {
       {expanded && (
         <div className="mt-4 space-y-4 animate-in fade-in-0 duration-200">
           {/* 4개 메트릭 카드 */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-2">
             <MetricCard
               label="평균 문장"
               value={`${m.avgSentenceLength}`}

@@ -156,7 +156,7 @@ function DiffViewer({ diffs }: { diffs: DiffItem[] }) {
             </span>
             <DiffBadge type={d.type} />
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="stagger-children grid grid-cols-2 gap-2 text-xs">
             {(d.type === 'removed' || d.type === 'changed') && (
               <div className="p-1.5 bg-red-50 dark:bg-red-900/10 rounded border border-red-100 dark:border-red-900/20">
                 <p className="text-red-700 dark:text-red-400 line-through break-words">

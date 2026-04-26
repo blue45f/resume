@@ -142,7 +142,7 @@ export default function DashboardStats() {
   return (
     <div className="space-y-4 mb-6">
       {/* 숫자 스탯 카드 */}
-      <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+      <div className="stagger-children grid grid-cols-3 sm:grid-cols-5 gap-3">
         {stats.map((s) => (
           <button
             key={s.label}
@@ -163,7 +163,7 @@ export default function DashboardStats() {
 
       {/* 차트 영역 */}
       {(viewsChartData.length > 0 || data.summary.totalResumes > 0) && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* 조회수 트렌드 AreaChart */}
           {viewsChartData.length > 0 && (
             <div className="sm:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">

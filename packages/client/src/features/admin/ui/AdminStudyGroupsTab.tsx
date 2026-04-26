@@ -366,7 +366,7 @@ function EditGroupDialog({
               rows={3}
               className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100"
             />
-            <div className="grid grid-cols-3 gap-2">
+            <div className="stagger-children grid grid-cols-3 gap-2">
               <select
                 value={tier}
                 onChange={(e) => setTier(e.target.value)}

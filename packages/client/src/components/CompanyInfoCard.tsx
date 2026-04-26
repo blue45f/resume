@@ -143,7 +143,7 @@ export default function CompanyInfoCard({ job, allJobs, onSelectJob }: Props) {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 gap-2 mb-3">
+      <div className="stagger-children grid grid-cols-2 gap-2 mb-3">
         <div className="bg-white dark:bg-slate-800/80 rounded-lg p-2.5 text-center border border-slate-100 dark:border-slate-700">
           <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{companyJobs.length}</p>
           <p className="text-xs text-slate-500 dark:text-slate-400">채용 중인 공고</p>

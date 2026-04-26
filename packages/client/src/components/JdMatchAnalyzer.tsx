@@ -594,7 +594,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
                       <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">
                         경력 매칭
                       </h4>
-                      <div className="grid grid-cols-3 gap-3 text-center">
+                      <div className="stagger-children grid grid-cols-3 gap-3 text-center">
                         <div className="p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
                           <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
                             요구 경력

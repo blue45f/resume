@@ -151,7 +151,7 @@ export default function NetworkStats() {
           더보기
         </Link>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
         {items.map((item) => (
           <Link
             key={item.label}

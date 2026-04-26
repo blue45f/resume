@@ -98,7 +98,7 @@ export default function ResumeHealthBoost({ resumes }: Props) {
         className="absolute inset-y-0 left-0 w-1 bg-sky-700 dark:bg-sky-400"
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-6 sm:gap-7 p-5 sm:p-7 pl-6 sm:pl-9">
+      <div className="stagger-children grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-6 sm:gap-7 p-5 sm:p-7 pl-6 sm:pl-9">
         {/* ── left: dial ──────────────────────────────────────────── */}
         <div className="flex items-center gap-5">
           <div className="relative shrink-0">

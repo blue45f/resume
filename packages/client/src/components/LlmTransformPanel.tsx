@@ -284,7 +284,7 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
                   <legend className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     변환 양식
                   </legend>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {LLM_TEMPLATES.map((opt) => (
                       <button
                         key={opt.value}

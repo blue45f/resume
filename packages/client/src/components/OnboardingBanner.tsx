@@ -140,7 +140,7 @@ export default function OnboardingBanner() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-10">
+      <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-10">
         {steps.map((step) => (
           <Link
             key={step.num}

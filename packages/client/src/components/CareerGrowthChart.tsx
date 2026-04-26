@@ -207,7 +207,7 @@ export default function CareerGrowthChart({ resume }: Props) {
           </div>
 
           {/* 요약 통계 */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+          <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
             {[
               {
                 label: '시작',

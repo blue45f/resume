@@ -650,7 +650,7 @@ export default function ResumeForm({
                 </div>
               )}
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="pi-phone" className={labelClass}>
                   전화번호
@@ -797,7 +797,7 @@ export default function ResumeForm({
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor={`exp-company-${exp._rhfId}`} className={labelClass}>
                         회사명
@@ -1031,7 +1031,7 @@ export default function ResumeForm({
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor={`edu-school-${edu._rhfId}`} className={labelClass}>
                         학교명
@@ -1174,7 +1174,7 @@ export default function ResumeForm({
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor={`skill-cat-${skill._rhfId}`} className={labelClass}>
                         카테고리
@@ -1258,7 +1258,7 @@ export default function ResumeForm({
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor={`proj-name-${proj._rhfId}`} className={labelClass}>
                         프로젝트명
@@ -1424,7 +1424,7 @@ export default function ResumeForm({
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor={`cert-name-${cert._rhfId}`} className={labelClass}>
                         자격증명
@@ -1540,7 +1540,7 @@ export default function ResumeForm({
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor={`lang-name-${lang._rhfId}`} className={labelClass}>
                         언어
@@ -1636,7 +1636,7 @@ export default function ResumeForm({
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor={`award-name-${award._rhfId}`} className={labelClass}>
                         수상명
@@ -1730,7 +1730,7 @@ export default function ResumeForm({
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor={`act-name-${act._rhfId}`} className={labelClass}>
                         활동명

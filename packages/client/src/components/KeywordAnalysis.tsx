@@ -120,7 +120,7 @@ export default function KeywordAnalysis({ resume }: Props) {
                 />
 
                 {jd && (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="stagger-children grid grid-cols-2 gap-2">
                     <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
                       <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-1">
                         매칭 키워드 ({matchedKeys.length})

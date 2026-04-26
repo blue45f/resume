@@ -316,7 +316,7 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="stagger-children grid grid-cols-2 gap-3">
                       <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
                         <h4 className="text-xs font-semibold text-green-700 mb-1">✅ 매칭 스킬</h4>
                         <div className="flex flex-wrap gap-1">
