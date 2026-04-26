@@ -16,56 +16,36 @@ export default function Footer() {
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Brand */}
-          <Link to={ROUTES.home} className="inline-flex items-center gap-2 group">
-            <div className="w-6 h-6 bg-sky-700 rounded-md flex items-center justify-center">
-              <svg
-                className="w-3 h-3 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-            </div>
-            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+          {/* Brand — Header 와 같은 wordmark + serial mark 패턴 */}
+          <Link to={ROUTES.home} className="inline-flex items-baseline gap-2 group select-none">
+            <span
+              aria-hidden="true"
+              className="inline-block w-2.5 h-[2px] bg-sky-700 dark:bg-sky-400 transition-[width] duration-300 ease-out group-hover:w-4"
+            />
+            <span className="text-xs font-bold tracking-[-0.02em] text-slate-700 dark:text-slate-200 leading-none">
               {tx('footer.brandName')}
             </span>
-            <span className="text-[11px] text-slate-400 dark:text-slate-500">
+            <span className="text-[11px] text-slate-400 dark:text-slate-500 tabular-nums">
               © {new Date().getFullYear()}
             </span>
           </Link>
 
-          {/* Essential links only — 나머지는 GNB/More에 집중 */}
+          {/* Essential links only — link-underline-reveal 으로 hover 시 좌→우 underline */}
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
-            <Link
-              to={ROUTES.terms}
-              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
+            <Link to={ROUTES.terms} className="link-underline-reveal transition-colors">
               {tx('footer.terms')}
             </Link>
-            <Link
-              to={ROUTES.privacy}
-              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
+            <Link to={ROUTES.privacy} className="link-underline-reveal transition-colors">
               {tx('footer.privacy')}
             </Link>
-            <Link
-              to={ROUTES.feedback}
-              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
+            <Link to={ROUTES.feedback} className="link-underline-reveal transition-colors">
               {tx('footer.feedback')}
             </Link>
             <a
               href="https://github.com/blue45f/resume"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              className="link-underline-reveal transition-colors"
             >
               {tx('footer.github')}
             </a>
