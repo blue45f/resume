@@ -184,6 +184,87 @@ export default function RecruiterDashboardPage() {
           <div className="text-center py-12 text-slate-400">불러오는 중...</div>
         ) : (
           <div className="space-y-6">
+            {/* First-time recruiter hero — only when no jobs posted yet */}
+            {jobs.length === 0 && (
+              <section
+                aria-label="시작하기"
+                className="bg-sky-900 rounded-2xl p-5 sm:p-6 text-white relative overflow-hidden animate-fade-in-up"
+              >
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 pointer-events-none opacity-15"
+                  style={{
+                    backgroundImage:
+                      'radial-gradient(circle, rgb(255 255 255 / 0.6) 1px, transparent 1px)',
+                    backgroundSize: '22px 22px',
+                  }}
+                />
+                <div className="relative z-10">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300 mb-2">
+                    시작하기
+                  </p>
+                  <h2 className="text-xl font-black mb-1.5 tracking-tight">
+                    리크루터로 시작하셨네요
+                  </h2>
+                  <p className="text-sky-200 text-sm mb-5">
+                    첫 공고를 등록하면 추천 인재 매칭과 스카우트가 활성화됩니다
+                  </p>
+                  <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[
+                      {
+                        num: 1,
+                        title: '공고 등록',
+                        desc: '포지션·요구 기술·복지',
+                        href: ROUTES.jobs.new,
+                      },
+                      {
+                        num: 2,
+                        title: '추천 인재 매칭',
+                        desc: '공고 기술 스택과 일치하는 후보 자동 매칭',
+                        href: ROUTES.resume.explore,
+                      },
+                      {
+                        num: 3,
+                        title: '스카우트 보내기',
+                        desc: '관심 후보에게 1:1 메시지',
+                        href: ROUTES.jobs.scouts,
+                      },
+                    ].map((step) => (
+                      <Link
+                        key={step.num}
+                        to={step.href}
+                        className="group flex items-center gap-3 p-3.5 bg-sky-800/60 hover:bg-sky-700 border border-sky-700 hover:border-sky-500 rounded-xl transition-colors duration-200"
+                      >
+                        <span className="shrink-0 w-9 h-9 bg-white text-sky-900 rounded-full flex items-center justify-center text-sm font-black tabular-nums">
+                          {step.num}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold flex items-center gap-2">
+                            {step.title}
+                            <svg
+                              className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 5l7 7-7 7"
+                              />
+                            </svg>
+                          </p>
+                          <p className="text-xs text-sky-200 truncate">{step.desc}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+
             {/* Quick Stats */}
             <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
