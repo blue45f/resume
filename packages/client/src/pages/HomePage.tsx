@@ -40,6 +40,7 @@ import ProfileWizard from '@/components/ProfileWizard';
 import ResumeHealthRing from '@/widgets/resume-health-ring';
 import InterviewRoulette from '@/widgets/interview-roulette';
 import CareerLevel from '@/widgets/career-level';
+import { ResumeHealthBoost } from '@/widgets/resume-health-boost';
 const BannerSlider = lazy(() => import('@/components/BannerSlider'));
 import NoticePopup from '@/components/NoticePopup';
 import WhatsNewModal from '@/components/WhatsNewModal';
@@ -1152,6 +1153,9 @@ export default function HomePage() {
             <InterviewRoulette />
 
             {user?.userType === 'personal' && <WeeklyGoalWidget />}
+
+            {/* 이력서 건강도 진단 — 다음 한 걸음 인사이트 */}
+            {resumes.length > 0 && <ResumeHealthBoost resumes={resumes} />}
 
             {/* 내 이력서 섹션 헤딩 */}
             <div className="flex items-center justify-between mb-4 mt-2">
