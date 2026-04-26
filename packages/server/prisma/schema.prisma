@@ -969,17 +969,22 @@ model Draft {
 }
 
 model InterviewAnswer {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  resumeId  String?  @map("resume_id")
-  question  String
-  answer    String
-  jobRole   String?  @map("job_role")
-  createdAt DateTime @default(now()) @map("created_at")
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  resumeId      String?   @map("resume_id")
+  question      String
+  answer        String
+  jobRole       String?   @map("job_role")
+  // AI 분석 결과 (analyzeAnswer 호출 + 저장 시 채워짐). 시간별 점수 추세 비교용.
+  analysisScore Int?      @map("analysis_score") // 1-100
+  analysisJson  String?   @map("analysis_json") @db.Text // {strengths,weaknesses,improvements,rewrittenAnswer,starBreakdown}
+  analyzedAt    DateTime? @map("analyzed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, createdAt])
   @@map("interview_answers")
 }
 

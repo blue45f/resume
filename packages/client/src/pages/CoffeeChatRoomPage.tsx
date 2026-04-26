@@ -108,19 +108,29 @@ export default function CoffeeChatRoomPage() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
-            {error}
+          <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm flex items-start gap-3">
+            <span className="shrink-0">⚠️</span>
+            <div className="flex-1 leading-relaxed">{error}</div>
+            {state === 'failed' && (
+              <button
+                onClick={start}
+                className="shrink-0 px-3 py-1 text-xs font-medium rounded-md bg-red-600 text-white hover:bg-red-700"
+              >
+                다시 시도
+              </button>
+            )}
           </div>
         )}
 
         {!isChat && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          <div className="relative mb-4">
+            {/* Remote video — 모바일 / 데스크톱 모두 풀 폭. */}
             <div className="aspect-video bg-slate-900 rounded-xl overflow-hidden relative">
               <video
                 ref={remoteVideoRef}
                 autoPlay
                 playsInline
-                className={`w-full h-full ${isVideo ? '' : 'hidden'}`}
+                className={`w-full h-full object-contain ${isVideo ? '' : 'hidden'}`}
               />
               {!isVideo && remoteStream && (
                 <div className="w-full h-full flex items-center justify-center text-white">
@@ -136,28 +146,32 @@ export default function CoffeeChatRoomPage() {
                 {peerInfo?.name}
               </span>
             </div>
-            <div className="aspect-video bg-slate-800 rounded-xl overflow-hidden relative">
-              <video
-                ref={localVideoRef}
-                autoPlay
-                playsInline
-                muted
-                className={`w-full h-full ${isVideo ? '' : 'hidden'}`}
-              />
-              {isVoice && localStream && (
-                <div className="w-full h-full flex items-center justify-center text-white">
-                  <span className="text-4xl">🎙️ 나</span>
-                </div>
-              )}
-              {!localStream && (
-                <div className="w-full h-full flex items-center justify-center text-slate-400">
-                  <span className="text-sm">통화를 시작하세요</span>
-                </div>
-              )}
-              <span className="absolute bottom-2 left-2 px-2 py-0.5 text-xs bg-black/60 text-white rounded">
-                나
-              </span>
-            </div>
+            {/* Local PiP — 우측 하단 작게. video 모드만. */}
+            {isVideo && (
+              <div className="absolute bottom-3 right-3 w-28 h-20 sm:w-40 sm:h-28 bg-slate-800 rounded-lg overflow-hidden shadow-lg ring-2 ring-white/30">
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+                {!localStream && (
+                  <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-[10px]">
+                    카메라 대기
+                  </div>
+                )}
+                <span className="absolute bottom-1 left-1 px-1.5 py-0.5 text-[9px] bg-black/60 text-white rounded">
+                  나
+                </span>
+              </div>
+            )}
+            {/* Voice 모드 — 마이크 활성 표시 */}
+            {isVoice && (
+              <div className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full bg-black/60 text-white text-xs flex items-center gap-1">
+                {localStream ? '🎙️ 마이크 ON' : '🎙️ 대기'}
+              </div>
+            )}
           </div>
         )}
 

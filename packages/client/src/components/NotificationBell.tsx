@@ -66,6 +66,7 @@ export default function NotificationBell() {
       coffee_chat_request: { icon: '☕', color: 'bg-amber-100 dark:bg-amber-900/30' },
       coffee_chat_response: { icon: '☕', color: 'bg-emerald-100 dark:bg-emerald-900/30' },
       coffee_chat_reminder: { icon: '⏰', color: 'bg-amber-100 dark:bg-amber-900/30' },
+      coaching_review_request: { icon: '⭐', color: 'bg-yellow-100 dark:bg-yellow-900/30' },
       follow: { icon: '👤', color: 'bg-sky-100 dark:bg-sky-900/30' },
       comment: { icon: '💬', color: 'bg-green-100 dark:bg-green-900/30' },
       scout: { icon: '🏢', color: 'bg-amber-100 dark:bg-amber-900/30' },

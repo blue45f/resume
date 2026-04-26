@@ -324,6 +324,14 @@ export class AuthController {
     return this.authService.getPublicPortfolio(username);
   }
 
+  @Get('users/search')
+  @Throttle({ short: { limit: 30, ttl: 60000 } })
+  @ApiOperation({ summary: '사용자 검색 (이력서 공유 등 ≤10건, name/username/email prefix)' })
+  searchUsers(@Req() req: any, @Query('q') q?: string) {
+    if (!req.user?.id) return [];
+    return this.authService.searchUsers(req.user.id, q || '');
+  }
+
   // ---- 내 정보 ----
   @Get('me')
   @ApiOperation({ summary: '내 정보 조회' })

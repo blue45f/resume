@@ -57,7 +57,8 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
 
   /** 사용자 인터랙션 후 호출 — 카메라/마이크 권한 요청 + peer connection 시작. */
   const start = useCallback(async () => {
-    if (state !== 'idle') return;
+    // idle 또는 failed (재시도) 일 때만 진행
+    if (state !== 'idle' && state !== 'failed') return;
     setError('');
     setState('connecting');
 
@@ -65,12 +66,41 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
       // 1. 미디어 권한 (chat 모드는 stream 없음)
       let stream: MediaStream | null = null;
       if (modality !== 'chat') {
+        // mobile 호환: ideal 만 명시 → 단말이 해상도 결정. 가로/세로 회전 모두 OK.
         const constraints: MediaStreamConstraints =
           modality === 'voice'
             ? { audio: true, video: false }
-            : { audio: true, video: { width: 640, height: 480 } };
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-        setLocalStream(stream);
+            : {
+                audio: true,
+                video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+              };
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+          setLocalStream(stream);
+        } catch (mediaErr: any) {
+          // 권한 거부 / 디바이스 없음 / 다른 앱 점유 — 명확한 한국어 메시지
+          const name = mediaErr?.name || '';
+          if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+            throw new Error(
+              modality === 'voice'
+                ? '마이크 권한이 차단됐어요. 브라우저 주소창의 자물쇠 → 사이트 설정 → 마이크 허용 후 다시 시도해주세요.'
+                : '카메라/마이크 권한이 차단됐어요. 브라우저 주소창의 자물쇠 → 사이트 설정 → 카메라·마이크 허용 후 다시 시도해주세요.',
+            );
+          }
+          if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+            throw new Error(
+              modality === 'voice'
+                ? '마이크 장치를 찾을 수 없어요. 마이크 연결을 확인해주세요.'
+                : '카메라/마이크 장치를 찾을 수 없어요. 장치 연결을 확인해주세요.',
+            );
+          }
+          if (name === 'NotReadableError' || name === 'TrackStartError') {
+            throw new Error(
+              '다른 앱이 카메라/마이크를 사용 중이에요. 해당 앱을 종료 후 재시도해주세요.',
+            );
+          }
+          throw mediaErr;
+        }
       }
 
       // 2. Peer connection

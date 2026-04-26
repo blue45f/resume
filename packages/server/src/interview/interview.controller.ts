@@ -44,10 +44,17 @@ export class InterviewController {
     summary: 'AI 기반 면접 답변 분석 — 강점/약점/개선/리라이트 (LLM 호출, 5 req/min)',
   })
   analyzeAnswer(
-    @Body() body: { question: string; answer: string; jobRole?: string },
+    @Body() body: { question: string; answer: string; jobRole?: string; save?: boolean },
     @Req() req: any,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.analyzeAnswer(req.user.id, body);
+  }
+
+  @Get('answers/history/scores')
+  @ApiOperation({ summary: '시간별 면접 답변 점수 추세 (최근 90일)' })
+  scoreHistory(@Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.scoreHistory(req.user.id);
   }
 }

@@ -39,6 +39,7 @@ const SYSTEM_TYPES = [
   'coffee_chat_request',
   'coffee_chat_response',
   'coffee_chat_reminder',
+  'coaching_review_request',
 ];
 const SOCIAL_TYPES = ['comment', 'bookmark', 'message'];
 
@@ -121,6 +122,12 @@ const TYPE_META: Record<string, { icon: string; bg: string; label: string; color
     bg: 'bg-amber-100 dark:bg-amber-900/30',
     label: '커피챗 리마인더',
     color: 'text-amber-700 dark:text-amber-400',
+  },
+  coaching_review_request: {
+    icon: '⭐',
+    bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+    label: '코칭 리뷰 요청',
+    color: 'text-yellow-700 dark:text-yellow-400',
   },
 };
 

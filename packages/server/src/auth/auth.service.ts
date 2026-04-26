@@ -12,6 +12,16 @@ interface OAuthProfile {
   avatar: string;
 }
 
+/** 이메일 부분 마스킹 — 'user@example.com' → 'u***@example.com' (정보 노출 최소화) */
+function maskEmail(email: string): string {
+  const at = email.indexOf('@');
+  if (at <= 0) return email;
+  const local = email.slice(0, at);
+  const domain = email.slice(at);
+  if (local.length <= 1) return `${local}***${domain}`;
+  return `${local[0]}***${domain}`;
+}
+
 @Injectable()
 export class AuthService {
   private readonly frontendUrl: string;
@@ -295,6 +305,42 @@ export class AuthService {
       followerCount,
       followingCount,
     };
+  }
+
+  /** 사용자 자동완성 검색 — 이력서 selective 화이트리스트 등에서 사용. 최대 10건. */
+  async searchUsers(currentUserId: string, q: string) {
+    const query = (q || '').trim();
+    if (query.length < 2) return [];
+    // SQL injection 방지: Prisma where 사용. like 패턴은 escape 안 해도 OK (기본 contains).
+    const rows = await this.prisma.user.findMany({
+      where: {
+        AND: [
+          { id: { not: currentUserId } }, // 자기 자신 제외
+          {
+            OR: [
+              { name: { contains: query, mode: 'insensitive' } },
+              { username: { contains: query, mode: 'insensitive' } },
+              { email: { contains: query, mode: 'insensitive' } },
+            ],
+          },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        avatar: true,
+        userType: true,
+      },
+      take: 10,
+      orderBy: [{ name: 'asc' }],
+    });
+    // email 은 부분 마스킹 (정보 노출 최소화) — '@' 앞 첫 1글자 + '...'
+    return rows.map((u) => ({
+      ...u,
+      email: u.email ? maskEmail(u.email) : null,
+    }));
   }
 
   async getPublicPortfolio(username: string) {

@@ -2,6 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CoachingService } from './coaching.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
+
+const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
 
 // Mock CoachProfile / CoachingSession / Resume accessors.
 // Prisma delegates are exposed via `coachProfile`, `coachingSession`, `resume` keys on PrismaService.
@@ -26,7 +29,11 @@ describe('CoachingService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CoachingService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        CoachingService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotifications },
+      ],
     }).compile();
     service = module.get(CoachingService);
     jest.clearAllMocks();
@@ -197,6 +204,43 @@ describe('CoachingService', () => {
       await expect(service.updateStatus('s1', 'outsider', { status: 'confirmed' })).rejects.toThrow(
         ForbiddenException,
       );
+    });
+
+    it('completed 전이 시 클라이언트에게 리뷰 요청 알림 발송', async () => {
+      mockPrisma.coachingSession.findUnique.mockResolvedValueOnce({
+        id: 's1',
+        coachId: 'cp1',
+        clientId: 'client-1',
+        status: 'confirmed',
+        rating: null,
+        coach: { userId: 'coach-user' },
+      });
+      mockPrisma.coachingSession.update.mockResolvedValue({ id: 's1', status: 'completed' });
+      (mockPrisma.coachProfile as any).update = jest.fn().mockResolvedValue({});
+      mockNotifications.create.mockClear();
+      await service.updateStatus('s1', 'coach-user', { status: 'completed' });
+      expect(mockNotifications.create).toHaveBeenCalledWith(
+        'client-1',
+        'coaching_review_request',
+        expect.stringContaining('리뷰'),
+        expect.stringContaining('/coaching/sessions?focus=s1'),
+      );
+    });
+
+    it('이미 평점이 있는 세션은 알림 skip (refunded → completed edge case)', async () => {
+      mockPrisma.coachingSession.findUnique.mockResolvedValueOnce({
+        id: 's2',
+        coachId: 'cp1',
+        clientId: 'client-1',
+        status: 'cancelled',
+        rating: 5,
+        coach: { userId: 'coach-user' },
+      });
+      mockPrisma.coachingSession.update.mockResolvedValue({ id: 's2', status: 'refunded' });
+      (mockPrisma.coachProfile as any).update = jest.fn().mockResolvedValue({});
+      mockNotifications.create.mockClear();
+      await service.updateStatus('s2', 'coach-user', { status: 'refunded' });
+      expect(mockNotifications.create).not.toHaveBeenCalled();
     });
   });
 

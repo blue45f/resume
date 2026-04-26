@@ -199,5 +199,51 @@ describe('InterviewService', () => {
         BadRequestException,
       );
     });
+
+    it('save=true 면 InterviewAnswer row 누적 저장 (analysisScore + analysisJson)', async () => {
+      mockLlm.generateWithFallback.mockResolvedValueOnce(validResp);
+      mockPrisma.interviewAnswer.create.mockResolvedValueOnce({ id: 'a1' });
+      await service.analyzeAnswer('u1', {
+        question: 'Q',
+        answer: 'A 내용',
+        save: true,
+      });
+      expect(mockPrisma.interviewAnswer.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          userId: 'u1',
+          analysisScore: 75,
+          jobRole: null,
+          analyzedAt: expect.any(Date),
+          analysisJson: expect.stringContaining('overallScore'),
+        }),
+      });
+    });
+
+    it('save=false 또는 미지정 → row 저장 안 함', async () => {
+      mockLlm.generateWithFallback.mockResolvedValue(validResp);
+      await service.analyzeAnswer('u1', { question: 'Q', answer: 'A' });
+      await service.analyzeAnswer('u1', { question: 'Q', answer: 'A', save: false });
+      expect(mockPrisma.interviewAnswer.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('scoreHistory', () => {
+    it('analysisScore 있는 row 만 반환 + 90일 cutoff', async () => {
+      mockPrisma.interviewAnswer.findMany.mockResolvedValueOnce([
+        { id: 'r1', question: 'Q1', analysisScore: 70, jobRole: 'BE', createdAt: new Date() },
+      ]);
+      const r = await service.scoreHistory('u1');
+      expect(mockPrisma.interviewAnswer.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 'u1',
+            analysisScore: { not: null },
+            createdAt: { gte: expect.any(Date) },
+          }),
+          orderBy: { createdAt: 'asc' },
+        }),
+      );
+      expect(r).toHaveLength(1);
+    });
   });
 });

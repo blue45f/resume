@@ -7,6 +7,7 @@ import type { Resume, ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
 import { useResume, useResumes, usePublicGet } from '@/hooks/useResources';
 import RelatedGroupsWidget from '@/features/study-groups/ui/RelatedGroupsWidget';
+import InterviewScoreHistory from '@/components/InterviewScoreHistory';
 import { tx } from '@/lib/i18n';
 
 // ── Types ──
@@ -1382,6 +1383,9 @@ export default function InterviewPrepPage() {
             AI가 이력서 기반으로 예상 면접 질문과 모범 답변을 생성합니다
           </p>
         </div>
+
+        {/* 점수 추세 — 데이터 없으면 자동 hide */}
+        <InterviewScoreHistory />
 
         {/* Setup */}
         <div className="imp-card p-6 mb-6">

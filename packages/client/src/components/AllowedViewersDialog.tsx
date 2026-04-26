@@ -5,7 +5,9 @@ import {
   listAllowedViewers,
   addAllowedViewer,
   removeAllowedViewer,
+  searchUsers,
   type ResumeAllowedViewer,
+  type UserSearchResult,
 } from '@/lib/api';
 import { tx } from '@/lib/i18n';
 
@@ -29,6 +31,9 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<UserSearchResult[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [pickedUserId, setPickedUserId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   // 만료일 (선택). 'never' = null, 'D7' = 7일 후, 'D30' = 30일 후, 'custom' = 사용자 입력
   const [expiresPreset, setExpiresPreset] = useState<'never' | 'D7' | 'D30' | 'D90' | 'custom'>(
@@ -57,6 +62,25 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
     if (!open) onClose();
   }, [open, onClose]);
 
+  // 자동완성 — query 변경 시 디바운스 후 검색 (≥2자, picked 후엔 skip)
+  useEffect(() => {
+    const q = query.trim();
+    if (pickedUserId) return; // 선택 후엔 더 이상 fetch 안 함
+    if (q.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    const t = setTimeout(() => {
+      searchUsers(q)
+        .then((rows) => {
+          setSuggestions(rows.slice(0, 8));
+          setShowSuggestions(true);
+        })
+        .catch(() => setSuggestions([]));
+    }, 220);
+    return () => clearTimeout(t);
+  }, [query, pickedUserId]);
+
   /** preset / custom → ISO 문자열 (또는 null = 만료 없음) */
   const computeExpiresAt = (): string | null | undefined => {
     if (expiresPreset === 'never') return null;
@@ -70,20 +94,29 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
 
   const handleAdd = async () => {
     const q = query.trim();
-    if (!q) return;
+    if (!q && !pickedUserId) return;
     setAdding(true);
     try {
-      // @username 형식이면 username 으로, 그 외 이메일로 시도
-      const isEmail = q.includes('@') && q.indexOf('@') > 0;
       const expiresAt = computeExpiresAt();
       const base = {
         message: message.trim() || undefined,
         ...(expiresAt !== undefined ? { expiresAt } : {}),
       };
-      const payload = isEmail ? { email: q, ...base } : { username: q.replace(/^@/, ''), ...base };
+      let payload;
+      if (pickedUserId) {
+        // autocomplete 에서 선택한 user 직접 사용
+        payload = { userId: pickedUserId, ...base };
+      } else {
+        // @username 형식이면 username 으로, 그 외 이메일로 시도
+        const isEmail = q.includes('@') && q.indexOf('@') > 0;
+        payload = isEmail ? { email: q, ...base } : { username: q.replace(/^@/, ''), ...base };
+      }
       await addAllowedViewer(resumeId, payload);
       toast(tx('sharing.addedSuccess'), 'success');
       setQuery('');
+      setPickedUserId(null);
+      setSuggestions([]);
+      setShowSuggestions(false);
       setMessage('');
       setExpiresPreset('never');
       setExpiresCustom('');
@@ -93,6 +126,12 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
     } finally {
       setAdding(false);
     }
+  };
+
+  const pickSuggestion = (u: UserSearchResult) => {
+    setPickedUserId(u.id);
+    setQuery(u.username ? `@${u.username}` : u.name || u.email || '');
+    setShowSuggestions(false);
   };
 
   const handleRemove = async (userId: string, name: string) => {
@@ -120,24 +159,81 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
           <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
             {tx('sharing.addUser')}
           </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && query.trim() && !adding) {
-                  e.preventDefault();
-                  handleAdd();
-                }
-              }}
-              placeholder="@hjunkim 또는 user@example.com"
-              className="flex-1 px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="flex gap-2 relative">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setPickedUserId(null);
+                }}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && query.trim() && !adding) {
+                    e.preventDefault();
+                    handleAdd();
+                  }
+                  if (e.key === 'Escape') setShowSuggestions(false);
+                }}
+                placeholder="이름 / @username / email 검색"
+                aria-autocomplete="list"
+                aria-expanded={showSuggestions}
+                className="w-full px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <ul
+                  role="listbox"
+                  className="absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg divide-y divide-slate-100 dark:divide-slate-700/60"
+                >
+                  {suggestions.map((u) => (
+                    <li
+                      key={u.id}
+                      role="option"
+                      aria-selected={pickedUserId === u.id}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        pickSuggestion(u);
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/40"
+                    >
+                      {u.avatar ? (
+                        <img
+                          src={u.avatar}
+                          alt=""
+                          className="w-6 h-6 rounded-full object-cover bg-slate-100 dark:bg-slate-700 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-sky-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                          {(u.name || u.email || '?').slice(0, 1).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                          {u.name || '(이름 없음)'}
+                          {u.username && (
+                            <span className="ml-1 text-xs font-normal text-slate-500 dark:text-slate-400">
+                              @{u.username}
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                          {u.email || ''}
+                        </p>
+                      </div>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 shrink-0">
+                        {u.userType}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <button
               type="button"
               onClick={handleAdd}
-              disabled={!query.trim() || adding}
+              disabled={(!query.trim() && !pickedUserId) || adding}
               className="px-3 py-1.5 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
               {adding ? tx('sharing.adding') : tx('sharing.addBtn')}

@@ -244,6 +244,47 @@ export const removeAllowedViewer = (resumeId: string, viewerUserId: string) =>
     method: 'DELETE',
   });
 
+export interface UserSearchResult {
+  id: string;
+  name: string;
+  username: string;
+  email: string | null;
+  avatar: string;
+  userType: string;
+}
+
+export const searchUsers = (q: string) =>
+  request<UserSearchResult[]>(`${BASE}/auth/users/search?q=${encodeURIComponent(q)}`);
+
+export interface InterviewScorePoint {
+  id: string;
+  question: string;
+  analysisScore: number;
+  jobRole: string | null;
+  createdAt: string;
+}
+
+export const fetchInterviewScoreHistory = () =>
+  request<InterviewScorePoint[]>(`${BASE}/interview/answers/history/scores`);
+
+export const analyzeInterviewAnswer = (body: {
+  question: string;
+  answer: string;
+  jobRole?: string;
+  save?: boolean;
+}) =>
+  request<{
+    overallScore: number;
+    strengths: string[];
+    weaknesses: string[];
+    improvements: string[];
+    rewrittenAnswer: string;
+    starBreakdown: { situation: string; task: string; action: string; result: string };
+  }>(`${BASE}/interview/answers/analyze`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
 export const fetchMySharedResumes = () => request<MySharedResume[]>(`${BASE}/resumes/shared/list`);
 
 // ── 채용공고 URL 파싱 ────────────────────────────────────

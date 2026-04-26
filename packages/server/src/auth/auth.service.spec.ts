@@ -169,6 +169,66 @@ describe('AuthService - Admin (setUserRole / getAllUsers)', () => {
       expect(result).toEqual([]);
     });
   });
+
+  describe('searchUsers', () => {
+    it('q 1글자 이하 → 빈 배열 (DB 호출 없음)', async () => {
+      const r = await service.searchUsers('me', 'a');
+      expect(r).toEqual([]);
+      expect(mockPrisma.user.findMany).not.toHaveBeenCalled();
+    });
+
+    it('q 빈/공백 → 빈 배열', async () => {
+      expect(await service.searchUsers('me', '')).toEqual([]);
+      expect(await service.searchUsers('me', '  ')).toEqual([]);
+    });
+
+    it('자기 자신 제외 + 최대 10건 + email 부분 마스킹', async () => {
+      mockPrisma.user.findMany.mockResolvedValue([
+        {
+          id: 'u1',
+          name: '홍길동',
+          username: 'hong',
+          email: 'hong@example.com',
+          avatar: '',
+          userType: 'personal',
+        },
+        {
+          id: 'u2',
+          name: '김철수',
+          username: 'chulsoo',
+          email: 'a@b.io',
+          avatar: 'x',
+          userType: 'coach',
+        },
+      ]);
+      const r = await service.searchUsers('me', 'hong');
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          take: 10,
+          where: expect.objectContaining({
+            AND: expect.arrayContaining([{ id: { not: 'me' } }]),
+          }),
+        }),
+      );
+      expect(r[0].email).toBe('h***@example.com');
+      expect(r[1].email).toBe('a***@b.io');
+    });
+
+    it('email 없는 user 도 처리 (null email)', async () => {
+      mockPrisma.user.findMany.mockResolvedValue([
+        {
+          id: 'u3',
+          name: 'X',
+          username: 'x',
+          email: null,
+          avatar: '',
+          userType: 'personal',
+        },
+      ]);
+      const r = await service.searchUsers('me', 'xx');
+      expect(r[0].email).toBeNull();
+    });
+  });
 });
 
 // ──────────────────────────────────────────────────

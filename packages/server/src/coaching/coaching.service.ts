@@ -5,6 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 export interface UpsertCoachProfileDto {
   specialty: string;
@@ -45,7 +46,10 @@ const VALID_STATUSES = ['requested', 'confirmed', 'completed', 'cancelled', 'ref
 
 @Injectable()
 export class CoachingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   private get coach() {
     return (this.prisma as any).coachProfile;
@@ -236,12 +240,23 @@ export class CoachingService {
       },
     });
 
-    // 완료되면 코치의 totalSessions 증가
+    // 완료되면 코치의 totalSessions 증가 + 클라이언트에게 리뷰 요청 알림
     if (data.status === 'completed') {
       await this.coach.update({
         where: { id: session.coachId },
         data: { totalSessions: { increment: 1 } },
       });
+      // 이미 리뷰가 있는 세션에는 보내지 않음 (refunded → completed 같은 edge case 방지)
+      if (session.rating == null) {
+        await this.notifications
+          .create(
+            session.clientId,
+            'coaching_review_request',
+            `코칭 세션이 완료됐어요. 평점/리뷰를 남겨주세요`,
+            `/coaching/sessions?focus=${sessionId}`,
+          )
+          .catch(() => {});
+      }
     }
 
     return updated;

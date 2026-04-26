@@ -39,7 +39,7 @@ export class InterviewService {
    */
   async analyzeAnswer(
     userId: string,
-    body: { question: string; answer: string; jobRole?: string },
+    body: { question: string; answer: string; jobRole?: string; save?: boolean },
   ): Promise<AiAnswerFeedback> {
     if (!userId) throw new ForbiddenException('로그인이 필요합니다');
     if (!body?.question?.trim() || !body?.answer?.trim()) {
@@ -78,7 +78,40 @@ ${body.answer}`;
 
     const res = await this.llm.generateWithFallback(systemPrompt, userMessage);
     const parsed = this.parseLlmJson(res.text);
+    // save=true 면 InterviewAnswer row 로 누적 저장 (시간별 점수 추세 비교용)
+    if (body.save) {
+      await this.prisma.interviewAnswer
+        .create({
+          data: {
+            userId,
+            question: body.question.slice(0, 500),
+            answer: body.answer,
+            jobRole: body.jobRole ?? null,
+            analysisScore: parsed.overallScore,
+            analysisJson: JSON.stringify(parsed),
+            analyzedAt: new Date(),
+          },
+        })
+        .catch(() => {});
+    }
     return parsed;
+  }
+
+  /** 최근 90일 점수 추세 — 차트용 daily aggregation. */
+  async scoreHistory(userId: string) {
+    const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const rows = await this.prisma.interviewAnswer.findMany({
+      where: { userId, analysisScore: { not: null }, createdAt: { gte: since } },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        question: true,
+        analysisScore: true,
+        jobRole: true,
+        createdAt: true,
+      },
+    });
+    return rows;
   }
 
   private parseLlmJson(text: string): AiAnswerFeedback {
