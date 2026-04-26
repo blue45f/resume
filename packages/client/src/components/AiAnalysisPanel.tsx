@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { API_URL } from '@/lib/config';
+import { ROUTES, withQuery } from '@/lib/routes';
 
 interface Props {
   resumeId: string;
@@ -266,6 +268,38 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
                       </div>
                     )}
 
+                    {/* Next-action CTAs — analysis result 활용 funnel */}
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-700">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                        다음 단계
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Link
+                          to={ROUTES.resume.preview(resumeId)}
+                          onClick={onClose}
+                          className="flex flex-col items-center gap-1 px-2 py-2.5 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg text-xs text-slate-700 dark:text-slate-300 transition-colors"
+                        >
+                          <span className="text-base">📋</span>
+                          미리보기
+                        </Link>
+                        <Link
+                          to={ROUTES.coaching.coaches}
+                          onClick={onClose}
+                          className="flex flex-col items-center gap-1 px-2 py-2.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg text-xs text-amber-700 dark:text-amber-400 transition-colors"
+                        >
+                          <span className="text-base">☕</span>
+                          코치 받기
+                        </Link>
+                        <Link
+                          to={withQuery('/cover-letter', { resumeId })}
+                          onClick={onClose}
+                          className="flex flex-col items-center gap-1 px-2 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-lg text-xs text-emerald-700 dark:text-emerald-400 transition-colors"
+                        >
+                          <span className="text-base">📝</span>
+                          자소서 작성
+                        </Link>
+                      </div>
+                    </div>
                     <button
                       onClick={() => setFeedback(null)}
                       className="w-full py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"

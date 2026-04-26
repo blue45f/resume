@@ -141,14 +141,25 @@ export default function LoginPage() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || '인증에 실패했습니다');
     localStorage.setItem('token', data.token);
+    let me: any = null;
     const meRes = await fetch('/api/auth/me', {
       headers: { Authorization: `Bearer ${data.token}` },
     });
     if (meRes.ok) {
-      const user = await meRes.json();
-      localStorage.setItem('user', JSON.stringify(user));
+      me = await meRes.json();
+      localStorage.setItem('user', JSON.stringify(me));
     }
-    navigate(ROUTES.home);
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get('next');
+    let dest: string = ROUTES.home;
+    if (next && next.startsWith('/')) {
+      dest = next;
+    } else if (me?.userType === 'coach') {
+      dest = ROUTES.coaching.dashboard;
+    } else if (me?.userType === 'recruiter' || me?.userType === 'company') {
+      dest = ROUTES.recruiter.dashboard;
+    }
+    navigate(dest);
     window.location.reload();
   };
 
