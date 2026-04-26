@@ -806,7 +806,7 @@ export default function HomePage() {
                   </span>
                 </p>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-10">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
                   <Link
                     to={ROUTES.resume.new}
                     className="btn-shine imp-btn group inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold rounded-xl hover:bg-slate-800 dark:hover:bg-white transition-colors duration-200 text-base shadow-sm focus-ring-accent"
@@ -846,6 +846,31 @@ export default function HomePage() {
                         d="M9 5l7 7-7 7"
                       />
                     </svg>
+                  </Link>
+                </div>
+
+                {/* 빠른 시작 옵션 — 신규 사용자가 처음부터 이력서 작성 부담을 느끼지 않도록 */}
+                <div className="mb-10 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600 dark:text-slate-400">
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    빠른 시작:
+                  </span>
+                  <Link
+                    to={ROUTES.resume.autoGenerate}
+                    className="inline-flex items-center gap-1 text-blue-700 dark:text-blue-400 hover:underline"
+                  >
+                    <span aria-hidden="true">📄</span> PDF/이미지 업로드
+                  </Link>
+                  <Link
+                    to={ROUTES.resume.autoGenerate}
+                    className="inline-flex items-center gap-1 text-blue-700 dark:text-blue-400 hover:underline"
+                  >
+                    <span aria-hidden="true">🔗</span> 채용공고 URL 만으로
+                  </Link>
+                  <Link
+                    to={ROUTES.resume.autoGenerate}
+                    className="inline-flex items-center gap-1 text-blue-700 dark:text-blue-400 hover:underline"
+                  >
+                    <span aria-hidden="true">✨</span> AI 자동 생성
                   </Link>
                 </div>
               </div>
