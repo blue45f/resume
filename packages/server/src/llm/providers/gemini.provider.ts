@@ -79,6 +79,49 @@ export class GeminiProvider implements LlmProvider {
     throw lastError || new Error('Gemini: max retries exceeded');
   }
 
+  /**
+   * Vision: 이미지 → 텍스트 추출 (이력서 사진, 스캔본, 명함 등).
+   * imageBuffer 는 base64 로 변환되어 inline_data 로 전송. 5MB 이내 권장.
+   */
+  async extractImageText(imageBuffer: Buffer, mimeType: string): Promise<string> {
+    if (!this.apiKey) throw new Error('GEMINI_API_KEY not configured');
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+    const body = JSON.stringify({
+      contents: [
+        {
+          parts: [
+            {
+              text: '이 이미지의 모든 한국어/영어 텍스트를 원본 그대로(레이아웃 무시) 추출해줘. 이력서/명함/스캔본 가능. 텍스트 외 설명 금지.',
+            },
+            {
+              inline_data: {
+                mime_type: mimeType,
+                data: imageBuffer.toString('base64'),
+              },
+            },
+          ],
+        },
+      ],
+      generationConfig: { maxOutputTokens: 4096 },
+    });
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      signal: AbortSignal.timeout(60000),
+    });
+
+    if (!res.ok) {
+      const err = await res.text().catch(() => '');
+      throw new Error(`Gemini Vision error: ${res.status} ${err.slice(0, 200)}`);
+    }
+
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  }
+
   async *generateStream(systemPrompt: string, userMessage: string): AsyncGenerator<LlmStreamChunk> {
     if (!this.apiKey) throw new Error('GEMINI_API_KEY not configured');
 

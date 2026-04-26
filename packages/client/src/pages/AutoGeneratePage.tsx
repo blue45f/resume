@@ -25,7 +25,7 @@ const STEPS = [
   { id: 4, label: '완료', icon: '4' },
 ];
 
-const ACCEPTED_FILE_TYPES = '.pdf,.docx,.doc,.txt,.rtf';
+const ACCEPTED_FILE_TYPES = '.pdf,.docx,.txt,.rtf,.jpg,.jpeg,.png,.webp';
 
 function parseLayout(layout: string) {
   try {

@@ -1,22 +1,30 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { GeminiProvider } from './providers/gemini.provider';
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // Gemini Vision 권장 5MB
 const MAX_TEXT_LEN = 30_000;
 
+const IMAGE_MIMES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic']);
+const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.heic'];
+
 /**
- * 업로드된 파일(PDF / DOCX / TXT / RTF) → 평문 텍스트 추출.
+ * 업로드된 파일(PDF / DOCX / TXT / RTF / 이미지) → 평문 텍스트 추출.
  *
- * 사용처: AutoGenerateController — 사용자가 기존 PDF/Word 이력서 업로드 시
+ * 사용처: AutoGenerateController — 사용자가 기존 PDF/Word/사진 이력서 업로드 시
  * 텍스트 추출 → AI 가 구조화 이력서로 변환.
  *
  * 의존성:
- * - pdf-parse: PDF (텍스트 임베드된 PDF 만, 스캔 이미지 PDF 는 LLM 으로 OCR 필요 — 추후 별도 path)
+ * - pdf-parse: PDF (텍스트 임베드된 PDF 만, 스캔 이미지 PDF 는 향후 페이지 → 이미지 변환 필요)
  * - mammoth: DOCX (Word 신형식)
+ * - Gemini Vision: 이미지 OCR (.jpg / .png / .webp). API 키 없으면 명시 에러
  * - 기본 utf-8 디코딩: TXT/RTF (RTF 는 control word 제거 후)
  */
 @Injectable()
 export class FileTextExtractorService {
   private readonly logger = new Logger(FileTextExtractorService.name);
+
+  constructor(private gemini: GeminiProvider) {}
 
   async extract(file: Express.Multer.File): Promise<string> {
     if (!file) throw new BadRequestException('파일이 필요합니다');
@@ -27,6 +35,7 @@ export class FileTextExtractorService {
     }
     const name = (file.originalname || '').toLowerCase();
     const mime = (file.mimetype || '').toLowerCase();
+    const isImage = IMAGE_MIMES.has(mime) || IMAGE_EXTS.some((e) => name.endsWith(e));
 
     let text = '';
     try {
@@ -41,6 +50,8 @@ export class FileTextExtractorService {
         text = file.buffer.toString('utf-8');
       } else if (name.endsWith('.rtf') || mime === 'application/rtf' || mime === 'text/rtf') {
         text = this.stripRtf(file.buffer.toString('utf-8'));
+      } else if (isImage) {
+        text = await this.extractImage(file);
       } else if (name.endsWith('.doc') || mime === 'application/msword') {
         // 옛날 .doc 형식 — mammoth 불가. 사용자에게 docx 변환 안내.
         throw new BadRequestException(
@@ -48,7 +59,7 @@ export class FileTextExtractorService {
         );
       } else {
         throw new BadRequestException(
-          '지원하지 않는 파일 형식입니다. PDF / DOCX / TXT / RTF 만 가능합니다.',
+          '지원하지 않는 파일 형식입니다. PDF / DOCX / TXT / RTF / 이미지(JPG/PNG) 만 가능합니다.',
         );
       }
     } catch (err) {
@@ -93,6 +104,20 @@ export class FileTextExtractorService {
     };
     const result = await mod.extractRawText({ buffer });
     return String(result?.value || '');
+  }
+
+  /** Gemini Vision 으로 이미지 OCR. 사진/스캔본/명함 모두 지원. */
+  private async extractImage(file: Express.Multer.File): Promise<string> {
+    if (!this.gemini.isAvailable) {
+      throw new BadRequestException('이미지 OCR 기능이 비활성화되어 있습니다 (관리자 설정 필요)');
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      throw new BadRequestException(
+        `이미지가 너무 큽니다 (${(file.size / 1024 / 1024).toFixed(1)}MB / 최대 5MB). 압축 후 다시 시도해주세요.`,
+      );
+    }
+    const mime = file.mimetype && file.mimetype.startsWith('image/') ? file.mimetype : 'image/jpeg';
+    return this.gemini.extractImageText(file.buffer, mime);
   }
 
   /** RTF control words / groups 제거 — 매우 단순한 구현 (완전한 RTF parser 아님). */
