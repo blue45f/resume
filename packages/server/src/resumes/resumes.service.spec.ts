@@ -49,6 +49,14 @@ const mockPrisma: Record<string, any> = {
   },
   user: {
     findFirst: jest.fn(),
+    findUnique: jest.fn(),
+  },
+  resumeViewer: {
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
   },
   personalInfo: { upsert: jest.fn() },
   bookmark: {
@@ -420,6 +428,139 @@ describe('ResumesService', () => {
 
       const result = await service.setVisibility('resume-1', 'public', 'admin-user', 'admin');
       expect(result).toEqual({ id: 'resume-1', visibility: 'public' });
+    });
+
+    it('유효한 값 selective → 성공', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, visibility: 'selective' });
+
+      const result = await service.setVisibility('resume-1', 'selective', 'user-1');
+      expect(result).toEqual({ id: 'resume-1', visibility: 'selective' });
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // 선택 공개 (selective) — viewer 화이트리스트 관리
+  // ──────────────────────────────────────────────────
+  describe('selective visibility — viewer 화이트리스트', () => {
+    describe('addAllowedViewer', () => {
+      it('username 으로 추가 → 새 viewer record 생성 + 알림 호출', async () => {
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+        mockPrisma.user.findFirst.mockResolvedValue({
+          id: 'invitee-1',
+          name: '김초대',
+          email: 'k@example.com',
+        });
+        mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
+        mockPrisma.resumeViewer.create.mockResolvedValue({
+          id: 'rv-1',
+          resumeId: 'resume-1',
+          userId: 'invitee-1',
+          message: '코치 매칭용',
+        });
+        mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', name: '소유자' });
+
+        const result = await service.addAllowedViewer(
+          'resume-1',
+          { username: 'kimchodae', message: '코치 매칭용' },
+          'user-1',
+        );
+        expect(mockPrisma.resumeViewer.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              resumeId: 'resume-1',
+              userId: 'invitee-1',
+              addedById: 'user-1',
+              message: '코치 매칭용',
+            }),
+          }),
+        );
+        expect(result).toMatchObject({ id: 'rv-1', userId: 'invitee-1' });
+      });
+
+      it('이미 추가된 사용자 재추가 → message/expiresAt 만 update (idempotent), 알림 X', async () => {
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+        mockPrisma.user.findFirst.mockResolvedValue({ id: 'invitee-1', name: '기존자' });
+        mockPrisma.resumeViewer.findUnique.mockResolvedValue({
+          id: 'rv-existing',
+          message: 'old',
+          expiresAt: null,
+        });
+        mockPrisma.resumeViewer.update.mockResolvedValue({
+          id: 'rv-existing',
+          message: 'new',
+        });
+
+        const result = await service.addAllowedViewer(
+          'resume-1',
+          { username: 'existing', message: 'new' },
+          'user-1',
+        );
+        expect(mockPrisma.resumeViewer.update).toHaveBeenCalled();
+        expect(mockPrisma.resumeViewer.create).not.toHaveBeenCalled();
+        expect(mockNotifications.create).not.toHaveBeenCalled();
+        expect(result).toMatchObject({ id: 'rv-existing' });
+      });
+
+      it('본인 추가 시도 → BadRequestException', async () => {
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+        mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-1', name: '본인' });
+        await expect(
+          service.addAllowedViewer('resume-1', { username: 'self' }, 'user-1'),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('존재하지 않는 사용자 → NotFoundException', async () => {
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+        mockPrisma.user.findFirst.mockResolvedValue(null);
+        mockPrisma.user.findUnique.mockResolvedValue(null);
+        await expect(
+          service.addAllowedViewer('resume-1', { username: 'ghost' }, 'user-1'),
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it('소유자 아닌 사용자가 추가 시도 → ForbiddenException', async () => {
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+        await expect(
+          service.addAllowedViewer('resume-1', { username: 'x' }, 'other-user'),
+        ).rejects.toThrow(ForbiddenException);
+      });
+    });
+
+    describe('removeAllowedViewer', () => {
+      it('소유자가 viewer 제거 → removed:true', async () => {
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+        mockPrisma.resumeViewer.delete.mockResolvedValue({ id: 'rv-1' });
+        const result = await service.removeAllowedViewer('resume-1', 'invitee-1', 'user-1');
+        expect(result).toEqual({ removed: true });
+      });
+
+      it('이미 제거된(없는) viewer 제거 → removed:false (조용히 처리)', async () => {
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+        mockPrisma.resumeViewer.delete.mockRejectedValue(new Error('not found'));
+        const result = await service.removeAllowedViewer('resume-1', 'ghost', 'user-1');
+        expect(result).toEqual({ removed: false });
+      });
+    });
+
+    describe('listMySharedResumes', () => {
+      it('만료 안 된 viewer record 만 반환', async () => {
+        mockPrisma.resumeViewer.findMany.mockResolvedValue([{ id: 'rv-1', resume: { id: 'r1' } }]);
+        const result = await service.listMySharedResumes('viewer-1');
+        expect(mockPrisma.resumeViewer.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: expect.objectContaining({
+              userId: 'viewer-1',
+              OR: [{ expiresAt: null }, { expiresAt: { gt: expect.any(Date) } }],
+            }),
+          }),
+        );
+        expect(result).toHaveLength(1);
+      });
+
+      it('미로그인 → ForbiddenException', async () => {
+        await expect(service.listMySharedResumes('')).rejects.toThrow(ForbiddenException);
+      });
     });
   });
 

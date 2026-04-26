@@ -43,6 +43,7 @@ import CareerLevel from '@/widgets/career-level';
 import { ResumeHealthBoost } from '@/widgets/resume-health-boost';
 const BannerSlider = lazy(() => import('@/components/BannerSlider'));
 import NoticePopup from '@/components/NoticePopup';
+import SharedWithMeSection from '@/components/SharedWithMeSection';
 import WhatsNewModal from '@/components/WhatsNewModal';
 import { t, tx } from '@/lib/i18n';
 import { getUser } from '@/lib/auth';
@@ -1232,6 +1233,8 @@ export default function HomePage() {
                 </div>
               </div>
             )}
+
+            <SharedWithMeSection />
 
             <RecentActivity />
 

@@ -438,22 +438,56 @@ export class ResumesService {
     });
     if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
 
+    const isOwner = !!resume.userId && resume.userId === userId;
+
     // 비공개 이력서는 소유자만 조회 가능
     // 예외: 이 이력서를 연결한 CoachingSession의 코치는 열람 허용 (예약된 피코칭 이력서)
-    if (resume.visibility === 'private' && resume.userId && resume.userId !== userId) {
+    if (resume.visibility === 'private' && resume.userId && !isOwner) {
       const isLinkedCoach = userId ? await this.isCoachOfResumeSession(id, userId) : false;
       if (!isLinkedCoach) {
         throw new ForbiddenException('이 이력서에 접근할 권한이 없습니다');
       }
     }
 
+    // 선택 공개(selective): 화이트리스트(ResumeViewer) 에 등록된 사용자만 조회.
+    // expiresAt 만료 항목은 자동 차단.
+    let viewerRecord: { id: string } | null = null;
+    if (resume.visibility === 'selective' && resume.userId && !isOwner) {
+      if (!userId) {
+        throw new ForbiddenException('이 이력서는 선택 공개 — 로그인이 필요합니다');
+      }
+      const v = await this.prisma.resumeViewer.findUnique({
+        where: { resumeId_userId: { resumeId: id, userId } },
+        select: { id: true, expiresAt: true },
+      });
+      const valid = !!v && (!v.expiresAt || v.expiresAt > new Date());
+      if (!valid) {
+        // CoachingSession 코치도 폴백으로 허용
+        const isLinkedCoach = await this.isCoachOfResumeSession(id, userId);
+        if (!isLinkedCoach) {
+          throw new ForbiddenException('이 이력서에 대한 접근 권한이 없습니다');
+        }
+      } else {
+        viewerRecord = { id: v.id };
+      }
+    }
+
     // 조회수 증가 + 열람 알림: 소유자가 아닌 경우에만
-    if (!userId || resume.userId !== userId) {
+    if (!isOwner) {
       this.prisma.resume
         .update({ where: { id }, data: { viewCount: { increment: 1 } } })
         .catch(() => {});
       if (resume.userId && resume.visibility === 'public') {
         this.sendViewNotification(id, resume.title, resume.userId, userId).catch(() => {});
+      }
+      // selective viewer 의 last view 추적
+      if (viewerRecord) {
+        this.prisma.resumeViewer
+          .update({
+            where: { id: viewerRecord.id },
+            data: { lastViewedAt: new Date(), viewCount: { increment: 1 } },
+          })
+          .catch(() => {});
       }
     }
 
@@ -474,14 +508,153 @@ export class ResumesService {
   }
 
   async setVisibility(id: string, visibility: string, userId?: string, role?: string) {
-    if (!['public', 'private', 'link-only'].includes(visibility)) {
+    if (!['public', 'private', 'link-only', 'selective'].includes(visibility)) {
       throw new BadRequestException(
-        '유효하지 않은 공개 설정입니다. public, private, link-only 중 하나를 선택하세요',
+        '유효하지 않은 공개 설정입니다. public, private, link-only, selective 중 하나를 선택하세요',
       );
     }
     await this.verifyOwnership(id, userId, role);
     await this.prisma.resume.update({ where: { id }, data: { visibility } });
     return { id, visibility };
+  }
+
+  // ──────── 선택 공개 (selective) — 화이트리스트 관리 ────────
+
+  /** 소유자만 호출 가능. 이력서의 허용 viewer 목록 반환. */
+  async listAllowedViewers(resumeId: string, userId?: string, role?: string) {
+    await this.verifyOwnership(resumeId, userId, role);
+    return this.prisma.resumeViewer.findMany({
+      where: { resumeId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { id: true, name: true, username: true, email: true, avatar: true } },
+      },
+    });
+  }
+
+  /** 소유자가 username/email/userId 로 viewer 추가. 자기 자신·중복은 no-op. */
+  async addAllowedViewer(
+    resumeId: string,
+    inviteeRef: {
+      userId?: string;
+      username?: string;
+      email?: string;
+      message?: string;
+      expiresAt?: string | null;
+    },
+    ownerId?: string,
+    role?: string,
+  ) {
+    const resume = await this.verifyOwnership(resumeId, ownerId, role);
+    let target;
+    if (inviteeRef.userId) {
+      target = await this.prisma.user.findUnique({ where: { id: inviteeRef.userId } });
+    } else if (inviteeRef.username) {
+      target = await this.prisma.user.findFirst({ where: { username: inviteeRef.username } });
+    } else if (inviteeRef.email) {
+      target = await this.prisma.user.findUnique({ where: { email: inviteeRef.email } });
+    }
+    if (!target) {
+      throw new NotFoundException('해당 사용자를 찾을 수 없습니다 (가입한 사용자만 추가 가능)');
+    }
+    if (target.id === resume.userId) {
+      throw new BadRequestException('본인은 추가할 수 없습니다');
+    }
+    const existing = await this.prisma.resumeViewer.findUnique({
+      where: { resumeId_userId: { resumeId, userId: target.id } },
+    });
+    if (existing) {
+      // 이미 등록 — message/expiresAt 만 업데이트 (idempotent)
+      const updated = await this.prisma.resumeViewer.update({
+        where: { id: existing.id },
+        data: {
+          message: inviteeRef.message ?? existing.message,
+          expiresAt:
+            inviteeRef.expiresAt === undefined
+              ? existing.expiresAt
+              : inviteeRef.expiresAt
+                ? new Date(inviteeRef.expiresAt)
+                : null,
+        },
+      });
+      return updated;
+    }
+    const created = await this.prisma.resumeViewer.create({
+      data: {
+        resumeId,
+        userId: target.id,
+        addedById: ownerId,
+        message: inviteeRef.message ?? null,
+        expiresAt: inviteeRef.expiresAt ? new Date(inviteeRef.expiresAt) : null,
+      },
+    });
+    // 알림: 새로 추가될 때만 (idempotent 재호출 시 스팸 방지)
+    this.sendSelectiveAccessNotification(resume.title || '이력서', target.id, resume.userId!).catch(
+      () => {},
+    );
+    return created;
+  }
+
+  /** 소유자가 viewer 제거. */
+  async removeAllowedViewer(
+    resumeId: string,
+    viewerUserId: string,
+    ownerId?: string,
+    role?: string,
+  ) {
+    await this.verifyOwnership(resumeId, ownerId, role);
+    const removed = await this.prisma.resumeViewer
+      .delete({ where: { resumeId_userId: { resumeId, userId: viewerUserId } } })
+      .catch(() => null);
+    return { removed: !!removed };
+  }
+
+  /** 로그인 사용자 본인이 공유받은 이력서 목록. */
+  async listMySharedResumes(userId: string) {
+    if (!userId) throw new ForbiddenException('로그인이 필요합니다');
+    const now = new Date();
+    return this.prisma.resumeViewer.findMany({
+      where: {
+        userId,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        resume: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            visibility: true,
+            updatedAt: true,
+            personalInfo: { select: { name: true, photo: true } },
+          },
+        },
+        addedBy: { select: { id: true, name: true, username: true, avatar: true } },
+      },
+    });
+  }
+
+  /** 알림 — 선택 공개 추가 시 viewer 에게 직접 메시지 + 알림. */
+  private async sendSelectiveAccessNotification(
+    resumeTitle: string,
+    viewerUserId: string,
+    ownerId: string,
+  ) {
+    try {
+      const owner = await this.prisma.user.findUnique({
+        where: { id: ownerId },
+        select: { name: true },
+      });
+      const ownerName = owner?.name || '사용자';
+      await this.notifications.create(
+        viewerUserId,
+        'resume_shared',
+        `${ownerName}님이 '${resumeTitle}' 이력서를 공유했습니다`,
+      );
+    } catch {
+      // 알림 실패는 silent — viewer 추가 자체는 성공해야 함
+    }
   }
 
   async updateSlug(id: string, slug: string, userId?: string, role?: string) {

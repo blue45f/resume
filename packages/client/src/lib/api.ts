@@ -192,6 +192,60 @@ export const updateResumeSlug = (id: string, slug: string) =>
     body: JSON.stringify({ slug }),
   });
 
+// ── 선택 공개 (selective) — 화이트리스트 viewer 관리 ──────────────
+export interface ResumeAllowedViewer {
+  id: string;
+  resumeId: string;
+  userId: string;
+  message: string | null;
+  expiresAt: string | null;
+  lastViewedAt: string | null;
+  viewCount: number;
+  createdAt: string;
+  user: { id: string; name: string; username: string; email: string; avatar: string };
+}
+
+export interface MySharedResume {
+  id: string;
+  message: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  resume: {
+    id: string;
+    title: string;
+    slug: string;
+    visibility: string;
+    updatedAt: string;
+    personalInfo: { name: string; photo: string } | null;
+  };
+  addedBy: { id: string; name: string; username: string; avatar: string } | null;
+}
+
+export const listAllowedViewers = (resumeId: string) =>
+  request<ResumeAllowedViewer[]>(`${BASE}/resumes/${resumeId}/viewers`);
+
+export const addAllowedViewer = (
+  resumeId: string,
+  body: {
+    userId?: string;
+    username?: string;
+    email?: string;
+    message?: string;
+    expiresAt?: string | null;
+  },
+) =>
+  request<ResumeAllowedViewer>(`${BASE}/resumes/${resumeId}/viewers`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
+export const removeAllowedViewer = (resumeId: string, viewerUserId: string) =>
+  request<{ removed: boolean }>(`${BASE}/resumes/${resumeId}/viewers/${viewerUserId}`, {
+    method: 'DELETE',
+  });
+
+export const fetchMySharedResumes = () => request<MySharedResume[]>(`${BASE}/resumes/shared/list`);
+
 // Bookmarks
 export const addBookmark = (resumeId: string) =>
   request<{ bookmarked: boolean }>(`${BASE}/resumes/${resumeId}/bookmark`, { method: 'POST' });

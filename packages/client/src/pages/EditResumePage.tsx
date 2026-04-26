@@ -8,6 +8,7 @@ import { toast } from '@/components/Toast';
 import TagSelector from '@/components/TagSelector';
 import AttachmentPanel from '@/components/AttachmentPanel';
 import VersionPanel from '@/components/VersionPanel';
+import AllowedViewersDialog from '@/components/AllowedViewersDialog';
 import LiveAtsBadge from '@/components/LiveAtsBadge';
 import OverallHealthGauge from '@/components/OverallHealthGauge';
 import QuotableHighlights from '@/components/QuotableHighlights';
@@ -355,6 +356,7 @@ export default function EditResumePage() {
   const [saving, setSaving] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
+  const [showAllowedViewers, setShowAllowedViewers] = useState(false);
   const [liveData, setLiveData] = useState<Partial<Resume> | null>(null);
 
   const loadResume = () => {
@@ -502,7 +504,9 @@ export default function EditResumePage() {
                         ? '공개로 전환했습니다'
                         : next === 'link-only'
                           ? '링크 가진 사람만 볼 수 있도록 변경했습니다'
-                          : '비공개로 전환했습니다',
+                          : next === 'selective'
+                            ? '선택한 사용자만 볼 수 있도록 변경했습니다'
+                            : '비공개로 전환했습니다',
                       'success',
                     );
                   } catch (err) {
@@ -525,7 +529,32 @@ export default function EditResumePage() {
                 <option value="private">비공개</option>
                 <option value="public">공개</option>
                 <option value="link-only">링크만 공개</option>
+                <option value="selective">선택 사용자만 공개</option>
               </select>
+            )}
+            {id && resume.visibility === 'selective' && (
+              <button
+                type="button"
+                onClick={() => setShowAllowedViewers(true)}
+                className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors inline-flex items-center gap-1"
+                title="이 이력서를 볼 수 있는 사용자 목록 관리"
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6 0a4 4 0 10-4-4 4 4 0 004 4z"
+                  />
+                </svg>
+                허용 사용자 관리
+              </button>
             )}
             <button
               onClick={() => setShowAttachments(true)}
@@ -609,6 +638,9 @@ export default function EditResumePage() {
             loadResume();
           }}
         />
+      )}
+      {showAllowedViewers && id && (
+        <AllowedViewersDialog resumeId={id} onClose={() => setShowAllowedViewers(false)} />
       )}
     </>
   );

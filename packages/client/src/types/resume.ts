@@ -128,7 +128,7 @@ export interface Resume {
   slug?: string;
   userId?: string;
   viewCount?: number;
-  visibility?: 'public' | 'private' | 'link-only';
+  visibility?: 'public' | 'private' | 'link-only' | 'selective';
   createdAt: string;
   updatedAt: string;
   personalInfo: PersonalInfo;
@@ -151,7 +151,7 @@ export interface ResumeSummary {
   slug?: string;
   userId?: string;
   viewCount?: number;
-  visibility?: 'public' | 'private' | 'link-only';
+  visibility?: 'public' | 'private' | 'link-only' | 'selective';
   isOpenToWork?: boolean;
   openToWorkRoles?: string;
   personalInfo: PersonalInfo;

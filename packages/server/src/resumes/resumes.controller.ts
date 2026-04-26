@@ -172,6 +172,51 @@ export class ResumesController {
     return this.resumesService.setVisibility(id, visibility, req.user.id, req.user.role);
   }
 
+  // ──────── 선택 공개 (selective) — 화이트리스트 관리 ────────
+
+  @Get('shared/list')
+  @ApiOperation({ summary: '내가 공유받은 이력서 목록 (selective viewer)' })
+  listMyShared(@Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.resumesService.listMySharedResumes(req.user.id);
+  }
+
+  @Get(':id/viewers')
+  @ApiOperation({ summary: '이력서 허용 viewer 목록 (소유자만)' })
+  listAllowedViewers(@Param('id') id: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.resumesService.listAllowedViewers(id, req.user.id, req.user.role);
+  }
+
+  @Post(':id/viewers')
+  @ApiOperation({ summary: '이력서에 viewer 추가 (소유자만, username/email/userId 중 하나)' })
+  addAllowedViewer(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      userId?: string;
+      username?: string;
+      email?: string;
+      message?: string;
+      expiresAt?: string | null;
+    },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.resumesService.addAllowedViewer(id, body, req.user.id, req.user.role);
+  }
+
+  @Delete(':id/viewers/:userId')
+  @ApiOperation({ summary: '이력서 viewer 제거 (소유자만)' })
+  removeAllowedViewer(
+    @Param('id') id: string,
+    @Param('userId') viewerUserId: string,
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.resumesService.removeAllowedViewer(id, viewerUserId, req.user.id, req.user.role);
+  }
+
   @Patch(':id/slug')
   @ApiOperation({ summary: '이력서 공개 URL 슬러그 변경' })
   updateSlug(@Param('id') id: string, @Body('slug') slug: string, @Req() req: any) {

@@ -7,114 +7,142 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  name       String   @default("")
-  username   String   @default("") // @username (프로필 URL)
-  avatar     String   @default("")
-  provider   String   @default("") // google, github, kakao
-  providerId String   @default("") @map("provider_id")
-  passwordHash  String?   @map("password_hash")
-  role       String   @default("user") // user, admin
-  userType     String   @default("personal") @map("user_type") // personal, recruiter, company, coach
-  companyName  String?  @map("company_name")
-  companyTitle String?  @map("company_title") // 직함
-  plan          String   @default("free") // free, pro, enterprise
-  planExpiresAt DateTime? @map("plan_expires_at")
-  isSample      Boolean  @default(false) @map("is_sample")
-  isOpenToWork  Boolean  @default(false) @map("is_open_to_work") // 구직 중 상태 공개
-  openToWorkRoles String @default("") @map("open_to_work_roles") // 희망 직무 (콤마 구분)
-  marketingOptIn  Boolean  @default(false) @map("marketing_opt_in") // PIPA: 마케팅 수신 동의
-  llmOptIn        Boolean  @default(false) @map("llm_opt_in") // PIPA: 국외 LLM 이전 동의
-  isSuspended   Boolean  @default(false) @map("is_suspended") // 관리자에 의한 계정 정지
-  createdAt  DateTime @default(now()) @map("created_at")
-  resumes      Resume[]
-  applications JobApplication[]
-  comments     Comment[]
-  applicationComments ApplicationComment[]
-  bookmarks    Bookmark[]
-  notifications Notification[]
-  usageLogs     UsageLog[]
-  followers      Follow[]         @relation("Following")
-  following      Follow[]         @relation("Followers")
-  sentScouts     ScoutMessage[]   @relation("SentScouts")
-  receivedScouts ScoutMessage[]   @relation("ReceivedScouts")
-  sentMessages     DirectMessage[] @relation("SentMessages")
-  receivedMessages DirectMessage[] @relation("ReceivedMessages")
-  coverLetters       CoverLetter[]
-  jobPosts           JobPost[]
-  communityPosts     CommunityPost[]
-  skillEndorsements  SkillEndorsement[]
-  authoredNotices    Notice[]
-  noticeComments     NoticeComment[]
-  noticeHistoryEdits NoticeHistory[]
-  curatedJobs        CuratedJob[]
-  drafts             Draft[]
-  interviewAnswers   InterviewAnswer[]
-  communityLikes     CommunityLike[]
-  tags               Tag[]
-  templates          Template[]
-  forbiddenWords     ForbiddenWord[]
-  ownedStudyGroups     StudyGroup[]         @relation("GroupOwner")
-  studyGroupMemberships StudyGroupMember[]  @relation("GroupMember")
-  studyGroupQuestions  StudyGroupQuestion[] @relation("GroupQuestion")
-  studyGroupPosts      StudyGroupPost[]     @relation("GroupPost")
-  studyGroupPostComments StudyGroupPostComment[] @relation("GroupPostComment")
-  studyGroupPostReactions StudyGroupPostReaction[] @relation("GroupPostReaction")
-  resumeReports        ResumeReport[]       @relation("ResumeReporter")
-  communityPostReports CommunityPostReport[] @relation("CommunityPostReporter")
-  studyGroupEvents     StudyGroupEvent[]    @relation("GroupEventAuthor")
-  studyGroupEventRsvps StudyGroupEventRsvp[] @relation("GroupEventRsvp")
-  coachProfile      CoachProfile?
-  coachingSessions  CoachingSession[] @relation("CoachingClient")
-  authoredJobQuestions JobInterviewQuestion[]      @relation("JobQuestionAuthor")
-  jobQuestionVotes   JobInterviewQuestionVote[] @relation("JobQuestionVoter")
+  id                      String                     @id @default(uuid())
+  email                   String                     @unique
+  name                    String                     @default("")
+  username                String                     @default("") // @username (프로필 URL)
+  avatar                  String                     @default("")
+  provider                String                     @default("") // google, github, kakao
+  providerId              String                     @default("") @map("provider_id")
+  passwordHash            String?                    @map("password_hash")
+  role                    String                     @default("user") // user, admin
+  userType                String                     @default("personal") @map("user_type") // personal, recruiter, company, coach
+  companyName             String?                    @map("company_name")
+  companyTitle            String?                    @map("company_title") // 직함
+  plan                    String                     @default("free") // free, pro, enterprise
+  planExpiresAt           DateTime?                  @map("plan_expires_at")
+  isSample                Boolean                    @default(false) @map("is_sample")
+  isOpenToWork            Boolean                    @default(false) @map("is_open_to_work") // 구직 중 상태 공개
+  openToWorkRoles         String                     @default("") @map("open_to_work_roles") // 희망 직무 (콤마 구분)
+  marketingOptIn          Boolean                    @default(false) @map("marketing_opt_in") // PIPA: 마케팅 수신 동의
+  llmOptIn                Boolean                    @default(false) @map("llm_opt_in") // PIPA: 국외 LLM 이전 동의
+  isSuspended             Boolean                    @default(false) @map("is_suspended") // 관리자에 의한 계정 정지
+  createdAt               DateTime                   @default(now()) @map("created_at")
+  resumes                 Resume[]
+  applications            JobApplication[]
+  comments                Comment[]
+  applicationComments     ApplicationComment[]
+  bookmarks               Bookmark[]
+  notifications           Notification[]
+  usageLogs               UsageLog[]
+  followers               Follow[]                   @relation("Following")
+  following               Follow[]                   @relation("Followers")
+  sentScouts              ScoutMessage[]             @relation("SentScouts")
+  receivedScouts          ScoutMessage[]             @relation("ReceivedScouts")
+  sentMessages            DirectMessage[]            @relation("SentMessages")
+  receivedMessages        DirectMessage[]            @relation("ReceivedMessages")
+  coverLetters            CoverLetter[]
+  jobPosts                JobPost[]
+  communityPosts          CommunityPost[]
+  skillEndorsements       SkillEndorsement[]
+  authoredNotices         Notice[]
+  noticeComments          NoticeComment[]
+  noticeHistoryEdits      NoticeHistory[]
+  curatedJobs             CuratedJob[]
+  drafts                  Draft[]
+  interviewAnswers        InterviewAnswer[]
+  communityLikes          CommunityLike[]
+  tags                    Tag[]
+  templates               Template[]
+  forbiddenWords          ForbiddenWord[]
+  ownedStudyGroups        StudyGroup[]               @relation("GroupOwner")
+  studyGroupMemberships   StudyGroupMember[]         @relation("GroupMember")
+  studyGroupQuestions     StudyGroupQuestion[]       @relation("GroupQuestion")
+  studyGroupPosts         StudyGroupPost[]           @relation("GroupPost")
+  studyGroupPostComments  StudyGroupPostComment[]    @relation("GroupPostComment")
+  studyGroupPostReactions StudyGroupPostReaction[]   @relation("GroupPostReaction")
+  resumeReports           ResumeReport[]             @relation("ResumeReporter")
+  communityPostReports    CommunityPostReport[]      @relation("CommunityPostReporter")
+  studyGroupEvents        StudyGroupEvent[]          @relation("GroupEventAuthor")
+  studyGroupEventRsvps    StudyGroupEventRsvp[]      @relation("GroupEventRsvp")
+  coachProfile            CoachProfile?
+  coachingSessions        CoachingSession[]          @relation("CoachingClient")
+  authoredJobQuestions    JobInterviewQuestion[]     @relation("JobQuestionAuthor")
+  jobQuestionVotes        JobInterviewQuestionVote[] @relation("JobQuestionVoter")
+  grantedResumeAccess     ResumeViewer[]             @relation("ResumeViewerGranter")
+  receivedResumeAccess    ResumeViewer[]             @relation("ResumeViewerRecipient")
 
   @@unique([provider, providerId])
   @@map("users")
 }
 
 model Resume {
-  id         String   @id @default(uuid())
-  title      String   @default("")
-  slug       String   @default("")
-  viewCount  Int      @default(0) @map("view_count") // 공개 조회수
-  visibility String   @default("private")
-  isSample   Boolean  @default(false) @map("is_sample")
+  id          String   @id @default(uuid())
+  title       String   @default("")
+  slug        String   @default("")
+  viewCount   Int      @default(0) @map("view_count") // 공개 조회수
+  visibility  String   @default("private")
+  isSample    Boolean  @default(false) @map("is_sample")
   /// 신고 누적 건수 — 임계치 도달 시 autoHidden=true 로 전환
-  reportCount Int     @default(0) @map("report_count")
+  reportCount Int      @default(0) @map("report_count")
   /// 신고 누적으로 자동 숨김된 상태 (admin 이 override 가능)
-  autoHidden  Boolean @default(false) @map("auto_hidden")
-  userId     String?  @map("user_id")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  autoHidden  Boolean  @default(false) @map("auto_hidden")
+  userId      String?  @map("user_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  user            User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  personalInfo    PersonalInfo?
-  experiences     Experience[]
-  educations      Education[]
-  skills          Skill[]
-  projects        Project[]
-  certifications  Certification[]
-  languages       Language[]
-  awards          Award[]
-  activities      Activity[]
-  attachments     Attachment[]
-  tags            TagsOnResumes[]
-  versions        ResumeVersion[]
-  shareLinks      ShareLink[]
-  transformations LlmTransformation[]
-  applications    JobApplication[]
-  comments        Comment[]
-  bookmarks          Bookmark[]
-  scoutMessages      ScoutMessage[]
-  coverLetters       CoverLetter[]
-  skillEndorsements  SkillEndorsement[]
-  reports            ResumeReport[]
+  user              User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  personalInfo      PersonalInfo?
+  experiences       Experience[]
+  educations        Education[]
+  skills            Skill[]
+  projects          Project[]
+  certifications    Certification[]
+  languages         Language[]
+  awards            Award[]
+  activities        Activity[]
+  attachments       Attachment[]
+  tags              TagsOnResumes[]
+  versions          ResumeVersion[]
+  shareLinks        ShareLink[]
+  transformations   LlmTransformation[]
+  applications      JobApplication[]
+  comments          Comment[]
+  bookmarks         Bookmark[]
+  scoutMessages     ScoutMessage[]
+  coverLetters      CoverLetter[]
+  skillEndorsements SkillEndorsement[]
+  reports           ResumeReport[]
+  allowedViewers    ResumeViewer[]
 
   @@index([userId])
   @@index([visibility])
   @@map("resumes")
+}
+
+/// 선택 공개(visibility="selective") 시 열람 가능한 사용자 화이트리스트.
+/// 소유자가 추가/제거하며, 추가 즉시 viewer 가 열람 가능.
+/// 확장 필드: expiresAt(만료 자동 제거), message(소유자 메모), addedBy(누가 추가)
+model ResumeViewer {
+  id           String    @id @default(uuid())
+  resumeId     String    @map("resume_id")
+  userId       String    @map("user_id")
+  addedById    String?   @map("added_by_id")
+  message      String?   @db.Text
+  expiresAt    DateTime? @map("expires_at")
+  lastViewedAt DateTime? @map("last_viewed_at")
+  viewCount    Int       @default(0) @map("view_count")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  resume  Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  user    User   @relation("ResumeViewerRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  addedBy User?  @relation("ResumeViewerGranter", fields: [addedById], references: [id], onDelete: SetNull)
+
+  @@unique([resumeId, userId])
+  @@index([userId])
+  @@index([resumeId])
+  @@index([expiresAt])
+  @@map("resume_viewers")
 }
 
 /// 공개 이력서에 대한 사용자 신고 — (resumeId, reporterId) unique 로 중복 방지
@@ -156,18 +184,18 @@ model PersonalInfo {
 }
 
 model Experience {
-  id          String  @id @default(uuid())
-  resumeId    String  @map("resume_id")
-  company     String  @default("")
-  position    String  @default("")
-  department  String  @default("") // 부서/팀
-  startDate   String  @default("") @map("start_date")
-  endDate     String  @default("") @map("end_date")
-  current     Boolean @default(false)
-  description String  @default("")
-  achievements String @default("") // 주요 성과 (하이라이트)
-  techStack   String  @default("") @map("tech_stack") // 사용 기술 (예: React, TypeScript, AWS)
-  sortOrder   Int     @default(0) @map("sort_order")
+  id           String  @id @default(uuid())
+  resumeId     String  @map("resume_id")
+  company      String  @default("")
+  position     String  @default("")
+  department   String  @default("") // 부서/팀
+  startDate    String  @default("") @map("start_date")
+  endDate      String  @default("") @map("end_date")
+  current      Boolean @default(false)
+  description  String  @default("")
+  achievements String  @default("") // 주요 성과 (하이라이트)
+  techStack    String  @default("") @map("tech_stack") // 사용 기술 (예: React, TypeScript, AWS)
+  sortOrder    Int     @default(0) @map("sort_order")
 
   resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
@@ -226,15 +254,15 @@ model Project {
 }
 
 model Certification {
-  id           String  @id @default(uuid())
-  resumeId     String  @map("resume_id")
-  name         String  @default("")
-  issuer       String  @default("") // 발급기관
-  issueDate    String  @default("") @map("issue_date")
-  expiryDate   String  @default("") @map("expiry_date")
-  credentialId String  @default("") @map("credential_id") // 자격번호
-  description  String  @default("")
-  sortOrder    Int     @default(0) @map("sort_order")
+  id           String @id @default(uuid())
+  resumeId     String @map("resume_id")
+  name         String @default("")
+  issuer       String @default("") // 발급기관
+  issueDate    String @default("") @map("issue_date")
+  expiryDate   String @default("") @map("expiry_date")
+  credentialId String @default("") @map("credential_id") // 자격번호
+  description  String @default("")
+  sortOrder    Int    @default(0) @map("sort_order")
 
   resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
@@ -273,15 +301,15 @@ model Award {
 }
 
 model Activity {
-  id          String @id @default(uuid())
-  resumeId    String @map("resume_id")
-  name        String @default("") // 활동명
+  id           String @id @default(uuid())
+  resumeId     String @map("resume_id")
+  name         String @default("") // 활동명
   organization String @default("") // 기관/단체
-  role        String @default("") // 역할
-  startDate   String @default("") @map("start_date")
-  endDate     String @default("") @map("end_date")
-  description String @default("")
-  sortOrder   Int    @default(0) @map("sort_order")
+  role         String @default("") // 역할
+  startDate    String @default("") @map("start_date")
+  endDate      String @default("") @map("end_date")
+  description  String @default("")
+  sortOrder    Int    @default(0) @map("sort_order")
 
   resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
@@ -296,7 +324,7 @@ model Attachment {
   originalName String   @map("original_name") // 원본 파일명
   mimeType     String   @map("mime_type")
   size         Int // bytes
-  data         String?  // base64 인코딩된 파일 데이터 (DB 저장 모드)
+  data         String? // base64 인코딩된 파일 데이터 (DB 저장 모드)
   category     String   @default("document") // certificate, portfolio, document, reference
   description  String   @default("")
   createdAt    DateTime @default(now()) @map("created_at")
@@ -414,10 +442,10 @@ model JobApplication {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user     User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  user                User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume              Resume?              @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   applicationComments ApplicationComment[]
-  coverLetters CoverLetter[]
+  coverLetters        CoverLetter[]
 
   @@index([userId])
   @@index([status])
@@ -458,7 +486,7 @@ model Bookmark {
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  type      String   // comment, bookmark, application_comment
+  type      String // comment, bookmark, application_comment
   message   String
   link      String?
   read      Boolean  @default(false)
@@ -472,7 +500,7 @@ model Notification {
 model UsageLog {
   id        String   @id @default(uuid())
   userId    String
-  feature   String   // ai_transform, cover_letter, translation, ai_coaching
+  feature   String // ai_transform, cover_letter, translation, ai_coaching
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -532,17 +560,17 @@ model ScoutMessage {
 }
 
 model CoverLetter {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
-  resumeId      String?  @map("resume_id")
-  applicationId String?  @map("application_id")
-  company       String   @default("")
-  position      String   @default("")
-  tone          String   @default("formal")
-  jobDescription String  @default("") @map("job_description")
-  content       String
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  resumeId       String?  @map("resume_id")
+  applicationId  String?  @map("application_id")
+  company        String   @default("")
+  position       String   @default("")
+  tone           String   @default("formal")
+  jobDescription String   @default("") @map("job_description")
+  content        String
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   resume      Resume?         @relation(fields: [resumeId], references: [id], onDelete: SetNull)
@@ -570,22 +598,22 @@ model DirectMessage {
 }
 
 model JobPost {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  company     String
-  position    String
-  location    String   @default("")
-  salary      String   @default("")
-  description String   @default("")
-  requirements String  @default("")
-  benefits    String   @default("")
-  type        String   @default("fulltime") // fulltime, contract, parttime, intern
-  status      String   @default("active") // active, closed, draft
-  skills      String   @default("") // comma-separated
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  company      String
+  position     String
+  location     String   @default("")
+  salary       String   @default("")
+  description  String   @default("")
+  requirements String   @default("")
+  benefits     String   @default("")
+  type         String   @default("fulltime") // fulltime, contract, parttime, intern
+  status       String   @default("active") // active, closed, draft
+  skills       String   @default("") // comma-separated
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   interviewQuestions JobInterviewQuestion[]
 
   @@index([userId])
@@ -614,7 +642,7 @@ model Notice {
   id            String    @id @default(uuid())
   title         String
   content       String
-  type          String    @default("GENERAL")   // GENERAL, MAINTENANCE, EVENT, UPDATE, URGENT
+  type          String    @default("GENERAL") // GENERAL, MAINTENANCE, EVENT, UPDATE, URGENT
   isPopup       Boolean   @default(false) @map("is_popup")
   isPinned      Boolean   @default(false) @map("is_pinned")
   allowComments Boolean   @default(true) @map("allow_comments")
@@ -625,7 +653,7 @@ model Notice {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  author   User?            @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  author   User?           @relation(fields: [authorId], references: [id], onDelete: SetNull)
   comments NoticeComment[]
   history  NoticeHistory[]
 
@@ -650,14 +678,14 @@ model NoticeComment {
 }
 
 model NoticeHistory {
-  id        String   @id @default(uuid())
-  noticeId  String   @map("notice_id")
-  editorId  String   @map("editor_id")
-  prevTitle String   @map("prev_title")
-  prevContent String @map("prev_content")
-  prevType  String   @map("prev_type")
-  reason    String   @default("")
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String   @id @default(uuid())
+  noticeId    String   @map("notice_id")
+  editorId    String   @map("editor_id")
+  prevTitle   String   @map("prev_title")
+  prevContent String   @map("prev_content")
+  prevType    String   @map("prev_type")
+  reason      String   @default("")
+  createdAt   DateTime @default(now()) @map("created_at")
 
   notice Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
   editor User   @relation(fields: [editorId], references: [id], onDelete: Cascade)
@@ -694,7 +722,7 @@ model CommunityPost {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  user     User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user     User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
   likes    CommunityLike[]
   comments CommunityComment[]
   reports  CommunityPostReport[]
@@ -737,8 +765,8 @@ model CommunityLike {
 model SkillEndorsement {
   id        String   @id @default(uuid())
   resumeId  String   @map("resume_id")
-  userId    String   @map("user_id")   // 추천한 사람
-  skill     String                      // 추천한 기술 이름
+  userId    String   @map("user_id") // 추천한 사람
+  skill     String // 추천한 기술 이름
   createdAt DateTime @default(now()) @map("created_at")
 
   resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
@@ -759,8 +787,8 @@ model CommunityComment {
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
-  post    CommunityPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  parent  CommunityComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  post    CommunityPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent  CommunityComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies CommunityComment[] @relation("CommentReplies")
 
   @@index([postId])
@@ -768,33 +796,32 @@ model CommunityComment {
   @@map("community_comments")
 }
 
-
 model ExternalJobLink {
-  id          String   @id @default(uuid())
-  name        String                           // 사이트명 (예: Wanted)
-  url         String                           // 기본 URL
-  logoEmoji   String   @default("🔗") @map("logo_emoji")
-  logoUrl     String   @default("") @map("logo_url")   // 실제 로고 이미지 URL
-  badgeText   String   @default("") @map("badge_text") // 뱃지 텍스트 (예: 개발자 인기)
-  description String   @default("")
-  gradientFrom  String  @default("#6366f1") @map("gradient_from")
-  gradientTo    String  @default("#4f46e5") @map("gradient_to")
-  matchKeywords String  @default("") @map("match_keywords")  // 내부 공고 매핑 키워드 (콤마 구분, 비어있으면 집계사이트)
+  id            String @id @default(uuid())
+  name          String // 사이트명 (예: Wanted)
+  url           String // 기본 URL
+  logoEmoji     String @default("🔗") @map("logo_emoji")
+  logoUrl       String @default("") @map("logo_url") // 실제 로고 이미지 URL
+  badgeText     String @default("") @map("badge_text") // 뱃지 텍스트 (예: 개발자 인기)
+  description   String @default("")
+  gradientFrom  String @default("#6366f1") @map("gradient_from")
+  gradientTo    String @default("#4f46e5") @map("gradient_to")
+  matchKeywords String @default("") @map("match_keywords") // 내부 공고 매핑 키워드 (콤마 구분, 비어있으면 집계사이트)
 
   // 필터용 메타데이터
-  category    String   @default("all")          // 사이트 성격: it, public, conglomerate, startup, global, junior
-  companySize String   @default("all") @map("company_size")  // all, conglomerate, public, government, medium, startup, small
-  jobTypes    String   @default("all")          // comma-separated: fulltime,contract,parttime,intern
-  careerLevel String   @default("all") @map("career_level")  // all, junior, mid, senior
-  location    String   @default("all")          // all, seoul, gyeonggi, busan, daegu, remote, nationwide, global
-  jobCategory String   @default("all") @map("job_category")  // all, it, planning, design, marketing, finance, sales, hr, manufacturing, education, medical, legal, service, research
+  category    String @default("all") // 사이트 성격: it, public, conglomerate, startup, global, junior
+  companySize String @default("all") @map("company_size") // all, conglomerate, public, government, medium, startup, small
+  jobTypes    String @default("all") // comma-separated: fulltime,contract,parttime,intern
+  careerLevel String @default("all") @map("career_level") // all, junior, mid, senior
+  location    String @default("all") // all, seoul, gyeonggi, busan, daegu, remote, nationwide, global
+  jobCategory String @default("all") @map("job_category") // all, it, planning, design, marketing, finance, sales, hr, manufacturing, education, medical, legal, service, research
 
   // 관리
-  isActive    Boolean  @default(true) @map("is_active")
-  order       Int      @default(0)              // 정렬 순서
-  clickCount  Int      @default(0) @map("click_count")  // 클릭 추적
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  isActive   Boolean  @default(true) @map("is_active")
+  order      Int      @default(0) // 정렬 순서
+  clickCount Int      @default(0) @map("click_count") // 클릭 추적
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@index([isActive, order])
   @@index([category])
@@ -804,39 +831,39 @@ model ExternalJobLink {
 }
 
 model CuratedJob {
-  id            String   @id @default(uuid())
-  company       String
-  companyLogo   String   @default("") @map("company_logo")
-  position      String
-  department    String   @default("")
-  summary       String   @default("")
-  requirements  String   @default("")
-  benefits      String   @default("")
-  skills        String   @default("")
+  id           String @id @default(uuid())
+  company      String
+  companyLogo  String @default("") @map("company_logo")
+  position     String
+  department   String @default("")
+  summary      String @default("")
+  requirements String @default("")
+  benefits     String @default("")
+  skills       String @default("")
 
-  jobType       String   @default("fulltime") @map("job_type")
+  jobType         String @default("fulltime") @map("job_type")
   experienceLevel String @default("any") @map("experience_level")
-  education     String   @default("")
-  salary        String   @default("")
-  location      String   @default("")
-  companySize   String   @default("") @map("company_size")
-  industry      String   @default("")
+  education       String @default("")
+  salary          String @default("")
+  location        String @default("")
+  companySize     String @default("") @map("company_size")
+  industry        String @default("")
 
-  sourceUrl     String   @map("source_url")
-  sourceSite    String   @default("") @map("source_site")
+  sourceUrl  String @map("source_url")
+  sourceSite String @default("") @map("source_site")
 
-  deadline      DateTime?
-  isRolling     Boolean  @default(false) @map("is_rolling")
-  status        String   @default("active")
+  deadline  DateTime?
+  isRolling Boolean   @default(false) @map("is_rolling")
+  status    String    @default("active")
 
-  viewCount     Int      @default(0) @map("view_count")
-  clickCount    Int      @default(0) @map("click_count")
-  authorId      String?  @map("author_id")
-  author        User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  viewCount          Int                    @default(0) @map("view_count")
+  clickCount         Int                    @default(0) @map("click_count")
+  authorId           String?                @map("author_id")
+  author             User?                  @relation(fields: [authorId], references: [id], onDelete: SetNull)
   interviewQuestions JobInterviewQuestion[]
 
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([status, deadline])
   @@index([companySize])
@@ -893,21 +920,21 @@ model InterviewAnswer {
 }
 
 model CoachProfile {
-  id              String  @id @default(uuid())
-  userId          String  @unique @map("user_id")
-  specialty       String  // 'frontend' | 'backend' | 'pm' | 'design' | 'career' etc.
-  bio             String  @default("") @db.Text
-  hourlyRate      Int     @default(50000) @map("hourly_rate")  // KRW
-  yearsExp        Int     @default(0) @map("years_exp")
-  languages       String  @default("ko")  // csv
-  availableHours  String  @default("")    @map("available_hours") // JSON string
-  totalSessions   Int     @default(0)     @map("total_sessions")
-  avgRating       Float   @default(0.0)   @map("avg_rating")
-  isActive        Boolean @default(true)  @map("is_active")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(uuid())
+  userId         String   @unique @map("user_id")
+  specialty      String // 'frontend' | 'backend' | 'pm' | 'design' | 'career' etc.
+  bio            String   @default("") @db.Text
+  hourlyRate     Int      @default(50000) @map("hourly_rate") // KRW
+  yearsExp       Int      @default(0) @map("years_exp")
+  languages      String   @default("ko") // csv
+  availableHours String   @default("") @map("available_hours") // JSON string
+  totalSessions  Int      @default(0) @map("total_sessions")
+  avgRating      Float    @default(0.0) @map("avg_rating")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
-  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   sessions CoachingSession[]
 
   @@index([specialty])
@@ -916,20 +943,20 @@ model CoachProfile {
 }
 
 model CoachingSession {
-  id          String @id @default(uuid())
-  coachId     String @map("coach_id")  // CoachProfile.id
-  clientId    String @map("client_id") // User.id
-  resumeId    String? @map("resume_id") // 예약 시 공유된 이력서 (코치 열람 허용)
+  id          String   @id @default(uuid())
+  coachId     String   @map("coach_id") // CoachProfile.id
+  clientId    String   @map("client_id") // User.id
+  resumeId    String?  @map("resume_id") // 예약 시 공유된 이력서 (코치 열람 허용)
   scheduledAt DateTime @map("scheduled_at")
-  duration    Int    @default(60)       // minutes
-  totalPrice  Int                       @map("total_price")       // 시간 * 레이트
-  commission  Int                       // 플랫폼 수수료 (15%)
-  coachEarn   Int                       @map("coach_earn")
-  status      String @default("requested") // requested | confirmed | completed | cancelled | refunded
-  meetingUrl  String @default("")       @map("meeting_url")
-  note        String @default("")        @db.Text
+  duration    Int      @default(60) // minutes
+  totalPrice  Int      @map("total_price") // 시간 * 레이트
+  commission  Int // 플랫폼 수수료 (15%)
+  coachEarn   Int      @map("coach_earn")
+  status      String   @default("requested") // requested | confirmed | completed | cancelled | refunded
+  meetingUrl  String   @default("") @map("meeting_url")
+  note        String   @default("") @db.Text
   rating      Int?
-  review      String @default("")        @db.Text
+  review      String   @default("") @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -943,31 +970,31 @@ model CoachingSession {
 }
 
 model StudyGroup {
-  id          String @id @default(uuid())
-  name        String
-  description String @default("")
-  jobPostId   String?  @map("job_post_id")
-  jobKey      String?  @map("job_key")
-  companyName String?  @map("company_name")
-  position    String?
+  id              String   @id @default(uuid())
+  name            String
+  description     String   @default("")
+  jobPostId       String?  @map("job_post_id")
+  jobKey          String?  @map("job_key")
+  companyName     String?  @map("company_name")
+  position        String?
   // 기업 카테고리: public(공기업/공공기관), large(대기업), mid(중견기업), startup(스타트업), foreign(외국계), sme(중소기업), freelance(프리랜서/자영업), etc.
-  companyTier String   @default("etc") @map("company_tier")
+  companyTier     String   @default("etc") @map("company_tier")
   // 카페 스타일 세부 카테고리: interview(면접), resume(이력서), coding-test(코테), study(공부), networking(네트워킹)
-  cafeCategory String  @default("interview") @map("cafe_category")
+  cafeCategory    String   @default("interview") @map("cafe_category")
   // 경력 단계: new(신입), junior(주니어), mid(중간), senior(시니어), any
-  experienceLevel String @default("any") @map("experience_level")
-  ownerId     String  @map("owner_id")
-  isPrivate   Boolean @default(false) @map("is_private")
-  maxMembers  Int     @default(20) @map("max_members")
-  memberCount Int     @default(1)  @map("member_count")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  experienceLevel String   @default("any") @map("experience_level")
+  ownerId         String   @map("owner_id")
+  isPrivate       Boolean  @default(false) @map("is_private")
+  maxMembers      Int      @default(20) @map("max_members")
+  memberCount     Int      @default(1) @map("member_count")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  owner   User  @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members StudyGroupMember[]
+  owner     User                 @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members   StudyGroupMember[]
   questions StudyGroupQuestion[]
-  posts   StudyGroupPost[]
-  events  StudyGroupEvent[]
+  posts     StudyGroupPost[]
+  events    StudyGroupEvent[]
 
   @@index([jobPostId])
   @@index([companyName])
@@ -978,11 +1005,11 @@ model StudyGroup {
 }
 
 model StudyGroupMember {
-  id        String @id @default(uuid())
-  groupId   String @map("group_id")
-  userId    String @map("user_id")
-  role      String @default("member")
-  joinedAt  DateTime @default(now()) @map("joined_at")
+  id       String   @id @default(uuid())
+  groupId  String   @map("group_id")
+  userId   String   @map("user_id")
+  role     String   @default("member")
+  joinedAt DateTime @default(now()) @map("joined_at")
 
   group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user  User       @relation("GroupMember", fields: [userId], references: [id], onDelete: Cascade)
@@ -993,15 +1020,15 @@ model StudyGroupMember {
 }
 
 model StudyGroupQuestion {
-  id          String @id @default(uuid())
-  groupId     String @map("group_id")
-  userId      String @map("user_id")
-  question    String
-  sampleAnswer String @default("") @map("sample_answer")
-  category    String @default("")
-  difficulty  String @default("intermediate")
-  upvotes     Int    @default(0)
-  createdAt   DateTime @default(now()) @map("created_at")
+  id           String   @id @default(uuid())
+  groupId      String   @map("group_id")
+  userId       String   @map("user_id")
+  question     String
+  sampleAnswer String   @default("") @map("sample_answer")
+  category     String   @default("")
+  difficulty   String   @default("intermediate")
+  upvotes      Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at")
 
   group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user  User       @relation("GroupQuestion", fields: [userId], references: [id], onDelete: Cascade)
@@ -1012,28 +1039,28 @@ model StudyGroupQuestion {
 
 /// 스터디 그룹의 카페형 게시판 — 멤버가 자유롭게 글·자료·공지 공유
 model StudyGroupPost {
-  id          String   @id @default(uuid())
-  groupId     String   @map("group_id")
-  userId      String   @map("user_id")
-  title       String
-  content     String   @db.Text
+  id           String   @id @default(uuid())
+  groupId      String   @map("group_id")
+  userId       String   @map("user_id")
+  title        String
+  content      String   @db.Text
   /// category: notice(공지), free(자유), question(질문), resource(자료공유), study-log(학습일지)
-  category    String   @default("free")
+  category     String   @default("free")
   /// 첨부파일 JSON 배열 [{ url, name, size, type }]
-  attachments Json     @default("[]")
-  isPinned    Boolean  @default(false) @map("is_pinned")
-  viewCount   Int      @default(0) @map("view_count")
-  likeCount   Int      @default(0) @map("like_count")
-  commentCount Int     @default(0) @map("comment_count")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  attachments  Json     @default("[]")
+  isPinned     Boolean  @default(false) @map("is_pinned")
+  viewCount    Int      @default(0) @map("view_count")
+  likeCount    Int      @default(0) @map("like_count")
+  commentCount Int      @default(0) @map("comment_count")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   /// 태그 JSON 배열 ["react","cs","interview"] — 검색/필터용
-  tags      Json     @default("[]")
+  tags Json @default("[]")
 
-  group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user  User       @relation("GroupPost", fields: [userId], references: [id], onDelete: Cascade)
-  comments StudyGroupPostComment[]
+  group     StudyGroup               @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User                     @relation("GroupPost", fields: [userId], references: [id], onDelete: Cascade)
+  comments  StudyGroupPostComment[]
   reactions StudyGroupPostReaction[]
 
   @@index([groupId, createdAt])
@@ -1083,20 +1110,20 @@ model StudyGroupPostComment {
 
 /// 스터디 그룹 일정 — 화상 스터디/오프라인 모임/과제 마감 등
 model StudyGroupEvent {
-  id          String   @id @default(uuid())
-  groupId     String   @map("group_id")
-  authorId    String   @map("author_id")
+  id          String    @id @default(uuid())
+  groupId     String    @map("group_id")
+  authorId    String    @map("author_id")
   title       String
-  description String   @default("") @db.Text
+  description String    @default("") @db.Text
   /// online | offline | assignment | deadline
-  kind        String   @default("online")
-  location    String   @default("")
+  kind        String    @default("online")
+  location    String    @default("")
   /// 화상회의 링크 (Zoom/Meet 등)
-  meetingUrl  String   @default("") @map("meeting_url")
-  startsAt    DateTime @map("starts_at")
+  meetingUrl  String    @default("") @map("meeting_url")
+  startsAt    DateTime  @map("starts_at")
   endsAt      DateTime? @map("ends_at")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   group  StudyGroup            @relation(fields: [groupId], references: [id], onDelete: Cascade)
   author User                  @relation("GroupEventAuthor", fields: [authorId], references: [id], onDelete: Cascade)
@@ -1125,27 +1152,27 @@ model StudyGroupEventRsvp {
 }
 
 model JobInterviewQuestion {
-  id          String  @id @default(uuid())
-  jobPostId   String? @map("job_post_id")
-  curatedJobId String? @map("curated_job_id")
-  companyName String  @map("company_name")
-  position    String
-  question    String  @db.Text
-  sampleAnswer String @default("") @db.Text @map("sample_answer")
-  category    String  @default("")
-  difficulty  String  @default("intermediate")
-  source      String  @default("user")
-  authorId    String? @map("author_id")
-  upvotes     Int     @default(0)
-  isApproved  Boolean @default(false) @map("is_approved") // 관리자 채택 여부
-  isRejected  Boolean @default(false) @map("is_rejected") // 관리자 반려 여부
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id           String   @id @default(uuid())
+  jobPostId    String?  @map("job_post_id")
+  curatedJobId String?  @map("curated_job_id")
+  companyName  String   @map("company_name")
+  position     String
+  question     String   @db.Text
+  sampleAnswer String   @default("") @map("sample_answer") @db.Text
+  category     String   @default("")
+  difficulty   String   @default("intermediate")
+  source       String   @default("user")
+  authorId     String?  @map("author_id")
+  upvotes      Int      @default(0)
+  isApproved   Boolean  @default(false) @map("is_approved") // 관리자 채택 여부
+  isRejected   Boolean  @default(false) @map("is_rejected") // 관리자 반려 여부
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  jobPost     JobPost?    @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
-  curatedJob  CuratedJob? @relation(fields: [curatedJobId], references: [id], onDelete: Cascade)
-  author      User?       @relation("JobQuestionAuthor", fields: [authorId], references: [id], onDelete: SetNull)
-  votes       JobInterviewQuestionVote[]
+  jobPost    JobPost?                   @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  curatedJob CuratedJob?                @relation(fields: [curatedJobId], references: [id], onDelete: Cascade)
+  author     User?                      @relation("JobQuestionAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  votes      JobInterviewQuestionVote[]
 
   @@index([jobPostId])
   @@index([curatedJobId])
@@ -1154,9 +1181,9 @@ model JobInterviewQuestion {
 }
 
 model JobInterviewQuestionVote {
-  id         String @id @default(uuid())
-  questionId String @map("question_id")
-  userId     String @map("user_id")
+  id         String   @id @default(uuid())
+  questionId String   @map("question_id")
+  userId     String   @map("user_id")
   createdAt  DateTime @default(now()) @map("created_at")
 
   question JobInterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
