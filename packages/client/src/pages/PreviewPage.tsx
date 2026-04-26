@@ -462,7 +462,7 @@ export default function PreviewPage() {
         />
         {/* Toolbar — hidden on mobile (actions moved to sticky bottom bar) */}
         <div className="no-print sticky top-14 sm:top-16 z-40 bg-white/80 border-b border-slate-200/80">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2 min-w-0">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <button
                 onClick={() => navigate(ROUTES.home)}
@@ -501,58 +501,59 @@ export default function PreviewPage() {
               <span title="조회수">{resume.viewCount || 0}회 조회</span>
             </div>
 
-            {/* Desktop action buttons — grouped */}
-            <div className="hidden sm:flex items-center gap-2">
-              {/* Primary: AI 기능 */}
+            {/* Desktop action buttons — progressive disclosure: 좁은 화면일수록 더보기로 이동 */}
+            <div className="hidden sm:flex items-center gap-1.5 min-w-0 flex-shrink">
+              {/* xl 이상: 모두 보임. lg-: 점수 공유/변환 → 더보기로. md-: + JD 매칭 → 더보기. sm-: + 리뷰/면접준비 → 더보기 */}
               <button
                 onClick={() => id && navigate(ROUTES.resume.review(id))}
-                className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                className="hidden md:inline-flex px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                title="리뷰"
               >
                 리뷰
               </button>
               <button
                 onClick={() => setShowAiAnalysis(true)}
-                className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+                className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap"
               >
                 AI 분석
               </button>
               <button
                 onClick={() => setShowJdMatch(true)}
-                className="px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition-colors"
+                className="hidden lg:inline-flex px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition-colors whitespace-nowrap"
               >
                 JD 매칭
               </button>
               <button
                 onClick={() => id && navigate(ROUTES.coverLetter.new(id))}
-                className="px-3 py-1.5 bg-sky-700 text-white text-xs font-medium rounded-lg hover:bg-sky-700 transition-colors"
+                className="px-3 py-1.5 bg-sky-700 text-white text-xs font-medium rounded-lg hover:bg-sky-700 transition-colors whitespace-nowrap"
                 title="이 이력서를 기반으로 자소서 작성"
               >
                 자소서
               </button>
               <button
                 onClick={() => id && navigate(withQuery(ROUTES.interview.prep, { resumeId: id }))}
-                className="px-3 py-1.5 bg-cyan-700 text-white text-xs font-medium rounded-lg hover:bg-cyan-800 transition-colors"
+                className="hidden md:inline-flex px-3 py-1.5 bg-cyan-700 text-white text-xs font-medium rounded-lg hover:bg-cyan-800 transition-colors whitespace-nowrap"
                 title="이 이력서 기반 면접 준비"
               >
                 면접준비
               </button>
               <button
                 onClick={() => setShowScoreCard(true)}
-                className="px-3 py-1.5 bg-sky-700 text-white text-xs font-medium rounded-lg hover:bg-sky-800 transition-colors"
+                className="hidden xl:inline-flex px-3 py-1.5 bg-sky-700 text-white text-xs font-medium rounded-lg hover:bg-sky-800 transition-colors whitespace-nowrap"
                 title="점수 공유 카드"
               >
                 점수 공유
               </button>
               <button
                 onClick={() => setShowTransform(true)}
-                className="px-3 py-1.5 bg-slate-700 text-white text-xs font-medium rounded-lg hover:bg-slate-800 transition-colors"
+                className="hidden xl:inline-flex px-3 py-1.5 bg-slate-700 text-white text-xs font-medium rounded-lg hover:bg-slate-800 transition-colors"
               >
                 변환
               </button>
               <button
                 onClick={handlePrint}
                 disabled={printPreparing}
-                className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-70 transition-colors"
+                className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-70 transition-colors whitespace-nowrap"
               >
                 {printPreparing ? '준비 중...' : 'PDF'}
               </button>
@@ -574,7 +575,73 @@ export default function PreviewPage() {
                   </svg>
                 </button>
                 {showMoreMenu && (
-                  <div className="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 py-1 animate-scale-in">
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 py-1 animate-scale-in">
+                    {/* 좁은 화면에서 toolbar 에 안 보이는 버튼들 — md 미만은 리뷰/면접준비, lg 미만은 JD 매칭, xl 미만은 점수 공유/변환 */}
+                    <button
+                      onClick={() => {
+                        if (id) navigate(ROUTES.resume.review(id));
+                        setShowMoreMenu(false);
+                      }}
+                      className="md:hidden w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                    >
+                      <span className="w-4 h-4 inline-flex items-center justify-center text-orange-600">
+                        ⭐
+                      </span>
+                      리뷰
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowJdMatch(true);
+                        setShowMoreMenu(false);
+                      }}
+                      className="lg:hidden w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                    >
+                      <span className="w-4 h-4 inline-flex items-center justify-center text-teal-600">
+                        🎯
+                      </span>
+                      JD 매칭
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (id) navigate(withQuery(ROUTES.interview.prep, { resumeId: id }));
+                        setShowMoreMenu(false);
+                      }}
+                      className="md:hidden w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                    >
+                      <span className="w-4 h-4 inline-flex items-center justify-center text-cyan-600">
+                        🎤
+                      </span>
+                      면접준비
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowScoreCard(true);
+                        setShowMoreMenu(false);
+                      }}
+                      className="xl:hidden w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                    >
+                      <span className="w-4 h-4 inline-flex items-center justify-center text-sky-600">
+                        🏆
+                      </span>
+                      점수 공유
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowTransform(true);
+                        setShowMoreMenu(false);
+                      }}
+                      className="xl:hidden w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                    >
+                      <span className="w-4 h-4 inline-flex items-center justify-center text-slate-600">
+                        🔄
+                      </span>
+                      변환
+                    </button>
+                    {/* 위 group 과 분리 — xl 이상에선 위 항목 모두 toolbar 에 있어 divider 불필요 */}
+                    <div
+                      className="xl:hidden h-px bg-slate-100 dark:bg-slate-700 my-1"
+                      aria-hidden="true"
+                    />
                     <button
                       onClick={() => {
                         handleCopyLink();
