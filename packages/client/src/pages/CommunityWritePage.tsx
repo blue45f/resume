@@ -250,7 +250,8 @@ export default function CommunityWritePage() {
   const navigate = useNavigate();
   const user = getUser();
 
-  // ?category= 쿼리로부터 기본값 읽기 (커뮤니티 리스트 → 글쓰기 진입 시 현재 필터 유지)
+  // ?category= ?title= ?body= 쿼리로부터 기본값 읽기
+  // (커뮤니티 리스트 → 글쓰기 진입 시 현재 필터 유지, HomePage CTA prefill 등)
   const [searchParams] = useSearchParams();
   const initialCategory = (() => {
     const q = searchParams.get('category');
@@ -258,6 +259,7 @@ export default function CommunityWritePage() {
     return q && valid.includes(q) ? q : 'free';
   })();
   const initialTitle = searchParams.get('title') || '';
+  const initialBody = searchParams.get('body') || '';
 
   const {
     register,
@@ -267,7 +269,7 @@ export default function CommunityWritePage() {
     formState: { errors, isSubmitting },
   } = useForm<PostForm>({
     resolver: zodResolver(postSchema),
-    defaultValues: { title: initialTitle, content: '', category: initialCategory },
+    defaultValues: { title: initialTitle, content: initialBody, category: initialCategory },
   });
 
   const title = watch('title');

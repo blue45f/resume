@@ -1267,20 +1267,42 @@ export default function HomePage() {
                   </span>
                 )}
               </h2>
-              <Link
-                to={ROUTES.resume.new}
-                className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                {tx('resume.new')}
-              </Link>
+              <div className="flex items-center gap-2">
+                {resumes.length > 0 && (
+                  <Link
+                    to={
+                      '/community/write?category=resume' +
+                      `&title=${encodeURIComponent('이력서 피드백 부탁드립니다 🙏')}` +
+                      `&body=${encodeURIComponent(
+                        '안녕하세요! 아래 이력서에 대해 피드백 부탁드립니다.\n\n[관심 분야]\n예: 백엔드 / 신입\n\n[궁금한 점]\n- \n- \n\n[이력서 링크]\n(여기에 본인 이력서 링크를 붙여넣어주세요. EditResume → 공개 설정 → 링크만 공개로 토큰 URL 생성 가능)\n',
+                      )}`
+                    }
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    title="커뮤니티에 이력서 피드백 요청 글 작성"
+                  >
+                    <span aria-hidden="true">🙋</span> 피드백 받기
+                  </Link>
+                )}
+                <Link
+                  to={ROUTES.resume.new}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  {tx('resume.new')}
+                </Link>
+              </div>
             </div>
 
             {/* Search and filters */}
