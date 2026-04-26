@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Resume } from '@/types/resume';
 import { generatePitch } from '@/lib/pitchGenerator';
+import { filterNaturalKoreanVoices } from '@/lib/voicePersona';
 
 interface Props {
   resume: Resume;
@@ -33,15 +34,8 @@ export default function AudioSummaryPanel({ resume }: Props) {
 
     const loadVoices = () => {
       const list = window.speechSynthesis.getVoices();
-      // 한국어 native voice 만 통과 — 영어 brand fallback / multilingual default 제외해
-      // 어색한 한국어 발음 voice 가 목록에 안 뜨도록.
-      const natural = list.filter((v) => {
-        if (!v.lang.toLowerCase().startsWith('ko')) return false;
-        const n = v.name.toLowerCase();
-        const fallbackHints = ['default', 'eloquence', 'multilingual'];
-        if (fallbackHints.some((h) => n.includes(h))) return false;
-        return true;
-      });
+      // lib/voicePersona 의 단일 휴리스틱 사용 — 사이트 전반 TTS 일관.
+      const natural = filterNaturalKoreanVoices(list);
       setVoices(natural);
       if (!voiceURI && natural.length > 0) {
         setVoiceURI(natural[0].voiceURI);

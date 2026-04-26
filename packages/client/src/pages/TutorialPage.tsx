@@ -429,16 +429,33 @@ export default function TutorialPage() {
           </p>
         </div>
 
-        <div className="flex items-center justify-center gap-2 mb-6">
+        {/* segmented toggle — 두 버튼을 하나의 round 컨테이너로 묶어 외곽선 일관 */}
+        <div
+          role="tablist"
+          aria-label="가이드 유형 선택"
+          className="inline-flex items-center justify-center mx-auto mb-6 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full max-w-sm"
+        >
           <button
+            role="tab"
+            aria-selected={guideType === 'personal'}
             onClick={() => setGuideType('personal')}
-            className={`px-4 py-2 text-sm rounded-xl transition-colors ${guideType === 'personal' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              guideType === 'personal'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
           >
             👤 구직자 가이드
           </button>
           <button
+            role="tab"
+            aria-selected={guideType === 'recruiter'}
             onClick={() => setGuideType('recruiter')}
-            className={`px-4 py-2 text-sm rounded-xl transition-colors ${guideType === 'recruiter' ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              guideType === 'recruiter'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
           >
             🏢 채용 담당자 가이드
           </button>
@@ -452,7 +469,7 @@ export default function TutorialPage() {
             >
               <button
                 onClick={() => setOpenStep(openStep === step.id ? null : step.id)}
-                className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+                className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-[-2px] rounded-xl"
                 aria-expanded={openStep === step.id}
               >
                 <div className="flex items-center gap-3">
