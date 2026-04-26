@@ -7,6 +7,7 @@ import {
   ValidateNested,
   IsInt,
   Min,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -177,4 +178,54 @@ export class CreateResumeDto {
   @ValidateNested({ each: true })
   @Type(() => ActivityDto)
   activities?: ActivityDto[];
+
+  // ── 메타 필드 (클라이언트가 Resume 객체 전체를 보내므로 화이트리스트로 받아야 함) ──
+  // ValidationPipe forbidNonWhitelisted=true 라 누락 시 400 발생.
+
+  @ApiPropertyOptional({ description: '공개 설정', enum: ['public', 'private', 'link-only'] })
+  @IsOptional()
+  @IsString()
+  @IsIn(['public', 'private', 'link-only'])
+  visibility?: string;
+
+  @ApiPropertyOptional({ description: '공개 URL slug' })
+  @IsOptional()
+  @IsString()
+  slug?: string;
+
+  @ApiPropertyOptional({ description: '구직 활성화 여부' })
+  @IsOptional()
+  @IsBoolean()
+  isOpenToWork?: boolean;
+
+  @ApiPropertyOptional({ description: '구직 희망 직무 (자유 텍스트)' })
+  @IsOptional()
+  @IsString()
+  openToWorkRoles?: string;
+
+  @ApiPropertyOptional({ description: '섹션 표시 순서', type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  sectionOrder?: string[];
+
+  @ApiPropertyOptional({ description: '숨긴 섹션', type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  hiddenSections?: string[];
+
+  @ApiPropertyOptional({ description: '태그 (id 만 사용, 응답 보존용)' })
+  @IsOptional()
+  @IsArray()
+  tags?: unknown[];
+
+  // 응답에 함께 오지만 update 시 무시되는 필드들 — 화이트리스트로 받기만 하고 service 에서 사용 X.
+  @ApiPropertyOptional() @IsOptional() viewCount?: number;
+  @ApiPropertyOptional() @IsOptional() userId?: string | null;
+  @ApiPropertyOptional() @IsOptional() id?: string;
+  @ApiPropertyOptional() @IsOptional() createdAt?: string;
+  @ApiPropertyOptional() @IsOptional() updatedAt?: string;
+  @ApiPropertyOptional() @IsOptional() reportCount?: number;
+  @ApiPropertyOptional() @IsOptional() autoHidden?: boolean;
 }
