@@ -6,6 +6,7 @@ import { z } from 'zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FeatureGate from '@/components/FeatureGate';
+import JobUrlInput from '@/components/JobUrlInput';
 import { toast } from '@/components/Toast';
 import type { ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
@@ -287,6 +288,7 @@ export default function CoverLetterPage() {
     register: registerGenerate,
     handleSubmit: handleSubmitGenerate,
     watch: watchGenerate,
+    setValue: setValueGenerate,
     formState: { errors: generateErrors, isSubmitting: isGenerating },
   } = useForm<GenerateFormValues>({
     resolver: zodResolver(generateSchema),
@@ -483,6 +485,26 @@ export default function CoverLetterPage() {
                 className="space-y-5"
                 noValidate
               >
+                {/* 채용공고 URL → 회사/포지션/JD 자동 채우기 */}
+                <JobUrlInput
+                  hint="공고 URL 을 붙여넣으면 회사명·포지션·요구사항이 자동으로 채워집니다"
+                  onParsed={(p) => {
+                    if (p.company) setValueGenerate('company', p.company, { shouldValidate: true });
+                    if (p.position)
+                      setValueGenerate('position', p.position, { shouldValidate: true });
+                    const jd = [
+                      p.description,
+                      p.skills.length > 0 ? `\n\n[요구 기술]\n${p.skills.join(', ')}` : '',
+                      p.experienceLevel ? `\n[경력]\n${p.experienceLevel}` : '',
+                      p.location ? `\n[근무지]\n${p.location}` : '',
+                    ]
+                      .filter(Boolean)
+                      .join('');
+                    if (jd.trim())
+                      setValueGenerate('jobDescription', jd.trim(), { shouldValidate: true });
+                  }}
+                />
+
                 {/* Resume */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">

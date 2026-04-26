@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ErrorRetry from '@/components/ErrorRetry';
+import JobUrlInput from '@/components/JobUrlInput';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
 import EmptyState from '@/components/EmptyState';
@@ -658,6 +659,30 @@ export default function ApplicationsPage() {
             <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">
               새 지원 추가
             </h3>
+
+            {/* 채용공고 URL → 회사/포지션 자동 채우기 */}
+            <div className="mb-4">
+              <JobUrlInput
+                hint="공고 URL 을 붙여넣으면 회사명·포지션·근무지·연봉·메모가 자동으로 채워집니다"
+                onParsed={(p) => {
+                  if (p.company) appForm.setValue('company', p.company, { shouldValidate: true });
+                  if (p.position)
+                    appForm.setValue('position', p.position, { shouldValidate: true });
+                  if (p.url) appForm.setValue('url', p.url);
+                  if (p.location) appForm.setValue('location', p.location);
+                  if (p.salary) appForm.setValue('salary', p.salary);
+                  const notes = [
+                    p.experienceLevel && `경력: ${p.experienceLevel}`,
+                    p.employmentType && `고용형태: ${p.employmentType}`,
+                    p.skills.length > 0 && `요구 기술: ${p.skills.join(', ')}`,
+                    p.description && `\n${p.description}`,
+                  ]
+                    .filter(Boolean)
+                    .join('\n');
+                  if (notes.trim()) appForm.setValue('notes', notes.trim().slice(0, 2000));
+                }}
+              />
+            </div>
 
             {/* Required fields */}
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">

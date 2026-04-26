@@ -246,6 +246,28 @@ export const removeAllowedViewer = (resumeId: string, viewerUserId: string) =>
 
 export const fetchMySharedResumes = () => request<MySharedResume[]>(`${BASE}/resumes/shared/list`);
 
+// ── 채용공고 URL 파싱 ────────────────────────────────────
+export interface ParsedJob {
+  url: string;
+  source: 'json-ld' | 'opengraph' | 'llm' | 'partial';
+  title: string;
+  company: string;
+  position: string;
+  location: string;
+  employmentType: string;
+  experienceLevel: string;
+  salary: string;
+  skills: string[];
+  description: string;
+  rawText: string;
+}
+
+export const parseJobUrl = (url: string) =>
+  request<ParsedJob>(`${BASE}/jobs/parse-url`, {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+  });
+
 // Bookmarks
 export const addBookmark = (resumeId: string) =>
   request<{ bookmarked: boolean }>(`${BASE}/resumes/${resumeId}/bookmark`, { method: 'POST' });
