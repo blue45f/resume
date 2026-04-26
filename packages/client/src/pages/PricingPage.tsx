@@ -144,7 +144,7 @@ export default function PricingPage() {
               {isMonetizationEnabled() ? (
                 <>
                   나에게 맞는{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+                  <span className="text-sky-700 dark:text-sky-400 underline decoration-sky-300 dark:decoration-sky-700 decoration-4 underline-offset-4">
                     요금제
                   </span>
                   를 선택하세요
@@ -240,8 +240,8 @@ export default function PricingPage() {
                       plan.id === 'free'
                         ? 'bg-slate-100 dark:bg-slate-700'
                         : plan.popular
-                          ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                          : 'bg-gradient-to-br from-purple-500 to-indigo-600'
+                          ? 'bg-sky-700 dark:bg-sky-600'
+                          : 'bg-cyan-700 dark:bg-cyan-600'
                     }`}
                   >
                     {plan.id === 'free' ? (

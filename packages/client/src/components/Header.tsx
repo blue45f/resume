@@ -616,7 +616,7 @@ export default function Header() {
                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                     className={`text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-1.5 lg:px-2 py-1 transition-colors duration-200 flex items-center gap-1 lg:gap-1.5 border whitespace-nowrap max-w-[140px] lg:max-w-none ${
                       isRecruiter
-                        ? 'text-sky-700 dark:text-sky-300 border-sky-200 dark:border-purple-700 bg-sky-50 dark:bg-sky-900/20 hover:bg-sky-100 dark:hover:bg-purple-900/40'
+                        ? 'text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-700 bg-sky-50 dark:bg-sky-900/20 hover:bg-sky-100 dark:hover:bg-sky-900/40'
                         : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border-transparent hover:border-slate-200 dark:hover:border-slate-600'
                     }`}
                     aria-haspopup="true"
@@ -633,7 +633,7 @@ export default function Header() {
                       ref={profileMenuRef}
                       role="menu"
                       aria-label={t('a11y.profileMenu')}
-                      className="absolute right-0 top-full mt-1 w-56 glass-dropdown rounded-xl shadow-lg z-50 py-1"
+                      className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 py-1"
                     >
                       {/* Mode header */}
                       <div

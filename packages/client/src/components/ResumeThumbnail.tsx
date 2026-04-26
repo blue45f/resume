@@ -221,23 +221,23 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
 
       {/* Hover action overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-indigo-600/85 via-indigo-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4 gap-2 flex-wrap">
-        <span className="text-white text-xs font-semibold bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/30">
+        <span className="text-slate-900 text-xs font-semibold bg-white px-3 py-1.5 rounded-full shadow-sm">
           편집
         </span>
-        <span className="text-white text-xs font-semibold bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/30">
+        <span className="text-slate-900 text-xs font-semibold bg-white px-3 py-1.5 rounded-full shadow-sm">
           미리보기
         </span>
-        <span className="text-white text-[10px] font-medium bg-white/15 backdrop-blur-sm px-2 py-1 rounded-full border border-white/20">
+        <span className="text-slate-800 text-[10px] font-medium bg-white/95 px-2 py-1 rounded-full">
           자소서
         </span>
-        <span className="text-white text-[10px] font-medium bg-white/15 backdrop-blur-sm px-2 py-1 rounded-full border border-white/20">
+        <span className="text-slate-800 text-[10px] font-medium bg-white/95 px-2 py-1 rounded-full">
           면접
         </span>
       </div>
 
       {/* Open to Work badge */}
       {showOpenToWork && resume.isOpenToWork && (
-        <div className="absolute top-8 left-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-green-500/90 text-white backdrop-blur-sm">
+        <div className="absolute top-8 left-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-emerald-500 text-white shadow-sm">
           <span className="w-1.5 h-1.5 bg-white rounded-full inline-block animate-pulse" />
           구직중
         </div>
@@ -245,7 +245,7 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
 
       {/* Visibility badge */}
       <div
-        className={`absolute top-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-semibold backdrop-blur-sm ${isPublic ? 'bg-emerald-500/90 text-white' : 'bg-slate-800/70 text-slate-200'}`}
+        className={`absolute top-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-semibold shadow-sm ${isPublic ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-100'}`}
       >
         {isPublic ? (
           <svg

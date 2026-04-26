@@ -18,26 +18,28 @@ export default function NotFoundPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
-        <div className="text-center animate-fade-in max-w-md">
+      <main className="flex-1 flex items-center justify-center px-4 bg-slate-50 dark:bg-slate-900 relative overflow-hidden">
+        {/* subtle dot grid — refined, not glassmorphic */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none opacity-40 dark:opacity-25"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle, rgb(148 163 184 / 0.35) 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+        <div className="relative text-center animate-fade-in max-w-md">
           <div className="relative inline-block mb-6">
-            <div className="text-[10rem] font-black leading-none bg-gradient-to-br from-blue-200 via-indigo-200 to-purple-200 dark:from-blue-800 dark:via-indigo-800 dark:to-purple-800 bg-clip-text text-transparent select-none">
+            {/* outlined 404 — typographic intent, no AI-slop gradient */}
+            <div
+              className="text-[10rem] font-black leading-none select-none tracking-tighter text-sky-700 dark:text-sky-400"
+              style={{
+                WebkitTextStroke: '2px currentColor',
+                color: 'transparent',
+              }}
+            >
               404
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <svg
-                className="w-20 h-20 text-blue-400/60 dark:text-blue-500/40"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
             </div>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
@@ -51,7 +53,7 @@ export default function NotFoundPage() {
           <div className="flex flex-wrap justify-center gap-3">
             <Link
               to={ROUTES.home}
-              className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md shadow-blue-500/20"
+              className="px-6 py-2.5 bg-sky-700 hover:bg-sky-800 text-white text-sm font-medium rounded-xl transition-colors duration-200 shadow-sm"
             >
               {tx('notFound.goHome')}
             </Link>

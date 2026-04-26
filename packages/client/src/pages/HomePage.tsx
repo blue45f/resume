@@ -792,7 +792,7 @@ export default function HomePage() {
               />
 
               <div className="relative">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/75 dark:bg-neutral-800/70 backdrop-blur-sm text-neutral-700 dark:text-neutral-300 rounded-full text-xs font-medium mb-8 animate-bounce-in-subtle border border-neutral-200/60 dark:border-neutral-700/60 shadow-sm">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded-full text-xs font-medium mb-8 animate-bounce-in-subtle border border-neutral-200 dark:border-neutral-700 shadow-sm">
                   <span className="relative flex w-2 h-2" aria-hidden="true">
                     <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
@@ -838,7 +838,7 @@ export default function HomePage() {
                   </Link>
                   <Link
                     to={ROUTES.resume.explore}
-                    className="imp-btn group inline-flex items-center gap-2 px-6 py-3.5 bg-white/60 dark:bg-neutral-900/40 backdrop-blur-sm text-neutral-700 dark:text-neutral-300 font-medium rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 hover:bg-white dark:hover:bg-neutral-800 transition-all duration-200 text-base focus-ring-accent"
+                    className="imp-btn group inline-flex items-center gap-2 px-6 py-3.5 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 font-medium rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200 text-base focus-ring-accent"
                   >
                     이력서 탐색
                     <svg
