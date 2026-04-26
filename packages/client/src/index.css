@@ -912,8 +912,10 @@ select:not(.no-impeccable-select):not([multiple]):not([size]) {
   -moz-appearance: none;
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.75rem center;
+  background-position: right 0.875rem center;
   background-size: 1rem 1rem;
+  /* 좌우 균형: 좌측 1rem (16px) — chevron 우측 시작점 14px + chevron 자체 16px ≈ 30px 안쪽까지 텍스트 가능. 좌우 시각 균형 OK. */
+  padding-left: 1rem !important;
   padding-right: 2.5rem !important;
 }
 
@@ -924,8 +926,9 @@ select:not(.no-impeccable-select):not([multiple]):not([size]) {
 
 /* compact size variant — for text-xs / py-1 selects */
 select.imp-select-sm:not(.no-impeccable-select):not([multiple]):not([size]) {
-  background-position: right 0.5rem center;
+  background-position: right 0.625rem center;
   background-size: 0.8125rem 0.8125rem;
+  padding-left: 0.75rem !important;
   padding-right: 1.875rem !important;
 }
 
