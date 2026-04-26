@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import KoreanQualityBadge from '@/components/KoreanQualityBadge';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
+import JobUrlInput from '@/components/JobUrlInput';
 import { useTemplates, useResumes } from '@/hooks/useResources';
 import type { Template, ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
@@ -264,6 +265,27 @@ export default function AutoGeneratePage() {
           <div className="stagger-children grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Input */}
             <div className="space-y-4">
+              {/* 채용공고 URL → AI 가 그 공고에 맞춰 이력서 작성 */}
+              <JobUrlInput
+                hint="공고 URL 을 붙여넣으면 AI 가 그 공고에 맞춰 강조 포인트를 잡아 이력서를 작성합니다"
+                onParsed={(p) => {
+                  const summary = [
+                    p.company && `회사: ${p.company}`,
+                    p.position && `포지션: ${p.position}`,
+                    p.experienceLevel && `요구 경력: ${p.experienceLevel}`,
+                    p.skills.length > 0 && `요구 기술: ${p.skills.join(', ')}`,
+                    p.description && `\n[공고 본문 요약]\n${p.description}`,
+                  ]
+                    .filter(Boolean)
+                    .join('\n');
+                  if (summary) {
+                    setInstruction(
+                      `다음 채용공고에 맞춰 강조 포인트와 표현을 조정해서 작성해줘:\n${summary}`,
+                    );
+                  }
+                }}
+              />
+
               {/* Input Mode Toggle */}
               <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
                 <button
