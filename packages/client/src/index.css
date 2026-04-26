@@ -200,6 +200,35 @@ main[data-theme-category='tech'] .imp-card {
   border-top-style: dashed;
 }
 
+/* 옵션 B 확대: PreviewPage 인접 영역(sticky toolbar 활성 버튼, 공유/액션
+   primary CTA, focus ring 등)이 이력서 테마 accent 를 따라가게 매핑.
+   사이트 전반은 .impeccable.md 톤 유지하면서, "이력서 미리보기 영역과 그
+   주변 인터랙션 요소" 가 테마에 적응하는 효과. */
+main[style*='--preview-theme-accent'] .resume-theme-accent-bg {
+  background-color: var(--preview-theme-accent) !important;
+  color: #ffffff;
+}
+main[style*='--preview-theme-accent'] .resume-theme-accent-text {
+  color: var(--preview-theme-accent) !important;
+}
+main[style*='--preview-theme-accent'] .resume-theme-accent-border {
+  border-color: var(--preview-theme-accent) !important;
+}
+main[style*='--preview-theme-accent'] .resume-theme-accent-ring:focus-visible {
+  outline-color: var(--preview-theme-accent) !important;
+}
+/* sticky toolbar 활성 토글 (예: 너비 맞춤 버튼 selected 상태) */
+main[style*='--preview-theme-accent'] [data-resume-toolbar-active='true'] {
+  background-color: color-mix(in srgb, var(--preview-theme-accent) 12%, transparent) !important;
+  border-color: color-mix(in srgb, var(--preview-theme-accent) 50%, transparent) !important;
+  color: var(--preview-theme-accent) !important;
+}
+/* PublicLinkSettings 의 숏링크 박스 accent */
+main[style*='--preview-theme-accent'] .resume-theme-accent-soft-bg {
+  background-color: color-mix(in srgb, var(--preview-theme-accent) 8%, transparent) !important;
+  border-color: color-mix(in srgb, var(--preview-theme-accent) 25%, transparent) !important;
+}
+
 @media (min-width: 640px) and (max-width: 1023px) {
   html {
     font-size: 15.5px;

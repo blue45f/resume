@@ -581,7 +581,7 @@ function ExternalJobLinks({
     }`;
 
   return (
-    <div className="mb-6 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800/60 dark:to-blue-900/20 rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
+    <div className="mb-6 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
       {/* Match Modal */}
       <RadixDialog.Root
         open={!!matchModal}
@@ -1865,7 +1865,7 @@ function CuratedJobsTab() {
                 <div className="p-4 sm:p-5">
                   <div className="flex gap-3">
                     {/* Company Logo */}
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center text-2xl shrink-0 shadow-sm border border-slate-200 dark:border-slate-600">
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-2xl shrink-0 shadow-sm border border-slate-200 dark:border-slate-600">
                       {job.companyLogo || '🏢'}
                     </div>
 
@@ -2521,7 +2521,7 @@ export default function JobsPage() {
                   }}
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${
                     levelFilter === opt.key
-                      ? 'bg-indigo-600 text-white'
+                      ? 'bg-sky-700 text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
@@ -2638,7 +2638,7 @@ export default function JobsPage() {
                   .slice(0, 3);
                 if (topMatches.length === 0) return null;
                 return (
-                  <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl">
+                  <div className="mb-6 p-4 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-2xl">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-base">🎯</span>
                       <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">

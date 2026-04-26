@@ -261,7 +261,7 @@ export default function CommunityPage() {
           {user && (
             <Link
               to={ROUTES.community.write}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-sky-700 text-white text-sm font-medium rounded-xl hover:bg-sky-800 transition-colors shadow-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -278,7 +278,7 @@ export default function CommunityPage() {
 
         {/* Hot posts strip - only show when not searching */}
         {!search && page === 1 && hotPosts.length > 0 && category === 'all' && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl p-4 mb-5">
+          <div className="bg-amber-50 dark:bg-amber-900/15 border border-amber-200 dark:border-amber-800/40 rounded-xl p-4 mb-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-base">🔥</span>
               <span className="text-sm font-semibold text-amber-800 dark:text-amber-400">
@@ -326,7 +326,7 @@ export default function CommunityPage() {
               onClick={() => setCategory(cat.id)}
               className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-all ${
                 category === cat.id
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-sky-700 text-white shadow-sm'
                   : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
               }`}
             >
@@ -373,7 +373,7 @@ export default function CommunityPage() {
               )}
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-sky-700 text-white text-xs font-medium rounded-lg hover:bg-sky-800 transition-colors"
               >
                 검색
               </button>
@@ -582,7 +582,7 @@ export default function CommunityPage() {
                             className="w-4 h-4 rounded-full object-cover"
                           />
                         ) : (
-                          <div className="w-4 h-4 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-[8px] font-bold text-indigo-600 dark:text-indigo-400">
+                          <div className="w-4 h-4 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center text-[8px] font-bold text-sky-700 dark:text-sky-400">
                             {(post.user?.name || '익')[0]}
                           </div>
                         )}
@@ -654,7 +654,7 @@ export default function CommunityPage() {
                   onClick={() => setPage(p)}
                   className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                     p === page
-                      ? 'bg-indigo-600 text-white shadow-sm'
+                      ? 'bg-sky-700 text-white shadow-sm'
                       : 'border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >

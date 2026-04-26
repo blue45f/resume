@@ -153,7 +153,7 @@ export default function CoachingSessionsPage() {
           <div className="flex items-center gap-2">
             <Link
               to={ROUTES.coaching.coaches}
-              className="px-3.5 py-2 text-xs font-medium rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-sm"
+              className="px-3.5 py-2 text-xs font-medium rounded-lg bg-sky-700 text-white hover:bg-sky-800 shadow-sm"
             >
               + 코치 찾기
             </Link>
@@ -324,7 +324,7 @@ function SessionRow({
               className="w-12 h-12 rounded-full object-cover bg-slate-100 dark:bg-slate-700"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white font-bold shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-sky-700 flex items-center justify-center text-white font-bold shadow-sm">
               {initials}
             </div>
           )}
@@ -424,7 +424,7 @@ function SessionRow({
           {canClientReview && !session.rating && (
             <button
               onClick={onOpenReview}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-amber-500 hover:bg-amber-600 text-white"
             >
               리뷰 작성
             </button>
