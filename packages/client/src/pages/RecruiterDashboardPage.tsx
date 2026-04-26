@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQueries, useMutation, useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
@@ -9,6 +9,7 @@ import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
 import { t } from '@/lib/i18n';
 import SendMessageButton from '@/components/SendMessageButton';
+import ApplicantDetailDrawer from '@/components/ApplicantDetailDrawer';
 
 const PIPELINE_STAGES = [
   {
@@ -138,6 +139,8 @@ export default function RecruiterDashboardPage() {
     : [];
   const recommended: any[] = Array.isArray(recommendedQ.data) ? (recommendedQ.data as any[]) : [];
   const loading = results.some((r) => r.isLoading);
+
+  const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
 
   const stageMutation = useMutation({
     mutationFn: async ({ candidateId, newStage }: { candidateId: string; newStage: string }) => {
@@ -469,7 +472,16 @@ export default function RecruiterDashboardPage() {
                     return (
                       <div
                         key={a.id}
-                        className="flex items-center justify-between p-3 min-h-[56px]"
+                        className="flex items-center justify-between p-3 min-h-[56px] hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors cursor-pointer"
+                        onClick={() => setSelectedApplicant(a)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setSelectedApplicant(a);
+                          }
+                        }}
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-600 dark:text-slate-300 shrink-0">
@@ -501,15 +513,17 @@ export default function RecruiterDashboardPage() {
                           {a.resumeId && (
                             <Link
                               to={ROUTES.resume.preview(a.resumeId)}
+                              onClick={(e) => e.stopPropagation()}
                               className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
                             >
                               이력서
                             </Link>
                           )}
                           <button
-                            onClick={() =>
-                              navigate(withQuery(ROUTES.jobs.scouts, { target: a.userId || a.id }))
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(withQuery(ROUTES.jobs.scouts, { target: a.userId || a.id }));
+                            }}
                             className="text-xs px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
                           >
                             스카우트
@@ -675,6 +689,10 @@ export default function RecruiterDashboardPage() {
           </div>
         )}
       </main>
+      <ApplicantDetailDrawer
+        applicant={selectedApplicant}
+        onClose={() => setSelectedApplicant(null)}
+      />
       <Footer />
     </>
   );

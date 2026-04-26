@@ -241,10 +241,42 @@
 - 알림 type 신규 7개 (coaching*review_request/\_received, coffee_chat*_, job*application*_)
 - 1305 → 1368 server tests (+63), 17 → 31 client tests (+14)
 
-## 다음 sweep 후보 (장기)
+## 2026-04-27 sweep #6 — 2개 후보 처리 (이번 sprint 마무리)
 
-- TURN 서버 ROI 결정 (telemetry 1주일 후)
-- HomePage 에 "이력서 공유" entry point 신규 → ShareResumeWithUserDialog autocomplete 적용
-- 코치 ↔ 클라이언트 1:1 직접 메시지 (기존 DirectMessage 활용 vs CoffeeChat 통합)
-- 면접 답변 재시도 비교 (같은 질문 재답변 → 점수 변화 표시)
-- 회사 dashboard candidate detail drawer (이력서 + 자소서 + 메모)
+### 면접 답변 재시도 비교 (같은 질문 점수 변화)
+
+**Audit**: InterviewScoreHistory chart 가 시간순으로만 보여줘서 같은 질문에 대한 재답변이 점수가 올랐는지 떨어졌는지 한눈에 안 보임.
+
+**Fix**:
+
+- `<InterviewScoreHistory>` 가 question text 로 grouping → 2회 이상 답변한 질문 top 3 추출
+- chart 위에 `📈 재도전 ×N` row + first → last delta (+점/-점 색 차) 표시
+- 클릭 시 latest detail modal 열림
+
+### 회사 — Applicant detail drawer (이력서 + 자소서)
+
+**Audit**: 최근 지원자 row 에서 이력서를 보려면 새 탭 클릭 → context 잃음. 자소서는 어디서도 안 보였음.
+
+**Fix**:
+
+- `<ApplicantDetailDrawer>` 컴포넌트 신규 — RadixDialog slide-in-right 패널
+- applicant row 클릭 시 열림: 자소서 (있으면) + 이력서 lazy fetch + summary/경력/스킬 미리보기 + "전체 보기 / 메시지" CTA
+- 인라인 버튼 (이력서/스카우트) 은 stopPropagation 으로 drawer 차단
+
+## 누적 통계 (2026-04-27 EOD)
+
+- **6 sweeps** 완료, **20+ 영역 처리**, 5 deferred (telemetry 누적/UX 결정 대기)
+- 신규 모델 2개 (InterviewAnswer 확장, JobPostApplication)
+- 신규 endpoints **15개**
+- 신규 컴포넌트 **5개** (InterviewScoreHistory, MyPlatformApplications, ApplicantDetailDrawer, OnboardingBanner 활용, AnnouncementPushPanel)
+- 알림 type 신규 **8개** (coaching*review*_, coffee*chat*_, job*application*\*)
+- 1305 → **1368 server tests** (+63), 17 → **31 client tests** (+14)
+- 모든 commit auto-push, 0 deploy fail
+
+## 다음 sprint 후보 (필요 시 진행)
+
+- **TURN 서버 ROI 결정** (telemetry 1주일 후 — 2026-05-04+)
+- **HomePage 이력서 공유 entry point** (UX 디자인 결정 후)
+- **코치 ↔ 클라이언트 1:1 DM 통합** (DirectMessage vs CoffeeChat 디자인 결정)
+- **회사 dashboard candidate filtering** (skill/keyword/stage 필터)
+- **InterviewScoreHistory weekly view** (월별 평균 + 90일 trend line)

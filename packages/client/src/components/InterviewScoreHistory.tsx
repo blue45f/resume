@@ -45,6 +45,28 @@ export default function InterviewScoreHistory() {
   const trend =
     points.length >= 2 ? latest.analysisScore - points[points.length - 2].analysisScore : 0;
 
+  // 같은 질문 재답변 grouping — question text 기준
+  const byQuestion = new Map<string, InterviewScorePoint[]>();
+  points.forEach((p) => {
+    const key = p.question.trim();
+    if (!byQuestion.has(key)) byQuestion.set(key, []);
+    byQuestion.get(key)!.push(p);
+  });
+  const repeatedQuestions = Array.from(byQuestion.entries())
+    .filter(([, arr]) => arr.length >= 2)
+    .map(([q, arr]) => {
+      const first = arr[0].analysisScore;
+      const last = arr[arr.length - 1].analysisScore;
+      return {
+        question: q,
+        attempts: arr.length,
+        delta: last - first,
+        latestId: arr[arr.length - 1].id,
+      };
+    })
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+    .slice(0, 3);
+
   return (
     <section className="imp-card p-4 mb-4" aria-label="면접 답변 점수 추세">
       <div className="flex items-center justify-between mb-3">
@@ -68,6 +90,38 @@ export default function InterviewScoreHistory() {
           <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">/100</span>
         </span>
       </div>
+      {/* 같은 질문 재답변 — 점수 변화 표시 */}
+      {repeatedQuestions.length > 0 && (
+        <div className="mb-3 space-y-1">
+          {repeatedQuestions.map((rq) => (
+            <button
+              key={rq.latestId}
+              type="button"
+              onClick={() => openDetail(rq.latestId)}
+              className="w-full flex items-center justify-between gap-2 text-left text-xs px-2 py-1.5 rounded-md bg-slate-50 dark:bg-slate-700/40 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            >
+              <span className="truncate text-slate-700 dark:text-slate-300">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mr-1">
+                  📈 재도전 ×{rq.attempts}
+                </span>
+                {rq.question}
+              </span>
+              <span
+                className={`shrink-0 text-xs font-bold tabular-nums ${
+                  rq.delta > 0
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : rq.delta < 0
+                      ? 'text-rose-600 dark:text-rose-400'
+                      : 'text-slate-500'
+                }`}
+              >
+                {rq.delta > 0 ? '+' : ''}
+                {rq.delta}점
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="flex items-end gap-1 h-14">
         {points.map((p) => {
           const color =
