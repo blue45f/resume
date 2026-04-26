@@ -38,6 +38,7 @@ const SYSTEM_TYPES = [
   'announcement',
   'coffee_chat_request',
   'coffee_chat_response',
+  'coffee_chat_reminder',
 ];
 const SOCIAL_TYPES = ['comment', 'bookmark', 'message'];
 
@@ -114,6 +115,12 @@ const TYPE_META: Record<string, { icon: string; bg: string; label: string; color
     bg: 'bg-emerald-100 dark:bg-emerald-900/30',
     label: '커피챗 응답',
     color: 'text-emerald-700 dark:text-emerald-400',
+  },
+  coffee_chat_reminder: {
+    icon: '⏰',
+    bg: 'bg-amber-100 dark:bg-amber-900/30',
+    label: '커피챗 리마인더',
+    color: 'text-amber-700 dark:text-amber-400',
   },
 };
 

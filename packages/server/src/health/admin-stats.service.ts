@@ -77,6 +77,37 @@ export class AdminStatsService {
       localeStats[key] = (localeStats[key] || 0) + (g._count?._all || 0);
     }
 
+    // 신규 기능 사용량 — 2026-04 사이클 추가 기능들
+    const prismaAny2 = this.prisma as any;
+    const [
+      coffeeChatTotal,
+      coffeeChatPending,
+      coffeeChatAccepted,
+      coffeeChatCompleted,
+      resumeViewerTotal,
+      selectiveResumes,
+      jobUrlCacheTotal,
+      jobUrlCacheRecent,
+      interviewAnswers,
+      interviewAnswersWeek,
+      avatarUploads,
+    ] = await Promise.all([
+      prismaAny2.coffeeChat?.count?.() ?? Promise.resolve(0),
+      prismaAny2.coffeeChat?.count?.({ where: { status: 'pending' } }) ?? Promise.resolve(0),
+      prismaAny2.coffeeChat?.count?.({ where: { status: 'accepted' } }) ?? Promise.resolve(0),
+      prismaAny2.coffeeChat?.count?.({ where: { status: 'completed' } }) ?? Promise.resolve(0),
+      prismaAny2.resumeViewer?.count?.() ?? Promise.resolve(0),
+      this.prisma.resume.count({ where: { visibility: 'selective' } }),
+      prismaAny2.jobUrlCache?.count?.() ?? Promise.resolve(0),
+      prismaAny2.jobUrlCache?.count?.({ where: { createdAt: { gte: weekAgo } } }) ??
+        Promise.resolve(0),
+      prismaAny2.interviewAnswer?.count?.() ?? Promise.resolve(0),
+      prismaAny2.interviewAnswer?.count?.({ where: { createdAt: { gte: weekAgo } } }) ??
+        Promise.resolve(0),
+      // 아바타 업로드: User.avatar 가 cloudinary URL 인 사용자 수 (대략적 추정)
+      this.prisma.user.count({ where: { avatar: { contains: 'cloudinary' } } }),
+    ]);
+
     // Aggregate coaching status counts
     const statusList = Array.isArray(sessionsByStatus) ? sessionsByStatus : [];
     const statusCounts: Record<string, number> = {
@@ -122,6 +153,30 @@ export class AdminStatsService {
         byStatus: statusCounts,
       },
       locales: localeStats,
+      // 2026-04 신규 기능 사용량
+      newFeatures: {
+        coffeeChat: {
+          total: coffeeChatTotal,
+          pending: coffeeChatPending,
+          accepted: coffeeChatAccepted,
+          completed: coffeeChatCompleted,
+        },
+        selective: {
+          resumes: selectiveResumes,
+          viewers: resumeViewerTotal,
+        },
+        jobUrlParser: {
+          totalCached: jobUrlCacheTotal,
+          weeklyParsed: jobUrlCacheRecent,
+        },
+        interviewAnalysis: {
+          totalAnswers: interviewAnswers,
+          weeklyAnswers: interviewAnswersWeek,
+        },
+        avatars: {
+          uploaded: avatarUploads,
+        },
+      },
       recentUsers: recentUsers.map((u) => ({
         id: u.id,
         name: u.name,

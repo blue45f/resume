@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AdminStatsService } from './admin-stats.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-const mockPrisma = {
+const mockPrisma: any = {
   user: { count: jest.fn(), findMany: jest.fn(), groupBy: jest.fn() },
   resume: { count: jest.fn(), aggregate: jest.fn() },
   template: { count: jest.fn() },
@@ -11,6 +11,10 @@ const mockPrisma = {
   jobApplication: { count: jest.fn() },
   resumeVersion: { count: jest.fn() },
   llmTransformation: { count: jest.fn() },
+  coffeeChat: { count: jest.fn().mockResolvedValue(0) },
+  resumeViewer: { count: jest.fn().mockResolvedValue(0) },
+  jobUrlCache: { count: jest.fn().mockResolvedValue(0) },
+  interviewAnswer: { count: jest.fn().mockResolvedValue(0) },
 };
 
 describe('AdminStatsService', () => {

@@ -267,4 +267,106 @@ describe('CoffeeChatService', () => {
       });
     });
   });
+
+  describe('sendReminders (cron)', () => {
+    beforeEach(() => {
+      mockPrisma.notification = { findMany: jest.fn().mockResolvedValue([]) };
+    });
+
+    it('해당 시간대 chats 가 없으면 알림 X', async () => {
+      mockPrisma.coffeeChat.findMany.mockResolvedValue([]);
+      await service.sendReminders();
+      expect(mockNotif.create).not.toHaveBeenCalled();
+    });
+
+    it('24h 윈도우에서 chat 발견 → 양쪽 알림', async () => {
+      mockPrisma.coffeeChat.findMany
+        .mockResolvedValueOnce([
+          {
+            id: 'cc1',
+            hostId: 'h1',
+            requesterId: 'u1',
+            modality: 'video',
+            host: { name: '코치' },
+            requester: { name: '구직자' },
+          },
+        ])
+        .mockResolvedValueOnce([]); // 1h 윈도우는 비어있음
+
+      await service.sendReminders();
+
+      expect(mockNotif.create).toHaveBeenCalledTimes(2); // host + requester
+      expect(mockNotif.create).toHaveBeenCalledWith(
+        'h1',
+        'coffee_chat_reminder',
+        expect.stringContaining('내일'),
+        '/coffee-chats/cc1/room?reminder=24h',
+      );
+      expect(mockNotif.create).toHaveBeenCalledWith(
+        'u1',
+        'coffee_chat_reminder',
+        expect.stringContaining('내일'),
+        '/coffee-chats/cc1/room?reminder=24h',
+      );
+    });
+
+    it('1h 윈도우 → "1시간 후" 메시지', async () => {
+      mockPrisma.coffeeChat.findMany
+        .mockResolvedValueOnce([]) // 24h
+        .mockResolvedValueOnce([
+          {
+            id: 'cc2',
+            hostId: 'h1',
+            requesterId: 'u1',
+            modality: 'voice',
+            host: { name: 'A' },
+            requester: { name: 'B' },
+          },
+        ]);
+
+      await service.sendReminders();
+
+      expect(mockNotif.create).toHaveBeenCalledWith(
+        'h1',
+        'coffee_chat_reminder',
+        expect.stringContaining('1시간 후'),
+        '/coffee-chats/cc2/room?reminder=1h',
+      );
+    });
+
+    it('이미 같은 reminder 받은 사용자는 skip (중복 방지)', async () => {
+      mockPrisma.coffeeChat.findMany
+        .mockResolvedValueOnce([
+          {
+            id: 'cc1',
+            hostId: 'h1',
+            requesterId: 'u1',
+            modality: 'video',
+            host: { name: 'A' },
+            requester: { name: 'B' },
+          },
+        ])
+        .mockResolvedValueOnce([]);
+      // host 가 이미 받은 상태
+      (mockPrisma.notification as any).findMany.mockResolvedValue([
+        { userId: 'h1', link: '/coffee-chats/cc1/room?reminder=24h' },
+      ]);
+
+      await service.sendReminders();
+
+      // requester 한 명만 알림 받음
+      expect(mockNotif.create).toHaveBeenCalledTimes(1);
+      expect(mockNotif.create).toHaveBeenCalledWith(
+        'u1',
+        'coffee_chat_reminder',
+        expect.any(String),
+        '/coffee-chats/cc1/room?reminder=24h',
+      );
+    });
+
+    it('Prisma 에러 → throw 안 함 (cron 안정성)', async () => {
+      mockPrisma.coffeeChat.findMany.mockRejectedValueOnce(new Error('DB fail'));
+      await expect(service.sendReminders()).resolves.toBeUndefined();
+    });
+  });
 });

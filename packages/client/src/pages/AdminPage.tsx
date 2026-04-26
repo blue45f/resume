@@ -68,6 +68,13 @@ interface Stats {
   topFeatures?: { name: string; count: number }[];
   revenue?: { thisMonth: number; lastMonth: number };
   locales?: { unset: number; ko: number; en: number; ja: number };
+  newFeatures?: {
+    coffeeChat: { total: number; pending: number; accepted: number; completed: number };
+    selective: { resumes: number; viewers: number };
+    jobUrlParser: { totalCached: number; weeklyParsed: number };
+    interviewAnalysis: { totalAnswers: number; weeklyAnswers: number };
+    avatars: { uploaded: number };
+  };
 }
 
 type TabId =
@@ -968,6 +975,114 @@ function DashboardHome({ stats }: { stats: Stats }) {
         </h2>
         <CoachingStatsWidget coaching={stats.coaching} />
       </section>
+
+      {stats.newFeatures && (
+        <section>
+          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+            <span className="w-1.5 h-4 bg-cyan-600 rounded" />✨ 신규 기능 사용량 (2026-04 사이클)
+          </h2>
+          <NewFeaturesUsageWidget data={stats.newFeatures} locales={stats.locales} />
+        </section>
+      )}
+    </div>
+  );
+}
+
+function NewFeaturesUsageWidget({
+  data,
+  locales,
+}: {
+  data: NonNullable<Stats['newFeatures']>;
+  locales?: Stats['locales'];
+}) {
+  const groups = [
+    {
+      label: '☕ 커피챗',
+      color: 'amber',
+      items: [
+        { label: '전체', value: data.coffeeChat.total },
+        { label: '대기', value: data.coffeeChat.pending },
+        { label: '수락', value: data.coffeeChat.accepted },
+        { label: '완료', value: data.coffeeChat.completed },
+      ],
+    },
+    {
+      label: '🔒 선택 공개',
+      color: 'blue',
+      items: [
+        { label: '이력서', value: data.selective.resumes },
+        { label: '허용 사용자', value: data.selective.viewers },
+      ],
+    },
+    {
+      label: '🔗 채용공고 URL 파서',
+      color: 'sky',
+      items: [
+        { label: '캐시 누적', value: data.jobUrlParser.totalCached },
+        { label: '이번주 파싱', value: data.jobUrlParser.weeklyParsed },
+      ],
+    },
+    {
+      label: '🎤 면접 답변 분석',
+      color: 'emerald',
+      items: [
+        { label: '전체 답변', value: data.interviewAnalysis.totalAnswers },
+        { label: '이번주', value: data.interviewAnalysis.weeklyAnswers },
+      ],
+    },
+    {
+      label: '🎨 아바타',
+      color: 'rose',
+      items: [{ label: '업로드', value: data.avatars.uploaded }],
+    },
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {groups.map((g) => (
+          <div
+            key={g.label}
+            className="imp-card p-3 border-l-2"
+            style={{ borderLeftColor: `var(--color-${g.color}-500, #06b6d4)` }}
+          >
+            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+              {g.label}
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {g.items.map((it) => (
+                <div key={it.label}>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    {it.label}
+                  </p>
+                  <p className="text-base font-bold tabular-nums text-slate-800 dark:text-slate-200">
+                    {it.value.toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+        {locales && (
+          <div className="imp-card p-3 border-l-2 border-l-blue-500">
+            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+              🌐 i18n 사용자 분포
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {(['ko', 'en', 'ja', 'unset'] as const).map((loc) => (
+                <div key={loc}>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    {loc === 'unset' ? '미설정' : loc.toUpperCase()}
+                  </p>
+                  <p className="text-base font-bold tabular-nums text-slate-800 dark:text-slate-200">
+                    {(locales[loc] || 0).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -274,4 +274,92 @@ export class CoffeeChatService {
       this.logger.warn(`signal cleanup 실패: ${(err as Error).message}`);
     }
   }
+
+  /**
+   * 커피챗 reminder — scheduledAt 기준 24시간 / 1시간 전 양쪽 참여자에게 알림.
+   * 매 시간 실행. 같은 (chatId × kind) 알림 중복 방지 (link 에 ?reminder=24h 식 마킹).
+   *
+   * 정확도 ±30분 — cron 매 시간이라 24h±30min / 1h±30min 윈도우 검색.
+   */
+  @Cron(CronExpression.EVERY_HOUR)
+  async sendReminders() {
+    try {
+      const now = Date.now();
+      // 24시간 전 reminder: scheduledAt 가 [now+23.5h, now+24.5h] 사이
+      await this.sendReminderBatch(
+        new Date(now + 23.5 * 60 * 60 * 1000),
+        new Date(now + 24.5 * 60 * 60 * 1000),
+        '24h',
+      );
+      // 1시간 전 reminder: [now+0.5h, now+1.5h]
+      await this.sendReminderBatch(
+        new Date(now + 0.5 * 60 * 60 * 1000),
+        new Date(now + 1.5 * 60 * 60 * 1000),
+        '1h',
+      );
+    } catch (err) {
+      this.logger.warn(`reminder cron 실패: ${(err as Error).message}`);
+    }
+  }
+
+  private async sendReminderBatch(start: Date, end: Date, kind: '24h' | '1h') {
+    const chats = await this.prisma.coffeeChat.findMany({
+      where: {
+        status: 'accepted',
+        scheduledAt: { gte: start, lte: end },
+      },
+      include: {
+        host: { select: { name: true } },
+        requester: { select: { name: true } },
+      },
+    });
+    if (chats.length === 0) return;
+
+    // 이미 같은 chat × kind reminder 받은 사용자 set 추출 (link 패턴 매칭)
+    const linkPattern = chats.map((c) => `/coffee-chats/${c.id}/room?reminder=${kind}`);
+    const existing = await this.prisma.notification.findMany({
+      where: {
+        type: 'coffee_chat_reminder',
+        link: { in: linkPattern },
+      },
+      select: { userId: true, link: true },
+    });
+    const seenSet = new Set(existing.map((n) => `${n.userId}|${n.link}`));
+
+    let sent = 0;
+    for (const chat of chats) {
+      const link = `/coffee-chats/${chat.id}/room?reminder=${kind}`;
+      const when = kind === '24h' ? '내일' : '1시간 후';
+      const modalityLabel =
+        chat.modality === 'video' ? '화상' : chat.modality === 'voice' ? '음성' : '텍스트';
+
+      // host 측
+      if (!seenSet.has(`${chat.hostId}|${link}`)) {
+        await this.notifications
+          .create(
+            chat.hostId,
+            'coffee_chat_reminder',
+            `${when} ${chat.requester.name || '신청자'}님과 ${modalityLabel} 커피챗`,
+            link,
+          )
+          .catch(() => {});
+        sent += 1;
+      }
+      // requester 측
+      if (!seenSet.has(`${chat.requesterId}|${link}`)) {
+        await this.notifications
+          .create(
+            chat.requesterId,
+            'coffee_chat_reminder',
+            `${when} ${chat.host.name || '코치'}님과 ${modalityLabel} 커피챗`,
+            link,
+          )
+          .catch(() => {});
+        sent += 1;
+      }
+    }
+    if (sent > 0) {
+      this.logger.log(`coffee chat ${kind} reminder: sent ${sent} notifications`);
+    }
+  }
 }
