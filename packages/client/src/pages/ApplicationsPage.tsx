@@ -663,7 +663,7 @@ export default function ApplicationsPage() {
             {/* 채용공고 URL → 회사/포지션 자동 채우기 */}
             <div className="mb-4">
               <JobUrlInput
-                hint="공고 URL 을 붙여넣으면 회사명·포지션·근무지·연봉·메모가 자동으로 채워집니다"
+                hint={tx('jobUrl.hintApplications')}
                 onParsed={(p) => {
                   if (p.company) appForm.setValue('company', p.company, { shouldValidate: true });
                   if (p.position)

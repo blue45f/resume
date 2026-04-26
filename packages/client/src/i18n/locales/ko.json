@@ -54,6 +54,13 @@
       "enhance": "문서 병합 고도화",
       "spellCheck": "AI 맞춤법 검사",
       "transform": "양식 변환"
+    },
+    "visibility": {
+      "label": "공개 설정",
+      "public": "공개",
+      "private": "비공개",
+      "linkOnly": "링크만 공개",
+      "selective": "선택 사용자만 공개"
     }
   },
   "common": {
@@ -79,7 +86,8 @@
     "yesterday": "어제",
     "viewAll": "전체 보기",
     "more": "더보기",
-    "retry": "재시도"
+    "retry": "재시도",
+    "anonymous": "익명"
   },
   "auth": {
     "login": "로그인",
@@ -433,7 +441,9 @@
       "message": "쪽지",
       "scout": "스카우트 제안",
       "applicationUpdate": "지원 현황 업데이트",
-      "systemAlert": "시스템 알림"
+      "systemAlert": "시스템 알림",
+      "resumeShared": "이력서 공유",
+      "resumeViewed": "이력서 열람"
     }
   },
   "email": {
@@ -561,5 +571,61 @@
       },
       "hint": "💡 면접 답변 또는 이력서 내 1~2줄 설명(학습/재충전/프리랜서 등)으로 공백을 투명화하세요."
     }
+  },
+  "sharing": {
+    "allowedViewers": "허용 사용자 관리",
+    "addUser": "사용자 추가 (username 또는 이메일)",
+    "addBtn": "추가",
+    "adding": "추가 중...",
+    "message": "메시지",
+    "messagePlaceholder": "메시지 (선택, 예: '코치 매칭용으로 공유합니다')",
+    "expires": "만료",
+    "expiresNever": "무기한",
+    "expires7d": "7일",
+    "expires30d": "30일",
+    "expires90d": "90일",
+    "expiresCustom": "직접",
+    "currentViewers": "현재 허용 사용자",
+    "noViewers": "아직 추가된 사용자가 없습니다",
+    "noViewersHint": "위에서 username 이나 이메일로 추가해보세요",
+    "addedSuccess": "사용자를 추가했습니다",
+    "addedNote": "ⓘ 이력서공방 가입 사용자만 추가 가능. 추가 즉시 알림 발송 + 이력서 열람 가능.",
+    "removed": "제거했습니다",
+    "removeConfirm": "{name}님을 허용 목록에서 제거할까요?",
+    "sharedWithMe": "공유받은 이력서",
+    "sharedBy": "{name}님 공유",
+    "shareToCoach": "이 코치에게 이력서 공유",
+    "shareToRecruiter": "이 리쿠르터에게 이력서 공유",
+    "shareGeneral": "이 사용자에게 이력서 공유",
+    "shareDesc": "공유한 이력서는 해당 사용자만 볼 수 있도록 자동으로 선택 공개로 전환됩니다.",
+    "pickResume": "공유할 이력서",
+    "shareBtn": "공유하기",
+    "sharing": "공유 중...",
+    "sharedSuccess": "{name}님에게 이력서를 공유했습니다",
+    "currentVisibility": "현재: {label}",
+    "willConvertToSelective": "→ 선택 공개로 전환",
+    "shareNote": "ⓘ 공유 즉시 {name}님이 알림을 받고 이력서를 볼 수 있습니다. 언제든 EditResume → 공개 설정에서 권한을 회수할 수 있어요.",
+    "defaultMessageCoach": "코치 매칭 검토를 위해 이력서를 공유합니다.",
+    "defaultMessageRecruiter": "채용 검토를 위해 이력서를 공유합니다.",
+    "defaultMessageGeneral": "",
+    "loadResumeError": "이력서 목록을 불러오지 못했습니다",
+    "shareError": "공유에 실패했습니다"
+  },
+  "jobUrl": {
+    "title": "🔗 채용공고 URL 로 빠르게 시작하기",
+    "placeholder": "https://www.wanted.co.kr/wd/123456 또는 https://www.jobkorea.co.kr/Recruit/...",
+    "parse": "자동 채우기",
+    "parsing": "파싱 중",
+    "sourceJsonLd": "구조화 데이터",
+    "sourceLlm": "AI 추출",
+    "sourcePartial": "부분 추출 — 빈 항목 직접 보완 필요",
+    "sourceOg": "메타 데이터",
+    "success": "공고 정보를 가져왔습니다 ({source})",
+    "error": "공고를 가져오지 못했습니다",
+    "hint": "원티드 / 잡코리아 / 사람인 / 점핏 / 프로그래머스 등 한국 채용 사이트 지원",
+    "hintCoverLetter": "공고 URL 을 붙여넣으면 회사명·포지션·요구사항이 자동으로 채워집니다",
+    "hintApplications": "공고 URL 을 붙여넣으면 회사명·포지션·근무지·연봉·메모가 자동으로 채워집니다",
+    "hintJobPost": "이미 다른 채용 사이트에 올린 공고가 있다면 URL 만 붙여넣어 자동으로 채워보세요",
+    "hintAutoGenerate": "공고 URL 을 붙여넣으면 AI 가 그 공고에 맞춰 강조 포인트를 잡아 이력서를 작성합니다"
   }
 }

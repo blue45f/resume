@@ -54,6 +54,13 @@
       "enhance": "文書マージ",
       "spellCheck": "AIスペルチェック",
       "transform": "書式変換"
+    },
+    "visibility": {
+      "label": "公開設定",
+      "public": "公開",
+      "private": "非公開",
+      "linkOnly": "リンクのみ",
+      "selective": "指定ユーザーのみ"
     }
   },
   "common": {
@@ -79,7 +86,8 @@
     "yesterday": "昨日",
     "viewAll": "すべて表示",
     "more": "もっと見る",
-    "retry": "再試行"
+    "retry": "再試行",
+    "anonymous": "匿名"
   },
   "study": {
     "title": "スタディグループ",
@@ -333,7 +341,9 @@
       "message": "メッセージ",
       "scout": "スカウト提案",
       "applicationUpdate": "応募状況更新",
-      "systemAlert": "システム通知"
+      "systemAlert": "システム通知",
+      "resumeShared": "履歴書共有",
+      "resumeViewed": "履歴書閲覧"
     }
   },
   "email": {
@@ -461,5 +471,61 @@
       },
       "hint": "💡 面接回答や履歴書内の1〜2行説明(学習/充電/フリーランス等)でギャップを透明化しましょう。"
     }
+  },
+  "sharing": {
+    "allowedViewers": "閲覧許可ユーザー管理",
+    "addUser": "ユーザー追加 (ユーザー名 または メール)",
+    "addBtn": "追加",
+    "adding": "追加中...",
+    "message": "メッセージ",
+    "messagePlaceholder": "メッセージ (任意、例: 'コーチング検討のために共有')",
+    "expires": "有効期限",
+    "expiresNever": "無期限",
+    "expires7d": "7日",
+    "expires30d": "30日",
+    "expires90d": "90日",
+    "expiresCustom": "カスタム",
+    "currentViewers": "現在の許可ユーザー",
+    "noViewers": "まだ追加されたユーザーはいません",
+    "noViewersHint": "上記からユーザー名またはメールで追加してください",
+    "addedSuccess": "ユーザーを追加しました",
+    "addedNote": "ⓘ 登録ユーザーのみ追加可能。追加と同時に通知が送信され、履歴書を閲覧できます。",
+    "removed": "削除しました",
+    "removeConfirm": "{name}さんを許可リストから削除しますか?",
+    "sharedWithMe": "共有された履歴書",
+    "sharedBy": "{name}さんから共有",
+    "shareToCoach": "このコーチに履歴書を共有",
+    "shareToRecruiter": "このリクルーターに履歴書を共有",
+    "shareGeneral": "このユーザーに履歴書を共有",
+    "shareDesc": "共有した履歴書は自動的に「指定ユーザーのみ」に切り替わります。",
+    "pickResume": "共有する履歴書",
+    "shareBtn": "共有",
+    "sharing": "共有中...",
+    "sharedSuccess": "{name}さんに履歴書を共有しました",
+    "currentVisibility": "現在: {label}",
+    "willConvertToSelective": "→ 指定公開に切替",
+    "shareNote": "ⓘ {name}さんに即時通知され、履歴書を閲覧できます。EditResume → 公開設定からいつでも取り消し可能。",
+    "defaultMessageCoach": "コーチング検討のために履歴書を共有します。",
+    "defaultMessageRecruiter": "採用検討のために履歴書を共有します。",
+    "defaultMessageGeneral": "",
+    "loadResumeError": "履歴書一覧を読み込めませんでした",
+    "shareError": "共有に失敗しました"
+  },
+  "jobUrl": {
+    "title": "🔗 求人URLから素早く開始",
+    "placeholder": "https://www.linkedin.com/jobs/... など",
+    "parse": "自動入力",
+    "parsing": "解析中",
+    "sourceJsonLd": "構造化データ",
+    "sourceLlm": "AI抽出",
+    "sourcePartial": "部分抽出 — 空欄は手動補完",
+    "sourceOg": "メタデータ",
+    "success": "求人情報を取得しました ({source})",
+    "error": "求人を取得できませんでした",
+    "hint": "Wanted / JobKorea / Saramin / LinkedIn Jobs などに対応",
+    "hintCoverLetter": "求人URLを貼り付けると会社名・職種・要件が自動入力されます",
+    "hintApplications": "求人URLを貼り付けると会社・職種・勤務地・給与・メモが自動入力されます",
+    "hintJobPost": "他サイトに掲載済の求人があれば、URLを貼り付けて自動入力できます",
+    "hintAutoGenerate": "求人URLを貼り付けると、AIがその求人に合わせて履歴書を作成します"
   }
 }

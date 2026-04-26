@@ -317,7 +317,7 @@ export default function JobPostPage() {
           >
             {/* 채용공고 URL → 폼 자동 채우기 (다른 사이트 공고를 옮겨오거나 본인 공고 다시 등록 시) */}
             <JobUrlInput
-              hint="이미 다른 채용 사이트에 올린 공고가 있다면 URL 만 붙여넣어 자동으로 채워보세요"
+              hint={tx('jobUrl.hintJobPost')}
               onParsed={(p) => {
                 if (p.company) setValue('company', p.company, { shouldValidate: true });
                 if (p.position) setValue('position', p.position, { shouldValidate: true });

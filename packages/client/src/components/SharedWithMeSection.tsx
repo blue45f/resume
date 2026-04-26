@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchMySharedResumes, type MySharedResume } from '@/lib/api';
 import { ROUTES } from '@/lib/routes';
+import { tx } from '@/lib/i18n';
 
 /**
  * "공유받은 이력서" 섹션 — selective 공개 이력서를 받은 사용자에게만 보임.
@@ -44,26 +45,27 @@ export default function SharedWithMeSection() {
             d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6 0a4 4 0 10-4-4 4 4 0 004 4z"
           />
         </svg>
-        공유받은 이력서 ({items.length}개)
+        {tx('sharing.sharedWithMe')} ({items.length})
       </h3>
       <div className="flex gap-2 overflow-x-auto pb-2">
         {items.map((s) => {
-          const ownerName = s.resume.personalInfo?.name || s.addedBy?.name || '익명';
+          const ownerName =
+            s.resume.personalInfo?.name || s.addedBy?.name || tx('common.anonymous');
           return (
             <Link
               key={s.id}
               to={ROUTES.resume.preview(s.resume.id)}
               className="shrink-0 max-w-[260px] px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors group"
-              title={s.message || `${ownerName}님이 공유한 이력서`}
+              title={s.message || tx('sharing.sharedBy', { name: ownerName })}
             >
               <p className="text-sm font-medium text-blue-700 dark:text-blue-300 truncate">
                 {s.resume.title || '제목 없음'}
               </p>
               <p className="text-[11px] text-blue-600/80 dark:text-blue-400/80 truncate mt-0.5">
-                {ownerName}님 공유
+                {tx('sharing.sharedBy', { name: ownerName })}
                 {s.expiresAt && (
                   <>
-                    {' · '}~{new Date(s.expiresAt).toLocaleDateString('ko-KR')}
+                    {' · '}~{new Date(s.expiresAt).toLocaleDateString()}
                   </>
                 )}
               </p>

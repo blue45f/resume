@@ -487,7 +487,7 @@ export default function CoverLetterPage() {
               >
                 {/* 채용공고 URL → 회사/포지션/JD 자동 채우기 */}
                 <JobUrlInput
-                  hint="공고 URL 을 붙여넣으면 회사명·포지션·요구사항이 자동으로 채워집니다"
+                  hint={tx('jobUrl.hintCoverLetter')}
                   onParsed={(p) => {
                     if (p.company) setValueGenerate('company', p.company, { shouldValidate: true });
                     if (p.position)

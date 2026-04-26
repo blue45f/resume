@@ -7,6 +7,7 @@ import {
   removeAllowedViewer,
   type ResumeAllowedViewer,
 } from '@/lib/api';
+import { tx } from '@/lib/i18n';
 
 interface Props {
   resumeId: string;
@@ -81,7 +82,7 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
       };
       const payload = isEmail ? { email: q, ...base } : { username: q.replace(/^@/, ''), ...base };
       await addAllowedViewer(resumeId, payload);
-      toast('사용자를 추가했습니다', 'success');
+      toast(tx('sharing.addedSuccess'), 'success');
       setQuery('');
       setMessage('');
       setExpiresPreset('never');
@@ -95,10 +96,10 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
   };
 
   const handleRemove = async (userId: string, name: string) => {
-    if (!confirm(`${name}님을 허용 목록에서 제거할까요?`)) return;
+    if (!confirm(tx('sharing.removeConfirm', { name }))) return;
     try {
       await removeAllowedViewer(resumeId, userId);
-      toast('제거했습니다', 'success');
+      toast(tx('sharing.removed'), 'success');
       setViewers((prev) => prev.filter((v) => v.userId !== userId));
     } catch (err) {
       toast(err instanceof Error ? err.message : '제거에 실패했습니다', 'error');
@@ -109,15 +110,15 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
     <Dialog
       open={open}
       onOpenChange={setOpen}
-      title="허용 사용자 관리"
-      description="선택 공개로 설정된 이력서를 볼 수 있는 사용자를 관리합니다."
+      title={tx('sharing.allowedViewers')}
+      description={tx('sharing.shareDesc')}
       maxWidth="max-w-xl"
     >
       <div className="space-y-4">
         {/* 추가 영역 */}
         <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-3 bg-slate-50 dark:bg-slate-800/40">
           <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-            사용자 추가 (username 또는 이메일)
+            {tx('sharing.addUser')}
           </label>
           <div className="flex gap-2">
             <input
@@ -139,33 +140,34 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
               disabled={!query.trim() || adding}
               className="px-3 py-1.5 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
-              {adding ? '추가 중...' : '추가'}
+              {adding ? tx('sharing.adding') : tx('sharing.addBtn')}
             </button>
           </div>
           <input
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="메시지 (선택, 예: '코치 매칭용으로 공유합니다')"
+            placeholder={tx('sharing.messagePlaceholder')}
             maxLength={200}
             className="mt-2 w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {/* 만료일 — 시한부 공개 (지원 1주일 / 면접 30일 / 채용 진행 90일 등) */}
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
-              만료:
+              {tx('sharing.expires')}:
             </span>
             {(['never', 'D7', 'D30', 'D90', 'custom'] as const).map((p) => {
-              const label =
+              const label = tx(
                 p === 'never'
-                  ? '무기한'
+                  ? 'sharing.expiresNever'
                   : p === 'D7'
-                    ? '7일'
+                    ? 'sharing.expires7d'
                     : p === 'D30'
-                      ? '30일'
+                      ? 'sharing.expires30d'
                       : p === 'D90'
-                        ? '90일'
-                        : '직접';
+                        ? 'sharing.expires90d'
+                        : 'sharing.expiresCustom',
+              );
               return (
                 <button
                   key={p}
@@ -192,27 +194,26 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
             )}
           </div>
           <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-            ⓘ 이력서공방 가입 사용자만 추가 가능. 추가 즉시 해당 사용자에게 알림이 발송되고 이력서를
-            볼 수 있게 됩니다.
+            {tx('sharing.addedNote')}
           </p>
         </div>
 
         {/* 목록 */}
         <div>
           <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-            현재 허용 사용자 ({viewers.length}명)
+            {tx('sharing.currentViewers')} ({viewers.length})
           </h4>
           {loading ? (
             <p className="text-xs text-slate-500 dark:text-slate-400 py-4 text-center">
-              불러오는 중...
+              {tx('common.loading')}
             </p>
           ) : viewers.length === 0 ? (
             <div className="text-center py-8 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                아직 추가된 사용자가 없습니다
+                {tx('sharing.noViewers')}
               </p>
               <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-                위에서 username 이나 이메일로 추가해보세요
+                {tx('sharing.noViewersHint')}
               </p>
             </div>
           ) : (

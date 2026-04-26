@@ -54,6 +54,13 @@
       "enhance": "Merge document",
       "spellCheck": "AI Spell Check",
       "transform": "Transform format"
+    },
+    "visibility": {
+      "label": "Visibility",
+      "public": "Public",
+      "private": "Private",
+      "linkOnly": "Link only",
+      "selective": "Selective (chosen users)"
     }
   },
   "common": {
@@ -79,7 +86,8 @@
     "yesterday": "Yesterday",
     "viewAll": "View All",
     "more": "More",
-    "retry": "Retry"
+    "retry": "Retry",
+    "anonymous": "Anonymous"
   },
   "auth": {
     "login": "Login",
@@ -433,7 +441,9 @@
       "message": "Message",
       "scout": "Scout proposal",
       "applicationUpdate": "Application update",
-      "systemAlert": "System alert"
+      "systemAlert": "System alert",
+      "resumeShared": "Resume shared",
+      "resumeViewed": "Resume viewed"
     }
   },
   "email": {
@@ -561,5 +571,61 @@
       },
       "hint": "💡 Explain gaps in 1–2 lines (learning / recharge / freelance) either in the resume or interview."
     }
+  },
+  "sharing": {
+    "allowedViewers": "Manage allowed viewers",
+    "addUser": "Add user (username or email)",
+    "addBtn": "Add",
+    "adding": "Adding...",
+    "message": "Message",
+    "messagePlaceholder": "Optional message (e.g., 'Sharing for coaching review')",
+    "expires": "Expires",
+    "expiresNever": "Never",
+    "expires7d": "7 days",
+    "expires30d": "30 days",
+    "expires90d": "90 days",
+    "expiresCustom": "Custom",
+    "currentViewers": "Current viewers",
+    "noViewers": "No viewers added yet",
+    "noViewersHint": "Add by username or email above",
+    "addedSuccess": "User added",
+    "addedNote": "ⓘ Only registered users can be added. They get notified instantly and can view the resume.",
+    "removed": "Removed",
+    "removeConfirm": "Remove {name} from the allowed list?",
+    "sharedWithMe": "Shared with me",
+    "sharedBy": "Shared by {name}",
+    "shareToCoach": "Share my resume with this coach",
+    "shareToRecruiter": "Share my resume with this recruiter",
+    "shareGeneral": "Share my resume",
+    "shareDesc": "The resume will be auto-set to selective visibility — only the chosen user can view it.",
+    "pickResume": "Resume to share",
+    "shareBtn": "Share",
+    "sharing": "Sharing...",
+    "sharedSuccess": "Resume shared with {name}",
+    "currentVisibility": "Current: {label}",
+    "willConvertToSelective": "→ Will convert to Selective",
+    "shareNote": "ⓘ {name} gets notified instantly and can view the resume. Revoke any time via EditResume → Visibility.",
+    "defaultMessageCoach": "Sharing my resume for your coaching review.",
+    "defaultMessageRecruiter": "Sharing my resume for your recruiting review.",
+    "defaultMessageGeneral": "",
+    "loadResumeError": "Failed to load resumes",
+    "shareError": "Failed to share"
+  },
+  "jobUrl": {
+    "title": "🔗 Quick start from a job URL",
+    "placeholder": "https://www.linkedin.com/jobs/... or any Korean job site URL",
+    "parse": "Auto-fill",
+    "parsing": "Parsing",
+    "sourceJsonLd": "structured data",
+    "sourceLlm": "AI extraction",
+    "sourcePartial": "partial — fill missing fields manually",
+    "sourceOg": "metadata",
+    "success": "Job info loaded ({source})",
+    "error": "Failed to load the job",
+    "hint": "Supports Wanted / JobKorea / Saramin / Jumpit / Programmers / RocketPunch / Greeting / LinkedIn Jobs",
+    "hintCoverLetter": "Paste a job URL to auto-fill company, position, and requirements",
+    "hintApplications": "Paste a job URL to auto-fill company, position, location, salary, and notes",
+    "hintJobPost": "Already posted on another site? Paste the URL to auto-fill the form",
+    "hintAutoGenerate": "Paste a job URL — AI tailors the resume to match the role"
   }
 }

@@ -3,6 +3,7 @@ import Dialog from '@/shared/ui/Dialog';
 import { toast } from '@/components/Toast';
 import { fetchResumes, setResumeVisibility, addAllowedViewer } from '@/lib/api';
 import type { ResumeSummary } from '@/types/resume';
+import { tx } from '@/lib/i18n';
 
 interface Props {
   open: boolean;
@@ -16,16 +17,16 @@ interface Props {
   onShared?: () => void;
 }
 
-const CONTEXT_LABEL: Record<NonNullable<Props['context']>, string> = {
-  coach: '이 코치에게',
-  recruiter: '이 리쿠르터에게',
-  general: '이 사용자에게',
+const TITLE_KEY: Record<NonNullable<Props['context']>, string> = {
+  coach: 'sharing.shareToCoach',
+  recruiter: 'sharing.shareToRecruiter',
+  general: 'sharing.shareGeneral',
 };
 
-const DEFAULT_MESSAGE: Record<NonNullable<Props['context']>, string> = {
-  coach: '코치 매칭 검토를 위해 이력서를 공유합니다.',
-  recruiter: '채용 검토를 위해 이력서를 공유합니다.',
-  general: '',
+const DEFAULT_MESSAGE_KEY: Record<NonNullable<Props['context']>, string> = {
+  coach: 'sharing.defaultMessageCoach',
+  recruiter: 'sharing.defaultMessageRecruiter',
+  general: 'sharing.defaultMessageGeneral',
 };
 
 /**
@@ -50,7 +51,7 @@ export default function ShareResumeWithUserDialog({
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string>('');
-  const [message, setMessage] = useState(DEFAULT_MESSAGE[context]);
+  const [message, setMessage] = useState(tx(DEFAULT_MESSAGE_KEY[context]));
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function ShareResumeWithUserDialog({
         if (list.length > 0 && !selectedId) setSelectedId(list[0].id);
       })
       .catch((err) =>
-        toast(err instanceof Error ? err.message : '이력서 목록을 불러오지 못했습니다', 'error'),
+        toast(err instanceof Error ? err.message : tx('sharing.loadResumeError'), 'error'),
       )
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,11 +83,11 @@ export default function ShareResumeWithUserDialog({
         userId: targetUserId,
         message: message.trim() || undefined,
       });
-      toast(`${targetUserName}님에게 이력서를 공유했습니다`, 'success');
+      toast(tx('sharing.sharedSuccess', { name: targetUserName }), 'success');
       onShared?.();
       onOpenChange(false);
     } catch (err) {
-      toast(err instanceof Error ? err.message : '공유에 실패했습니다', 'error');
+      toast(err instanceof Error ? err.message : tx('sharing.shareError'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -96,15 +97,15 @@ export default function ShareResumeWithUserDialog({
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
-      title={`${CONTEXT_LABEL[context]} 이력서 공유`}
-      description="공유한 이력서는 해당 사용자만 볼 수 있도록 자동으로 선택 공개로 전환됩니다."
+      title={tx(TITLE_KEY[context])}
+      description={tx('sharing.shareDesc')}
       maxWidth="max-w-md"
     >
       <div className="space-y-4">
         {/* 이력서 선택 */}
         <div>
           <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-            공유할 이력서
+            {tx('sharing.pickResume')}
           </label>
           {loading ? (
             <p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center">
@@ -189,7 +190,7 @@ export default function ShareResumeWithUserDialog({
             onClick={() => onOpenChange(false)}
             className="px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
           >
-            취소
+            {tx('common.cancel')}
           </button>
           <button
             type="button"
@@ -197,7 +198,7 @@ export default function ShareResumeWithUserDialog({
             disabled={!selectedId || submitting || resumes.length === 0}
             className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
-            {submitting ? '공유 중...' : '공유하기'}
+            {submitting ? tx('sharing.sharing') : tx('sharing.shareBtn')}
           </button>
         </div>
       </div>
