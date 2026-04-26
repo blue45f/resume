@@ -68,12 +68,12 @@ function HourHeatmap({ hours }: { hours: HourStat[] }) {
           intensity === 0
             ? 'bg-slate-100 dark:bg-slate-700'
             : intensity < 0.25
-              ? 'bg-indigo-100 dark:bg-indigo-900/30'
+              ? 'bg-sky-100 dark:bg-sky-900/30'
               : intensity < 0.5
-                ? 'bg-indigo-200 dark:bg-indigo-800/40'
+                ? 'bg-sky-200 dark:bg-sky-800/40'
                 : intensity < 0.75
-                  ? 'bg-indigo-300 dark:bg-indigo-700/50'
-                  : 'bg-indigo-500 dark:bg-indigo-500';
+                  ? 'bg-sky-300 dark:bg-sky-700/50'
+                  : 'bg-sky-500 dark:bg-sky-500';
         return (
           <div key={h.hour} className="flex flex-col items-center gap-0.5 group relative">
             <div
@@ -318,7 +318,7 @@ export default function ResumeAnalytics({ resumeId }: Props) {
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
                         r.source === '직접 방문'
-                          ? 'bg-indigo-400'
+                          ? 'bg-sky-400'
                           : r.source === '탐색 페이지'
                             ? 'bg-blue-400'
                             : 'bg-emerald-400'

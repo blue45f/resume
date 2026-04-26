@@ -232,7 +232,7 @@ export default function ProfileWizard({ resume, resumeId, onDismiss }: ProfileWi
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-6 animate-fade-in-up">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-blue-600 to-sky-700 px-5 py-4 flex items-center justify-between">
         <div>
           <h3 className="text-white font-bold text-sm">프로필 완성 가이드</h3>
           <p className="text-blue-100 text-xs mt-0.5">
@@ -267,7 +267,7 @@ export default function ProfileWizard({ resume, resumeId, onDismiss }: ProfileWi
         </div>
         <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 mb-4">
           <div
-            className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-500 ease-out"
+            className="bg-gradient-to-r from-blue-500 to-sky-500 h-2 rounded-full transition-all duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
           />
         </div>

@@ -1290,9 +1290,9 @@ export default function NewResumePage() {
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                 >
-                  <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center mb-2">
+                  <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-lg flex items-center justify-center mb-2">
                     <svg
-                      className="w-5 h-5 text-indigo-500 dark:text-indigo-400"
+                      className="w-5 h-5 text-sky-500 dark:text-sky-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -2019,7 +2019,7 @@ export default function NewResumePage() {
                   </span>
                 )}
                 {startMode === 'sample' && (
-                  <span className="px-2 py-1 text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full">
+                  <span className="px-2 py-1 text-xs bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 rounded-full">
                     샘플 데이터
                   </span>
                 )}

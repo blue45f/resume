@@ -146,7 +146,7 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
         >
           {!isRoot && (
             <svg
-              className="w-3 h-3 text-indigo-400 shrink-0 mt-1"
+              className="w-3 h-3 text-sky-400 shrink-0 mt-1"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -163,7 +163,7 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
             className={`${isRoot ? 'w-8 h-8' : 'w-6 h-6'} ${
               isRoot
                 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                : 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400'
             } rounded-full flex items-center justify-center text-${isRoot ? 'xs' : '[10px]'} font-bold shrink-0`}
           >
             {node.authorName.charAt(0)}
@@ -205,7 +205,7 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
                       replyForm.reset();
                     }
                   }}
-                  className="text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors flex items-center gap-1"
+                  className="text-xs text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 transition-colors flex items-center gap-1"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -243,9 +243,9 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
           <div className="ml-8 mt-1.5">
             <form
               onSubmit={replyForm.handleSubmit(onReply(node.id))}
-              className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl overflow-hidden"
+              className="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-xl overflow-hidden"
             >
-              <div className="px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 border-b border-indigo-100 dark:border-indigo-800/50 flex items-center gap-2">
+              <div className="px-3 py-2 text-xs text-sky-700 dark:text-sky-400 border-b border-sky-100 dark:border-sky-800/50 flex items-center gap-2">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -269,8 +269,8 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
                   {replyForm.formState.errors.content.message}
                 </p>
               )}
-              <div className="flex items-center justify-between px-3 py-2 border-t border-indigo-100 dark:border-indigo-800/50">
-                <span className="text-[10px] text-indigo-400">{replyText.length}/500</span>
+              <div className="flex items-center justify-between px-3 py-2 border-t border-sky-100 dark:border-sky-800/50">
+                <span className="text-[10px] text-sky-400">{replyText.length}/500</span>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -285,7 +285,7 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
                   <button
                     type="submit"
                     disabled={replyForm.formState.isSubmitting || replyText.trim().length < 5}
-                    className="px-3 py-1 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                    className="px-3 py-1 bg-sky-700 text-white text-xs rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors"
                   >
                     {replyForm.formState.isSubmitting ? '등록 중...' : '답글 등록'}
                   </button>
@@ -297,7 +297,7 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
 
         {/* Children */}
         {node.children.length > 0 && (
-          <div className="ml-8 mt-1 space-y-1 border-l-2 border-indigo-100 dark:border-indigo-900/30 pl-3">
+          <div className="ml-8 mt-1 space-y-1 border-l-2 border-sky-100 dark:border-sky-900/30 pl-3">
             {node.children.map((child) => renderNode(child, depth + 1))}
           </div>
         )}

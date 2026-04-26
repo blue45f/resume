@@ -144,7 +144,7 @@ export default function ProfileCompleteness() {
             className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
               item.done
                 ? 'bg-emerald-50 dark:bg-emerald-900/10'
-                : 'bg-slate-50 dark:bg-slate-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
+                : 'bg-slate-50 dark:bg-slate-700/50 hover:bg-sky-50 dark:hover:bg-sky-900/20'
             }`}
             onClick={item.done ? (e) => e.preventDefault() : undefined}
           >
@@ -160,7 +160,7 @@ export default function ProfileCompleteness() {
             </span>
             {!item.done && (
               <svg
-                className="w-4 h-4 text-indigo-400 shrink-0"
+                className="w-4 h-4 text-sky-400 shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

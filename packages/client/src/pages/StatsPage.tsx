@@ -204,7 +204,7 @@ function JobStatsSection() {
                   </div>
                   <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full"
+                      className="h-full bg-gradient-to-r from-blue-400 to-sky-500 rounded-full"
                       style={{ width: `${(l.count / (data.byLocation[0]?.count || 1)) * 100}%` }}
                     />
                   </div>
@@ -305,7 +305,7 @@ export default function StatsPage() {
         role="main"
       >
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-sky-700 rounded-xl flex items-center justify-center shadow-sm">
+          <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-sky-700 rounded-xl flex items-center justify-center shadow-sm">
             <svg
               className="w-5 h-5 text-white"
               fill="none"
@@ -339,7 +339,7 @@ export default function StatsPage() {
                   label: '전체 회원',
                   value: stats.users.total,
                   sub: `오늘 +${stats.users.today}`,
-                  color: 'from-blue-500 to-indigo-600',
+                  color: 'from-blue-500 to-sky-700',
                   icon: '👥',
                 },
                 {

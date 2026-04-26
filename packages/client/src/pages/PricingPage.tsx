@@ -113,7 +113,7 @@ export default function PricingPage() {
         )}
         {/* Hero */}
         <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/50 to-transparent dark:from-indigo-950/20 dark:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-sky-50/50 to-transparent dark:from-sky-950/20 dark:to-transparent" />
           <div className="relative text-center py-12 sm:py-16 px-4">
             {!isMonetizationEnabled() ? (
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-medium mb-4">
@@ -128,7 +128,7 @@ export default function PricingPage() {
                 베타 기간 — 모든 기능 무료 제공 중
               </div>
             ) : (
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-xs font-medium mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded-full text-xs font-medium mb-4">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -225,7 +225,7 @@ export default function PricingPage() {
                 }`}
               >
                 {plan.popular && (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold rounded-full shadow-md shadow-blue-600/20">
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-blue-600 to-sky-700 text-white text-xs font-bold rounded-full shadow-md shadow-blue-600/20">
                     가장 인기
                   </span>
                 )}
@@ -541,7 +541,7 @@ export default function PricingPage() {
                     }
                     className={`block w-full py-3 text-center text-sm font-semibold rounded-xl transition-all duration-200 ${
                       plan.popular
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:-translate-y-0.5'
+                        ? 'bg-gradient-to-r from-blue-600 to-sky-700 text-white hover:from-blue-700 hover:to-sky-700 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:-translate-y-0.5'
                         : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
                     }`}
                   >

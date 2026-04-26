@@ -191,7 +191,7 @@ function PowerWordsHelper() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors font-medium"
+        className="flex items-center gap-1 text-[11px] text-sky-700 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 transition-colors font-medium"
       >
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -205,8 +205,8 @@ function PowerWordsHelper() {
       </button>
 
       {open && (
-        <div className="mt-1.5 p-2.5 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg animate-fade-in">
-          <p className="text-[10px] text-indigo-600 dark:text-indigo-400 mb-1.5 font-medium">
+        <div className="mt-1.5 p-2.5 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg animate-fade-in">
+          <p className="text-[10px] text-sky-700 dark:text-sky-400 mb-1.5 font-medium">
             클릭하면 클립보드에 복사됩니다
           </p>
           <div className="flex flex-wrap gap-1 mb-1.5">
@@ -217,8 +217,8 @@ function PowerWordsHelper() {
                 onClick={() => setActiveCategory(cat)}
                 className={`text-[10px] px-1.5 py-0.5 rounded-full transition-colors ${
                   activeCategory === cat
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/30'
+                    ? 'bg-sky-700 text-white'
+                    : 'bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-700 hover:bg-sky-100 dark:hover:bg-sky-900/30'
                 }`}
               >
                 {cat}
@@ -234,7 +234,7 @@ function PowerWordsHelper() {
                 className={`text-xs px-2 py-0.5 rounded-md border transition-all ${
                   copied === verb
                     ? 'bg-green-500 text-white border-green-500'
-                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-sky-400 hover:text-sky-700 dark:hover:text-sky-400'
                 }`}
               >
                 {copied === verb ? '복사됨!' : verb}

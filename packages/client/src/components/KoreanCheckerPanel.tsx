@@ -378,15 +378,15 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
 
           {/* 학습 힌트: 가장 자주 틀리는 표현 Top 3 */}
           {!aiMode && topWrongs.length > 0 && (
-            <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
-              <div className="text-[11px] font-semibold text-indigo-800 dark:text-indigo-200 mb-1.5">
+            <div className="p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
+              <div className="text-[11px] font-semibold text-sky-800 dark:text-sky-200 mb-1.5">
                 📚 자주 틀리는 표현 Top {topWrongs.length}
               </div>
               <div className="flex flex-wrap gap-2 text-[11px]">
                 {topWrongs.map((p) => (
                   <span
                     key={p.wrong}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-700"
                   >
                     <span className="font-mono line-through text-red-600 dark:text-red-400">
                       {p.wrong}

@@ -113,7 +113,7 @@ const AVATAR_COLORS = [
   'bg-slate-600',
   'bg-amber-500',
   'bg-teal-500',
-  'bg-indigo-500',
+  'bg-sky-500',
   'bg-blue-700',
 ];
 
@@ -696,7 +696,7 @@ export default function ExplorePage() {
             onClick={() => setActiveTab('community')}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'community'
-                ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400'
+                ? 'border-sky-700 text-sky-700 dark:text-sky-400 dark:border-sky-400'
                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
@@ -1250,7 +1250,7 @@ export default function ExplorePage() {
               <p className="text-sm text-slate-500 dark:text-slate-400">최신 커뮤니티 게시글</p>
               <Link
                 to={ROUTES.community.write}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-sky-700 text-white rounded-lg hover:bg-sky-700 transition-colors"
               >
                 글쓰기
               </Link>
@@ -1313,7 +1313,7 @@ export default function ExplorePage() {
                     <Link
                       key={post.id}
                       to={ROUTES.community.post(post.id)}
-                      className="flex items-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm transition-all"
+                      className="flex items-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 hover:border-sky-300 dark:hover:border-sky-700 hover:shadow-sm transition-all"
                     >
                       <span
                         className={`shrink-0 text-xs px-2 py-0.5 rounded-lg font-medium ${CAT_COLORS[post.category] || CAT_COLORS.free}`}
@@ -1366,7 +1366,7 @@ export default function ExplorePage() {
             <div className="mt-6 text-center">
               <Link
                 to={ROUTES.community.list}
-                className="inline-flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                className="inline-flex items-center gap-2 text-sm text-sky-700 dark:text-sky-400 hover:underline font-medium"
               >
                 커뮤니티 전체 보기 →
               </Link>
@@ -1394,7 +1394,7 @@ export default function ExplorePage() {
                     <Link
                       key={`recent-${v.id}`}
                       to={ROUTES.resume.preview(v.id)}
-                      className="shrink-0 w-40 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-300 transition-colors"
+                      className="shrink-0 w-40 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-sky-300 transition-colors"
                     >
                       <p className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">
                         {v.title || '이력서'}

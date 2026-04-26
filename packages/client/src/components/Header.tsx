@@ -181,7 +181,7 @@ export default function Header() {
               className="logo-hover text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded inline-flex items-center gap-2"
               aria-label="이력서공방 홈"
             >
-              <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
+              <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-sky-700 rounded-lg flex items-center justify-center shadow-sm">
                 <svg
                   className="w-3.5 h-3.5 text-white"
                   fill="none"

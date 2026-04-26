@@ -78,7 +78,7 @@ function NoticeList() {
           </div>
           <Link
             to={ROUTES.community.notice}
-            className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+            className="text-xs text-sky-700 dark:text-sky-400 hover:underline flex items-center gap-1"
           >
             커뮤니티 공지 보기
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,7 +103,7 @@ function NoticeList() {
               }}
               className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-xl transition-all ${
                 type === t.id
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-sky-700 text-white shadow-sm'
                   : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-slate-300'
               }`}
             >
@@ -147,7 +147,7 @@ function NoticeList() {
                         {notice.isPinned && (
                           <span className="text-xs text-amber-500 font-bold">📌</span>
                         )}
-                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate hover:text-indigo-600 transition-colors">
+                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate hover:text-sky-700 transition-colors">
                           {notice.title}
                         </span>
                       </div>
@@ -180,7 +180,7 @@ function NoticeList() {
                   <button
                     key={p}
                     onClick={() => setPage(p)}
-                    className={`w-8 h-8 rounded-lg text-sm ${p === page ? 'bg-indigo-600 text-white' : 'border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}`}
+                    className={`w-8 h-8 rounded-lg text-sm ${p === page ? 'bg-sky-700 text-white' : 'border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}`}
                   >
                     {p}
                   </button>
@@ -225,7 +225,7 @@ function NoticeDetail() {
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8">
         <Link
           to={ROUTES.notices}
-          className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-colors mb-6"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-sky-700 transition-colors mb-6"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

@@ -24,7 +24,7 @@ const DEFAULT_STEPS: Step[] = [
     title: 'AI 분석',
     desc: '피드백, JD매칭, ATS 검사',
     href: '/tutorial',
-    color: 'from-indigo-500 to-indigo-600',
+    color: 'from-sky-500 to-sky-700',
   },
   {
     num: 3,

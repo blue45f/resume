@@ -661,7 +661,7 @@ export default function CareerInsights() {
                 내 직종
               </span>
               {myIndustryInfo && (
-                <span className="px-2 py-1 text-xs bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-full font-medium">
+                <span className="px-2 py-1 text-xs bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400 rounded-full font-medium">
                   {myIndustryInfo.icon} {myIndustryInfo.label}
                 </span>
               )}
@@ -673,7 +673,7 @@ export default function CareerInsights() {
                   onClick={() => setMyIndustry(ind.id)}
                   className={`px-2 py-0.5 text-[11px] rounded-full transition-colors ${
                     myIndustry === ind.id
-                      ? 'bg-indigo-600 text-white'
+                      ? 'bg-sky-700 text-white'
                       : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
                   }`}
                 >
@@ -829,7 +829,7 @@ export default function CareerInsights() {
                           </span>
                           <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-indigo-400 dark:bg-indigo-500 rounded-full transition-all duration-500"
+                              className="h-full bg-sky-400 dark:bg-sky-500 rounded-full transition-all duration-500"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
@@ -876,7 +876,7 @@ export default function CareerInsights() {
                 <div className="flex flex-wrap gap-1">
                   <button
                     onClick={() => setIndustryFilter('all')}
-                    className={`px-2 py-0.5 text-[11px] rounded-full transition-colors ${industryFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
+                    className={`px-2 py-0.5 text-[11px] rounded-full transition-colors ${industryFilter === 'all' ? 'bg-sky-700 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
                   >
                     전체
                   </button>
@@ -884,7 +884,7 @@ export default function CareerInsights() {
                     <button
                       key={ind.id}
                       onClick={() => setIndustryFilter(ind.id)}
-                      className={`px-2 py-0.5 text-[11px] rounded-full transition-colors ${industryFilter === ind.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
+                      className={`px-2 py-0.5 text-[11px] rounded-full transition-colors ${industryFilter === ind.id ? 'bg-sky-700 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
                     >
                       {ind.icon} {ind.label}
                     </button>
@@ -919,7 +919,7 @@ export default function CareerInsights() {
                           </div>
                           <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5">
                             <div
-                              className={`h-1.5 rounded-full transition-all duration-500 ${sk.owned ? 'bg-emerald-500' : sk.trend === 'up' ? 'bg-indigo-500' : 'bg-slate-400'}`}
+                              className={`h-1.5 rounded-full transition-all duration-500 ${sk.owned ? 'bg-emerald-500' : sk.trend === 'up' ? 'bg-sky-500' : 'bg-slate-400'}`}
                               style={{ width: `${(sk.count / maxCount) * 100}%` }}
                             />
                           </div>
@@ -957,7 +957,7 @@ export default function CareerInsights() {
                 learningRecs.map((rec) => (
                   <div
                     key={rec.skill}
-                    className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-100 dark:border-blue-800/50"
+                    className="p-3 bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 rounded-lg border border-blue-100 dark:border-blue-800/50"
                   >
                     <div className="flex items-start gap-2.5">
                       <span className="text-lg shrink-0">{typeIcon(rec.type)}</span>

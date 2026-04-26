@@ -305,7 +305,7 @@ export default function CommunityPage() {
                     >
                       {catInfo.label}
                     </span>
-                    <span className="text-sm text-slate-700 dark:text-slate-300 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    <span className="text-sm text-slate-700 dark:text-slate-300 truncate group-hover:text-sky-700 dark:group-hover:text-sky-400 transition-colors">
                       {post.title}
                     </span>
                     <span className="text-xs text-red-500 shrink-0 ml-auto flex items-center gap-0.5">
@@ -359,7 +359,7 @@ export default function CommunityPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="제목 또는 내용 검색..."
-                className="w-full pl-9 pr-20 py-2.5 imp-card text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+                className="w-full pl-9 pr-20 py-2.5 imp-card text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400"
               />
               {search && (
                 <button
@@ -384,7 +384,7 @@ export default function CommunityPage() {
           <select
             value={sortBy}
             onChange={(e) => handleSortChange(e.target.value)}
-            className="px-3 py-2.5 text-xs imp-card text-slate-600 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer"
+            className="px-3 py-2.5 text-xs imp-card text-slate-600 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 cursor-pointer"
           >
             {getSORT_OPTIONS().map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -399,7 +399,7 @@ export default function CommunityPage() {
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {search ? (
               <>
-                <span className="font-medium text-indigo-600 dark:text-indigo-400">"{search}"</span>{' '}
+                <span className="font-medium text-sky-700 dark:text-sky-400">"{search}"</span>{' '}
                 검색결과{' '}
                 <span className="font-medium text-slate-700 dark:text-slate-300">
                   {total.toLocaleString()}
@@ -449,14 +449,14 @@ export default function CommunityPage() {
             {search ? (
               <button
                 onClick={clearSearch}
-                className="mt-3 text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+                className="mt-3 text-sm text-sky-700 dark:text-sky-400 hover:underline"
               >
                 검색어 지우기
               </button>
             ) : user ? (
               <Link
                 to={ROUTES.community.write}
-                className="mt-3 inline-block text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+                className="mt-3 inline-block text-sm text-sky-700 dark:text-sky-400 hover:underline"
               >
                 첫 번째 글을 작성해보세요!
               </Link>
@@ -476,7 +476,7 @@ export default function CommunityPage() {
                   key={post.id}
                   to={ROUTES.community.post(post.id)}
                   onClick={() => handlePostClick(post.id)}
-                  className={`block bg-white dark:bg-slate-800 border rounded-xl p-4 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm transition-all duration-150 ${
+                  className={`block bg-white dark:bg-slate-800 border rounded-xl p-4 hover:border-sky-300 dark:hover:border-sky-700 hover:shadow-sm transition-all duration-150 ${
                     post.isPinned
                       ? 'border-amber-200 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/5'
                       : isRead
@@ -509,13 +509,13 @@ export default function CommunityPage() {
                           className={`text-sm font-semibold truncate transition-colors ${
                             isRead
                               ? 'text-slate-500 dark:text-slate-500'
-                              : 'text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400'
+                              : 'text-slate-900 dark:text-slate-100 hover:text-sky-700 dark:hover:text-sky-400'
                           }`}
                         >
                           {post.title}
                         </h3>
                         {commentCount > 0 && (
-                          <span className="text-xs text-indigo-500 dark:text-indigo-400 shrink-0">
+                          <span className="text-xs text-sky-500 dark:text-sky-400 shrink-0">
                             [{commentCount}]
                           </span>
                         )}

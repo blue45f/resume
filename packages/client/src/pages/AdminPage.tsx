@@ -213,7 +213,7 @@ export default function AdminPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm rounded-xl whitespace-nowrap transition-all duration-200 ${
                 activeTab === tab.id
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-sky-700 text-white shadow-sm'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
               }`}
             >
@@ -274,7 +274,7 @@ export default function AdminPage() {
                 {stats.recentUsers && stats.recentUsers.length > 0 && (
                   <section>
                     <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                      <span className="w-1.5 h-4 bg-indigo-500 rounded" />
+                      <span className="w-1.5 h-4 bg-sky-500 rounded" />
                       최근 가입 회원
                     </h2>
                     <div className="space-y-2 sm:hidden">
@@ -389,7 +389,7 @@ export default function AdminPage() {
                 </section>
                 <section>
                   <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-indigo-500 rounded" />
+                    <span className="w-1.5 h-4 bg-sky-500 rounded" />
                     커뮤니티 게시물 신고
                   </h2>
                   <CommunityPostReportsQueue />
@@ -659,7 +659,7 @@ function StatCard({
     purple: 'text-sky-600',
     amber: 'text-amber-600',
     rose: 'text-blue-700',
-    indigo: 'text-indigo-600',
+    indigo: 'text-sky-700',
   };
   const bgMap: Record<string, string> = {
     blue: 'bg-blue-50 dark:bg-blue-900/20',
@@ -667,7 +667,7 @@ function StatCard({
     purple: 'bg-sky-50 dark:bg-sky-900/20',
     amber: 'bg-amber-50 dark:bg-amber-900/20',
     rose: 'bg-rose-50 dark:bg-blue-900/20',
-    indigo: 'bg-indigo-50 dark:bg-indigo-900/20',
+    indigo: 'bg-sky-50 dark:bg-sky-900/20',
   };
   return (
     <div
@@ -1120,7 +1120,7 @@ const BANNER_COLORS = [
   {
     label: '인디고',
     value: 'linear-gradient(135deg, #6366f1, #9333ea)',
-    preview: 'from-indigo-500 to-sky-700',
+    preview: 'from-sky-500 to-sky-700',
   },
   {
     label: '에메랄드',
@@ -1145,7 +1145,7 @@ const BANNER_COLORS = [
   {
     label: '스카이',
     value: 'linear-gradient(135deg, #0ea5e9, #6366f1)',
-    preview: 'from-sky-500 to-indigo-600',
+    preview: 'from-sky-500 to-sky-700',
   },
 ];
 
@@ -1161,7 +1161,7 @@ function AdminBannersTab() {
     subtitle: '',
     imageUrl: '',
     linkUrl: '',
-    bgColor: 'from-indigo-600 to-sky-700',
+    bgColor: 'from-sky-700 to-sky-700',
     isActive: true,
   };
   const [form, setForm] = useState({ ...emptyBanner });
@@ -1251,7 +1251,7 @@ function AdminBannersTab() {
         {!creating && (
           <button
             onClick={() => setCreating(true)}
-            className="px-4 py-2 min-h-[44px] bg-indigo-600 text-white text-sm rounded-xl hover:bg-indigo-700 transition-colors"
+            className="px-4 py-2 min-h-[44px] bg-sky-700 text-white text-sm rounded-xl hover:bg-sky-700 transition-colors"
           >
             + 배너 추가
           </button>
@@ -1259,7 +1259,7 @@ function AdminBannersTab() {
       </div>
 
       {creating && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-indigo-200 dark:border-indigo-700 p-5 space-y-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-sky-200 dark:border-sky-700 p-5 space-y-4">
           <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
             {editing ? '배너 수정' : '새 배너 만들기'}
           </h3>
@@ -1271,7 +1271,7 @@ function AdminBannersTab() {
               <input
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
                 placeholder="배너 제목"
               />
             </div>
@@ -1282,7 +1282,7 @@ function AdminBannersTab() {
               <input
                 value={form.subtitle}
                 onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
                 placeholder="배너 설명 (선택)"
               />
             </div>
@@ -1293,7 +1293,7 @@ function AdminBannersTab() {
               <input
                 value={form.linkUrl}
                 onChange={(e) => setForm((f) => ({ ...f, linkUrl: e.target.value }))}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
                 placeholder="https://..."
               />
             </div>
@@ -1305,7 +1305,7 @@ function AdminBannersTab() {
                 <input
                   value={form.imageUrl}
                   onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))}
-                  className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                  className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
                   placeholder="이미지 URL 직접 입력"
                 />
                 <label className="cursor-pointer px-3 py-2 min-h-[44px] flex items-center text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 transition-colors whitespace-nowrap">
@@ -1369,7 +1369,7 @@ function AdminBannersTab() {
                   key={c.value}
                   onClick={() => setForm((f) => ({ ...f, bgColor: c.value }))}
                   style={{ background: c.value }}
-                  className={`px-3 py-1.5 text-xs text-white rounded-lg font-medium ${form.bgColor === c.value ? 'ring-2 ring-offset-2 ring-indigo-500 shadow-md' : 'opacity-80 hover:opacity-100'} transition-all`}
+                  className={`px-3 py-1.5 text-xs text-white rounded-lg font-medium ${form.bgColor === c.value ? 'ring-2 ring-offset-2 ring-sky-500 shadow-md' : 'opacity-80 hover:opacity-100'} transition-all`}
                 >
                   {c.label}
                 </button>
@@ -1400,7 +1400,7 @@ function AdminBannersTab() {
             <button
               onClick={handleSave}
               disabled={!form.title}
-              className="px-4 py-2 min-h-[44px] bg-indigo-600 text-white text-sm rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 min-h-[44px] bg-sky-700 text-white text-sm rounded-xl hover:bg-sky-700 disabled:opacity-50 transition-colors"
             >
               저장
             </button>
@@ -1691,7 +1691,7 @@ function AdminNoticesTab() {
         {!creating && (
           <button
             onClick={() => setCreating(true)}
-            className="px-4 py-2 min-h-[44px] bg-indigo-600 text-white text-sm rounded-xl hover:bg-indigo-700 transition-colors"
+            className="px-4 py-2 min-h-[44px] bg-sky-700 text-white text-sm rounded-xl hover:bg-sky-700 transition-colors"
           >
             + 공지 작성
           </button>
@@ -1699,7 +1699,7 @@ function AdminNoticesTab() {
       </div>
 
       {creating && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-indigo-200 dark:border-indigo-700 p-5 space-y-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-sky-200 dark:border-sky-700 p-5 space-y-4">
           <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
             {editing ? '공지 수정' : '새 공지 작성'}
           </h3>
@@ -1708,7 +1708,7 @@ function AdminNoticesTab() {
             <input
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
               placeholder="공지 제목"
             />
           </div>
@@ -1718,7 +1718,7 @@ function AdminNoticesTab() {
               value={form.content}
               onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
               rows={5}
-              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 resize-none"
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 resize-none"
               placeholder="공지 내용을 입력하세요"
             />
           </div>
@@ -1743,7 +1743,7 @@ function AdminNoticesTab() {
                   type="checkbox"
                   checked={form.isPopup}
                   onChange={(e) => setForm((f) => ({ ...f, isPopup: e.target.checked }))}
-                  className="w-4 h-4 text-indigo-600 rounded"
+                  className="w-4 h-4 text-sky-700 rounded"
                 />
                 <span className="text-xs text-slate-600 dark:text-slate-400">팝업 공지</span>
               </label>
@@ -1752,7 +1752,7 @@ function AdminNoticesTab() {
                   type="checkbox"
                   checked={form.isPinned}
                   onChange={(e) => setForm((f) => ({ ...f, isPinned: e.target.checked }))}
-                  className="w-4 h-4 text-indigo-600 rounded"
+                  className="w-4 h-4 text-sky-700 rounded"
                 />
                 <span className="text-xs text-slate-600 dark:text-slate-400">상단 고정</span>
               </label>
@@ -1761,7 +1761,7 @@ function AdminNoticesTab() {
                   type="checkbox"
                   checked={form.allowComments}
                   onChange={(e) => setForm((f) => ({ ...f, allowComments: e.target.checked }))}
-                  className="w-4 h-4 text-indigo-600 rounded"
+                  className="w-4 h-4 text-sky-700 rounded"
                 />
                 <span className="text-xs text-slate-600 dark:text-slate-400">댓글 허용</span>
               </label>
@@ -1775,7 +1775,7 @@ function AdminNoticesTab() {
               <input
                 value={editReason}
                 onChange={(e) => setEditReason(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
                 placeholder="예: 오탈자 수정, 내용 추가"
               />
             </div>
@@ -1784,7 +1784,7 @@ function AdminNoticesTab() {
             <button
               onClick={handleSave}
               disabled={!form.title || !form.content}
-              className="px-4 py-2 min-h-[44px] bg-indigo-600 text-white text-sm rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 min-h-[44px] bg-sky-700 text-white text-sm rounded-xl hover:bg-sky-700 disabled:opacity-50 transition-colors"
             >
               저장
             </button>
@@ -1820,7 +1820,7 @@ function AdminNoticesTab() {
                       {NOTICE_TYPE_LABELS[n.type] || n.type}
                     </span>
                     {n.isPinned && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400">
                         📌 고정
                       </span>
                     )}
@@ -1861,7 +1861,7 @@ function AdminNoticesTab() {
                   </button>
                   <button
                     onClick={() => startEdit(n)}
-                    className="px-2.5 py-1.5 text-xs bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 transition-colors"
+                    className="px-2.5 py-1.5 text-xs bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400 rounded-lg hover:bg-sky-100 transition-colors"
                   >
                     수정
                   </button>
@@ -1962,7 +1962,7 @@ function AdminCommunityTab() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-          <span className="w-1.5 h-4 bg-indigo-500 rounded" />
+          <span className="w-1.5 h-4 bg-sky-500 rounded" />
           커뮤니티 게시글 관리
           <span className="text-slate-400 font-normal">({total}개)</span>
           {hiddenCount > 0 && (
@@ -2003,11 +2003,11 @@ function AdminCommunityTab() {
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchPosts()}
               placeholder="검색..."
-              className="px-3 py-1.5 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 w-40"
+              className="px-3 py-1.5 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/30 w-40"
             />
             <button
               onClick={fetchPosts}
-              className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              className="px-3 py-1.5 text-sm bg-sky-700 text-white rounded-lg hover:bg-sky-700"
             >
               검색
             </button>
@@ -2024,7 +2024,7 @@ function AdminCommunityTab() {
               setCategory(cat);
               setPage(1);
             }}
-            className={`px-3 py-1 text-xs rounded-lg transition-colors ${category === cat ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
+            className={`px-3 py-1 text-xs rounded-lg transition-colors ${category === cat ? 'bg-sky-700 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
           >
             {CAT_LABELS[cat]}
           </button>
@@ -2087,7 +2087,7 @@ function AdminCommunityTab() {
                           href={`/community/${post.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-slate-900 dark:text-slate-100 hover:text-indigo-600 transition-colors font-medium truncate block"
+                          className="text-slate-900 dark:text-slate-100 hover:text-sky-700 transition-colors font-medium truncate block"
                         >
                           {post.title}
                         </a>
@@ -2123,7 +2123,7 @@ function AdminCommunityTab() {
                         {/* Hide toggle */}
                         <button
                           onClick={() => patchPost(post.id, { isHidden: !post.isHidden })}
-                          className={`text-xs px-2 py-1 rounded-lg transition-colors ${post.isHidden ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 hover:bg-slate-200'}`}
+                          className={`text-xs px-2 py-1 rounded-lg transition-colors ${post.isHidden ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 hover:bg-slate-200'}`}
                           title={post.isHidden ? '숨김 해제' : '게시물 숨김'}
                         >
                           {post.isHidden ? '숨김 해제' : '🙈 숨김'}
@@ -2250,7 +2250,7 @@ function FeatureTogglesSection() {
   return (
     <section>
       <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-        <span className="w-1.5 h-4 bg-indigo-500 rounded" />
+        <span className="w-1.5 h-4 bg-sky-500 rounded" />
         기능 토글
         {disabledCount > 0 && (
           <span className="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
@@ -2292,7 +2292,7 @@ function FeatureTogglesSection() {
                       }}
                       disabled={isLoading}
                       className={`shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${
-                        on ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-600'
+                        on ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'
                       }`}
                       aria-label={`${f.label} 토글`}
                     >
@@ -2722,7 +2722,7 @@ function SystemSettings() {
                   info: 'bg-blue-600',
                   warning: 'bg-amber-500',
                   success: 'bg-emerald-600',
-                  promo: 'bg-gradient-to-r from-sky-700 to-indigo-600',
+                  promo: 'bg-gradient-to-r from-sky-700 to-sky-700',
                 }[bannerType]
               }`}
             >
@@ -3998,7 +3998,7 @@ function AdminPermissionsTab() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <span className="w-1.5 h-5 bg-indigo-500 rounded" />
+            <span className="w-1.5 h-5 bg-sky-500 rounded" />
             콘텐츠 권한 관리
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -4405,19 +4405,19 @@ function AdminForbiddenWordsTab() {
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-            <span className="w-1.5 h-4 bg-indigo-500 rounded" />
+            <span className="w-1.5 h-4 bg-sky-500 rounded" />
             금칙어 등록
           </h3>
           <div className="flex gap-1">
             <button
               onClick={() => setFormMode('single')}
-              className={`px-3 py-1 text-xs rounded-lg transition-colors ${formMode === 'single' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}
+              className={`px-3 py-1 text-xs rounded-lg transition-colors ${formMode === 'single' ? 'bg-sky-700 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}
             >
               단일 등록
             </button>
             <button
               onClick={() => setFormMode('bulk')}
-              className={`px-3 py-1 text-xs rounded-lg transition-colors ${formMode === 'bulk' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}
+              className={`px-3 py-1 text-xs rounded-lg transition-colors ${formMode === 'bulk' ? 'bg-sky-700 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}
             >
               일괄 등록
             </button>
@@ -4429,7 +4429,7 @@ function AdminForbiddenWordsTab() {
               value={newWord}
               onChange={(e) => setNewWord(e.target.value)}
               placeholder="금칙어 입���..."
-              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
           ) : (
@@ -4438,7 +4438,7 @@ function AdminForbiddenWordsTab() {
               onChange={(e) => setBulkWords(e.target.value)}
               placeholder="금칙어를 한 줄에 하나씩 입력..."
               rows={4}
-              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
             />
           )}
           <div className="flex flex-wrap gap-2 items-center">
@@ -4464,7 +4464,7 @@ function AdminForbiddenWordsTab() {
             <button
               onClick={handleCreate}
               disabled={submitting}
-              className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors ml-auto"
+              className="px-4 py-1.5 bg-sky-700 text-white text-xs font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors ml-auto"
             >
               {submitting ? '등록 중...' : formMode === 'single' ? '등록' : '일괄 등록'}
             </button>
@@ -4480,7 +4480,7 @@ function AdminForbiddenWordsTab() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="금칙어 검색..."
-              className="flex-1 min-w-[150px] px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 min-w-[150px] px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
             <select
               value={filterCat}
@@ -4538,14 +4538,14 @@ function AdminForbiddenWordsTab() {
               {words.map((w) => (
                 <div
                   key={w.id}
-                  className={`px-4 py-2.5 ${selected.has(w.id) ? 'bg-indigo-50 dark:bg-indigo-900/10' : ''}`}
+                  className={`px-4 py-2.5 ${selected.has(w.id) ? 'bg-sky-50 dark:bg-sky-900/10' : ''}`}
                 >
                   {editing === w.id ? (
                     <div className="flex flex-wrap gap-2 items-center">
                       <input
                         value={editWord}
                         onChange={(e) => setEditWord(e.target.value)}
-                        className="flex-1 min-w-[120px] px-2 py-1 text-sm border border-indigo-300 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none"
+                        className="flex-1 min-w-[120px] px-2 py-1 text-sm border border-sky-300 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none"
                       />
                       <select
                         value={editCat}
@@ -4568,7 +4568,7 @@ function AdminForbiddenWordsTab() {
                       </select>
                       <button
                         onClick={() => handleUpdate(w.id)}
-                        className="px-3 py-1 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700"
+                        className="px-3 py-1 bg-sky-700 text-white text-xs rounded-lg hover:bg-sky-700"
                       >
                         저장
                       </button>
@@ -4629,7 +4629,7 @@ function AdminForbiddenWordsTab() {
                             setEditCat(w.category);
                             setEditSev(w.severity);
                           }}
-                          className="px-2 py-1 text-[10px] text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors"
+                          className="px-2 py-1 text-[10px] text-sky-700 hover:bg-sky-50 dark:hover:bg-sky-900/20 rounded transition-colors"
                         >
                           수정
                         </button>

@@ -234,7 +234,7 @@ export default function MobileBottomNav() {
     : 'text-blue-600 dark:text-blue-400';
   const highlightGradient = isRecruiter
     ? 'bg-gradient-to-br from-blue-600 to-sky-600 shadow-blue-600/30'
-    : 'bg-gradient-to-br from-blue-600 to-indigo-600 shadow-blue-600/30';
+    : 'bg-gradient-to-br from-blue-600 to-sky-700 shadow-blue-600/30';
 
   return (
     <nav className="mobile-bottom-nav no-print" aria-label="모바일 탐색">

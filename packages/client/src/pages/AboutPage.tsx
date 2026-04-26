@@ -175,7 +175,7 @@ export default function AboutPage() {
       <Header />
       <main id="main-content" className="flex-1" role="main">
         {/* Hero */}
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-900 dark:to-indigo-900 text-white py-16 sm:py-20">
+        <div className="bg-gradient-to-br from-blue-600 to-sky-700 dark:from-blue-900 dark:to-sky-900 text-white py-16 sm:py-20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
             <h1 className="text-3xl sm:text-4xl font-bold mb-4">이력서공방</h1>
             <p className="text-lg sm:text-xl text-blue-100 mb-2">AI 기반 이력서 관리 플랫폼</p>

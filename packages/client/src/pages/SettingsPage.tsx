@@ -459,7 +459,7 @@ export default function SettingsPage() {
               }
             }}
             placeholder="설정 검색... (예: 비밀번호, 테마, 알림)"
-            className="w-full pl-10 pr-8 py-2.5 text-sm border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+            className="w-full pl-10 pr-8 py-2.5 text-sm border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
           />
           {settingsSearch && (
             <button
@@ -517,7 +517,7 @@ export default function SettingsPage() {
                 className="w-16 h-16 rounded-full border-2 border-slate-200 dark:border-slate-600 shrink-0"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-400 to-sky-500 flex items-center justify-center text-white text-xl font-bold shrink-0">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-sky-400 to-sky-500 flex items-center justify-center text-white text-xl font-bold shrink-0">
                 {(user.name || user.email || '?')[0].toUpperCase()}
               </div>
             )}
@@ -535,13 +535,13 @@ export default function SettingsPage() {
                           nameForm.reset({ name: user.name || '' });
                         }
                       }}
-                      className="flex-1 px-3 py-1.5 border border-indigo-400 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="flex-1 px-3 py-1.5 border border-sky-400 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                       autoFocus
                     />
                     <button
                       type="submit"
                       disabled={nameForm.formState.isSubmitting}
-                      className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                      className="px-3 py-1.5 bg-sky-700 text-white text-xs rounded-lg hover:bg-sky-700 disabled:opacity-50"
                     >
                       {nameForm.formState.isSubmitting ? '저장 중' : '저장'}
                     </button>
@@ -569,7 +569,7 @@ export default function SettingsPage() {
                   </p>
                   <button
                     onClick={() => setEditingName(true)}
-                    className="text-xs text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                    className="text-xs text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 transition-colors"
                   >
                     ✏️
                   </button>
@@ -598,7 +598,7 @@ export default function SettingsPage() {
                         setEditingUsername(true);
                         usernameForm.reset({ username: user?.username || '' });
                       }}
-                      className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                      className="text-xs text-sky-700 dark:text-sky-400 hover:underline"
                     >
                       {user?.username ? '변경' : '설정하기'}
                     </button>
@@ -622,13 +622,13 @@ export default function SettingsPage() {
                           }
                         }}
                         placeholder="my-username"
-                        className="flex-1 px-2 py-1 border border-indigo-400 rounded-lg text-xs dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="flex-1 px-2 py-1 border border-sky-400 rounded-lg text-xs dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         autoFocus
                       />
                       <button
                         type="submit"
                         disabled={usernameForm.formState.isSubmitting}
-                        className="px-2.5 py-1 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50 shrink-0"
+                        className="px-2.5 py-1 bg-sky-700 text-white text-xs rounded-lg hover:bg-sky-700 disabled:opacity-50 shrink-0"
                       >
                         {usernameForm.formState.isSubmitting ? '...' : '저장'}
                       </button>
@@ -654,7 +654,7 @@ export default function SettingsPage() {
                   </form>
                 ) : user?.username ? (
                   <div className="flex items-center gap-2">
-                    <code className="text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded">
+                    <code className="text-xs text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 px-2 py-0.5 rounded">
                       /u/{user.username}
                     </code>
                     <Link
@@ -761,9 +761,8 @@ export default function SettingsPage() {
                   label: '코치 (면접관)',
                   icon: '🎓',
                   desc: '코칭 세션 수락, 수수료 정산 (15%)',
-                  activeClass:
-                    'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-500',
-                  dotActive: 'bg-indigo-500',
+                  activeClass: 'border-sky-500 bg-sky-50 dark:bg-sky-900/20 ring-1 ring-sky-500',
+                  dotActive: 'bg-sky-500',
                   needsSetup: true,
                 },
               ] as const
@@ -964,7 +963,7 @@ export default function SettingsPage() {
             </div>
             <Link
               to={ROUTES.pricing}
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200"
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-sky-700 text-white text-xs font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 transition-all duration-200"
             >
               {user.plan === 'free' || !user.plan ? '업그레이드' : '플랜 변경'}
             </Link>
@@ -1349,7 +1348,7 @@ export default function SettingsPage() {
             </p>
             <button
               onClick={() => setSettingsSearch('')}
-              className="mt-3 text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+              className="mt-3 text-xs text-sky-700 dark:text-sky-400 hover:underline"
             >
               검색 초기화
             </button>

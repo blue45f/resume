@@ -162,7 +162,7 @@ function SkillsDisplay({
   if (['modern', 'startup', 'dark', 'pastel'].includes(themeId)) {
     const colorMap: Record<string, string> = {
       blue: 'bg-blue-100 text-blue-700 border-blue-200',
-      indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+      indigo: 'bg-sky-100 text-sky-700 border-sky-200',
       slate: 'bg-sky-100 text-sky-700 border-sky-200',
       purple: 'bg-cyan-100 text-pink-700 border-cyan-200',
     };
@@ -1823,7 +1823,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                       className="border border-slate-200 rounded-xl p-4 bg-gradient-to-br from-slate-50 to-white shadow-sm hover:shadow-md transition-shadow"
                     >
                       <div className="h-20 bg-gradient-to-br from-blue-100 via-sky-50 to-cyan-100 rounded-lg mb-3 flex items-center justify-center">
-                        <span className="text-2xl text-indigo-300 select-none">&#9998;</span>
+                        <span className="text-2xl text-sky-300 select-none">&#9998;</span>
                       </div>
                       <h3 className="font-bold text-slate-900 text-sm">{proj.name}</h3>
                       {proj.role && <div className="text-xs text-sky-600 mt-0.5">{proj.role}</div>}
@@ -1837,7 +1837,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                         <TechTags text={proj.techStack} color="blue" themeId={theme.id} />
                       )}
                       {proj.link && (
-                        <p className="text-xs text-indigo-600 mt-2 break-all">{proj.link}</p>
+                        <p className="text-xs text-sky-700 mt-2 break-all">{proj.link}</p>
                       )}
                     </div>
                   ))}

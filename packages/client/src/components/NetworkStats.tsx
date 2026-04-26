@@ -69,12 +69,7 @@ export default function NetworkStats() {
       value: data.following,
       suffix: '명',
       icon: (
-        <svg
-          className="w-4 h-4 text-indigo-500"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"

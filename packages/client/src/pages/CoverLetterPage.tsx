@@ -651,7 +651,7 @@ export default function CoverLetterPage() {
                   <button
                     type="submit"
                     disabled={isGenerating || !selectedResumeId}
-                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow"
+                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow"
                   >
                     {isGenerating ? (
                       <span className="flex items-center justify-center gap-2">
@@ -807,7 +807,7 @@ export default function CoverLetterPage() {
                 {(feedback || analyzingFeedback) && (
                   <div className="imp-card p-5 animate-fade-in-up">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-                      <span className="w-6 h-6 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center text-xs">
+                      <span className="w-6 h-6 bg-sky-100 dark:bg-sky-900/30 rounded-lg flex items-center justify-center text-xs">
                         🔍
                       </span>
                       AI 피드백 분석
@@ -865,7 +865,7 @@ export default function CoverLetterPage() {
                     {...registerFeedback('content')}
                     placeholder="분석할 자기소개서를 여기에 붙여넣으세요..."
                     rows={14}
-                    className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${feedbackErrors.content ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
+                    className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none ${feedbackErrors.content ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
                   />
                   {feedbackErrors.content && (
                     <p className="text-xs text-red-500 mt-1">{feedbackErrors.content.message}</p>
@@ -900,7 +900,7 @@ export default function CoverLetterPage() {
                     {...registerFeedback('jobDescription')}
                     placeholder="채용 공고를 붙여넣으면 키워드 적합성을 분석합니다..."
                     rows={6}
-                    className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${feedbackErrors.jobDescription ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
+                    className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none ${feedbackErrors.jobDescription ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
                   />
                   {feedbackErrors.jobDescription && (
                     <p className="text-xs text-red-500 mt-1">

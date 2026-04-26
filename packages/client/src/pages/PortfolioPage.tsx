@@ -145,7 +145,7 @@ export default function PortfolioPage() {
             </p>
             <button
               onClick={() => navigate(-1)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+              className="px-4 py-2 bg-sky-700 text-white rounded-xl hover:bg-sky-700 transition-colors"
             >
               돌아가기
             </button>
@@ -178,7 +178,7 @@ export default function PortfolioPage() {
                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md"
                   />
                 ) : (
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-indigo-400 to-sky-500 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-md">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-sky-400 to-sky-500 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-md">
                     <span className="text-3xl font-bold text-white">
                       {(user.name || user.username || 'U')[0].toUpperCase()}
                     </span>
@@ -290,7 +290,7 @@ export default function PortfolioPage() {
                 {topSkills.map((skill) => (
                   <span
                     key={skill}
-                    className="px-3 py-1 text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-full hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                    className="px-3 py-1 text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-full hover:border-sky-400 hover:text-sky-700 dark:hover:text-sky-400 transition-colors"
                   >
                     {skill}
                   </span>
@@ -316,7 +316,7 @@ export default function PortfolioPage() {
                   <Link
                     key={resume.id}
                     to={ROUTES.resume.preview(resume.id)}
-                    className={`block bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md transition-all duration-200 stagger-${i + 1} animate-fade-in group`}
+                    className={`block bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-sky-300 dark:hover:border-sky-700 hover:shadow-md transition-all duration-200 stagger-${i + 1} animate-fade-in group`}
                   >
                     {/* Header */}
                     <div className="flex items-start gap-3 mb-3">
@@ -327,14 +327,14 @@ export default function PortfolioPage() {
                           className="w-10 h-10 rounded-full object-cover shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-sky-100 dark:from-indigo-900/30 dark:to-sky-900/30 flex items-center justify-center shrink-0">
-                          <span className="text-indigo-600 dark:text-indigo-400 text-sm font-bold">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-100 to-sky-100 dark:from-sky-900/30 dark:to-sky-900/30 flex items-center justify-center shrink-0">
+                          <span className="text-sky-700 dark:text-sky-400 text-sm font-bold">
                             {(resume.name || resume.title || '?')[0].toUpperCase()}
                           </span>
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-sm text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                        <h3 className="font-semibold text-sm text-slate-800 dark:text-slate-200 group-hover:text-sky-700 dark:group-hover:text-sky-400 transition-colors truncate">
                           {resume.title}
                         </h3>
                         {resume.experiences[0] && (

@@ -153,14 +153,14 @@ function CommunityWidget() {
     <div className="mb-6 imp-card overflow-hidden">
       <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-700">
         <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <span className="w-5 h-5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-md flex items-center justify-center text-xs">
+          <span className="w-5 h-5 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded-md flex items-center justify-center text-xs">
             💬
           </span>
           커뮤니티 최신 글
         </h3>
         <Link
           to={ROUTES.community.list}
-          className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+          className="text-xs text-sky-700 dark:text-sky-400 hover:underline"
         >
           더보기 →
         </Link>
@@ -197,7 +197,7 @@ function CommunityWidget() {
       <div className="px-5 py-2.5 bg-slate-50 dark:bg-slate-700/30 border-t border-slate-100 dark:border-slate-700">
         <Link
           to={ROUTES.community.write}
-          className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+          className="text-xs text-sky-700 dark:text-sky-400 hover:underline font-medium"
         >
           + 새 글 작성하기
         </Link>
@@ -398,7 +398,7 @@ function WeeklyGoalWidget() {
               max={50}
               value={tempGoal}
               onChange={(e) => setTempGoal(Number(e.target.value))}
-              className="w-16 px-2 py-1 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+              className="w-16 px-2 py-1 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') saveGoal();
                 if (e.key === 'Escape') setEditingGoal(false);
@@ -407,7 +407,7 @@ function WeeklyGoalWidget() {
             />
             <button
               onClick={saveGoal}
-              className="text-xs px-2 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              className="text-xs px-2 py-1 bg-sky-700 text-white rounded-lg hover:bg-sky-700"
             >
               저장
             </button>
@@ -424,7 +424,7 @@ function WeeklyGoalWidget() {
               setTempGoal(goal);
               setEditingGoal(true);
             }}
-            className="text-xs text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            className="text-xs text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 transition-colors"
           >
             목표 변경
           </button>
@@ -471,7 +471,7 @@ function WeeklyGoalWidget() {
               </p>
             ) : (
               <p className="text-sm text-slate-700 dark:text-slate-300">
-                <strong className="text-indigo-600 dark:text-indigo-400">
+                <strong className="text-sky-700 dark:text-sky-400">
                   {Math.max(0, goal - applied)}건
                 </strong>{' '}
                 더 지원하면 목표 달성!
@@ -482,7 +482,7 @@ function WeeklyGoalWidget() {
           <div className="flex gap-2">
             <button
               onClick={addOne}
-              className="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              className="px-3 py-1.5 text-xs font-medium bg-sky-700 text-white rounded-lg hover:bg-sky-700 transition-colors"
             >
               + 지원 추가
             </button>
@@ -1188,7 +1188,7 @@ export default function HomePage() {
             <NetworkStats />
 
             {user && (!user.plan || user.plan === 'free') && resumes.length >= 2 && (
-              <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center justify-between animate-fade-in">
+              <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center justify-between animate-fade-in">
                 <div>
                   <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
                     프로 플랜으로 업그레이드

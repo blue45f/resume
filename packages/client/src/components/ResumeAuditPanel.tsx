@@ -314,7 +314,7 @@ export default function ResumeAuditPanel({ resume, compact = false }: Props) {
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <svg
-            className="w-4 h-4 text-indigo-500"
+            className="w-4 h-4 text-sky-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -394,7 +394,7 @@ export default function ResumeAuditPanel({ resume, compact = false }: Props) {
             onClick={() => setActiveCategory(cat)}
             className={`px-2 py-0.5 text-[11px] rounded-full transition-colors ${
               activeCategory === cat
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-sky-700 text-white'
                 : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
             }`}
           >

@@ -10,7 +10,7 @@ interface Props {
 
 /** Gradient palettes for project cards */
 const GRADIENTS = [
-  'from-blue-500 to-indigo-600',
+  'from-blue-500 to-sky-700',
   'from-emerald-500 to-teal-600',
   'from-blue-500 to-cyan-600',
   'from-amber-500 to-orange-600',
@@ -139,7 +139,7 @@ function ProjectShowcase({ resume }: Props) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <svg
-            className="w-5 h-5 text-indigo-500"
+            className="w-5 h-5 text-sky-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -177,7 +177,7 @@ function ProjectShowcase({ resume }: Props) {
         <div className="mt-4 text-center">
           <button
             onClick={() => navigate(ROUTES.resume.edit(resume.id))}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 hover:bg-sky-100 dark:hover:bg-sky-900/30 rounded-lg transition-colors"
           >
             <svg
               className="w-4 h-4"

@@ -125,7 +125,7 @@ export default function AuthCallbackPage() {
                 onClick={() => setSelectedType(tp.value)}
                 className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 ${
                   selectedType === tp.value
-                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 shadow-sm'
+                    ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20 shadow-sm'
                     : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                 }`}
               >
@@ -139,7 +139,7 @@ export default function AuthCallbackPage() {
                   </div>
                   {selectedType === tp.value && (
                     <svg
-                      className="w-5 h-5 text-indigo-600 dark:text-indigo-400 ml-auto shrink-0"
+                      className="w-5 h-5 text-sky-700 dark:text-sky-400 ml-auto shrink-0"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -206,8 +206,8 @@ export default function AuthCallbackPage() {
       ) : (
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 border-4 border-indigo-200 dark:border-indigo-800 rounded-full" />
-            <div className="absolute inset-0 w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+            <div className="w-10 h-10 border-4 border-sky-200 dark:border-sky-800 rounded-full" />
+            <div className="absolute inset-0 w-10 h-10 border-4 border-sky-700 border-t-transparent rounded-full animate-spin" />
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400">로그인 처리 중...</p>
         </div>

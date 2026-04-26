@@ -139,16 +139,16 @@ function inlineFmt(s: string): string {
   s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
   s = s.replace(
     /`([^`]+)`/g,
-    '<code class="bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>',
+    '<code class="bg-slate-100 dark:bg-slate-800 text-sky-700 dark:text-sky-400 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>',
   );
   s = s.replace(/~~(.+?)~~/g, '<del class="opacity-60">$1</del>');
   s = s.replace(
     /\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener" class="text-indigo-600 dark:text-indigo-400 underline underline-offset-2 hover:opacity-80">$1</a>',
+    '<a href="$2" target="_blank" rel="noopener" class="text-sky-700 dark:text-sky-400 underline underline-offset-2 hover:opacity-80">$1</a>',
   );
   s = s.replace(
     /(^|[\s])(https?:\/\/[^\s<]+)/g,
-    '$1<a href="$2" target="_blank" rel="noopener" class="text-indigo-600 dark:text-indigo-400 underline underline-offset-2 break-all hover:opacity-80">$2</a>',
+    '$1<a href="$2" target="_blank" rel="noopener" class="text-sky-700 dark:text-sky-400 underline underline-offset-2 break-all hover:opacity-80">$2</a>',
   );
   return s;
 }
@@ -219,7 +219,7 @@ function renderMarkdown(text: string): string {
       closeList();
       if (!inQuote) {
         out.push(
-          '<blockquote class="border-l-4 border-indigo-400 pl-4 my-3 text-slate-500 dark:text-slate-400 italic">',
+          '<blockquote class="border-l-4 border-sky-400 pl-4 my-3 text-slate-500 dark:text-slate-400 italic">',
         );
         inQuote = true;
       }
@@ -517,7 +517,7 @@ export default function CommunityPostPage() {
           <p className="text-sm text-slate-400 mb-6">삭제되었거나 존재하지 않는 게시글입니다.</p>
           <Link
             to={ROUTES.community.list}
-            className="inline-flex items-center gap-2 text-sm text-indigo-600 hover:underline"
+            className="inline-flex items-center gap-2 text-sm text-sky-700 hover:underline"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -541,7 +541,7 @@ export default function CommunityPostPage() {
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-6">
-          <Link to={ROUTES.community.list} className="hover:text-indigo-600 transition-colors">
+          <Link to={ROUTES.community.list} className="hover:text-sky-700 transition-colors">
             커뮤니티
           </Link>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -609,7 +609,7 @@ export default function CommunityPostPage() {
                     className="w-8 h-8 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                  <div className="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center text-sm font-bold text-sky-700 dark:text-sky-400">
                     {(post.user?.name || '?')[0]}
                   </div>
                 )}
@@ -688,7 +688,7 @@ export default function CommunityPostPage() {
                       href={att.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 px-3 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-indigo-50/40 dark:hover:bg-indigo-900/10 transition-colors group"
+                      className="flex items-center gap-2.5 px-3 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-sky-300 dark:hover:border-sky-700 hover:bg-sky-50/40 dark:hover:bg-sky-900/10 transition-colors group"
                     >
                       <span className="text-base flex-shrink-0">
                         {att.type?.startsWith('image/')
@@ -697,14 +697,14 @@ export default function CommunityPostPage() {
                             ? '📄'
                             : '📎'}
                       </span>
-                      <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 truncate">
+                      <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 group-hover:text-sky-700 dark:group-hover:text-sky-400 truncate">
                         {att.name}
                       </span>
                       <span className="text-xs text-slate-400 flex-shrink-0">
                         {(att.size / 1024).toFixed(0)}KB
                       </span>
                       <svg
-                        className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 flex-shrink-0"
+                        className="w-3.5 h-3.5 text-slate-400 group-hover:text-sky-500 flex-shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -759,7 +759,7 @@ export default function CommunityPostPage() {
                 {/* Comment jump */}
                 <button
                   onClick={scrollToComment}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-indigo-300 hover:text-indigo-600 dark:hover:border-indigo-700 dark:hover:text-indigo-400 font-medium text-sm transition-all"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-sky-300 hover:text-sky-700 dark:hover:border-sky-700 dark:hover:text-sky-400 font-medium text-sm transition-all"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -801,7 +801,7 @@ export default function CommunityPostPage() {
                 {/* Share */}
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -822,7 +822,7 @@ export default function CommunityPostPage() {
         <section ref={commentSectionRef}>
           <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <svg
-              className="w-4 h-4 text-indigo-500"
+              className="w-4 h-4 text-sky-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -834,7 +834,7 @@ export default function CommunityPostPage() {
                 d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
               />
             </svg>
-            댓글 <span className="text-indigo-500">{post.comments?.length ?? 0}</span>
+            댓글 <span className="text-sky-500">{post.comments?.length ?? 0}</span>
           </h2>
 
           {/* Comment form */}
@@ -844,7 +844,7 @@ export default function CommunityPostPage() {
             disabledClassName="mb-6"
           >
             <form onSubmit={commentForm.handleSubmit(onComment)} className="mb-6">
-              <div className="imp-card overflow-hidden focus-within:border-indigo-400 dark:focus-within:border-indigo-600 transition-colors">
+              <div className="imp-card overflow-hidden focus-within:border-sky-400 dark:focus-within:border-sky-700 transition-colors">
                 {/* Anon name field for non-logged-in users */}
                 {!user && (
                   <div className="px-4 pt-3 pb-2 border-b border-slate-100 dark:border-slate-700">
@@ -883,7 +883,7 @@ export default function CommunityPostPage() {
                     {!user && (
                       <Link
                         to={ROUTES.login}
-                        className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                        className="text-xs text-sky-700 dark:text-sky-400 hover:underline"
                       >
                         로그인하면 이름이 표시됩니다
                       </Link>
@@ -901,7 +901,7 @@ export default function CommunityPostPage() {
                       commentForm.formState.isSubmitting ||
                       commentText.length > 1000
                     }
-                    className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-1.5 bg-sky-700 text-white text-xs font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {commentForm.formState.isSubmitting ? '등록 중...' : '댓글 등록'}
                   </button>
@@ -932,7 +932,7 @@ export default function CommunityPostPage() {
                         <div className="flex items-center gap-2 mb-1.5">
                           {!isRoot && (
                             <svg
-                              className="w-3 h-3 text-indigo-400 shrink-0"
+                              className="w-3 h-3 text-sky-400 shrink-0"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -949,11 +949,11 @@ export default function CommunityPostPage() {
                             className={`${isRoot ? 'w-6 h-6' : 'w-5 h-5'} rounded-full ${
                               isRoot
                                 ? 'bg-slate-200 dark:bg-slate-600'
-                                : 'bg-indigo-100 dark:bg-indigo-900/30'
+                                : 'bg-sky-100 dark:bg-sky-900/30'
                             } flex items-center justify-center text-${isRoot ? '[10px]' : '[9px]'} font-bold ${
                               isRoot
                                 ? 'text-slate-600 dark:text-slate-300'
-                                : 'text-indigo-600 dark:text-indigo-400'
+                                : 'text-sky-700 dark:text-sky-400'
                             } shrink-0`}
                           >
                             {(node.authorName || '익')[0]}
@@ -964,7 +964,7 @@ export default function CommunityPostPage() {
                             {node.authorName || '익명'}
                             {node.userId && node.userId === post.user?.id && (
                               <span
-                                className={`ml-1.5 ${isRoot ? 'text-[10px]' : 'text-[9px]'} bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full font-semibold`}
+                                className={`ml-1.5 ${isRoot ? 'text-[10px]' : 'text-[9px]'} bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 px-1.5 py-0.5 rounded-full font-semibold`}
                               >
                                 작성자
                               </span>
@@ -1007,7 +1007,7 @@ export default function CommunityPostPage() {
                                   });
                                 }
                               }}
-                              className="text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors flex items-center gap-1"
+                              className="text-xs text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 transition-colors flex items-center gap-1"
                             >
                               <svg
                                 className="w-3 h-3"
@@ -1058,12 +1058,12 @@ export default function CommunityPostPage() {
 
                   {/* Reply form */}
                   {replyingTo?.id === node.id && (
-                    <div className="ml-6 mt-1 border-l-2 border-indigo-200 dark:border-indigo-800 pl-3">
+                    <div className="ml-6 mt-1 border-l-2 border-sky-200 dark:border-sky-800 pl-3">
                       <form
                         onSubmit={replyForm.handleSubmit(onReply(node.id))}
-                        className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl overflow-hidden"
+                        className="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-xl overflow-hidden"
                       >
-                        <div className="px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 border-b border-indigo-100 dark:border-indigo-800/50 flex items-center gap-2">
+                        <div className="px-3 py-2 text-xs text-sky-700 dark:text-sky-400 border-b border-sky-100 dark:border-sky-800/50 flex items-center gap-2">
                           <svg
                             className="w-3 h-3"
                             fill="none"
@@ -1097,7 +1097,7 @@ export default function CommunityPostPage() {
                             {replyForm.formState.errors.content.message}
                           </p>
                         )}
-                        <div className="px-3 py-2 bg-indigo-100/50 dark:bg-indigo-900/30 flex items-center justify-end gap-2">
+                        <div className="px-3 py-2 bg-sky-100/50 dark:bg-sky-900/30 flex items-center justify-end gap-2">
                           <button
                             type="button"
                             onClick={() => {
@@ -1114,7 +1114,7 @@ export default function CommunityPostPage() {
                           <button
                             type="submit"
                             disabled={!replyText.trim() || replyForm.formState.isSubmitting}
-                            className="px-3 py-1 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                            className="px-3 py-1 bg-sky-700 text-white text-xs font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors"
                           >
                             {replyForm.formState.isSubmitting ? '등록 중...' : '답글 등록'}
                           </button>
@@ -1125,7 +1125,7 @@ export default function CommunityPostPage() {
 
                   {/* Recursive children */}
                   {node.children.length > 0 && (
-                    <div className="ml-6 mt-1 space-y-1 border-l-2 border-indigo-100 dark:border-indigo-900/30 pl-3">
+                    <div className="ml-6 mt-1 space-y-1 border-l-2 border-sky-100 dark:border-sky-900/30 pl-3">
                       {node.children.map((child) => renderCommentNode(child, depth + 1))}
                     </div>
                   )}
@@ -1158,7 +1158,7 @@ export default function CommunityPostPage() {
         <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
           <Link
             to={ROUTES.community.list}
-            className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -1177,7 +1177,7 @@ export default function CommunityPostPage() {
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-all duration-200 flex items-center justify-center hover:shadow-xl hover:-translate-y-0.5 animate-fade-in-up"
+          className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-sky-700 text-white shadow-lg hover:bg-sky-700 transition-all duration-200 flex items-center justify-center hover:shadow-xl hover:-translate-y-0.5 animate-fade-in-up"
           aria-label="맨 위로"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

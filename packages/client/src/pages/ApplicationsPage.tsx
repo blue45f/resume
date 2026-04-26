@@ -1205,7 +1205,7 @@ export default function ApplicationsPage() {
                   return (
                     <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
                       <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-md flex items-center justify-center text-xs">
+                        <span className="w-5 h-5 bg-sky-100 dark:bg-sky-900/30 text-sky-700 rounded-md flex items-center justify-center text-xs">
                           📅
                         </span>
                         월별 지원 추이 (최근 6개월)

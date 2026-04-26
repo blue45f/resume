@@ -131,7 +131,7 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
   return (
     <button
       onClick={onClick}
-      className={`group relative w-full aspect-[3/4] rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 animate-card-enter ${staggerClass}`}
+      className={`group relative w-full aspect-[3/4] rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-500 animate-card-enter ${staggerClass}`}
       aria-label={`${resume.title || '제목 없음'} 미리보기`}
     >
       {/* Header area with gradient overlay */}
@@ -220,7 +220,7 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
       </div>
 
       {/* Hover action overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-indigo-600/85 via-indigo-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4 gap-2 flex-wrap">
+      <div className="absolute inset-0 bg-gradient-to-t from-sky-700/85 via-sky-700/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4 gap-2 flex-wrap">
         <span className="text-slate-900 text-xs font-semibold bg-white px-3 py-1.5 rounded-full shadow-sm">
           편집
         </span>

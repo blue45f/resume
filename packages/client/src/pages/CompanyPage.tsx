@@ -234,7 +234,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
         </h3>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+          className="px-3 py-1.5 text-xs font-medium bg-sky-700 text-white rounded-xl hover:bg-sky-700 transition-colors"
         >
           {showForm ? '취소' : '+ 리뷰 작성'}
         </button>
@@ -278,7 +278,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
 
       {/* Review Form */}
       {showForm && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-indigo-200 dark:border-indigo-800 p-5 mb-4 space-y-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-sky-200 dark:border-sky-800 p-5 mb-4 space-y-4">
           <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200">리뷰 작성</h4>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -300,7 +300,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
                 value={form.position}
                 onChange={(e) => setForm((prev) => ({ ...prev, position: e.target.value }))}
                 placeholder="예: 프론트엔드 개발자"
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               />
             </div>
           </div>
@@ -328,7 +328,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
               onChange={(e) => setForm((prev) => ({ ...prev, pros: e.target.value }))}
               placeholder="이 회사의 좋은 점을 알려주세요"
               rows={2}
-              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
             />
           </div>
           <div>
@@ -340,7 +340,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
               onChange={(e) => setForm((prev) => ({ ...prev, cons: e.target.value }))}
               placeholder="아쉬운 점을 알려주세요"
               rows={2}
-              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
             />
           </div>
 
@@ -368,7 +368,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
             <button
               onClick={handleSubmit}
               disabled={submitting || form.rating === 0}
-              className="px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 text-sm font-medium bg-sky-700 text-white rounded-xl hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               등록하기
             </button>

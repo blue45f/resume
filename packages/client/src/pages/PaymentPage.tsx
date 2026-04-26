@@ -164,7 +164,7 @@ export default function PaymentPage() {
             <button
               onClick={handlePayment}
               disabled={processing || !agreed}
-              className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30"
+              className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30"
             >
               {processing ? '결제 처리 중...' : `${formatPrice(amount)} 결제하기`}
             </button>

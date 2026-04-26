@@ -51,7 +51,7 @@ const ACTIVITY_ICONS: Record<string, ReactElement> = {
     </svg>
   ),
   version: (
-    <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

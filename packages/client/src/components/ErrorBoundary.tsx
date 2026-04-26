@@ -54,7 +54,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={() => this.setState({ hasError: false, error: null })}
-                className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-colors font-medium"
+                className="px-6 py-2.5 bg-sky-700 text-white rounded-lg hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-700 transition-colors font-medium"
               >
                 다시 시도
               </button>

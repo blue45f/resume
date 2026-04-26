@@ -317,7 +317,7 @@ function CompletenessBar({ resume, compact }: Props) {
 
       {/* Overall benchmark comparison */}
       {showDetails && (
-        <div className="px-3 py-2.5 mb-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800">
+        <div className="px-3 py-2.5 mb-4 rounded-lg bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border border-blue-100 dark:border-blue-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <svg

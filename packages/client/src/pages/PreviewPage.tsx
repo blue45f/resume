@@ -91,10 +91,10 @@ const accentColorMap: Record<
     border: 'border-sky-400',
   },
   indigo: {
-    dot: 'bg-indigo-500',
-    ring: 'ring-indigo-400',
-    bgLight: 'bg-indigo-50',
-    border: 'border-indigo-400',
+    dot: 'bg-sky-500',
+    ring: 'ring-sky-400',
+    bgLight: 'bg-sky-50',
+    border: 'border-sky-400',
   },
   green: {
     dot: 'bg-green-500',
@@ -497,7 +497,7 @@ export default function PreviewPage() {
               </button>
               <button
                 onClick={() => id && navigate(ROUTES.coverLetter.new(id))}
-                className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                className="px-3 py-1.5 bg-sky-700 text-white text-xs font-medium rounded-lg hover:bg-sky-700 transition-colors"
                 title="이 이력서를 기반으로 자소서 작성"
               >
                 자소서

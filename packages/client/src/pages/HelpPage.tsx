@@ -158,7 +158,7 @@ export default function HelpPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="질문을 검색하세요..."
-            className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
           />
         </div>
 
@@ -170,8 +170,8 @@ export default function HelpPage() {
               onClick={() => setCategory(cat)}
               className={`px-3 py-1.5 text-xs font-medium rounded-xl whitespace-nowrap transition-all ${
                 category === cat
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                  ? 'bg-sky-700 text-white shadow-sm'
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-300'
               }`}
             >
               {cat}
@@ -195,7 +195,7 @@ export default function HelpPage() {
                     className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-medium shrink-0">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400 font-medium shrink-0">
                         {item.category}
                       </span>
                       <span className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
@@ -242,7 +242,7 @@ export default function HelpPage() {
             <Link
               key={link.label}
               to={link.to}
-              className="flex items-center gap-2.5 p-3 imp-card hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors"
+              className="flex items-center gap-2.5 p-3 imp-card hover:border-sky-300 dark:hover:border-sky-700 transition-colors"
             >
               <span className="text-lg">{link.icon}</span>
               <span className="text-sm text-slate-700 dark:text-slate-300">{link.label}</span>

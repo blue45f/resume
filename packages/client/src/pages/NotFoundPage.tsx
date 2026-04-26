@@ -74,7 +74,7 @@ export default function NotFoundPage() {
                   <Link
                     key={v.id}
                     to={ROUTES.resume.preview(v.id)}
-                    className="px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-indigo-300 transition-colors"
+                    className="px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-sky-300 transition-colors"
                   >
                     {v.name || v.title}
                   </Link>

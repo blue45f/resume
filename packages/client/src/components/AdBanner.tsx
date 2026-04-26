@@ -19,7 +19,7 @@ const DEFAULT_ADS: Ad[] = [
     description: '무제한 AI 분석, 15종 프리미엄 테마, 우선 지원',
     link: '/pricing',
     linkText: '업그레이드',
-    bgColor: 'from-blue-600 to-indigo-600',
+    bgColor: 'from-blue-600 to-sky-700',
     textColor: 'text-white',
     position: 'inline',
   },

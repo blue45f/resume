@@ -69,9 +69,9 @@ export default function ProfileViewers() {
         className="w-full flex items-center justify-between"
       >
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-sky-50 dark:bg-sky-900/30 rounded-lg flex items-center justify-center">
             <svg
-              className="w-4 h-4 text-indigo-500"
+              className="w-4 h-4 text-sky-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -154,7 +154,7 @@ export default function ProfileViewers() {
           {/* Weekly comparison */}
           <div className="flex items-center gap-4 pt-2 border-t border-slate-100 dark:border-slate-700 mt-2">
             <div className="flex-1 text-center">
-              <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{thisWeek}</p>
+              <p className="text-lg font-bold text-sky-700 dark:text-sky-400">{thisWeek}</p>
               <p className="text-[10px] text-slate-500 dark:text-slate-400">이번 주</p>
             </div>
             <div className="text-slate-300 dark:text-slate-600">
@@ -198,7 +198,7 @@ function WeekTrendBars({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: num
         title={`지난 주: ${lastWeek}`}
       />
       <div
-        className="w-2 bg-indigo-500 dark:bg-indigo-400 rounded-t-sm transition-all duration-300"
+        className="w-2 bg-sky-500 dark:bg-sky-400 rounded-t-sm transition-all duration-300"
         style={{ height: `${Math.max((thisWeek / max) * 100, 10)}%` }}
         title={`이번 주: ${thisWeek}`}
       />

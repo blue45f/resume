@@ -369,7 +369,7 @@ export default function TranslatePage() {
             <button
               onClick={handleTranslate}
               disabled={loading || !selectedResumeId}
-              className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow"
+              className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow"
             >
               {loading
                 ? 'AI 번역 중...'

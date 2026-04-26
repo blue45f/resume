@@ -8,7 +8,7 @@ const SITEMAP = [
   {
     title: '이력서 관리',
     icon: '📝',
-    color: 'from-blue-500 to-indigo-500',
+    color: 'from-blue-500 to-sky-500',
     links: [
       { to: '/', label: '홈 / 대시보드', desc: '이력서 목록, 통계, 최근 활동' },
       { to: '/resumes/new', label: '새 이력서', desc: '빈 이력서, 샘플, AI 문서 분석' },
@@ -79,7 +79,7 @@ const SITEMAP = [
   {
     title: '정보',
     icon: '📌',
-    color: 'from-indigo-500 to-sky-500',
+    color: 'from-sky-500 to-sky-500',
     links: [
       { to: '/about', label: '서비스 소개', desc: '이력서공방 소개' },
       { to: '/tutorial', label: '사용 가이드', desc: '주요 기능 사용법' },

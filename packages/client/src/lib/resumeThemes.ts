@@ -144,9 +144,9 @@ export const resumeThemes: ResumeTheme[] = [
     name: '스타트업',
     description: '대각선 그라디언트',
     headerStyle:
-      'bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 text-white -mx-6 sm:-mx-10 -mt-6 sm:-mt-10 px-6 sm:px-10 pt-8 sm:pt-12 pb-8 mb-8 skew-y-0',
+      'bg-gradient-to-br from-sky-700 via-blue-500 to-cyan-400 text-white -mx-6 sm:-mx-10 -mt-6 sm:-mt-10 px-6 sm:px-10 pt-8 sm:pt-12 pb-8 mb-8 skew-y-0',
     sectionTitleStyle:
-      'text-sm font-bold text-indigo-600 mb-3 flex items-center gap-2 before:content-[""] before:w-12 before:h-[3px] before:bg-gradient-to-r before:from-indigo-500 before:to-cyan-400 before:rounded-full',
+      'text-sm font-bold text-sky-700 mb-3 flex items-center gap-2 before:content-[""] before:w-12 before:h-[3px] before:bg-gradient-to-r before:from-sky-500 before:to-cyan-400 before:rounded-full',
     bodyStyle: 'text-slate-700',
     accentColor: 'indigo',
     fontFamily: "'Inter', -apple-system, sans-serif",
@@ -309,9 +309,9 @@ export const resumeThemes: ResumeTheme[] = [
     name: '포트폴리오',
     description: '크리에이터 전용',
     headerStyle:
-      'bg-gradient-to-br from-indigo-700 via-purple-600 to-pink-500 text-white -mx-6 sm:-mx-10 -mt-6 sm:-mt-10 px-6 sm:px-10 pt-14 sm:pt-16 pb-14 mb-10',
+      'bg-gradient-to-br from-sky-700 via-purple-600 to-pink-500 text-white -mx-6 sm:-mx-10 -mt-6 sm:-mt-10 px-6 sm:px-10 pt-14 sm:pt-16 pb-14 mb-10',
     sectionTitleStyle:
-      'text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500 mb-5',
+      'text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-700 via-purple-500 to-pink-500 mb-5',
     bodyStyle: 'text-slate-700',
     accentColor: 'indigo',
     fontFamily: "'Pretendard', sans-serif",

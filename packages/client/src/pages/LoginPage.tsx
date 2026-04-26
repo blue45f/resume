@@ -126,7 +126,7 @@ export default function LoginPage() {
     if (/[^A-Za-z0-9]/.test(v)) score++;
     if (score <= 1) return { level: 1, label: '약함', color: 'bg-red-500' };
     if (score <= 2) return { level: 2, label: '보통', color: 'bg-amber-500' };
-    if (score <= 3) return { level: 3, label: '양호', color: 'bg-indigo-500' };
+    if (score <= 3) return { level: 3, label: '양호', color: 'bg-sky-500' };
     return { level: 4, label: '강함', color: 'bg-emerald-500' };
   };
 
@@ -317,7 +317,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right form panel */}
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 px-4 py-8">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-sky-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 px-4 py-8">
         <div className="w-full max-w-sm">
           {/* Logo */}
           <div className="text-center mb-8">
@@ -378,7 +378,7 @@ export default function LoginPage() {
                   <a
                     key={p.id}
                     href={getSocialLoginUrl(p.id)}
-                    className={`flex items-center justify-center gap-3 w-full py-3 px-4 rounded-xl font-medium text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800 ${p.className}`}
+                    className={`flex items-center justify-center gap-3 w-full py-3 px-4 rounded-xl font-medium text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800 ${p.className}`}
                   >
                     <Icon />
                     {p.name}&#xC73C;&#xB85C; {isRegister ? '가입하기' : '계속하기'}
@@ -421,7 +421,7 @@ export default function LoginPage() {
                       aria-required="true"
                       aria-invalid={!!nameError}
                       aria-describedby={nameError ? 'name-error' : undefined}
-                      className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${nameError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`}
+                      className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors ${nameError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`}
                     />
                     {nameError && (
                       <p id="name-error" className="mt-1 text-xs text-red-500" role="alert">
@@ -505,12 +505,12 @@ export default function LoginPage() {
                         }
                         className={`p-2.5 rounded-xl border text-center transition-all duration-200 ${
                           userType === tp.value
-                            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-500'
+                            ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20 ring-1 ring-sky-500'
                             : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
                         }`}
                       >
                         <span
-                          className={`flex justify-center mb-1 ${userType === tp.value ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}
+                          className={`flex justify-center mb-1 ${userType === tp.value ? 'text-sky-700 dark:text-sky-400' : 'text-slate-400 dark:text-slate-500'}`}
                         >
                           {tp.icon}
                         </span>
@@ -523,7 +523,7 @@ export default function LoginPage() {
                   </div>
                   {/* 회원 유형별 기능 안내 */}
                   <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                    <p className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 mb-1.5 uppercase tracking-wider">
+                    <p className="text-[10px] font-semibold text-sky-700 dark:text-sky-400 mb-1.5 uppercase tracking-wider">
                       {userType === 'personal'
                         ? '구직자'
                         : userType === 'recruiter'
@@ -581,7 +581,7 @@ export default function LoginPage() {
                         type="text"
                         {...registerForm.register('companyName')}
                         placeholder={userType === 'company' ? '회사명 *' : '소속 회사'}
-                        className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                       />
                       {companyNameError && (
                         <p className="mt-1 text-xs text-red-500" role="alert">
@@ -604,7 +604,7 @@ export default function LoginPage() {
                   aria-required="true"
                   aria-invalid={!!emailError}
                   aria-describedby={emailError ? 'email-error' : undefined}
-                  className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${emailError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`}
+                  className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors ${emailError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`}
                 />
                 {emailError && (
                   <p id="email-error" className="mt-1 text-xs text-red-500" role="alert">
@@ -627,7 +627,7 @@ export default function LoginPage() {
                     aria-required="true"
                     aria-invalid={!!passwordError}
                     aria-describedby={passwordError ? 'password-error' : undefined}
-                    className={`w-full px-4 py-3 pr-11 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${passwordError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`}
+                    className={`w-full px-4 py-3 pr-11 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors ${passwordError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`}
                   />
                   <button
                     type="button"
@@ -732,7 +732,7 @@ export default function LoginPage() {
                       ))}
                     </div>
                     <p
-                      className={`text-xs ${pwStrength.level <= 1 ? 'text-red-500' : pwStrength.level <= 2 ? 'text-amber-500' : pwStrength.level <= 3 ? 'text-indigo-500' : 'text-emerald-500'}`}
+                      className={`text-xs ${pwStrength.level <= 1 ? 'text-red-500' : pwStrength.level <= 2 ? 'text-amber-500' : pwStrength.level <= 3 ? 'text-sky-500' : 'text-emerald-500'}`}
                     >
                       {pwStrength.label}
                       {pwStrength.level <= 2 && ' - 대문자, 숫자, 특수문자를 포함하세요'}
@@ -747,7 +747,7 @@ export default function LoginPage() {
                     <input
                       type="checkbox"
                       defaultChecked
-                      className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                      className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-sky-700 focus:ring-sky-500"
                     />
                     <span className="text-xs text-slate-500 dark:text-slate-400">
                       로그인 상태 유지
@@ -755,7 +755,7 @@ export default function LoginPage() {
                   </label>
                   <Link
                     to={ROUTES.forgotPassword}
-                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
+                    className="text-xs text-sky-700 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 transition-colors"
                   >
                     비밀번호 찾기
                   </Link>
@@ -771,7 +771,7 @@ export default function LoginPage() {
                     <input
                       type="checkbox"
                       {...registerForm.register('agreeTerms')}
-                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-sky-700 focus:ring-sky-500"
                     />
                     <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
                       <span className="text-red-500 font-medium">[필수]</span>{' '}
@@ -779,7 +779,7 @@ export default function LoginPage() {
                         to={ROUTES.terms}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-400"
+                        className="underline underline-offset-2 hover:text-sky-700 dark:hover:text-sky-400"
                       >
                         이용약관
                       </Link>
@@ -796,7 +796,7 @@ export default function LoginPage() {
                     <input
                       type="checkbox"
                       {...registerForm.register('agreePrivacy')}
-                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-sky-700 focus:ring-sky-500"
                     />
                     <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
                       <span className="text-red-500 font-medium">[필수]</span>{' '}
@@ -804,7 +804,7 @@ export default function LoginPage() {
                         to={ROUTES.privacy}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-400"
+                        className="underline underline-offset-2 hover:text-sky-700 dark:hover:text-sky-400"
                       >
                         개인정보 수집·이용
                       </Link>
@@ -821,7 +821,7 @@ export default function LoginPage() {
                     <input
                       type="checkbox"
                       {...registerForm.register('llmOptIn')}
-                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-sky-700 focus:ring-sky-500"
                     />
                     <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
                       <span className="text-slate-400 font-medium">[선택]</span> AI 변환/분석 기능
@@ -833,7 +833,7 @@ export default function LoginPage() {
                     <input
                       type="checkbox"
                       {...registerForm.register('marketingOptIn')}
-                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-sky-700 focus:ring-sky-500"
                     />
                     <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
                       <span className="text-slate-400 font-medium">[선택]</span> 마케팅 정보
