@@ -29,6 +29,11 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
   const [adding, setAdding] = useState(false);
   const [query, setQuery] = useState('');
   const [message, setMessage] = useState('');
+  // 만료일 (선택). 'never' = null, 'D7' = 7일 후, 'D30' = 30일 후, 'custom' = 사용자 입력
+  const [expiresPreset, setExpiresPreset] = useState<'never' | 'D7' | 'D30' | 'D90' | 'custom'>(
+    'never',
+  );
+  const [expiresCustom, setExpiresCustom] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -51,6 +56,17 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
     if (!open) onClose();
   }, [open, onClose]);
 
+  /** preset / custom → ISO 문자열 (또는 null = 만료 없음) */
+  const computeExpiresAt = (): string | null | undefined => {
+    if (expiresPreset === 'never') return null;
+    if (expiresPreset === 'custom') {
+      if (!expiresCustom) return undefined; // 비워두면 변경 안 함
+      return new Date(expiresCustom).toISOString();
+    }
+    const days = expiresPreset === 'D7' ? 7 : expiresPreset === 'D30' ? 30 : 90;
+    return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+  };
+
   const handleAdd = async () => {
     const q = query.trim();
     if (!q) return;
@@ -58,13 +74,18 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
     try {
       // @username 형식이면 username 으로, 그 외 이메일로 시도
       const isEmail = q.includes('@') && q.indexOf('@') > 0;
-      const payload = isEmail
-        ? { email: q, message: message.trim() || undefined }
-        : { username: q.replace(/^@/, ''), message: message.trim() || undefined };
+      const expiresAt = computeExpiresAt();
+      const base = {
+        message: message.trim() || undefined,
+        ...(expiresAt !== undefined ? { expiresAt } : {}),
+      };
+      const payload = isEmail ? { email: q, ...base } : { username: q.replace(/^@/, ''), ...base };
       await addAllowedViewer(resumeId, payload);
       toast('사용자를 추가했습니다', 'success');
       setQuery('');
       setMessage('');
+      setExpiresPreset('never');
+      setExpiresCustom('');
       load();
     } catch (err) {
       toast(err instanceof Error ? err.message : '추가에 실패했습니다', 'error');
@@ -129,6 +150,47 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
             maxLength={200}
             className="mt-2 w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          {/* 만료일 — 시한부 공개 (지원 1주일 / 면접 30일 / 채용 진행 90일 등) */}
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+              만료:
+            </span>
+            {(['never', 'D7', 'D30', 'D90', 'custom'] as const).map((p) => {
+              const label =
+                p === 'never'
+                  ? '무기한'
+                  : p === 'D7'
+                    ? '7일'
+                    : p === 'D30'
+                      ? '30일'
+                      : p === 'D90'
+                        ? '90일'
+                        : '직접';
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setExpiresPreset(p)}
+                  className={`px-2 py-0.5 text-[11px] rounded-full transition-colors ${
+                    expiresPreset === p
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+            {expiresPreset === 'custom' && (
+              <input
+                type="date"
+                value={expiresCustom}
+                onChange={(e) => setExpiresCustom(e.target.value)}
+                min={new Date().toISOString().slice(0, 10)}
+                className="px-2 py-0.5 text-[11px] border border-slate-200 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200"
+              />
+            )}
+          </div>
           <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
             ⓘ 이력서공방 가입 사용자만 추가 가능. 추가 즉시 해당 사용자에게 알림이 발송되고 이력서를
             볼 수 있게 됩니다.
