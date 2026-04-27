@@ -33,6 +33,7 @@ import { StudyGroupsModule } from './study-groups/study-groups.module';
 import { JobInterviewQuestionsModule } from './job-interview-questions/job-interview-questions.module';
 import { CoachingModule } from './coaching/coaching.module';
 import { CoffeeChatModule } from './coffee-chat/coffee-chat.module';
+import { BillingModule } from './billing/billing.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { CoffeeChatModule } from './coffee-chat/coffee-chat.module';
     JobInterviewQuestionsModule,
     CoachingModule,
     CoffeeChatModule,
+    BillingModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: CustomThrottlerGuard },

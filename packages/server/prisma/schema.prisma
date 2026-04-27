@@ -78,9 +78,78 @@ model User {
   sentWebrtcSignals       WebrtcSignal[]             @relation("WebrtcSignalFrom")
   receivedWebrtcSignals   WebrtcSignal[]             @relation("WebrtcSignalTo")
   jobPostApplications     JobPostApplication[]       @relation("JobApplicant")
+  subscriptions           Subscription[]
+  payments                Payment[]
 
   @@unique([provider, providerId])
   @@map("users")
+}
+
+/// 사용자 구독 (월/연 단위, 최신 active 1건만 우선시).
+/// User.plan / planExpiresAt 은 빠른 조회용 cache, 진실은 이 테이블.
+model Subscription {
+  id                 String    @id @default(uuid())
+  userId             String    @map("user_id")
+  /// 'free' | 'pro' | 'enterprise'
+  plan               String    @default("pro")
+  /// 'active' | 'cancelled' | 'expired' | 'past_due'
+  status             String    @default("active")
+  /// 'monthly' | 'yearly'
+  billingCycle       String    @default("monthly") @map("billing_cycle")
+  /// PG 측 subscription id (Toss billing key, Stripe sub_id 등)
+  externalId         String?   @map("external_id")
+  /// 'toss' | 'stripe' | 'kakao' | 'manual' (admin grant)
+  provider           String    @default("manual")
+  startedAt          DateTime  @default(now()) @map("started_at")
+  /// 다음 결제일 또는 만료일
+  currentPeriodEnd   DateTime  @map("current_period_end")
+  cancelledAt        DateTime? @map("cancelled_at")
+  /// 사용자가 cancel 했지만 currentPeriodEnd 까지는 유효한 상태 표시
+  cancelAtPeriodEnd  Boolean   @default(false) @map("cancel_at_period_end")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([currentPeriodEnd])
+  @@map("subscriptions")
+}
+
+/// 단건 결제 / 환불 transaction. 실 PG 연결 전에는 manual 만, 이후 Toss/Stripe webhook 으로 채워짐.
+model Payment {
+  id              String        @id @default(uuid())
+  userId          String        @map("user_id")
+  subscriptionId  String?       @map("subscription_id")
+  /// KRW 단위 (정수). 환불은 음수.
+  amount          Int
+  currency        String        @default("KRW")
+  /// 'pending' | 'succeeded' | 'failed' | 'refunded'
+  status          String        @default("pending")
+  /// 'toss' | 'stripe' | 'kakao' | 'manual'
+  provider        String        @default("manual")
+  /// PG transaction id (Toss paymentKey, Stripe charge id 등)
+  externalId      String?       @map("external_id")
+  /// 결제 방식: 'card' | 'transfer' | 'virtual_account' | 'phone' | ...
+  method          String        @default("card")
+  /// 영수증/환불 사유 등
+  description     String        @default("")
+  /// PG 응답 raw — 디버깅/감사 용도. 민감 정보 사전 제거 후 저장.
+  rawResponse     String        @default("") @map("raw_response") @db.Text
+  paidAt          DateTime?     @map("paid_at")
+  refundedAt      DateTime?     @map("refunded_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([provider, externalId])
+  @@map("payments")
 }
 
 model Resume {
