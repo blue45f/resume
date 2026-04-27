@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Param,
   Body,
@@ -182,6 +183,18 @@ export class StudyGroupsController {
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.updatePost(postId, req.user.id, body);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: '스터디 그룹 owner 수정 (공개/비공개 / 이름 / 설명 / 정원)' })
+  ownerUpdate(
+    @Param('id') id: string,
+    @Body()
+    body: { name?: string; description?: string; isPrivate?: boolean; maxMembers?: number },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.ownerUpdate(id, req.user.id, body);
   }
 
   @Delete('posts/:postId')

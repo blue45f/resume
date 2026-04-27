@@ -355,6 +355,41 @@ export class StudyGroupsService {
     });
   }
 
+  /** Owner — 본인 그룹의 공개/비공개, 이름, 설명, 정원 변경. */
+  async ownerUpdate(
+    id: string,
+    ownerId: string,
+    data: {
+      name?: string;
+      description?: string;
+      isPrivate?: boolean;
+      maxMembers?: number;
+    },
+  ) {
+    if (!ownerId) throw new ForbiddenException('로그인이 필요합니다');
+    const group = await this.prisma.studyGroup.findUnique({
+      where: { id },
+      select: { ownerId: true, memberCount: true },
+    });
+    if (!group) throw new NotFoundException('스터디 그룹을 찾을 수 없습니다');
+    if (group.ownerId !== ownerId) {
+      throw new ForbiddenException('owner 만 수정할 수 있습니다');
+    }
+    const patch: Record<string, unknown> = {};
+    if (typeof data.name === 'string' && data.name.trim()) {
+      patch.name = data.name.trim().slice(0, 100);
+    }
+    if (typeof data.description === 'string') {
+      patch.description = data.description.slice(0, 1000);
+    }
+    if (typeof data.isPrivate === 'boolean') patch.isPrivate = data.isPrivate;
+    if (typeof data.maxMembers === 'number') {
+      // 현 멤버 수보다 작게 설정 불가
+      patch.maxMembers = Math.min(Math.max(data.maxMembers, group.memberCount), 500);
+    }
+    return this.prisma.studyGroup.update({ where: { id }, data: patch });
+  }
+
   async adminUpdate(
     id: string,
     data: {

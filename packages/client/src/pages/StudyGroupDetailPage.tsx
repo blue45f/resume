@@ -10,6 +10,7 @@ import {
   joinStudyGroup,
   leaveStudyGroup,
   deleteStudyGroup,
+  updateStudyGroup,
   fetchStudyGroupQuestions,
   fetchStudyGroupPosts,
   createStudyGroupPost,
@@ -152,6 +153,25 @@ export default function StudyGroupDetailPage() {
     }
   };
 
+  const handleTogglePrivacy = async () => {
+    if (!id || !group) return;
+    const next = !group.isPrivate;
+    const msg = next
+      ? '비공개로 전환하면 검색에 노출되지 않고 초대받은 멤버만 볼 수 있습니다. 진행할까요?'
+      : '공개로 전환하면 누구나 그룹을 검색하고 가입할 수 있습니다. 진행할까요?';
+    if (!confirm(msg)) return;
+    setBusy(true);
+    try {
+      await updateStudyGroup(id, { isPrivate: next });
+      toast(next ? '🔒 비공개로 전환됨' : '🌐 공개로 전환됨', 'success');
+      qc.invalidateQueries({ queryKey: ['study-group', id] });
+    } catch (err) {
+      toast(err instanceof Error ? err.message : '변경 실패', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <>
@@ -233,15 +253,29 @@ export default function StudyGroupDetailPage() {
               )}
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               {isOwner ? (
-                <button
-                  onClick={handleDelete}
-                  disabled={busy}
-                  className="px-3 py-2 text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 disabled:opacity-50"
-                >
-                  그룹 삭제
-                </button>
+                <>
+                  <button
+                    onClick={handleTogglePrivacy}
+                    disabled={busy}
+                    className="px-3 py-2 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-50"
+                    title={
+                      group.isPrivate
+                        ? '공개로 전환 — 누구나 검색/가입 가능'
+                        : '비공개로 전환 — 초대받은 멤버만 가입 가능'
+                    }
+                  >
+                    {group.isPrivate ? '🌐 공개로 전환' : '🔒 비공개로 전환'}
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={busy}
+                    className="px-3 py-2 text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 disabled:opacity-50"
+                  >
+                    그룹 삭제
+                  </button>
+                </>
               ) : isMember ? (
                 <button
                   onClick={handleLeave}

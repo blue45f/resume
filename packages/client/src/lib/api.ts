@@ -1202,6 +1202,15 @@ export const leaveStudyGroup = (id: string) =>
 export const deleteStudyGroup = (id: string) =>
   request<{ success: boolean }>(`${BASE}/study-groups/${id}`, { method: 'DELETE' });
 
+export const updateStudyGroup = (
+  id: string,
+  body: { name?: string; description?: string; isPrivate?: boolean; maxMembers?: number },
+) =>
+  request<StudyGroup>(`${BASE}/study-groups/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+
 export const fetchStudyGroupQuestions = (id: string) =>
   request<StudyGroupQuestion[]>(`${BASE}/study-groups/${id}/questions`);
 
