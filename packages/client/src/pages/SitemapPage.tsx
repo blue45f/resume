@@ -33,6 +33,12 @@ const SITEMAP = [
         label: '면접 준비',
         desc: 'AI 모의 면접 + 답변 깊이 분석 + 시간별 점수 추세',
       },
+      {
+        to: '/mock-interview',
+        label: '카메라 모의 면접',
+        desc: '카메라/마이크 녹화 + 답변 자동 채점',
+        auth: true,
+      },
     ],
   },
   {
@@ -76,10 +82,24 @@ const SITEMAP = [
     ],
   },
   {
-    title: '소셜 / 네트워킹',
+    title: '소셜 / 커뮤니티',
     icon: '🤝',
     color: 'from-sky-500 to-blue-500',
     links: [
+      { to: '/community', label: '커뮤니티', desc: '취업/이력서 글 공유 + 댓글 + 좋아요' },
+      {
+        to: '/community/write',
+        label: '글 작성',
+        desc: 'resume/interview/general 카테고리 글 등록',
+        auth: true,
+      },
+      { to: '/study-groups', label: '스터디 그룹', desc: '면접 / 코딩 / 자소서 함께 준비' },
+      {
+        to: '/study-groups/new',
+        label: '스터디 만들기',
+        desc: '카테고리 / 인원 / 시간대 설정',
+        auth: true,
+      },
       { to: '/messages', label: '쪽지', desc: '회원간 1:1 메시지 + 코치 직접 연락', auth: true },
       { to: '/social/follows', label: '팔로우 목록', desc: '팔로워/팔로잉 관리', auth: true },
       {
@@ -88,7 +108,20 @@ const SITEMAP = [
         desc: '댓글/스카우트/팔로우/커피챗/지원 stage/코칭 리뷰 등',
         auth: true,
       },
+      { to: '/notices', label: '공지사항', desc: '플랫폼 공지 + 신규 기능 안내' },
       { to: '/feedback', label: '피드백 게시판', desc: '버그 신고, 기능 제안, 의견' },
+    ],
+  },
+  {
+    title: '인사이트',
+    icon: '📊',
+    color: 'from-cyan-500 to-sky-500',
+    links: [
+      {
+        to: '/stats',
+        label: '채용 통계',
+        desc: '회사/지역/직무/스킬별 채용 분포 + 월별 트렌드',
+      },
     ],
   },
   {
@@ -117,9 +150,15 @@ const SITEMAP = [
     icon: '⚙️',
     color: 'from-slate-500 to-slate-600',
     links: [
-      { to: '/login', label: '로그인 / 회원가입', desc: 'Google, GitHub, 이메일' },
-      { to: '/settings', label: '설정', desc: '프로필, 알림, 테마, 계정 관리', auth: true },
-      { to: '/pricing', label: '요금제', desc: '무료/스탠다드/프리미엄' },
+      { to: '/login', label: '로그인 / 회원가입', desc: 'Google, GitHub, Kakao, 이메일' },
+      { to: '/settings', label: '설정', desc: '프로필, 알림, 테마, 아바타, 계정 관리', auth: true },
+      { to: '/pricing', label: '요금제', desc: '무료 / Pro 9,900원 / Enterprise — 기능 비교' },
+      {
+        to: '/payment',
+        label: '결제',
+        desc: '플랜 가입 + 결제 내역 + 구독 해지',
+        auth: true,
+      },
     ],
   },
   {
@@ -127,9 +166,15 @@ const SITEMAP = [
     icon: '📌',
     color: 'from-sky-500 to-sky-500',
     links: [
-      { to: '/about', label: '서비스 소개', desc: '이력서공방 소개' },
-      { to: '/tutorial', label: '사용 가이드', desc: '주요 기능 사용법' },
+      { to: '/about', label: '서비스 소개', desc: '이력서공방 소개 + 핵심 기능' },
+      {
+        to: '/tutorial',
+        label: '사용 가이드',
+        desc: '구직자/채용/코칭/스터디/커피챗/면접 단계별 가이드',
+      },
+      { to: '/help', label: '도움말 / FAQ', desc: '자주 묻는 질문 + 검색' },
       { to: '/terms', label: '이용약관', desc: '서비스 이용 약관' },
+      { to: '/privacy', label: '개인정보처리방침', desc: 'PIPA 준수 데이터 처리 정책' },
     ],
   },
 ];
