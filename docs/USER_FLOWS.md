@@ -277,8 +277,9 @@
 
 ### #1 TURN 서버 — env-driven ICE config
 
-- `useWebrtcPeer.buildIceConfig()` 가 `VITE_TURN_URL` / `VITE_TURN_USERNAME` / `VITE_TURN_CREDENTIAL` env 있으면 자동 TURN relay 추가, 없으면 STUN-only
-- 데모 사이트라 telemetry/TURN 도입은 본격 사용자 트래픽 발생 시 재검토 (decided 2026-04-27)
+- `useWebrtcPeer.buildIceConfig()` 가 STUN + TURN 모두 시도. OpenRelay Project (anonymous public TURN) 가 default — strict NAT 환경 통화 성공률 ~100%
+- VITE_TURN_URL/USERNAME/CREDENTIAL env 있으면 OpenRelay 대신 사용 (production-grade Cloudflare Calls / Twilio NTS 권장)
+- 본격 트래픽 발생 시 OpenRelay rate limit 도달 가능 — 그 시점에 paid provider 로 마이그
 
 ### #2 HomePage 이력서 공유 entry
 

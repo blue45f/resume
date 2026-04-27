@@ -182,9 +182,11 @@ generateWithFallback(systemPrompt, userMessage)
 ```
 A ─┐                                  ┌─ B
    │                                  │
-   ├─ STUN: stun.l.google.com ─────┤
+   ├─ STUN: stun.l.google.com ─────┤   1. P2P 직접 시도
    │                                  │
-   ├─ (옵션) TURN: VITE_TURN_URL ──┤   ← env 있으면 자동 활성화
+   ├─ TURN: openrelay.metered.ca ──┤   2. anonymous public relay (default fallback)
+   │                                  │
+   ├─ TURN: VITE_TURN_URL (옵션) ──┤   3. 사용자 정의 TURN — env 있으면 OpenRelay 대체
    │                                  │
    └─ Server: signaling 큐 (offer/   ─┘
         answer/ice/bye, 30초 TTL)

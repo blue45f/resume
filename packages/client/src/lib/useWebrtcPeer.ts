@@ -20,9 +20,12 @@ import {
  */
 
 /**
- * ICE 서버 — STUN 기본 + 옵션 TURN.
- * VITE_TURN_URL / VITE_TURN_USERNAME / VITE_TURN_CREDENTIAL 환경변수가 있으면 TURN relay 활성화.
- * Strict NAT (회사 방화벽/모바일 캐리어) 환경에서 통화 성공률 올림. 비용 발생 → telemetry 누적 후 도입 결정.
+ * ICE 서버 구성:
+ * 1. Google STUN — 기본 (대부분 P2P 직접 연결 가능)
+ * 2. OpenRelay Project TURN (무료 공개) — strict NAT/방화벽 환경의 fallback relay
+ *    https://www.metered.ca/tools/openrelay/ — anonymous credential, 가입 불필요
+ *    한계: rate limit 있음, geographic latency, 본격 사용 시 Cloudflare Calls / Twilio NTS 권장
+ * 3. VITE_TURN_URL/USERNAME/CREDENTIAL — 사용자 정의 TURN (있으면 OpenRelay 대체, 우선시)
  */
 function buildIceConfig(): RTCConfiguration {
   const servers: RTCIceServer[] = [
@@ -33,7 +36,28 @@ function buildIceConfig(): RTCConfiguration {
   const turnUser = import.meta.env.VITE_TURN_USERNAME as string | undefined;
   const turnCred = import.meta.env.VITE_TURN_CREDENTIAL as string | undefined;
   if (turnUrl && turnUser && turnCred) {
+    // 사용자 정의 TURN (production-grade)
     servers.push({ urls: turnUrl, username: turnUser, credential: turnCred });
+  } else {
+    // OpenRelay Project — anonymous public TURN (무료, demo/baseline)
+    // UDP 80 / TCP 80 / TLS 443 — 모든 방화벽 통과 시도
+    servers.push(
+      {
+        urls: 'turn:openrelay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
+        urls: 'turns:openrelay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+    );
   }
   return { iceServers: servers };
 }
@@ -61,9 +85,11 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const pollRef = useRef<number | null>(null);
   const lastSignalIdRef = useRef<Set<string>>(new Set());
+  // handleSignal 은 useCallback 으로 아래 정의되지만 polling interval 에서 먼저 참조해야 함 → ref 로 우회
+  const handleSignalRef = useRef<((s: WebrtcSignal) => Promise<void>) | null>(null);
 
   const cleanup = useCallback(() => {
-    pollRef.current && clearInterval(pollRef.current);
+    if (pollRef.current) clearInterval(pollRef.current);
     pollRef.current = null;
     if (pcRef.current) {
       pcRef.current.close();
@@ -99,14 +125,15 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
         try {
           stream = await navigator.mediaDevices.getUserMedia(constraints);
           setLocalStream(stream);
-        } catch (mediaErr: any) {
+        } catch (mediaErr) {
           // 권한 거부 / 디바이스 없음 / 다른 앱 점유 — 명확한 한국어 메시지
-          const name = mediaErr?.name || '';
+          const name = (mediaErr as { name?: string })?.name || '';
           if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
             throw new Error(
               modality === 'voice'
                 ? '마이크 권한이 차단됐어요. 브라우저 주소창의 자물쇠 → 사이트 설정 → 마이크 허용 후 다시 시도해주세요.'
                 : '카메라/마이크 권한이 차단됐어요. 브라우저 주소창의 자물쇠 → 사이트 설정 → 카메라·마이크 허용 후 다시 시도해주세요.',
+              { cause: mediaErr },
             );
           }
           if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
@@ -114,11 +141,13 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
               modality === 'voice'
                 ? '마이크 장치를 찾을 수 없어요. 마이크 연결을 확인해주세요.'
                 : '카메라/마이크 장치를 찾을 수 없어요. 장치 연결을 확인해주세요.',
+              { cause: mediaErr },
             );
           }
           if (name === 'NotReadableError' || name === 'TrackStartError') {
             throw new Error(
               '다른 앱이 카메라/마이크를 사용 중이에요. 해당 앱을 종료 후 재시도해주세요.',
+              { cause: mediaErr },
             );
           }
           throw mediaErr;
@@ -194,14 +223,14 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
           for (const s of signals) {
             if (lastSignalIdRef.current.has(s.id)) continue;
             lastSignalIdRef.current.add(s.id);
-            await handleSignal(s);
+            if (handleSignalRef.current) await handleSignalRef.current(s);
           }
         } catch {
           // network blip — 계속 polling
         }
       }, POLL_INTERVAL_MS);
     } catch (err) {
-      const errorName = (err as any)?.name || 'UnknownError';
+      const errorName = (err as { name?: string })?.name || 'UnknownError';
       setError(err instanceof Error ? err.message : '통화 시작 실패');
       setState('failed');
       void recordWebrtcTelemetry({ roomId, state: 'failed', modality, errorName });
@@ -239,6 +268,11 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
     },
     [roomId, peerId, cleanup],
   );
+
+  // handleSignal 을 ref 에 노출 — start() 의 polling interval 이 closure-stable 하게 호출 가능
+  useEffect(() => {
+    handleSignalRef.current = handleSignal;
+  }, [handleSignal]);
 
   const hangup = useCallback(async () => {
     try {
