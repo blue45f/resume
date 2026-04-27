@@ -10,10 +10,43 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
-const ALLOWED_STATUSES = ['pending', 'accepted', 'rejected', 'completed', 'cancelled'] as const;
+const ALLOWED_STATUSES = [
+  'pending',
+  'accepted',
+  'rejected',
+  'completed',
+  'cancelled',
+  'expired',
+  'no_show',
+] as const;
 const ALLOWED_MODALITIES = ['voice', 'video', 'chat'] as const;
 const SIGNAL_TTL_MS = 30 * 1000; // 30초 후 정리
 const SIGNAL_DRAIN_LIMIT = 50; // poll 1회당 최대 50건
+
+/**
+ * Topic templates — 자주 쓰는 7개 주제. 신청 마찰 줄이고 호스트가 빠르게 컨텍스트 파악.
+ * (Topmate.io 패턴) — 자유 입력도 가능, 이건 추천 카탈로그.
+ */
+export const COFFEE_CHAT_TOPICS = [
+  { key: 'resume_review', label: '이력서 리뷰', icon: '📄' },
+  { key: 'mock_interview', label: '모의 면접', icon: '🎤' },
+  { key: 'career_advice', label: '커리어 상담', icon: '🧭' },
+  { key: 'culture_fit', label: '컬처핏 / 회사 분위기', icon: '🏢' },
+  { key: 'role_intro', label: '직무 소개 / 일상', icon: '💼' },
+  { key: 'salary_nego', label: '연봉 / 처우 협의', icon: '💰' },
+  { key: 'general', label: '자유 주제', icon: '☕' },
+] as const;
+
+const TOPIC_KEY_LABELS: Record<string, string> = COFFEE_CHAT_TOPICS.reduce(
+  (acc, t) => ({ ...acc, [t.key]: `${t.icon} ${t.label}` }),
+  {},
+);
+
+/** Rate limit — 같은 host 에게 30일 내 신청 횟수 (스팸 방지). */
+const RATE_LIMIT_DAYS = 30;
+const RATE_LIMIT_MAX = 3;
+/** 7일 무응답 시 자동 expire */
+const PENDING_EXPIRE_DAYS = 7;
 
 @Injectable()
 export class CoffeeChatService {
@@ -59,6 +92,21 @@ export class CoffeeChatService {
     });
     if (existing) {
       throw new BadRequestException('이미 대기 중인 커피챗 신청이 있습니다');
+    }
+
+    // Rate limit — 같은 host 에게 30일 내 3회 max (스팸 방지)
+    const since = new Date(Date.now() - RATE_LIMIT_DAYS * 24 * 60 * 60 * 1000);
+    const recentCount = await this.prisma.coffeeChat.count({
+      where: {
+        requesterId,
+        hostId: body.hostId,
+        createdAt: { gte: since },
+      },
+    });
+    if (recentCount >= RATE_LIMIT_MAX) {
+      throw new BadRequestException(
+        `${RATE_LIMIT_DAYS}일 내 같은 사용자에게 ${RATE_LIMIT_MAX}회까지만 신청할 수 있습니다`,
+      );
     }
 
     const created = await this.prisma.coffeeChat.create({
@@ -394,5 +442,176 @@ export class CoffeeChatService {
     if (sent > 0) {
       this.logger.log(`coffee chat ${kind} reminder: sent ${sent} notifications`);
     }
+  }
+
+  /** Topic templates 카탈로그 — public endpoint */
+  listTopics() {
+    return COFFEE_CHAT_TOPICS;
+  }
+
+  /**
+   * 7일 무응답 pending → expired 자동 전환. 양쪽에 알림.
+   * 매일 04:00 UTC cron.
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  async expireStalePending() {
+    const cutoff = new Date(Date.now() - PENDING_EXPIRE_DAYS * 24 * 60 * 60 * 1000);
+    const stale = await this.prisma.coffeeChat.findMany({
+      where: { status: 'pending', createdAt: { lt: cutoff } },
+      select: { id: true, hostId: true, requesterId: true },
+    });
+    if (stale.length === 0) return;
+    await this.prisma.coffeeChat.updateMany({
+      where: { id: { in: stale.map((c) => c.id) } },
+      data: { status: 'expired' },
+    });
+    for (const c of stale) {
+      await this.notifications
+        .create(
+          c.requesterId,
+          'coffee_chat_response',
+          `${PENDING_EXPIRE_DAYS}일 무응답으로 커피챗 신청이 만료됐어요`,
+          `/coffee-chats/${c.id}`,
+        )
+        .catch(() => {});
+    }
+    this.logger.log(`coffee chat expire: ${stale.length} pending → expired`);
+  }
+
+  /** WebRTC room 입장 시 host/requester 측 입장 시각 기록. no-show 추적용. */
+  async recordJoin(id: string, userId: string) {
+    if (!userId) throw new ForbiddenException('로그인이 필요합니다');
+    const chat = await this.prisma.coffeeChat.findUnique({ where: { id } });
+    if (!chat) throw new NotFoundException();
+    if (chat.status !== 'accepted') return chat; // 수락 후만 기록
+    const data: Record<string, boolean> = {};
+    if (chat.hostId === userId && !chat.hostJoined) data.hostJoined = true;
+    else if (chat.requesterId === userId && !chat.requesterJoined) data.requesterJoined = true;
+    if (Object.keys(data).length === 0) return chat;
+    return this.prisma.coffeeChat.update({ where: { id }, data });
+  }
+
+  /** 커피챗 후 양쪽이 짧은 후기 남김 (max 500자). 본인 측 필드만 update. */
+  async leaveFeedback(id: string, userId: string, feedback: string) {
+    if (!userId) throw new ForbiddenException('로그인이 필요합니다');
+    const trimmed = (feedback || '').slice(0, 500);
+    const chat = await this.prisma.coffeeChat.findUnique({ where: { id } });
+    if (!chat) throw new NotFoundException();
+    if (chat.status !== 'completed' && chat.status !== 'accepted') {
+      throw new BadRequestException('수락 또는 완료된 커피챗만 후기 남길 수 있습니다');
+    }
+    if (chat.hostId !== userId && chat.requesterId !== userId) {
+      throw new ForbiddenException('이 커피챗에 참여한 사람만 후기 남길 수 있습니다');
+    }
+    const data: Record<string, string> = {};
+    if (chat.hostId === userId) data.hostFeedback = trimmed;
+    else data.requesterFeedback = trimmed;
+    return this.prisma.coffeeChat.update({ where: { id }, data });
+  }
+
+  /**
+   * Host 응답률 통계 — Adplist 패턴.
+   * 받은 신청 수 / 응답 (accepted+rejected) 수 / 평균 응답 시간 / no-show 횟수.
+   */
+  async getHostStats(hostId: string) {
+    if (!hostId) throw new BadRequestException('hostId 필요');
+    const all = await this.prisma.coffeeChat.findMany({
+      where: { hostId },
+      select: {
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        hostJoined: true,
+      },
+    });
+    const total = all.length;
+    const responded = all.filter((c) => ['accepted', 'rejected'].includes(c.status)).length;
+    const completed = all.filter((c) => c.status === 'completed').length;
+    const noShow = all.filter((c) => c.status === 'accepted' && !c.hostJoined).length;
+    // 응답한 것만 평균 응답 시간 (createdAt → updatedAt)
+    const respondedSet = all.filter((c) => ['accepted', 'rejected'].includes(c.status));
+    const avgResponseHours =
+      respondedSet.length > 0
+        ? Math.round(
+            (respondedSet.reduce(
+              (sum, c) => sum + (new Date(c.updatedAt).getTime() - new Date(c.createdAt).getTime()),
+              0,
+            ) /
+              respondedSet.length /
+              (1000 * 60 * 60)) *
+              10,
+          ) / 10
+        : null;
+    const responseRate = total > 0 ? Math.round((responded / total) * 100) : 0;
+    return {
+      total,
+      responded,
+      completed,
+      noShow,
+      responseRate,
+      avgResponseHours,
+    };
+  }
+
+  /** ICS calendar event 생성 — Google/Outlook 캘린더 등록용. accepted 만 export 가능. */
+  async generateIcs(id: string, userId: string) {
+    const chat = await this.prisma.coffeeChat.findUnique({
+      where: { id },
+      include: {
+        host: { select: { name: true, email: true } },
+        requester: { select: { name: true, email: true } },
+      },
+    });
+    if (!chat) throw new NotFoundException();
+    if (chat.hostId !== userId && chat.requesterId !== userId) {
+      throw new ForbiddenException('참여자만 캘린더 export 가능');
+    }
+    if (chat.status !== 'accepted' && chat.status !== 'completed') {
+      throw new BadRequestException('수락된 커피챗만 캘린더 export 가능');
+    }
+    const start = chat.scheduledAt || new Date(Date.now() + 60 * 60 * 1000);
+    const end = new Date(start.getTime() + chat.durationMin * 60 * 1000);
+    const fmt = (d: Date) =>
+      d
+        .toISOString()
+        .replace(/[-:]/g, '')
+        .replace(/\.\d{3}/, '') + ''; // 20260428T123456Z
+    const escape = (s: string) => s.replace(/[\\;,\n]/g, (m) => (m === '\n' ? '\\n' : '\\' + m));
+    const summary = `이력서공방 커피챗 — ${chat.host.name} & ${chat.requester.name}`;
+    const description = [
+      `주제: ${TOPIC_KEY_LABELS[chat.topic] || chat.topic || '자유 주제'}`,
+      `방식: ${chat.modality === 'voice' ? '음성' : chat.modality === 'video' ? '화상' : '텍스트'}`,
+      chat.message ? `메시지: ${chat.message}` : '',
+      ``,
+      `통화 방: https://resume-gongbang.vercel.app/coffee-chats/${chat.id}/room`,
+    ]
+      .filter(Boolean)
+      .join('\\n');
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//resume-gongbang//coffee-chat//KO',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `UID:coffee-chat-${chat.id}@resume-gongbang.vercel.app`,
+      `DTSTAMP:${fmt(new Date())}`,
+      `DTSTART:${fmt(start)}`,
+      `DTEND:${fmt(end)}`,
+      `SUMMARY:${escape(summary)}`,
+      `DESCRIPTION:${escape(description)}`,
+      `URL:https://resume-gongbang.vercel.app/coffee-chats/${chat.id}/room`,
+      `ORGANIZER;CN=${escape(chat.host.name)}:mailto:${chat.host.email || 'noreply@resume-gongbang.vercel.app'}`,
+      `ATTENDEE;CN=${escape(chat.requester.name)};RSVP=TRUE:mailto:${chat.requester.email || 'noreply@resume-gongbang.vercel.app'}`,
+      'STATUS:CONFIRMED',
+      'BEGIN:VALARM',
+      'TRIGGER:-PT15M',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:${escape(summary)}`,
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+    return ics;
   }
 }

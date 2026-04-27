@@ -226,16 +226,18 @@ model ResumeViewer {
 ///   2. 채용담당자 → 후보자 (RecruiterDashboard 추천 후보 / Scouts): host=후보자, requester=채용담당자
 ///   3. 회원 → 회원 (메시지 등): 자유 매칭
 /// host 가 수락/거절 권한, 수락 시 WebRTC 음성/화상 통화 (서버는 signaling 만, 미디어 P2P + TURN fallback).
+/// 7일 무응답 시 cron 으로 expired, 같은 host 에게 30일 내 3회 max (rate-limit).
 model CoffeeChat {
   id          String    @id @default(uuid())
   /// 신청 받는 사람 — 수락/거절 권한, 알림 받음, WebRTC initiator
   hostId      String    @map("host_id")
   /// 신청 한 사람 — 보통 로그인 user
   requesterId String    @map("requester_id")
-  /// pending | accepted | rejected | completed | cancelled
+  /// pending | accepted | rejected | completed | cancelled | expired | no_show
   status      String    @default("pending")
   scheduledAt DateTime? @map("scheduled_at")
   durationMin Int       @default(30) @map("duration_min")
+  /// 사전 정의된 topic key (resume_review / mock_interview / career_advice 등) 또는 free-form
   topic       String    @default("")
   message     String    @default("") @db.Text
   /// voice | video | chat
@@ -243,6 +245,12 @@ model CoffeeChat {
   /// WebRTC room ID — accepted 시 자동 발급
   roomId      String?   @map("room_id")
   hostNote    String    @default("") @db.Text @map("host_note")
+  /// 커피챗 후 양쪽이 남기는 짧은 후기 (max 500자 each)
+  hostFeedback      String  @default("") @db.Text @map("host_feedback")
+  requesterFeedback String  @default("") @db.Text @map("requester_feedback")
+  /// host/requester 가 입장했는지 — no-show 자동 추적용
+  hostJoined        Boolean @default(false) @map("host_joined")
+  requesterJoined   Boolean @default(false) @map("requester_joined")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 

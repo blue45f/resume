@@ -30,6 +30,14 @@ const STATUS_BADGE: Record<CoffeeChat['status'], { label: string; cls: string }>
     label: '취소됨',
     cls: 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400',
   },
+  expired: {
+    label: '만료',
+    cls: 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400',
+  },
+  no_show: {
+    label: '노쇼',
+    cls: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
+  },
 };
 
 const MODALITY_ICON = { video: '📹', voice: '🎙️', chat: '💬' };

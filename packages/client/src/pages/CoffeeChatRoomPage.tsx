@@ -2,7 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { fetchCoffeeChat, completeCoffeeChat, type CoffeeChat } from '@/lib/api';
+import {
+  fetchCoffeeChat,
+  completeCoffeeChat,
+  recordCoffeeChatJoin,
+  leaveCoffeeChatFeedback,
+  downloadCoffeeChatIcs,
+  type CoffeeChat,
+} from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { useWebrtcPeer } from '@/lib/useWebrtcPeer';
 import { toast } from '@/components/Toast';
@@ -17,6 +24,8 @@ export default function CoffeeChatRoomPage() {
   const me = getUser();
   const [chat, setChat] = useState<CoffeeChat | null>(null);
   const [loading, setLoading] = useState(true);
+  const [feedback, setFeedback] = useState('');
+  const [savingFeedback, setSavingFeedback] = useState(false);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
@@ -35,10 +44,44 @@ export default function CoffeeChatRoomPage() {
   useEffect(() => {
     if (!id) return;
     fetchCoffeeChat(id)
-      .then((c) => setChat(c))
+      .then((c) => {
+        setChat(c);
+        // 본인이 참여자면 입장 시각 기록 (no-show 추적용, fire-and-forget)
+        if (c?.status === 'accepted' && me && (c.hostId === me.id || c.requesterId === me.id)) {
+          recordCoffeeChatJoin(id).catch(() => {});
+        }
+        // 기존 후기 prefill
+        if (c && me) {
+          const existing = c.hostId === me.id ? c.hostFeedback : c.requesterFeedback;
+          if (existing) setFeedback(existing);
+        }
+      })
       .catch((e) => toast(e instanceof Error ? e.message : '불러오기 실패', 'error'))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, me]);
+
+  const saveFeedback = async () => {
+    if (!id) return;
+    setSavingFeedback(true);
+    try {
+      await leaveCoffeeChatFeedback(id, feedback.trim());
+      toast('후기 저장됨', 'success');
+    } catch (e: any) {
+      toast(e?.message || '후기 저장 실패', 'error');
+    } finally {
+      setSavingFeedback(false);
+    }
+  };
+
+  const exportIcs = async () => {
+    if (!id) return;
+    try {
+      await downloadCoffeeChatIcs(id);
+      toast('캘린더 파일이 다운로드됐어요 (Google Cal / Outlook 에서 열기)', 'success');
+    } catch (e: any) {
+      toast(e?.message || 'ICS export 실패', 'error');
+    }
+  };
 
   useEffect(() => {
     if (localVideoRef.current && localStream) localVideoRef.current.srcObject = localStream;
@@ -207,11 +250,45 @@ export default function CoffeeChatRoomPage() {
               완료 처리
             </button>
           )}
+          <button
+            onClick={exportIcs}
+            className="px-4 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+            title="Google Calendar / Outlook 등에 추가"
+          >
+            📅 캘린더 추가
+          </button>
+        </div>
+
+        {/* 후기 — accepted/completed 상태일 때 양쪽이 짧게 남길 수 있음 */}
+        <div className="mt-6 imp-card p-4">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+            ✍️ 짧은 후기 (선택, 500자)
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+            상대에게는 보이지 않는 본인 기록. 어떤 대화 나눴는지 / next-step 메모.
+          </p>
+          <textarea
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value.slice(0, 500))}
+            rows={3}
+            placeholder="예: 면접 준비 팁 들었음. 다음주까지 STAR 답변 정리하기로."
+            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          />
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-[11px] text-slate-400">{feedback.length}/500</span>
+            <button
+              onClick={saveFeedback}
+              disabled={savingFeedback}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {savingFeedback ? '저장 중...' : '후기 저장'}
+            </button>
+          </div>
         </div>
 
         <div className="mt-6 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 text-xs text-amber-800 dark:text-amber-300">
           ⓘ 음성/화상은 브라우저 간 직접 연결(P2P)로 진행됩니다. 서버는 연결 신호만 전달하며
-          영상/음성 데이터를 저장하지 않습니다. 일부 NAT 환경에서는 연결이 어려울 수 있어요.
+          영상/음성 데이터를 저장하지 않습니다. 일부 NAT 환경에서는 TURN relay 자동 fallback.
         </div>
       </main>
       <Footer />

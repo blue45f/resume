@@ -3,15 +3,19 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   Patch,
   Post,
   Query,
   Req,
+  Res,
   UnauthorizedException,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import { Public } from '../auth/auth.guard';
 import { CoffeeChatService } from './coffee-chat.service';
 
 @ApiTags('coffee-chat')
@@ -47,6 +51,47 @@ export class CoffeeChatController {
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.listMine(req.user.id, role, status);
+  }
+
+  @Get('topics')
+  @Public()
+  @ApiOperation({ summary: 'Topic templates 카탈로그 (Topmate 패턴, 7개 preset)' })
+  listTopics() {
+    return this.service.listTopics();
+  }
+
+  @Get('host-stats/:hostId')
+  @Public()
+  @ApiOperation({
+    summary: 'Host 응답률 / 평균 응답 시간 / no-show 통계 (Adplist 신뢰 패턴)',
+  })
+  hostStats(@Param('hostId') hostId: string) {
+    return this.service.getHostStats(hostId);
+  }
+
+  @Get(':id/ics')
+  @Header('Content-Type', 'text/calendar; charset=utf-8')
+  @ApiOperation({ summary: 'Google/Outlook 캘린더 ICS export — accepted 만 가능' })
+  async exportIcs(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    const ics = await this.service.generateIcs(id, req.user.id);
+    res.setHeader('Content-Disposition', `attachment; filename="coffee-chat-${id}.ics"`);
+    res.send(ics);
+  }
+
+  @Patch(':id/join')
+  @ApiOperation({ summary: 'WebRTC room 입장 — no-show 추적' })
+  recordJoin(@Param('id') id: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.recordJoin(id, req.user.id);
+  }
+
+  @Patch(':id/feedback')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @ApiOperation({ summary: '커피챗 후기 (host/requester 본인 측 필드만)' })
+  leaveFeedback(@Param('id') id: string, @Body('feedback') feedback: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.leaveFeedback(id, req.user.id, feedback || '');
   }
 
   @Get(':id')

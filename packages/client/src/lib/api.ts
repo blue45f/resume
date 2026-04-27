@@ -142,12 +142,12 @@ async function request<T>(url: string, options?: RequestInit, retries = 2): Prom
     if (err instanceof DOMException && err.name === 'AbortError') {
       const msg = '서버가 배포 중이거나 시작 중입니다. 30초 후 다시 시도해주세요.';
       toast(msg, 'error');
-      throw new Error(msg);
+      throw new Error(msg, { cause: err });
     }
     if (err instanceof TypeError) {
       const msg = '서버에 연결할 수 없습니다. 배포 중일 수 있으니 잠시 후 다시 시도해주세요.';
       toast(msg, 'error');
-      throw new Error(msg);
+      throw new Error(msg, { cause: err });
     }
     // Show user-facing error messages via toast
     if (err instanceof Error && err.message) {
@@ -797,7 +797,7 @@ export interface CoffeeChat {
   id: string;
   hostId: string;
   requesterId: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
+  status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled' | 'expired' | 'no_show';
   scheduledAt: string | null;
   durationMin: number;
   topic: string;
@@ -805,6 +805,10 @@ export interface CoffeeChat {
   modality: 'voice' | 'video' | 'chat';
   roomId: string | null;
   hostNote: string;
+  hostFeedback: string;
+  requesterFeedback: string;
+  hostJoined: boolean;
+  requesterJoined: boolean;
   createdAt: string;
   updatedAt: string;
   host: { id: string; name: string; username: string; avatar: string };
@@ -843,6 +847,55 @@ export const cancelCoffeeChat = (id: string) =>
 
 export const completeCoffeeChat = (id: string) =>
   request<CoffeeChat>(`${BASE}/coffee-chats/${id}/complete`, { method: 'PATCH' });
+
+export const recordCoffeeChatJoin = (id: string) =>
+  request<CoffeeChat>(`${BASE}/coffee-chats/${id}/join`, { method: 'PATCH' });
+
+export const leaveCoffeeChatFeedback = (id: string, feedback: string) =>
+  request<CoffeeChat>(`${BASE}/coffee-chats/${id}/feedback`, {
+    method: 'PATCH',
+    body: JSON.stringify({ feedback }),
+  });
+
+export const downloadCoffeeChatIcs = (id: string) => {
+  const token = localStorage.getItem('token') || '';
+  const url = `${BASE}/coffee-chats/${id}/ics`;
+  // 새 탭에 token 못 보내므로 fetch + blob 다운로드
+  return fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    .then((r) => {
+      if (!r.ok) throw new Error('ICS export 실패');
+      return r.blob();
+    })
+    .then((blob) => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `coffee-chat-${id}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+};
+
+export interface CoffeeChatHostStats {
+  total: number;
+  responded: number;
+  completed: number;
+  noShow: number;
+  responseRate: number;
+  avgResponseHours: number | null;
+}
+
+export const fetchCoffeeChatHostStats = (hostId: string) =>
+  request<CoffeeChatHostStats>(`${BASE}/coffee-chats/host-stats/${hostId}`);
+
+export interface CoffeeChatTopic {
+  key: string;
+  label: string;
+  icon: string;
+}
+export const fetchCoffeeChatTopics = () =>
+  request<CoffeeChatTopic[]>(`${BASE}/coffee-chats/topics`);
 
 export interface WebrtcSignal {
   id: string;

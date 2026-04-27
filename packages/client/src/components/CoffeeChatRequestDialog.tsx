@@ -20,6 +20,17 @@ const MODALITIES: { value: 'video' | 'voice' | 'chat'; label: string; icon: stri
 
 const DURATIONS = [15, 30, 60];
 
+/** 자주 쓰는 주제 7개 (server COFFEE_CHAT_TOPICS 미러) */
+const TOPIC_PRESETS = [
+  { key: 'resume_review', label: '이력서 리뷰', icon: '📄' },
+  { key: 'mock_interview', label: '모의 면접', icon: '🎤' },
+  { key: 'career_advice', label: '커리어 상담', icon: '🧭' },
+  { key: 'culture_fit', label: '컬처핏', icon: '🏢' },
+  { key: 'role_intro', label: '직무 소개', icon: '💼' },
+  { key: 'salary_nego', label: '연봉 협의', icon: '💰' },
+  { key: 'general', label: '자유 주제', icon: '☕' },
+];
+
 export default function CoffeeChatRequestDialog({
   open,
   onOpenChange,
@@ -75,12 +86,32 @@ export default function CoffeeChatRequestDialog({
           <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
             주제 (선택)
           </label>
+          {/* preset chips — 빠른 선택 */}
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {TOPIC_PRESETS.map((p) => {
+              const active = topic === p.label;
+              return (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => setTopic(active ? '' : p.label)}
+                  className={`text-xs px-2 py-1 rounded-full border transition-colors ${
+                    active
+                      ? 'bg-blue-600 border-blue-600 text-white'
+                      : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400'
+                  }`}
+                >
+                  {p.icon} {p.label}
+                </button>
+              );
+            })}
+          </div>
           <input
             type="text"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             maxLength={100}
-            placeholder="예: 백엔드 신입 면접 준비"
+            placeholder="자유롭게 입력 또는 위 chips 선택"
             className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>

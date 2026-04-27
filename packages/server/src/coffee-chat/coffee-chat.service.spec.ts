@@ -18,6 +18,8 @@ describe('CoffeeChatService', () => {
         findUnique: jest.fn(),
         findMany: jest.fn(),
         update: jest.fn(),
+        updateMany: jest.fn().mockResolvedValue({ count: 0 }),
+        count: jest.fn().mockResolvedValue(0),
       },
       webrtcSignal: {
         create: jest.fn(),
@@ -367,6 +369,167 @@ describe('CoffeeChatService', () => {
     it('Prisma 에러 → throw 안 함 (cron 안정성)', async () => {
       mockPrisma.coffeeChat.findMany.mockRejectedValueOnce(new Error('DB fail'));
       await expect(service.sendReminders()).resolves.toBeUndefined();
+    });
+  });
+
+  describe('listTopics', () => {
+    it('7개 preset topic 반환 (resume_review/mock_interview/.../general)', () => {
+      const r = service.listTopics();
+      expect(r.length).toBeGreaterThanOrEqual(5);
+      const keys = r.map((t) => t.key);
+      expect(keys).toContain('resume_review');
+      expect(keys).toContain('mock_interview');
+      expect(keys).toContain('general');
+    });
+  });
+
+  describe('expireStalePending (cron)', () => {
+    it('7일 무응답 pending → expired + requester 알림', async () => {
+      mockPrisma.coffeeChat.findMany.mockResolvedValueOnce([
+        { id: 'c1', hostId: 'h1', requesterId: 'r1' },
+        { id: 'c2', hostId: 'h2', requesterId: 'r2' },
+      ]);
+      mockNotif.create.mockClear();
+      await service.expireStalePending();
+      expect(mockPrisma.coffeeChat.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ['c1', 'c2'] } },
+        data: { status: 'expired' },
+      });
+      expect(mockNotif.create).toHaveBeenCalledTimes(2);
+    });
+
+    it('stale 없으면 update / notify 호출 X', async () => {
+      mockPrisma.coffeeChat.findMany.mockResolvedValueOnce([]);
+      mockNotif.create.mockClear();
+      mockPrisma.coffeeChat.updateMany.mockClear();
+      await service.expireStalePending();
+      expect(mockPrisma.coffeeChat.updateMany).not.toHaveBeenCalled();
+      expect(mockNotif.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Rate-limit (30일 3회)', () => {
+    it('30일 내 3회 도달 시 BadRequest', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'h1', name: 'H' });
+      mockPrisma.coffeeChat.findFirst.mockResolvedValue(null);
+      mockPrisma.coffeeChat.count.mockResolvedValueOnce(3);
+      await expect(service.create('me', { hostId: 'h1', message: 'x' })).rejects.toThrow(
+        /30일.*3회/,
+      );
+    });
+
+    it('count < 3 이면 정상 생성', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'h1', name: 'H' });
+      mockPrisma.coffeeChat.findFirst.mockResolvedValue(null);
+      mockPrisma.coffeeChat.count.mockResolvedValueOnce(2);
+      mockPrisma.coffeeChat.create.mockResolvedValue({ id: 'new' });
+      const r = await service.create('me', { hostId: 'h1', message: 'x' });
+      expect(r.id).toBe('new');
+    });
+  });
+
+  describe('leaveFeedback', () => {
+    it('host 가 hostFeedback 만 update', async () => {
+      mockPrisma.coffeeChat.findUnique.mockResolvedValueOnce({
+        hostId: 'h1',
+        requesterId: 'r1',
+        status: 'completed',
+      });
+      mockPrisma.coffeeChat.update.mockResolvedValueOnce({ id: 'c1' });
+      await service.leaveFeedback('c1', 'h1', '잘 만났어요');
+      expect(mockPrisma.coffeeChat.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ hostFeedback: '잘 만났어요' }),
+        }),
+      );
+    });
+
+    it('참여자 외 → Forbidden', async () => {
+      mockPrisma.coffeeChat.findUnique.mockResolvedValueOnce({
+        hostId: 'h1',
+        requesterId: 'r1',
+        status: 'completed',
+      });
+      await expect(service.leaveFeedback('c1', 'other', 'x')).rejects.toThrow();
+    });
+
+    it('pending 상태에선 BadRequest', async () => {
+      mockPrisma.coffeeChat.findUnique.mockResolvedValueOnce({
+        hostId: 'h1',
+        requesterId: 'r1',
+        status: 'pending',
+      });
+      await expect(service.leaveFeedback('c1', 'h1', 'x')).rejects.toThrow();
+    });
+  });
+
+  describe('getHostStats', () => {
+    it('총/응답/완료/no-show/응답률 집계', async () => {
+      mockPrisma.coffeeChat.findMany.mockResolvedValueOnce([
+        // 5 pending — 미응답
+        ...Array.from({ length: 5 }, () => ({
+          status: 'pending',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          hostJoined: false,
+        })),
+        // 3 accepted (응답함, 1 no-show)
+        ...Array.from({ length: 3 }, (_, i) => ({
+          status: 'accepted',
+          createdAt: new Date(Date.now() - 5 * 3600 * 1000),
+          updatedAt: new Date(),
+          hostJoined: i > 0, // 첫 1개 no-show
+        })),
+        // 2 completed
+        ...Array.from({ length: 2 }, () => ({
+          status: 'completed',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          hostJoined: true,
+        })),
+      ]);
+      const r = await service.getHostStats('h1');
+      expect(r.total).toBe(10);
+      expect(r.responded).toBe(3); // accepted only (completed 는 포함 X)
+      expect(r.completed).toBe(2);
+      expect(r.noShow).toBe(1);
+      expect(r.responseRate).toBe(30);
+    });
+  });
+
+  describe('generateIcs', () => {
+    const baseChat = {
+      id: 'c1',
+      hostId: 'h1',
+      requesterId: 'r1',
+      status: 'accepted',
+      scheduledAt: new Date('2026-05-01T10:00:00Z'),
+      durationMin: 30,
+      topic: 'mock_interview',
+      modality: 'video',
+      message: 'test',
+      host: { name: '코치', email: 'coach@test.com' },
+      requester: { name: '구직자', email: 'seeker@test.com' },
+    };
+
+    it('accepted → ICS 문자열 반환 (BEGIN:VCALENDAR + UID + DTSTART)', async () => {
+      mockPrisma.coffeeChat.findUnique.mockResolvedValueOnce(baseChat);
+      const ics = await service.generateIcs('c1', 'h1');
+      expect(ics).toContain('BEGIN:VCALENDAR');
+      expect(ics).toContain('UID:coffee-chat-c1@');
+      expect(ics).toContain('DTSTART:20260501T100000Z');
+      expect(ics).toContain('SUMMARY');
+      expect(ics).toContain('VALARM'); // 15분 전 알람
+    });
+
+    it('pending 상태 → BadRequest', async () => {
+      mockPrisma.coffeeChat.findUnique.mockResolvedValueOnce({ ...baseChat, status: 'pending' });
+      await expect(service.generateIcs('c1', 'h1')).rejects.toThrow();
+    });
+
+    it('참여자 외 → Forbidden', async () => {
+      mockPrisma.coffeeChat.findUnique.mockResolvedValueOnce(baseChat);
+      await expect(service.generateIcs('c1', 'stranger')).rejects.toThrow();
     });
   });
 });
