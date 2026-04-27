@@ -122,7 +122,7 @@ const DEFAULT_FEATURES = [
   {
     emoji: '☕',
     title: '커피챗 + WebRTC 통화',
-    desc: '코치/시니어와 1:1 만남 신청 → 브라우저 P2P 음성·화상 통화 (서버 거치지 않음).',
+    desc: '채용담당자가 관심 후보에게 가벼운 1:1 만남 요청 → 정식 면접 전 컬처핏 점검. 브라우저 P2P 음성·화상 통화 (서버 거치지 않음, TURN relay 자동 fallback).',
   },
   {
     emoji: '🎤',
@@ -148,6 +148,21 @@ const DEFAULT_FEATURES = [
     emoji: '📎',
     title: '첨부파일 + 자기소개서',
     desc: 'PDF/이미지/문서 첨부. 자기소개서 별도 관리 + 채용공고 URL 기반 prefill.',
+  },
+  {
+    emoji: '📥',
+    title: '회사 공고 1-click 지원 + stage 추적',
+    desc: '내부 공고에 즉시 지원 → 회사가 stage (검토/연락/면접/채용) 관리, 변경 시 자동 알림. 지원 페이지에서 진행 현황 한눈에.',
+  },
+  {
+    emoji: '📈',
+    title: '면접 답변 점수 시간별 추세',
+    desc: 'AI 분석 결과 누적 → 일별/주별 mini chart, 같은 질문 재답변 시 점수 변화 자동 표시. bar 클릭 시 답변 detail.',
+  },
+  {
+    emoji: '🏢',
+    title: '채용담당자 — funnel + 추천 후보',
+    desc: 'pipeline 전환율 (연락/면접/채용) + 평균 응답 시간 + 활성 공고 skills 매칭 추천 후보 + applicant detail drawer.',
   },
   {
     emoji: '🔐',

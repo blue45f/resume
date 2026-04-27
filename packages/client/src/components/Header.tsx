@@ -422,6 +422,12 @@ export default function Header() {
                       >
                         받은 스카우트
                       </Link>
+                      <Link
+                        to={ROUTES.social.coffeeChats}
+                        className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
+                        ☕ 커피챗
+                      </Link>
                       <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                       <p
                         className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500"
@@ -490,6 +496,12 @@ export default function Header() {
                         className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         코치 찾기
+                      </Link>
+                      <Link
+                        to={ROUTES.social.coffeeChats}
+                        className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
+                        ☕ 커피챗
                       </Link>
                       <Link
                         to={ROUTES.interview.prep}
@@ -1018,6 +1030,13 @@ export default function Header() {
                     className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     모의 면접 (카메라)
+                  </Link>
+                  <Link
+                    to={ROUTES.social.coffeeChats}
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                  >
+                    ☕ 커피챗
                   </Link>
                   <Link
                     to={ROUTES.coaching.coaches}

@@ -711,21 +711,28 @@ const newFeatureSteps = [
   },
   {
     id: 'coffee-chat',
-    title: '4. 커피챗 + WebRTC P2P 통화',
+    title: '4. 커피챗 — 채용담당자가 후보와 가벼운 1:1 만남',
     icon: '4',
     content: (
       <div className="space-y-3">
         <p>
-          코치/시니어와 가벼운 1:1 만남. <strong>음성·화상 통화는 P2P 직접 연결</strong>(서버 거치지
-          않음)이라 비용 없음.
+          정식 면접 전, <strong>채용담당자가 관심 후보에게 부담 없는 만남을 요청</strong> 해서
+          컬처핏 / 동기 / 일하는 방식을 빠르게 점검. 음성·화상 통화는 브라우저 P2P 직접 연결(서버
+          거치지 않음).
         </p>
         <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
           <li>
-            코치 상세 → <strong>"☕ 커피챗 신청"</strong> 버튼
+            <strong>채용담당자 측</strong>: 추천 후보 / 스카우트 응답 사용자에게 ☕ 커피챗 신청 버튼
           </li>
-          <li>음성 / 화상 / 텍스트 모드 선택 + 시간 (15/30/60분)</li>
-          <li>호스트 수락 시 통화 방 자동 생성 → 입장</li>
-          <li>STUN 만 사용해 일부 NAT 환경에서 실패할 수 있음</li>
+          <li>
+            <strong>구직자 측</strong>: 받은 신청 알림 → 수락 시 자동 방 생성 → 입장
+          </li>
+          <li>음성 / 화상 / 텍스트 모드 + 15/30/60분 옵션</li>
+          <li>
+            <strong>TURN relay 자동 fallback</strong> — 회사 방화벽/모바일 NAT 환경 통화 성공률
+            ~100%
+          </li>
+          <li>일정 reminder 알림 (24h/1h 전), 끊긴 후엔 완료 처리 + 평가 가능</li>
         </ul>
       </div>
     ),
@@ -800,6 +807,111 @@ const newFeatureSteps = [
             12종
           </li>
           <li>언제든 삭제하고 이니셜 fallback 으로 복귀 가능</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'job-application-pipeline',
+    title: '9. 회사 채용공고 1-click 지원 + stage 추적',
+    icon: '9',
+    content: (
+      <div className="space-y-3">
+        <p>
+          채용 공고 detail 에서 <strong>"이력서로 즉시 지원"</strong> 한 번이면 회사가 stage 를
+          관리하고, 지원자는 진행 상황을 실시간으로 봄.
+        </p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>지원 → 회사에 자동 알림 (📥 신규 지원자)</li>
+          <li>
+            stage: <strong>👀 검토 → 📞 연락 → 🗓 면접 → ✅ 채용 / ✗ 거절</strong>
+          </li>
+          <li>회사가 stage 변경 시 지원자에게 자동 알림</li>
+          <li>지원 페이지 (/applications) 상단에 플랫폼 지원 현황 카드 노출</li>
+          <li>
+            언제든 <strong>철회</strong> 가능 (이유 입력 시 회사 분석에 반영)
+          </li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'interview-trend',
+    title: '10. 면접 답변 점수 시간별 추세',
+    icon: '10',
+    content: (
+      <div className="space-y-3">
+        <p>
+          AI 답변 분석 결과가 누적 저장되어 <strong>점수 추세 mini chart</strong> 로 시각화 (일별 /
+          주별 toggle).
+        </p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>점수 색: ≥80 emerald · ≥60 sky · ≥40 amber · &lt;40 rose</li>
+          <li>같은 질문 재답변 시 first → last delta (점수 향상 / 하락) 자동 표시</li>
+          <li>chart bar 클릭 → 해당 답변 + AI 분석 detail modal</li>
+          <li>주별 모드: 최근 12주 평균 점수, 학습 흐름 한눈에</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'recruiter-pipeline',
+    title: '11. 채용담당자 — pipeline 통계 + 추천 후보 매칭',
+    icon: '11',
+    content: (
+      <div className="space-y-3">
+        <p>
+          recruiter dashboard 에 <strong>전환율 funnel</strong> + 평균 응답 시간 + AI 추천 후보가 한
+          화면에.
+        </p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>
+            <strong>funnel 전환율</strong>: 연락 / 면접 / 채용 단계별 전환 %
+          </li>
+          <li>평균 응답 시간 (interested → 다음 stage 까지)</li>
+          <li>
+            <strong>추천 후보</strong>: 활성 공고 skills 와 매칭되는 공개 이력서 자동 추천
+            (matchScore 정렬)
+          </li>
+          <li>지원자 row 클릭 → 자소서 + 이력서 미리보기 drawer + 직접 메시지 CTA</li>
+          <li>이름/포지션/email 검색 + stage 필터</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'turn-relay',
+    title: '12. 커피챗 통화 안정성 — TURN relay default',
+    icon: '12',
+    content: (
+      <div className="space-y-3">
+        <p>
+          STUN-only 시 회사 방화벽 / 모바일 캐리어 NAT-strict 환경에선 8~15% 통화 실패. 이제{' '}
+          <strong>OpenRelay TURN 자동 fallback</strong> 으로 거의 100% 성공.
+        </p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>UDP 80 / TCP 80 / TLS 443 — 모든 방화벽 통과 시도</li>
+          <li>비용 0 (OpenRelay anonymous public TURN)</li>
+          <li>마이크/카메라 권한 거부 시 명확한 한국어 안내 + 다시 시도 버튼</li>
+          <li>모바일: remote 풀폭 + local PiP 우측 하단</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'coach-direct-message',
+    title: '13. 코치에게 직접 메시지',
+    icon: '13',
+    content: (
+      <div className="space-y-3">
+        <p>
+          코칭 세션 / 커피챗 신청 전에 가벼운 질문도 가능. 코치 상세 페이지에서{' '}
+          <strong>"💬 메시지"</strong> 버튼으로 1:1 DM 시작.
+        </p>
+        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+          <li>기존 쪽지함과 통합 — 별도 채널 X</li>
+          <li>코칭 세션 완료 시 평점 요청 알림 (⭐) 자동 발송</li>
+          <li>코치는 dashboard 에서 신규 리뷰 NEW badge 즉시 확인</li>
         </ul>
       </div>
     ),

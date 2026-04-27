@@ -10,6 +10,7 @@ import { API_URL } from '@/lib/config';
 import { t } from '@/lib/i18n';
 import SendMessageButton from '@/components/SendMessageButton';
 import ApplicantDetailDrawer from '@/components/ApplicantDetailDrawer';
+import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog';
 
 const PIPELINE_STAGES = [
   {
@@ -143,6 +144,9 @@ export default function RecruiterDashboardPage() {
   const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
   const [filterQuery, setFilterQuery] = useState('');
   const [filterStage, setFilterStage] = useState<string>('all');
+  const [coffeeChatTarget, setCoffeeChatTarget] = useState<{ id: string; name: string } | null>(
+    null,
+  );
 
   const stageMutation = useMutation({
     mutationFn: async ({ candidateId, newStage }: { candidateId: string; newStage: string }) => {
@@ -655,7 +659,7 @@ export default function RecruiterDashboardPage() {
                           ))}
                         </div>
                       )}
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         {r.resumeId && (
                           <Link
                             to={ROUTES.resume.preview(r.resumeId)}
@@ -671,6 +675,15 @@ export default function RecruiterDashboardPage() {
                           className="text-xs px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 transition-colors"
                         >
                           스카우트
+                        </button>
+                        <button
+                          onClick={() =>
+                            setCoffeeChatTarget({ id: r.userId || r.id, name: r.name || '후보' })
+                          }
+                          className="text-xs px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+                          title="가벼운 1:1 만남 요청"
+                        >
+                          ☕ 커피챗
                         </button>
                       </div>
                     </div>
@@ -758,6 +771,14 @@ export default function RecruiterDashboardPage() {
         applicant={selectedApplicant}
         onClose={() => setSelectedApplicant(null)}
       />
+      {coffeeChatTarget && (
+        <CoffeeChatRequestDialog
+          open={!!coffeeChatTarget}
+          onOpenChange={(o) => !o && setCoffeeChatTarget(null)}
+          hostId={coffeeChatTarget.id}
+          hostName={coffeeChatTarget.name}
+        />
+      )}
       <Footer />
     </>
   );

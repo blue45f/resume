@@ -28,7 +28,37 @@ const SITEMAP = [
     links: [
       { to: '/cover-letter', label: '자소서 생성', desc: 'AI 자기소개서 작성' },
       { to: '/my-cover-letters', label: '내 자소서', desc: '작성한 자소서 관리', auth: true },
-      { to: '/interview-prep', label: '면접 준비', desc: 'AI 모의 면접, 질문 생성' },
+      {
+        to: '/interview-prep',
+        label: '면접 준비',
+        desc: 'AI 모의 면접 + 답변 깊이 분석 + 시간별 점수 추세',
+      },
+    ],
+  },
+  {
+    title: '코칭',
+    icon: '🎯',
+    color: 'from-amber-500 to-orange-500',
+    links: [
+      { to: '/coaches', label: '코치 찾기', desc: '전문 분야별 이력서 코치 검색 + 매칭' },
+      {
+        to: '/coaching/sessions',
+        label: '내 코칭 세션',
+        desc: '예약/확정/완료 + 평점/리뷰',
+        auth: true,
+      },
+      {
+        to: '/coach/dashboard',
+        label: '코치 대시보드',
+        desc: '코치 전용 — 세션 관리 + 수익 + 받은 리뷰',
+        auth: true,
+      },
+      {
+        to: '/coach/profile',
+        label: '코치 프로필',
+        desc: '전문 분야 / 시간당 비용 등록',
+        auth: true,
+      },
     ],
   },
   {
@@ -36,11 +66,11 @@ const SITEMAP = [
     icon: '💼',
     color: 'from-emerald-500 to-teal-500',
     links: [
-      { to: '/jobs', label: '채용 공고', desc: '채용 정보 검색, 매칭률 확인' },
+      { to: '/jobs', label: '채용 공고', desc: '채용 정보 검색, 매칭률 확인, 1-click 지원' },
       {
         to: '/applications',
         label: '지원 관리',
-        desc: '칸반 보드, 타임라인, 면접 후기',
+        desc: '플랫폼 공고 stage 추적 + 외부 공고 칸반 + 면접 후기',
         auth: true,
       },
     ],
@@ -48,11 +78,16 @@ const SITEMAP = [
   {
     title: '소셜 / 네트워킹',
     icon: '🤝',
-    color: 'from-amber-500 to-orange-500',
+    color: 'from-sky-500 to-blue-500',
     links: [
-      { to: '/messages', label: '쪽지', desc: '회원간 1:1 메시지', auth: true },
+      { to: '/messages', label: '쪽지', desc: '회원간 1:1 메시지 + 코치 직접 연락', auth: true },
       { to: '/social/follows', label: '팔로우 목록', desc: '팔로워/팔로잉 관리', auth: true },
-      { to: '/notifications', label: '알림', desc: '댓글, 스카우트, 팔로우 알림', auth: true },
+      {
+        to: '/notifications',
+        label: '알림',
+        desc: '댓글/스카우트/팔로우/커피챗/지원 stage/코칭 리뷰 등',
+        auth: true,
+      },
       { to: '/feedback', label: '피드백 게시판', desc: '버그 신고, 기능 제안, 의견' },
     ],
   },
@@ -61,9 +96,20 @@ const SITEMAP = [
     icon: '🏢',
     color: 'from-cyan-500 to-blue-500',
     links: [
-      { to: '/recruiter', label: '채용 대시보드', desc: '파이프라인, 통계, 추천 후보', auth: true },
-      { to: '/scouts', label: '스카우트', desc: '인재 스카우트 메시지', auth: true },
-      { to: '/jobs/new', label: '채용공고 등록', desc: '새 채용 공고 작성' },
+      {
+        to: '/recruiter',
+        label: '채용 대시보드',
+        desc: '파이프라인 + 전환율 통계 + 평균 응답시간 + 추천 후보 + applicant detail drawer',
+        auth: true,
+      },
+      { to: '/scouts', label: '스카우트', desc: '관심 후보에게 1:1 스카우트 메시지', auth: true },
+      {
+        to: '/coffee-chats',
+        label: '☕ 커피챗',
+        desc: '관심 후보에게 가벼운 1:1 만남 요청 — 정식 면접 전 컬처핏 점검 (구직자도 받은 신청 확인)',
+        auth: true,
+      },
+      { to: '/jobs/new', label: '채용공고 등록', desc: 'URL 자동 파싱 + 바로 prefill' },
     ],
   },
   {

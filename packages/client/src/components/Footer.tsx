@@ -32,6 +32,15 @@ export default function Footer() {
 
           {/* Essential links only — link-underline-reveal 으로 hover 시 좌→우 underline */}
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+            <Link to={ROUTES.about} className="link-underline-reveal transition-colors">
+              소개
+            </Link>
+            <Link to={ROUTES.tutorial} className="link-underline-reveal transition-colors">
+              가이드
+            </Link>
+            <Link to={ROUTES.sitemap} className="link-underline-reveal transition-colors">
+              사이트맵
+            </Link>
             <Link to={ROUTES.terms} className="link-underline-reveal transition-colors">
               {tx('footer.terms')}
             </Link>
