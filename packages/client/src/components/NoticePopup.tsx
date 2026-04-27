@@ -123,7 +123,7 @@ export default function NoticePopup() {
         <RadixDialog.Overlay className="fixed inset-0 z-[9998] bg-black/50 dark:bg-black/70 animate-fade-in" />
         <RadixDialog.Content
           aria-describedby={undefined}
-          className={`fixed z-[9999] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl border ${cfg.border} animate-scale-in max-h-[90dvh] overflow-y-auto focus:outline-none`}
+          className={`scroll-inner fixed z-[9999] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl border ${cfg.border} animate-scale-in max-h-[90dvh] overflow-y-auto focus:outline-none`}
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-700">
             <div className="flex items-center gap-2">

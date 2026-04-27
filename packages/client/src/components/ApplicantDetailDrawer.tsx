@@ -75,7 +75,7 @@ export default function ApplicantDetailDrawer({ applicant, onClose }: Props) {
         <RadixDialog.Overlay className="fixed inset-0 z-[90] bg-black/30 animate-fade-in" />
         <RadixDialog.Content
           aria-label="지원자 상세"
-          className="fixed z-[91] top-0 right-0 w-full max-w-lg h-full bg-white dark:bg-neutral-800 shadow-2xl overflow-y-auto focus:outline-none animate-slide-in-right"
+          className="scroll-inner fixed z-[91] top-0 right-0 w-full max-w-lg h-full bg-white dark:bg-neutral-800 shadow-2xl overflow-y-auto focus:outline-none animate-slide-in-right"
         >
           <div className="sticky top-0 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-5 py-3 flex items-center justify-between z-10">
             <div className="flex items-center gap-3 min-w-0">

@@ -1373,29 +1373,154 @@ html {
   }
 }
 
-/* Better scrollbar */
+/* ───────────────────────────────────────────────────────────
+ * Scrollbar — Impeccable inner-scroll system
+ *
+ * 디자인 원칙:
+ *   1. 평소엔 미세하게 (track 투명, thumb 6px), hover 시 명확하게 (10px + 진한 색)
+ *   2. Pill-shape (fully round caps) — 미니멀 모던
+ *   3. Sapphire accent on active — brand color 일관성
+ *   4. Firefox 도 동일하게 (scrollbar-color + scrollbar-width)
+ *   5. dark mode contrast 충분히 (slate-600 ~ slate-400)
+ * ─────────────────────────────────────────────────────────── */
+
+/* Global default — page level */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
+  background: transparent;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: rgb(203 213 225 / 0.55); /* slate-300/55 — 평소엔 흐릿 */
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.15s ease;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgb(100 116 139 / 0.85); /* slate-500 — 진해짐 */
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:active {
+  background: rgb(2 132 199 / 0.9); /* sky-600 — sapphire accent */
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: rgb(71 85 105 / 0.55); /* slate-600/55 */
+  background-clip: padding-box;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: rgb(148 163 184 / 0.75); /* slate-400 */
+  background-clip: padding-box;
+}
+.dark ::-webkit-scrollbar-thumb:active {
+  background: rgb(56 189 248 / 0.9); /* sky-400 */
+  background-clip: padding-box;
 }
 
-/* Hide scrollbar for theme selector */
+/* Firefox — width: thin (~6px) + 동일 색 토큰 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225 / 0.55) transparent;
+}
+.dark * {
+  scrollbar-color: rgb(71 85 105 / 0.55) transparent;
+}
+
+/* ───────────────────────────────────────────────────────────
+ * .scroll-inner — Dialog / Drawer / Card 내부 scroll 영역 전용
+ *
+ * 차이점:
+ *   - 더 얇음 (6px) — 작은 영역에 적합
+ *   - 컨테이너 hover 시 thumb 더 또렷
+ *   - track 도 미세하게 visible (scroll 가능 신호)
+ * ─────────────────────────────────────────────────────────── */
+.scroll-inner {
+  scrollbar-gutter: stable;
+}
+.scroll-inner::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-inner::-webkit-scrollbar-track {
+  background: rgb(241 245 249 / 0.5); /* slate-100/50 — 미세하게 visible */
+  border-radius: 9999px;
+  margin: 4px 0;
+}
+.scroll-inner::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 0.4); /* slate-400/40 */
+  border-radius: 9999px;
+  border: none;
+  transition:
+    background-color 0.2s ease,
+    width 0.2s ease;
+}
+.scroll-inner:hover::-webkit-scrollbar-thumb {
+  background: rgb(100 116 139 / 0.7); /* slate-500/70 */
+}
+.scroll-inner::-webkit-scrollbar-thumb:hover {
+  background: rgb(2 132 199 / 0.85); /* sky-600 */
+}
+.scroll-inner::-webkit-scrollbar-thumb:active {
+  background: rgb(2 132 199); /* sky-600 solid */
+}
+.dark .scroll-inner::-webkit-scrollbar-track {
+  background: rgb(30 41 59 / 0.5); /* slate-800/50 */
+}
+.dark .scroll-inner::-webkit-scrollbar-thumb {
+  background: rgb(71 85 105 / 0.6); /* slate-600/60 */
+}
+.dark .scroll-inner:hover::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 0.8); /* slate-400/80 */
+}
+.dark .scroll-inner::-webkit-scrollbar-thumb:hover {
+  background: rgb(56 189 248 / 0.9); /* sky-400 */
+}
+
+/* Firefox 변이 */
+.scroll-inner {
+  scrollbar-color: rgb(148 163 184 / 0.4) rgb(241 245 249 / 0.5);
+}
+.dark .scroll-inner {
+  scrollbar-color: rgb(71 85 105 / 0.6) rgb(30 41 59 / 0.5);
+}
+
+/* ───────────────────────────────────────────────────────────
+ * .scroll-fade — 위/아래 끝 콘텐츠 fade out
+ *   잘림 느낌 제거 + 'scroll 더 가능' 시각적 힌트
+ * ─────────────────────────────────────────────────────────── */
+.scroll-fade {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+}
+.scroll-fade-top {
+  mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 100%);
+}
+.scroll-fade-bottom {
+  mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 16px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 16px), transparent 100%);
+}
+
+/* Hide scrollbar for theme selector / horizontal pill row */
 .scrollbar-none,
 .no-scrollbar {
   -ms-overflow-style: none;

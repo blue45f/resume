@@ -183,7 +183,7 @@ export default function ShareResumeWithUserDialog({
                   className="w-full px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 {showUserSuggestions && userSuggestions.length > 0 && (
-                  <ul className="absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg divide-y divide-slate-100 dark:divide-slate-700/60">
+                  <ul className="scroll-inner absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg divide-y divide-slate-100 dark:divide-slate-700/60">
                     {userSuggestions.map((u) => (
                       <li
                         key={u.id}
@@ -235,7 +235,7 @@ export default function ShareResumeWithUserDialog({
               </p>
             </div>
           ) : (
-            <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-700/60">
+            <div className="scroll-inner max-h-48 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-700/60">
               {resumes.map((r) => (
                 <label
                   key={r.id}

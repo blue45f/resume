@@ -290,7 +290,7 @@ export default function CommandPalette() {
           </div>
 
           {/* 액션 리스트 */}
-          <div ref={listRef} className="max-h-[60dvh] overflow-y-auto p-2">
+          <div ref={listRef} className="scroll-inner max-h-[60dvh] overflow-y-auto p-2">
             {filtered.length === 0 ? (
               <div className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
                 일치하는 액션이 없습니다

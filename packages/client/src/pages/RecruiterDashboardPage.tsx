@@ -397,7 +397,7 @@ export default function RecruiterDashboardPage() {
                           {stCandidates.length}
                         </span>
                       </div>
-                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                      <div className="scroll-inner space-y-2 max-h-48 overflow-y-auto">
                         {stCandidates.length === 0 ? (
                           <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-3">
                             비어 있음

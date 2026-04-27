@@ -238,7 +238,7 @@ export default function InterviewScoreHistory() {
           <RadixDialog.Overlay className="fixed inset-0 z-[100] bg-black/40 animate-fade-in" />
           <RadixDialog.Content
             aria-label="면접 답변 상세"
-            className="fixed z-[101] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-2xl max-h-[90dvh] overflow-y-auto bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl p-6 focus:outline-none"
+            className="scroll-inner fixed z-[101] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-2xl max-h-[90dvh] overflow-y-auto bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl p-6 focus:outline-none"
           >
             {detail && (
               <div className="space-y-4">

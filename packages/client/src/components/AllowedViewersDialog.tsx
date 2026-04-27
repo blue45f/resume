@@ -204,7 +204,7 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
               {showSuggestions && suggestions.length > 0 && (
                 <ul
                   role="listbox"
-                  className="absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg divide-y divide-slate-100 dark:divide-slate-700/60"
+                  className="scroll-inner absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg divide-y divide-slate-100 dark:divide-slate-700/60"
                 >
                   {suggestions.map((u, idx) => (
                     <li

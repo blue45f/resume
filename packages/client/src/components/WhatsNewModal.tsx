@@ -148,7 +148,7 @@ export default function WhatsNewModal() {
             </div>
           </div>
 
-          <div className="px-6 py-4 overflow-y-auto space-y-3">
+          <div className="scroll-inner px-6 py-4 overflow-y-auto space-y-3">
             {data.features.map((f, i) => (
               <div
                 key={i}

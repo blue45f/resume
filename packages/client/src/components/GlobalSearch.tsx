@@ -223,7 +223,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
             </kbd>
           </div>
 
-          <div className="max-h-[50dvh] overflow-y-auto">
+          <div className="scroll-inner max-h-[50dvh] overflow-y-auto">
             {query.trim().length >= 2 && results.length > 0 ? (
               <div className="p-2">
                 {results.map((r, i) => {
