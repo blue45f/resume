@@ -49,6 +49,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       body.path = request.url;
     }
 
+    // 이미 헤더 전송됐으면 set 시도 X (ERR_HTTP_HEADERS_SENT 예방).
+    // stream/SSE 응답 도중 에러가 발생한 케이스 — express 가 자동으로 끊음.
+    if (response.headersSent) {
+      this.logger.warn(`Headers already sent for ${request.url} — skip filter response`);
+      return;
+    }
+
     response.status(status).json(body);
   }
 }

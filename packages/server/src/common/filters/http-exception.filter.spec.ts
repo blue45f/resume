@@ -132,4 +132,20 @@ describe('GlobalExceptionFilter', () => {
     expect(body).toHaveProperty('message');
     expect(body).toHaveProperty('timestamp');
   });
+
+  it('headersSent === true 면 status/json 호출 안 함 (ERR_HTTP_HEADERS_SENT 방지)', () => {
+    const headersSentMock = jest.fn();
+    const sentJsonMock = jest.fn();
+    const sentStatusMock = jest.fn().mockReturnValue({ json: sentJsonMock });
+    const hostWithSentHeaders: any = {
+      switchToHttp: () => ({
+        getResponse: () => ({ status: sentStatusMock, headersSent: true }),
+        getRequest: () => ({ url: '/api/stream' }),
+      }),
+    };
+    headersSentMock(); // suppress unused-warning, just shape variable name visible
+    filter.catch(new Error('downstream stream error'), hostWithSentHeaders);
+    expect(sentStatusMock).not.toHaveBeenCalled();
+    expect(sentJsonMock).not.toHaveBeenCalled();
+  });
 });
