@@ -8,7 +8,7 @@
   "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#f8fafc",
   "theme_color": "#3b82f6",
-  "categories": ["business", "productivity"],
+  "categories": ["business", "productivity", "education"],
   "lang": "ko",
   "orientation": "any",
   "icons": [
