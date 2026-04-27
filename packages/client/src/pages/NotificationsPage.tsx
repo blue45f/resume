@@ -43,6 +43,9 @@ const SYSTEM_TYPES = [
   'coaching_review_received',
   'job_application_received',
   'job_application_stage',
+  'job_search_match',
+  'subscription_activated',
+  'subscription_expired',
 ];
 const SOCIAL_TYPES = ['comment', 'bookmark', 'message'];
 
@@ -149,6 +152,24 @@ const TYPE_META: Record<string, { icon: string; bg: string; label: string; color
     bg: 'bg-sky-100 dark:bg-sky-900/30',
     label: '지원 단계 변경',
     color: 'text-sky-700 dark:text-sky-400',
+  },
+  job_search_match: {
+    icon: '🔖',
+    bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+    label: '저장 검색 매칭',
+    color: 'text-emerald-700 dark:text-emerald-400',
+  },
+  subscription_activated: {
+    icon: '🎉',
+    bg: 'bg-blue-100 dark:bg-blue-900/30',
+    label: '플랜 활성화',
+    color: 'text-blue-700 dark:text-blue-400',
+  },
+  subscription_expired: {
+    icon: '⏳',
+    bg: 'bg-amber-100 dark:bg-amber-900/30',
+    label: '플랜 만료',
+    color: 'text-amber-700 dark:text-amber-400',
   },
 };
 

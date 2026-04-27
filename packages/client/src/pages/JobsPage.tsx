@@ -12,6 +12,7 @@ import { ROUTES, withQuery } from '@/lib/routes';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
 import { fetchResumes, createApplication, updateJob, applyToJobPost } from '@/lib/api';
+import SavedSearchPanel from '@/components/SavedSearchPanel';
 import { toast } from '@/components/Toast';
 import type { ResumeSummary } from '@/types/resume';
 import Tabs from '@/shared/ui/Tabs';
@@ -2209,19 +2210,14 @@ function calculateMatchScore(userSkills: Set<string>, jobSkills: string): number
 
 function MatchBadge({ score }: { score: number }) {
   if (score <= 0) return null;
-  let colorClass = '';
-  if (score >= 80)
-    colorClass =
-      'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800';
-  else if (score >= 60)
-    colorClass =
-      'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
-  else if (score >= 30)
-    colorClass =
-      'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800';
-  else
-    colorClass =
-      'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800';
+  const colorClass =
+    score >= 80
+      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800'
+      : score >= 60
+        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+        : score >= 30
+          ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800'
+          : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800';
 
   return (
     <span
@@ -2422,6 +2418,15 @@ export default function JobsPage() {
         {/* Tab: Internal Jobs (direct postings) */}
         {activeTab === 'internal' && (
           <>
+            {/* Saved searches — Wanted/잡코리아 패턴, 새 공고 알림 */}
+            {user && (
+              <SavedSearchPanel
+                currentSearch={{
+                  query: search.trim() || undefined,
+                  jobTypes: typeFilter !== 'all' ? typeFilter : undefined,
+                }}
+              />
+            )}
             {(isRecruiter || user?.role === 'admin' || user?.role === 'superadmin') && (
               <div className="flex justify-end mb-3">
                 <Link

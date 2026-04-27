@@ -37,6 +37,7 @@ import NetworkStats from '@/components/NetworkStats';
 import RecentActivity from '@/components/RecentActivity';
 import HiringTrends from '@/components/HiringTrends';
 import OnboardingBanner from '@/components/OnboardingBanner';
+import WeeklyRecapCard from '@/components/WeeklyRecapCard';
 import ProfileCompleteness from '@/components/ProfileCompleteness';
 import ProfileWizard from '@/components/ProfileWizard';
 import ResumeHealthRing from '@/widgets/resume-health-ring';
@@ -685,7 +686,7 @@ export default function HomePage() {
     );
 
   const sorted = [...filtered].sort((a, b) => {
-    let cmp = 0;
+    let cmp: number;
     switch (sortBy) {
       case 'title':
         cmp = (a.title || '').localeCompare(b.title || '', 'ko');
@@ -1205,6 +1206,7 @@ export default function HomePage() {
 
             <ProfileCompleteness />
             <OnboardingBanner />
+            <WeeklyRecapCard />
 
             {wizardResume && resumes.length > 0 && (
               <ProfileWizard resume={wizardResume} resumeId={resumes[0].id} />

@@ -331,6 +331,45 @@ export interface PipelineStats {
 
 export const fetchPipelineStats = () => request<PipelineStats>(`${BASE}/jobs/pipeline-stats`);
 
+// ── Saved Job Searches (Wanted/잡코리아 패턴) ──────────────
+export interface SavedJobSearch {
+  id: string;
+  name: string;
+  query: string;
+  skills: string;
+  locations: string;
+  jobTypes: string;
+  notifyOn: boolean;
+  lastMatchedAt: string | null;
+  createdAt: string;
+}
+
+export const fetchSavedJobSearches = () => request<SavedJobSearch[]>(`${BASE}/jobs/saved-searches`);
+
+export const createSavedJobSearch = (body: {
+  name?: string;
+  query?: string;
+  skills?: string;
+  locations?: string;
+  jobTypes?: string;
+  notifyOn?: boolean;
+}) =>
+  request<SavedJobSearch>(`${BASE}/jobs/saved-searches`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
+export const toggleSavedJobSearchNotify = (id: string, notifyOn: boolean) =>
+  request<SavedJobSearch>(`${BASE}/jobs/saved-searches/${id}/notify`, {
+    method: 'PATCH',
+    body: JSON.stringify({ notifyOn }),
+  });
+
+export const deleteSavedJobSearch = (id: string) =>
+  request<{ success: boolean }>(`${BASE}/jobs/saved-searches/${id}`, {
+    method: 'DELETE',
+  });
+
 export const fetchMyJobApplications = () =>
   request<
     {
