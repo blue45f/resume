@@ -80,9 +80,39 @@ model User {
   jobPostApplications     JobPostApplication[]       @relation("JobApplicant")
   subscriptions           Subscription[]
   payments                Payment[]
+  savedJobSearches        SavedJobSearch[]
 
   @@unique([provider, providerId])
   @@map("users")
+}
+
+/// 저장된 채용 검색 — 사용자가 즐겨찾기한 필터 (Wanted/잡코리아 패턴).
+/// Daily cron 으로 새 공고 매칭 시 알림 발송.
+model SavedJobSearch {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  /// 사용자가 지정한 별명 ('서울 React 시니어' 등)
+  name      String   @default("")
+  /// 키워드 (포지션/스킬, 콤마 구분 또는 공백)
+  query     String   @default("")
+  /// 콤마 구분 — 'React,TypeScript'
+  skills    String   @default("")
+  /// 콤마 구분 — '서울,판교'
+  locations String   @default("")
+  /// 콤마 구분 — 'fulltime,contract'
+  jobTypes  String   @default("") @map("job_types")
+  /// 알림 활성화
+  notifyOn  Boolean  @default(true) @map("notify_on")
+  /// 마지막 매칭 cron 실행 시각 (이후 새 공고만 매칭)
+  lastMatchedAt DateTime? @map("last_matched_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([notifyOn])
+  @@map("saved_job_searches")
 }
 
 /// 사용자 구독 (월/연 단위, 최신 active 1건만 우선시).

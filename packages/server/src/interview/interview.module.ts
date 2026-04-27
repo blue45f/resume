@@ -3,9 +3,10 @@ import { InterviewController } from './interview.controller';
 import { InterviewService } from './interview.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { LlmModule } from '../llm/llm.module';
+import { BillingModule } from '../billing/billing.module';
 
 @Module({
-  imports: [PrismaModule, forwardRef(() => LlmModule)],
+  imports: [PrismaModule, forwardRef(() => LlmModule), BillingModule],
   controllers: [InterviewController],
   providers: [InterviewService],
 })

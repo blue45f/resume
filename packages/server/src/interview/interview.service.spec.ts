@@ -3,6 +3,7 @@ import { BadRequestException, ForbiddenException, NotFoundException } from '@nes
 import { InterviewService } from './interview.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { LlmService } from '../llm/llm.service';
+import { BillingService } from '../billing/billing.service';
 
 const mockPrisma: any = {
   interviewAnswer: {
@@ -10,10 +11,12 @@ const mockPrisma: any = {
     findUnique: jest.fn(),
     create: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn().mockResolvedValue(0),
   },
 };
 
 const mockLlm = { generateWithFallback: jest.fn() };
+const mockBilling = { checkQuota: jest.fn().mockResolvedValue(undefined) };
 
 describe('InterviewService', () => {
   let service: InterviewService;
@@ -24,6 +27,7 @@ describe('InterviewService', () => {
         InterviewService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: LlmService, useValue: mockLlm },
+        { provide: BillingService, useValue: mockBilling },
       ],
     }).compile();
     service = module.get(InterviewService);

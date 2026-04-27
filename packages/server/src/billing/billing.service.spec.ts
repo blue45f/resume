@@ -174,4 +174,34 @@ describe('BillingService', () => {
       expect(PLANS.pro.features.coachingNudgeLLM).toBe(true);
     });
   });
+
+  describe('checkQuota (사용량 enforce)', () => {
+    it('Pro 플랜 (한도 100) — 50 사용 → 통과', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ plan: 'pro' });
+      await expect(service.checkQuota('u1', 'interviewAnalyze', 50)).resolves.toBeUndefined();
+    });
+
+    it('Free 플랜 (한도 5) — 5 사용 → 한도 도달 BadRequest', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ plan: 'free' });
+      await expect(service.checkQuota('u1', 'interviewAnalyze', 5)).rejects.toThrow(/한도/);
+    });
+
+    it('Enterprise 무제한 — 9999 사용해도 통과', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ plan: 'enterprise' });
+      await expect(service.checkQuota('u1', 'aiAnalyze', 9999)).resolves.toBeUndefined();
+    });
+
+    it('user 없음 → free 로 fallback', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      await expect(service.checkQuota('u1', 'aiAnalyze', 30)).rejects.toThrow();
+    });
+  });
+
+  describe('currentMonthStart', () => {
+    it('현재 월의 1일 UTC 00:00 반환', () => {
+      const r = BillingService.currentMonthStart();
+      expect(r.getUTCDate()).toBe(1);
+      expect(r.getUTCHours()).toBe(0);
+    });
+  });
 });

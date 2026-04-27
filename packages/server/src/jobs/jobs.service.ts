@@ -1,10 +1,12 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   ForbiddenException,
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -13,6 +15,7 @@ const VALID_STAGES = ['interested', 'contacted', 'interview', 'hired', 'rejected
 
 @Injectable()
 export class JobsService {
+  private readonly logger = new Logger(JobsService.name);
   constructor(
     private prisma: PrismaService,
     private config: SystemConfigService,
@@ -736,6 +739,161 @@ export class JobsService {
       )
       .catch(() => {});
     return updated;
+  }
+
+  // ── Saved Job Searches (Wanted/잡코리아 패턴) ────────────────────
+
+  /** 내 저장된 검색 목록. */
+  async listSavedSearches(userId: string) {
+    return (this.prisma as any).savedJobSearch.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /** 저장된 검색 신규 생성. */
+  async createSavedSearch(
+    userId: string,
+    body: {
+      name?: string;
+      query?: string;
+      skills?: string;
+      locations?: string;
+      jobTypes?: string;
+      notifyOn?: boolean;
+    },
+  ) {
+    if (
+      !body.query?.trim() &&
+      !body.skills?.trim() &&
+      !body.locations?.trim() &&
+      !body.jobTypes?.trim()
+    ) {
+      throw new BadRequestException('최소 하나의 필터를 지정해주세요');
+    }
+    // 사용자당 최대 10개 제한 (스팸 방지)
+    const count = await (this.prisma as any).savedJobSearch.count({ where: { userId } });
+    if (count >= 10) {
+      throw new BadRequestException('저장된 검색은 최대 10개까지 가능합니다');
+    }
+    return (this.prisma as any).savedJobSearch.create({
+      data: {
+        userId,
+        name: (body.name || '').slice(0, 100),
+        query: (body.query || '').slice(0, 200),
+        skills: (body.skills || '').slice(0, 200),
+        locations: (body.locations || '').slice(0, 200),
+        jobTypes: (body.jobTypes || '').slice(0, 100),
+        notifyOn: body.notifyOn !== false, // default true
+      },
+    });
+  }
+
+  /** 저장된 검색 알림 toggle. */
+  async toggleSavedSearchNotify(id: string, userId: string, notifyOn: boolean) {
+    const s = await (this.prisma as any).savedJobSearch.findUnique({ where: { id } });
+    if (!s) throw new NotFoundException();
+    if (s.userId !== userId) throw new ForbiddenException();
+    return (this.prisma as any).savedJobSearch.update({
+      where: { id },
+      data: { notifyOn },
+    });
+  }
+
+  /** 저장된 검색 삭제. */
+  async deleteSavedSearch(id: string, userId: string) {
+    const s = await (this.prisma as any).savedJobSearch.findUnique({ where: { id } });
+    if (!s) throw new NotFoundException();
+    if (s.userId !== userId) throw new ForbiddenException();
+    await (this.prisma as any).savedJobSearch.delete({ where: { id } });
+    return { success: true };
+  }
+
+  /**
+   * Daily cron — 새 공고 매칭 시 알림 발송.
+   * 사용자가 마지막 매칭 후 등록된 공고 중 필터 일치 → 1개 algo 알림.
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_8AM)
+  async notifyNewJobsForSavedSearches() {
+    const searches = await (this.prisma as any).savedJobSearch.findMany({
+      where: { notifyOn: true },
+      take: 1000, // 안전 cap
+    });
+    if (searches.length === 0) return;
+    let totalMatched = 0;
+    for (const s of searches) {
+      try {
+        const since = s.lastMatchedAt || new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const where: any = {
+          status: 'active',
+          createdAt: { gt: since },
+        };
+        const orClauses: any[] = [];
+        if (s.query) {
+          const q = s.query.trim();
+          orClauses.push(
+            { position: { contains: q, mode: 'insensitive' } },
+            { company: { contains: q, mode: 'insensitive' } },
+          );
+        }
+        if (s.skills) {
+          for (const sk of s.skills
+            .split(',')
+            .map((x: string) => x.trim())
+            .filter(Boolean)) {
+            orClauses.push({ skills: { contains: sk, mode: 'insensitive' } });
+          }
+        }
+        if (s.locations) {
+          for (const loc of s.locations
+            .split(',')
+            .map((x: string) => x.trim())
+            .filter(Boolean)) {
+            orClauses.push({ location: { contains: loc, mode: 'insensitive' } });
+          }
+        }
+        if (s.jobTypes) {
+          const types = s.jobTypes
+            .split(',')
+            .map((x: string) => x.trim())
+            .filter(Boolean);
+          if (types.length > 0) where.type = { in: types };
+        }
+        if (orClauses.length > 0) where.OR = orClauses;
+
+        const matches = await this.prisma.jobPost.findMany({
+          where,
+          select: { id: true, position: true, company: true },
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+        });
+        if (matches.length > 0) {
+          const summary =
+            matches.length === 1
+              ? `[${matches[0].company}] ${matches[0].position}`
+              : `${matches[0].position} 외 ${matches.length - 1}건`;
+          const label = s.name || s.query || s.skills || '내 검색';
+          await this.notifications
+            .create(
+              s.userId,
+              'job_search_match',
+              `'${label}' 검색에 새 공고: ${summary}`,
+              `/jobs?q=${encodeURIComponent(s.query || s.skills || '')}`,
+            )
+            .catch(() => {});
+          totalMatched++;
+        }
+        await (this.prisma as any).savedJobSearch.update({
+          where: { id: s.id },
+          data: { lastMatchedAt: new Date() },
+        });
+      } catch (err) {
+        this.logger.warn(`saved search match fail (${s.id}): ${(err as Error)?.message}`);
+      }
+    }
+    this.logger.log(
+      `saved-search cron: ${totalMatched} users notified / ${searches.length} active`,
+    );
   }
 
   /** 구직자 — 내가 지원한 공고 목록. */

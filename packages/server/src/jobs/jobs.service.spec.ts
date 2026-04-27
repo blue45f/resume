@@ -45,6 +45,14 @@ const mockPrisma: any = {
     findMany: jest.fn(),
     update: jest.fn(),
   },
+  savedJobSearch: {
+    create: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn().mockResolvedValue(0),
+  },
 };
 
 describe('JobsService', () => {
@@ -592,6 +600,35 @@ describe('JobsService', () => {
       // hireRate = hired / interview reached = 1/3 = 33%
       expect(r.conversionRates.hireRate).toBe(33);
       expect(r.avgResponseHours).toBeGreaterThan(0);
+    });
+  });
+
+  describe('SavedJobSearch', () => {
+    it('필터 없음 → BadRequest', async () => {
+      await expect(service.createSavedSearch('u1', {})).rejects.toThrow(BadRequestException);
+    });
+
+    it('10개 이상 → BadRequest', async () => {
+      mockPrisma.savedJobSearch.count.mockResolvedValueOnce(10);
+      await expect(service.createSavedSearch('u1', { skills: 'React' })).rejects.toThrow(/10개/);
+    });
+
+    it('정상 생성 — 자동 trim + notifyOn default true', async () => {
+      mockPrisma.savedJobSearch.count.mockResolvedValueOnce(2);
+      mockPrisma.savedJobSearch.create.mockResolvedValueOnce({ id: 's1' });
+      await service.createSavedSearch('u1', { skills: 'React,TypeScript' });
+      expect(mockPrisma.savedJobSearch.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ skills: 'React,TypeScript', notifyOn: true }),
+        }),
+      );
+    });
+
+    it('타인 검색 toggle → Forbidden', async () => {
+      mockPrisma.savedJobSearch.findUnique.mockResolvedValue({ id: 's1', userId: 'other' });
+      await expect(service.toggleSavedSearchNotify('s1', 'me', false)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 

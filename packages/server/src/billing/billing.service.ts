@@ -240,4 +240,45 @@ export class BillingService {
       take: 50,
     });
   }
+
+  /**
+   * 사용량 quota 검증 — feature gate enforcement.
+   * 무료 플랜이 한도 도달 시 throw, Pro/Enterprise 는 통과 (-1 = unlimited).
+   *
+   * 사용처: AI 분석 endpoint 진입 시 (이력서 transform / 면접 답변 analyze).
+   * 한도는 PLANS[plan].features 의 aiAnalyzePerMonth / interviewAnalyzePerMonth.
+   *
+   * @param feature 'aiAnalyze' | 'interviewAnalyze' — 카운트 카테고리
+   * @param countSinceMonthStart 이번 달 사용 횟수 (caller 가 측정)
+   */
+  async checkQuota(
+    userId: string,
+    feature: 'aiAnalyze' | 'interviewAnalyze',
+    countSinceMonthStart: number,
+  ): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { plan: true },
+    });
+    const planId = (user?.plan as PlanId) || 'free';
+    const plan = PLANS[planId] || PLANS.free;
+    const limit =
+      feature === 'aiAnalyze'
+        ? plan.features.aiAnalyzePerMonth
+        : plan.features.interviewAnalyzePerMonth;
+    if (limit === -1) return; // unlimited
+    if (countSinceMonthStart >= limit) {
+      throw new BadRequestException(
+        `${plan.name} 플랜의 월간 ${
+          feature === 'aiAnalyze' ? 'AI 분석' : '면접 답변 분석'
+        } 한도(${limit}회)를 초과했습니다. 플랜을 업그레이드하거나 다음 달까지 기다려주세요.`,
+      );
+    }
+  }
+
+  /** 이번 달 시작 시각 (UTC). countSince... 측정용. */
+  static currentMonthStart(): Date {
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  }
 }

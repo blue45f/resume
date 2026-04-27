@@ -237,6 +237,52 @@ export class JobsController {
     return this.service.listMyApplications(req.user.id);
   }
 
+  // ── Saved Job Searches ────────────────────────────────────────────
+
+  @Get('saved-searches')
+  @ApiOperation({ summary: '내 저장된 채용 검색 (Wanted/잡코리아 패턴)' })
+  listSavedSearches(@Req() req: any) {
+    if (!req.user?.id) return [];
+    return this.service.listSavedSearches(req.user.id);
+  }
+
+  @Post('saved-searches')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: '저장된 검색 생성 (10개 max)' })
+  createSavedSearch(
+    @Body()
+    body: {
+      name?: string;
+      query?: string;
+      skills?: string;
+      locations?: string;
+      jobTypes?: string;
+      notifyOn?: boolean;
+    },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException();
+    return this.service.createSavedSearch(req.user.id, body);
+  }
+
+  @Patch('saved-searches/:id/notify')
+  @ApiOperation({ summary: '저장된 검색 알림 toggle' })
+  toggleSavedSearchNotify(
+    @Param('id') id: string,
+    @Body('notifyOn') notifyOn: boolean,
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException();
+    return this.service.toggleSavedSearchNotify(id, req.user.id, !!notifyOn);
+  }
+
+  @Delete('saved-searches/:id')
+  @ApiOperation({ summary: '저장된 검색 삭제' })
+  deleteSavedSearch(@Param('id') id: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException();
+    return this.service.deleteSavedSearch(id, req.user.id);
+  }
+
   @Get('pipeline-stats')
   @ApiOperation({
     summary: 'recruiter pipeline 통계 — stage 별 count + funnel 전환율 + 평균 응답 시간',

@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { LlmService } from '../llm/llm.service';
+import { BillingService } from '../billing/billing.service';
 
 export interface CreateInterviewAnswerDto {
   question: string;
@@ -30,6 +31,7 @@ export class InterviewService {
   constructor(
     private prisma: PrismaService,
     @Inject(forwardRef(() => LlmService)) private llm: LlmService,
+    private billing: BillingService,
   ) {}
 
   /**
@@ -48,6 +50,17 @@ export class InterviewService {
     if (body.answer.length > 3000) {
       throw new BadRequestException('답변은 3000자 이내여야 합니다');
     }
+
+    // Quota enforce — 이번 달 사용량 체크
+    const monthStart = BillingService.currentMonthStart();
+    const usedThisMonth = await this.prisma.interviewAnswer.count({
+      where: {
+        userId,
+        analysisScore: { not: null },
+        analyzedAt: { gte: monthStart },
+      },
+    });
+    await this.billing.checkQuota(userId, 'interviewAnalyze', usedThisMonth);
 
     const systemPrompt = `당신은 한국 채용 시장 전문 면접 코치입니다. 면접 답변을 분석하여 JSON 으로 응답하세요. 마크다운/추가 설명 금지.
 
