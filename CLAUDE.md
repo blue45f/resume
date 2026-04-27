@@ -114,14 +114,31 @@ pnpm deploy:gcp           # Cloud Run 배포
 - ✅ **AI 코칭 자동화** — `AiCoachingNudgeService` (@Cron 매주 일요일 06:00 UTC). 휴리스틱 5순위(자기소개/경력/기술/60일 미수정/경력 1건만) → 가장 영향 큰 개선 1개 알림. LLM 호출 0, 7일 throttle, 주당 최대 500명. NotificationBell + NotificationsPage 에 `coaching_nudge` 매핑 (💡 amber).
 - ✅ **Performance** — HomePage 의 charts 의존(recharts ~437KB) lazy load (`DashboardStats`/`CareerInsights`). 초기 index 235→209KB (-26KB).
 
-다음 사이클 후보:
+2026-04-27 EOD — 7 sprint sweeps + 의존성/번들/운영 sweep:
 
-- 모바일 사진 업로드 (HEIC 변환 / 클라이언트 압축 / 카메라 직접 호출 — `accept="image/*;capture=camera"`)
-- WebRTC TURN 서버 (NAT-strict 환경 통화 성공률 ↑) — 비용 발생 vs 성공률 trade-off
-- 스터디 문제 답변 모델 (`StudyGroupQuestionAnswer` 별도 테이블) — 다중 답변/베스트 답변/upvote 정밀화
-- 커피챗 일정 reminder 알림 (scheduledAt 기준 cron)
-- AI 답변 분석 결과 저장 + 시간별 변화 추적 (사용자가 답변 개선 추세 보기)
+- ✅ **4 유형 flow audit** — 25개 영역 처리 (코치 / 리쿠르터 / 회사 / 구직자, USER_FLOWS.md 참조)
+- ✅ **신규 model 2** — JobPostApplication (회사 → 지원자 pipeline), InterviewAnswer 확장 (analysisScore/Json/At)
+- ✅ **신규 endpoints 15** — apply / applicants / pipeline / pipeline-stats / recommended-candidates / withdraw / interview answer history+detail / user search / announcement push 등
+- ✅ **알림 type 신규 8** — coaching*review_request/\_received, coffee_chat*\*, job_application_received/\_stage
+- ✅ **컴포넌트 신규 5** — InterviewScoreHistory, MyPlatformApplications, ApplicantDetailDrawer, AnnouncementPushPanel 등
+- ✅ **WebRTC TURN 도입** — OpenRelay anonymous public TURN default (env 있으면 override). 데모 단계 비용 0
+- ✅ **운영 5xx fix** — GlobalExceptionFilter 의 ERR_HTTP_HEADERS_SENT (모든 500 의 원인) → headersSent 가드 추가
+- ✅ **major dep bump** — eslint 10, ts 6, jest 30 (+ @swc/jest 3x faster 2.4s), @nestjs/schedule 6, recharts 3
+- ✅ **번들 분할** — vendor.js 1.5MB → 사라짐. heic 1.3MB / docx / i18n / image-compress 등 분리 lazy
+- ✅ **테스트** — 1305 → 1369 server (+64), 17 → 31 client (+14), 모두 green
+- ✅ **prod login hotfix** — LoginPage fetch 가 상대경로(/api/...) 라 Vercel 404 → API_URL prefix
+- ✅ **Prisma migrate** — 신규 2개 (interview_analysis + job_post_application) prod DB 적용 완료
+- ✅ **gcloud + Python 3.13 (pyenv)** — 운영 로그 분석 가능 (CLOUDSDK_PYTHON 환경변수 사용)
+
+다음 사이클 후보 (대부분 사용자/시간 의존):
+
+- 본격 사용자 트래픽 발생 시: OpenRelay → Cloudflare Calls / Twilio NTS 마이그
+- 24h 후 5xx 재측정해서 ERR_HTTP_HEADERS_SENT fix 효과 검증
+- 결제 (PaymentPage Pro 플랜)
+- 다국어 확장 (zh, vi 등)
+- 모바일 native 또는 capacitor
+- 스터디 문제 답변 모델 (StudyGroupQuestionAnswer 별도 테이블)
 
 ---
 
-작성일: 2026-04-20 · 최근 갱신: 2026-04-27
+작성일: 2026-04-20 · 최근 갱신: 2026-04-27 EOD (7 sweeps + ops fix + TURN 도입 + Prisma migrate)
