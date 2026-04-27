@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getSocialLoginUrl } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
+import { API_URL } from '@/lib/config';
 import {
   loginSchema,
   registerSchema,
@@ -133,7 +134,9 @@ export default function LoginPage() {
   const pwStrength = getPasswordStrength(password);
 
   const performAuth = async (endpoint: string, body: unknown) => {
-    const res = await fetch(endpoint, {
+    // endpoint 는 '/api/auth/login' 같은 path — production Vercel 은 /api/* rewrite 없으므로
+    // VITE_API_URL (Cloud Run) 을 prefix 해서 절대 URL 로 호출. dev 는 API_URL='' → vite proxy.
+    const res = await fetch(`${API_URL}${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -142,7 +145,7 @@ export default function LoginPage() {
     if (!res.ok) throw new Error(data.message || '인증에 실패했습니다');
     localStorage.setItem('token', data.token);
     let me: any = null;
-    const meRes = await fetch('/api/auth/me', {
+    const meRes = await fetch(`${API_URL}/api/auth/me`, {
       headers: { Authorization: `Bearer ${data.token}` },
     });
     if (meRes.ok) {
