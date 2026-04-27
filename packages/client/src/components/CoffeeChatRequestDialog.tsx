@@ -67,7 +67,7 @@ export default function CoffeeChatRequestDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={`${hostName}님에게 커피챗 신청`}
-      description="가벼운 1:1 만남으로 커리어 조언을 들어보세요. 음성/화상은 서버를 거치지 않는 P2P 통화입니다."
+      description="가벼운 1:1 만남으로 컬처핏 · 커리어 · 직무 등을 자유롭게 이야기 나눠보세요. 음성/화상은 서버를 거치지 않는 P2P 통화 (TURN relay 자동 fallback)."
       maxWidth="max-w-md"
     >
       <div className="space-y-4">

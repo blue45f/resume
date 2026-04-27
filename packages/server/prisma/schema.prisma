@@ -221,11 +221,16 @@ model ResumeViewer {
   @@map("resume_viewers")
 }
 
-/// 커피챗 — 가벼운 1:1 만남 신청. 코치/리쿠르터/시니어 등에게 30분 정도 대화 요청.
-/// 수락 시 WebRTC 음성/화상 통화 가능 (서버는 signaling 만, 미디어는 P2P).
+/// 커피챗 — 가벼운 1:1 만남 신청. 양방향 시나리오 모두 지원:
+///   1. 구직자 → 코치 (CoachDetailPage): host=코치, requester=구직자
+///   2. 채용담당자 → 후보자 (RecruiterDashboard 추천 후보 / Scouts): host=후보자, requester=채용담당자
+///   3. 회원 → 회원 (메시지 등): 자유 매칭
+/// host 가 수락/거절 권한, 수락 시 WebRTC 음성/화상 통화 (서버는 signaling 만, 미디어 P2P + TURN fallback).
 model CoffeeChat {
   id          String    @id @default(uuid())
+  /// 신청 받는 사람 — 수락/거절 권한, 알림 받음, WebRTC initiator
   hostId      String    @map("host_id")
+  /// 신청 한 사람 — 보통 로그인 user
   requesterId String    @map("requester_id")
   /// pending | accepted | rejected | completed | cancelled
   status      String    @default("pending")
