@@ -278,7 +278,7 @@
 ### #1 TURN 서버 — env-driven ICE config
 
 - `useWebrtcPeer.buildIceConfig()` 가 `VITE_TURN_URL` / `VITE_TURN_USERNAME` / `VITE_TURN_CREDENTIAL` env 있으면 자동 TURN relay 추가, 없으면 STUN-only
-- 향후 telemetry 보고 fail rate 높으면 Vercel env 만 추가하면 즉시 활성화
+- 데모 사이트라 telemetry/TURN 도입은 본격 사용자 트래픽 발생 시 재검토 (decided 2026-04-27)
 
 ### #2 HomePage 이력서 공유 entry
 
