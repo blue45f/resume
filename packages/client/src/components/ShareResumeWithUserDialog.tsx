@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react';
 import Dialog from '@/shared/ui/Dialog';
 import { toast } from '@/components/Toast';
-import { fetchResumes, setResumeVisibility, addAllowedViewer } from '@/lib/api';
+import {
+  fetchResumes,
+  setResumeVisibility,
+  addAllowedViewer,
+  searchUsers,
+  type UserSearchResult,
+} from '@/lib/api';
 import type { ResumeSummary } from '@/types/resume';
 import { tx } from '@/lib/i18n';
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  /** 공유 대상 사용자 — 보통 코치/리쿠르터 user.id */
-  targetUserId: string;
-  targetUserName: string;
+  /** 공유 대상 사용자 — 보통 코치/리쿠르터 user.id. 비워두면 dialog 안에서 검색 */
+  targetUserId?: string;
+  targetUserName?: string;
   /** 공유 컨텍스트 (코치/리쿠르터 등) — 라벨/메시지 prefill 용 */
   context?: 'coach' | 'recruiter' | 'general';
   /** 공유 완료 콜백 (parent 가 토스트 후 후속 동작 처리하고 싶을 때) */
@@ -54,6 +60,34 @@ export default function ShareResumeWithUserDialog({
   const [message, setMessage] = useState(tx(DEFAULT_MESSAGE_KEY[context]));
   const [submitting, setSubmitting] = useState(false);
 
+  // user 검색 모드 — targetUserId 없을 때
+  const [pickedUser, setPickedUser] = useState<UserSearchResult | null>(null);
+  const [userQuery, setUserQuery] = useState('');
+  const [userSuggestions, setUserSuggestions] = useState<UserSearchResult[]>([]);
+  const [showUserSuggestions, setShowUserSuggestions] = useState(false);
+
+  useEffect(() => {
+    if (targetUserId) return; // 외부에서 target 받았으면 검색 안 함
+    const q = userQuery.trim();
+    if (pickedUser) return;
+    if (q.length < 2) {
+      setUserSuggestions([]);
+      return;
+    }
+    const t = setTimeout(() => {
+      searchUsers(q)
+        .then((rows) => {
+          setUserSuggestions(rows.slice(0, 6));
+          setShowUserSuggestions(true);
+        })
+        .catch(() => setUserSuggestions([]));
+    }, 220);
+    return () => clearTimeout(t);
+  }, [userQuery, pickedUser, targetUserId]);
+
+  const effectiveTargetId = targetUserId || pickedUser?.id || '';
+  const effectiveTargetName = targetUserName || pickedUser?.name || '';
+
   useEffect(() => {
     if (!open) return;
     setLoading(true);
@@ -70,7 +104,7 @@ export default function ShareResumeWithUserDialog({
   }, [open]);
 
   const handleShare = async () => {
-    if (!selectedId) return;
+    if (!selectedId || !effectiveTargetId) return;
     const resume = resumes.find((r) => r.id === selectedId);
     if (!resume) return;
     setSubmitting(true);
@@ -80,10 +114,10 @@ export default function ShareResumeWithUserDialog({
         await setResumeVisibility(selectedId, 'selective');
       }
       await addAllowedViewer(selectedId, {
-        userId: targetUserId,
+        userId: effectiveTargetId,
         message: message.trim() || undefined,
       });
-      toast(tx('sharing.sharedSuccess', { name: targetUserName }), 'success');
+      toast(tx('sharing.sharedSuccess', { name: effectiveTargetName }), 'success');
       onShared?.();
       onOpenChange(false);
     } catch (err) {
@@ -102,6 +136,89 @@ export default function ShareResumeWithUserDialog({
       maxWidth="max-w-md"
     >
       <div className="space-y-4">
+        {/* 사용자 검색 — targetUserId 가 외부에서 안 들어왔을 때만 */}
+        {!targetUserId && (
+          <div className="relative">
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              공유할 사용자 검색
+            </label>
+            {pickedUser ? (
+              <div className="flex items-center gap-2 p-2.5 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20">
+                {pickedUser.avatar ? (
+                  <img src={pickedUser.avatar} alt="" className="w-7 h-7 rounded-full" />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-sky-700 text-white flex items-center justify-center text-xs font-bold">
+                    {(pickedUser.name || '?')[0]}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                    {pickedUser.name}
+                    {pickedUser.username && (
+                      <span className="ml-1 text-xs text-slate-500">@{pickedUser.username}</span>
+                    )}
+                  </p>
+                  <p className="text-[11px] text-slate-500 truncate">{pickedUser.email}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPickedUser(null);
+                    setUserQuery('');
+                  }}
+                  className="shrink-0 text-xs text-slate-500 hover:text-rose-600"
+                >
+                  변경
+                </button>
+              </div>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  value={userQuery}
+                  onChange={(e) => setUserQuery(e.target.value)}
+                  onFocus={() => userSuggestions.length > 0 && setShowUserSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowUserSuggestions(false), 150)}
+                  placeholder="이름 / @username / email (최소 2자)"
+                  className="w-full px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {showUserSuggestions && userSuggestions.length > 0 && (
+                  <ul className="absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg divide-y divide-slate-100 dark:divide-slate-700/60">
+                    {userSuggestions.map((u) => (
+                      <li
+                        key={u.id}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setPickedUser(u);
+                          setShowUserSuggestions(false);
+                        }}
+                        className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/40"
+                      >
+                        {u.avatar ? (
+                          <img src={u.avatar} alt="" className="w-6 h-6 rounded-full" />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-sky-700 text-white flex items-center justify-center text-[10px] font-bold">
+                            {(u.name || '?')[0]}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                            {u.name}
+                            {u.username && (
+                              <span className="ml-1 text-xs text-slate-500">@{u.username}</span>
+                            )}
+                          </p>
+                          <p className="text-[11px] text-slate-500 truncate">{u.email}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
         {/* 이력서 선택 */}
         <div>
           <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
@@ -178,8 +295,9 @@ export default function ShareResumeWithUserDialog({
         {/* 안내 */}
         <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/40 p-2.5">
           <p className="text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed">
-            <span className="font-semibold">ⓘ</span> 공유 즉시 {targetUserName}님이 알림을 받고
-            이력서를 볼 수 있습니다. 언제든 EditResume → 공개 설정에서 권한을 회수할 수 있어요.
+            <span className="font-semibold">ⓘ</span> 공유 즉시 {effectiveTargetName || '대상자'}님이
+            알림을 받고 이력서를 볼 수 있습니다. 언제든 EditResume → 공개 설정에서 권한을 회수할 수
+            있어요.
           </p>
         </div>
 
@@ -195,7 +313,7 @@ export default function ShareResumeWithUserDialog({
           <button
             type="button"
             onClick={handleShare}
-            disabled={!selectedId || submitting || resumes.length === 0}
+            disabled={!selectedId || !effectiveTargetId || submitting || resumes.length === 0}
             className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             {submitting ? tx('sharing.sharing') : tx('sharing.shareBtn')}

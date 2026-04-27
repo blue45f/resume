@@ -12,15 +12,22 @@ import {
  * 점수 색상: ≥80 emerald · ≥60 sky · ≥40 amber · <40 rose.
  * 데이터 없으면 null 반환 (자리 차지 안 함).
  */
+type ViewMode = 'daily' | 'weekly';
+
 export default function InterviewScoreHistory() {
   const [points, setPoints] = useState<InterviewScorePoint[]>([]);
+  const [allPoints, setAllPoints] = useState<InterviewScorePoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<InterviewAnswerDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('daily');
 
   useEffect(() => {
     fetchInterviewScoreHistory()
-      .then((rows) => setPoints(rows.slice(-30)))
+      .then((rows) => {
+        setAllPoints(rows);
+        setPoints(rows.slice(-30));
+      })
       .catch(() => setPoints([]))
       .finally(() => setLoading(false));
   }, []);
@@ -44,6 +51,34 @@ export default function InterviewScoreHistory() {
   const latest = points[points.length - 1];
   const trend =
     points.length >= 2 ? latest.analysisScore - points[points.length - 2].analysisScore : 0;
+
+  // Weekly aggregation — ISO week 단위 평균
+  const weekKey = (iso: string) => {
+    const d = new Date(iso);
+    const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    const day = t.getUTCDay() || 7;
+    t.setUTCDate(t.getUTCDate() + 4 - day);
+    const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil(((+t - +yearStart) / 86400000 + 1) / 7);
+    return `${t.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+  };
+  const weeklyMap = new Map<string, { sum: number; count: number; latestId: string }>();
+  for (const p of allPoints) {
+    const k = weekKey(p.createdAt);
+    const cur = weeklyMap.get(k) || { sum: 0, count: 0, latestId: p.id };
+    cur.sum += p.analysisScore;
+    cur.count++;
+    cur.latestId = p.id;
+    weeklyMap.set(k, cur);
+  }
+  const weeklyPoints = Array.from(weeklyMap.entries())
+    .map(([week, v]) => ({
+      id: v.latestId,
+      week,
+      avgScore: Math.round(v.sum / v.count),
+      count: v.count,
+    }))
+    .slice(-12); // 최근 12주
 
   // 같은 질문 재답변 grouping — question text 기준
   const byQuestion = new Map<string, InterviewScorePoint[]>();
@@ -85,10 +120,29 @@ export default function InterviewScoreHistory() {
             )}
           </p>
         </div>
-        <span className="text-2xl font-bold tabular-nums text-slate-800 dark:text-slate-200">
-          {latest.analysisScore}
-          <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">/100</span>
-        </span>
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-100 dark:bg-slate-700 rounded-md p-0.5 text-[10px] font-medium">
+            {(['daily', 'weekly'] as ViewMode[]).map((m) => (
+              <button
+                key={m}
+                onClick={() => setViewMode(m)}
+                className={`px-2 py-0.5 rounded transition-colors ${
+                  viewMode === m
+                    ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400'
+                }`}
+              >
+                {m === 'daily' ? '일별' : '주별'}
+              </button>
+            ))}
+          </div>
+          <span className="text-2xl font-bold tabular-nums text-slate-800 dark:text-slate-200">
+            {latest.analysisScore}
+            <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">
+              /100
+            </span>
+          </span>
+        </div>
       </div>
       {/* 같은 질문 재답변 — 점수 변화 표시 */}
       {repeatedQuestions.length > 0 && (
@@ -123,31 +177,60 @@ export default function InterviewScoreHistory() {
         </div>
       )}
       <div className="flex items-end gap-1 h-14">
-        {points.map((p) => {
-          const color =
-            p.analysisScore >= 80
-              ? 'bg-emerald-500'
-              : p.analysisScore >= 60
-                ? 'bg-sky-500'
-                : p.analysisScore >= 40
-                  ? 'bg-amber-500'
-                  : 'bg-rose-500';
-          return (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => openDetail(p.id)}
-              className="flex-1 min-w-[6px] flex flex-col items-center group cursor-pointer"
-              title={`클릭: 답변 detail · ${p.analysisScore}점 · ${new Date(p.createdAt).toLocaleDateString('ko-KR')}${p.jobRole ? ' · ' + p.jobRole : ''}`}
-            >
-              <div
-                className={`w-full ${color} rounded-t transition-all group-hover:opacity-80 group-hover:-translate-y-0.5`}
-                style={{ height: `${Math.max(4, p.analysisScore * 0.5)}px` }}
-                aria-label={`${p.analysisScore}점 — 클릭해서 답변 보기`}
-              />
-            </button>
-          );
-        })}
+        {viewMode === 'daily'
+          ? points.map((p) => {
+              const color =
+                p.analysisScore >= 80
+                  ? 'bg-emerald-500'
+                  : p.analysisScore >= 60
+                    ? 'bg-sky-500'
+                    : p.analysisScore >= 40
+                      ? 'bg-amber-500'
+                      : 'bg-rose-500';
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => openDetail(p.id)}
+                  className="flex-1 min-w-[6px] flex flex-col items-center group cursor-pointer"
+                  title={`클릭: 답변 detail · ${p.analysisScore}점 · ${new Date(p.createdAt).toLocaleDateString('ko-KR')}${p.jobRole ? ' · ' + p.jobRole : ''}`}
+                >
+                  <div
+                    className={`w-full ${color} rounded-t transition-all group-hover:opacity-80 group-hover:-translate-y-0.5`}
+                    style={{ height: `${Math.max(4, p.analysisScore * 0.5)}px` }}
+                    aria-label={`${p.analysisScore}점 — 클릭해서 답변 보기`}
+                  />
+                </button>
+              );
+            })
+          : weeklyPoints.map((w) => {
+              const color =
+                w.avgScore >= 80
+                  ? 'bg-emerald-500'
+                  : w.avgScore >= 60
+                    ? 'bg-sky-500'
+                    : w.avgScore >= 40
+                      ? 'bg-amber-500'
+                      : 'bg-rose-500';
+              return (
+                <button
+                  key={w.week}
+                  type="button"
+                  onClick={() => openDetail(w.id)}
+                  className="flex-1 min-w-[14px] flex flex-col items-center group cursor-pointer"
+                  title={`${w.week} 주차 평균 ${w.avgScore}점 · ${w.count}개 답변`}
+                >
+                  <div
+                    className={`w-full ${color} rounded-t transition-all group-hover:opacity-80 group-hover:-translate-y-0.5`}
+                    style={{ height: `${Math.max(4, w.avgScore * 0.5)}px` }}
+                    aria-label={`${w.week} 평균 ${w.avgScore}점`}
+                  />
+                  <span className="text-[8px] text-slate-400 mt-0.5 tabular-nums">
+                    {w.week.slice(-3)}
+                  </span>
+                </button>
+              );
+            })}
       </div>
 
       <RadixDialog.Root open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>

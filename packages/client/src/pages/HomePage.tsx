@@ -6,6 +6,7 @@ import { useScrollRevealAll } from '@/hooks/useScrollReveal';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
 import QuickImportModal from '@/components/QuickImportModal';
+import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog';
 import Footer from '@/components/Footer';
 import { timeAgo } from '@/lib/time';
 import { ROUTES, withQuery } from '@/lib/routes';
@@ -580,6 +581,7 @@ export default function HomePage() {
   const [showImport, setShowImport] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   useScrollRevealAll('.reveal');
@@ -1453,7 +1455,7 @@ export default function HomePage() {
             </div>
 
             {/* Bulk actions toolbar */}
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
               <button
                 onClick={() => {
                   setSelectMode(!selectMode);
@@ -1466,6 +1468,13 @@ export default function HomePage() {
                 }`}
               >
                 {selectMode ? '선택 취소' : '선택'}
+              </button>
+              <button
+                onClick={() => setShareDialogOpen(true)}
+                className="text-xs px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 inline-flex items-center gap-1 transition-colors"
+                title="이력서를 특정 사용자와 공유"
+              >
+                🔗 사용자에게 공유
               </button>
               {selectMode && (
                 <>
@@ -1777,6 +1786,11 @@ export default function HomePage() {
           }}
         />
       )}
+      <ShareResumeWithUserDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        context="general"
+      />
     </>
   );
 }

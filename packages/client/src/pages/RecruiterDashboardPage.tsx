@@ -141,6 +141,8 @@ export default function RecruiterDashboardPage() {
   const loading = results.some((r) => r.isLoading);
 
   const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
+  const [filterQuery, setFilterQuery] = useState('');
+  const [filterStage, setFilterStage] = useState<string>('all');
 
   const stageMutation = useMutation({
     mutationFn: async ({ candidateId, newStage }: { candidateId: string; newStage: string }) => {
@@ -432,108 +434,171 @@ export default function RecruiterDashboardPage() {
 
             {/* Recent Applicants */}
             <section>
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                 <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                   최근 지원자
+                  {applicants.length > 0 && (
+                    <span className="ml-2 text-xs font-normal text-slate-500">
+                      ({applicants.length})
+                    </span>
+                  )}
                 </h2>
+                {applicants.length > 0 && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <input
+                      type="search"
+                      value={filterQuery}
+                      onChange={(e) => setFilterQuery(e.target.value)}
+                      placeholder="이름/포지션 검색"
+                      className="px-2.5 py-1 text-xs border border-slate-200 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 w-32"
+                    />
+                    <select
+                      value={filterStage}
+                      onChange={(e) => setFilterStage(e.target.value)}
+                      className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">전체 stage</option>
+                      <option value="interested">👀 검토</option>
+                      <option value="contacted">📞 연락</option>
+                      <option value="interview">🗓 면접</option>
+                      <option value="hired">✅ 채용</option>
+                      <option value="rejected">✗ 거절</option>
+                    </select>
+                  </div>
+                )}
               </div>
-              {applicants.length === 0 ? (
-                <div className="text-center py-8 imp-card">
-                  <p className="text-sm text-slate-400">아직 지원자가 없습니다</p>
-                </div>
-              ) : (
-                <div className="imp-card divide-y divide-slate-100 dark:divide-slate-700">
-                  {applicants.slice(0, 8).map((a: any) => {
-                    const stageMeta: Record<string, { label: string; color: string }> = {
-                      interested: {
-                        label: '👀 검토',
-                        color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
-                      },
-                      contacted: {
-                        label: '📞 연락',
-                        color:
-                          'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
-                      },
-                      interview: {
-                        label: '🗓 면접',
-                        color: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400',
-                      },
-                      hired: {
-                        label: '✅ 채용',
-                        color:
-                          'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
-                      },
-                      rejected: {
-                        label: '✗ 거절',
-                        color: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
-                      },
-                    };
-                    const meta = stageMeta[a.stage] || stageMeta.interested;
-                    return (
-                      <div
-                        key={a.id}
-                        className="flex items-center justify-between p-3 min-h-[56px] hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors cursor-pointer"
-                        onClick={() => setSelectedApplicant(a)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            setSelectedApplicant(a);
-                          }
+              {(() => {
+                const q = filterQuery.trim().toLowerCase();
+                const filtered = applicants.filter((a: any) => {
+                  if (filterStage !== 'all' && a.stage !== filterStage) return false;
+                  if (!q) return true;
+                  return (
+                    (a.name || '').toLowerCase().includes(q) ||
+                    (a.position || '').toLowerCase().includes(q) ||
+                    (a.email || '').toLowerCase().includes(q)
+                  );
+                });
+                if (applicants.length === 0) {
+                  return (
+                    <div className="text-center py-8 imp-card">
+                      <p className="text-sm text-slate-400">아직 지원자가 없습니다</p>
+                    </div>
+                  );
+                }
+                if (filtered.length === 0) {
+                  return (
+                    <div className="text-center py-8 imp-card">
+                      <p className="text-sm text-slate-400">
+                        필터 조건과 일치하는 지원자가 없습니다
+                      </p>
+                      <button
+                        onClick={() => {
+                          setFilterQuery('');
+                          setFilterStage('all');
                         }}
+                        className="mt-2 text-xs text-blue-600 hover:underline"
                       >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-600 dark:text-slate-300 shrink-0">
-                            {(a.name || '?')[0]}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                                {a.name || '익명'}
-                              </p>
-                              <SendMessageButton
-                                variant="mini"
-                                targetUserId={a.userId || a.id}
-                                targetUserName={a.name || '지원자'}
-                              />
-                              <span
-                                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${meta.color}`}
-                                title={`현재 stage: ${a.stage}`}
-                              >
-                                {meta.label}
-                              </span>
+                        필터 초기화
+                      </button>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="imp-card divide-y divide-slate-100 dark:divide-slate-700">
+                    {filtered.slice(0, 12).map((a: any) => {
+                      const stageMeta: Record<string, { label: string; color: string }> = {
+                        interested: {
+                          label: '👀 검토',
+                          color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+                        },
+                        contacted: {
+                          label: '📞 연락',
+                          color:
+                            'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+                        },
+                        interview: {
+                          label: '🗓 면접',
+                          color: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400',
+                        },
+                        hired: {
+                          label: '✅ 채용',
+                          color:
+                            'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
+                        },
+                        rejected: {
+                          label: '✗ 거절',
+                          color: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
+                        },
+                      };
+                      const meta = stageMeta[a.stage] || stageMeta.interested;
+                      return (
+                        <div
+                          key={a.id}
+                          className="flex items-center justify-between p-3 min-h-[56px] hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors cursor-pointer"
+                          onClick={() => setSelectedApplicant(a)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              setSelectedApplicant(a);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-600 dark:text-slate-300 shrink-0">
+                              {(a.name || '?')[0]}
                             </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                              {a.position || '미지정'} · {timeAgo(a.createdAt)}
-                            </p>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                                  {a.name || '익명'}
+                                </p>
+                                <SendMessageButton
+                                  variant="mini"
+                                  targetUserId={a.userId || a.id}
+                                  targetUserName={a.name || '지원자'}
+                                />
+                                <span
+                                  className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${meta.color}`}
+                                  title={`현재 stage: ${a.stage}`}
+                                >
+                                  {meta.label}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                {a.position || '미지정'} · {timeAgo(a.createdAt)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0 ml-2">
+                            {a.resumeId && (
+                              <Link
+                                to={ROUTES.resume.preview(a.resumeId)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                              >
+                                이력서
+                              </Link>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(
+                                  withQuery(ROUTES.jobs.scouts, { target: a.userId || a.id }),
+                                );
+                              }}
+                              className="text-xs px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+                            >
+                              스카우트
+                            </button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0 ml-2">
-                          {a.resumeId && (
-                            <Link
-                              to={ROUTES.resume.preview(a.resumeId)}
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                            >
-                              이력서
-                            </Link>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(withQuery(ROUTES.jobs.scouts, { target: a.userId || a.id }));
-                            }}
-                            className="text-xs px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
-                          >
-                            스카우트
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </section>
 
             {/* Recommended Candidates */}

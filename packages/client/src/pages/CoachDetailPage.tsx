@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog';
 import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog';
+import SendMessageButton from '@/components/SendMessageButton';
 import { bookCoachingSession, type CoachProfile } from '@/lib/api';
 import { useCoach, useResumes } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
@@ -272,6 +273,11 @@ export default function CoachDetailPage() {
                     >
                       ☕ 커피챗 신청
                     </button>
+                    <SendMessageButton
+                      variant="button"
+                      targetUserId={coach.user.id}
+                      targetUserName={coach.user.name || '코치'}
+                    />
                   </div>
                 </div>
               )}

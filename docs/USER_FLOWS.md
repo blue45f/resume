@@ -273,10 +273,34 @@
 - 1305 → **1368 server tests** (+63), 17 → **31 client tests** (+14)
 - 모든 commit auto-push, 0 deploy fail
 
-## 다음 sprint 후보 (필요 시 진행)
+## 2026-04-27 sweep #7 — 5개 후보 모두 처리 (sprint final)
 
-- **TURN 서버 ROI 결정** (telemetry 1주일 후 — 2026-05-04+)
-- **HomePage 이력서 공유 entry point** (UX 디자인 결정 후)
-- **코치 ↔ 클라이언트 1:1 DM 통합** (DirectMessage vs CoffeeChat 디자인 결정)
-- **회사 dashboard candidate filtering** (skill/keyword/stage 필터)
-- **InterviewScoreHistory weekly view** (월별 평균 + 90일 trend line)
+### #1 TURN 서버 — env-driven ICE config
+
+- `useWebrtcPeer.buildIceConfig()` 가 `VITE_TURN_URL` / `VITE_TURN_USERNAME` / `VITE_TURN_CREDENTIAL` env 있으면 자동 TURN relay 추가, 없으면 STUN-only
+- 향후 telemetry 보고 fail rate 높으면 Vercel env 만 추가하면 즉시 활성화
+
+### #2 HomePage 이력서 공유 entry
+
+- ShareResumeWithUserDialog 가 targetUserId 없을 때 dialog 안에서 user 검색 가능 (avatar/name/@username/email)
+- HomePage bulk actions toolbar 에 `🔗 사용자에게 공유` 버튼 추가
+
+### #3 코치 직접 메시지
+
+- CoachDetailPage 액션 row 에 `<SendMessageButton variant="button">` 추가
+- 기존 DirectMessage 인프라 활용 (CoffeeChat 과 분리 — 텍스트는 DM, 통화는 커피챗)
+
+### #4 회사 candidate filtering
+
+- RecruiterDashboardPage applicants 섹션에 검색 input + stage select
+- 이름/포지션/email 검색 + 6개 stage 필터, 0건 시 "필터 초기화" CTA
+
+### #5 InterviewScoreHistory weekly view
+
+- 일별/주별 toggle, ISO week 평균 점수 (최근 12주)
+
+## 누적 통계 (sprint final, 7 sweeps)
+
+- **7 sweeps**, **25개 영역 처리**, deferred 0
+- 1305 → **1368 server tests** (+63), 17 → **31 client tests** (+14)
+- prod login 회귀 1건 hotfix (`85d05be`)

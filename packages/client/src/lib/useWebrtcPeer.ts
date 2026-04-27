@@ -19,9 +19,26 @@ import {
  * polling: 1초 간격으로 server signal 큐 drain (lightweight, 매 분 60 req).
  */
 
-const ICE_CONFIG: RTCConfiguration = {
-  iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }],
-};
+/**
+ * ICE 서버 — STUN 기본 + 옵션 TURN.
+ * VITE_TURN_URL / VITE_TURN_USERNAME / VITE_TURN_CREDENTIAL 환경변수가 있으면 TURN relay 활성화.
+ * Strict NAT (회사 방화벽/모바일 캐리어) 환경에서 통화 성공률 올림. 비용 발생 → telemetry 누적 후 도입 결정.
+ */
+function buildIceConfig(): RTCConfiguration {
+  const servers: RTCIceServer[] = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+  ];
+  const turnUrl = import.meta.env.VITE_TURN_URL as string | undefined;
+  const turnUser = import.meta.env.VITE_TURN_USERNAME as string | undefined;
+  const turnCred = import.meta.env.VITE_TURN_CREDENTIAL as string | undefined;
+  if (turnUrl && turnUser && turnCred) {
+    servers.push({ urls: turnUrl, username: turnUser, credential: turnCred });
+  }
+  return { iceServers: servers };
+}
+
+const ICE_CONFIG: RTCConfiguration = buildIceConfig();
 
 const POLL_INTERVAL_MS = 1000;
 
