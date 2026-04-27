@@ -1,3 +1,10 @@
 packages:
   - "."
   - "packages/*"
+
+# minimatch@10 이 vendored brace-expansion@1 잘못 깔려서 expand named export 못 찾음 (concat-map 누락).
+# packageExtensions 로 minimatch 의 brace-expansion 의존성을 ^5 로 명시 → vendored v1 차단.
+packageExtensions:
+  minimatch:
+    dependencies:
+      brace-expansion: "^5.0.5"

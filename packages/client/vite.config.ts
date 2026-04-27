@@ -84,7 +84,18 @@ export default defineConfig({
           ) {
             return 'utils';
           }
-          // Catch-all: group remaining large node_modules into a vendor chunk
+          // 무거운 single-purpose 모듈 — 사용 페이지에서만 lazy load 되도록 분리
+          if (id.includes('node_modules/docx')) return 'docx';
+          if (id.includes('node_modules/heic2any')) return 'heic';
+          if (id.includes('node_modules/browser-image-compression')) return 'image-compress';
+          if (id.includes('node_modules/i18next') || id.includes('node_modules/react-i18next')) {
+            return 'i18n';
+          }
+          if (id.includes('node_modules/sonner')) return 'toast';
+          if (id.includes('node_modules/react-error-boundary')) return 'error-boundary';
+          if (id.includes('node_modules/react-to-print')) return 'print';
+          if (id.includes('node_modules/@use-gesture')) return 'gesture';
+          // Catch-all: 남은 작은 모듈들만 vendor 로
           if (id.includes('node_modules/') && !id.includes('node_modules/.vite')) {
             return 'vendor';
           }
