@@ -9,6 +9,7 @@ import { randomUUID } from 'crypto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 const ALLOWED_STATUSES = [
   'pending',
@@ -42,9 +43,6 @@ const TOPIC_KEY_LABELS: Record<string, string> = COFFEE_CHAT_TOPICS.reduce(
   {},
 );
 
-/** Rate limit — 같은 host 에게 30일 내 신청 횟수 (스팸 방지). */
-const RATE_LIMIT_DAYS = 30;
-const RATE_LIMIT_MAX = 3;
 /** 7일 무응답 시 자동 expire */
 const PENDING_EXPIRE_DAYS = 7;
 
@@ -55,6 +53,7 @@ export class CoffeeChatService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    private systemConfig: SystemConfigService,
   ) {}
 
   // ──────── 커피챗 신청/관리 ────────
@@ -94,8 +93,10 @@ export class CoffeeChatService {
       throw new BadRequestException('이미 대기 중인 커피챗 신청이 있습니다');
     }
 
-    // Rate limit — 같은 host 에게 30일 내 3회 max (스팸 방지)
-    const since = new Date(Date.now() - RATE_LIMIT_DAYS * 24 * 60 * 60 * 1000);
+    // Rate limit — 같은 host 에게 N일 내 K회 max (admin 이 system_configs 로 토글 가능, P3-7)
+    const { days: rateLimitDays, max: rateLimitMax } =
+      await this.systemConfig.getCoffeeChatRateLimit();
+    const since = new Date(Date.now() - rateLimitDays * 24 * 60 * 60 * 1000);
     const recentCount = await this.prisma.coffeeChat.count({
       where: {
         requesterId,
@@ -103,9 +104,9 @@ export class CoffeeChatService {
         createdAt: { gte: since },
       },
     });
-    if (recentCount >= RATE_LIMIT_MAX) {
+    if (recentCount >= rateLimitMax) {
       throw new BadRequestException(
-        `${RATE_LIMIT_DAYS}일 내 같은 사용자에게 ${RATE_LIMIT_MAX}회까지만 신청할 수 있습니다`,
+        `${rateLimitDays}일 내 같은 사용자에게 ${rateLimitMax}회까지만 신청할 수 있습니다`,
       );
     }
 

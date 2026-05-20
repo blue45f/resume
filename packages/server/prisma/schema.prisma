@@ -676,6 +676,9 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, read])
+  // P3-3 — getAll/getUnread 의 orderBy(createdAt desc) + 24h dedup 조회 최적화
+  @@index([userId, createdAt])
+  @@index([userId, type, createdAt])
 }
 
 model UsageLog {
@@ -937,6 +940,9 @@ model CommunityPost {
 
   @@index([category])
   @@index([userId])
+  // P3-3 — getPosts 의 recent / pinFirst 정렬 최적화
+  @@index([createdAt])
+  @@index([isPinned, createdAt])
   @@map("community_posts")
 }
 

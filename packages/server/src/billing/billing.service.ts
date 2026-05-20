@@ -32,7 +32,7 @@ export const PLANS = {
     id: 'pro',
     name: 'Pro',
     priceMonthlyKRW: 9900,
-    priceYearlyKRW: 99000, // 약 17% 할인
+    priceYearlyKRW: 99000, // 16.7% 할인 (9900×12=118800 대비)
     features: {
       aiAnalyzePerMonth: 300,
       coachingNudgeLLM: true,

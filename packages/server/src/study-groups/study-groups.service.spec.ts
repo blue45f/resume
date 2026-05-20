@@ -590,6 +590,44 @@ describe('StudyGroupsService', () => {
   });
 
   // ─────────────────────────────────────────────
+  // normalizeTags — Intl.Segmenter grapheme truncate (P3-5)
+  // ─────────────────────────────────────────────
+  describe('normalizeTags (P3-5)', () => {
+    const normalizeTags = (raw: unknown) =>
+      (service as unknown as { normalizeTags: (raw: unknown) => string[] }).normalizeTags(raw);
+
+    it('non-array → []', () => {
+      expect(normalizeTags(null)).toEqual([]);
+      expect(normalizeTags('react')).toEqual([]);
+    });
+
+    it('중복 제거 + lowercase + trim', () => {
+      const out = normalizeTags(['React', ' react ', 'REACT', 'cs']);
+      expect(out).toEqual(['react', 'cs']);
+    });
+
+    it('10개 초과 → 10개로 절단', () => {
+      const out = normalizeTags(Array.from({ length: 20 }, (_, i) => `tag${i}`));
+      expect(out).toHaveLength(10);
+    });
+
+    it('짧은 한글 태그는 그대로 보존', () => {
+      const out = normalizeTags(['프론트엔드', '백엔드']);
+      expect(out).toEqual(['프론트엔드', '백엔드']);
+    });
+
+    it('30 grapheme 초과 시 grapheme 경계에서 잘림 — 자모 깨짐 없음', () => {
+      // 35자 한국어 태그 → 30 grapheme 이내로 절단되어야 함
+      const longKo = '서버사이드렌더링과커뮤니티주도성장그리고기여형오픈소스생태계'; // 31자
+      const out = normalizeTags([longKo]);
+      // 결과는 길이가 30 이하 (grapheme 단위로 잘렸기 때문에 byte-cut 깨짐 없음)
+      expect(out[0].length).toBeLessThanOrEqual(30);
+      // 잘린 결과가 입력의 접두사여야 함
+      expect(longKo.startsWith(out[0])).toBe(true);
+    });
+  });
+
+  // ─────────────────────────────────────────────
   // 문제 답변 (StudyGroupQuestionAnswer) — 신규
   // ─────────────────────────────────────────────
   describe('createAnswer', () => {

@@ -14,6 +14,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AdminGuard } from '../common/guards/admin.guard';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from './notifications.service';
+import { isNotificationType } from '@resume/shared';
 
 @ApiTags('notifications')
 @Controller('notifications')
@@ -111,6 +112,9 @@ export class NotificationsController {
     }
     if (!body.type || !body.message) {
       throw new BadRequestException('type, message 필수');
+    }
+    if (!isNotificationType(body.type)) {
+      throw new BadRequestException(`알 수 없는 type: ${body.type}`);
     }
     if (body.message.length > 200) {
       throw new BadRequestException('메시지는 200자 이내');

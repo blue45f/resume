@@ -19,6 +19,48 @@ export const COMMISSION_RATE = 0.15;
 export const COACHING_DURATIONS = [30, 45, 60, 90, 120] as const;
 export type CoachingDuration = (typeof COACHING_DURATIONS)[number];
 
+/**
+ * P3-2 — 알림 type 중앙화.
+ * 새 type 추가 시 여기와 (필요하면) 클라이언트 NotificationBell/NotificationsPage 의 매핑을
+ * 동시에 업데이트해야 한다. server 측은 NotificationsService.create 가 NotificationType 만 허용.
+ */
+export const NOTIFICATION_TYPES = [
+  'system',
+  'general',
+  'comment',
+  'scout',
+  'application_status',
+  'job_search_match',
+  // 이력서 공유 / 조회
+  'resume_shared',
+  'resume_viewed',
+  // 코칭
+  'coaching_nudge',
+  'coaching_review_request',
+  'coaching_review_received',
+  // 커피챗
+  'coffee_chat_request',
+  'coffee_chat_response',
+  'coffee_chat_reminder',
+  // 커뮤니티
+  'community_like',
+  // 채용공고
+  'job_application_received',
+  'job_application_stage',
+  // 결제 / 구독
+  'subscription_activated',
+  'subscription_expired',
+  // accepted (회사/리쿠르터)
+  'accepted',
+  // 1:1 메시지
+  'message',
+  // admin 공지
+  'announcement',
+] as const;
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+export const isNotificationType = (v: string): v is NotificationType =>
+  (NOTIFICATION_TYPES as readonly string[]).includes(v);
+
 export const COMMUNITY_CATEGORIES = [
   'all',
   'scrapped',

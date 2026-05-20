@@ -62,6 +62,29 @@ export class SystemConfigService {
     );
   }
 
+  // ── CoffeeChat rate-limit (P3-7) ─────────────────────────────
+  static readonly COFFEE_CHAT_RATE_LIMIT_DAYS_KEY = 'coffeeChat.rateLimit.days';
+  static readonly COFFEE_CHAT_RATE_LIMIT_MAX_KEY = 'coffeeChat.rateLimit.max';
+  static readonly COFFEE_CHAT_RATE_LIMIT_DAYS_DEFAULT = 30;
+  static readonly COFFEE_CHAT_RATE_LIMIT_MAX_DEFAULT = 3;
+
+  async getCoffeeChatRateLimit(): Promise<{ days: number; max: number }> {
+    const [days, max] = await Promise.all([
+      this.getNumber(
+        SystemConfigService.COFFEE_CHAT_RATE_LIMIT_DAYS_KEY,
+        SystemConfigService.COFFEE_CHAT_RATE_LIMIT_DAYS_DEFAULT,
+      ),
+      this.getNumber(
+        SystemConfigService.COFFEE_CHAT_RATE_LIMIT_MAX_KEY,
+        SystemConfigService.COFFEE_CHAT_RATE_LIMIT_MAX_DEFAULT,
+      ),
+    ]);
+    return {
+      days: Math.max(1, Math.min(365, days)),
+      max: Math.max(1, Math.min(100, max)),
+    };
+  }
+
   // ── 기능 토글 (feature.X.enabled) ─────────────────────────────
   /** admin 이 on/off 가능한 기능 이름 목록 — 확장 시 여기에 추가 */
   static readonly FEATURE_TOGGLES = [

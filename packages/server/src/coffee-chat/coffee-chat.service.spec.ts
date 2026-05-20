@@ -3,11 +3,13 @@ import { BadRequestException, ForbiddenException, NotFoundException } from '@nes
 import { CoffeeChatService } from './coffee-chat.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 describe('CoffeeChatService', () => {
   let service: CoffeeChatService;
   let mockPrisma: any;
   let mockNotif: any;
+  let mockSystemConfig: { getCoffeeChatRateLimit: jest.Mock };
 
   beforeEach(async () => {
     mockPrisma = {
@@ -28,11 +30,15 @@ describe('CoffeeChatService', () => {
       },
     };
     mockNotif = { create: jest.fn().mockResolvedValue({}) };
+    mockSystemConfig = {
+      getCoffeeChatRateLimit: jest.fn().mockResolvedValue({ days: 30, max: 3 }),
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CoffeeChatService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationsService, useValue: mockNotif },
+        { provide: SystemConfigService, useValue: mockSystemConfig },
       ],
     }).compile();
     service = module.get(CoffeeChatService);
@@ -56,6 +62,15 @@ describe('CoffeeChatService', () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: 'h1', name: 'host' });
       mockPrisma.coffeeChat.findFirst.mockResolvedValue({ id: 'existing' });
       await expect(service.create('u1', { hostId: 'h1' })).rejects.toThrow(BadRequestException);
+    });
+
+    // P3-7 — rate-limit 이 SystemConfig 로부터 동적 로드되는지 검증
+    it('SystemConfig 의 rate-limit 초과 시 BadRequest + 메시지에 admin 설정값 반영', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'h1', name: 'host' });
+      mockPrisma.coffeeChat.findFirst.mockResolvedValue(null);
+      mockSystemConfig.getCoffeeChatRateLimit.mockResolvedValueOnce({ days: 7, max: 1 });
+      mockPrisma.coffeeChat.count.mockResolvedValueOnce(1); // 한도 도달
+      await expect(service.create('u1', { hostId: 'h1' })).rejects.toThrow(/7일.*1회/);
     });
 
     it('정상 흐름 — durationMin clamp + 알림 호출', async () => {

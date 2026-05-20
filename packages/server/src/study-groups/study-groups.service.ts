@@ -568,13 +568,38 @@ export class StudyGroupsService {
     });
   }
 
+  /**
+   * P3-5 — Intl.Segmenter 로 한국어/이모지 grapheme 안전한 truncate.
+   * 기존 `slice(0, 30)` 는 string 의 코드유닛 기준이라 한글 자모/이모지가 깨질 수 있음.
+   */
+  private static readonly TAG_SEGMENTER =
+    typeof Intl !== 'undefined' && typeof Intl.Segmenter !== 'undefined'
+      ? new Intl.Segmenter('ko', { granularity: 'grapheme' })
+      : null;
+
+  private static truncateByGrapheme(s: string, max: number): string {
+    if (s.length <= max) return s; // 짧은 입력은 fast path
+    const seg = StudyGroupsService.TAG_SEGMENTER;
+    if (!seg) return s.slice(0, max);
+    let count = 0;
+    let cut = s.length;
+    for (const { index } of seg.segment(s)) {
+      if (count >= max) {
+        cut = index;
+        break;
+      }
+      count++;
+    }
+    return s.slice(0, cut);
+  }
+
   private normalizeTags(raw: unknown): string[] {
     if (!Array.isArray(raw)) return [];
     const seen = new Set<string>();
     const out: string[] = [];
     for (const t of raw) {
       if (typeof t !== 'string') continue;
-      const v = t.trim().toLowerCase().slice(0, 30);
+      const v = StudyGroupsService.truncateByGrapheme(t.trim().toLowerCase(), 30);
       if (!v || seen.has(v)) continue;
       seen.add(v);
       out.push(v);

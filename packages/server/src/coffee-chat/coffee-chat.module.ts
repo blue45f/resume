@@ -3,9 +3,10 @@ import { CoffeeChatController } from './coffee-chat.controller';
 import { CoffeeChatService } from './coffee-chat.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { SystemConfigModule } from '../system-config/system-config.module';
 
 @Module({
-  imports: [PrismaModule, NotificationsModule],
+  imports: [PrismaModule, NotificationsModule, SystemConfigModule],
   controllers: [CoffeeChatController],
   providers: [CoffeeChatService],
   exports: [CoffeeChatService],

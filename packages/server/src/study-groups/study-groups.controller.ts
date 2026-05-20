@@ -12,6 +12,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from '../auth/auth.guard';
 import {
   StudyGroupsService,
@@ -19,8 +20,13 @@ import {
   CreateStudyGroupQuestionDto,
 } from './study-groups.service';
 
+/**
+ * P3-1 — 컨트롤러 레벨 기본 throttle. 모든 endpoint 는 사용자당 60/min 으로 시작.
+ * 개별 endpoint 가 더 보수적이어야 하면 @Throttle 로 override.
+ */
 @ApiTags('study-groups')
 @Controller('study-groups')
+@Throttle({ default: { limit: 60, ttl: 60_000 } })
 export class StudyGroupsController {
   constructor(private readonly service: StudyGroupsService) {}
 
@@ -62,6 +68,7 @@ export class StudyGroupsController {
   }
 
   @Post()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @ApiOperation({ summary: '스터디 그룹 생성' })
   create(@Body() body: CreateStudyGroupDto, @Req() req: any) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
@@ -111,6 +118,7 @@ export class StudyGroupsController {
   }
 
   @Post(':id/questions')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: '스터디 그룹 질문 추가' })
   addQuestion(@Param('id') id: string, @Body() body: CreateStudyGroupQuestionDto, @Req() req: any) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
@@ -137,6 +145,7 @@ export class StudyGroupsController {
   }
 
   @Post('questions/:questionId/answers')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @ApiOperation({ summary: '문제 답변 작성 (parentId 지정 시 답글)' })
   createAnswer(
     @Param('questionId') questionId: string,
@@ -206,6 +215,7 @@ export class StudyGroupsController {
   }
 
   @Post(':id/posts')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: '스터디 그룹 게시글 작성' })
   createPost(
     @Param('id') id: string,

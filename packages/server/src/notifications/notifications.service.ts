@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import type { NotificationType } from '@resume/shared';
 
 @Injectable()
 export class NotificationsService {
@@ -36,7 +37,7 @@ export class NotificationsService {
     return { success: true };
   }
 
-  async create(userId: string, type: string, message: string, link?: string) {
+  async create(userId: string, type: NotificationType, message: string, link?: string) {
     return this.prisma.notification.create({
       data: { userId, type, message, link },
     });
@@ -51,7 +52,7 @@ export class NotificationsService {
    */
   async createBulk(
     userIds: string[],
-    type: string,
+    type: NotificationType,
     message: string,
     link?: string,
   ): Promise<{ sent: number; skipped: number }> {
