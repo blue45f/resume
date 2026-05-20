@@ -66,6 +66,7 @@ model User {
   studyGroupPosts         StudyGroupPost[]           @relation("GroupPost")
   studyGroupPostComments  StudyGroupPostComment[]    @relation("GroupPostComment")
   studyGroupPostReactions StudyGroupPostReaction[]   @relation("GroupPostReaction")
+  studyGroupPostLikes     StudyGroupPostLike[]       @relation("GroupPostLike")
   resumeReports           ResumeReport[]             @relation("ResumeReporter")
   communityPostReports    CommunityPostReport[]      @relation("CommunityPostReporter")
   studyGroupEvents        StudyGroupEvent[]          @relation("GroupEventAuthor")
@@ -1333,11 +1334,27 @@ model StudyGroupPost {
   user      User                     @relation("GroupPost", fields: [userId], references: [id], onDelete: Cascade)
   comments  StudyGroupPostComment[]
   reactions StudyGroupPostReaction[]
+  likes     StudyGroupPostLike[]
 
   @@index([groupId, createdAt])
   @@index([userId])
   @@index([category])
   @@map("study_group_posts")
+}
+
+/// 게시글 좋아요 — (postId, userId) unique 로 중복 좋아요 방지. 토글 동작.
+model StudyGroupPostLike {
+  id        String   @id @default(uuid())
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post StudyGroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User           @relation("GroupPostLike", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+  @@map("study_group_post_likes")
 }
 
 /// 스터디 게시물 이모지 리액션 — 유저당 각 이모지 1회 토글

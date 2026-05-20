@@ -50,6 +50,9 @@ describe('CommunityService', () => {
     }).compile();
     service = module.get(CommunityService);
     jest.clearAllMocks();
+    // 기본: update/findUnique 가 항상 Promise 반환하도록 보장 (.catch chain 등 호출 안전)
+    mockPrisma.communityPost.update.mockResolvedValue({});
+    mockPrisma.communityLike.findUnique.mockResolvedValue(null);
   });
 
   describe('getPosts', () => {
@@ -77,6 +80,74 @@ describe('CommunityService', () => {
       expect(mockPrisma.communityPost.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: expect.objectContaining({ OR: expect.any(Array) }) }),
       );
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // getPost — viewCount race / 404 viewCount 부풀림 (P1-6)
+  // ─────────────────────────────────────────────
+  describe('getPost', () => {
+    it('존재하지 않는 글 → null + update 호출 안함', async () => {
+      mockPrisma.communityPost.findUnique.mockResolvedValueOnce(null);
+      const result = await service.getPost('ghost');
+      expect(result).toBeNull();
+      expect(mockPrisma.communityPost.update).not.toHaveBeenCalled();
+    });
+
+    it('본인 글 조회 → viewCount 증가 안함', async () => {
+      mockPrisma.communityPost.findUnique.mockResolvedValueOnce({
+        id: 'p1',
+        userId: 'u1',
+        viewCount: 5,
+      });
+      await service.getPost('p1', 'u1');
+      expect(mockPrisma.communityPost.update).not.toHaveBeenCalled();
+    });
+
+    it('타인 글 첫 조회 → viewCount 1 증가', async () => {
+      mockPrisma.communityPost.findUnique.mockResolvedValueOnce({
+        id: 'p-first',
+        userId: 'author',
+        viewCount: 5,
+      });
+      const result = await service.getPost('p-first', 'viewer');
+      expect(mockPrisma.communityPost.update).toHaveBeenCalledTimes(1);
+      expect(result!.viewCount).toBe(6);
+    });
+
+    it('같은 viewer 가 5분 내 재조회 → dedup, viewCount 증가 안함', async () => {
+      // 1st call — increments
+      mockPrisma.communityPost.findUnique.mockResolvedValueOnce({
+        id: 'p-dedup',
+        userId: 'author',
+        viewCount: 5,
+      });
+      await service.getPost('p-dedup', 'viewer');
+
+      // 2nd call — should skip update
+      mockPrisma.communityPost.findUnique.mockResolvedValueOnce({
+        id: 'p-dedup',
+        userId: 'author',
+        viewCount: 6,
+      });
+      await service.getPost('p-dedup', 'viewer');
+      expect(mockPrisma.communityPost.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('익명(anon) 조회도 dedup 적용', async () => {
+      mockPrisma.communityPost.findUnique.mockResolvedValueOnce({
+        id: 'p-anon',
+        userId: 'author',
+        viewCount: 0,
+      });
+      await service.getPost('p-anon');
+      mockPrisma.communityPost.findUnique.mockResolvedValueOnce({
+        id: 'p-anon',
+        userId: 'author',
+        viewCount: 1,
+      });
+      await service.getPost('p-anon');
+      expect(mockPrisma.communityPost.update).toHaveBeenCalledTimes(1);
     });
   });
 

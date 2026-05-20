@@ -52,6 +52,15 @@ const mockPrisma: any = {
     create: jest.fn(),
     delete: jest.fn(),
   },
+  studyGroupPost: {
+    findUnique: jest.fn(),
+    update: jest.fn(),
+  },
+  studyGroupPostLike: {
+    findUnique: jest.fn(),
+    create: jest.fn(),
+    delete: jest.fn(),
+  },
   $transaction: jest.fn(async (arg: any) => {
     // 두 가지 호출 형태 지원: $transaction(fn) 또는 $transaction([promise, ...])
     if (typeof arg === 'function') return arg(mockPrisma);
@@ -407,6 +416,78 @@ describe('StudyGroupsService', () => {
       mockPrisma.studyGroupQuestion.update.mockResolvedValueOnce({ id: 'q1', upvotes: 0 });
       const result = await service.upvoteQuestion('q1', 'u2');
       expect(result.upvoted).toBe(false);
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // likePost — 좋아요 idempotent 토글 (P1-1)
+  // ─────────────────────────────────────────────
+  describe('likePost', () => {
+    const setupPostAndGroup = () => {
+      mockPrisma.studyGroupPost.findUnique.mockResolvedValueOnce({
+        id: 'p1',
+        groupId: 'g1',
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+    };
+
+    it('비로그인 → Forbidden', async () => {
+      await expect(service.likePost('p1', '')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('게시글 없음 → NotFound', async () => {
+      mockPrisma.studyGroupPost.findUnique.mockResolvedValueOnce(null);
+      await expect(service.likePost('p1', 'u1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('첫 호출 → like 생성 + likeCount 증가, liked=true', async () => {
+      setupPostAndGroup();
+      mockPrisma.studyGroupPostLike.findUnique.mockResolvedValueOnce(null);
+      mockPrisma.studyGroupPostLike.create.mockResolvedValueOnce({ id: 'l1' });
+      mockPrisma.studyGroupPost.update.mockResolvedValueOnce({ id: 'p1', likeCount: 1 });
+      const result = await service.likePost('p1', 'u1');
+      expect(result).toEqual({ id: 'p1', likeCount: 1, liked: true });
+      expect(mockPrisma.studyGroupPostLike.create).toHaveBeenCalledWith({
+        data: { postId: 'p1', userId: 'u1' },
+      });
+    });
+
+    it('두번째 호출 → 토글 off (delete + decrement), liked=false', async () => {
+      setupPostAndGroup();
+      mockPrisma.studyGroupPostLike.findUnique.mockResolvedValueOnce({ id: 'l1' });
+      mockPrisma.studyGroupPostLike.delete.mockResolvedValueOnce({});
+      mockPrisma.studyGroupPost.update.mockResolvedValueOnce({ id: 'p1', likeCount: 0 });
+      const result = await service.likePost('p1', 'u1');
+      expect(result).toEqual({ id: 'p1', likeCount: 0, liked: false });
+      expect(mockPrisma.studyGroupPostLike.delete).toHaveBeenCalledWith({ where: { id: 'l1' } });
+    });
+
+    it('연속 N회 호출도 likeCount 가 0/1 사이 토글 — 무한 증가 차단', async () => {
+      // 1st: off → on
+      setupPostAndGroup();
+      mockPrisma.studyGroupPostLike.findUnique.mockResolvedValueOnce(null);
+      mockPrisma.studyGroupPostLike.create.mockResolvedValueOnce({ id: 'l1' });
+      mockPrisma.studyGroupPost.update.mockResolvedValueOnce({ id: 'p1', likeCount: 1 });
+      expect((await service.likePost('p1', 'u1')).liked).toBe(true);
+
+      // 2nd: on → off
+      setupPostAndGroup();
+      mockPrisma.studyGroupPostLike.findUnique.mockResolvedValueOnce({ id: 'l1' });
+      mockPrisma.studyGroupPostLike.delete.mockResolvedValueOnce({});
+      mockPrisma.studyGroupPost.update.mockResolvedValueOnce({ id: 'p1', likeCount: 0 });
+      expect((await service.likePost('p1', 'u1')).liked).toBe(false);
+
+      // 3rd: off → on
+      setupPostAndGroup();
+      mockPrisma.studyGroupPostLike.findUnique.mockResolvedValueOnce(null);
+      mockPrisma.studyGroupPostLike.create.mockResolvedValueOnce({ id: 'l2' });
+      mockPrisma.studyGroupPost.update.mockResolvedValueOnce({ id: 'p1', likeCount: 1 });
+      const third = await service.likePost('p1', 'u1');
+      expect(third.likeCount).toBe(1);
     });
   });
 

@@ -40,6 +40,18 @@ export class BillingController {
   }
 
   /**
+   * 결제 verify (P1-5) — PaymentResultPage 가 서버 신뢰원에서 성공/실패 판정.
+   * URL 파라미터 기반 위조 차단. mock 단계는 최근 10분 내 succeeded payment 검사.
+   */
+  @Get('me/verify-recent')
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({ summary: '최근 결제 검증 (PaymentResultPage 용)' })
+  verifyRecent(@Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.verifyRecentPayment(req.user.id);
+  }
+
+  /**
    * 사용자 self-cancel — currentPeriodEnd 까지 유효.
    */
   @Post('me/cancel')

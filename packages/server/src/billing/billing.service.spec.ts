@@ -22,6 +22,7 @@ const mockPrisma: any = {
   payment: {
     create: jest.fn(),
     findMany: jest.fn(),
+    findFirst: jest.fn(),
   },
 };
 
@@ -241,6 +242,64 @@ describe('BillingService', () => {
           data: expect.objectContaining({ plan: 'pro', provider: 'manual' }),
         }),
       );
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // verifyRecentPayment — PaymentResultPage 서버 신뢰원 (P1-5)
+  // ─────────────────────────────────────────────
+  describe('verifyRecentPayment', () => {
+    it('최근 10분 내 payment 없음 → verified=false (no_recent_payment)', async () => {
+      mockPrisma.payment.findFirst.mockResolvedValueOnce(null);
+      const result = await service.verifyRecentPayment('u1');
+      expect(result.verified).toBe(false);
+      expect((result as any).reason).toBe('no_recent_payment');
+    });
+
+    it('subscription inactive → verified=false (no_active_subscription)', async () => {
+      mockPrisma.payment.findFirst.mockResolvedValueOnce({
+        id: 'pay1',
+        amount: 9900,
+        paidAt: new Date(),
+        subscription: { id: 's1', status: 'cancelled', plan: 'pro' },
+      });
+      const result = await service.verifyRecentPayment('u1');
+      expect(result.verified).toBe(false);
+      expect((result as any).reason).toBe('no_active_subscription');
+    });
+
+    it('active subscription + 최근 결제 → verified=true + plan/planName/currentPeriodEnd', async () => {
+      const now = new Date();
+      mockPrisma.payment.findFirst.mockResolvedValueOnce({
+        id: 'pay1',
+        amount: 9900,
+        paidAt: now,
+        subscription: {
+          id: 's1',
+          status: 'active',
+          plan: 'pro',
+          provider: 'manual',
+          currentPeriodEnd: new Date(now.getTime() + 7 * 86400000),
+        },
+      });
+      const result = await service.verifyRecentPayment('u1');
+      expect(result.verified).toBe(true);
+      expect((result as any).plan).toBe('pro');
+      expect((result as any).planName).toBe(PLANS.pro.name);
+      expect((result as any).amount).toBe(9900);
+    });
+
+    it('cutoff (10분) 이전 결제는 무시 — findFirst 의 where 절 검증', async () => {
+      mockPrisma.payment.findFirst.mockResolvedValueOnce(null);
+      await service.verifyRecentPayment('u1');
+      const call = mockPrisma.payment.findFirst.mock.calls[0][0];
+      expect(call.where.userId).toBe('u1');
+      expect(call.where.status).toBe('succeeded');
+      expect(call.where.paidAt.gte).toBeInstanceOf(Date);
+      // cutoff 가 현재로부터 약 10분 전인지
+      const cutoffMs = call.where.paidAt.gte.getTime();
+      expect(Date.now() - cutoffMs).toBeGreaterThan(9.5 * 60 * 1000);
+      expect(Date.now() - cutoffMs).toBeLessThan(10.5 * 60 * 1000);
     });
   });
 });

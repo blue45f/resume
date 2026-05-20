@@ -285,6 +285,45 @@ export class BillingService {
   }
 
   /**
+   * 결제 후 검증 (P1-5) — PaymentResultPage 가 서버 신뢰원에서 성공/실패 판정.
+   * 클라가 URL 파라미터로 success/fail 을 결정하는 패턴은 위조 가능하므로 사용 금지.
+   *
+   * mock 단계: 사용자의 가장 최근 succeeded payment 가 last 10분 내에 있으면 검증 성공.
+   * 실 PG 연동 시: 같은 endpoint 가 { paymentKey, orderId, amount } 를 받아
+   *   - Toss/카카오페이 verify API 호출 → external 거래 id 매칭
+   *   - amount 가 PG 가 confirm 한 금액과 일치하는지 검증
+   *   - 일치 시 payment 상태 succeeded 로 업데이트 + subscription 활성화
+   */
+  async verifyRecentPayment(userId: string) {
+    const cutoff = new Date(Date.now() - 10 * 60 * 1000);
+    const payment = await (this.prisma as any).payment.findFirst({
+      where: { userId, status: 'succeeded', paidAt: { gte: cutoff } },
+      orderBy: { paidAt: 'desc' },
+      include: { subscription: true },
+    });
+
+    if (!payment) {
+      return { verified: false as const, reason: 'no_recent_payment' };
+    }
+
+    const sub = payment.subscription;
+    if (!sub || sub.status !== 'active') {
+      return { verified: false as const, reason: 'no_active_subscription' };
+    }
+
+    const planMeta = PLANS[sub.plan as PlanId] || null;
+    return {
+      verified: true as const,
+      plan: sub.plan,
+      planName: planMeta?.name,
+      provider: sub.provider,
+      currentPeriodEnd: sub.currentPeriodEnd,
+      paidAt: payment.paidAt,
+      amount: payment.amount,
+    };
+  }
+
+  /**
    * 사용량 quota 검증 — feature gate enforcement.
    * 무료 플랜이 한도 도달 시 throw, Pro/Enterprise 는 통과 (-1 = unlimited).
    *

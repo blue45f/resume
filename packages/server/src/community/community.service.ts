@@ -18,6 +18,29 @@ export class CommunityService {
     private readonly systemConfig: SystemConfigService,
   ) {}
 
+  /**
+   * view-count dedup: 같은 viewer 가 같은 post 를 짧은 시간에 반복 조회 시 viewCount 부풀림 방지.
+   * key = `${postId}:${viewerId ?? 'anon'}` → 마지막 view 시각 (ms).
+   * Map 크기가 10000 초과 시 오래된 entry 절반 제거.
+   */
+  private readonly recentViews = new Map<string, number>();
+  private static readonly VIEW_DEDUP_MS = 5 * 60 * 1000;
+
+  private shouldCountView(postId: string, viewerId?: string): boolean {
+    const key = `${postId}:${viewerId ?? 'anon'}`;
+    const now = Date.now();
+    const last = this.recentViews.get(key);
+    if (last !== undefined && now - last < CommunityService.VIEW_DEDUP_MS) return false;
+    this.recentViews.set(key, now);
+    if (this.recentViews.size > 10_000) {
+      const cutoff = now - CommunityService.VIEW_DEDUP_MS;
+      for (const [k, t] of this.recentViews) {
+        if (t < cutoff) this.recentViews.delete(k);
+      }
+    }
+    return true;
+  }
+
   // ── 커뮤니티 게시물 신고 + autoHidden ─────────────────────
   async reportPost(postId: string, reporterId: string, reason: string, detail: string) {
     if (!reporterId) throw new ForbiddenException('로그인이 필요합니다');
@@ -146,11 +169,7 @@ export class CommunityService {
   }
 
   async getPost(id: string, viewerId?: string) {
-    await this.prisma.communityPost.update({
-      where: { id },
-      data: { viewCount: { increment: 1 } },
-    });
-
+    // 1) 존재 확인 먼저 — 없는 글에 update 가 발생하던 P2007 / viewCount 부풀림 차단.
     const post = await this.prisma.communityPost.findUnique({
       where: { id },
       include: {
@@ -165,6 +184,17 @@ export class CommunityService {
     });
 
     if (!post) return null;
+
+    // 2) 본인 글 제외 + 5분 dedup 통과 시에만 viewCount 증가.
+    if (post.userId !== viewerId && this.shouldCountView(id, viewerId)) {
+      await this.prisma.communityPost
+        .update({
+          where: { id },
+          data: { viewCount: { increment: 1 } },
+        })
+        .catch(() => undefined);
+      post.viewCount += 1;
+    }
 
     let liked = false;
     if (viewerId) {

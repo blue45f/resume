@@ -619,14 +619,45 @@ export class StudyGroupsService {
     return { success: true };
   }
 
+  /**
+   * 게시글 좋아요 — 토글 동작.
+   * `StudyGroupPostLike` unique 제약으로 사용자당 1회 좋아요.
+   * 이미 좋아요한 경우 다시 호출하면 취소.
+   */
   async likePost(postId: string, userId: string) {
-    const post = await this.prisma.studyGroupPost.findUnique({ where: { id: postId } });
+    if (!userId) throw new ForbiddenException('로그인이 필요합니다');
+    const post = await this.prisma.studyGroupPost.findUnique({
+      where: { id: postId },
+      select: { id: true, groupId: true },
+    });
     if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
     await this.assertMemberOrPublic(post.groupId, userId);
-    return this.prisma.studyGroupPost.update({
-      where: { id: postId },
-      data: { likeCount: { increment: 1 } },
+
+    const existing = await this.prisma.studyGroupPostLike.findUnique({
+      where: { postId_userId: { postId, userId } },
     });
+
+    if (existing) {
+      const [, updated] = await this.prisma.$transaction([
+        this.prisma.studyGroupPostLike.delete({ where: { id: existing.id } }),
+        this.prisma.studyGroupPost.update({
+          where: { id: postId },
+          data: { likeCount: { decrement: 1 } },
+          select: { id: true, likeCount: true },
+        }),
+      ]);
+      return { id: updated.id, likeCount: updated.likeCount, liked: false };
+    }
+
+    const [, updated] = await this.prisma.$transaction([
+      this.prisma.studyGroupPostLike.create({ data: { postId, userId } }),
+      this.prisma.studyGroupPost.update({
+        where: { id: postId },
+        data: { likeCount: { increment: 1 } },
+        select: { id: true, likeCount: true },
+      }),
+    ]);
+    return { id: updated.id, likeCount: updated.likeCount, liked: true };
   }
 
   async listQuestions(
