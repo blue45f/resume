@@ -16,7 +16,10 @@ const mockPrisma: any = {
 };
 
 const mockLlm = { generateWithFallback: jest.fn() };
-const mockBilling = { checkQuota: jest.fn().mockResolvedValue(undefined) };
+const mockBilling = {
+  checkQuota: jest.fn().mockResolvedValue(undefined),
+  checkQuotaAtomic: jest.fn().mockResolvedValue(undefined),
+};
 
 describe('InterviewService', () => {
   let service: InterviewService;

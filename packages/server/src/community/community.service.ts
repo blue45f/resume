@@ -267,30 +267,50 @@ export class CommunityService {
     return this.prisma.communityPost.delete({ where: { id } });
   }
 
+  /**
+   * 좋아요 토글 — P2-2: like 삭제/생성 + likeCount 증감을 $transaction 으로 묶어 정합성 확보.
+   * P2-7: 작성자 알림은 24h 내 같은 postId 의 community_like 알림이 있으면 spam 으로 간주, 발송 skip.
+   */
   async toggleLike(postId: string, userId: string) {
     const existing = await this.prisma.communityLike.findUnique({
       where: { postId_userId: { postId, userId } },
     });
 
     if (existing) {
-      await this.prisma.communityLike.delete({ where: { id: existing.id } });
-      await this.prisma.communityPost.update({
-        where: { id: postId },
-        data: { likeCount: { decrement: 1 } },
-      });
-      return { liked: false };
-    } else {
-      await this.prisma.communityLike.create({ data: { postId, userId } });
-      const updated = await this.prisma.communityPost.update({
+      const [, updated] = await this.prisma.$transaction([
+        this.prisma.communityLike.delete({ where: { id: existing.id } }),
+        this.prisma.communityPost.update({
+          where: { id: postId },
+          data: { likeCount: { decrement: 1 } },
+          select: { likeCount: true },
+        }),
+      ]);
+      return { liked: false, likeCount: updated.likeCount };
+    }
+
+    const [, updated] = await this.prisma.$transaction([
+      this.prisma.communityLike.create({ data: { postId, userId } }),
+      this.prisma.communityPost.update({
         where: { id: postId },
         data: { likeCount: { increment: 1 } },
         select: { userId: true, title: true, likeCount: true },
-      });
+      }),
+    ]);
 
-      // 좋아요 알림: 게시글 작성자에게 (본인 좋아요/익명 제외, 10-tick 배수만 통지)
-      if (updated.userId && updated.userId !== userId) {
-        const threshold = updated.likeCount <= 5 || updated.likeCount % 10 === 0;
-        if (threshold) {
+    if (updated.userId && updated.userId !== userId) {
+      const threshold = updated.likeCount <= 5 || updated.likeCount % 10 === 0;
+      if (threshold) {
+        // P2-7: 24h 내 같은 postId 좋아요 알림이 이미 있으면 dedup
+        const recentNotif = await (this.prisma as any).notification.findFirst({
+          where: {
+            userId: updated.userId,
+            type: 'community_like',
+            link: `/community/${postId}`,
+            createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+          },
+          select: { id: true },
+        });
+        if (!recentNotif) {
           await this.notifications
             .create(
               updated.userId,
@@ -301,8 +321,8 @@ export class CommunityService {
             .catch(() => undefined);
         }
       }
-      return { liked: true };
     }
+    return { liked: true, likeCount: updated.likeCount };
   }
 
   async getComments(postId: string) {

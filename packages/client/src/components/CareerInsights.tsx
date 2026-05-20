@@ -776,7 +776,7 @@ export default function CareerInsights() {
                       boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                       fontSize: 11,
                     }}
-                    formatter={(v: number, name: string) => [`${v}점`, name]}
+                    formatter={(v, name) => [`${Number(v ?? 0)}점`, String(name ?? '')]}
                   />
                   <Bar dataKey="점수" radius={[3, 3, 0, 0]}>
                     {marketValue.breakdown.map((b, i) => (

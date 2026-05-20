@@ -35,6 +35,8 @@ export default function StudyGroupDetailPage() {
   const user = getUser();
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
+  // P2-5 — join/leave 직후 server 응답이 stale 일 수 있어 (members[] 빈 배열 race) 낙관적 상태 유지.
+  const [localMembership, setLocalMembership] = useState<'joined' | 'left' | null>(null);
 
   const { data: group, isLoading } = useQuery({
     queryKey: ['study-group', id],
@@ -104,8 +106,21 @@ export default function StudyGroupDetailPage() {
     if (group) document.title = `${group.name} — 스터디`;
   }, [group]);
 
-  const isMember = group?.members?.some((m) => m.userId === user?.id);
+  // P2-5 — isMember 계산:
+  //   1) localMembership 이 'joined' / 'left' 인 경우 그대로 우선 (낙관 업데이트)
+  //   2) localMembership 이 null 이면 server 응답의 members 배열로 판정
+  // owner 는 별도 — 항상 member 권한 보유.
+  const serverIsMember = !!user?.id && (group?.members?.some((m) => m.userId === user.id) ?? false);
   const isOwner = group?.ownerId === user?.id;
+  const isMember =
+    isOwner ||
+    (localMembership === 'joined' ? true : localMembership === 'left' ? false : serverIsMember);
+
+  // 서버 데이터에 local 상태가 반영되면 (members 가 일치) local 초기화
+  useEffect(() => {
+    if (localMembership === 'joined' && serverIsMember) setLocalMembership(null);
+    if (localMembership === 'left' && !serverIsMember) setLocalMembership(null);
+  }, [serverIsMember, localMembership]);
 
   const handleJoin = async () => {
     if (!user) {
@@ -116,6 +131,7 @@ export default function StudyGroupDetailPage() {
     setBusy(true);
     try {
       await joinStudyGroup(id);
+      setLocalMembership('joined');
       toast(tx('toast.joined'), 'success');
       qc.invalidateQueries({ queryKey: ['study-group', id] });
     } catch (err) {
@@ -130,6 +146,7 @@ export default function StudyGroupDetailPage() {
     setBusy(true);
     try {
       await leaveStudyGroup(id);
+      setLocalMembership('left');
       toast(tx('toast.left'), 'info');
       qc.invalidateQueries({ queryKey: ['study-group', id] });
     } catch (err) {

@@ -198,6 +198,67 @@ describe('BillingService', () => {
     });
   });
 
+  // ─────────────────────────────────────────────
+  // checkQuotaAtomic — advisory lock 기반 race 차단 (P2-6)
+  // ─────────────────────────────────────────────
+  describe('checkQuotaAtomic', () => {
+    const mockTx = {
+      $executeRawUnsafe: jest.fn().mockResolvedValue(1),
+      user: { findUnique: jest.fn() },
+    };
+    beforeEach(() => {
+      mockTx.$executeRawUnsafe.mockClear();
+      mockTx.user.findUnique.mockReset();
+      mockPrisma.$transaction = jest.fn(async (fn: (tx: typeof mockTx) => Promise<void>) =>
+        fn(mockTx),
+      );
+    });
+
+    it('한도 미만 → 통과 + advisory lock 호출', async () => {
+      mockTx.user.findUnique.mockResolvedValue({ plan: 'free' });
+      const counter = jest.fn().mockResolvedValue(2);
+      await expect(
+        service.checkQuotaAtomic('u1', 'interviewAnalyze', counter),
+      ).resolves.toBeUndefined();
+      expect(mockTx.$executeRawUnsafe).toHaveBeenCalledWith(
+        expect.stringContaining('pg_advisory_xact_lock'),
+        expect.any(BigInt),
+      );
+      expect(counter).toHaveBeenCalledWith(mockTx);
+    });
+
+    it('한도 도달 → BadRequest', async () => {
+      mockTx.user.findUnique.mockResolvedValue({ plan: 'free' });
+      const counter = jest.fn().mockResolvedValue(5);
+      await expect(service.checkQuotaAtomic('u1', 'interviewAnalyze', counter)).rejects.toThrow(
+        /한도/,
+      );
+    });
+
+    it('Enterprise unlimited (-1) → 카운트 호출 skip', async () => {
+      mockTx.user.findUnique.mockResolvedValue({ plan: 'enterprise' });
+      const counter = jest.fn();
+      await service.checkQuotaAtomic('u1', 'interviewAnalyze', counter);
+      expect(counter).not.toHaveBeenCalled();
+    });
+
+    it('빈 userId → BadRequest', async () => {
+      await expect(service.checkQuotaAtomic('', 'aiAnalyze', jest.fn())).rejects.toThrow(/userId/);
+    });
+
+    it('같은 userId+feature 는 동일 lockKey 생성 (deterministic)', async () => {
+      mockTx.user.findUnique.mockResolvedValue({ plan: 'free' });
+      const counter1 = jest.fn().mockResolvedValue(0);
+      await service.checkQuotaAtomic('user-a', 'aiAnalyze', counter1);
+      const firstCall = mockTx.$executeRawUnsafe.mock.calls[0];
+      mockTx.$executeRawUnsafe.mockClear();
+      const counter2 = jest.fn().mockResolvedValue(0);
+      await service.checkQuotaAtomic('user-a', 'aiAnalyze', counter2);
+      const secondCall = mockTx.$executeRawUnsafe.mock.calls[0];
+      expect(firstCall[1]).toBe(secondCall[1]);
+    });
+  });
+
   describe('currentMonthStart', () => {
     it('현재 월의 1일 UTC 00:00 반환', () => {
       const r = BillingService.currentMonthStart();
@@ -252,8 +313,8 @@ describe('BillingService', () => {
     it('최근 10분 내 payment 없음 → verified=false (no_recent_payment)', async () => {
       mockPrisma.payment.findFirst.mockResolvedValueOnce(null);
       const result = await service.verifyRecentPayment('u1');
-      expect(result.verified).toBe(false);
-      expect((result as any).reason).toBe('no_recent_payment');
+      if (result.verified) throw new Error('expected verified=false');
+      expect(result.reason).toBe('no_recent_payment');
     });
 
     it('subscription inactive → verified=false (no_active_subscription)', async () => {
@@ -264,8 +325,8 @@ describe('BillingService', () => {
         subscription: { id: 's1', status: 'cancelled', plan: 'pro' },
       });
       const result = await service.verifyRecentPayment('u1');
-      expect(result.verified).toBe(false);
-      expect((result as any).reason).toBe('no_active_subscription');
+      if (result.verified) throw new Error('expected verified=false');
+      expect(result.reason).toBe('no_active_subscription');
     });
 
     it('active subscription + 최근 결제 → verified=true + plan/planName/currentPeriodEnd', async () => {
@@ -283,10 +344,10 @@ describe('BillingService', () => {
         },
       });
       const result = await service.verifyRecentPayment('u1');
-      expect(result.verified).toBe(true);
-      expect((result as any).plan).toBe('pro');
-      expect((result as any).planName).toBe(PLANS.pro.name);
-      expect((result as any).amount).toBe(9900);
+      if (!result.verified) throw new Error('expected verified=true');
+      expect(result.plan).toBe('pro');
+      expect(result.planName).toBe(PLANS.pro.name);
+      expect(result.amount).toBe(9900);
     });
 
     it('cutoff (10분) 이전 결제는 무시 — findFirst 의 where 절 검증', async () => {

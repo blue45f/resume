@@ -330,8 +330,8 @@ export class BillingService {
    * 사용처: AI 분석 endpoint 진입 시 (이력서 transform / 면접 답변 analyze).
    * 한도는 PLANS[plan].features 의 aiAnalyzePerMonth / interviewAnalyzePerMonth.
    *
-   * @param feature 'aiAnalyze' | 'interviewAnalyze' — 카운트 카테고리
-   * @param countSinceMonthStart 이번 달 사용 횟수 (caller 가 측정)
+   * @deprecated count + check 가 별도 트랜잭션이라 동시 요청 race 가능 — `checkQuotaAtomic` 사용.
+   *   유지 사유: 기존 호출부 호환.
    */
   async checkQuota(
     userId: string,
@@ -356,6 +356,66 @@ export class BillingService {
         } 한도(${limit}회)를 초과했습니다. 플랜을 업그레이드하거나 다음 달까지 기다려주세요.`,
       );
     }
+  }
+
+  /**
+   * P2-6 — atomic quota check: Postgres advisory lock 으로 같은 (userId, feature) 동시 요청 직렬화.
+   *
+   * 흐름:
+   *   1) $transaction 안에서 pg_advisory_xact_lock — 같은 user+feature 쌍에 대해 직렬 진입.
+   *   2) lock 보유 상태에서 count(tx) 호출 → 신뢰 가능한 카운트.
+   *   3) limit 초과 시 BadRequest.
+   *   4) tx 종료 시 lock 자동 해제 (서로 다른 user+feature 는 막지 않음).
+   *
+   * 한계: LLM 호출 자체가 tx 내부에 있지는 않으므로 count → LLM 사이 시간차는 존재.
+   *   하지만 이전 (count 와 검증이 별도 round-trip) 패턴 대비 race window 가 ms 단위로 축소됨.
+   *   엄격한 atomicity 가 필요하면 caller 가 LLM 호출 전후로 placeholder row 를 reserve 하는 패턴 사용.
+   */
+  async checkQuotaAtomic(
+    userId: string,
+    feature: 'aiAnalyze' | 'interviewAnalyze',
+    counterFn: (tx: Parameters<Parameters<PrismaService['$transaction']>[0]>[0]) => Promise<number>,
+  ): Promise<void> {
+    if (!userId) throw new BadRequestException('userId 가 필요합니다');
+    // pg_advisory_xact_lock 은 64bit 정수 1개 또는 32bit×2 를 받음 — userId+feature 해시.
+    const lockKey = BillingService.hashToInt(`${userId}:${feature}`);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock($1::bigint)', lockKey);
+
+      const user = await tx.user.findUnique({
+        where: { id: userId },
+        select: { plan: true },
+      });
+      const planId = (user?.plan as PlanId) || 'free';
+      const plan = PLANS[planId] || PLANS.free;
+      const limit =
+        feature === 'aiAnalyze'
+          ? plan.features.aiAnalyzePerMonth
+          : plan.features.interviewAnalyzePerMonth;
+      if (limit === -1) return; // unlimited
+
+      const used = await counterFn(tx);
+      if (used >= limit) {
+        throw new BadRequestException(
+          `${plan.name} 플랜의 월간 ${
+            feature === 'aiAnalyze' ? 'AI 분석' : '면접 답변 분석'
+          } 한도(${limit}회)를 초과했습니다. 플랜을 업그레이드하거나 다음 달까지 기다려주세요.`,
+        );
+      }
+    });
+  }
+
+  /**
+   * 문자열을 64bit signed int 로 매핑 (advisory lock key 용).
+   * djb2 변형 — 같은 입력 → 같은 출력, 분포는 큰 시드 공간으로 균등.
+   */
+  private static hashToInt(input: string): bigint {
+    let h = 5381n;
+    for (let i = 0; i < input.length; i++) {
+      h = (h * 33n + BigInt(input.charCodeAt(i))) & 0x7fffffffffffffffn;
+    }
+    return h;
   }
 
   /** 이번 달 시작 시각 (UTC). countSince... 측정용. */

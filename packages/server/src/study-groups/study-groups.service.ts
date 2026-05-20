@@ -90,6 +90,15 @@ export class StudyGroupsService {
       where.memberCount = { gte: filters.minMembers };
     }
 
+    // P2-3 — openOnly 를 DB 레벨에서 처리 (member_count < max_members).
+    // Prisma 의 컬럼-컬럼 비교 (fields 참조) 사용 → pagination 정확성 확보.
+    if (filters.openOnly) {
+      where.memberCount = {
+        ...(where.memberCount || {}),
+        lt: this.prisma.studyGroup.fields.maxMembers,
+      };
+    }
+
     const orderBy: any = (() => {
       switch (filters.sort) {
         case 'oldest':
@@ -107,7 +116,7 @@ export class StudyGroupsService {
       }
     })();
 
-    const [rawItems, total] = await Promise.all([
+    const [items, total] = await Promise.all([
       this.prisma.studyGroup.findMany({
         where,
         orderBy,
@@ -119,11 +128,6 @@ export class StudyGroupsService {
       }),
       this.prisma.studyGroup.count({ where }),
     ]);
-
-    // openOnly 는 Prisma 에서 두 컬럼 비교가 까다로워 애플리케이션 레벨에서 필터링
-    const items = filters.openOnly
-      ? rawItems.filter((g) => g.memberCount < g.maxMembers)
-      : rawItems;
 
     return {
       items,
@@ -549,6 +553,7 @@ export class StudyGroupsService {
     });
     const isPinned = category === 'notice' && group?.ownerId === userId;
     const tags = this.normalizeTags(data.tags);
+    const attachments = this.normalizeAttachments(data.attachments);
     return this.prisma.studyGroupPost.create({
       data: {
         group: { connect: { id: groupId } },
@@ -556,8 +561,8 @@ export class StudyGroupsService {
         title,
         content,
         category,
-        attachments: (data.attachments ?? []) as any,
-        tags: tags as any,
+        attachments,
+        tags,
         isPinned,
       },
     });
@@ -574,6 +579,54 @@ export class StudyGroupsService {
       seen.add(v);
       out.push(v);
       if (out.length >= 10) break;
+    }
+    return out;
+  }
+
+  /**
+   * P2-9 — 게시글 첨부 JSON 검증 + sanitize.
+   * URL 은 https 또는 cloudinary/이미 host whitelist 만 허용. file:// , javascript:, data: URI 차단.
+   * shape: { url, name, size, type } 각 필드 길이/타입 검증. 최대 10개.
+   */
+  private static readonly ALLOWED_ATTACHMENT_HOSTS = [
+    'res.cloudinary.com',
+    'storage.googleapis.com',
+    'firebasestorage.googleapis.com',
+    'lh3.googleusercontent.com',
+    'images.unsplash.com',
+  ];
+
+  private normalizeAttachments(
+    raw: unknown,
+  ): Array<{ url: string; name: string; size: number; type: string }> {
+    if (!Array.isArray(raw)) return [];
+    const out: Array<{ url: string; name: string; size: number; type: string }> = [];
+    for (const item of raw) {
+      if (out.length >= 10) break;
+      if (!item || typeof item !== 'object') continue;
+      const obj = item as Record<string, unknown>;
+      const url = typeof obj.url === 'string' ? obj.url.trim() : '';
+      const name = typeof obj.name === 'string' ? obj.name.trim().slice(0, 200) : '';
+      const size = typeof obj.size === 'number' && Number.isFinite(obj.size) ? obj.size : 0;
+      const type = typeof obj.type === 'string' ? obj.type.trim().slice(0, 100) : '';
+
+      // URL 검증 — https + 허용 host 화이트리스트
+      if (!url || url.length > 2048) continue;
+      let parsed: URL;
+      try {
+        parsed = new URL(url);
+      } catch {
+        continue;
+      }
+      if (parsed.protocol !== 'https:') continue;
+      const hostOk = StudyGroupsService.ALLOWED_ATTACHMENT_HOSTS.some(
+        (h) => parsed.hostname === h || parsed.hostname.endsWith(`.${h}`),
+      );
+      if (!hostOk) continue;
+      // size: 50MB 상한
+      if (size < 0 || size > 50 * 1024 * 1024) continue;
+
+      out.push({ url, name, size, type });
     }
     return out;
   }

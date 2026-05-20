@@ -492,6 +492,104 @@ describe('StudyGroupsService', () => {
   });
 
   // ─────────────────────────────────────────────
+  // normalizeAttachments — JSON shape + URL whitelist (P2-9)
+  // ─────────────────────────────────────────────
+  describe('normalizeAttachments (P2-9)', () => {
+    // private 메서드 접근 — 동작 검증을 위해 캐스팅.
+    const normalize = (raw: unknown) =>
+      (
+        service as unknown as { normalizeAttachments: (raw: unknown) => unknown[] }
+      ).normalizeAttachments(raw);
+
+    it('null/undefined/string 입력 → []', () => {
+      expect(normalize(null)).toEqual([]);
+      expect(normalize(undefined)).toEqual([]);
+      expect(normalize('attack')).toEqual([]);
+    });
+
+    it('javascript: / data: / http: URL 차단', () => {
+      const out = normalize([
+        { url: 'javascript:alert(1)', name: 'a', size: 1, type: 'x' },
+        { url: 'data:text/html,<script>x</script>', name: 'b', size: 1, type: 'x' },
+        { url: 'http://res.cloudinary.com/x.png', name: 'c', size: 1, type: 'x' }, // http 거절
+      ]);
+      expect(out).toEqual([]);
+    });
+
+    it('https + 허용 host (cloudinary) → 통과', () => {
+      const out = normalize([
+        {
+          url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+          name: 'sample.jpg',
+          size: 12345,
+          type: 'image/jpeg',
+        },
+      ]);
+      expect(out).toEqual([
+        {
+          url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+          name: 'sample.jpg',
+          size: 12345,
+          type: 'image/jpeg',
+        },
+      ]);
+    });
+
+    it('허용되지 않은 host (evil.com) → 거절', () => {
+      const out = normalize([{ url: 'https://evil.com/x.png', name: 'x', size: 1, type: 'x' }]);
+      expect(out).toEqual([]);
+    });
+
+    it('size 가 50MB 초과 → 거절', () => {
+      const out = normalize([
+        {
+          url: 'https://res.cloudinary.com/x.png',
+          name: 'huge',
+          size: 100 * 1024 * 1024,
+          type: 'x',
+        },
+      ]);
+      expect(out).toEqual([]);
+    });
+
+    it('10개 초과 → 첫 10개만 유지', () => {
+      const many = Array.from({ length: 20 }, (_, i) => ({
+        url: `https://res.cloudinary.com/${i}.png`,
+        name: String(i),
+        size: 1,
+        type: 'image/png',
+      }));
+      const out = normalize(many);
+      expect(out).toHaveLength(10);
+    });
+
+    it('name 200자 초과 → slice, type 100자 초과 → slice', () => {
+      const out = normalize([
+        {
+          url: 'https://res.cloudinary.com/x.png',
+          name: 'a'.repeat(500),
+          size: 1,
+          type: 'b'.repeat(500),
+        },
+      ]) as Array<{ name: string; type: string }>;
+      expect(out[0].name).toHaveLength(200);
+      expect(out[0].type).toHaveLength(100);
+    });
+
+    it('subdomain (sub.res.cloudinary.com) 도 허용', () => {
+      const out = normalize([
+        {
+          url: 'https://sub.res.cloudinary.com/x.png',
+          name: 'x',
+          size: 1,
+          type: 'image/png',
+        },
+      ]);
+      expect(out).toHaveLength(1);
+    });
+  });
+
+  // ─────────────────────────────────────────────
   // 문제 답변 (StudyGroupQuestionAnswer) — 신규
   // ─────────────────────────────────────────────
   describe('createAnswer', () => {

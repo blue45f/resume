@@ -30,7 +30,17 @@ const mockPrisma = {
     create: jest.fn(),
     delete: jest.fn(),
   },
+  notification: {
+    findFirst: jest.fn(),
+  },
+  $transaction: jest.fn(),
 };
+// $transaction 구현은 mockPrisma 참조가 필요 — 초기화 후 별도 설정 (circular type 회피)
+mockPrisma.$transaction.mockImplementation(async (arg: unknown) => {
+  if (typeof arg === 'function') return (arg as (p: typeof mockPrisma) => unknown)(mockPrisma);
+  if (Array.isArray(arg)) return Promise.all(arg);
+  return arg;
+});
 
 const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
 const mockForbiddenWords = { validateOrThrow: jest.fn().mockResolvedValue({ blocked: false }) };
@@ -172,20 +182,85 @@ describe('CommunityService', () => {
   });
 
   describe('toggleLike', () => {
-    it('좋아요 추가', async () => {
+    it('좋아요 추가 — likeCount 응답 포함', async () => {
       mockPrisma.communityLike.findUnique.mockResolvedValue(null);
       mockPrisma.communityLike.create.mockResolvedValue({});
-      mockPrisma.communityPost.update.mockResolvedValue({});
+      mockPrisma.communityPost.update.mockResolvedValue({
+        userId: 'author',
+        title: 't',
+        likeCount: 1,
+      });
+      mockPrisma.notification.findFirst.mockResolvedValue(null);
       const result = await service.toggleLike('p1', 'u1');
-      expect(result.liked).toBe(true);
+      expect(result).toEqual({ liked: true, likeCount: 1 });
     });
 
     it('좋아요 취소', async () => {
       mockPrisma.communityLike.findUnique.mockResolvedValue({ id: 'l1' });
       mockPrisma.communityLike.delete.mockResolvedValue({});
-      mockPrisma.communityPost.update.mockResolvedValue({});
+      mockPrisma.communityPost.update.mockResolvedValue({ likeCount: 0 });
       const result = await service.toggleLike('p1', 'u1');
-      expect(result.liked).toBe(false);
+      expect(result).toEqual({ liked: false, likeCount: 0 });
+    });
+
+    // P2-2 — $transaction 으로 like + likeCount 묶음
+    it('좋아요 토글이 $transaction 으로 실행됨', async () => {
+      mockPrisma.communityLike.findUnique.mockResolvedValue(null);
+      mockPrisma.communityLike.create.mockResolvedValue({});
+      mockPrisma.communityPost.update.mockResolvedValue({
+        userId: 'author',
+        title: 't',
+        likeCount: 1,
+      });
+      mockPrisma.notification.findFirst.mockResolvedValue(null);
+      await service.toggleLike('p1', 'u1');
+      expect(mockPrisma.$transaction).toHaveBeenCalled();
+    });
+
+    // P2-7 — like 알림 spam dedup
+    it('24h 내 같은 postId 알림 존재 시 dedup — notifications.create 호출 안함', async () => {
+      mockPrisma.communityLike.findUnique.mockResolvedValue(null);
+      mockPrisma.communityLike.create.mockResolvedValue({});
+      mockPrisma.communityPost.update.mockResolvedValue({
+        userId: 'author',
+        title: '제목',
+        likeCount: 10,
+      });
+      mockPrisma.notification.findFirst.mockResolvedValueOnce({ id: 'n-existing' });
+      await service.toggleLike('p1', 'liker');
+      expect(mockNotifications.create).not.toHaveBeenCalled();
+    });
+
+    it('24h 내 알림 없음 + likeCount 10 → 작성자 알림', async () => {
+      mockPrisma.communityLike.findUnique.mockResolvedValue(null);
+      mockPrisma.communityLike.create.mockResolvedValue({});
+      mockPrisma.communityPost.update.mockResolvedValue({
+        userId: 'author',
+        title: '제목',
+        likeCount: 10,
+      });
+      mockPrisma.notification.findFirst.mockResolvedValueOnce(null);
+      await service.toggleLike('p1', 'liker');
+      expect(mockNotifications.create).toHaveBeenCalledWith(
+        'author',
+        'community_like',
+        expect.stringContaining('10'),
+        '/community/p1',
+      );
+    });
+
+    it('본인 좋아요 → 알림 발송 안함', async () => {
+      mockPrisma.communityLike.findUnique.mockResolvedValue(null);
+      mockPrisma.communityLike.create.mockResolvedValue({});
+      mockPrisma.communityPost.update.mockResolvedValue({
+        userId: 'me',
+        title: '제목',
+        likeCount: 10,
+      });
+      await service.toggleLike('p1', 'me');
+      expect(mockNotifications.create).not.toHaveBeenCalled();
+      // dedup 조회도 불필요
+      expect(mockPrisma.notification.findFirst).not.toHaveBeenCalled();
     });
   });
 

@@ -51,16 +51,17 @@ export class InterviewService {
       throw new BadRequestException('답변은 3000자 이내여야 합니다');
     }
 
-    // Quota enforce — 이번 달 사용량 체크
+    // Quota enforce (P2-6) — atomic count under advisory lock 으로 동시 요청 race 차단
     const monthStart = BillingService.currentMonthStart();
-    const usedThisMonth = await this.prisma.interviewAnswer.count({
-      where: {
-        userId,
-        analysisScore: { not: null },
-        analyzedAt: { gte: monthStart },
-      },
-    });
-    await this.billing.checkQuota(userId, 'interviewAnalyze', usedThisMonth);
+    await this.billing.checkQuotaAtomic(userId, 'interviewAnalyze', (tx) =>
+      tx.interviewAnswer.count({
+        where: {
+          userId,
+          analysisScore: { not: null },
+          analyzedAt: { gte: monthStart },
+        },
+      }),
+    );
 
     const systemPrompt = `당신은 한국 채용 시장 전문 면접 코치입니다. 면접 답변을 분석하여 JSON 으로 응답하세요. 마크다운/추가 설명 금지.
 

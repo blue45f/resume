@@ -590,7 +590,7 @@ function HorizontalBarChart({
               boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
               fontSize: 12,
             }}
-            formatter={(v: number) => [v.toLocaleString(), '횟수']}
+            formatter={(v) => [Number(v ?? 0).toLocaleString(), '횟수']}
           />
           <Bar dataKey="value" radius={[0, 4, 4, 0]}>
             {items.map((_, i) => (
@@ -636,7 +636,7 @@ function PlanPieChart({ stats }: { stats: Stats }) {
               boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
               fontSize: 12,
             }}
-            formatter={(v: number, name: string) => [`${v}명`, name]}
+            formatter={(v, name) => [`${Number(v ?? 0)}명`, String(name ?? '')]}
           />
           <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: 11 }} />
         </PieChart>

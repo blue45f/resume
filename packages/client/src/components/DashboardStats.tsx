@@ -200,7 +200,7 @@ export default function DashboardStats() {
                       boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                       fontSize: 12,
                     }}
-                    formatter={(v: number) => [`${v}회`, '조회수']}
+                    formatter={(v) => [`${Number(v ?? 0)}회`, '조회수']}
                   />
                   <Area
                     type="monotone"
@@ -245,7 +245,7 @@ export default function DashboardStats() {
                       boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                       fontSize: 12,
                     }}
-                    formatter={(v: number, name: string) => [`${v}개`, name]}
+                    formatter={(v, name) => [`${Number(v ?? 0)}개`, String(name ?? '')]}
                   />
                 </PieChart>
               </ResponsiveContainer>
