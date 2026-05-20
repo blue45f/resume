@@ -60,6 +60,9 @@ model User {
   ownedStudyGroups        StudyGroup[]               @relation("GroupOwner")
   studyGroupMemberships   StudyGroupMember[]         @relation("GroupMember")
   studyGroupQuestions     StudyGroupQuestion[]       @relation("GroupQuestion")
+  studyGroupQuestionAnswers StudyGroupQuestionAnswer[] @relation("GroupQuestionAnswer")
+  studyGroupQuestionAnswerVotes StudyGroupQuestionAnswerVote[] @relation("GroupQuestionAnswerVote")
+  studyGroupQuestionVotes StudyGroupQuestionVote[]   @relation("GroupQuestionVote")
   studyGroupPosts         StudyGroupPost[]           @relation("GroupPost")
   studyGroupPostComments  StudyGroupPostComment[]    @relation("GroupPostComment")
   studyGroupPostReactions StudyGroupPostReaction[]   @relation("GroupPostReaction")
@@ -1237,13 +1240,72 @@ model StudyGroupQuestion {
   category     String   @default("")
   difficulty   String   @default("intermediate")
   upvotes      Int      @default(0)
+  answerCount  Int      @default(0) @map("answer_count")
   createdAt    DateTime @default(now()) @map("created_at")
 
-  group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user  User       @relation("GroupQuestion", fields: [userId], references: [id], onDelete: Cascade)
+  group   StudyGroup                 @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User                       @relation("GroupQuestion", fields: [userId], references: [id], onDelete: Cascade)
+  answers StudyGroupQuestionAnswer[]
+  votes   StudyGroupQuestionVote[]
 
   @@index([groupId])
+  @@index([groupId, upvotes])
   @@map("study_group_questions")
+}
+
+/// 스터디 문제 추천(upvote) — (questionId, userId) unique 로 중복 추천 방지.
+model StudyGroupQuestionVote {
+  id         String   @id @default(uuid())
+  questionId String   @map("question_id")
+  userId     String   @map("user_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  question StudyGroupQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User               @relation("GroupQuestionVote", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, userId])
+  @@index([userId])
+  @@map("study_group_question_votes")
+}
+
+/// 스터디 문제에 대한 멤버 답변 — 멤버끼리 답변을 비교/공유하고 좋아요로 베스트 답변을 선별.
+/// parentId 로 1단계 답글 (코멘트 형식) 지원. upvote 는 StudyGroupQuestionAnswerVote 별도 테이블 (중복 방지).
+model StudyGroupQuestionAnswer {
+  id         String   @id @default(uuid())
+  questionId String   @map("question_id")
+  userId     String   @map("user_id")
+  parentId   String?  @map("parent_id")
+  body       String   @db.Text
+  upvotes    Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  question StudyGroupQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User               @relation("GroupQuestionAnswer", fields: [userId], references: [id], onDelete: Cascade)
+  parent   StudyGroupQuestionAnswer?  @relation("AnswerReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  StudyGroupQuestionAnswer[] @relation("AnswerReplies")
+  votes    StudyGroupQuestionAnswerVote[]
+
+  @@index([questionId, createdAt])
+  @@index([questionId, upvotes])
+  @@index([userId])
+  @@index([parentId])
+  @@map("study_group_question_answers")
+}
+
+/// 답변 추천(좋아요) — (answerId, userId) unique 로 중복 추천 방지.
+model StudyGroupQuestionAnswerVote {
+  id        String   @id @default(uuid())
+  answerId  String   @map("answer_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  answer StudyGroupQuestionAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  user   User                     @relation("GroupQuestionAnswerVote", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([answerId, userId])
+  @@index([userId])
+  @@map("study_group_question_answer_votes")
 }
 
 /// 스터디 그룹의 카페형 게시판 — 멤버가 자유롭게 글·자료·공지 공유

@@ -1,0 +1,25 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Docs/Introduction" />
+
+# 이력서공방 컴포넌트 라이브러리
+
+이 Storybook 은 `packages/client` 의 React 컴포넌트 카탈로그입니다.
+
+## 카테고리
+
+- **UI Primitives** — Radix 기반 공용 컴포넌트 (Tabs, Dialog, AlertDialog, ConfirmDialog, Tooltip, Popover)
+- **Resume Analysis** — 이력서 분석 패널 (OverallHealthGauge, CareerGapPanel, QuotableHighlights, UnquantifiedClaimsRewritePanel, KoreanQualityBadge)
+- **Sharing & Job** — 공유/잡 관련 (JobUrlInput, SharedWithMeSection, AllowedViewersDialog)
+- **Profile** — AvatarEditor 등 프로필 위젯
+- **Layout** — EmptyState, Skeleton, PanelSection
+
+## 디자인 시스템
+
+Impeccable Design — neutral + blue/cyan/sapphire + 상태색(emerald/amber/rose).
+**purple 금지**. TailwindCSS 4 토큰을 글로벌로 사용합니다.
+
+## i18n
+
+상단 툴바의 Locale 셀렉터로 한국어/영어/일본어를 토글합니다.
+`tx()` 호출은 `localStorage["resume-locale"]` 을 source of truth 로 사용합니다.

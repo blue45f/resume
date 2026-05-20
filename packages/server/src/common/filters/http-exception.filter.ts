@@ -49,10 +49,40 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       body.path = request.url;
     }
 
-    // 이미 헤더 전송됐으면 set 시도 X (ERR_HTTP_HEADERS_SENT 예방).
-    // stream/SSE 응답 도중 에러가 발생한 케이스 — express 가 자동으로 끊음.
+    // ── 1) request 가 이미 abort 되었으면 socket 에 쓰지 않음 (ERR_STREAM_PREMATURE_CLOSE 예방).
+    //    client 가 끊었을 뿐 에러는 아님 — debug 로그만 남기고 즉시 종료.
+    if (request.aborted || (request.socket && request.socket.destroyed)) {
+      this.logger.debug(
+        `Request aborted by client: ${request.method} ${request.url} — skip filter response`,
+      );
+      // stream 응답 진행 중이었다면 res.end() 호출해 소켓 누수 방지
+      if (!response.writableEnded) {
+        try {
+          response.end();
+        } catch {
+          /* noop */
+        }
+      }
+      return;
+    }
+
+    // ── 2) 이미 헤더 전송됐으면 set 시도 X (ERR_HTTP_HEADERS_SENT 예방).
+    //    stream/SSE 응답 도중 에러가 발생한 케이스 — finalize 만 호출.
     if (response.headersSent) {
-      this.logger.warn(`Headers already sent for ${request.url} — skip filter response`);
+      this.logger.warn(`Headers already sent for ${request.url} — finalize stream`);
+      if (!response.writableEnded) {
+        try {
+          response.end();
+        } catch {
+          /* noop */
+        }
+      }
+      return;
+    }
+
+    // ── 3) writableEnded 도 별도 가드 — drain 후 늦은 에러 케이스 방어.
+    if (response.writableEnded) {
+      this.logger.debug(`Response already ended for ${request.url} — skip filter response`);
       return;
     }
 

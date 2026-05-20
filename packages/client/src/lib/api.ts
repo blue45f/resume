@@ -1140,7 +1140,21 @@ export interface StudyGroupQuestion {
   category: string;
   difficulty: string;
   upvotes: number;
+  answerCount?: number;
   createdAt: string;
+  user?: { id: string; name: string; avatar: string };
+}
+
+export interface StudyGroupQuestionAnswer {
+  id: string;
+  questionId: string;
+  userId: string;
+  parentId: string | null;
+  body: string;
+  upvotes: number;
+  createdAt: string;
+  updatedAt: string;
+  upvoted?: boolean;
   user?: { id: string; name: string; avatar: string };
 }
 
@@ -1222,6 +1236,47 @@ export const addStudyGroupQuestion = (
     method: 'POST',
     body: JSON.stringify(data),
   });
+
+export const upvoteStudyGroupQuestion = (questionId: string) =>
+  request<{ id: string; upvotes: number; upvoted: boolean }>(
+    `${BASE}/study-groups/questions/${questionId}/upvote`,
+    { method: 'POST' },
+  );
+
+// ── 스터디 그룹 문제 답변 ─────────────────────────────────
+export const fetchStudyGroupQuestionAnswers = (
+  questionId: string,
+  opts: { sort?: 'upvotes' | 'recent' } = {},
+) => {
+  const qs = opts.sort ? `?sort=${opts.sort}` : '';
+  return request<StudyGroupQuestionAnswer[]>(
+    `${BASE}/study-groups/questions/${questionId}/answers${qs}`,
+  );
+};
+
+export const createStudyGroupQuestionAnswer = (
+  questionId: string,
+  data: { body: string; parentId?: string | null },
+) =>
+  request<StudyGroupQuestionAnswer>(`${BASE}/study-groups/questions/${questionId}/answers`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const updateStudyGroupQuestionAnswer = (answerId: string, body: string) =>
+  request<StudyGroupQuestionAnswer>(`${BASE}/study-groups/answers/${answerId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ body }),
+  });
+
+export const deleteStudyGroupQuestionAnswer = (answerId: string) =>
+  request<{ success: boolean }>(`${BASE}/study-groups/answers/${answerId}`, { method: 'DELETE' });
+
+export const upvoteStudyGroupQuestionAnswer = (answerId: string) =>
+  request<{ id: string; upvotes: number; upvoted: boolean }>(
+    `${BASE}/study-groups/answers/${answerId}/upvote`,
+    { method: 'POST' },
+  );
 
 // ── 스터디 그룹 카페 게시판 ────────────────────────────────
 export interface StudyGroupPost {

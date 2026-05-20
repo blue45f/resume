@@ -43,3 +43,9 @@ prisma/migrations/**/migration_lock.toml
 .vite
 *.tsbuildinfo
 docs/DEPLOY_KEYS.md
+
+# Storybook 빌드 산출물
+storybook-static/
+
+# Claude worktrees (격리된 에이전트 작업 공간)
+.claude/worktrees/

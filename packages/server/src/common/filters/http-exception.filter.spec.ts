@@ -148,4 +148,87 @@ describe('GlobalExceptionFilter', () => {
     expect(sentStatusMock).not.toHaveBeenCalled();
     expect(sentJsonMock).not.toHaveBeenCalled();
   });
+
+  // ── 추가: P2-4 — abort/writableEnded 가드
+  it('request.aborted === true 면 응답 skip + writableEnded 면 end 호출 안함', () => {
+    const endMock = jest.fn();
+    const statusMock = jest.fn();
+    const host: any = {
+      switchToHttp: () => ({
+        getResponse: () => ({
+          status: statusMock,
+          headersSent: true,
+          writableEnded: true,
+          end: endMock,
+        }),
+        getRequest: () => ({
+          url: '/api/abort',
+          method: 'GET',
+          aborted: true,
+          socket: { destroyed: false },
+        }),
+      }),
+    };
+    filter.catch(new Error('client abort'), host);
+    expect(statusMock).not.toHaveBeenCalled();
+    expect(endMock).not.toHaveBeenCalled(); // writableEnded 면 end 호출 안함
+  });
+
+  it('socket.destroyed === true 면 응답 skip (abort 케이스 변형)', () => {
+    const statusMock = jest.fn();
+    const host: any = {
+      switchToHttp: () => ({
+        getResponse: () => ({ status: statusMock, headersSent: false, writableEnded: false }),
+        getRequest: () => ({
+          url: '/api/destroyed',
+          method: 'POST',
+          aborted: false,
+          socket: { destroyed: true },
+        }),
+      }),
+    };
+    filter.catch(new Error('socket destroyed'), host);
+    expect(statusMock).not.toHaveBeenCalled();
+  });
+
+  it('writableEnded === true & 헤더는 아직 → skip (drain 후 늦은 에러)', () => {
+    const statusMock = jest.fn();
+    const host: any = {
+      switchToHttp: () => ({
+        getResponse: () => ({ status: statusMock, headersSent: false, writableEnded: true }),
+        getRequest: () => ({
+          url: '/api/late',
+          method: 'GET',
+          aborted: false,
+          socket: { destroyed: false },
+        }),
+      }),
+    };
+    filter.catch(new Error('late error'), host);
+    expect(statusMock).not.toHaveBeenCalled();
+  });
+
+  it('headersSent === true & writableEnded=false → end() 호출로 소켓 finalize', () => {
+    const endMock = jest.fn();
+    const statusMock = jest.fn();
+    const host: any = {
+      switchToHttp: () => ({
+        getResponse: () => ({
+          status: statusMock,
+          headersSent: true,
+          writableEnded: false,
+          end: endMock,
+        }),
+        getRequest: () => ({
+          url: '/api/stream-error',
+          method: 'GET',
+          aborted: false,
+          socket: { destroyed: false },
+        }),
+      }),
+    };
+    filter.catch(new Error('mid stream error'), host);
+    expect(endMock).toHaveBeenCalled();
+    expect(statusMock).not.toHaveBeenCalled();
+  });
 });

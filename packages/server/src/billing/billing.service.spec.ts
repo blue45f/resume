@@ -204,4 +204,43 @@ describe('BillingService', () => {
       expect(r.getUTCHours()).toBe(0);
     });
   });
+
+  // ─────────────────────────────────────────────
+  // startTrial (mockCheckout 멱등성 — P1-4)
+  // ─────────────────────────────────────────────
+  describe('startTrial', () => {
+    it('plan=free 거부', async () => {
+      await expect(service.startTrial('u1', 'free' as any, 7)).rejects.toThrow(BadRequestException);
+    });
+
+    it('이미 활성 구독 있으면 BadRequest', async () => {
+      mockPrisma.subscription.findFirst.mockResolvedValueOnce({
+        id: 's1',
+        plan: 'pro',
+        provider: 'manual',
+      });
+      await expect(service.startTrial('u1', 'pro', 7)).rejects.toThrow(BadRequestException);
+    });
+
+    it('과거 manual trial 이력 있으면 BadRequest', async () => {
+      mockPrisma.subscription.findFirst
+        .mockResolvedValueOnce(null) // active 없음
+        .mockResolvedValueOnce({ id: 's-old' }); // past trial 있음
+      await expect(service.startTrial('u1', 'pro', 7)).rejects.toThrow(BadRequestException);
+    });
+
+    it('첫 trial — grantPlan 호출 + manual provider', async () => {
+      mockPrisma.subscription.findFirst
+        .mockResolvedValueOnce(null) // active 없음
+        .mockResolvedValueOnce(null); // past trial 없음
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'u1' });
+      mockPrisma.subscription.create.mockResolvedValue({ id: 's-new' });
+      await service.startTrial('u1', 'pro', 7);
+      expect(mockPrisma.subscription.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ plan: 'pro', provider: 'manual' }),
+        }),
+      );
+    });
+  });
 });

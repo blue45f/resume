@@ -7,15 +7,21 @@
   "scripts": {
     "dev": "cd ../.. && pnpm dev:client",
     "build": "cd ../.. && pnpm build:client",
-    "preview": "cd ../.. && pnpm preview"
+    "preview": "cd ../.. && pnpm preview",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@resume/shared": "workspace:*"
   },
   "devDependencies": {
-    "@capacitor/android": "^8.3.1",
-    "@capacitor/cli": "^8.3.1",
-    "@capacitor/core": "^8.3.1",
-    "@capacitor/ios": "^8.3.1"
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/core": "^8.3.4",
+    "@capacitor/ios": "^8.3.4",
+    "@storybook/addon-a11y": "^10.4.0",
+    "@storybook/react-vite": "^10.4.0",
+    "@vitest/coverage-v8": "^4.1.7",
+    "storybook": "^10.4.0"
   }
 }

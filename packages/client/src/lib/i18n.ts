@@ -1,12 +1,14 @@
-export type Locale = 'ko' | 'en' | 'ja';
+export type Locale = 'ko' | 'en' | 'ja' | 'zh-CN';
 
 const LOCALE_KEY = 'resume-locale';
+const SUPPORTED_LOCALES: Locale[] = ['ko', 'en', 'ja', 'zh-CN'];
 
 export function getLocale(): Locale {
-  return (localStorage.getItem(LOCALE_KEY) as Locale) || 'ko';
+  const stored = localStorage.getItem(LOCALE_KEY) as Locale | null;
+  return stored && SUPPORTED_LOCALES.includes(stored) ? stored : 'ko';
 }
 
-const langMap: Record<Locale, string> = { ko: 'ko', en: 'en', ja: 'ja' };
+const langMap: Record<Locale, string> = { ko: 'ko', en: 'en', ja: 'ja', 'zh-CN': 'zh-CN' };
 
 // RTL languages for future support (e.g., Arabic, Hebrew)
 const rtlLocales: string[] = [];
@@ -802,7 +804,9 @@ const ja: TranslationKeys = {
   'confirm.deletePost': '投稿を削除しますか？',
 };
 
-const translations: Record<Locale, TranslationKeys> = { ko, en, ja };
+// zh-CN flat TranslationKeys 는 별도 작성하지 않고 영어로 fallback —
+// JSON locale (`jsonZhCN`) 에 새 키만 번역하면 됨. tx() 가 ko fallback 함.
+const translations: Record<Locale, TranslationKeys> = { ko, en, ja, 'zh-CN': en };
 
 const currentLocale: Locale = getLocale();
 
@@ -818,12 +822,14 @@ export function t(key: keyof TranslationKeys): string {
 import jsonKo from '@/i18n/locales/ko.json';
 import jsonEn from '@/i18n/locales/en.json';
 import jsonJa from '@/i18n/locales/ja.json';
+import jsonZhCN from '@/i18n/locales/zh-CN.json';
 
 type NestedDict = { [key: string]: string | NestedDict };
 const jsonDicts: Record<Locale, NestedDict> = {
   ko: jsonKo as NestedDict,
   en: jsonEn as NestedDict,
   ja: jsonJa as NestedDict,
+  'zh-CN': jsonZhCN as NestedDict,
 };
 
 function pick(dict: NestedDict, path: string): string | undefined {
@@ -856,11 +862,16 @@ export function tx(path: string, params?: Record<string, string | number>): stri
 }
 
 export function getLocaleName(locale: Locale): string {
-  const names: Record<Locale, string> = { ko: '한국어', en: 'English', ja: '日本語' };
+  const names: Record<Locale, string> = {
+    ko: '한국어',
+    en: 'English',
+    ja: '日本語',
+    'zh-CN': '简体中文',
+  };
   return names[locale];
 }
 
-export const LOCALES: Locale[] = ['ko', 'en', 'ja'];
+export const LOCALES: Locale[] = ['ko', 'en', 'ja', 'zh-CN'];
 
 // Initialize HTML lang and dir attributes
 document.documentElement.lang = langMap[getLocale()] || 'ko';

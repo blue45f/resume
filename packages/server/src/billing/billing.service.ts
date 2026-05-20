@@ -156,6 +156,49 @@ export class BillingService {
     return sub;
   }
 
+  /**
+   * 사용자가 호출하는 무료 trial — 사용자당 1회만 허용 (manual/trial).
+   * 이미 활성 구독이 있거나 과거 trial 이력이 있으면 BadRequest.
+   *
+   * 실 PG 연동 시 createCheckoutSession + webhook 으로 대체 — 그때는 trial 이력 보다는
+   * subscription.provider 가 'toss'/'stripe' 인지로 분기.
+   */
+  async startTrial(userId: string, plan: PlanId, days: number) {
+    if (!PLANS[plan]) throw new BadRequestException('유효하지 않은 plan');
+    if (plan === 'free') {
+      throw new BadRequestException('무료 플랜은 trial 대상이 아닙니다');
+    }
+
+    // 이미 활성 sub 가 있으면 차단 — 이중 결제 방지
+    const active = await (this.prisma as any).subscription.findFirst({
+      where: { userId, status: 'active' },
+      select: { id: true, plan: true, provider: true },
+    });
+    if (active) {
+      throw new BadRequestException(
+        `이미 ${PLANS[active.plan as PlanId]?.name || active.plan} 구독이 활성화되어 있습니다`,
+      );
+    }
+
+    // 과거 manual/trial 이력 확인 — 1회만 허용
+    const pastTrial = await (this.prisma as any).subscription.findFirst({
+      where: { userId, provider: 'manual' },
+      select: { id: true },
+    });
+    if (pastTrial) {
+      throw new BadRequestException(
+        '무료 trial 은 사용자당 1회만 가능합니다. 정식 결제를 진행해주세요.',
+      );
+    }
+
+    return this.grantPlan(userId, {
+      plan,
+      days,
+      provider: 'manual',
+      reason: 'mock-checkout-trial',
+    });
+  }
+
   /** 사용자 본인 cancel — currentPeriodEnd 까지는 유효. */
   async cancelMyPlan(userId: string) {
     const sub = await (this.prisma as any).subscription.findFirst({

@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+/// <reference types="node" />
 /**
  * E2E Test Helper
  *
@@ -207,6 +209,28 @@ export async function createTestResume(
   const res = await ctx.authPost(role, '/api/resumes').send({
     title: 'Test Resume',
     personalInfo: { name: '테스터', email: 'tester@test.local' },
+    ...overrides,
+  });
+  return res.body;
+}
+
+/**
+ * 커피챗 팩토리 — requesterRole 이 hostRole 에게 신청 후 chat 객체 반환.
+ * scheduledAt / topic / modality 등 override 지원.
+ */
+export async function createCoffeeChat(
+  ctx: E2EContext,
+  requesterRole: string,
+  hostRole: string,
+  overrides: Record<string, unknown> = {},
+): Promise<{ id: string; status: string; [key: string]: unknown }> {
+  const hostId = ctx.userIds[hostRole];
+  const res = await ctx.authPost(requesterRole, '/api/coffee-chats').send({
+    hostId,
+    message: '안녕하세요, 커피챗 신청드립니다.',
+    topic: 'resume_review',
+    modality: 'video',
+    durationMin: 30,
     ...overrides,
   });
   return res.body;

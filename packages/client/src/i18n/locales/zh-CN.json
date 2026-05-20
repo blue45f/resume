@@ -1,0 +1,216 @@
+{
+  "nav": {
+    "home": "首页",
+    "resumes": "我的简历",
+    "explore": "探索",
+    "jobs": "招聘",
+    "community": "社区",
+    "studyGroups": "学习小组",
+    "interviewPrep": "面试准备",
+    "mockInterview": "模拟面试",
+    "applications": "申请记录",
+    "coaching": "辅导",
+    "notices": "公告",
+    "login": "登录",
+    "logout": "退出",
+    "profile": "个人资料",
+    "settings": "设置",
+    "admin": "管理"
+  },
+  "resume": {
+    "new": "新建简历",
+    "edit": "编辑简历",
+    "preview": "预览",
+    "download": "下载",
+    "share": "分享",
+    "delete": "删除",
+    "duplicate": "复制",
+    "print": "打印",
+    "export": "导出",
+    "import": "导入",
+    "sections": {
+      "personalInfo": "基本信息",
+      "experience": "工作经历",
+      "education": "教育背景",
+      "skills": "技能",
+      "projects": "项目经验",
+      "certifications": "证书",
+      "languages": "语言",
+      "awards": "获奖",
+      "activities": "活动经历",
+      "summary": "自我介绍"
+    },
+    "status": {
+      "saving": "保存中...",
+      "saved": "已保存",
+      "error": "保存失败",
+      "uploading": "上传中...",
+      "uploaded": "已上传"
+    },
+    "ai": {
+      "analyze": "AI 分析",
+      "improve": "AI 改进",
+      "translate": "AI 翻译",
+      "enhance": "合并文档",
+      "spellCheck": "AI 拼写检查",
+      "transform": "转换格式"
+    },
+    "visibility": {
+      "label": "可见性",
+      "public": "公开",
+      "private": "私密",
+      "linkOnly": "仅链接",
+      "selective": "指定用户"
+    }
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "add": "添加",
+    "confirm": "确认",
+    "back": "返回",
+    "next": "下一步",
+    "close": "关闭",
+    "copy": "复制",
+    "apply": "应用",
+    "reset": "重置",
+    "loading": "加载中...",
+    "error": "发生错误",
+    "success": "成功",
+    "empty": "没有数据",
+    "search": "搜索",
+    "filter": "筛选",
+    "sort": "排序",
+    "anonymous": "匿名"
+  },
+  "auth": {
+    "login": "登录",
+    "logout": "退出",
+    "signup": "注册",
+    "email": "邮箱",
+    "password": "密码",
+    "name": "姓名",
+    "forgotPassword": "忘记密码?"
+  },
+  "study": {
+    "title": "学习小组",
+    "create": "创建小组",
+    "join": "加入",
+    "leave": "离开",
+    "cafe": "小组讨论板",
+    "members": "成员",
+    "posts": "帖子",
+    "questions": "问题",
+    "answers": "回答",
+    "newPost": "发布帖子",
+    "newAnswer": "写答案",
+    "noAnswers": "还没有答案",
+    "category": {
+      "all": "全部",
+      "notice": "公告",
+      "free": "自由",
+      "question": "问题",
+      "resource": "资料",
+      "studyLog": "学习日志"
+    }
+  },
+  "community": {
+    "title": "社区",
+    "write": "发帖",
+    "comments": "评论",
+    "likes": "点赞",
+    "views": "浏览",
+    "bookmark": "收藏",
+    "category": {
+      "notice": "公告",
+      "free": "自由讨论",
+      "tips": "求职技巧",
+      "resume": "简历反馈",
+      "coverLetter": "求职信",
+      "question": "提问",
+      "interview": "面试"
+    }
+  },
+  "jobs": {
+    "title": "招聘信息",
+    "apply": "申请",
+    "applied": "已申请",
+    "external": "在外部网站申请",
+    "location": "地点",
+    "salary": "薪资",
+    "company": "公司",
+    "position": "职位",
+    "requirements": "任职要求",
+    "benefits": "福利",
+    "deadline": "截止日期"
+  },
+  "applications": {
+    "title": "申请记录",
+    "status": {
+      "applied": "已申请",
+      "screening": "筛选中",
+      "interview": "面试中",
+      "offer": "已获 Offer",
+      "rejected": "未录用",
+      "withdrawn": "已撤回"
+    }
+  },
+  "interview": {
+    "mock": "模拟面试",
+    "prep": "面试准备",
+    "record": "开始录音",
+    "stop": "停止",
+    "retake": "重新录制",
+    "listen": "听问题",
+    "speed": "语速",
+    "persona": "面试官",
+    "generate": "生成面试题",
+    "generated": "面试题已生成",
+    "difficulty": {
+      "label": "难度",
+      "beginner": "初级",
+      "intermediate": "中级",
+      "advanced": "高级"
+    }
+  },
+  "notice": {
+    "types": {
+      "GENERAL": "公告",
+      "MAINTENANCE": "维护",
+      "EVENT": "活动"
+    },
+    "dismissToday": "今日不再显示",
+    "close": "关闭"
+  },
+  "pricing": {
+    "free": "免费",
+    "pro": "专业版",
+    "enterprise": "企业版",
+    "comingSoon": "即将推出",
+    "currentPlan": "当前方案",
+    "upgrade": "升级",
+    "monthly": "月付",
+    "annually": "年付",
+    "perMonth": "/ 月",
+    "perYear": "/ 年",
+    "saveAnnual": "年付可省 2 个月"
+  },
+  "payment": {
+    "title": "结账"
+  },
+  "toast": {
+    "saved": "已保存",
+    "deleted": "已删除",
+    "copied": "已复制到剪贴板",
+    "applied": "已申请",
+    "joined": "已加入",
+    "left": "已离开",
+    "posted": "已发布",
+    "failed": "操作失败，请重试",
+    "networkError": "网络错误",
+    "unauthorized": "请先登录",
+    "notFound": "未找到"
+  }
+}

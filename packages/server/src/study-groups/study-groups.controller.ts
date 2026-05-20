@@ -118,10 +118,58 @@ export class StudyGroupsController {
   }
 
   @Post('questions/:questionId/upvote')
-  @ApiOperation({ summary: '문제 추천 (upvote)' })
+  @ApiOperation({ summary: '문제 추천 (upvote) — 토글, 사용자당 1회' })
   upvoteQuestion(@Param('questionId') questionId: string, @Req() req: any) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.upvoteQuestion(questionId, req.user.id);
+  }
+
+  // ─── 스터디 문제 답변 ───────────────────────────────
+  @Get('questions/:questionId/answers')
+  @Public()
+  @ApiOperation({ summary: '문제 답변 목록 (sort=upvotes|recent)' })
+  listAnswers(
+    @Param('questionId') questionId: string,
+    @Req() req: any,
+    @Query('sort') sort?: 'upvotes' | 'recent',
+  ) {
+    return this.service.listAnswers(questionId, req.user?.id, { sort });
+  }
+
+  @Post('questions/:questionId/answers')
+  @ApiOperation({ summary: '문제 답변 작성 (parentId 지정 시 답글)' })
+  createAnswer(
+    @Param('questionId') questionId: string,
+    @Body() body: { body: string; parentId?: string | null },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.createAnswer(questionId, req.user.id, body);
+  }
+
+  @Patch('answers/:answerId')
+  @ApiOperation({ summary: '답변 수정 (본인만)' })
+  updateAnswer(
+    @Param('answerId') answerId: string,
+    @Body() body: { body: string },
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.updateAnswer(answerId, req.user.id, body);
+  }
+
+  @Delete('answers/:answerId')
+  @ApiOperation({ summary: '답변 삭제 (본인 또는 그룹 owner)' })
+  deleteAnswer(@Param('answerId') answerId: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.deleteAnswer(answerId, req.user.id);
+  }
+
+  @Post('answers/:answerId/upvote')
+  @ApiOperation({ summary: '답변 추천 (좋아요) — 토글, 사용자당 1회' })
+  upvoteAnswer(@Param('answerId') answerId: string, @Req() req: any) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.service.upvoteAnswer(answerId, req.user.id);
   }
 
   // ─── 카페형 게시판 ──────────────────────────────────────────

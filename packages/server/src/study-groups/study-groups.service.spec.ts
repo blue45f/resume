@@ -31,10 +31,31 @@ const mockPrisma: any = {
   studyGroupQuestion: {
     create: jest.fn(),
     findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
   },
-  $transaction: jest.fn(async (fn: any) => {
-    // Call the function with the same prisma mock as a tx client.
-    return fn(mockPrisma);
+  studyGroupQuestionVote: {
+    findUnique: jest.fn(),
+    create: jest.fn(),
+    delete: jest.fn(),
+  },
+  studyGroupQuestionAnswer: {
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  studyGroupQuestionAnswerVote: {
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    delete: jest.fn(),
+  },
+  $transaction: jest.fn(async (arg: any) => {
+    // 두 가지 호출 형태 지원: $transaction(fn) 또는 $transaction([promise, ...])
+    if (typeof arg === 'function') return arg(mockPrisma);
+    return Promise.all(arg);
   }),
 };
 
@@ -277,6 +298,363 @@ describe('StudyGroupsService', () => {
         where: { id: 'g1' },
         data: { isPrivate: true, maxMembers: 7 },
       });
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // 추가 — addQuestion 길이 검증 (P1-3)
+  // ─────────────────────────────────────────────
+  describe('addQuestion validation', () => {
+    it('1자 question → BadRequest', async () => {
+      await expect(service.addQuestion('g1', 'u1', { question: 'A' })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('1001자 question → BadRequest', async () => {
+      await expect(service.addQuestion('g1', 'u1', { question: 'A'.repeat(1001) })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('sampleAnswer 5001자는 5000으로 잘림', async () => {
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      mockPrisma.studyGroupMember.findUnique.mockResolvedValueOnce({ id: 'm1' });
+      mockPrisma.studyGroupQuestion.create.mockResolvedValueOnce({ id: 'q1' });
+      await service.addQuestion('g1', 'u1', {
+        question: '왜 이 회사인가요?',
+        sampleAnswer: 'X'.repeat(5001),
+      });
+      const callArgs = mockPrisma.studyGroupQuestion.create.mock.calls[0][0];
+      expect(callArgs.data.sampleAnswer.length).toBe(5000);
+    });
+
+    it('difficulty 화이트리스트에 없으면 intermediate 기본값', async () => {
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      mockPrisma.studyGroupMember.findUnique.mockResolvedValueOnce({ id: 'm1' });
+      mockPrisma.studyGroupQuestion.create.mockResolvedValueOnce({ id: 'q1' });
+      await service.addQuestion('g1', 'u1', {
+        question: '왜 이 회사인가요?',
+        difficulty: 'expert',
+      });
+      const callArgs = mockPrisma.studyGroupQuestion.create.mock.calls[0][0];
+      expect(callArgs.data.difficulty).toBe('intermediate');
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // upvoteQuestion — 중복 추천 방지 (P1-2)
+  // ─────────────────────────────────────────────
+  describe('upvoteQuestion', () => {
+    it('비로그인 → Forbidden', async () => {
+      await expect(service.upvoteQuestion('q1', '')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('본인 문제 → BadRequest', async () => {
+      mockPrisma.studyGroupQuestion.findUnique.mockResolvedValueOnce({
+        id: 'q1',
+        groupId: 'g1',
+        userId: 'u1',
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      await expect(service.upvoteQuestion('q1', 'u1')).rejects.toThrow(BadRequestException);
+    });
+
+    it('첫 호출 → upvote 생성 + upvotes 증가', async () => {
+      mockPrisma.studyGroupQuestion.findUnique.mockResolvedValueOnce({
+        id: 'q1',
+        groupId: 'g1',
+        userId: 'author',
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      mockPrisma.studyGroupQuestionVote.findUnique.mockResolvedValueOnce(null);
+      mockPrisma.studyGroupQuestionVote.create.mockResolvedValueOnce({ id: 'v1' });
+      mockPrisma.studyGroupQuestion.update.mockResolvedValueOnce({ id: 'q1', upvotes: 1 });
+      const result = await service.upvoteQuestion('q1', 'u2');
+      expect(result.upvoted).toBe(true);
+      expect(result.upvotes).toBe(1);
+    });
+
+    it('두번째 호출 → 토글 off (delete + decrement)', async () => {
+      mockPrisma.studyGroupQuestion.findUnique.mockResolvedValueOnce({
+        id: 'q1',
+        groupId: 'g1',
+        userId: 'author',
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      mockPrisma.studyGroupQuestionVote.findUnique.mockResolvedValueOnce({ id: 'v1' });
+      mockPrisma.studyGroupQuestionVote.delete.mockResolvedValueOnce({});
+      mockPrisma.studyGroupQuestion.update.mockResolvedValueOnce({ id: 'q1', upvotes: 0 });
+      const result = await service.upvoteQuestion('q1', 'u2');
+      expect(result.upvoted).toBe(false);
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // 문제 답변 (StudyGroupQuestionAnswer) — 신규
+  // ─────────────────────────────────────────────
+  describe('createAnswer', () => {
+    beforeEach(() => {
+      mockPrisma.studyGroupQuestion.findUnique.mockResolvedValue({
+        id: 'q1',
+        groupId: 'g1',
+        userId: 'author',
+        question: '왜?',
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValue({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+    });
+
+    it('1자 body → BadRequest', async () => {
+      await expect(service.createAnswer('q1', 'u1', { body: 'A' })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('5001자 body → BadRequest', async () => {
+      await expect(service.createAnswer('q1', 'u1', { body: 'A'.repeat(5001) })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('parentId 가 다른 question 의 답변이면 BadRequest', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'p1',
+        questionId: 'q-other',
+        parentId: null,
+      });
+      await expect(
+        service.createAnswer('q1', 'u1', { body: '괜찮은 답변이에요', parentId: 'p1' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('대대댓글 차단 (parent.parentId 가 이미 있음 → BadRequest)', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'p1',
+        questionId: 'q1',
+        parentId: 'pp1', // 이미 답글임
+      });
+      await expect(
+        service.createAnswer('q1', 'u1', { body: '대대댓글', parentId: 'p1' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('정상 답변 작성 — answerCount 증가', async () => {
+      mockPrisma.studyGroupQuestionAnswer.create.mockResolvedValueOnce({ id: 'a1' });
+      mockPrisma.studyGroupQuestion.update.mockResolvedValueOnce({ id: 'q1' });
+      const res = await service.createAnswer('q1', 'u1', {
+        body: '좋은 답변입니다',
+      });
+      expect(res).toEqual({ id: 'a1' });
+      // top-level 이라서 answerCount 증가 호출됨
+      expect(mockPrisma.studyGroupQuestion.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { answerCount: { increment: 1 } } }),
+      );
+    });
+
+    it('답글 작성 — answerCount 미증가', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'p1',
+        questionId: 'q1',
+        parentId: null,
+      });
+      mockPrisma.studyGroupQuestionAnswer.create.mockResolvedValueOnce({ id: 'a2' });
+      await service.createAnswer('q1', 'u1', { body: '답글이에요', parentId: 'p1' });
+      // 답글은 answerCount 갱신 호출되지 않아야 함
+      expect(mockPrisma.studyGroupQuestion.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('upvoteAnswer', () => {
+    it('비로그인 → Forbidden', async () => {
+      await expect(service.upvoteAnswer('a1', '')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('본인 답변 추천 시도 → BadRequest', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'a1',
+        userId: 'u1',
+        question: { groupId: 'g1' },
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      await expect(service.upvoteAnswer('a1', 'u1')).rejects.toThrow(BadRequestException);
+    });
+
+    it('첫 추천 → upvoted=true', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'a1',
+        userId: 'author',
+        question: { groupId: 'g1' },
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      mockPrisma.studyGroupQuestionAnswerVote.findUnique.mockResolvedValueOnce(null);
+      mockPrisma.studyGroupQuestionAnswerVote.create.mockResolvedValueOnce({ id: 'v1' });
+      mockPrisma.studyGroupQuestionAnswer.update.mockResolvedValueOnce({ id: 'a1', upvotes: 1 });
+      const res = await service.upvoteAnswer('a1', 'u2');
+      expect(res.upvoted).toBe(true);
+      expect(res.upvotes).toBe(1);
+    });
+
+    it('두번째 추천 → 토글 off', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'a1',
+        userId: 'author',
+        question: { groupId: 'g1' },
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      mockPrisma.studyGroupQuestionAnswerVote.findUnique.mockResolvedValueOnce({ id: 'v1' });
+      mockPrisma.studyGroupQuestionAnswerVote.delete.mockResolvedValueOnce({});
+      mockPrisma.studyGroupQuestionAnswer.update.mockResolvedValueOnce({ id: 'a1', upvotes: 0 });
+      const res = await service.upvoteAnswer('a1', 'u2');
+      expect(res.upvoted).toBe(false);
+    });
+  });
+
+  describe('updateAnswer', () => {
+    it('본인 아니면 Forbidden', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'a1',
+        userId: 'other',
+      });
+      await expect(service.updateAnswer('a1', 'u1', { body: '수정된 답변' })).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('1자 body → BadRequest', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'a1',
+        userId: 'u1',
+      });
+      await expect(service.updateAnswer('a1', 'u1', { body: 'A' })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('본인 수정 정상', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'a1',
+        userId: 'u1',
+      });
+      mockPrisma.studyGroupQuestionAnswer.update.mockResolvedValueOnce({ id: 'a1' });
+      await service.updateAnswer('a1', 'u1', { body: '수정된 답변입니다' });
+      expect(mockPrisma.studyGroupQuestionAnswer.update).toHaveBeenCalled();
+    });
+  });
+
+  describe('deleteAnswer', () => {
+    it('본인 아니고 owner 아니면 Forbidden', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'a1',
+        userId: 'other',
+        parentId: null,
+        question: { id: 'q1', groupId: 'g1' },
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({ ownerId: 'owner' });
+      await expect(service.deleteAnswer('a1', 'u1')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('top-level 본인 삭제 → answerCount 감소', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'a1',
+        userId: 'u1',
+        parentId: null,
+        question: { id: 'q1', groupId: 'g1' },
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({ ownerId: 'owner' });
+      mockPrisma.studyGroupQuestionAnswer.delete.mockResolvedValueOnce({});
+      mockPrisma.studyGroupQuestion.update.mockResolvedValueOnce({});
+      const res = await service.deleteAnswer('a1', 'u1');
+      expect(res.success).toBe(true);
+      expect(mockPrisma.studyGroupQuestion.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { answerCount: { decrement: 1 } } }),
+      );
+    });
+
+    it('답글 삭제 → answerCount 미감소', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'a2',
+        userId: 'u1',
+        parentId: 'a1',
+        question: { id: 'q1', groupId: 'g1' },
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({ ownerId: 'owner' });
+      mockPrisma.studyGroupQuestionAnswer.delete.mockResolvedValueOnce({});
+      await service.deleteAnswer('a2', 'u1');
+      expect(mockPrisma.studyGroupQuestion.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('listAnswers', () => {
+    it('정렬 sort=upvotes 가 기본', async () => {
+      mockPrisma.studyGroupQuestion.findUnique.mockResolvedValueOnce({
+        id: 'q1',
+        groupId: 'g1',
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      mockPrisma.studyGroupQuestionAnswer.findMany.mockResolvedValueOnce([]);
+      await service.listAnswers('q1');
+      const args = mockPrisma.studyGroupQuestionAnswer.findMany.mock.calls[0][0];
+      expect(args.orderBy[0].upvotes).toBe('desc');
+    });
+
+    it('로그인 사용자에게 upvoted 표시', async () => {
+      mockPrisma.studyGroupQuestion.findUnique.mockResolvedValueOnce({
+        id: 'q1',
+        groupId: 'g1',
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      mockPrisma.studyGroupQuestionAnswer.findMany.mockResolvedValueOnce([
+        { id: 'a1', body: 'x', upvotes: 3 },
+        { id: 'a2', body: 'y', upvotes: 1 },
+      ]);
+      mockPrisma.studyGroupQuestionAnswerVote.findMany.mockResolvedValueOnce([{ answerId: 'a1' }]);
+      const res = await service.listAnswers('q1', 'u1');
+      expect(res[0].upvoted).toBe(true);
+      expect(res[1].upvoted).toBe(false);
     });
   });
 });

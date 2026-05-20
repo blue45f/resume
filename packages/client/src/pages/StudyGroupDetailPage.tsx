@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import KoreanQualityBadge from '@/components/KoreanQualityBadge';
+import StudyGroupQuestionAnswers from '@/components/StudyGroupQuestionAnswers';
 import {
   fetchStudyGroup,
   joinStudyGroup,
@@ -511,19 +512,46 @@ export default function StudyGroupDetailPage() {
                     key={q.id}
                     className="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700"
                   >
-                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                      {q.question}
-                    </p>
-                    {q.sampleAnswer && (
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
-                        {q.sampleAnswer}
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 flex-1">
+                        {q.question}
                       </p>
-                    )}
-                    {q.category && (
-                      <span className="inline-block mt-1.5 text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300">
-                        {q.category}
+                      <span
+                        className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold shrink-0"
+                        aria-label={`추천 ${q.upvotes}회`}
+                      >
+                        👍 {q.upvotes}
                       </span>
+                    </div>
+                    {q.sampleAnswer && (
+                      <div className="mt-1.5 p-2 rounded bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40">
+                        <span className="text-[9px] font-semibold uppercase text-emerald-700 dark:text-emerald-400">
+                          예시 답변
+                        </span>
+                        <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 leading-relaxed whitespace-pre-wrap">
+                          {q.sampleAnswer}
+                        </p>
+                      </div>
                     )}
+                    <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                      {q.category && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300">
+                          {q.category}
+                        </span>
+                      )}
+                      {q.difficulty && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                          {q.difficulty}
+                        </span>
+                      )}
+                      {typeof q.answerCount === 'number' && (
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                          답변 {q.answerCount}개
+                        </span>
+                      )}
+                    </div>
+                    {/* 답변 리스트 + 작성 폼 */}
+                    <StudyGroupQuestionAnswers questionId={q.id} groupOwnerId={group.ownerId} />
                   </li>
                 ))}
               </ul>

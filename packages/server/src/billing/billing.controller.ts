@@ -53,23 +53,20 @@ export class BillingController {
   /**
    * Mock checkout — 실 PG 연동 전까지 사용. admin 또는 본인이 호출 가능.
    * 실 운영에선 Toss Payments 또는 Stripe Checkout Session 으로 대체.
+   *
+   * 멱등성: 사용자당 manual/trial 1회만 허용 (다회 호출 시 BadRequest).
+   * 이미 동일 plan 활성 사용자는 즉시 현재 sub 반환.
    */
   @Post('me/checkout')
   @Throttle({ default: { limit: 10, ttl: 60000 } })
-  @ApiOperation({ summary: '[mock] 결제 — Pro 7일 trial' })
+  @ApiOperation({ summary: '[mock] 결제 — Pro 7일 trial (사용자당 1회)' })
   async mockCheckout(@Body() body: { plan: PlanId; days?: number }, @Req() req: any) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     if (!PLANS[body.plan]) {
       throw new ForbiddenException('유효하지 않은 plan');
     }
-    // Mock: 실 PG 연동 전까진 무료 trial 만 허용 (free → pro 7일)
     const days = Math.min(7, Math.max(1, body.days || 7));
-    const sub = await this.service.grantPlan(req.user.id, {
-      plan: body.plan,
-      days,
-      provider: 'manual',
-      reason: 'mock-checkout',
-    });
+    const sub = await this.service.startTrial(req.user.id, body.plan, days);
     await this.service.recordPayment(req.user.id, {
       amount: 0,
       subscriptionId: sub.id,

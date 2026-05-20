@@ -270,9 +270,16 @@ export class StudyGroupsService {
   }
 
   async addQuestion(groupId: string, userId: string, data: CreateStudyGroupQuestionDto) {
-    if (!data.question || data.question.trim().length === 0) {
-      throw new BadRequestException('질문 내용을 입력하세요');
+    // 길이 검증 — XSS / DB 비용 가드 (P1-3)
+    const question = (data.question || '').trim();
+    if (question.length < 2 || question.length > 1000) {
+      throw new BadRequestException('질문은 2~1000자여야 합니다');
     }
+    const sampleAnswer = (data.sampleAnswer || '').trim().slice(0, 5000);
+    const category = (data.category || '').trim().slice(0, 50);
+    const difficulty = ['beginner', 'intermediate', 'advanced'].includes(data.difficulty || '')
+      ? (data.difficulty as string)
+      : 'intermediate';
 
     const group = await this.prisma.studyGroup.findUnique({
       where: { id: groupId },
@@ -291,10 +298,10 @@ export class StudyGroupsService {
       data: {
         groupId,
         userId,
-        question: data.question.trim(),
-        sampleAnswer: data.sampleAnswer || '',
-        category: data.category || '',
-        difficulty: data.difficulty || 'intermediate',
+        question,
+        sampleAnswer,
+        category,
+        difficulty,
       },
       include: {
         user: { select: { id: true, name: true, avatar: true } },
@@ -669,7 +676,11 @@ export class StudyGroupsService {
     });
   }
 
-  /** 문제 추천(upvote) — 같은 사용자의 중복 추천은 idempotent (upvote 1회만 반영). */
+  /**
+   * 문제 추천(upvote) — 토글 방식.
+   * `StudyGroupQuestionVote` unique 제약으로 사용자당 1회만 가능.
+   * 이미 추천한 경우 다시 호출하면 취소 (toggle off).
+   */
   async upvoteQuestion(questionId: string, userId: string) {
     if (!userId) throw new ForbiddenException('로그인이 필요합니다');
     const question = await this.prisma.studyGroupQuestion.findUnique({
@@ -681,12 +692,35 @@ export class StudyGroupsService {
     if (question.userId === userId) {
       throw new BadRequestException('본인 문제는 추천할 수 없습니다');
     }
-    // 단순 카운터 — 사용자별 중복 방지는 향후 별도 테이블 추가 시 정밀화
-    return this.prisma.studyGroupQuestion.update({
-      where: { id: questionId },
-      data: { upvotes: { increment: 1 } },
-      select: { id: true, upvotes: true },
+
+    const existing = await this.prisma.studyGroupQuestionVote.findUnique({
+      where: { questionId_userId: { questionId, userId } },
     });
+
+    if (existing) {
+      // 이미 추천 → 취소
+      const [, updated] = await this.prisma.$transaction([
+        this.prisma.studyGroupQuestionVote.delete({ where: { id: existing.id } }),
+        this.prisma.studyGroupQuestion.update({
+          where: { id: questionId },
+          data: { upvotes: { decrement: 1 } },
+          select: { id: true, upvotes: true },
+        }),
+      ]);
+      return { id: updated.id, upvotes: updated.upvotes, upvoted: false };
+    }
+
+    const [, updated] = await this.prisma.$transaction([
+      this.prisma.studyGroupQuestionVote.create({
+        data: { questionId, userId },
+      }),
+      this.prisma.studyGroupQuestion.update({
+        where: { id: questionId },
+        data: { upvotes: { increment: 1 } },
+        select: { id: true, upvotes: true },
+      }),
+    ]);
+    return { id: updated.id, upvotes: updated.upvotes, upvoted: true };
   }
 
   // ─────────────────────────────────────────────
@@ -994,5 +1028,204 @@ export class StudyGroupsService {
       upcomingEventCount,
       leaderboard,
     };
+  }
+
+  // ─────────────────────────────────────────────
+  // 스터디 문제 답변 (StudyGroupQuestionAnswer)
+  //   - 멤버끼리 답변을 비교/공유하고 좋아요로 베스트 답변을 선별.
+  //   - parentId 로 1단계 답글 (대대댓글은 차단).
+  //   - upvote 는 별도 StudyGroupQuestionAnswerVote 테이블 (사용자당 1회).
+  // ─────────────────────────────────────────────
+
+  /** 스터디 문제의 답변 목록 — 멤버 또는 공개 그룹에서만 조회 가능. */
+  async listAnswers(
+    questionId: string,
+    userId?: string,
+    opts: { sort?: 'upvotes' | 'recent' } = {},
+  ) {
+    const question = await this.prisma.studyGroupQuestion.findUnique({
+      where: { id: questionId },
+      select: { id: true, groupId: true },
+    });
+    if (!question) throw new NotFoundException('문제를 찾을 수 없습니다');
+    await this.assertMemberOrPublic(question.groupId, userId);
+
+    const orderBy =
+      opts.sort === 'recent'
+        ? [{ createdAt: 'desc' as const }]
+        : [{ upvotes: 'desc' as const }, { createdAt: 'desc' as const }];
+
+    const answers = await this.prisma.studyGroupQuestionAnswer.findMany({
+      where: { questionId },
+      orderBy,
+      take: 200,
+      include: {
+        user: { select: { id: true, name: true, avatar: true } },
+      },
+    });
+
+    // 본인이 추천했는지 표시 (로그인 사용자만)
+    let myVoteIds = new Set<string>();
+    if (userId && answers.length > 0) {
+      const votes = await this.prisma.studyGroupQuestionAnswerVote.findMany({
+        where: {
+          userId,
+          answerId: { in: answers.map((a) => a.id) },
+        },
+        select: { answerId: true },
+      });
+      myVoteIds = new Set(votes.map((v) => v.answerId));
+    }
+
+    return answers.map((a) => ({
+      ...a,
+      upvoted: myVoteIds.has(a.id),
+    }));
+  }
+
+  /** 답변 작성 — 멤버 또는 공개 그룹에서 작성 가능. parentId 지정 시 답글로 처리. */
+  async createAnswer(
+    questionId: string,
+    userId: string,
+    data: { body: string; parentId?: string | null },
+  ) {
+    if (!userId) throw new ForbiddenException('로그인이 필요합니다');
+    const body = (data.body || '').trim();
+    if (body.length < 2 || body.length > 5000) {
+      throw new BadRequestException('답변은 2~5000자여야 합니다');
+    }
+
+    const question = await this.prisma.studyGroupQuestion.findUnique({
+      where: { id: questionId },
+      select: { id: true, groupId: true, userId: true, question: true },
+    });
+    if (!question) throw new NotFoundException('문제를 찾을 수 없습니다');
+    await this.assertMemberOrPublic(question.groupId, userId);
+
+    // parent 검증 — 대대댓글 차단
+    if (data.parentId) {
+      const parent = await this.prisma.studyGroupQuestionAnswer.findUnique({
+        where: { id: data.parentId },
+        select: { id: true, questionId: true, parentId: true },
+      });
+      if (!parent || parent.questionId !== questionId) {
+        throw new BadRequestException('잘못된 부모 답변입니다');
+      }
+      if (parent.parentId) {
+        throw new BadRequestException('답글에는 답글을 달 수 없습니다');
+      }
+    }
+
+    const [answer] = await this.prisma.$transaction([
+      this.prisma.studyGroupQuestionAnswer.create({
+        data: {
+          questionId,
+          userId,
+          parentId: data.parentId || null,
+          body,
+        },
+        include: { user: { select: { id: true, name: true, avatar: true } } },
+      }),
+      // answerCount cache 갱신 — top-level 답변만 카운트 (답글은 제외)
+      ...(!data.parentId
+        ? [
+            this.prisma.studyGroupQuestion.update({
+              where: { id: questionId },
+              data: { answerCount: { increment: 1 } },
+            }),
+          ]
+        : []),
+    ]);
+    return answer;
+  }
+
+  /** 답변 수정 — 본인만 가능. */
+  async updateAnswer(answerId: string, userId: string, data: { body: string }) {
+    const answer = await this.prisma.studyGroupQuestionAnswer.findUnique({
+      where: { id: answerId },
+      select: { id: true, userId: true, parentId: true, questionId: true },
+    });
+    if (!answer) throw new NotFoundException('답변을 찾을 수 없습니다');
+    if (answer.userId !== userId) {
+      throw new ForbiddenException('본인 답변만 수정할 수 있습니다');
+    }
+    const body = (data.body || '').trim();
+    if (body.length < 2 || body.length > 5000) {
+      throw new BadRequestException('답변은 2~5000자여야 합니다');
+    }
+    return this.prisma.studyGroupQuestionAnswer.update({
+      where: { id: answerId },
+      data: { body },
+      include: { user: { select: { id: true, name: true, avatar: true } } },
+    });
+  }
+
+  /** 답변 삭제 — 본인 또는 그룹 owner. */
+  async deleteAnswer(answerId: string, userId: string) {
+    const answer = await this.prisma.studyGroupQuestionAnswer.findUnique({
+      where: { id: answerId },
+      include: { question: { select: { id: true, groupId: true } } },
+    });
+    if (!answer) throw new NotFoundException('답변을 찾을 수 없습니다');
+    const group = await this.prisma.studyGroup.findUnique({
+      where: { id: answer.question.groupId },
+      select: { ownerId: true },
+    });
+    if (answer.userId !== userId && group?.ownerId !== userId) {
+      throw new ForbiddenException('답변 삭제 권한이 없습니다');
+    }
+    await this.prisma.$transaction([
+      this.prisma.studyGroupQuestionAnswer.delete({ where: { id: answerId } }),
+      // top-level 답변 삭제 시 cache 갱신
+      ...(!answer.parentId
+        ? [
+            this.prisma.studyGroupQuestion.update({
+              where: { id: answer.question.id },
+              data: { answerCount: { decrement: 1 } },
+            }),
+          ]
+        : []),
+    ]);
+    return { success: true };
+  }
+
+  /** 답변 추천(좋아요) — 토글, 사용자당 1회. 본인 답변 추천 불가. */
+  async upvoteAnswer(answerId: string, userId: string) {
+    if (!userId) throw new ForbiddenException('로그인이 필요합니다');
+    const answer = await this.prisma.studyGroupQuestionAnswer.findUnique({
+      where: { id: answerId },
+      include: { question: { select: { groupId: true } } },
+    });
+    if (!answer) throw new NotFoundException('답변을 찾을 수 없습니다');
+    await this.assertMemberOrPublic(answer.question.groupId, userId);
+    if (answer.userId === userId) {
+      throw new BadRequestException('본인 답변은 추천할 수 없습니다');
+    }
+
+    const existing = await this.prisma.studyGroupQuestionAnswerVote.findUnique({
+      where: { answerId_userId: { answerId, userId } },
+    });
+
+    if (existing) {
+      const [, updated] = await this.prisma.$transaction([
+        this.prisma.studyGroupQuestionAnswerVote.delete({ where: { id: existing.id } }),
+        this.prisma.studyGroupQuestionAnswer.update({
+          where: { id: answerId },
+          data: { upvotes: { decrement: 1 } },
+          select: { id: true, upvotes: true },
+        }),
+      ]);
+      return { id: updated.id, upvotes: updated.upvotes, upvoted: false };
+    }
+
+    const [, updated] = await this.prisma.$transaction([
+      this.prisma.studyGroupQuestionAnswerVote.create({ data: { answerId, userId } }),
+      this.prisma.studyGroupQuestionAnswer.update({
+        where: { id: answerId },
+        data: { upvotes: { increment: 1 } },
+        select: { id: true, upvotes: true },
+      }),
+    ]);
+    return { id: updated.id, upvotes: updated.upvotes, upvoted: true };
   }
 }
