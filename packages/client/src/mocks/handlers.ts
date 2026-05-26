@@ -1,7 +1,263 @@
 import { http, HttpResponse, delay } from 'msw';
 import { db } from './data';
 
+const mockSiteStats = {
+  users: { total: 1240, today: 12, thisWeek: 86 },
+  resumes: { total: 4820, public: 615, today: 28 },
+  activity: { totalViews: 183420, transforms: 2940, applications: 520 },
+  community: { posts: 128, comments: 460 },
+  content: { templates: 15, comments: 460 },
+  jobs: { active: 32 },
+};
+
+const mockCommunityPosts = [
+  {
+    id: 'mock-post-1',
+    title: '신입 프론트엔드 이력서 피드백 체크리스트',
+    content: '프로젝트 성과와 역할을 수치 중심으로 정리한 사례를 공유합니다.',
+    category: 'resume',
+    author: { id: 'mock-user-1', name: '김개발' },
+    authorId: 'mock-user-1',
+    viewCount: 128,
+    likeCount: 18,
+    commentCount: 4,
+    isPinned: true,
+    isHidden: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'mock-post-2',
+    title: '면접 답변을 STAR 구조로 다듬는 방법',
+    content: '상황, 과제, 행동, 결과를 짧고 명확하게 연결하는 연습법입니다.',
+    category: 'interview',
+    author: { id: 'mock-user-2', name: '박면접' },
+    authorId: 'mock-user-2',
+    viewCount: 92,
+    likeCount: 11,
+    commentCount: 2,
+    isPinned: false,
+    isHidden: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+const mockStudyGroups = [
+  {
+    id: 'mock-study-1',
+    name: '상반기 프론트엔드 면접 스터디',
+    description: '주 2회 모의면접과 이력서 상호 리뷰를 진행합니다.',
+    companyTier: 'startup',
+    cafeCategory: 'interview',
+    experienceLevel: 'junior',
+    maxMembers: 8,
+    memberCount: 5,
+    isOpen: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'mock-study-2',
+    name: '공기업 자기소개서 첨삭 모임',
+    description: '문항별 소재 정리와 구조화 피드백을 함께합니다.',
+    companyTier: 'public',
+    cafeCategory: 'resume',
+    experienceLevel: 'entry',
+    maxMembers: 10,
+    memberCount: 7,
+    isOpen: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+const mockCuratedJobs = [
+  {
+    id: 'mock-job-1',
+    company: '이력서랩',
+    companyLogo: '🧪',
+    position: 'Frontend Engineer',
+    department: 'Product Engineering',
+    summary: 'React 기반 사용자 경험과 이력서 편집 플로우를 고도화합니다.',
+    requirements: 'React, TypeScript 기반 서비스 개발 경험과 접근성/성능 개선 경험',
+    benefits: '자율 출퇴근, 원격 근무, 성장 예산 지원',
+    skills: 'React,TypeScript,Vite,Accessibility',
+    location: '서울 강남구',
+    type: 'fulltime',
+    jobType: 'fulltime',
+    experienceLevel: 'junior',
+    education: '무관',
+    companySize: 'startup',
+    industry: 'HR Tech',
+    deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14).toISOString(),
+    isRolling: false,
+    sourceUrl: 'https://example.com/jobs/frontend',
+    sourceSite: 'Mock Jobs',
+    salary: '4,500만-6,000만원',
+    viewCount: 230,
+    clickCount: 42,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'mock-job-2',
+    company: '커리어스튜디오',
+    companyLogo: '🎯',
+    position: 'Product Designer',
+    department: 'Design',
+    summary: '채용 SaaS의 정보 구조와 핵심 사용 흐름을 설계합니다.',
+    requirements: 'Figma, UX Research, Design System 운영 경험',
+    benefits: '장비 지원, 교육비 지원, 유연 근무',
+    skills: 'Figma,UX Research,Design System',
+    location: '원격',
+    type: 'contract',
+    jobType: 'contract',
+    experienceLevel: 'career',
+    education: '무관',
+    companySize: 'sme',
+    industry: 'SaaS',
+    deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
+    isRolling: false,
+    sourceUrl: 'https://example.com/jobs/product-designer',
+    sourceSite: 'Mock Jobs',
+    salary: '협의',
+    viewCount: 150,
+    clickCount: 26,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+const mockCoaches = [
+  {
+    id: 'mock-coach-1',
+    userId: 'mock-user-3',
+    displayName: '한서류',
+    headline: '이력서와 자기소개서 구조화 전문 코치',
+    bio: 'IT/스타트업 지원자의 강점 정리와 서류 스토리라인을 돕습니다.',
+    specialties: ['이력서 첨삭', '자기소개서', '면접 코칭'],
+    hourlyRate: 45000,
+    avgRating: 4.9,
+    reviewCount: 38,
+    sessionCount: 120,
+    responseTime: '24시간 이내',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+const contentBlocks: Record<string, unknown> = {
+  whats_new: {
+    version: 'mock-2026-05',
+    title: '이력서공방 업데이트',
+    features: [
+      {
+        title: '스터디 그룹 강화',
+        description: '면접 질문과 답변 피드백 흐름을 더 자연스럽게 다듬었습니다.',
+      },
+    ],
+  },
+  pricing_faq: [
+    {
+      question: '언제든 해지할 수 있나요?',
+      answer: '네. 결제 기간이 끝날 때까지 기능을 유지하고 다음 결제를 중단합니다.',
+    },
+  ],
+  coach_specialties: ['이력서 첨삭', '자기소개서', '면접 코칭', '커리어 상담', '포트폴리오'],
+  homepage: {},
+  onboarding: {},
+  help_faq: [],
+};
+
 export const handlers = [
+  // ========================
+  // Runtime config / content
+  // ========================
+  http.get(/\/api\/system-config\/public$/, async () => {
+    return HttpResponse.json({
+      monetization_enabled: false,
+      upload_enabled: true,
+    });
+  }),
+
+  http.get(/\/api\/system-config\/content\/[^/?]+$/, async ({ request }) => {
+    const key = new URL(request.url).pathname.split('/').pop() || '';
+    return HttpResponse.json(contentBlocks[key] ?? {});
+  }),
+
+  http.get(/\/api\/system-config\/permissions$/, async () => {
+    return HttpResponse.json({
+      'perm.curatedJobs.create': 'all',
+      'perm.curatedJobs.edit': 'admin',
+      'perm.curatedJobs.delete': 'admin',
+      'perm.community.create': 'all',
+      'perm.community.comment': 'all',
+    });
+  }),
+
+  http.get(/\/api\/system-config\/feature-toggles$/, async () => {
+    return HttpResponse.json({});
+  }),
+
+  http.get(/\/api\/system-config\/upload-settings$/, async () => {
+    return HttpResponse.json({
+      enabled: true,
+      maxSizeMb: 10,
+      allowedMime:
+        'image/*,application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
+  }),
+
+  http.get(/\/api\/health\/announcement$/, async () => {
+    return HttpResponse.json({});
+  }),
+
+  http.get(/\/api\/health\/stats$/, async () => {
+    return HttpResponse.json(mockSiteStats);
+  }),
+
+  http.get(/\/api\/notices\/popup$/, async () => {
+    return HttpResponse.json([]);
+  }),
+
+  http.get(/\/api\/banners\/active$/, async () => {
+    return HttpResponse.json([]);
+  }),
+
+  // ========================
+  // Public marketplace/content lists
+  // ========================
+  http.get(/\/api\/jobs\/curated\/list(?:\?.*)?$/, async () => {
+    await delay(50);
+    return HttpResponse.json({ items: mockCuratedJobs, total: mockCuratedJobs.length });
+  }),
+
+  http.get(/\/api\/jobs(?:\?.*)?$/, async () => {
+    await delay(50);
+    return HttpResponse.json([]);
+  }),
+
+  http.get(/\/api\/study-groups(?:\?.*)?$/, async () => {
+    await delay(50);
+    return HttpResponse.json({ items: mockStudyGroups, total: mockStudyGroups.length });
+  }),
+
+  http.get(/\/api\/community(?:\?.*)?$/, async () => {
+    await delay(50);
+    return HttpResponse.json({
+      items: mockCommunityPosts,
+      total: mockCommunityPosts.length,
+      totalPages: 1,
+    });
+  }),
+
+  http.get(/\/api\/coaching\/coaches(?:\?.*)?$/, async () => {
+    await delay(50);
+    return HttpResponse.json(mockCoaches);
+  }),
+
   // ========================
   // Resumes
   // ========================

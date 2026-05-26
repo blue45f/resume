@@ -9,16 +9,19 @@ import { setMonetizationEnabled } from './lib/plans';
 
 initTheme();
 
-// 앱 시작 시 유료화 설정 로드 (비동기, 실패해도 기본값 유지)
-
-fetch(`${API_URL}/api/system-config/public`)
-  .then((r) => (r.ok ? r.json() : null))
-  .then((d) => {
-    if (d && 'monetization_enabled' in d) {
-      setMonetizationEnabled(d.monetization_enabled === 'true' || d.monetization_enabled === true);
-    }
-  })
-  .catch(() => {});
+function loadPublicConfig() {
+  // 앱 시작 시 유료화 설정 로드 (비동기, 실패해도 기본값 유지)
+  return fetch(`${API_URL}/api/system-config/public`)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => {
+      if (d && 'monetization_enabled' in d) {
+        setMonetizationEnabled(
+          d.monetization_enabled === 'true' || d.monetization_enabled === true,
+        );
+      }
+    })
+    .catch(() => {});
+}
 
 async function enableMocking() {
   // VITE_MSW=true 일 때만 MSW 활성화 (백엔드 없이 프론트 개발 시)
@@ -38,6 +41,8 @@ window.addEventListener('unhandledrejection', (e) => {
 });
 
 enableMocking().then(() => {
+  void loadPublicConfig();
+
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App />

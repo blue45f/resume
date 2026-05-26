@@ -103,6 +103,24 @@ body {
   a {
     -webkit-tap-highlight-color: transparent;
   }
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+  }
+  button,
+  [role='button'] {
+    min-width: 44px;
+  }
+  a[href][class*='inline-flex'],
+  a[href][class*='inline-block'],
+  a[href][class*='block'],
+  a[href][class*=' flex'],
+  a[href][class^='flex'] {
+    min-height: 44px;
+  }
   * {
     -webkit-touch-callout: none;
   }
@@ -2200,7 +2218,7 @@ button:active:not(:disabled) {
   button,
   a,
   select {
-    min-height: 36px;
+    min-height: 44px;
   }
 
   /* Prevent text size adjustment */

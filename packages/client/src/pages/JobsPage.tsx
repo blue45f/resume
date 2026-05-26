@@ -1853,7 +1853,7 @@ function CuratedJobsTab() {
           {jobs.map((job) => {
             const dday = getDday(job.deadline, job.isRolling);
             const expanded = expandedId === job.id;
-            const skills = job.skills
+            const skills = (job.skills || '')
               .split(',')
               .map((s) => s.trim())
               .filter(Boolean);
