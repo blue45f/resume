@@ -8,10 +8,15 @@ import {
 import { StudyGroupsService } from './study-groups.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
+import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
 
 const mockConfig = {
   isFeatureEnabled: jest.fn().mockResolvedValue(true),
   assertFeatureEnabled: jest.fn().mockResolvedValue(undefined),
+};
+
+const mockForbiddenWords = {
+  validateOrThrow: jest.fn().mockResolvedValue({ blocked: false, matched: [], warnings: [] }),
 };
 
 const mockPrisma: any = {
@@ -77,6 +82,7 @@ describe('StudyGroupsService', () => {
         StudyGroupsService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: SystemConfigService, useValue: mockConfig },
+        { provide: ForbiddenWordsService, useValue: mockForbiddenWords },
       ],
     }).compile();
     service = module.get(StudyGroupsService);
@@ -292,6 +298,24 @@ describe('StudyGroupsService', () => {
       mockPrisma.studyGroupQuestion.create.mockResolvedValueOnce({ id: 'q1' });
       await service.addQuestion('g1', 'u1', { question: '왜 이 회사인가요?' });
       expect(mockPrisma.studyGroupQuestion.create).toHaveBeenCalled();
+    });
+
+    it('question/sampleAnswer 금칙어 검증 후 저장', async () => {
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      mockPrisma.studyGroupMember.findUnique.mockResolvedValueOnce({ id: 'm1' });
+      mockPrisma.studyGroupQuestion.create.mockResolvedValueOnce({ id: 'q1' });
+      await service.addQuestion('g1', 'u1', {
+        question: '면접 질문입니다',
+        sampleAnswer: '샘플 답변입니다',
+      });
+      expect(mockForbiddenWords.validateOrThrow).toHaveBeenCalledWith(
+        '면접 질문입니다',
+        '샘플 답변입니다',
+      );
     });
   });
 

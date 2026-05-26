@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
+import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
 
 export interface StudyGroupListFilters {
   q?: string;
@@ -54,6 +55,7 @@ export class StudyGroupsService {
   constructor(
     private prisma: PrismaService,
     private config: SystemConfigService,
+    private forbiddenWords: ForbiddenWordsService,
   ) {}
 
   async findAll(filters: StudyGroupListFilters) {
@@ -284,6 +286,7 @@ export class StudyGroupsService {
     const difficulty = ['beginner', 'intermediate', 'advanced'].includes(data.difficulty || '')
       ? (data.difficulty as string)
       : 'intermediate';
+    await this.forbiddenWords.validateOrThrow(question, sampleAnswer);
 
     const group = await this.prisma.studyGroup.findUnique({
       where: { id: groupId },

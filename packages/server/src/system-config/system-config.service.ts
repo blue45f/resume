@@ -154,7 +154,17 @@ export class SystemConfigService {
   static readonly UPLOAD_DEFAULTS = {
     enabled: true,
     maxSizeMb: 10,
-    allowedMime: 'image/*,application/pdf,application/zip',
+    allowedMime: [
+      'image/*',
+      'application/pdf',
+      'text/plain',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    ].join(','),
   };
 
   async getUploadSettings(): Promise<{

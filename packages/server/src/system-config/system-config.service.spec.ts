@@ -134,6 +134,19 @@ describe('SystemConfigService', () => {
     });
   });
 
+  describe('assertUploadAllowed', () => {
+    it('기본 업로드 MIME 정책은 text/plain 업로드를 허용한다', async () => {
+      mockPrisma.systemConfig.findUnique
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+
+      await expect(
+        service.assertUploadAllowed({ size: 1024, mimetype: 'text/plain' }),
+      ).resolves.toBeUndefined();
+    });
+  });
+
   describe('checkPermission', () => {
     beforeEach(() => {
       mockPrisma.systemConfig.findMany.mockResolvedValue([]);
