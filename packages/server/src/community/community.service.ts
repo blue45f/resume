@@ -240,9 +240,9 @@ export class CommunityService {
     },
   ) {
     const post = await this.prisma.communityPost.findUnique({ where: { id } });
-    if (!post) throw new Error('Not found');
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
     if (post.userId !== userId && role !== 'admin' && role !== 'superadmin')
-      throw new Error('Forbidden');
+      throw new ForbiddenException('권한이 없습니다');
 
     const data: any = {};
     if (body.title !== undefined) data.title = body.title;
@@ -261,9 +261,9 @@ export class CommunityService {
 
   async deletePost(id: string, userId: string, role: string) {
     const post = await this.prisma.communityPost.findUnique({ where: { id } });
-    if (!post) throw new Error('Not found');
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
     if (post.userId !== userId && role !== 'admin' && role !== 'superadmin')
-      throw new Error('Forbidden');
+      throw new ForbiddenException('권한이 없습니다');
     return this.prisma.communityPost.delete({ where: { id } });
   }
 
@@ -390,9 +390,9 @@ export class CommunityService {
 
   async deleteComment(commentId: string, userId: string, role: string) {
     const comment = await this.prisma.communityComment.findUnique({ where: { id: commentId } });
-    if (!comment) throw new Error('Not found');
+    if (!comment) throw new NotFoundException('댓글을 찾을 수 없습니다');
     if (comment.userId !== userId && role !== 'admin' && role !== 'superadmin')
-      throw new Error('Forbidden');
+      throw new ForbiddenException('권한이 없습니다');
     return this.prisma.communityComment.delete({ where: { id: commentId } });
   }
 

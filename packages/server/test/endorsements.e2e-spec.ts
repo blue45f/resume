@@ -77,11 +77,10 @@ describe('Endorsements E2E', () => {
     expect([401, 403]).toContain(res.status);
   });
 
-  it('POST 존재하지 않는 이력서 → 404/500', async () => {
+  it('POST 존재하지 않는 이력서 → 404', async () => {
     const res = await ctx
       .authPost('recruiter', '/api/resumes/nonexistent-resume-id/endorse')
       .send({ skill: 'React' });
-    // FK 위반 Prisma 에러가 500로 올라올 수도 있음
-    expect([400, 404, 500]).toContain(res.status);
+    expect(res.status).toBe(404);
   });
 });

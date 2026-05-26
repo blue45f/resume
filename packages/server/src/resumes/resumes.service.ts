@@ -1054,6 +1054,12 @@ export class ResumesService {
     userId: string,
     skill: string,
   ): Promise<{ endorsed: boolean; count: number }> {
+    const resume = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      select: { id: true },
+    });
+    if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+
     const existing = await this.prisma.skillEndorsement.findUnique({
       where: { resumeId_userId_skill: { resumeId, userId, skill } },
     });

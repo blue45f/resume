@@ -886,6 +886,7 @@ describe('ResumesService', () => {
         delete: jest.fn(),
         count: jest.fn(),
       };
+      mockPrisma.resume.findUnique.mockResolvedValue({ id: 'resume-1' });
     });
 
     it('getEndorsements — 빈 결과 반환', async () => {
@@ -933,6 +934,15 @@ describe('ResumesService', () => {
       expect(mockPrisma.skillEndorsement.create).toHaveBeenCalledWith({
         data: { resumeId: 'resume-1', userId: 'user-1', skill: 'React' },
       });
+    });
+
+    it('toggleEndorse — 존재하지 않는 이력서면 NotFoundException', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue(null);
+
+      await expect(service.toggleEndorse('missing-resume', 'user-1', 'React')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(mockPrisma.skillEndorsement.create).not.toHaveBeenCalled();
     });
 
     it('toggleEndorse — 추천 취소 (이미 있는 경우)', async () => {

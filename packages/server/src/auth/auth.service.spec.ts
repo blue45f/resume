@@ -626,6 +626,37 @@ describe('AuthService - updateProfile', () => {
     expect(result.name).toBe('새이름');
   });
 
+  it('openToWorkRoles 배열 입력을 콤마 구분 문자열로 저장', async () => {
+    const user = {
+      id: 'u1',
+      email: 'e@t.com',
+      name: '홍길동',
+      avatar: '',
+      provider: 'local',
+      role: 'user',
+      plan: 'free',
+      userType: 'personal',
+      companyName: '',
+      companyTitle: '',
+      openToWorkRoles: '',
+    };
+    mockPrisma.user.findUnique.mockResolvedValue(user);
+    mockPrisma.user.update.mockResolvedValue({
+      ...user,
+      openToWorkRoles: 'frontend,fullstack',
+    });
+
+    const result = await service.updateProfile('u1', {
+      openToWorkRoles: ['frontend', ' fullstack ', '', 'frontend'],
+    });
+
+    expect(result.openToWorkRoles).toBe('frontend,fullstack');
+    expect(mockPrisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'u1' },
+      data: { openToWorkRoles: 'frontend,fullstack' },
+    });
+  });
+
   it('username 설정 성공', async () => {
     const user = {
       id: 'u1',

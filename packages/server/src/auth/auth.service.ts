@@ -22,6 +22,11 @@ function maskEmail(email: string): string {
   return `${local[0]}***${domain}`;
 }
 
+function normalizeOpenToWorkRoles(roles: string | string[]): string {
+  const values = Array.isArray(roles) ? roles : roles.split(',');
+  return Array.from(new Set(values.map((role) => String(role).trim()).filter(Boolean))).join(',');
+}
+
 @Injectable()
 export class AuthService {
   private readonly frontendUrl: string;
@@ -719,7 +724,9 @@ export class AuthService {
     if (data.companyName !== undefined) updateData.companyName = data.companyName;
     if (data.companyTitle !== undefined) updateData.companyTitle = data.companyTitle;
     if (data.isOpenToWork !== undefined) updateData.isOpenToWork = data.isOpenToWork;
-    if (data.openToWorkRoles !== undefined) updateData.openToWorkRoles = data.openToWorkRoles;
+    if (data.openToWorkRoles !== undefined) {
+      updateData.openToWorkRoles = normalizeOpenToWorkRoles(data.openToWorkRoles);
+    }
     if (data.preferredLocale !== undefined) {
       const validLocales = ['', 'ko', 'en', 'ja'];
       if (!validLocales.includes(data.preferredLocale)) {

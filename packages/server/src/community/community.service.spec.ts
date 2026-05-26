@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
 import { SystemConfigService } from '../system-config/system-config.service';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 const mockSystemConfig = {
   getReportThreshold: jest.fn().mockResolvedValue(5),
@@ -283,9 +284,14 @@ describe('CommunityService', () => {
       expect(mockPrisma.communityPost.delete).toHaveBeenCalled();
     });
 
-    it('다른 사용자 → Error', async () => {
+    it('다른 사용자 → ForbiddenException', async () => {
       mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' });
-      await expect(service.deletePost('p1', 'u2', 'user')).rejects.toThrow('Forbidden');
+      await expect(service.deletePost('p1', 'u2', 'user')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('없는 게시글 → NotFoundException', async () => {
+      mockPrisma.communityPost.findUnique.mockResolvedValue(null);
+      await expect(service.deletePost('missing', 'u1', 'user')).rejects.toThrow(NotFoundException);
     });
 
     it('관리자는 삭제 가능', async () => {
@@ -293,6 +299,14 @@ describe('CommunityService', () => {
       mockPrisma.communityPost.delete.mockResolvedValue({});
       await service.deletePost('p1', 'u2', 'admin');
       expect(mockPrisma.communityPost.delete).toHaveBeenCalled();
+    });
+  });
+
+  describe('deleteComment', () => {
+    it('다른 사용자 → ForbiddenException', async () => {
+      mockPrisma.communityComment.findUnique.mockResolvedValue({ id: 'c1', userId: 'u1' });
+
+      await expect(service.deleteComment('c1', 'u2', 'user')).rejects.toThrow(ForbiddenException);
     });
   });
 });
