@@ -525,10 +525,13 @@ export default function ResumeForm({
               aria-controls={`panel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               onKeyDown={(e) => {
-                let nextIdx = idx;
-                if (e.key === 'ArrowRight') nextIdx = (idx + 1) % tabs.length;
-                else if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + tabs.length) % tabs.length;
-                else return;
+                const nextIdx =
+                  e.key === 'ArrowRight'
+                    ? (idx + 1) % tabs.length
+                    : e.key === 'ArrowLeft'
+                      ? (idx - 1 + tabs.length) % tabs.length
+                      : null;
+                if (nextIdx === null) return;
                 e.preventDefault();
                 setActiveTab(tabs[nextIdx].id);
                 (e.currentTarget.parentElement?.children[nextIdx] as HTMLElement)?.focus();

@@ -17,6 +17,7 @@ export default defineConfig([
     'packages/*/node_modules',
     'packages/*/coverage',
     'packages/client/public/**',
+    'packages/client/storybook-static/**',
     'packages/server/prisma/migrations/**',
   ]),
   {

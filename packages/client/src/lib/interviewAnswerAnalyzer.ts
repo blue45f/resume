@@ -110,7 +110,7 @@ export function analyzeInterviewAnswer(text: string): AnswerAnalysis {
 
   // 점수 계산 (0~100):
   // 1. 길이 (max 30): 100자 미만 0~10, 100~600자 30 만점, 600자 초과 -선형 감점 (장황)
-  let lenScore = 0;
+  let lenScore: number;
   if (charCount < 100) lenScore = Math.round((charCount / 100) * 10);
   else if (charCount <= 600) lenScore = 30;
   else lenScore = Math.max(15, 30 - Math.floor((charCount - 600) / 100) * 3);

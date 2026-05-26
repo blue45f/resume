@@ -118,7 +118,7 @@ export function analyzeRedundancy(text: string, windowChars = 40): RedundancyAna
   }
   hits.sort((a, b) => a.distance - b.distance);
   const worst = hits[0] ?? null;
-  let suggestion = '';
+  let suggestion: string;
   if (!worst) suggestion = '근접 반복어가 발견되지 않았습니다.';
   else if (hits.length >= 5)
     suggestion = `"${worst.word}" 등 근접 반복어가 ${hits.length}건 감지되었습니다. 동의어로 변주하거나 문장을 줄여 보세요.`;

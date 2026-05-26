@@ -263,7 +263,7 @@ export class JobInterviewQuestionsService {
 
     const result = await this.llm.generateWithFallback(systemPrompt, userMessage);
 
-    let parsed: any[] = [];
+    let parsed: any[];
     try {
       const text = (result.text || '').trim();
       const jsonStart = text.indexOf('[');

@@ -45,7 +45,7 @@ export function analyzeParagraphs(text: string): ParagraphStats {
   const longParagraphs = lengths.filter((l) => l > 500).length;
   const idealCount = lengths.filter((l) => l >= 100 && l <= 300).length;
   const idealRatio = count > 0 ? Math.round((idealCount / count) * 100) / 100 : 0;
-  let suggestion = '';
+  let suggestion: string;
   if (count === 1 && lengths[0] > 300) {
     suggestion = `본문이 한 문단(${lengths[0]}자)로만 구성 — 빈 줄로 2~4 문단 분리 권장.`;
   } else if (longParagraphs > 0) {

@@ -39,7 +39,7 @@ export function analyzeNumericFormat(text: string): NumericFormatAnalysis {
   formats.sort((a, b) => b.count - a.count);
   const dominant = formats[0]?.key ?? null;
   const consistent = distinct <= 1;
-  let suggestion = '';
+  let suggestion: string;
   const total = comma + plain + korean;
   if (total === 0) suggestion = '4자리 이상 숫자가 없습니다.';
   else if (consistent) suggestion = `숫자 포맷이 "${dominant}" 로 일관됩니다.`;

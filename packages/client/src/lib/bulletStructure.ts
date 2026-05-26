@@ -50,7 +50,7 @@ export function analyzeParallelism(text: string): ParallelismAnalysis {
     .sort((a, b) => b.count - a.count);
   const top = styles[0];
   const consistency = top ? Math.round(top.percent) : 0;
-  let suggestion = '';
+  let suggestion: string;
   if (candidates.length < 3) suggestion = '목록 항목이 부족해 분석이 제한적입니다.';
   else if (consistency >= 85) suggestion = `목록 어미가 "${top.style}" 로 일관됩니다.`;
   else if (consistency >= 65)
@@ -120,7 +120,7 @@ export function analyzePunctuationBalance(text: string): PunctuationBalance {
   const sentences = Math.max(1, periods + questions + exclamations);
   const commasPerSentence = Math.round((commas / sentences) * 100) / 100;
 
-  let suggestion = '';
+  let suggestion: string;
   if (total === 0) suggestion = '문장부호가 감지되지 않았습니다.';
   else if (exclamations > sentences * 0.3)
     suggestion = `느낌표 과다 (${exclamations}/${sentences}) — 공식 문서 톤으로 줄이세요.`;

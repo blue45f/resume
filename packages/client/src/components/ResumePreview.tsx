@@ -645,7 +645,7 @@ function RemainingContent({
         </Section>
       )}
       {activities.length > 0 && (
-        <Section title={t('resume.activities')} theme={theme} isFirst={idx++ === 0}>
+        <Section title={t('resume.activities')} theme={theme} isFirst={idx === 0}>
           <div className="space-y-2">
             {activities.map((act) => (
               <div key={act.id}>

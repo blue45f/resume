@@ -97,7 +97,7 @@ export function analyzeLength(
     .map((p) => p.trim())
     .filter((p) => p.length > 0).length;
   let status: LengthAnalysis['status'] = 'no-target';
-  let suggestion = '';
+  let suggestion: string;
   const effective = charsWithSpaces;
   if (target) {
     if (target.min !== undefined && effective < target.min) {

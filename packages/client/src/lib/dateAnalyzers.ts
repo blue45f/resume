@@ -60,7 +60,7 @@ export function analyzeDateConsistency(text: string): DateConsistencyAnalysis {
   const distinctFormats = usedFormats.length;
   const dominantFormat = usedFormats.sort((a, b) => formatCounts[b] - formatCounts[a])[0] ?? null;
   const consistent = distinctFormats <= 1;
-  let suggestion = '';
+  let suggestion: string;
   if (hits.length === 0) suggestion = '날짜 표기가 감지되지 않았습니다.';
   else if (consistent) suggestion = `날짜 표기가 "${dominantFormat}" 로 일관됩니다.`;
   else

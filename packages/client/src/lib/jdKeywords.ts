@@ -122,7 +122,7 @@ export function computeJDMatch(resumeText: string, jdText: string, topN = 30): J
   }
   const onlyInResume = [...resumeKw].filter((w) => !jdKws.some((j) => j.word === w)).slice(0, 10);
   const score = jdKws.length > 0 ? Math.round((matched.length / jdKws.length) * 100) : 0;
-  let suggestion = '';
+  let suggestion: string;
   if (jdKws.length < 3) suggestion = '공고 본문이 너무 짧아 분석이 제한적입니다.';
   else if (score >= 75) suggestion = '공고 키워드 적합도가 우수합니다.';
   else if (score >= 50)

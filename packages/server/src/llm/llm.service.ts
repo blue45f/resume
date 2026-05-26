@@ -413,7 +413,7 @@ export class LlmService {
 
     const result = await this.generateWithFallback(systemPrompt, input, provider);
 
-    let issues: any[] = [];
+    let issues: any[];
     try {
       let text = result.text;
       const m = text.match(/\[[\s\S]*\]/);

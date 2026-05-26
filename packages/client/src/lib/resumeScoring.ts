@@ -55,7 +55,7 @@ function computeMissingResumeSections(text: string): ResumeSectionCoverage {
     else missing.push(section.key);
   }
   const coverageRatio = Math.round((present.length / RESUME_SECTIONS.length) * 100) / 100;
-  let suggestion = '';
+  let suggestion: string;
   if (coverageRatio === 1) suggestion = '이력서 주요 섹션이 모두 포함되어 있습니다.';
   else if (missing.length === 1)
     suggestion = `"${missing[0]}" 섹션이 누락되었습니다 — 추가를 고려하세요.`;

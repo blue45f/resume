@@ -37,7 +37,7 @@ export class FileTextExtractorService {
     const mime = (file.mimetype || '').toLowerCase();
     const isImage = IMAGE_MIMES.has(mime) || IMAGE_EXTS.some((e) => name.endsWith(e));
 
-    let text = '';
+    let text: string;
     try {
       if (name.endsWith('.pdf') || mime === 'application/pdf') {
         text = await this.extractPdf(file.buffer);

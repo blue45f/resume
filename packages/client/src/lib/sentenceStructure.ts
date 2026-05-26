@@ -62,7 +62,7 @@ export function analyzeSentenceEndings(text: string): SentenceEndingAnalysis {
   for (const e of entries) hhi += e.percent * e.percent;
   const monotonyScore = Math.min(100, Math.round(hhi / 100));
 
-  let suggestion = '';
+  let suggestion: string;
   if (total < 5) {
     suggestion = '분석을 위한 문장이 부족합니다 (5 문장 이상 권장).';
   } else if (monotonyScore >= 60) {
@@ -105,7 +105,7 @@ export function analyzeSentenceStarts(text: string): SentenceStartAnalysis {
     .sort((a, b) => b.count - a.count);
   const topStarts = entries.slice(0, 3);
   const repeatedStartRatio = topStarts[0] ? topStarts[0].count / total : 0;
-  let suggestion = '';
+  let suggestion: string;
   if (total < 5) suggestion = '분석을 위한 문장이 부족합니다.';
   else if (repeatedStartRatio > 0.4)
     suggestion = `문장의 ${Math.round(repeatedStartRatio * 100)}% 가 "${topStarts[0].word}" 로 시작합니다. 시작을 변주하세요.`;

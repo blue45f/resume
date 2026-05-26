@@ -22,6 +22,7 @@ module.exports = {
   },
   testEnvironment: 'node',
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '\\.e2e-spec\\.ts$'],
+  modulePathIgnorePatterns: ['<rootDir>/dist/'],
   collectCoverageFrom: [
     'src/**/*.service.ts',
     'src/**/*.guard.ts',
