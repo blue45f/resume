@@ -5760,6 +5760,136 @@ button:active:not(:disabled) {
   color: var(--color-text);
 }
 
+/* ── JD bias hint ──────────────────────────────────────────────── */
+.jd-bias-hint {
+  margin-top: 0.55rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
+}
+.jd-bias-hint--good {
+  border-color: color-mix(in oklab, var(--color-success) 22%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-success-light) 32%, var(--color-surface));
+}
+.jd-bias-hint--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 26%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-warning-light) 36%, var(--color-surface));
+}
+.jd-bias-hint--danger {
+  border-color: color-mix(in oklab, var(--color-error) 28%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-error-light) 40%, var(--color-surface));
+}
+.jd-bias-hint__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.jd-bias-hint__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jd-bias-hint__label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.jd-bias-hint--warning .jd-bias-hint__label {
+  color: color-mix(in oklab, var(--color-warning) 84%, var(--color-text));
+}
+.jd-bias-hint--danger .jd-bias-hint__label {
+  color: color-mix(in oklab, var(--color-error) 82%, var(--color-text));
+}
+.jd-bias-hint__summary {
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+.jd-bias-hint__findings {
+  margin-top: 0.7rem;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.55rem;
+}
+.jd-bias-hint__finding {
+  padding: 0.6rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+}
+.jd-bias-hint__finding-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+.jd-bias-hint__severity {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.jd-bias-hint__severity--high {
+  color: color-mix(in oklab, var(--color-error) 90%, var(--color-text));
+  background: color-mix(in oklab, var(--color-error-light) 65%, var(--color-surface));
+}
+.jd-bias-hint__severity--medium {
+  color: color-mix(in oklab, var(--color-warning) 90%, var(--color-text));
+  background: color-mix(in oklab, var(--color-warning-light) 65%, var(--color-surface));
+}
+.jd-bias-hint__severity--low {
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+}
+.jd-bias-hint__excerpt {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.35rem;
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-subtle);
+  word-break: break-all;
+}
+.jd-bias-hint__detail {
+  margin-top: 0.45rem;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+.jd-bias-hint__suggestion {
+  margin-top: 0.3rem;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  color: var(--color-accent);
+  font-weight: 500;
+}
+.jd-bias-hint__more {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 0.25rem 0;
+}
+.dark .jd-bias-hint__finding {
+  background: var(--color-surface-raised);
+}
+.dark .jd-bias-hint__excerpt {
+  background: color-mix(in oklab, var(--color-surface) 92%, var(--color-text));
+}
+
 /* ── Home Pro prompt + bookmarks ───────────────────────────────── */
 .home-pro-prompt {
   display: flex;

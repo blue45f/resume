@@ -10,6 +10,7 @@ import RelatedGroupsWidget from '@/features/study-groups/ui/RelatedGroupsWidget'
 import InterviewScoreHistory from '@/components/InterviewScoreHistory';
 import { analyzeInterviewAnswer } from '@/lib/api';
 import { analyzeJdSeniority } from '@/lib/jdSeniorityAnalyzer';
+import { buildJdBiasReport } from '@/lib/jdBiasDetector';
 import { tx } from '@/lib/i18n';
 
 // ── Types ──
@@ -354,6 +355,43 @@ function JdSeniorityHint({ text }: { text: string }) {
           ))}
         </ul>
       )}
+    </aside>
+  );
+}
+
+function JdBiasHint({ text }: { text: string }) {
+  const report = useMemo(() => buildJdBiasReport(text), [text]);
+  if (report.totalCount === 0) return null;
+  return (
+    <aside className={`jd-bias-hint jd-bias-hint--${report.tone}`} aria-label="채용공고 편향 신호">
+      <div className="jd-bias-hint__head">
+        <span className="jd-bias-hint__eyebrow">JD bias signals</span>
+        <span className="jd-bias-hint__label">{report.label}</span>
+      </div>
+      <p className="jd-bias-hint__summary">{report.summary}</p>
+      <ul className="jd-bias-hint__findings">
+        {report.findings.slice(0, 4).map((finding, idx) => (
+          <li key={`${finding.category}-${idx}`} className="jd-bias-hint__finding">
+            <div className="jd-bias-hint__finding-row">
+              <span
+                className={`jd-bias-hint__severity jd-bias-hint__severity--${finding.severity}`}
+              >
+                {finding.severity === 'high'
+                  ? '심각'
+                  : finding.severity === 'medium'
+                    ? '주의'
+                    : '참고'}
+              </span>
+              <code className="jd-bias-hint__excerpt">{finding.excerpt}</code>
+            </div>
+            <p className="jd-bias-hint__detail">{finding.detail}</p>
+            <p className="jd-bias-hint__suggestion">→ {finding.suggestion}</p>
+          </li>
+        ))}
+        {report.findings.length > 4 && (
+          <li className="jd-bias-hint__more">+ {report.findings.length - 4}건 더</li>
+        )}
+      </ul>
     </aside>
   );
 }
@@ -1641,7 +1679,12 @@ export default function InterviewPrepPage() {
                 rows={3}
                 className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 resize-none"
               />
-              {jobDescription.trim().length >= 30 && <JdSeniorityHint text={jobDescription} />}
+              {jobDescription.trim().length >= 30 && (
+                <>
+                  <JdSeniorityHint text={jobDescription} />
+                  <JdBiasHint text={jobDescription} />
+                </>
+              )}
             </div>
           </div>
 
