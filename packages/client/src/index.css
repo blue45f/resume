@@ -5681,6 +5681,85 @@ button:active:not(:disabled) {
   background: var(--color-surface-raised);
 }
 
+/* ── JD seniority hint ─────────────────────────────────────────── */
+.jd-seniority-hint {
+  margin-top: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
+}
+.jd-seniority-hint--good {
+  border-color: color-mix(in oklab, var(--color-success) 22%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-success-light) 36%, var(--color-surface));
+}
+.jd-seniority-hint--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 22%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-warning-light) 36%, var(--color-surface));
+}
+.jd-seniority-hint__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.jd-seniority-hint__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jd-seniority-hint__label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.jd-seniority-hint--good .jd-seniority-hint__label {
+  color: color-mix(in oklab, var(--color-success) 82%, var(--color-text));
+}
+.jd-seniority-hint--warning .jd-seniority-hint__label {
+  color: color-mix(in oklab, var(--color-warning) 82%, var(--color-text));
+}
+.jd-seniority-hint__detail {
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+.jd-seniority-hint__signals {
+  margin-top: 0.65rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  list-style: none;
+  padding: 0;
+}
+.jd-seniority-hint__signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  font-size: 0.68rem;
+  color: var(--color-text-secondary);
+}
+.jd-seniority-hint__signal-source {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jd-seniority-hint__signal-keyword {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
 /* ── Home Pro prompt + bookmarks ───────────────────────────────── */
 .home-pro-prompt {
   display: flex;

@@ -9,6 +9,7 @@ import { useResume, useResumes, usePublicGet } from '@/hooks/useResources';
 import RelatedGroupsWidget from '@/features/study-groups/ui/RelatedGroupsWidget';
 import InterviewScoreHistory from '@/components/InterviewScoreHistory';
 import { analyzeInterviewAnswer } from '@/lib/api';
+import { analyzeJdSeniority } from '@/lib/jdSeniorityAnalyzer';
 import { tx } from '@/lib/i18n';
 
 // ── Types ──
@@ -327,6 +328,33 @@ function CircularTimer({
         <span className="text-xs text-slate-500 dark:text-slate-400">남은 시간</span>
       </div>
     </div>
+  );
+}
+
+function JdSeniorityHint({ text }: { text: string }) {
+  const analysis = useMemo(() => analyzeJdSeniority(text), [text]);
+  if (analysis.level === 'unspecified' && analysis.signals.length === 0) return null;
+  return (
+    <aside
+      className={`jd-seniority-hint jd-seniority-hint--${analysis.tone}`}
+      aria-label="채용공고 연차 분석"
+    >
+      <div className="jd-seniority-hint__head">
+        <span className="jd-seniority-hint__eyebrow">JD seniority</span>
+        <span className="jd-seniority-hint__label">{analysis.label}</span>
+      </div>
+      <p className="jd-seniority-hint__detail">{analysis.detail}</p>
+      {analysis.signals.length > 0 && (
+        <ul className="jd-seniority-hint__signals">
+          {analysis.signals.slice(0, 4).map((signal, idx) => (
+            <li key={`${signal.keyword}-${idx}`} className="jd-seniority-hint__signal">
+              <span className="jd-seniority-hint__signal-source">{signal.source}</span>
+              <span className="jd-seniority-hint__signal-keyword">{signal.keyword}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </aside>
   );
 }
 
@@ -1613,6 +1641,7 @@ export default function InterviewPrepPage() {
                 rows={3}
                 className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 resize-none"
               />
+              {jobDescription.trim().length >= 30 && <JdSeniorityHint text={jobDescription} />}
             </div>
           </div>
 
