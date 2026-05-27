@@ -1224,41 +1224,38 @@ export default function HomePage() {
             <NetworkStats />
 
             {user && (!user.plan || user.plan === 'free') && resumes.length >= 2 && (
-              <div className="mb-4 p-3 bg-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center justify-between animate-fade-in">
+              <aside className="home-pro-prompt animate-fade-in">
                 <div>
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
-                    프로 플랜으로 업그레이드
-                  </p>
-                  <p className="text-xs text-blue-600 dark:text-blue-400">
-                    무제한 AI 변환, 자소서, 번역 기능을 사용하세요
+                  <span className="home-pro-prompt__eyebrow">Pro</span>
+                  <p className="home-pro-prompt__title">프로 플랜으로 업그레이드</p>
+                  <p className="home-pro-prompt__lede">
+                    무제한 AI 변환, 자소서, 번역 기능을 사용하세요.
                   </p>
                 </div>
-                <Link
-                  to={ROUTES.pricing}
-                  className="home-hover-dim shrink-0 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg"
-                >
+                <Link to={ROUTES.pricing} className="home-pro-prompt__cta">
                   요금제 보기
                 </Link>
-              </div>
+              </aside>
             )}
 
             {bookmarks.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
-                  북마크한 이력서
-                </h3>
-                <div className="flex gap-2 overflow-x-auto pb-2">
+              <section className="home-bookmarks">
+                <header className="home-bookmarks__head">
+                  <span className="home-bookmarks__eyebrow">Saved</span>
+                  <h3 className="home-bookmarks__title">북마크한 이력서</h3>
+                </header>
+                <div className="home-bookmarks__list">
                   {bookmarks.slice(0, 5).map((b) => (
                     <Link
                       key={b.id}
                       to={ROUTES.resume.preview(b.resumeId)}
-                      className="home-hover-dim shrink-0 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400"
+                      className="home-bookmarks__chip"
                     >
                       {b.title || b.name || '이력서'}
                     </Link>
                   ))}
                 </div>
-              </div>
+              </section>
             )}
 
             <SharedWithMeSection />

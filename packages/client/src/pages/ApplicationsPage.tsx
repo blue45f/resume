@@ -1365,151 +1365,105 @@ export default function ApplicationsPage() {
                   </div>
                 </div>
 
-                {/* Source performance */}
-                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                <section className="analytics-card">
+                  <header className="analytics-card__head">
                     <div>
-                      <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-md flex items-center justify-center text-xs">
-                          ↗
-                        </span>
-                        채널별 성과
-                      </h3>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                        {sourceInsights.summary}
-                      </p>
+                      <span className="analytics-card__eyebrow">Channel performance</span>
+                      <h3 className="analytics-card__title">채널별 성과</h3>
+                      <p className="analytics-card__lede">{sourceInsights.summary}</p>
                     </div>
                     {sourceInsights.bestSource && (
-                      <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 px-3 py-2 text-right">
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
-                          Best source
-                        </p>
-                        <p className="text-sm font-extrabold text-emerald-700 dark:text-emerald-300">
-                          {sourceInsights.bestSource.label}{' '}
-                          {sourceInsights.bestSource.conversionRate}%
-                        </p>
-                      </div>
+                      <span className="analytics-card__pill analytics-card__pill--good">
+                        Best · {sourceInsights.bestSource.label}{' '}
+                        <strong>{sourceInsights.bestSource.conversionRate}%</strong>
+                      </span>
                     )}
-                  </div>
-                  <div className="space-y-2">
-                    {sourceInsights.sources.slice(0, 5).map((source) => (
-                      <div
-                        key={source.label}
-                        className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_5rem_5rem_5rem] gap-2 sm:gap-3 items-center rounded-xl bg-slate-50 dark:bg-slate-900/45 border border-slate-100 dark:border-slate-700 px-3 py-2"
-                      >
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-sm text-slate-800 dark:text-slate-200 truncate">
-                              {source.label}
-                            </span>
-                            {source.staleCount > 0 && (
-                              <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 rounded-full px-1.5 py-0.5">
-                                정체 {source.staleCount}
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-1 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                  </header>
+                  <ol className="analytics-source-list">
+                    {sourceInsights.sources.slice(0, 5).map((source, idx) => {
+                      const max = sourceInsights.sources[0]?.count || 1;
+                      const fill = Math.max((source.count / max) * 100, 6);
+                      return (
+                        <li key={source.label} className="analytics-source">
+                          <span className="analytics-source__rank">{idx + 1}</span>
+                          <div className="analytics-source__body">
+                            <div className="analytics-source__head">
+                              <span className="analytics-source__label">{source.label}</span>
+                              {source.staleCount > 0 && (
+                                <span className="analytics-source__stale">
+                                  정체 {source.staleCount}
+                                </span>
+                              )}
+                            </div>
                             <div
-                              className="h-full rounded-full bg-cyan-500 dark:bg-cyan-400"
-                              style={{
-                                width: `${Math.max(
-                                  sourceInsights.sources[0]?.count
-                                    ? (source.count / sourceInsights.sources[0].count) * 100
-                                    : 0,
-                                  6,
-                                )}%`,
-                              }}
-                            />
+                              className="analytics-source__bar"
+                              style={{ ['--analytics-bar-fill' as string]: `${fill / 100}` }}
+                              aria-hidden="true"
+                            >
+                              <span />
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <span className="block text-sm font-extrabold text-slate-800 dark:text-slate-200">
-                            {source.count}
-                          </span>
-                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                            지원
-                          </span>
-                        </div>
-                        <div className="hidden sm:block text-right">
-                          <span className="block text-sm font-extrabold text-cyan-700 dark:text-cyan-300">
-                            {source.conversionRate}%
-                          </span>
-                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                            면접·오퍼
-                          </span>
-                        </div>
-                        <div className="hidden sm:block text-right">
-                          <span className="block text-sm font-extrabold text-emerald-700 dark:text-emerald-300">
-                            {source.offerRate}%
-                          </span>
-                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                            오퍼
-                          </span>
-                        </div>
+                          <div className="analytics-source__metrics">
+                            <span className="analytics-source__metric">
+                              <strong>{source.count}</strong>
+                              <small>지원</small>
+                            </span>
+                            <span className="analytics-source__metric">
+                              <strong>{source.conversionRate}%</strong>
+                              <small>면접·오퍼</small>
+                            </span>
+                            <span className="analytics-source__metric analytics-source__metric--accent">
+                              <strong>{source.offerRate}%</strong>
+                              <small>오퍼</small>
+                            </span>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </section>
+
+                <section className="analytics-card analytics-card--quiet">
+                  <header className="analytics-card__head">
+                    <div>
+                      <span className="analytics-card__eyebrow">Headline numbers</span>
+                      <h3 className="analytics-card__title">핵심 지표</h3>
+                    </div>
+                  </header>
+                  <dl className="analytics-scoreboard">
+                    {[
+                      { label: '총 지원', value: apps.length, unit: '건' },
+                      {
+                        label: '면접 진행',
+                        value: apps.filter((a) => a.status === 'interview').length,
+                        unit: '건',
+                      },
+                      {
+                        label: '최종 합격',
+                        value: apps.filter((a) => a.status === 'offer').length,
+                        unit: '건',
+                      },
+                      {
+                        label: '합격률',
+                        value: successRate,
+                        unit: '%',
+                        tone: successRate >= 30 ? 'good' : 'warning',
+                      },
+                    ].map((s) => (
+                      <div
+                        key={s.label}
+                        className={`analytics-scoreboard__cell${s.tone ? ` analytics-scoreboard__cell--${s.tone}` : ''}`}
+                      >
+                        <dt>{s.label}</dt>
+                        <dd>
+                          <span className="analytics-scoreboard__value">{s.value}</span>
+                          <span className="analytics-scoreboard__unit">{s.unit}</span>
+                        </dd>
                       </div>
                     ))}
-                  </div>
-                </div>
+                  </dl>
+                </section>
 
-                {/* Key stats grid */}
-                <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-                    {
-                      label: '총 지원',
-                      value: apps.length,
-                      unit: '건',
-                      icon: '📝',
-                      color: 'text-blue-600 dark:text-blue-400',
-                      bg: 'bg-blue-50 dark:bg-blue-900/20',
-                    },
-                    {
-                      label: '면접 진행중',
-                      value: apps.filter((a) => a.status === 'interview').length,
-                      unit: '건',
-                      icon: '🎤',
-                      color: 'text-amber-600 dark:text-amber-400',
-                      bg: 'bg-amber-50 dark:bg-amber-900/20',
-                    },
-                    {
-                      label: '최종합격',
-                      value: apps.filter((a) => a.status === 'offer').length,
-                      unit: '건',
-                      icon: '🎉',
-                      color: 'text-green-600 dark:text-green-400',
-                      bg: 'bg-green-50 dark:bg-green-900/20',
-                    },
-                    {
-                      label: '합격률',
-                      value: successRate,
-                      unit: '%',
-                      icon: '📈',
-                      color:
-                        successRate >= 30
-                          ? 'text-green-600 dark:text-green-400'
-                          : 'text-orange-600 dark:text-orange-400',
-                      bg:
-                        successRate >= 30
-                          ? 'bg-green-50 dark:bg-green-900/20'
-                          : 'bg-orange-50 dark:bg-orange-900/20',
-                    },
-                  ].map((s) => (
-                    <div
-                      key={s.label}
-                      className={`${s.bg} border border-slate-200/50 dark:border-slate-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center`}
-                    >
-                      <span className="text-2xl mb-1">{s.icon}</span>
-                      <span className={`text-2xl font-extrabold ${s.color}`}>
-                        {s.value}
-                        <span className="text-sm ml-0.5">{s.unit}</span>
-                      </span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {s.label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Monthly trend */}
                 {(() => {
                   const monthlyMap: Record<string, number> = {};
                   apps.forEach((a) => {
@@ -1519,125 +1473,116 @@ export default function ApplicationsPage() {
                   const months = Object.keys(monthlyMap).sort().slice(-6);
                   if (months.length < 2) return null;
                   const max = Math.max(...months.map((m) => monthlyMap[m]));
+                  const total = months.reduce((sum, m) => sum + monthlyMap[m], 0);
                   return (
-                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
-                      <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-sky-100 dark:bg-sky-900/30 text-sky-700 rounded-md flex items-center justify-center text-xs">
-                          📅
+                    <section className="analytics-card">
+                      <header className="analytics-card__head">
+                        <div>
+                          <span className="analytics-card__eyebrow">Last 6 months</span>
+                          <h3 className="analytics-card__title">월별 지원 추이</h3>
+                        </div>
+                        <span className="analytics-card__pill">
+                          누적 <strong>{total}</strong>건
                         </span>
-                        월별 지원 추이 (최근 6개월)
-                      </h3>
-                      <div className="flex items-end gap-2 h-32">
+                      </header>
+                      <div
+                        className="analytics-trend"
+                        role="img"
+                        aria-label={`${months.length}개월 지원 추이`}
+                      >
                         {months.map((m) => {
                           const count = monthlyMap[m];
                           const heightPct = max > 0 ? (count / max) * 100 : 0;
                           const [, mo] = m.split('-');
                           return (
-                            <div key={m} className="flex-1 flex flex-col items-center gap-1">
-                              <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                                {count}
-                              </span>
+                            <div key={m} className="analytics-trend__col">
+                              <span className="analytics-trend__count">{count}</span>
                               <div
-                                className="w-full bg-slate-100 dark:bg-slate-700 rounded-t-md relative overflow-hidden"
-                                style={{ height: '80px' }}
+                                className="analytics-trend__track"
+                                style={{
+                                  ['--analytics-trend-fill' as string]: `${Math.max(heightPct, 5) / 100}`,
+                                }}
                               >
-                                <div
-                                  className="absolute bottom-0 left-0 right-0 bg-blue-500 dark:bg-blue-600 rounded-t-md transition-all duration-700"
-                                  style={{ height: `${Math.max(heightPct, 5)}%` }}
-                                />
+                                <span aria-hidden="true" />
                               </div>
-                              <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                                {parseInt(mo)}월
-                              </span>
+                              <span className="analytics-trend__label">{parseInt(mo, 10)}월</span>
                             </div>
                           );
                         })}
                       </div>
-                    </div>
+                    </section>
                   );
                 })()}
 
-                {/* Top companies & status breakdown */}
-                <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Top companies */}
-                  <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
-                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-                      <span className="text-base">🏢</span> 자주 지원한 기업
-                    </h3>
-                    {(() => {
-                      const companyCounts: Record<string, number> = {};
-                      apps.forEach((a) => {
-                        companyCounts[a.company] = (companyCounts[a.company] || 0) + 1;
-                      });
-                      return Object.entries(companyCounts)
-                        .sort((a, b) => b[1] - a[1])
-                        .slice(0, 5)
-                        .map(([company, count], i) => (
-                          <div key={company} className="flex items-center gap-2 py-1.5">
-                            <span className="text-xs font-bold text-slate-400 w-4">{i + 1}</span>
-                            <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 truncate">
-                              {company}
-                            </span>
-                            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                              {count}회
-                            </span>
-                          </div>
-                        ));
-                    })()}
-                  </div>
-                  {/* Status distribution */}
-                  <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
-                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-                      <span className="text-base">📋</span> 상태별 분포
-                    </h3>
-                    {stats
-                      .filter((s) => s.count > 0)
-                      .map((s) => (
-                        <div key={s.value} className="flex items-center gap-2 py-1.5">
-                          <span
-                            className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${
-                              s.value === 'applied'
-                                ? 'bg-blue-500'
-                                : s.value === 'screening'
-                                  ? 'bg-sky-500'
-                                  : s.value === 'interview'
-                                    ? 'bg-amber-500'
-                                    : s.value === 'offer'
-                                      ? 'bg-green-500'
-                                      : s.value === 'rejected'
-                                        ? 'bg-red-400'
-                                        : 'bg-slate-400'
-                            }`}
-                          />
-                          <span className="flex-1 text-sm text-slate-600 dark:text-slate-400">
-                            {s.label}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div className="analytics-pair">
+                  <section className="analytics-card">
+                    <header className="analytics-card__head">
+                      <div>
+                        <span className="analytics-card__eyebrow">Top companies</span>
+                        <h3 className="analytics-card__title">자주 지원한 기업</h3>
+                      </div>
+                    </header>
+                    <ol className="analytics-rank">
+                      {(() => {
+                        const companyCounts: Record<string, number> = {};
+                        apps.forEach((a) => {
+                          companyCounts[a.company] = (companyCounts[a.company] || 0) + 1;
+                        });
+                        const entries = Object.entries(companyCounts)
+                          .sort((a, b) => b[1] - a[1])
+                          .slice(0, 5);
+                        const max = entries[0]?.[1] || 1;
+                        return entries.map(([company, count], i) => (
+                          <li key={company} className="analytics-rank__row">
+                            <span className="analytics-rank__index">{i + 1}</span>
+                            <div className="analytics-rank__body">
+                              <span className="analytics-rank__label">{company}</span>
                               <div
-                                className={`h-full rounded-full ${
-                                  s.value === 'applied'
-                                    ? 'bg-blue-500'
-                                    : s.value === 'screening'
-                                      ? 'bg-sky-500'
-                                      : s.value === 'interview'
-                                        ? 'bg-amber-500'
-                                        : s.value === 'offer'
-                                          ? 'bg-green-500'
-                                          : s.value === 'rejected'
-                                            ? 'bg-red-400'
-                                            : 'bg-slate-400'
-                                }`}
-                                style={{ width: `${(s.count / apps.length) * 100}%` }}
-                              />
+                                className="analytics-rank__bar"
+                                style={{ ['--analytics-bar-fill' as string]: `${count / max}` }}
+                                aria-hidden="true"
+                              >
+                                <span />
+                              </div>
                             </div>
-                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-6 text-right">
-                              {s.count}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
+                            <span className="analytics-rank__count">{count}회</span>
+                          </li>
+                        ));
+                      })()}
+                    </ol>
+                  </section>
+                  <section className="analytics-card">
+                    <header className="analytics-card__head">
+                      <div>
+                        <span className="analytics-card__eyebrow">Status mix</span>
+                        <h3 className="analytics-card__title">상태별 분포</h3>
+                      </div>
+                    </header>
+                    <ul className="analytics-distribution">
+                      {stats
+                        .filter((s) => s.count > 0)
+                        .map((s) => {
+                          const fill = apps.length > 0 ? s.count / apps.length : 0;
+                          return (
+                            <li
+                              key={s.value}
+                              className={`analytics-distribution__row analytics-distribution__row--${s.value}`}
+                            >
+                              <span className="analytics-distribution__swatch" aria-hidden="true" />
+                              <span className="analytics-distribution__label">{s.label}</span>
+                              <div
+                                className="analytics-distribution__bar"
+                                style={{ ['--analytics-bar-fill' as string]: `${fill}` }}
+                                aria-hidden="true"
+                              >
+                                <span />
+                              </div>
+                              <span className="analytics-distribution__count">{s.count}</span>
+                            </li>
+                          );
+                        })}
+                    </ul>
+                  </section>
                 </div>
               </>
             )}

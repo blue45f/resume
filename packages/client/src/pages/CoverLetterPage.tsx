@@ -1160,14 +1160,16 @@ function AnalysisSummaryBar({ text }: { text: string }) {
           : '미달';
   if (summary.topFlags.length === 0) return null;
   return (
-    <div className="mt-3 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:from-slate-800/50 dark:to-slate-800/30">
-      <div className="flex items-baseline justify-between mb-1.5 gap-2">
-        <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-200">
-          📊 종합 진단
+    <div className="mt-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40">
+      <div className="flex items-baseline justify-between mb-2 gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
+          종합 진단
         </span>
         <span className="flex items-center gap-2">
-          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${tierColor}`}>
-            🎯 면접 {interview.overall}점 · {tierLabel}
+          <span
+            className={`text-[10px] font-semibold px-1.5 py-0.5 rounded tabular-nums ${tierColor}`}
+          >
+            면접 {interview.overall}점 · {tierLabel}
           </span>
           <span className="text-[10px] text-slate-500 dark:text-slate-400">{summary.oneLiner}</span>
         </span>
@@ -1178,9 +1180,16 @@ function AnalysisSummaryBar({ text }: { text: string }) {
             key={i}
             className="flex items-start gap-2 text-[10.5px] text-slate-600 dark:text-slate-300"
           >
-            <span aria-hidden>
-              {f.severity === 'red' ? '🔴' : f.severity === 'yellow' ? '🟡' : '🟢'}
-            </span>
+            <span
+              aria-hidden
+              className={`mt-1 inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
+                f.severity === 'red'
+                  ? 'bg-rose-500 dark:bg-rose-400'
+                  : f.severity === 'yellow'
+                    ? 'bg-amber-500 dark:bg-amber-400'
+                    : 'bg-emerald-500 dark:bg-emerald-400'
+              }`}
+            />
             <span>
               <span className="font-medium">{f.label}</span>
               <span className="text-slate-500 dark:text-slate-400"> · {f.note}</span>
@@ -1292,21 +1301,24 @@ function JDMatchBadge({ resumeText, jdText }: { resumeText: string; jdText: stri
   const match = computeJDMatch(resumeText, jdText, 25);
   const tone =
     match.score >= 75
-      ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-200'
+      ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-200'
       : match.score >= 50
         ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-200'
         : 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200';
   return (
     <div className={`mt-2 p-3 rounded-lg border text-[12px] leading-relaxed ${tone}`}>
       <div className="flex items-baseline justify-between mb-1.5">
-        <span className="font-semibold">🎯 JD 적합도</span>
-        <span className="text-[14px] font-bold">{match.score}%</span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.1em] opacity-80">
+          JD 적합도
+        </span>
+        <span className="text-[14px] font-bold tabular-nums">{match.score}%</span>
       </div>
       <p className="text-[11px] opacity-90 mb-2">{match.suggestion}</p>
       {match.missing.length > 0 && (
         <div>
-          <div className="text-[10px] font-medium opacity-80 mb-1">
-            🔴 이력서에 누락된 JD 키워드
+          <div className="text-[10px] font-medium opacity-80 mb-1.5 flex items-center gap-1.5">
+            <span aria-hidden className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500" />
+            이력서에 누락된 JD 키워드
           </div>
           <div className="flex flex-wrap gap-1">
             {match.missing.slice(0, 8).map((w) => (

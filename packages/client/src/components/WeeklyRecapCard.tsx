@@ -96,38 +96,30 @@ export default function WeeklyRecapCard() {
 
   const cards = [
     {
-      icon: '📥',
-      label: '이번 주 신규 지원',
+      label: '신규 지원',
       value: recap.applications,
       to: '/applications',
-      tone: 'text-blue-600 dark:text-blue-400',
       show: recap.applications > 0 || recap.pendingApplications > 0,
       sub: recap.pendingApplications > 0 ? `진행 중 ${recap.pendingApplications}` : '',
     },
     {
-      icon: '🎤',
-      label: '면접 답변 분석',
+      label: '면접 답변',
       value: recap.interviewCount,
       to: '/interview-prep',
-      tone: 'text-sky-600 dark:text-sky-400',
       show: recap.interviewCount > 0,
       sub: recap.interviewAvg !== null ? `평균 ${recap.interviewAvg}점` : '',
     },
     {
-      icon: '☕',
       label: '커피챗',
       value: recap.coffeeChats,
       to: '/coffee-chats',
-      tone: 'text-amber-600 dark:text-amber-400',
       show: recap.coffeeChats > 0,
       sub: '',
     },
     {
-      icon: '🔔',
       label: '미읽은 알림',
       value: recap.unreadNotifs,
       to: '/notifications',
-      tone: 'text-rose-600 dark:text-rose-400',
       show: recap.unreadNotifs > 0,
       sub: '',
     },
@@ -136,34 +128,19 @@ export default function WeeklyRecapCard() {
   if (cards.length === 0) return null;
 
   return (
-    <section
-      aria-label="이번 주 활동"
-      className="mb-6 imp-card p-4 sm:p-5 bg-gradient-to-br from-slate-50 to-blue-50/30 dark:from-slate-800 dark:to-blue-900/10"
-    >
-      <div className="flex items-baseline justify-between mb-3">
-        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-          <span aria-hidden="true">📊</span>
-          이번 주 활동
-        </h2>
-        <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
-          weekly recap
-        </span>
-      </div>
-      <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-2">
+    <section aria-label="이번 주 활동" className="weekly-recap">
+      <header className="weekly-recap__head">
+        <div>
+          <span className="weekly-recap__eyebrow">This week</span>
+          <h2 className="weekly-recap__title">이번 주 활동</h2>
+        </div>
+      </header>
+      <div className="weekly-recap__grid">
         {cards.map((c) => (
-          <Link
-            key={c.label}
-            to={c.to}
-            className="group flex flex-col items-start gap-0.5 p-2.5 rounded-lg border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
-          >
-            <span className="text-base" aria-hidden="true">
-              {c.icon}
-            </span>
-            <span className={`text-xl font-bold tabular-nums ${c.tone}`}>{c.value}</span>
-            <span className="text-[11px] text-slate-600 dark:text-slate-400 leading-tight">
-              {c.label}
-            </span>
-            {c.sub && <span className="text-[10px] text-slate-400">{c.sub}</span>}
+          <Link key={c.label} to={c.to} className="weekly-recap__cell">
+            <span className="weekly-recap__cell-label">{c.label}</span>
+            <span className="weekly-recap__cell-value">{c.value}</span>
+            {c.sub && <span className="weekly-recap__cell-sub">{c.sub}</span>}
           </Link>
         ))}
       </div>
