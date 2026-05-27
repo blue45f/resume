@@ -21,6 +21,7 @@
     "start": "node packages/server/dist/main.js",
     "ci": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build && pnpm run format:check",
     "verify": "pnpm run ci",
+    "verify:push": "pnpm run verify",
     "deploy:gcp": "gcloud run deploy resume-api --source . --project resume-platform-prod --region asia-northeast3 --allow-unauthenticated --update-env-vars NODE_ENV=production",
     "lint": "eslint .",
     "format": "prettier --write \"packages/**/*.{ts,tsx}\"",
