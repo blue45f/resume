@@ -24,6 +24,7 @@ import {
   useResumes,
   useTags,
   useBookmarks,
+  useApplications,
   useSystemContent,
   useSiteStatsPublic,
   usePublicGet,
@@ -38,6 +39,7 @@ import RecentActivity from '@/components/RecentActivity';
 import HiringTrends from '@/components/HiringTrends';
 import OnboardingBanner from '@/components/OnboardingBanner';
 import WeeklyRecapCard from '@/components/WeeklyRecapCard';
+import ApplicationReadinessPanel from '@/components/ApplicationReadinessPanel';
 import ProfileCompleteness from '@/components/ProfileCompleteness';
 import ProfileWizard from '@/components/ProfileWizard';
 import ResumeHealthRing from '@/widgets/resume-health-ring';
@@ -577,6 +579,8 @@ export default function HomePage() {
     (bookmarksQuery.data as
       | { id: string; resumeId: string; title: string; name: string }[]
       | undefined) ?? [];
+  const applicationsQuery = useApplications();
+  const applications = applicationsQuery.data ?? [];
   const loading = !!user && (resumesQuery.isLoading || tagsQuery.isLoading);
   const serverError = !!resumesQuery.error;
   const [filterTag, setFilterTag] = useState<string | null>(null);
@@ -1197,6 +1201,7 @@ export default function HomePage() {
             <ProfileCompleteness />
             <OnboardingBanner />
             <WeeklyRecapCard />
+            <ApplicationReadinessPanel resumes={resumes} applications={applications} />
 
             {wizardResume && resumes.length > 0 && (
               <ProfileWizard resume={wizardResume} resumeId={resumes[0].id} />

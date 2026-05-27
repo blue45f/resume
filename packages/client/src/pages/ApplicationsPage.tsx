@@ -14,6 +14,22 @@ import ApplicationTimeline from '@/components/ApplicationTimeline';
 import InterviewReview from '@/components/InterviewReview';
 import { useQueryClient } from '@tanstack/react-query';
 import { createApplication, updateApplication, deleteApplication } from '@/lib/api';
+import { buildApplicationActivityQueue } from '@/lib/applicationActivityQueue';
+import { buildApplicationConcentrationRisks } from '@/lib/applicationConcentrationRisk';
+import { buildCompanyResearchBrief } from '@/lib/applicationCompanyResearch';
+import {
+  buildStageCommunicationTemplates,
+  type ApplicationCommunicationTemplate,
+} from '@/lib/applicationCommunication';
+import { buildApplicationCsv, getApplicationCsvFileName } from '@/lib/applicationExport';
+import {
+  buildApplicationPacketSnapshot,
+  getApplicationPacketSnapshotFileName,
+} from '@/lib/applicationPacketSnapshot';
+import { scoreApplicationReadiness } from '@/lib/applicationReadinessScore';
+import { buildApplicationSourceInsights } from '@/lib/applicationSourceInsights';
+import { buildApplicationStageGuidance } from '@/lib/applicationStageGuidance';
+import { buildApplicationWeeklyPlan } from '@/lib/applicationWeeklyPlan';
 import { useApplications, useResumes } from '@/hooks/useResources';
 import type { JobApplication } from '@/lib/api';
 import MyPlatformApplications from '@/components/MyPlatformApplications';
@@ -282,6 +298,57 @@ export default function ApplicationsPage() {
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
 
+  const handleExportCsv = () => {
+    if (filtered.length === 0) {
+      toast('내보낼 지원 내역이 없습니다', 'error');
+      return;
+    }
+
+    const csv = buildApplicationCsv(filtered);
+    const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+
+    anchor.href = url;
+    anchor.download = getApplicationCsvFileName(filtered.length, apps.length);
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+
+    toast(`${filtered.length}건의 지원 내역을 CSV로 내보냈습니다`, 'success');
+  };
+
+  const handleCopyCommunicationTemplate = async (template: ApplicationCommunicationTemplate) => {
+    try {
+      await navigator.clipboard.writeText(template.body);
+      toast(`${template.label} 템플릿을 복사했습니다`, 'success');
+    } catch {
+      toast('클립보드 복사에 실패했습니다', 'error');
+    }
+  };
+
+  const handleDownloadPacketSnapshot = (application: JobApplication) => {
+    const markdown = buildApplicationPacketSnapshot(application);
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+
+    anchor.href = url;
+    anchor.download = getApplicationPacketSnapshotFileName(application);
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+
+    toast('지원 패킷 요약을 내려받았습니다', 'success');
+  };
+
+  const sourceInsights = useMemo(() => buildApplicationSourceInsights(filtered), [filtered]);
+  const activityQueue = useMemo(() => buildApplicationActivityQueue(apps, { limit: 4 }), [apps]);
+  const weeklyPlan = useMemo(() => buildApplicationWeeklyPlan(apps), [apps]);
+  const concentrationRisks = useMemo(() => buildApplicationConcentrationRisks(apps), [apps]);
+
   const stats = getSTATUSES().map((s) => ({
     ...s,
     count: apps.filter((a) => a.status === s.value).length,
@@ -394,6 +461,123 @@ export default function ApplicationsPage() {
           </div>
         )}
 
+        {activityQueue.length > 0 && (
+          <section className="apps-band">
+            <header className="apps-band__head">
+              <div>
+                <span className="apps-band__eyebrow">Activity queue</span>
+                <h2 className="apps-band__title">오늘의 액션 큐</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewMode('analytics')}
+                className="apps-band__link"
+              >
+                분석에서 흐름 보기 →
+              </button>
+            </header>
+            <div className="apps-band__grid apps-band__grid--queue">
+              {activityQueue.map((item) => (
+                <article key={item.id} className={`apps-queue-card apps-queue-card--${item.tone}`}>
+                  <div className="apps-queue-card__meta">
+                    <span className="apps-queue-card__due">{item.dueLabel}</span>
+                    <span className="apps-queue-card__type">{item.type}</span>
+                  </div>
+                  <p className="apps-queue-card__title">{item.title}</p>
+                  <p className="apps-queue-card__company">
+                    {item.company} · {item.position}
+                  </p>
+                  <p className="apps-queue-card__detail">{item.detail}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {(concentrationRisks.risks.length > 0 || concentrationRisks.duplicates.length > 0) && (
+          <section className="apps-band apps-band--risk">
+            <header className="apps-band__head">
+              <div>
+                <span className="apps-band__eyebrow apps-band__eyebrow--warning">
+                  중복·과집중 리스크
+                </span>
+                <p className="apps-band__title">{concentrationRisks.summary}</p>
+              </div>
+              <span className="apps-band__counter">
+                {concentrationRisks.risks.length + concentrationRisks.duplicates.length}건 점검
+              </span>
+            </header>
+            <div className="apps-band__grid apps-band__grid--risk">
+              {concentrationRisks.risks.slice(0, 2).map((risk) => (
+                <article key={risk.company} className="apps-risk-card apps-risk-card--warning">
+                  <header className="apps-risk-card__head">
+                    <p className="apps-risk-card__title">{risk.company}</p>
+                    <span className="apps-risk-card__count">{risk.count}건</span>
+                  </header>
+                  <p className="apps-risk-card__detail">{risk.detail}</p>
+                  <p className="apps-risk-card__meta">
+                    진행 중 {risk.activeCount}건 · 응답 신호 {risk.responseCount}건
+                  </p>
+                </article>
+              ))}
+              {concentrationRisks.duplicates.slice(0, 2).map((duplicate) => (
+                <article
+                  key={`${duplicate.company}-${duplicate.position}`}
+                  className="apps-risk-card apps-risk-card--danger"
+                >
+                  <header className="apps-risk-card__head">
+                    <p className="apps-risk-card__title">{duplicate.company}</p>
+                    <span className="apps-risk-card__count apps-risk-card__count--danger">
+                      중복 {duplicate.count}건
+                    </span>
+                  </header>
+                  <p className="apps-risk-card__detail">
+                    {duplicate.position} 공고가 반복 기록되어 있습니다. 공고 URL, 지원일, 상태를
+                    비교하세요.
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {apps.length > 0 && (
+          <section className="apps-band apps-band--quiet">
+            <header className="apps-band__head">
+              <div>
+                <span className="apps-band__eyebrow">7-day plan</span>
+                <h2 className="apps-band__title">이번 주 운영 계획</h2>
+                <p className="apps-band__lede">{weeklyPlan.focus}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewMode('analytics')}
+                className="apps-band__link"
+              >
+                지표 확인 →
+              </button>
+            </header>
+            <div className="apps-band__grid apps-band__grid--plan">
+              {weeklyPlan.cards.map((item) => (
+                <article
+                  key={item.id}
+                  title={item.detail}
+                  className={`apps-plan-card apps-plan-card--${item.tone}`}
+                >
+                  <p className="apps-plan-card__label">{item.label}</p>
+                  <p className="apps-plan-card__value">
+                    {item.current}
+                    <span className="apps-plan-card__target">/ {item.target}</span>
+                  </p>
+                  <p className="apps-plan-card__remaining">
+                    {item.remaining > 0 ? `${item.remaining}개 남음` : '균형 유지'}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -468,6 +652,22 @@ export default function ApplicationsPage() {
                 </svg>
               </button>
             </div>
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              disabled={filtered.length === 0}
+              className="apps-export-btn"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 10v8m0 0l-3-3m3 3l3-3m-9 6h12a2 2 0 002-2V8.5a2 2 0 00-.586-1.414l-4.5-4.5A2 2 0 0013.5 2H6a2 2 0 00-2 2v15a2 2 0 002 2z"
+                />
+              </svg>
+              CSV 내보내기
+            </button>
             <button
               onClick={() => {
                 setShowForm(!showForm);
@@ -1165,6 +1365,92 @@ export default function ApplicationsPage() {
                   </div>
                 </div>
 
+                {/* Source performance */}
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                        <span className="w-5 h-5 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-md flex items-center justify-center text-xs">
+                          ↗
+                        </span>
+                        채널별 성과
+                      </h3>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        {sourceInsights.summary}
+                      </p>
+                    </div>
+                    {sourceInsights.bestSource && (
+                      <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 px-3 py-2 text-right">
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                          Best source
+                        </p>
+                        <p className="text-sm font-extrabold text-emerald-700 dark:text-emerald-300">
+                          {sourceInsights.bestSource.label}{' '}
+                          {sourceInsights.bestSource.conversionRate}%
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {sourceInsights.sources.slice(0, 5).map((source) => (
+                      <div
+                        key={source.label}
+                        className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_5rem_5rem_5rem] gap-2 sm:gap-3 items-center rounded-xl bg-slate-50 dark:bg-slate-900/45 border border-slate-100 dark:border-slate-700 px-3 py-2"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm text-slate-800 dark:text-slate-200 truncate">
+                              {source.label}
+                            </span>
+                            {source.staleCount > 0 && (
+                              <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 rounded-full px-1.5 py-0.5">
+                                정체 {source.staleCount}
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-1 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-cyan-500 dark:bg-cyan-400"
+                              style={{
+                                width: `${Math.max(
+                                  sourceInsights.sources[0]?.count
+                                    ? (source.count / sourceInsights.sources[0].count) * 100
+                                    : 0,
+                                  6,
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="block text-sm font-extrabold text-slate-800 dark:text-slate-200">
+                            {source.count}
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                            지원
+                          </span>
+                        </div>
+                        <div className="hidden sm:block text-right">
+                          <span className="block text-sm font-extrabold text-cyan-700 dark:text-cyan-300">
+                            {source.conversionRate}%
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                            면접·오퍼
+                          </span>
+                        </div>
+                        <div className="hidden sm:block text-right">
+                          <span className="block text-sm font-extrabold text-emerald-700 dark:text-emerald-300">
+                            {source.offerRate}%
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                            오퍼
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Key stats grid */}
                 <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
@@ -1367,6 +1653,10 @@ export default function ApplicationsPage() {
               const deadline = (app as any).deadline as string | undefined;
               const deadlineDays = deadline ? daysUntil(deadline) : null;
               const isExpanded = expandedId === app.id;
+              const communicationTemplates = buildStageCommunicationTemplates(app);
+              const readiness = scoreApplicationReadiness(app);
+              const stageGuidance = buildApplicationStageGuidance(app);
+              const companyResearch = buildCompanyResearchBrief(app);
 
               return (
                 <div
@@ -1414,6 +1704,13 @@ export default function ApplicationsPage() {
                               공개
                             </span>
                           )}
+                          <span
+                            className={`apps-readiness-badge apps-readiness-badge--${readiness.grade}`}
+                            title={readiness.nextAction}
+                          >
+                            <span className="apps-readiness-badge__dot" aria-hidden="true" />
+                            준비도 {readiness.score}
+                          </span>
                         </div>
                         <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5 ml-7">
                           {app.position}
@@ -1535,6 +1832,135 @@ export default function ApplicationsPage() {
                           </p>
                         </div>
                       )}
+                      <div className="apps-detail">
+                        <section className="apps-detail__section">
+                          <header className="apps-detail__head">
+                            <div>
+                              <p className="apps-detail__eyebrow">
+                                <span
+                                  className={`apps-detail__grade apps-detail__grade--${readiness.grade}`}
+                                >
+                                  {readiness.score}
+                                </span>
+                                지원 준비도 · {readiness.label}
+                              </p>
+                              <p className="apps-detail__lede">{readiness.nextAction}</p>
+                            </div>
+                          </header>
+                          <div className="apps-detail__pills">
+                            {readiness.checks.map((check) => (
+                              <span
+                                key={check.id}
+                                title={check.detail}
+                                className={`apps-pill ${check.complete ? 'apps-pill--done' : ''}`}
+                              >
+                                <span aria-hidden="true">{check.complete ? '✓' : '○'}</span>
+                                {check.label}
+                              </span>
+                            ))}
+                          </div>
+                        </section>
+
+                        <section className="apps-detail__section">
+                          <header className="apps-detail__head">
+                            <div>
+                              <p className="apps-detail__eyebrow">
+                                회사 리서치 · {companyResearch.label}
+                                <span className="apps-detail__score">
+                                  {companyResearch.score}점
+                                </span>
+                              </p>
+                              <p className="apps-detail__lede">{companyResearch.nextAction}</p>
+                            </div>
+                            <div className="apps-detail__links">
+                              {companyResearch.links.map((link) => (
+                                <a
+                                  key={link.label}
+                                  href={link.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="apps-detail__link-chip"
+                                >
+                                  {link.label}
+                                </a>
+                              ))}
+                            </div>
+                          </header>
+                          <div className="apps-detail__grid">
+                            {companyResearch.checks.map((check) => (
+                              <div
+                                key={check.id}
+                                title={check.detail}
+                                className={`apps-check ${check.complete ? 'apps-check--done' : ''}`}
+                              >
+                                <span className="apps-check__mark" aria-hidden="true">
+                                  {check.complete ? '✓' : '○'}
+                                </span>
+                                <span className="apps-check__label">{check.label}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadPacketSnapshot(app)}
+                            className="apps-detail__cta"
+                          >
+                            패킷 요약 다운로드
+                          </button>
+                        </section>
+
+                        <section className="apps-detail__section">
+                          <header className="apps-detail__head">
+                            <div>
+                              <p className="apps-detail__eyebrow">
+                                단계 가이드 · {stageGuidance.stageLabel}
+                              </p>
+                              <p className="apps-detail__lede">{stageGuidance.summary}</p>
+                            </div>
+                          </header>
+                          <div className="apps-detail__grid">
+                            {stageGuidance.tasks.map((item) => (
+                              <div
+                                key={item.id}
+                                className={`apps-stage-task apps-stage-task--${
+                                  item.complete ? 'done' : item.tone
+                                }`}
+                              >
+                                <p className="apps-stage-task__title">
+                                  <span aria-hidden="true">{item.complete ? '✓' : '○'}</span>
+                                  {item.label}
+                                </p>
+                                <p className="apps-stage-task__detail">{item.detail}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </section>
+
+                        <section className="apps-detail__section apps-detail__section--last">
+                          <header className="apps-detail__head">
+                            <div>
+                              <p className="apps-detail__eyebrow">커뮤니케이션 키트</p>
+                              <p className="apps-detail__lede">
+                                현재 전형 단계에 맞는 메일 템플릿을 복사합니다.
+                              </p>
+                            </div>
+                            <span className="apps-detail__status">{app.status}</span>
+                          </header>
+                          <div className="apps-detail__templates">
+                            {communicationTemplates.map((template) => (
+                              <button
+                                key={template.id}
+                                type="button"
+                                onClick={() => handleCopyCommunicationTemplate(template)}
+                                title={template.description}
+                                className={`apps-template apps-template--${template.tone}`}
+                              >
+                                {template.label}
+                              </button>
+                            ))}
+                          </div>
+                        </section>
+                      </div>
                       <div className="px-4 py-3">
                         <ApplicationTimeline
                           applicationId={app.id}

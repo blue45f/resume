@@ -336,7 +336,9 @@ export default function InterviewPrepPage() {
   const [searchParams] = useSearchParams();
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState(searchParams.get('resumeId') || '');
-  const [jobRole, setJobRole] = useState('');
+  const [jobRole, setJobRole] = useState(
+    searchParams.get('position') || searchParams.get('jobRole') || '',
+  );
   const [jobDescription, setJobDescription] = useState('');
   const [difficulty, setDifficulty] = useState<Difficulty>('intermediate');
   const [jobPosts, setJobPosts] = useState<

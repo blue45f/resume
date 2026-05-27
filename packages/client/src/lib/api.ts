@@ -591,6 +591,9 @@ export interface JobApplication {
   location?: string;
   resumeId?: string;
   visibility?: string;
+  priority?: string;
+  interviewDate?: string;
+  deadline?: string;
   createdAt: string;
   updatedAt: string;
 }

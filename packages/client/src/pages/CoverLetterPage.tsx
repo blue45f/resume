@@ -294,7 +294,7 @@ export default function CoverLetterPage() {
     resolver: zodResolver(generateSchema),
     mode: 'onBlur',
     defaultValues: {
-      company: '',
+      company: searchParams.get('company') || '',
       position: searchParams.get('position') || '',
       jobDescription: '',
     },
