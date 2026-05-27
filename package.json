@@ -22,6 +22,7 @@
     "lint": "eslint .",
     "format": "prettier --write \"packages/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"packages/**/*.{ts,tsx}\"",
+    "clean": "pnpm -r --if-present run clean",
     "preview": "cd packages/client && vite preview",
     "prisma:generate": "cd packages/server && prisma generate",
     "prisma:migrate": "cd packages/server && prisma migrate dev",
