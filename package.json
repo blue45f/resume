@@ -40,7 +40,7 @@
     "test:client:watch": "cd packages/client && vitest",
     "prisma:push": "cd packages/server && prisma db push",
     "prisma:reset": "cd packages/server && prisma migrate reset",
-    "typecheck": "tsc -b --noEmit",
+    "typecheck": "pnpm prisma:generate && tsc -b --noEmit",
     "prepare": "husky || true"
   },
   "dependencies": {
