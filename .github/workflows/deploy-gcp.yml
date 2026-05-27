@@ -16,19 +16,28 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: Skip deployment when GCP credentials are not configured
+        if: env.GCP_SA_KEY == ''
+        run: echo "GCP_SA_KEY is not configured; skipping Cloud Run deployment."
+
       - name: Google Auth
+        if: env.GCP_SA_KEY != ''
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ env.GCP_SA_KEY }}
 
       - uses: google-github-actions/setup-gcloud@v2
+        if: env.GCP_SA_KEY != ''
         with:
           project_id: resume-platform-prod
 
       - name: Deploy to Cloud Run
+        if: env.GCP_SA_KEY != ''
         run: |
           gcloud run deploy resume-api \
             --source . \
@@ -38,6 +47,7 @@ jobs:
             --quiet
 
       - name: Health check
+        if: env.GCP_SA_KEY != ''
         run: |
           URL=$(gcloud run services describe resume-api --region asia-northeast3 --format='value(status.url)')
           for i in {1..10}; do
