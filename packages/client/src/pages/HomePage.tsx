@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState, type CSSProperties } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
@@ -44,6 +44,7 @@ import ResumeHealthRing from '@/widgets/resume-health-ring';
 import InterviewRoulette from '@/widgets/interview-roulette';
 import CareerLevel from '@/widgets/career-level';
 import { ResumeHealthBoost } from '@/widgets/resume-health-boost';
+import HomeHeroVisual from '@/components/HomeHeroVisual';
 const BannerSlider = lazy(() => import('@/components/BannerSlider'));
 import NoticePopup from '@/components/NoticePopup';
 import SharedWithMeSection from '@/components/SharedWithMeSection';
@@ -58,6 +59,25 @@ interface HomeContent {
   testimonials?: { text: string; author: string; stars: number }[];
   socialProofTitle?: string;
 }
+
+type ResumeSortBy = 'updatedAt' | 'title' | 'viewCount';
+type HomeCssVarStyle = CSSProperties & Record<`--${string}`, string>;
+
+const RESUME_SORT_OPTIONS: { value: ResumeSortBy; label: string }[] = [
+  { value: 'updatedAt', label: '최근 수정' },
+  { value: 'title', label: '이름순' },
+  { value: 'viewCount', label: '조회수' },
+];
+
+const getTagFilterStyle = (tag: Tag, active: boolean): HomeCssVarStyle => ({
+  '--home-tag-filter-bg': active ? tag.color : `${tag.color}20`,
+  '--home-tag-filter-border': tag.color,
+});
+
+const getResumeTagStyle = (tag: Tag): HomeCssVarStyle => ({
+  '--home-resume-tag-bg': `${tag.color}20`,
+  '--home-resume-tag-fg': tag.color,
+});
 
 const DEFAULT_HIGHLIGHTS = [
   {
@@ -162,10 +182,7 @@ function CommunityWidget() {
           </span>
           커뮤니티 최신 글
         </h3>
-        <Link
-          to={ROUTES.community.list}
-          className="text-xs text-sky-700 dark:text-sky-400 hover:underline"
-        >
+        <Link to={ROUTES.community.list} className="home-subtle-link text-xs">
           더보기 →
         </Link>
       </div>
@@ -174,7 +191,7 @@ function CommunityWidget() {
           <Link
             key={post.id}
             to={ROUTES.community.post(post.id)}
-            className="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+            className="home-list-row flex items-center gap-3"
           >
             <span
               className={`shrink-0 text-xs px-1.5 py-0.5 rounded-md font-medium ${CAT_COLORS[post.category] || CAT_COLORS.free}`}
@@ -199,10 +216,7 @@ function CommunityWidget() {
         ))}
       </div>
       <div className="px-5 py-2.5 bg-slate-50 dark:bg-slate-700/30 border-t border-slate-100 dark:border-slate-700">
-        <Link
-          to={ROUTES.community.write}
-          className="text-xs text-sky-700 dark:text-sky-400 hover:underline font-medium"
-        >
+        <Link to={ROUTES.community.write} className="home-subtle-link text-xs font-medium">
           + 새 글 작성하기
         </Link>
       </div>
@@ -267,17 +281,14 @@ function InterviewDiscoveryWidget() {
             </h3>
             <Link
               to={withQuery(ROUTES.jobs.list, { tab: 'internal' })}
-              className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
+              className="home-subtle-link text-xs"
             >
               더보기 →
             </Link>
           </div>
           <ul className="divide-y divide-slate-100 dark:divide-slate-700">
             {groups.map((g) => (
-              <li
-                key={g.id}
-                className="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-              >
+              <li key={g.id} className="home-list-row flex items-center gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
                     {g.name}
@@ -305,19 +316,13 @@ function InterviewDiscoveryWidget() {
               </span>
               최근 생성된 면접 질문
             </h3>
-            <Link
-              to={ROUTES.interview.prep}
-              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
-            >
+            <Link to={ROUTES.interview.prep} className="home-subtle-link text-xs">
               더보기 →
             </Link>
           </div>
           <ul className="divide-y divide-slate-100 dark:divide-slate-700">
             {questions.map((q) => (
-              <li
-                key={q.id}
-                className="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-              >
+              <li key={q.id} className="home-list-row flex items-center gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-slate-800 dark:text-slate-200 truncate">
                     {q.question}
@@ -329,7 +334,7 @@ function InterviewDiscoveryWidget() {
                 </div>
                 <Link
                   to={withQuery(ROUTES.interview.prep, { position: q.position || '' })}
-                  className="shrink-0 text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                  className="home-subtle-link home-subtle-link--compact text-[11px] font-medium"
                 >
                   보기
                 </Link>
@@ -402,7 +407,7 @@ function WeeklyGoalWidget() {
               max={50}
               value={tempGoal}
               onChange={(e) => setTempGoal(Number(e.target.value))}
-              className="w-16 px-2 py-1 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
+              className="home-field-control w-16 px-2 py-1 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') saveGoal();
                 if (e.key === 'Escape') setEditingGoal(false);
@@ -411,7 +416,7 @@ function WeeklyGoalWidget() {
             />
             <button
               onClick={saveGoal}
-              className="text-xs px-2 py-1 bg-sky-700 text-white rounded-lg hover:bg-sky-700"
+              className="home-hover-dim text-xs px-2 py-1 bg-sky-700 text-white rounded-lg"
             >
               저장
             </button>
@@ -428,7 +433,7 @@ function WeeklyGoalWidget() {
               setTempGoal(goal);
               setEditingGoal(true);
             }}
-            className="text-xs text-slate-500 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 transition-colors"
+            className="home-quiet-link text-xs text-slate-500 dark:text-slate-400"
           >
             목표 변경
           </button>
@@ -457,7 +462,7 @@ function WeeklyGoalWidget() {
               strokeDasharray={circumference}
               strokeDashoffset={offset}
               strokeLinecap="round"
-              style={{ transition: 'stroke-dashoffset 0.5s ease, stroke 0.3s ease' }}
+              className="home-goal-ring"
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -486,13 +491,13 @@ function WeeklyGoalWidget() {
           <div className="flex gap-2">
             <button
               onClick={addOne}
-              className="px-3 py-1.5 text-xs font-medium bg-sky-700 text-white rounded-lg hover:bg-sky-700 transition-colors"
+              className="home-hover-dim px-3 py-1.5 text-xs font-medium bg-sky-700 text-white rounded-lg"
             >
               + 지원 추가
             </button>
             <Link
               to={ROUTES.jobs.applications}
-              className="px-3 py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+              className="home-hover-dim px-3 py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg"
             >
               지원 관리
             </Link>
@@ -577,7 +582,7 @@ export default function HomePage() {
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [filterVisibility, setFilterVisibility] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'updatedAt' | 'title' | 'viewCount'>('updatedAt');
+  const [sortBy, setSortBy] = useState<ResumeSortBy>('updatedAt');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [showImport, setShowImport] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -727,7 +732,7 @@ export default function HomePage() {
       <Header />
       <main
         id="main-content"
-        className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-in fade-in-0 slide-in-from-bottom-1 duration-300"
+        className="home-shell flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
         role="main"
       >
         <Suspense fallback={null}>
@@ -757,7 +762,7 @@ export default function HomePage() {
               onClick={() => {
                 load();
               }}
-              className="shrink-0 px-3 py-1 bg-amber-600 text-white text-xs font-medium rounded-lg hover:bg-amber-700 transition-colors"
+              className="home-hover-dim shrink-0 px-3 py-1 bg-amber-600 text-white text-xs font-medium rounded-lg"
             >
               재시도
             </button>
@@ -770,7 +775,7 @@ export default function HomePage() {
             </p>
             <Link
               to={ROUTES.recruiter.dashboard}
-              className="shrink-0 px-3 py-1 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+              className="home-hover-dim shrink-0 px-3 py-1 bg-emerald-600 text-white text-xs font-medium rounded-lg"
             >
               대시보드
             </Link>
@@ -782,8 +787,9 @@ export default function HomePage() {
                 ".impeccable.md" 톤(refined/professional/calm) + 진중한 데이터 신뢰감. */}
             <section
               aria-label="이력서공방 소개"
-              className="relative mb-12 sm:mb-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10"
+              className="home-hero-stage relative mb-12 sm:mb-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10"
             >
+              <HomeHeroVisual />
               {/* main column — 헤드라인 + 카피 + CTA */}
               <div className="lg:col-span-8">
                 <div className="inline-flex items-center gap-2 mb-6 sm:mb-8 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700 dark:text-slate-300">
@@ -794,10 +800,7 @@ export default function HomePage() {
                   AI 기반 이력서·자기소개서 플랫폼
                 </div>
 
-                <h1
-                  className="font-black text-slate-900 dark:text-slate-50 mb-6 tracking-[-0.035em] leading-[0.95] text-balance"
-                  style={{ fontSize: 'clamp(2.5rem, 7vw, 5.25rem)' }}
-                >
+                <h1 className="home-hero-title font-black text-slate-900 dark:text-slate-50 mb-6 tracking-[-0.035em] leading-[0.95] text-balance">
                   서류 합격률,
                   <br />
                   <span className="text-sky-700 dark:text-sky-400">데이터로</span> 올립니다.
@@ -810,14 +813,14 @@ export default function HomePage() {
                   </span>
                 </p>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
+                <div className="home-hero-actions flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
                   <Link
                     to={ROUTES.resume.new}
-                    className="btn-shine imp-btn group inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold rounded-xl hover:bg-slate-800 dark:hover:bg-white transition-colors duration-200 text-base shadow-sm focus-ring-accent"
+                    className="home-hero-cta home-hero-cta--primary btn-shine imp-btn inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold rounded-xl text-base shadow-sm focus-ring-accent"
                   >
                     무료로 시작하기
                     <svg
-                      className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                      className="w-4 h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -833,11 +836,11 @@ export default function HomePage() {
                   </Link>
                   <Link
                     to={ROUTES.resume.explore}
-                    className="imp-btn group inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-transparent text-slate-700 dark:text-slate-300 font-medium rounded-xl border border-slate-300 dark:border-slate-600 hover:border-slate-500 dark:hover:border-slate-400 transition-colors duration-200 text-base focus-ring-accent"
+                    className="home-hero-cta home-hero-cta--ghost imp-btn inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-transparent text-slate-700 dark:text-slate-300 font-medium rounded-xl border border-slate-300 dark:border-slate-600 text-base focus-ring-accent"
                   >
                     이력서 탐색
                     <svg
-                      className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                      className="w-4 h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -854,25 +857,25 @@ export default function HomePage() {
                 </div>
 
                 {/* 빠른 시작 옵션 — 신규 사용자가 처음부터 이력서 작성 부담을 느끼지 않도록 */}
-                <div className="mb-10 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600 dark:text-slate-400">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                <div className="home-hero-meta mb-10 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600 dark:text-slate-400">
+                  <span className="home-hero-meta__title font-semibold text-slate-700 dark:text-slate-300">
                     빠른 시작:
                   </span>
                   <Link
                     to={ROUTES.resume.autoGenerate}
-                    className="inline-flex items-center gap-1 text-blue-700 dark:text-blue-400 hover:underline"
+                    className="home-hero-quick-link home-hero-quick-link--pill inline-flex items-center gap-1"
                   >
                     <span aria-hidden="true">📄</span> PDF/이미지 업로드
                   </Link>
                   <Link
                     to={ROUTES.resume.autoGenerate}
-                    className="inline-flex items-center gap-1 text-blue-700 dark:text-blue-400 hover:underline"
+                    className="home-hero-quick-link home-hero-quick-link--pill inline-flex items-center gap-1"
                   >
                     <span aria-hidden="true">🔗</span> 채용공고 URL 만으로
                   </Link>
                   <Link
                     to={ROUTES.resume.autoGenerate}
-                    className="inline-flex items-center gap-1 text-blue-700 dark:text-blue-400 hover:underline"
+                    className="home-hero-quick-link home-hero-quick-link--pill inline-flex items-center gap-1"
                   >
                     <span aria-hidden="true">✨</span> AI 자동 생성
                   </Link>
@@ -883,50 +886,35 @@ export default function HomePage() {
                   데이터 신뢰감 강조: 사용자가 "5종 AI 분석"이 진짜 임을 한눈에. */}
               <aside
                 aria-label="플랫폼 핵심 지표"
-                className="lg:col-span-4 lg:border-l lg:border-slate-200 dark:lg:border-slate-800 lg:pl-8 flex lg:flex-col gap-6 lg:gap-7 items-start"
+                className="home-hero-aside home-hero-stats lg:col-span-4 lg:border-l lg:border-slate-200 dark:lg:border-slate-800 lg:pl-8 flex flex-col gap-6 lg:gap-7 items-start"
               >
-                <div className="flex-1 lg:flex-initial">
+                <div className="home-hero-stat home-hero-stat--item home-hero-stat--delay-0 flex-1 lg:flex-initial">
                   <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500 mb-1">
                     AI 분석
                   </div>
-                  <div
-                    className="number-ticker font-black text-slate-900 dark:text-slate-100 tabular-nums leading-none tracking-tight"
-                    style={{ fontSize: 'clamp(1.75rem, 3vw, 2.5rem)' }}
-                  >
+                  <div className="home-hero-stat__value number-ticker font-black text-slate-900 dark:text-slate-100 tabular-nums leading-none tracking-tight">
                     5
                     <span className="text-sky-700 dark:text-sky-400 text-[0.55em] font-bold align-top ml-0.5">
                       종
                     </span>
                   </div>
                 </div>
-                <div className="flex-1 lg:flex-initial" style={{ animationDelay: '120ms' }}>
+                <div className="home-hero-stat home-hero-stat--item home-hero-stat--delay-120 flex-1 lg:flex-initial">
                   <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500 mb-1">
                     직종 템플릿
                   </div>
-                  <div
-                    className="number-ticker font-black text-slate-900 dark:text-slate-100 tabular-nums leading-none tracking-tight"
-                    style={{
-                      fontSize: 'clamp(1.75rem, 3vw, 2.5rem)',
-                      animationDelay: '120ms',
-                    }}
-                  >
+                  <div className="home-hero-stat__value number-ticker font-black text-slate-900 dark:text-slate-100 tabular-nums leading-none tracking-tight">
                     26
                     <span className="text-sky-700 dark:text-sky-400 text-[0.55em] font-bold align-top ml-0.5">
                       개
                     </span>
                   </div>
                 </div>
-                <div className="flex-1 lg:flex-initial">
+                <div className="home-hero-stat home-hero-stat--item home-hero-stat--delay-240 flex-1 lg:flex-initial">
                   <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500 mb-1">
                     실시간
                   </div>
-                  <div
-                    className="number-ticker font-black text-slate-900 dark:text-slate-100 leading-none tracking-tight"
-                    style={{
-                      fontSize: 'clamp(1.75rem, 3vw, 2.5rem)',
-                      animationDelay: '240ms',
-                    }}
-                  >
+                  <div className="home-hero-stat__value number-ticker font-black text-slate-900 dark:text-slate-100 leading-none tracking-tight">
                     Live
                     <span className="text-emerald-600 dark:text-emerald-400 text-[0.55em] font-bold align-top ml-0.5 animate-pulse">
                       ●
@@ -941,11 +929,11 @@ export default function HomePage() {
 
             {/* Action grid — asymmetric (1 feature + 3 secondary).
                 동일 카드 4개 반복 → primary 1개 강조 + secondary 3개 컴팩트. */}
-            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 max-w-3xl mx-auto mb-10 mt-12">
+            <div className="home-feature-grid home-grid-hero-actions home-hero-action-grid stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 max-w-3xl mx-auto mb-10 mt-12">
               {/* Primary feature — 새 이력서 */}
               <Link
                 to={ROUTES.resume.new}
-                className="sm:col-span-2 lg:col-span-6 lg:row-span-1 flex items-center gap-5 p-6 sm:p-7 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-2xl hover:bg-slate-800 dark:hover:bg-white transition-colors group relative overflow-hidden"
+                className="home-hero-action-card home-hero-action-card--primary sm:col-span-2 lg:col-span-6 lg:row-span-1 flex items-center gap-5 p-6 sm:p-7 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-2xl relative overflow-hidden"
               >
                 <span className="w-12 h-12 flex items-center justify-center rounded-xl bg-white/15 dark:bg-slate-900/10 shrink-0">
                   <svg
@@ -975,7 +963,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 <svg
-                  className="w-5 h-5 text-sky-200 dark:text-sky-700 group-hover:translate-x-0.5 transition-transform shrink-0"
+                  className="w-5 h-5 text-sky-200 dark:text-sky-700 shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -993,7 +981,7 @@ export default function HomePage() {
               {/* Secondary 1 — AI 생성 */}
               <Link
                 to={ROUTES.resume.autoGenerate}
-                className="lg:col-span-2 flex flex-col gap-2 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors group"
+                className="home-hero-action-card home-hero-action-card--secondary lg:col-span-2 flex flex-col gap-2 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700"
               >
                 <span className="w-9 h-9 flex items-center justify-center rounded-lg bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300">
                   <svg
@@ -1023,8 +1011,10 @@ export default function HomePage() {
 
               {/* Secondary 2 — Quick import */}
               <button
+                type="button"
                 onClick={() => setShowImport(true)}
-                className="lg:col-span-2 flex flex-col gap-2 p-5 text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors group"
+                aria-label="이력서 임포트 모달 열기"
+                className="home-hero-action-card home-hero-action-card--secondary lg:col-span-2 flex flex-col gap-2 p-5 text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700"
               >
                 <span className="w-9 h-9 flex items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300">
                   <svg
@@ -1055,7 +1045,7 @@ export default function HomePage() {
               {/* Secondary 3 — 탐색 */}
               <Link
                 to={ROUTES.resume.explore}
-                className="lg:col-span-2 flex flex-col gap-2 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors group"
+                className="home-hero-action-card home-hero-action-card--secondary lg:col-span-2 flex flex-col gap-2 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700"
               >
                 <span className="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
                   <svg
@@ -1093,11 +1083,11 @@ export default function HomePage() {
             </div>
 
             {/* Feature highlights — solid surface + sapphire accent (emoji 카드 정리) */}
-            <div className="stagger-children grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+            <div className="home-feature-grid home-grid-highlights stagger-children home-feature-highlights grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
               {highlights.map((f, i) => (
                 <div
                   key={f.title}
-                  className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 overflow-hidden"
+                  className="home-feature-card home-feature-card--highlight relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 overflow-hidden"
                 >
                   <div
                     aria-hidden="true"
@@ -1117,7 +1107,7 @@ export default function HomePage() {
             </div>
 
             {/* Bottom links — 통일 색상 (sky-700) + 화살표 마이크로 인터랙션 */}
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-12">
+            <div className="home-bottom-links flex flex-wrap items-center gap-x-6 gap-y-2 mt-12">
               {[
                 { to: ROUTES.tutorial, label: '사용 가이드' },
                 { to: ROUTES.pricing, label: '요금제' },
@@ -1126,11 +1116,11 @@ export default function HomePage() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className="group inline-flex items-center gap-2 text-sm font-medium text-sky-700 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300 transition-colors"
+                  className="home-bottom-link inline-flex items-center gap-2 text-sm font-medium"
                 >
                   {link.label}
                   <svg
-                    className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                    className="w-3.5 h-3.5"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth={2}
@@ -1152,7 +1142,7 @@ export default function HomePage() {
               {features.map((feat, i) => (
                 <div
                   key={i}
-                  className="group p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors duration-200 cursor-default"
+                  className="home-feature-card p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-default"
                 >
                   <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-lg mb-3">
                     {feat.icon}
@@ -1240,7 +1230,7 @@ export default function HomePage() {
                 </div>
                 <Link
                   to={ROUTES.pricing}
-                  className="shrink-0 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  className="home-hover-dim shrink-0 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg"
                 >
                   요금제 보기
                 </Link>
@@ -1257,7 +1247,7 @@ export default function HomePage() {
                     <Link
                       key={b.id}
                       to={ROUTES.resume.preview(b.resumeId)}
-                      className="shrink-0 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                      className="home-hover-dim shrink-0 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400"
                     >
                       {b.title || b.name || '이력서'}
                     </Link>
@@ -1311,7 +1301,7 @@ export default function HomePage() {
                         '안녕하세요! 아래 이력서에 대해 피드백 부탁드립니다.\n\n[관심 분야]\n예: 백엔드 / 신입\n\n[궁금한 점]\n- \n- \n\n[이력서 링크]\n(여기에 본인 이력서 링크를 붙여넣어주세요. EditResume → 공개 설정 → 링크만 공개로 토큰 URL 생성 가능)\n',
                       )}`
                     }
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    className="home-hover-dim inline-flex items-center gap-1.5 px-3 py-1.5 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-lg"
                     title="커뮤니티에 이력서 피드백 요청 글 작성"
                   >
                     <span aria-hidden="true">🙋</span> 피드백 받기
@@ -1319,7 +1309,7 @@ export default function HomePage() {
                 )}
                 <Link
                   to={ROUTES.resume.new}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
+                  className="home-hover-dim inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg"
                 >
                   <svg
                     className="w-3.5 h-3.5"
@@ -1362,7 +1352,7 @@ export default function HomePage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   aria-label="이력서 검색"
-                  className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="home-field-control w-full pl-9 pr-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
                 />
               </div>
               <div className="flex gap-2">
@@ -1375,10 +1365,10 @@ export default function HomePage() {
                   <button
                     key={opt.value}
                     onClick={() => setFilterVisibility(opt.value)}
-                    className={`px-2.5 py-1.5 text-xs rounded-lg whitespace-nowrap transition-colors ${
+                    className={`home-hover-dim px-2.5 py-1.5 text-xs rounded-lg whitespace-nowrap ${
                       filterVisibility === opt.value
                         ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                     }`}
                   >
                     {opt.icon} {opt.label}
@@ -1396,10 +1386,8 @@ export default function HomePage() {
               >
                 <button
                   onClick={() => setFilterTag(null)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    !filterTag
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap home-hover-dim ${
+                    !filterTag ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
                   }`}
                   aria-pressed={!filterTag}
                 >
@@ -1409,13 +1397,10 @@ export default function HomePage() {
                   <button
                     key={tag.id}
                     onClick={() => setFilterTag(filterTag === tag.id ? null : tag.id)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      filterTag === tag.id ? 'text-white' : 'text-slate-700 hover:opacity-80'
+                    className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap home-hover-dim home-tag-filter-pill ${
+                      filterTag === tag.id ? 'text-white' : 'text-slate-700'
                     }`}
-                    style={{
-                      backgroundColor: filterTag === tag.id ? tag.color : `${tag.color}20`,
-                      borderColor: tag.color,
-                    }}
+                    style={getTagFilterStyle(tag, filterTag === tag.id)}
                     aria-pressed={filterTag === tag.id}
                   >
                     {tag.name} ({tag.resumeCount})
@@ -1427,25 +1412,21 @@ export default function HomePage() {
             {/* Sort */}
             <div className="flex items-center gap-2 mb-4">
               <span className="text-xs text-slate-500 dark:text-slate-400">정렬:</span>
-              {[
-                { value: 'updatedAt', label: '최근 수정' },
-                { value: 'title', label: '이름순' },
-                { value: 'viewCount', label: '조회수' },
-              ].map((opt) => (
+              {RESUME_SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => {
                     if (sortBy === opt.value)
                       setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
                     else {
-                      setSortBy(opt.value as any);
+                      setSortBy(opt.value);
                       setSortOrder('desc');
                     }
                   }}
-                  className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${
+                  className={`px-2.5 py-1 text-xs rounded-lg home-hover-dim ${
                     sortBy === opt.value
                       ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {opt.label}
@@ -1463,17 +1444,17 @@ export default function HomePage() {
                   setSelectMode(!selectMode);
                   setSelectedIds(new Set());
                 }}
-                className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
+                className={`home-hover-dim text-xs px-3 py-1.5 rounded-lg ${
                   selectMode
                     ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                 }`}
               >
                 {selectMode ? '선택 취소' : '선택'}
               </button>
               <button
                 onClick={() => setShareDialogOpen(true)}
-                className="text-xs px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 inline-flex items-center gap-1 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 inline-flex items-center gap-1 home-hover-dim"
                 title="이력서를 특정 사용자와 공유"
               >
                 🔗 사용자에게 공유
@@ -1482,14 +1463,14 @@ export default function HomePage() {
                 <>
                   <button
                     onClick={selectAll}
-                    className="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200"
+                    className="home-hover-dim text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg"
                   >
                     {selectedIds.size === filtered.length ? '전체 해제' : '전체 선택'}
                   </button>
                   {selectedIds.size > 0 && (
                     <button
                       onClick={handleBulkDelete}
-                      className="text-xs px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200"
+                      className="home-hover-dim text-xs px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg"
                     >
                       {selectedIds.size}개 삭제
                     </button>
@@ -1521,13 +1502,13 @@ export default function HomePage() {
                       setFilterTag(null);
                       setFilterVisibility('all');
                     }}
-                    className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                    className="home-hover-dim px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white"
                   >
                     필터 초기화
                   </button>
                   <Link
                     to={ROUTES.resume.new}
-                    className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    className="home-hover-dim px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300"
                   >
                     + 새 이력서
                   </Link>
@@ -1538,7 +1519,10 @@ export default function HomePage() {
                 {sorted.map((resume, index) => (
                   <article
                     key={resume.id}
-                    className={`relative card-lift-subtle imp-card p-4 sm:p-5 pl-5 sm:pl-6 focus-within:ring-2 focus-within:ring-[var(--color-accent)] focus-within:ring-offset-2 animate-fade-in-up stagger-${Math.min(index + 1, 6)} overflow-hidden`}
+                    className={`relative home-resume-card card-lift-subtle imp-card p-4 sm:p-5 pl-5 sm:pl-6 animate-fade-in-up stagger-${Math.min(
+                      index + 1,
+                      6,
+                    )} overflow-hidden`}
                   >
                     <span
                       className={`accent-bar ${resume.visibility === 'public' ? 'accent-bar-public' : resume.visibility === 'link-only' ? 'accent-bar-link' : 'accent-bar-private'}`}
@@ -1559,7 +1543,7 @@ export default function HomePage() {
                               type="checkbox"
                               checked={selectedIds.has(resume.id)}
                               onChange={() => toggleSelect(resume.id)}
-                              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                              className="home-checkbox w-4 h-4 rounded border-slate-300 text-blue-600"
                               aria-label={`${resume.title} 선택`}
                             />
                           </div>
@@ -1635,8 +1619,8 @@ export default function HomePage() {
                             {resume.tags.map((tag) => (
                               <span
                                 key={tag.id}
-                                className="px-2 py-1 text-xs rounded-full"
-                                style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
+                                className="px-2 py-1 text-xs rounded-full home-resume-tag-chip"
+                                style={getResumeTagStyle(tag)}
                               >
                                 {tag.name}
                               </span>
@@ -1684,7 +1668,7 @@ export default function HomePage() {
                         <div className="flex items-center gap-0.5">
                           <Link
                             to={ROUTES.resume.preview(resume.id)}
-                            className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all duration-200"
+                            className="home-resume-action-btn home-resume-action-btn--preview"
                             aria-label={`${resume.title} 미리보기`}
                             title="미리보기"
                           >
@@ -1705,7 +1689,7 @@ export default function HomePage() {
                           </Link>
                           <Link
                             to={ROUTES.resume.edit(resume.id)}
-                            className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
+                            className="home-resume-action-btn home-resume-action-btn--edit"
                             aria-label={`${resume.title} 편집`}
                             title="편집"
                           >
@@ -1725,7 +1709,7 @@ export default function HomePage() {
                           </Link>
                           <button
                             onClick={() => handleDuplicate(resume.id)}
-                            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200"
+                            className="home-resume-action-btn home-resume-action-btn--compact home-resume-action-btn--muted"
                             aria-label={`${resume.title} 복제`}
                             title="복제"
                           >
@@ -1750,7 +1734,7 @@ export default function HomePage() {
                           />
                           <button
                             onClick={() => handleDelete(resume.id, resume.title)}
-                            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+                            className="home-resume-action-btn home-resume-action-btn--compact home-resume-action-btn--danger"
                             aria-label={`${resume.title} 삭제`}
                             title="삭제"
                           >
