@@ -43,7 +43,7 @@
     "prepare": "husky || true"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.97.1",
+    "@anthropic-ai/sdk": "^0.99.0",
     "@hookform/resolvers": "^5.4.0",
     "@nestjs/common": "^11.1.24",
     "@nestjs/config": "^4.0.4",
