@@ -25,17 +25,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma Client
-        run: pnpm prisma:generate
-
-      - name: Type check
-        run: pnpm exec tsc -b --noEmit
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Unit tests
-        run: pnpm test
-
-      - name: Build (client + server)
-        run: pnpm build
+      - name: Verify
+        run: pnpm run verify
