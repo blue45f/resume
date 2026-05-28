@@ -13,6 +13,8 @@ import { analyzeJdSeniority } from '@/lib/jdSeniorityAnalyzer';
 import { buildJdBiasReport } from '@/lib/jdBiasDetector';
 import { buildJdCompensationReport } from '@/lib/jdCompensationSignals';
 import { buildJdCultureReport } from '@/lib/jdCultureSignals';
+import { buildJdKeywordGapReport } from '@/lib/jdKeywordGap';
+import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
 
 // ── Types ──
@@ -520,6 +522,89 @@ function JdCultureHint({ text }: { text: string }) {
   );
 }
 
+function JdKeywordGapHint({ jdText, resumeText }: { jdText: string; resumeText: string }) {
+  const report = useMemo(() => buildJdKeywordGapReport(jdText, resumeText), [jdText, resumeText]);
+  const [expanded, setExpanded] = useState(false);
+  if (jdText.trim().length < 30) return null;
+  if (report.jdKeywords.length === 0) return null;
+
+  const fill = Math.max(0.04, Math.min(1, report.matchScore / 100));
+  const categories = (Object.keys(report.byCategory) as (keyof typeof report.byCategory)[]).filter(
+    (cat) => report.byCategory[cat].length > 0,
+  );
+
+  return (
+    <aside
+      className={`jd-gap-hint jd-gap-hint--${report.matchScore >= 80 ? 'good' : report.matchScore >= 50 ? 'neutral' : 'warning'}`}
+      aria-label="JD 키워드 갭 분석"
+    >
+      <header className="jd-gap-hint__head">
+        <span className="jd-gap-hint__eyebrow">Keyword match</span>
+        <span className="jd-gap-hint__label">{report.label}</span>
+      </header>
+
+      <div
+        className="jd-gap-hint__meter"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={report.matchScore}
+        aria-label="키워드 일치율"
+      >
+        <span
+          className="jd-gap-hint__meter-fill"
+          style={{ ['--gap-fill' as never]: String(fill) }}
+        />
+      </div>
+
+      <p className="jd-gap-hint__summary">{report.summary}</p>
+
+      {expanded &&
+        categories.map((cat) => {
+          const items = report.byCategory[cat];
+          if (items.length === 0) return null;
+          return (
+            <div key={cat} className="jd-gap-hint__cat-group">
+              <span className="jd-gap-hint__cat-label">{items[0]!.categoryLabel}</span>
+              <div className="jd-gap-hint__chips">
+                {items.map((k) => (
+                  <span
+                    key={k.keyword}
+                    className={`jd-gap-hint__chip jd-gap-hint__chip--${k.status}`}
+                  >
+                    {k.keyword}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+
+      {!expanded && report.missing.length > 0 && (
+        <div className="jd-gap-hint__missing-preview">
+          <span className="jd-gap-hint__cat-label">누락 키워드</span>
+          <div className="jd-gap-hint__chips">
+            {report.missing.slice(0, 6).map((k) => (
+              <span key={k.keyword} className="jd-gap-hint__chip jd-gap-hint__chip--missing">
+                {k.keyword}
+              </span>
+            ))}
+            {report.missing.length > 6 && (
+              <span className="jd-gap-hint__chip jd-gap-hint__chip--more">
+                +{report.missing.length - 6}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      <button type="button" className="jd-gap-hint__toggle" onClick={() => setExpanded((v) => !v)}>
+        {expanded ? '접기' : '전체 키워드 보기'}
+      </button>
+    </aside>
+  );
+}
+
 // ── Main Component ──
 
 export default function InterviewPrepPage() {
@@ -623,6 +708,11 @@ export default function InterviewPrepPage() {
   const selectedResumeQuery = useResume(selectedResumeId || undefined);
   const selectedResumeDetail: Resume | null =
     (selectedResumeQuery.data as Resume | undefined) ?? null;
+
+  const resumeTextForGap = useMemo(
+    () => buildResumePlainText(selectedResumeDetail),
+    [selectedResumeDetail],
+  );
 
   const recommendationContext = useMemo(() => {
     const latestExperience = selectedResumeDetail?.experiences?.find((e) => e.company?.trim());
@@ -1809,6 +1899,7 @@ export default function InterviewPrepPage() {
                   <JdCompensationHint text={jobDescription} />
                   <JdCultureHint text={jobDescription} />
                   <JdBiasHint text={jobDescription} />
+                  <JdKeywordGapHint jdText={jobDescription} resumeText={resumeTextForGap} />
                 </>
               )}
             </div>
