@@ -2,10 +2,10 @@
   "name": "resume-platform",
   "private": true,
   "version": "2.1.0",
-  "packageManager": "pnpm@9.14.4",
+  "packageManager": "pnpm@11.4.0",
   "engines": {
     "node": ">=20.0.0",
-    "pnpm": ">=9.0.0"
+    "pnpm": ">=11.0.0"
   },
   "scripts": {
     "dev": "concurrently -n client,server -c blue,green \"pnpm dev:client\" \"pnpm dev:server\"",
@@ -44,7 +44,7 @@
     "prepare": "husky || true"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.97.1",
+    "@anthropic-ai/sdk": "^0.99.0",
     "@hookform/resolvers": "^5.4.0",
     "@nestjs/common": "^11.1.24",
     "@nestjs/config": "^4.0.4",
@@ -165,10 +165,5 @@
     "*.{json,md,css}": [
       "prettier --write"
     ]
-  },
-  "pnpm": {
-    "overrides": {
-      "brace-expansion": "^5.0.5"
-    }
   }
 }
