@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { detectEmptyClaims, analyzeVerbTense } from '@/lib/qualitySignals';
+import { detectEmptyClaims, analyzeVerbTense, detectAllCapsOveruse } from '@/lib/qualitySignals';
 
 interface Props {
   text: string;
@@ -8,15 +8,17 @@ interface Props {
 export default function ResumeQualitySignalsPanel({ text }: Props) {
   const emptyClaims = useMemo(() => detectEmptyClaims(text), [text]);
   const tense = useMemo(() => analyzeVerbTense(text), [text]);
+  const allCaps = useMemo(() => detectAllCapsOveruse(text), [text]);
   const [expanded, setExpanded] = useState(false);
-
-  const hasIssues =
-    emptyClaims.level !== 'none' || tense.dominant === 'mixed' || tense.dominant === 'present';
-  if (!hasIssues) return null;
 
   const tenseGood = tense.dominant === 'past' || tense.dominant === 'none';
   const claimsGood = emptyClaims.level === 'none';
-  const issueCount = [!tenseGood, !claimsGood].filter(Boolean).length;
+  const capsGood = allCaps.count === 0;
+
+  const hasIssues = !claimsGood || !tenseGood || !capsGood;
+  if (!hasIssues) return null;
+
+  const issueCount = [!tenseGood, !claimsGood, !capsGood].filter(Boolean).length;
   const tone =
     issueCount === 0
       ? 'good'
@@ -58,6 +60,32 @@ export default function ResumeQualitySignalsPanel({ text }: Props) {
             <p className="quality-signals-card__hint">{tense.suggestion}</p>
           </div>
         </li>
+
+        {/* ALL CAPS overuse */}
+        {!capsGood && (
+          <li
+            className="quality-signals-card__check quality-signals-card__check--warn"
+            aria-label="ALL CAPS 과용"
+          >
+            <span className="quality-signals-card__icon" aria-hidden="true">
+              ▲
+            </span>
+            <div>
+              <strong>ALL CAPS 과용</strong>
+              <span className="quality-signals-card__meta">{allCaps.count}건</span>
+              <p className="quality-signals-card__hint">{allCaps.suggestion}</p>
+              {allCaps.hits.length > 0 && (
+                <div className="quality-signals-card__hits" aria-label="ALL CAPS 단어 목록">
+                  {allCaps.hits.slice(0, 5).map((h) => (
+                    <mark key={`${h.word}-${h.index}`} className="quality-signals-card__hit-phrase">
+                      {h.word}
+                    </mark>
+                  ))}
+                </div>
+              )}
+            </div>
+          </li>
+        )}
 
         {/* Empty claims */}
         {emptyClaims.level !== 'none' && (
