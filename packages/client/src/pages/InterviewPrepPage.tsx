@@ -26,6 +26,7 @@ import { analyzeJdGrowthOpportunity } from '@/lib/jdGrowthOpportunityAnalyzer';
 import { analyzeJdWorkLifeBalance } from '@/lib/jdWorkLifeBalanceAnalyzer';
 import { detectJdCultureVagueness } from '@/lib/jdCultureVaguenessDetector';
 import { analyzeJdSalaryTransparency } from '@/lib/jdSalaryTransparencyAnalyzer';
+import { analyzeJdBenefitsSpecificity } from '@/lib/jdBenefitsSpecificityAnalyzer';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -1304,6 +1305,70 @@ function JdSalaryTransparencyHint({ text }: { text: string }) {
             {report.negotiationTips.map((tip, i) => (
               <li key={i} className="text-xs opacity-60">
                 → {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </aside>
+  );
+}
+
+function JdBenefitsSpecificityHint({ text }: { text: string }) {
+  const report = useMemo(() => analyzeJdBenefitsSpecificity(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.clarity === 'absent') return null;
+
+  const containerClass =
+    report.clarity === 'detailed'
+      ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700'
+      : report.clarity === 'vague'
+        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
+        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700';
+
+  const badgeClass =
+    report.clarity === 'detailed'
+      ? 'text-emerald-700 dark:text-emerald-300'
+      : report.clarity === 'vague'
+        ? 'text-amber-700 dark:text-amber-300'
+        : 'text-sky-700 dark:text-sky-300';
+
+  const clarityLabel: Record<string, string> = {
+    detailed: '구체적',
+    partial: '부분',
+    vague: '모호',
+    absent: '미공개',
+  };
+
+  return (
+    <aside
+      className={`rounded-lg border p-3 text-sm ${containerClass}`}
+      aria-label="복리후생 구체성 분석"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold uppercase tracking-wide opacity-50">복리후생</span>
+        <span className={`font-bold text-xs ${badgeClass}`}>{clarityLabel[report.clarity]}</span>
+      </div>
+      <p className="text-xs opacity-70 mb-2">{report.summary}</p>
+      {report.specificSignals.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {report.specificSignals.slice(0, 4).map((s, i) => (
+            <span
+              key={i}
+              className="text-xs bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded px-1.5 py-0.5"
+            >
+              {s.excerpt.slice(0, 22)}
+            </span>
+          ))}
+        </div>
+      )}
+      {report.interviewQuestions.length > 0 && (
+        <div>
+          <p className="text-xs opacity-50 mb-1">면접에서 확인:</p>
+          <ul className="space-y-0.5">
+            {report.interviewQuestions.map((q, i) => (
+              <li key={i} className="text-xs opacity-60">
+                → {q}
               </li>
             ))}
           </ul>
@@ -2800,6 +2865,7 @@ export default function InterviewPrepPage() {
                   <JdWorkLifeBalanceHint text={jobDescription} />
                   <JdCultureVaguenessHint text={jobDescription} />
                   <JdSalaryTransparencyHint text={jobDescription} />
+                  <JdBenefitsSpecificityHint text={jobDescription} />
                   <JdCompanyStageHint text={jobDescription} />
                 </>
               )}
