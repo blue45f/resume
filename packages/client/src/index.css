@@ -7157,6 +7157,95 @@ button:active:not(:disabled) {
   line-height: 1.5;
 }
 
+/* ── Cover letter length balance card ─────────────────────────── */
+.cl-length-card {
+  margin-top: 0.6rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklab, var(--color-warning) 24%, var(--color-border));
+  background: color-mix(in oklab, var(--color-warning-light) 42%, var(--color-surface));
+}
+.cl-length-card--poor {
+  border-color: color-mix(
+    in oklab,
+    var(--color-error, var(--color-warning)) 26%,
+    var(--color-border)
+  );
+  background: color-mix(
+    in oklab,
+    var(--color-error-light, var(--color-warning-light)) 42%,
+    var(--color-surface)
+  );
+}
+.cl-length-card__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.45rem;
+}
+.cl-length-card__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 48%, transparent);
+}
+.cl-length-card__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.35rem;
+  padding: 0.12rem 0.48rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: color-mix(in oklab, var(--color-accent) 10%, transparent);
+  color: var(--color-accent);
+}
+.cl-length-card__badge--acceptable {
+  background: color-mix(in oklab, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+}
+.cl-length-card__badge--warning {
+  background: color-mix(in oklab, var(--color-warning) 13%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 82%, var(--color-text));
+}
+.cl-length-card__badge--poor {
+  background: color-mix(in oklab, var(--color-error, var(--color-warning)) 12%, transparent);
+  color: color-mix(in oklab, var(--color-error, var(--color-warning)) 84%, var(--color-text));
+}
+.cl-length-card__stat {
+  margin-left: auto;
+  font-size: 0.71rem;
+  font-weight: 600;
+  color: color-mix(in oklab, var(--color-text) 56%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+.cl-length-card__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: color-mix(in oklab, var(--color-text) 72%, transparent);
+}
+.cl-length-card__suggestions {
+  list-style: none;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.34rem;
+}
+.cl-length-card__suggestion {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: color-mix(in oklab, var(--color-text) 66%, transparent);
+}
+@media (max-width: 480px) {
+  .cl-length-card__stat {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+}
+
 /* ── Cover letter cliche card ──────────────────────────────────── */
 .cliche-card {
   margin: 0.6rem 0;
@@ -12845,6 +12934,94 @@ button:active:not(:disabled) {
   gap: 0.25rem;
 }
 .cl-length-card__suggestion {
+  font-size: 0.76rem;
+  color: color-mix(in oklab, var(--color-text) 60%, transparent);
+}
+
+/* ── ResumeContactInfoPanel ── */
+.contact-info-card {
+  border-radius: 0.6rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 20%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+  padding: 0.85rem 1rem;
+  font-size: 0.82rem;
+}
+.contact-info-card--warn {
+  border-color: color-mix(in oklab, var(--color-warning) 35%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 6%, var(--color-surface));
+}
+.contact-info-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.contact-info-card__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.contact-info-card__badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+.contact-info-card__badge--complete {
+  background: color-mix(in oklab, var(--color-success) 15%, transparent);
+  color: color-mix(in oklab, var(--color-success) 80%, var(--color-text));
+}
+.contact-info-card__badge--good {
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  color: color-mix(in oklab, var(--color-accent) 70%, var(--color-text));
+}
+.contact-info-card__badge--partial {
+  background: color-mix(in oklab, var(--color-warning) 15%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.contact-info-card__badge--minimal {
+  background: color-mix(in oklab, var(--color-error) 12%, transparent);
+  color: color-mix(in oklab, var(--color-error) 75%, var(--color-text));
+}
+.contact-info-card__fields {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+.contact-info-card__field {
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 0.3rem;
+  padding: 0.15rem 0.5rem;
+}
+.contact-info-card__field--found {
+  background: color-mix(in oklab, var(--color-success) 15%, transparent);
+  color: color-mix(in oklab, var(--color-success) 80%, var(--color-text));
+}
+.contact-info-card__field--missing {
+  background: color-mix(in oklab, var(--color-text) 8%, transparent);
+  color: color-mix(in oklab, var(--color-text) 30%, transparent);
+  text-decoration: line-through;
+}
+.contact-info-card__hint {
+  margin-bottom: 0.5rem;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  line-height: 1.45;
+}
+.contact-info-card__recs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+  padding-top: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.contact-info-card__rec {
   font-size: 0.76rem;
   color: color-mix(in oklab, var(--color-text) 60%, transparent);
 }
