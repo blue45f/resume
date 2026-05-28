@@ -14,6 +14,7 @@ import { buildJdBiasReport } from '@/lib/jdBiasDetector';
 import { buildJdCompensationReport } from '@/lib/jdCompensationSignals';
 import { buildJdCultureReport } from '@/lib/jdCultureSignals';
 import { buildJdKeywordGapReport } from '@/lib/jdKeywordGap';
+import { buildWorkModalityReport } from '@/lib/jdWorkModality';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
 
@@ -601,6 +602,56 @@ function JdKeywordGapHint({ jdText, resumeText }: { jdText: string; resumeText: 
       <button type="button" className="jd-gap-hint__toggle" onClick={() => setExpanded((v) => !v)}>
         {expanded ? '접기' : '전체 키워드 보기'}
       </button>
+    </aside>
+  );
+}
+
+function JdWorkModalityHint({ text }: { text: string }) {
+  const report = useMemo(() => buildWorkModalityReport(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.modality === 'unknown' && !report.relocationRequired) return null;
+
+  const toneClass =
+    report.modality === 'remote'
+      ? 'good'
+      : report.modality === 'hybrid' || report.modality === 'flexible'
+        ? 'neutral'
+        : report.modality === 'onsite'
+          ? 'warning'
+          : 'neutral';
+
+  const icon =
+    report.modality === 'remote'
+      ? '🏠'
+      : report.modality === 'hybrid'
+        ? '🔀'
+        : report.modality === 'onsite'
+          ? '🏢'
+          : report.modality === 'flexible'
+            ? '⏱'
+            : '❓';
+
+  return (
+    <aside
+      className={`jd-modality-hint jd-modality-hint--${toneClass}`}
+      aria-label="근무 방식 분석"
+    >
+      <header className="jd-modality-hint__head">
+        <span className="jd-modality-hint__eyebrow">Work modality</span>
+        <span className="jd-modality-hint__label">
+          {icon} {report.label}
+        </span>
+      </header>
+      <p className="jd-modality-hint__summary">{report.summary}</p>
+      {report.signals.length > 0 && (
+        <ul className="jd-modality-hint__signals" aria-label="근무 방식 관련 문구">
+          {report.signals.map((s, i) => (
+            <li key={i} className="jd-modality-hint__signal">
+              <code>{s}</code>
+            </li>
+          ))}
+        </ul>
+      )}
     </aside>
   );
 }
@@ -1900,6 +1951,7 @@ export default function InterviewPrepPage() {
                   <JdCultureHint text={jobDescription} />
                   <JdBiasHint text={jobDescription} />
                   <JdKeywordGapHint jdText={jobDescription} resumeText={resumeTextForGap} />
+                  <JdWorkModalityHint text={jobDescription} />
                 </>
               )}
             </div>

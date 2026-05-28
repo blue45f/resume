@@ -6309,6 +6309,71 @@ button:active:not(:disabled) {
   text-decoration: underline;
 }
 
+/* ── JD work modality card ─────────────────────────────────────── */
+.jd-modality-hint {
+  padding: 0.75rem 1rem;
+  border-radius: 0.65rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 20%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+  margin-top: 0.65rem;
+}
+.jd-modality-hint--good {
+  border-color: color-mix(in oklab, var(--color-success) 25%, transparent);
+  background: color-mix(in oklab, var(--color-success) 4%, var(--color-surface));
+}
+.jd-modality-hint--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 25%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 4%, var(--color-surface));
+}
+.jd-modality-hint__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.jd-modality-hint__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+}
+.jd-modality-hint__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+.jd-modality-hint--good .jd-modality-hint__label {
+  color: var(--color-success);
+}
+.jd-modality-hint--warning .jd-modality-hint__label {
+  color: var(--color-warning);
+}
+.jd-modality-hint__summary {
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  margin-bottom: 0.35rem;
+}
+.jd-modality-hint__signals {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.jd-modality-hint__signal code {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  background: color-mix(in oklab, var(--color-accent) 8%, transparent);
+  color: color-mix(in oklab, var(--color-accent) 75%, var(--color-text));
+  font-family: inherit;
+}
+
 /* ── Home Pro prompt + bookmarks ───────────────────────────────── */
 .home-pro-prompt {
   display: flex;

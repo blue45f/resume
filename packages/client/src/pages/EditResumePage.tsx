@@ -17,6 +17,7 @@ import UnquantifiedClaimsRewritePanel from '@/components/UnquantifiedClaimsRewri
 import ResumeTitleCoherencePanel from '@/components/ResumeTitleCoherencePanel';
 import ResumeActionVerbPanel from '@/components/ResumeActionVerbPanel';
 import ResumeQuantificationPanel from '@/components/ResumeQuantificationPanel';
+import SectionInsightsPanel from '@/components/SectionInsightsPanel';
 import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
 import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
@@ -619,6 +620,9 @@ export default function EditResumePage() {
               </div>
               <div className="sm:col-span-2">
                 <ResumeQuantificationPanel text={deferredAnalysisText} />
+              </div>
+              <div className="sm:col-span-2">
+                <SectionInsightsPanel text={deferredAnalysisText} />
               </div>
             </div>
           </section>
