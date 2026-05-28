@@ -10622,6 +10622,117 @@ button:active:not(:disabled) {
   border-top: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
 }
 
+/* ── ResumePortfolioLinksPanel ── */
+.portfolio-links-card {
+  background: var(--color-surface);
+  border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.portfolio-links-card--warning {
+  background: color-mix(in oklab, var(--color-warning) 6%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--color-warning) 28%, transparent);
+}
+.portfolio-links-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.portfolio-links-card__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.portfolio-links-card__badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+.portfolio-links-card__badge--warn {
+  background: color-mix(in oklab, var(--color-warning) 16%, transparent);
+  color: var(--color-warning);
+}
+.portfolio-links-card__badge--ok {
+  background: color-mix(in oklab, var(--color-success) 14%, transparent);
+  color: color-mix(in oklab, var(--color-success) 80%, var(--color-text));
+}
+.portfolio-links-card__hint {
+  font-size: 0.76rem;
+  color: color-mix(in oklab, var(--color-text) 78%, transparent);
+  margin: 0;
+  line-height: 1.5;
+}
+.portfolio-links-card__hint code {
+  background: color-mix(in oklab, var(--color-text) 8%, transparent);
+  border-radius: 0.2rem;
+  padding: 0 0.2rem;
+  font-size: 0.72rem;
+}
+.portfolio-links-card__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.portfolio-links-card__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.4rem;
+  background: color-mix(in oklab, var(--color-text) 4%, transparent);
+}
+.portfolio-links-card__item--warn {
+  background: color-mix(in oklab, var(--color-warning) 8%, transparent);
+}
+.portfolio-links-card__icon {
+  font-size: 0.78rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.portfolio-links-card__platform {
+  font-weight: 600;
+  font-size: 0.68rem;
+  color: color-mix(in oklab, var(--color-accent) 85%, var(--color-text));
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.portfolio-links-card__url {
+  color: color-mix(in oklab, var(--color-text) 55%, transparent);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.65rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.portfolio-links-card__warn-chip {
+  font-size: 0.62rem;
+  font-weight: 600;
+  background: color-mix(in oklab, var(--color-warning) 18%, transparent);
+  color: var(--color-warning);
+  border-radius: 0.25rem;
+  padding: 0.05rem 0.3rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.portfolio-links-card__missing {
+  font-size: 0.72rem;
+  color: color-mix(in oklab, var(--color-warning) 85%, var(--color-text));
+  margin: 0;
+  padding-top: 0.4rem;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 7%, transparent);
+}
+
 /* ── CareerProgressionPanel ── */
 .career-prog-card {
   background: var(--color-surface);
