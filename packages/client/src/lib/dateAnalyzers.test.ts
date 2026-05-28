@@ -33,4 +33,32 @@ describe('analyzeDateConsistency', () => {
     const r = analyzeDateConsistency('2020/01 ~ 2021/12');
     expect(r.formatCounts.slash).toBeGreaterThanOrEqual(2);
   });
+
+  it('reports consistent true when only one format used', () => {
+    const r = analyzeDateConsistency('2020.01 ~ 2021.06. 2022.03 ~ 현재.');
+    expect(r.consistent).toBe(true);
+    expect(r.distinctFormats).toBe(1);
+  });
+
+  it('suggestion is non-empty', () => {
+    const r = analyzeDateConsistency('2020.01 ~ 2022-12');
+    expect(r.suggestion.length).toBeGreaterThan(0);
+  });
+
+  it('dominant format is the most frequent one', () => {
+    const r = analyzeDateConsistency('2020.01 2021.02 2022.03 2019-04');
+    expect(r.dominantFormat).toBe('dot');
+  });
+
+  it('caps hits at 80', () => {
+    const text = Array(50).fill('2020.01 2021-02 2022/03').join(' ');
+    const r = analyzeDateConsistency(text);
+    expect(r.hits.length).toBeLessThanOrEqual(80);
+  });
+
+  it('formatCounts sum equals hits length', () => {
+    const r = analyzeDateConsistency('2020.01 2021-02 2022년 3월');
+    const total = Object.values(r.formatCounts).reduce((a, b) => a + b, 0);
+    expect(total).toBe(r.hits.length);
+  });
 });

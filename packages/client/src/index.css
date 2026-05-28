@@ -8089,6 +8089,93 @@ button:active:not(:disabled) {
   }
 }
 
+/* ── Resume date consistency card ──────────────────────────────── */
+.date-cons-card {
+  background: var(--color-surface-raised);
+  border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.125rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.date-cons-card__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.date-cons-card__eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.date-cons-card__title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.date-cons-card__badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+  border: 1px solid color-mix(in oklab, var(--color-accent) 25%, transparent);
+  margin-left: auto;
+}
+.date-cons-card__suggestion {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.date-cons-card__formats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+.date-cons-card__fmt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+}
+.date-cons-card__fmt--dominant {
+  border-color: color-mix(in oklab, var(--color-success, #10b981) 30%, transparent);
+  background: color-mix(in oklab, var(--color-success, #10b981) 8%, transparent);
+  color: var(--color-success, #10b981);
+  font-weight: 600;
+}
+.date-cons-card__fmt code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+}
+.date-cons-card__fmt-count {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+}
+.date-cons-card__tip {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0;
+}
+.date-cons-card__tip code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  background: color-mix(in oklab, var(--color-success, #10b981) 10%, transparent);
+  border-radius: 3px;
+  padding: 0.05rem 0.3rem;
+}
+
 /* ── Resume soft skills card ────────────────────────────────────── */
 .soft-skills-card {
   background: var(--color-surface-raised);
