@@ -13499,3 +13499,80 @@ button:active:not(:disabled) {
   font-size: 0.76rem;
   color: color-mix(in oklab, var(--color-text) 60%, transparent);
 }
+
+/* ── ResumeChronologyPanel ── */
+.chrono-card {
+  border-radius: 0.6rem;
+  border: 1px solid color-mix(in oklab, var(--color-warning) 30%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 6%, var(--color-surface));
+  padding: 0.85rem 1rem;
+  font-size: 0.82rem;
+}
+.chrono-card--reversed {
+  border-color: color-mix(in oklab, var(--color-error) 38%, transparent);
+  background: color-mix(in oklab, var(--color-error) 7%, var(--color-surface));
+}
+.chrono-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.chrono-card__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.chrono-card__badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+.chrono-card__badge--mixed {
+  background: color-mix(in oklab, var(--color-warning) 15%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.chrono-card__badge--reversed {
+  background: color-mix(in oklab, var(--color-error) 14%, transparent);
+  color: color-mix(in oklab, var(--color-error) 80%, var(--color-text));
+}
+.chrono-card__meta {
+  font-size: 0.7rem;
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+}
+.chrono-card__hint {
+  margin-bottom: 0.5rem;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  line-height: 1.45;
+}
+.chrono-card__chips {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+.chrono-card__chip {
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  background: color-mix(in oklab, var(--color-text) 8%, transparent);
+  color: color-mix(in oklab, var(--color-text) 55%, transparent);
+}
+.chrono-card__recs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+  padding-top: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.chrono-card__rec {
+  font-size: 0.76rem;
+  color: color-mix(in oklab, var(--color-text) 60%, transparent);
+}
