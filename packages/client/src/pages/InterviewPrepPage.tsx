@@ -16,6 +16,7 @@ import { buildJdCultureReport } from '@/lib/jdCultureSignals';
 import { buildJdKeywordGapReport } from '@/lib/jdKeywordGap';
 import { buildSalaryBenchmarkReport } from '@/lib/jdSalaryBenchmark';
 import { buildInterviewStrategyReport, FORMAT_LABEL_MAP } from '@/lib/jdInterviewStrategy';
+import { buildJdRequirementsReport } from '@/lib/jdRequirementsExtractor';
 import { buildWorkModalityReport } from '@/lib/jdWorkModality';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -770,6 +771,88 @@ function JdInterviewStrategyHint({ text }: { text: string }) {
             </li>
           ))}
         </ul>
+      )}
+    </aside>
+  );
+}
+
+const CATEGORY_LABEL: Record<string, string> = {
+  tech: '기술',
+  experience: '경험',
+  education: '학력',
+  soft: '소프트',
+  other: '기타',
+};
+
+function JdRequirementsHint({ text }: { text: string }) {
+  const report = useMemo(() => buildJdRequirementsReport(text), [text]);
+  const [expanded, setExpanded] = useState(false);
+  if (text.trim().length < 30) return null;
+  if (!report.hasSections && report.requiredCount === 0 && report.preferredCount === 0) return null;
+
+  const hasPreferred = report.preferredCount > 0;
+  const visiblePreferred = expanded ? report.preferred : report.preferred.slice(0, 3);
+  const remaining = report.preferred.length - visiblePreferred.length;
+
+  return (
+    <aside className="jd-req-hint" aria-label="채용공고 자격요건 분석">
+      <header className="jd-req-hint__head">
+        <span className="jd-req-hint__eyebrow">Requirements</span>
+        <span className="jd-req-hint__label">{report.summary}</span>
+      </header>
+
+      {report.required.length > 0 && (
+        <section className="jd-req-hint__section" aria-label="필수 요건">
+          <h4 className="jd-req-hint__section-title">필수 자격요건 ({report.requiredCount})</h4>
+          <ul className="jd-req-hint__list">
+            {report.required.map((req, i) => (
+              <li key={i} className={`jd-req-hint__item jd-req-hint__item--${req.category}`}>
+                <span className="jd-req-hint__cat-badge" aria-label={CATEGORY_LABEL[req.category]}>
+                  {CATEGORY_LABEL[req.category]}
+                </span>
+                <span className="jd-req-hint__item-text">{req.text}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {hasPreferred && (
+        <section className="jd-req-hint__section" aria-label="우대 사항">
+          <h4 className="jd-req-hint__section-title">우대 사항 ({report.preferredCount})</h4>
+          <ul className="jd-req-hint__list">
+            {visiblePreferred.map((req, i) => (
+              <li
+                key={i}
+                className={`jd-req-hint__item jd-req-hint__item--${req.category} jd-req-hint__item--preferred`}
+              >
+                <span
+                  className="jd-req-hint__cat-badge jd-req-hint__cat-badge--preferred"
+                  aria-label={CATEGORY_LABEL[req.category]}
+                >
+                  {CATEGORY_LABEL[req.category]}
+                </span>
+                <span className="jd-req-hint__item-text">{req.text}</span>
+              </li>
+            ))}
+          </ul>
+          {remaining > 0 && (
+            <button
+              type="button"
+              className="jd-req-hint__toggle"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              {expanded ? '접기' : `+${remaining}개 더 보기`}
+            </button>
+          )}
+        </section>
+      )}
+
+      {!report.hasSections && report.unclassified.length > 0 && (
+        <p className="jd-req-hint__fallback">
+          섹션 구분 없이 {report.unclassified.length}개 항목 감지 (자격요건·우대사항 헤더 추가 시
+          분류됩니다)
+        </p>
       )}
     </aside>
   );
@@ -2065,6 +2148,7 @@ export default function InterviewPrepPage() {
               />
               {jobDescription.trim().length >= 30 && (
                 <>
+                  <JdRequirementsHint text={jobDescription} />
                   <JdSeniorityHint text={jobDescription} />
                   <JdCompensationHint text={jobDescription} />
                   <JdCultureHint text={jobDescription} />

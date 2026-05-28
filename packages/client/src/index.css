@@ -6476,6 +6476,114 @@ button:active:not(:disabled) {
   border-left: 2px solid color-mix(in oklab, var(--color-accent) 35%, transparent);
 }
 
+/* ── JD requirements extractor card ────────────────────────────── */
+.jd-req-hint {
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 20%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+  margin-top: 0.65rem;
+}
+.jd-req-hint__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+  flex-wrap: wrap;
+}
+.jd-req-hint__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+  flex-shrink: 0;
+}
+.jd-req-hint__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-align: right;
+}
+.jd-req-hint__section {
+  margin-top: 0.55rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
+}
+.jd-req-hint__section:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+.jd-req-hint__section-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+  margin-bottom: 0.35rem;
+}
+.jd-req-hint__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.jd-req-hint__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--color-text);
+}
+.jd-req-hint__item--preferred {
+  color: color-mix(in oklab, var(--color-text) 75%, transparent);
+}
+.jd-req-hint__cat-badge {
+  flex-shrink: 0;
+  display: inline-block;
+  padding: 0.08rem 0.3rem;
+  border-radius: 0.2rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+  margin-top: 0.05rem;
+}
+.jd-req-hint__cat-badge--preferred {
+  background: color-mix(in oklab, var(--color-text) 8%, transparent);
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+}
+.jd-req-hint__item-text {
+  flex: 1;
+}
+.jd-req-hint__toggle {
+  display: inline-block;
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.jd-req-hint__toggle:hover {
+  text-decoration: underline;
+}
+.jd-req-hint__fallback {
+  font-size: 0.68rem;
+  color: color-mix(in oklab, var(--color-text) 48%, transparent);
+  margin: 0.4rem 0 0;
+  font-style: italic;
+}
+
 /* ── JD interview strategy card ────────────────────────────────── */
 .jd-strategy-hint {
   padding: 0.85rem 1rem;
