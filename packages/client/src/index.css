@@ -7450,6 +7450,161 @@ button:active:not(:disabled) {
   }
 }
 
+/* ── Resume bullet consistency card ────────────────────────────── */
+.bullet-cons-card {
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 18%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+  margin-top: 0.6rem;
+}
+.bullet-cons-card--good {
+  border-color: color-mix(in oklab, var(--color-success) 25%, transparent);
+  background: color-mix(in oklab, var(--color-success) 4%, var(--color-surface));
+}
+.bullet-cons-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 25%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 4%, var(--color-surface));
+}
+.bullet-cons-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.bullet-cons-card__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+}
+.bullet-cons-card__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+.bullet-cons-card--good .bullet-cons-card__label {
+  color: var(--color-success);
+}
+.bullet-cons-card--warning .bullet-cons-card__label {
+  color: var(--color-warning);
+}
+.bullet-cons-card__meter {
+  height: 5px;
+  border-radius: 3px;
+  background: color-mix(in oklab, var(--color-text) 10%, transparent);
+  overflow: hidden;
+  margin-bottom: 0.7rem;
+}
+.bullet-cons-card__meter-fill {
+  display: block;
+  height: 100%;
+  width: calc(var(--bullet-cons-fill) * 100%);
+  background: var(--color-accent);
+  border-radius: 3px;
+  transform-origin: left;
+  transition: width 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.bullet-cons-card--good .bullet-cons-card__meter-fill {
+  background: var(--color-success);
+}
+.bullet-cons-card--warning .bullet-cons-card__meter-fill {
+  background: var(--color-warning);
+}
+.bullet-cons-card__section {
+  margin-top: 0.65rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
+}
+.bullet-cons-card__section-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+  margin-bottom: 0.4rem;
+}
+.bullet-cons-card__style-bars {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.bullet-cons-card__style-bar-row {
+  display: grid;
+  grid-template-columns: 6rem 1fr 2.2rem;
+  align-items: center;
+  gap: 0.4rem;
+}
+.bullet-cons-card__style-name {
+  font-size: 0.68rem;
+  color: color-mix(in oklab, var(--color-text) 65%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bullet-cons-card__style-bar {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in oklab, var(--color-accent) 30%, transparent);
+  position: relative;
+  overflow: hidden;
+}
+.bullet-cons-card__style-bar::after {
+  content: '';
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: var(--bar-w, 0%);
+  background: var(--color-accent);
+  border-radius: 3px;
+  transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.bullet-cons-card__style-pct {
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: color-mix(in oklab, var(--color-text) 55%, transparent);
+  text-align: right;
+}
+.bullet-cons-card__markers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.35rem;
+}
+.bullet-cons-card__marker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.3rem;
+  font-size: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-text) 14%, transparent);
+  background: color-mix(in oklab, var(--color-text) 5%, transparent);
+  color: color-mix(in oklab, var(--color-text) 65%, transparent);
+}
+.bullet-cons-card__marker-chip--dominant {
+  border-color: color-mix(in oklab, var(--color-accent) 35%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 10%, transparent);
+  color: var(--color-accent);
+  font-weight: 700;
+}
+.bullet-cons-card__marker-chip code {
+  font-size: 0.75rem;
+  font-family: ui-monospace, 'Cascadia Code', monospace;
+}
+.bullet-cons-card__suggestion {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: color-mix(in oklab, var(--color-text) 68%, transparent);
+  margin: 0;
+}
+
 /* ── Application streak strip ──────────────────────────────────── */
 .streak-strip {
   margin-bottom: 1.25rem;
