@@ -21,6 +21,7 @@ import { buildJdResumeMatchReport } from '@/lib/jdResumeMatch';
 import { buildWorkModalityReport } from '@/lib/jdWorkModality';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
+import { analyzeInterviewAnswer as analyzeAnswerHeuristic } from '@/lib/interviewAnswerAnalyzer';
 
 // ── Types ──
 
@@ -914,6 +915,56 @@ function JdResumeMatchHint({ jdText, resumeText }: { jdText: string; resumeText:
         </p>
       )}
     </aside>
+  );
+}
+
+// ── Answer Quick Score (heuristic, zero-cost) ──
+
+function AnswerQuickScore({ text }: { text: string }) {
+  const analysis = useMemo(() => analyzeAnswerHeuristic(text), [text]);
+  if (text.length < 30) return null;
+
+  const STAR_KEYS = [
+    { key: 'situation', label: 'S' },
+    { key: 'task', label: 'T' },
+    { key: 'action', label: 'A' },
+    { key: 'result', label: 'R' },
+  ] as const;
+
+  const scoreColor =
+    analysis.score >= 75
+      ? 'text-emerald-600 dark:text-emerald-400'
+      : analysis.score >= 50
+        ? 'text-amber-600 dark:text-amber-400'
+        : 'text-rose-600 dark:text-rose-400';
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+      <span className={`font-bold tabular-nums ${scoreColor}`}>{analysis.score}점</span>
+      <span className="flex gap-1" aria-label="STAR 구조 신호">
+        {STAR_KEYS.map(({ key, label }) => (
+          <span
+            key={key}
+            className={`w-5 h-5 rounded-full flex items-center justify-center font-semibold text-[10px] ${
+              analysis.starSignals[key]
+                ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
+                : 'bg-slate-100 dark:bg-slate-700 text-slate-400'
+            }`}
+            title={`STAR: ${key}`}
+          >
+            {label}
+          </span>
+        ))}
+      </span>
+      {analysis.fillerCount > 0 && (
+        <span className="text-amber-500">필러 {analysis.fillerCount}개</span>
+      )}
+      {analysis.tips[0] && (
+        <span className="truncate max-w-[200px] text-slate-400 dark:text-slate-500">
+          {analysis.tips[0]}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -1866,6 +1917,7 @@ export default function InterviewPrepPage() {
                       음성 입력 (준비 중)
                     </span>
                   </div>
+                  <AnswerQuickScore text={mockAnswer} />
                 </div>
 
                 {/* Action buttons */}
