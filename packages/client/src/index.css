@@ -10254,6 +10254,96 @@ button:active:not(:disabled) {
   }
 }
 
+/* ── Resume role keyword gap card ───────────────────────────────── */
+.role-kw-card {
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 18%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+  margin-top: 0.6rem;
+}
+.role-kw-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 25%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 5%, var(--color-surface));
+}
+.role-kw-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.role-kw-card__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+}
+.role-kw-card__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+.role-kw-card--warning .role-kw-card__label {
+  color: var(--color-warning);
+}
+.role-kw-card__meter {
+  height: 5px;
+  border-radius: 3px;
+  background: color-mix(in oklab, var(--color-text) 10%, transparent);
+  overflow: hidden;
+  margin-bottom: 0.6rem;
+}
+.role-kw-card__meter-fill {
+  display: block;
+  height: 100%;
+  width: calc(var(--role-kw-fill) * 100%);
+  background: var(--color-accent);
+  border-radius: 3px;
+  transition: width 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.role-kw-card--warning .role-kw-card__meter-fill {
+  background: var(--color-warning);
+}
+.role-kw-card__hint {
+  font-size: 0.72rem;
+  color: color-mix(in oklab, var(--color-text) 68%, transparent);
+  margin: 0 0 0.5rem;
+}
+.role-kw-card__section {
+  margin-top: 0.55rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 7%, transparent);
+}
+.role-kw-card__section-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+  margin-bottom: 0.3rem;
+}
+.role-kw-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+.role-kw-card__chip {
+  font-size: 0.66rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+}
+.role-kw-card__chip--missing {
+  background: color-mix(in oklab, var(--color-warning) 14%, transparent);
+  color: var(--color-warning);
+}
+.role-kw-card__chip--matched {
+  background: color-mix(in oklab, var(--color-success) 14%, transparent);
+  color: var(--color-success);
+}
+
 /* ── Resume STAR writing guide card ─────────────────────────────── */
 .star-guide-card {
   padding: 0.85rem 1rem;
