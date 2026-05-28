@@ -10622,6 +10622,73 @@ button:active:not(:disabled) {
   border-top: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
 }
 
+/* ── ResumeJobLevelPanel ── */
+.job-level-card {
+  background: var(--color-surface);
+  border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.job-level-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.job-level-card__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.job-level-card__badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--level-color, var(--color-accent)) 14%, transparent);
+  color: var(--level-color, var(--color-accent));
+}
+.job-level-card__hint {
+  font-size: 0.76rem;
+  color: color-mix(in oklab, var(--color-text) 80%, transparent);
+  margin: 0;
+  line-height: 1.5;
+}
+.job-level-card__tip {
+  font-size: 0.72rem;
+  color: color-mix(in oklab, var(--color-accent) 80%, var(--color-text));
+  margin: 0;
+  background: color-mix(in oklab, var(--color-accent) 6%, transparent);
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  line-height: 1.45;
+}
+.job-level-card__chrono {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.4rem;
+  background: color-mix(in oklab, var(--color-success) 8%, transparent);
+}
+.job-level-card__chrono--warn {
+  background: color-mix(in oklab, var(--color-warning) 8%, transparent);
+}
+.job-level-card__chrono-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: color-mix(in oklab, var(--color-text) 75%, transparent);
+}
+.job-level-card__chrono-hint {
+  font-size: 0.68rem;
+  color: color-mix(in oklab, var(--color-text) 60%, transparent);
+  line-height: 1.4;
+}
+
 /* ── ResumePortfolioLinksPanel ── */
 .portfolio-links-card {
   background: var(--color-surface);
