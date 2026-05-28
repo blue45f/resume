@@ -28,6 +28,7 @@ import { detectJdCultureVagueness } from '@/lib/jdCultureVaguenessDetector';
 import { analyzeJdSalaryTransparency } from '@/lib/jdSalaryTransparencyAnalyzer';
 import { analyzeJdBenefitsSpecificity } from '@/lib/jdBenefitsSpecificityAnalyzer';
 import { estimateJdInterviewComplexity } from '@/lib/jdInterviewComplexityEstimator';
+import { parseJdRequiredVsPreferred } from '@/lib/jdRequiredVsPreferredParser';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -1443,6 +1444,62 @@ function JdInterviewComplexityHint({ text }: { text: string }) {
             ))}
           </ul>
         </div>
+      )}
+    </aside>
+  );
+}
+
+function JdRequiredVsPreferredHint({ text }: { text: string }) {
+  const report = useMemo(() => parseJdRequiredVsPreferred(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.requiredCount === 0 && report.preferredCount === 0) return null;
+
+  return (
+    <aside
+      className="rounded-lg border p-3 text-sm bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700"
+      aria-label="필수/우대 기술 분석"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold uppercase tracking-wide opacity-50">기술 요건</span>
+        <span className="text-xs font-bold text-sky-700 dark:text-sky-300">
+          필수 {report.requiredCount} · 우대 {report.preferredCount}
+        </span>
+      </div>
+      <p className="text-xs opacity-70 mb-2">{report.summary}</p>
+      {report.required.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-1.5">
+          <span className="text-xs opacity-40 mr-1">필수</span>
+          {report.required.slice(0, 5).map((s, i) => (
+            <span
+              key={i}
+              className="text-xs bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 rounded px-1.5 py-0.5"
+            >
+              {s.skill}
+            </span>
+          ))}
+        </div>
+      )}
+      {report.preferred.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          <span className="text-xs opacity-40 mr-1">우대</span>
+          {report.preferred.slice(0, 5).map((s, i) => (
+            <span
+              key={i}
+              className="text-xs bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded px-1.5 py-0.5"
+            >
+              {s.skill}
+            </span>
+          ))}
+        </div>
+      )}
+      {report.fitGuide.length > 0 && (
+        <ul className="space-y-0.5">
+          {report.fitGuide.map((g, i) => (
+            <li key={i} className="text-xs opacity-60">
+              → {g}
+            </li>
+          ))}
+        </ul>
       )}
     </aside>
   );
@@ -2937,6 +2994,7 @@ export default function InterviewPrepPage() {
                   <JdSalaryTransparencyHint text={jobDescription} />
                   <JdBenefitsSpecificityHint text={jobDescription} />
                   <JdInterviewComplexityHint text={jobDescription} />
+                  <JdRequiredVsPreferredHint text={jobDescription} />
                   <JdCompanyStageHint text={jobDescription} />
                 </>
               )}
