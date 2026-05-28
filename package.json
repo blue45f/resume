@@ -20,7 +20,7 @@
     "start:server": "node packages/server/dist/main.js",
     "start": "node packages/server/dist/main.js",
     "ci": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build && pnpm run format:check",
-    "verify": "pnpm run ci",
+    "verify": "pnpm run validate:architecture && pnpm run ci",
     "verify:push": "pnpm run verify",
     "deploy:gcp": "gcloud run deploy resume-api --source . --project resume-platform-prod --region asia-northeast3 --allow-unauthenticated --update-env-vars NODE_ENV=production",
     "lint": "eslint .",
@@ -41,7 +41,8 @@
     "prisma:push": "cd packages/server && prisma db push",
     "prisma:reset": "cd packages/server && prisma migrate reset",
     "typecheck": "pnpm prisma:generate && tsc -b --noEmit",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "validate:architecture": "node scripts/validate-architecture.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.99.0",
