@@ -27,6 +27,7 @@ import { analyzeJdWorkLifeBalance } from '@/lib/jdWorkLifeBalanceAnalyzer';
 import { detectJdCultureVagueness } from '@/lib/jdCultureVaguenessDetector';
 import { analyzeJdSalaryTransparency } from '@/lib/jdSalaryTransparencyAnalyzer';
 import { analyzeJdBenefitsSpecificity } from '@/lib/jdBenefitsSpecificityAnalyzer';
+import { estimateJdInterviewComplexity } from '@/lib/jdInterviewComplexityEstimator';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -1369,6 +1370,75 @@ function JdBenefitsSpecificityHint({ text }: { text: string }) {
             {report.interviewQuestions.map((q, i) => (
               <li key={i} className="text-xs opacity-60">
                 → {q}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </aside>
+  );
+}
+
+function JdInterviewComplexityHint({ text }: { text: string }) {
+  const report = useMemo(() => estimateJdInterviewComplexity(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.difficulty === 'entry' && report.signalCount === 0) return null;
+
+  const difficultyColor: Record<string, string> = {
+    expert: 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700',
+    senior: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700',
+    mid: 'bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-700',
+    junior: 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700',
+    entry: 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700',
+  };
+  const badgeColor: Record<string, string> = {
+    expert: 'text-rose-700 dark:text-rose-300',
+    senior: 'text-amber-700 dark:text-amber-300',
+    mid: 'text-sky-700 dark:text-sky-300',
+    junior: 'text-neutral-500',
+    entry: 'text-neutral-500',
+  };
+  const difficultyLabel: Record<string, string> = {
+    expert: '최상급',
+    senior: '시니어',
+    mid: '미드레벨',
+    junior: '주니어',
+    entry: '신입',
+  };
+
+  return (
+    <aside
+      className={`rounded-lg border p-3 text-sm ${difficultyColor[report.difficulty]}`}
+      aria-label="면접 난이도 분석"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold uppercase tracking-wide opacity-50">
+          면접 난이도
+        </span>
+        <span className={`font-bold text-xs ${badgeColor[report.difficulty]}`}>
+          {difficultyLabel[report.difficulty]}
+        </span>
+      </div>
+      <p className="text-xs opacity-70 mb-2">{report.summary}</p>
+      {report.signals.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {report.signals.slice(0, 4).map((s, i) => (
+            <span
+              key={i}
+              className="text-xs bg-neutral-100 dark:bg-neutral-700/60 text-neutral-600 dark:text-neutral-300 rounded px-1.5 py-0.5"
+            >
+              {s.excerpt.slice(0, 20)}
+            </span>
+          ))}
+        </div>
+      )}
+      {report.prepTips.length > 0 && (
+        <div>
+          <p className="text-xs opacity-50 mb-1">준비 전략:</p>
+          <ul className="space-y-0.5">
+            {report.prepTips.map((tip, i) => (
+              <li key={i} className="text-xs opacity-60">
+                → {tip}
               </li>
             ))}
           </ul>
@@ -2866,6 +2936,7 @@ export default function InterviewPrepPage() {
                   <JdCultureVaguenessHint text={jobDescription} />
                   <JdSalaryTransparencyHint text={jobDescription} />
                   <JdBenefitsSpecificityHint text={jobDescription} />
+                  <JdInterviewComplexityHint text={jobDescription} />
                   <JdCompanyStageHint text={jobDescription} />
                 </>
               )}
