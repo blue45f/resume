@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { detectEmptyClaims, analyzeVerbTense, detectAllCapsOveruse } from '@/lib/qualitySignals';
+import { analyzeNumericFormat } from '@/lib/numericFormat';
 
 interface Props {
   text: string;
@@ -9,16 +10,18 @@ export default function ResumeQualitySignalsPanel({ text }: Props) {
   const emptyClaims = useMemo(() => detectEmptyClaims(text), [text]);
   const tense = useMemo(() => analyzeVerbTense(text), [text]);
   const allCaps = useMemo(() => detectAllCapsOveruse(text), [text]);
+  const numericFmt = useMemo(() => analyzeNumericFormat(text), [text]);
   const [expanded, setExpanded] = useState(false);
 
   const tenseGood = tense.dominant === 'past' || tense.dominant === 'none';
   const claimsGood = emptyClaims.level === 'none';
   const capsGood = allCaps.count === 0;
+  const numericGood = numericFmt.consistent || numericFmt.distinct <= 1;
 
-  const hasIssues = !claimsGood || !tenseGood || !capsGood;
+  const hasIssues = !claimsGood || !tenseGood || !capsGood || !numericGood;
   if (!hasIssues) return null;
 
-  const issueCount = [!tenseGood, !claimsGood, !capsGood].filter(Boolean).length;
+  const issueCount = [!tenseGood, !claimsGood, !capsGood, !numericGood].filter(Boolean).length;
   const tone =
     issueCount === 0
       ? 'good'
@@ -83,6 +86,25 @@ export default function ResumeQualitySignalsPanel({ text }: Props) {
                   ))}
                 </div>
               )}
+            </div>
+          </li>
+        )}
+
+        {/* Numeric format */}
+        {!numericGood && (
+          <li
+            className="quality-signals-card__check quality-signals-card__check--warn"
+            aria-label="숫자 포맷 혼재"
+          >
+            <span className="quality-signals-card__icon" aria-hidden="true">
+              ▲
+            </span>
+            <div>
+              <strong>숫자 포맷 혼재</strong>
+              <span className="quality-signals-card__meta">
+                쉼표형 {numericFmt.comma} · 단순형 {numericFmt.plain} · 한글형 {numericFmt.korean}
+              </span>
+              <p className="quality-signals-card__hint">{numericFmt.suggestion}</p>
             </div>
           </li>
         )}
