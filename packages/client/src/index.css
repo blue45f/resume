@@ -11978,3 +11978,81 @@ button:active:not(:disabled) {
   font-style: italic;
   font-size: 0.72rem;
 }
+
+/* ── ResumeKpiOkrPanel ────────────────────────────────────────────────────── */
+.kpi-okr-card {
+  background: color-mix(in oklab, var(--color-warning) 6%, var(--color-surface));
+  border: 1.5px solid color-mix(in oklab, var(--color-warning) 30%, transparent);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.kpi-okr-card--warning {
+  border-color: color-mix(in oklab, var(--color-error) 35%, transparent);
+  background: color-mix(in oklab, var(--color-error) 5%, var(--color-surface));
+}
+.kpi-okr-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.kpi-okr-card__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.kpi-okr-card--warning .kpi-okr-card__eyebrow {
+  color: color-mix(in oklab, var(--color-error) 80%, var(--color-text));
+}
+.kpi-okr-card__badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+}
+.kpi-okr-card__badge--strong {
+  background: color-mix(in oklab, var(--color-success) 18%, transparent);
+  color: color-mix(in oklab, var(--color-success) 85%, var(--color-text));
+}
+.kpi-okr-card__badge--adequate {
+  background: color-mix(in oklab, var(--color-warning) 18%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 85%, var(--color-text));
+}
+.kpi-okr-card__badge--weak {
+  background: color-mix(in oklab, var(--color-error) 15%, transparent);
+  color: color-mix(in oklab, var(--color-error) 85%, var(--color-text));
+}
+.kpi-okr-card__hint {
+  font-size: 0.8rem;
+  color: color-mix(in oklab, var(--color-text) 75%, transparent);
+  line-height: 1.5;
+  margin: 0;
+}
+.kpi-okr-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.kpi-okr-card__stat {
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+}
+.kpi-okr-card__stat--good {
+  background: color-mix(in oklab, var(--color-success) 12%, transparent);
+  color: color-mix(in oklab, var(--color-success) 80%, var(--color-text));
+}
+.kpi-okr-card__stat--warn {
+  background: color-mix(in oklab, var(--color-warning) 12%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.kpi-okr-card__stat--bad {
+  background: color-mix(in oklab, var(--color-error) 12%, transparent);
+  color: color-mix(in oklab, var(--color-error) 80%, var(--color-text));
+}
