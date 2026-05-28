@@ -6374,6 +6374,108 @@ button:active:not(:disabled) {
   font-family: inherit;
 }
 
+/* ── JD salary benchmark card ──────────────────────────────────── */
+.jd-salary-hint {
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 22%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+  margin-top: 0.65rem;
+}
+.jd-salary-hint--good {
+  border-color: color-mix(in oklab, var(--color-success) 25%, transparent);
+  background: color-mix(in oklab, var(--color-success) 4%, var(--color-surface));
+}
+.jd-salary-hint--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 25%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 4%, var(--color-surface));
+}
+.jd-salary-hint__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+.jd-salary-hint__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+}
+.jd-salary-hint__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+.jd-salary-hint--good .jd-salary-hint__label {
+  color: var(--color-success);
+}
+.jd-salary-hint--warning .jd-salary-hint__label {
+  color: var(--color-warning);
+}
+.jd-salary-hint__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 1rem;
+  margin-bottom: 0.55rem;
+}
+.jd-salary-hint__cell {
+  text-align: center;
+}
+.jd-salary-hint__cell dt {
+  font-size: 0.63rem;
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+.jd-salary-hint__cell dd {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.3;
+}
+.jd-salary-hint__assessment {
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  margin-bottom: 0.4rem;
+}
+.jd-salary-hint__tips-toggle {
+  display: inline-block;
+  font-size: 0.71rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 0.3rem;
+}
+.jd-salary-hint__tips-toggle:hover {
+  text-decoration: underline;
+}
+.jd-salary-hint__tips {
+  list-style: none;
+  padding: 0;
+  margin: 0.3rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.jd-salary-hint__tip {
+  font-size: 0.73rem;
+  line-height: 1.5;
+  color: color-mix(in oklab, var(--color-text) 68%, transparent);
+  padding: 0.22rem 0.4rem;
+  border-radius: 0.3rem;
+  background: color-mix(in oklab, var(--color-accent) 7%, transparent);
+  border-left: 2px solid color-mix(in oklab, var(--color-accent) 35%, transparent);
+}
+
 /* ── Home Pro prompt + bookmarks ───────────────────────────────── */
 .home-pro-prompt {
   display: flex;

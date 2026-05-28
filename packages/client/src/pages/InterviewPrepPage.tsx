@@ -14,6 +14,7 @@ import { buildJdBiasReport } from '@/lib/jdBiasDetector';
 import { buildJdCompensationReport } from '@/lib/jdCompensationSignals';
 import { buildJdCultureReport } from '@/lib/jdCultureSignals';
 import { buildJdKeywordGapReport } from '@/lib/jdKeywordGap';
+import { buildSalaryBenchmarkReport } from '@/lib/jdSalaryBenchmark';
 import { buildWorkModalityReport } from '@/lib/jdWorkModality';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -648,6 +649,60 @@ function JdWorkModalityHint({ text }: { text: string }) {
           {report.signals.map((s, i) => (
             <li key={i} className="jd-modality-hint__signal">
               <code>{s}</code>
+            </li>
+          ))}
+        </ul>
+      )}
+    </aside>
+  );
+}
+
+function JdSalaryBenchmarkHint({ text }: { text: string }) {
+  const report = useMemo(() => buildSalaryBenchmarkReport(text), [text]);
+  const [showTips, setShowTips] = useState(false);
+  if (text.trim().length < 30) return null;
+
+  const toneClass = report.isBelowMarket
+    ? 'warning'
+    : report.jdRange && report.jdRange.max >= report.marketRange.max * 0.95
+      ? 'good'
+      : 'neutral';
+
+  return (
+    <aside className={`jd-salary-hint jd-salary-hint--${toneClass}`} aria-label="연봉 벤치마크">
+      <header className="jd-salary-hint__head">
+        <span className="jd-salary-hint__eyebrow">Salary benchmark</span>
+        <span className="jd-salary-hint__label">{report.label}</span>
+      </header>
+
+      <dl className="jd-salary-hint__grid">
+        <div className="jd-salary-hint__cell">
+          <dt>시장 범위</dt>
+          <dd>
+            {report.marketRange.min.toLocaleString()}~{report.marketRange.max.toLocaleString()}만원
+          </dd>
+        </div>
+        <div className="jd-salary-hint__cell">
+          <dt>협상 앵커</dt>
+          <dd>{report.negotiationAnchor.toLocaleString()}만원</dd>
+        </div>
+      </dl>
+
+      <p className="jd-salary-hint__assessment">{report.assessment}</p>
+
+      <button
+        type="button"
+        className="jd-salary-hint__tips-toggle"
+        onClick={() => setShowTips((v) => !v)}
+      >
+        {showTips ? '협상 팁 접기' : '협상 팁 보기'}
+      </button>
+
+      {showTips && (
+        <ul className="jd-salary-hint__tips" aria-label="연봉 협상 팁">
+          {report.tips.map((tip, i) => (
+            <li key={i} className="jd-salary-hint__tip">
+              {tip}
             </li>
           ))}
         </ul>
@@ -1952,6 +2007,7 @@ export default function InterviewPrepPage() {
                   <JdBiasHint text={jobDescription} />
                   <JdKeywordGapHint jdText={jobDescription} resumeText={resumeTextForGap} />
                   <JdWorkModalityHint text={jobDescription} />
+                  <JdSalaryBenchmarkHint text={jobDescription} />
                 </>
               )}
             </div>
