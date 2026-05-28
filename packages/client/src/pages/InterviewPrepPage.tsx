@@ -21,6 +21,7 @@ import { buildJdResumeMatchReport } from '@/lib/jdResumeMatch';
 import { buildWorkModalityReport } from '@/lib/jdWorkModality';
 import { detectHiringMode } from '@/lib/jdHiringModeDetector';
 import { detectJdRedFlags } from '@/lib/jdRedFlagDetector';
+import { detectJdTechObsolescence } from '@/lib/jdTechObsolescenceDetector';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -1035,6 +1036,66 @@ function JdRedFlagHint({ text }: { text: string }) {
               <span className="text-xs font-mono opacity-60">"{f.matched}"</span>
             </div>
             <span className="text-xs opacity-60 pl-1">{f.reason}</span>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
+}
+
+// ── JD Tech Obsolescence ──
+
+function JdTechObsolescenceHint({ text }: { text: string }) {
+  const report = useMemo(() => detectJdTechObsolescence(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.risk === 'none') return null;
+
+  const containerClass =
+    report.risk === 'high'
+      ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700'
+      : report.risk === 'moderate'
+        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
+        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700';
+
+  const badgeClass =
+    report.risk === 'high'
+      ? 'text-rose-700 dark:text-rose-300'
+      : report.risk === 'moderate'
+        ? 'text-amber-700 dark:text-amber-300'
+        : 'text-neutral-500';
+
+  const levelChipClass = (level: string) =>
+    level === 'eol'
+      ? 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300'
+      : level === 'declining'
+        ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300'
+        : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300';
+
+  const riskLabel =
+    report.risk === 'high' ? '⚠ 고위험' : report.risk === 'moderate' ? '주의' : '참고';
+
+  return (
+    <aside
+      className={`rounded-lg border p-3 text-sm ${containerClass}`}
+      aria-label="기술 스택 노후화 분석"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold uppercase tracking-wide opacity-50">Tech Debt</span>
+        <span className={`font-bold text-xs ${badgeClass}`}>{riskLabel}</span>
+      </div>
+      <p className="text-xs opacity-70 mb-2">{report.summary}</p>
+      <ul className="space-y-1.5">
+        {report.techs.map((tech, i) => (
+          <li key={i} className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span
+                className={`text-xs rounded px-1.5 py-0.5 font-medium ${levelChipClass(tech.level)}`}
+              >
+                {tech.name}
+              </span>
+              <span className="text-xs opacity-50">→ {tech.modernAlternative}</span>
+            </div>
+            <span className="text-xs opacity-60 pl-1">{tech.reason}</span>
           </li>
         ))}
       </ul>
@@ -2455,6 +2516,7 @@ export default function InterviewPrepPage() {
                   <JdInterviewStrategyHint text={jobDescription} />
                   <JdHiringModeHint text={jobDescription} />
                   <JdRedFlagHint text={jobDescription} />
+                  <JdTechObsolescenceHint text={jobDescription} />
                   <JdCompanyStageHint text={jobDescription} />
                 </>
               )}
