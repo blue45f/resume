@@ -12695,3 +12695,88 @@ button:active:not(:disabled) {
   font-size: 0.76rem;
   color: color-mix(in oklab, var(--color-text) 60%, transparent);
 }
+
+/* ── CoverLetterStarPatternPanel ── */
+.cl-star-card {
+  border-radius: 0.6rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 25%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 5%, var(--color-surface));
+  padding: 0.85rem 1rem;
+  font-size: 0.82rem;
+}
+.cl-star-card--weak {
+  border-color: color-mix(in oklab, var(--color-warning) 35%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 6%, var(--color-surface));
+}
+.cl-star-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.cl-star-card__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.cl-star-card__badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+.cl-star-card__badge--strong {
+  background: color-mix(in oklab, var(--color-success) 15%, transparent);
+  color: color-mix(in oklab, var(--color-success) 80%, var(--color-text));
+}
+.cl-star-card__badge--partial {
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  color: color-mix(in oklab, var(--color-accent) 70%, var(--color-text));
+}
+.cl-star-card__badge--weak,
+.cl-star-card__badge--absent {
+  background: color-mix(in oklab, var(--color-warning) 18%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.cl-star-card__elements {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+.cl-star-card__elem {
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 0.3rem;
+  padding: 0.15rem 0.5rem;
+}
+.cl-star-card__elem--found {
+  background: color-mix(in oklab, var(--color-success) 15%, transparent);
+  color: color-mix(in oklab, var(--color-success) 80%, var(--color-text));
+}
+.cl-star-card__elem--missing {
+  background: color-mix(in oklab, var(--color-text) 8%, transparent);
+  color: color-mix(in oklab, var(--color-text) 35%, transparent);
+  text-decoration: line-through;
+}
+.cl-star-card__hint {
+  margin-bottom: 0.5rem;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  line-height: 1.45;
+}
+.cl-star-card__tips {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+  padding-top: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cl-star-card__tip {
+  font-size: 0.76rem;
+  color: color-mix(in oklab, var(--color-text) 60%, transparent);
+}

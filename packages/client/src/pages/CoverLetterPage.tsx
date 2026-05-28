@@ -34,6 +34,7 @@ import CoverLetterAspirationPanel from '@/components/CoverLetterAspirationPanel'
 import CoverLetterEndingMonotonyPanel from '@/components/CoverLetterEndingMonotonyPanel';
 import CoverLetterCompanyKnowledgePanel from '@/components/CoverLetterCompanyKnowledgePanel';
 import CoverLetterOpeningHookPanel from '@/components/CoverLetterOpeningHookPanel';
+import CoverLetterStarPatternPanel from '@/components/CoverLetterStarPatternPanel';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import {
   computeJDMatch,
@@ -924,6 +925,7 @@ export default function CoverLetterPage() {
                       <CoverLetterAspirationPanel text={deferredFeedbackText} />
                       <CoverLetterEndingMonotonyPanel text={deferredFeedbackText} />
                       <CoverLetterCompanyKnowledgePanel text={deferredFeedbackText} />
+                      <CoverLetterStarPatternPanel text={deferredFeedbackText} />
                       <CoverLetterClichePanel text={deferredFeedbackText} />
                       <CoverLetterStructurePanel text={deferredFeedbackText} />
                       <CoverLetterTonePanel text={deferredFeedbackText} />
