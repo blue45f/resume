@@ -13111,3 +13111,75 @@ button:active:not(:disabled) {
   font-size: 0.76rem;
   color: color-mix(in oklab, var(--color-text) 60%, transparent);
 }
+
+/* ── CoverLetterFirstPersonPanel ── */
+.cl-1p-card {
+  border-radius: 0.6rem;
+  border: 1px solid color-mix(in oklab, var(--color-warning) 30%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 5%, var(--color-surface));
+  padding: 0.85rem 1rem;
+  font-size: 0.82rem;
+}
+.cl-1p-card--monotone {
+  border-color: color-mix(in oklab, var(--color-error) 30%, transparent);
+  background: color-mix(in oklab, var(--color-error) 5%, var(--color-surface));
+}
+.cl-1p-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.cl-1p-card__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.cl-1p-card__badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+.cl-1p-card__badge--repetitive {
+  background: color-mix(in oklab, var(--color-warning) 15%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.cl-1p-card__badge--monotone {
+  background: color-mix(in oklab, var(--color-error) 12%, transparent);
+  color: color-mix(in oklab, var(--color-error) 75%, var(--color-text));
+}
+.cl-1p-card__ratio {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.cl-1p-card__hint {
+  margin-bottom: 0.5rem;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  line-height: 1.45;
+}
+.cl-1p-card__alts {
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+  padding-top: 0.4rem;
+}
+.cl-1p-card__alts-label {
+  font-size: 0.7rem;
+  color: color-mix(in oklab, var(--color-text) 40%, transparent);
+  margin-bottom: 0.25rem;
+}
+.cl-1p-card__alt-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.cl-1p-card__alt {
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-text) 60%, transparent);
+}
