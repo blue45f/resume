@@ -29,6 +29,7 @@ import { analyzeJdSalaryTransparency } from '@/lib/jdSalaryTransparencyAnalyzer'
 import { analyzeJdBenefitsSpecificity } from '@/lib/jdBenefitsSpecificityAnalyzer';
 import { estimateJdInterviewComplexity } from '@/lib/jdInterviewComplexityEstimator';
 import { parseJdRequiredVsPreferred } from '@/lib/jdRequiredVsPreferredParser';
+import { extractJdRemoteWorkPolicy } from '@/lib/jdRemoteWorkPolicyExtractor';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -1497,6 +1498,60 @@ function JdRequiredVsPreferredHint({ text }: { text: string }) {
           {report.fitGuide.map((g, i) => (
             <li key={i} className="text-xs opacity-60">
               → {g}
+            </li>
+          ))}
+        </ul>
+      )}
+    </aside>
+  );
+}
+
+function JdRemoteWorkPolicyHint({ text }: { text: string }) {
+  const report = useMemo(() => extractJdRemoteWorkPolicy(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.arrangement === 'unclear') return null;
+
+  const ARRANGEMENT_LABEL: Record<string, string> = {
+    fully_remote: '풀 리모트',
+    hybrid: '하이브리드',
+    on_site: '전면 출근',
+    flexible: '자율 근무지',
+  };
+  const ARRANGEMENT_COLOR: Record<string, string> = {
+    fully_remote: 'bg-emerald-100 text-emerald-800',
+    hybrid: 'bg-sky-100 text-sky-800',
+    on_site: 'bg-amber-100 text-amber-800',
+    flexible: 'bg-cyan-100 text-cyan-800',
+  };
+
+  return (
+    <aside
+      className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm"
+      aria-label="원격근무 정책"
+    >
+      <div className="mb-2 flex items-center gap-2 font-semibold text-sky-800">
+        <span>🏠 원격근무 정책</span>
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-medium ${ARRANGEMENT_COLOR[report.arrangement] ?? ''}`}
+        >
+          {ARRANGEMENT_LABEL[report.arrangement] ?? report.arrangement}
+        </span>
+        {report.officeWeeklyDays !== null && (
+          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
+            주 {report.officeWeeklyDays}일 출근
+          </span>
+        )}
+      </div>
+      <p className="mb-2 text-sky-700">{report.summary}</p>
+      {report.locationConstraint && (
+        <p className="mb-2 text-xs text-neutral-600">근무지: {report.locationConstraint}</p>
+      )}
+      {report.tips.length > 0 && (
+        <ul className="mt-2 space-y-1 text-xs text-neutral-600">
+          {report.tips.map((tip, i) => (
+            <li key={i} className="flex gap-1">
+              <span>•</span>
+              {tip}
             </li>
           ))}
         </ul>
@@ -2995,6 +3050,7 @@ export default function InterviewPrepPage() {
                   <JdBenefitsSpecificityHint text={jobDescription} />
                   <JdInterviewComplexityHint text={jobDescription} />
                   <JdRequiredVsPreferredHint text={jobDescription} />
+                  <JdRemoteWorkPolicyHint text={jobDescription} />
                   <JdCompanyStageHint text={jobDescription} />
                 </>
               )}
