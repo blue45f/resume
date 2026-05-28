@@ -56,6 +56,19 @@ interface NewsItem {
   pubDate: string;
 }
 
+interface RssNewsItem {
+  title?: unknown;
+  url?: unknown;
+  source?: unknown;
+  pubDate?: unknown;
+}
+
+interface CareerInsightsProps {
+  now?: string | number | Date;
+}
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
 const JOB_TYPE_LABELS: Record<string, string> = {
   fulltime: '정규직',
   contract: '계약직',
@@ -348,7 +361,28 @@ function parseSalaryNumber(salary: string): number | null {
   return null;
 }
 
-export default function CareerInsights() {
+function resolveReferenceTime(now: CareerInsightsProps['now'], fallback: number): number {
+  if (now === undefined) return fallback;
+  const time = now instanceof Date ? now.getTime() : new Date(now).getTime();
+  return Number.isFinite(time) ? time : fallback;
+}
+
+function asText(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function toNewsItems(items: unknown): NewsItem[] {
+  if (!Array.isArray(items)) return [];
+  return items.slice(0, 6).map((item: RssNewsItem, index) => ({
+    id: String(index),
+    title: asText(item?.title),
+    url: asText(item?.url),
+    source: asText(item?.source),
+    pubDate: asText(item?.pubDate),
+  }));
+}
+
+export default function CareerInsights({ now }: CareerInsightsProps = {}) {
   const user = getUser();
   const [jobs, setJobs] = useState<JobPost[]>([]);
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -358,6 +392,8 @@ export default function CareerInsights() {
   const [loading, setLoading] = useState(true);
   const [industryFilter, setIndustryFilter] = useState<string>('all');
   const [myIndustry, setMyIndustry] = useState<string>('');
+  const [initialNowMs] = useState(() => Date.now());
+  const nowMs = useMemo(() => resolveReferenceTime(now, initialNowMs), [initialNowMs, now]);
 
   useEffect(() => {
     Promise.all([
@@ -367,34 +403,25 @@ export default function CareerInsights() {
       fetchResumes().catch(() => []),
       fetch(`${API_URL}/api/health/news-rss`)
         .then((r) => (r.ok ? r.json() : []))
-        .then((items: any[]) =>
-          items.slice(0, 6).map((item: any, i: number) => ({
-            id: String(i),
-            title: item.title || '',
-            url: item.url || '',
-            source: item.source || '',
-            pubDate: item.pubDate || '',
-          })),
-        )
+        .then(toNewsItems)
         .catch(() => []),
     ])
       .then(([jobData, resumeData, newsData]) => {
         setJobs(jobData);
         setResumes(resumeData);
-        setNews(newsData.filter((n: any) => n?.title));
+        setNews(newsData.filter((n) => n.title));
       })
       .finally(() => setLoading(false));
   }, []);
 
-  // Detect user's industry from their resumes
-  useEffect(() => {
+  const inferredIndustry = useMemo(() => {
     if (resumes.length === 0) return;
-    // Combine all skills from resumes to detect industry
     const allSkills = resumes.flatMap((r) => r.skills?.map((s) => s.items) || []).join(',');
     const title = resumes[0]?.personalInfo?.name || '';
     const detected = detectIndustry(title, allSkills);
-    if (!myIndustry) setMyIndustry(detected !== 'other' ? detected : 'it');
+    return detected !== 'other' ? detected : 'it';
   }, [resumes]);
+  const selectedIndustry = myIndustry || inferredIndustry || '';
 
   // Classify all jobs by industry
   const jobsWithIndustry = useMemo(
@@ -451,13 +478,11 @@ export default function CareerInsights() {
     });
 
     // Recent vs older trend
-    const now = Date.now();
-    const oneWeek = 7 * 24 * 60 * 60 * 1000;
     const recentCounts: Record<string, number> = {};
     const olderCounts: Record<string, number> = {};
     filteredJobs.forEach((j) => {
       if (!j.skills) return;
-      const isRecent = now - new Date(j.createdAt).getTime() < oneWeek;
+      const isRecent = nowMs - new Date(j.createdAt).getTime() < WEEK_MS;
       j.skills.split(',').forEach((s) => {
         const skill = s.trim().toLowerCase();
         if (!skill) return;
@@ -478,7 +503,7 @@ export default function CareerInsights() {
       else if (recent < older * 0.8 && older > 0) trend = 'down';
       return { name, count, trend, owned: userSkills.has(name) };
     });
-  }, [filteredJobs, userSkills]);
+  }, [filteredJobs, nowMs, userSkills]);
 
   // Market value score (industry-aware)
   const marketValue = useMemo((): MarketValueScore => {
@@ -488,8 +513,8 @@ export default function CareerInsights() {
 
     // Industry demand match
     const inIndustry =
-      myIndustry !== '' && myIndustry !== 'all'
-        ? jobsWithIndustry.filter((j) => j.industry === myIndustry)
+      selectedIndustry !== '' && selectedIndustry !== 'all'
+        ? jobsWithIndustry.filter((j) => j.industry === selectedIndustry)
         : jobsWithIndustry;
     const indSkillCounts: Record<string, number> = {};
     inIndustry.forEach((j) => {
@@ -516,7 +541,7 @@ export default function CareerInsights() {
         { label: '직종 수요 매칭', score: demandScore, max: 25 },
       ],
     };
-  }, [userSkills, resumes, jobsWithIndustry, myIndustry]);
+  }, [userSkills, resumes, jobsWithIndustry, selectedIndustry]);
 
   // Learning recommendations (universal — no hardcoding)
   const learningRecs = useMemo((): LearningRec[] => {
@@ -595,7 +620,7 @@ export default function CareerInsights() {
     return '📚';
   };
 
-  const myIndustryInfo = INDUSTRY_MAP.find((i) => i.id === myIndustry);
+  const myIndustryInfo = INDUSTRY_MAP.find((i) => i.id === selectedIndustry);
 
   return (
     <div className="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in">
@@ -672,7 +697,7 @@ export default function CareerInsights() {
                   key={ind.id}
                   onClick={() => setMyIndustry(ind.id)}
                   className={`px-2 py-0.5 text-[11px] rounded-full transition-colors ${
-                    myIndustry === ind.id
+                    selectedIndustry === ind.id
                       ? 'bg-sky-700 text-white'
                       : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
                   }`}

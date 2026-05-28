@@ -6,6 +6,7 @@ interface Props {
   appliedDate?: string;
   createdAt: string;
   updatedAt: string;
+  now?: string | number | Date;
 }
 
 const STAGES = [
@@ -91,14 +92,24 @@ function saveTimelineHistory(appId: string, history: Record<string, string>) {
   localStorage.setItem(getStorageKey(appId), JSON.stringify(history));
 }
 
+function resolveReferenceTime(now: Props['now'], fallback: number): number {
+  if (now === undefined) return fallback;
+
+  const time = now instanceof Date ? now.getTime() : new Date(now).getTime();
+  return Number.isFinite(time) ? time : fallback;
+}
+
 export default function ApplicationTimeline({
   applicationId,
   status,
   appliedDate,
   createdAt,
   updatedAt,
+  now,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const [initialNowMs] = useState(() => Date.now());
+  const nowMs = useMemo(() => resolveReferenceTime(now, initialNowMs), [initialNowMs, now]);
 
   const timeline = useMemo(() => {
     // Load persisted stage dates
@@ -135,10 +146,7 @@ export default function ApplicationTimeline({
       // If current stage, calculate days since entering
       if (isCurrent) {
         const entryDate = date || updatedAt;
-        daysInStage = Math.max(
-          0,
-          Math.round((Date.now() - new Date(entryDate).getTime()) / 86400000),
-        );
+        daysInStage = Math.max(0, Math.round((nowMs - new Date(entryDate).getTime()) / 86400000));
       }
 
       return {
@@ -173,13 +181,13 @@ export default function ApplicationTimeline({
     }
 
     return entries;
-  }, [applicationId, status, appliedDate, createdAt, updatedAt]);
+  }, [applicationId, status, appliedDate, createdAt, updatedAt, nowMs]);
 
   // Calculate total days
   const totalDays = useMemo(() => {
     const start = new Date(appliedDate || createdAt).getTime();
-    return Math.max(0, Math.round((Date.now() - start) / 86400000));
-  }, [appliedDate, createdAt]);
+    return Math.max(0, Math.round((nowMs - start) / 86400000));
+  }, [appliedDate, createdAt, nowMs]);
 
   // Determine expected next step
   const nextStep = useMemo(() => {

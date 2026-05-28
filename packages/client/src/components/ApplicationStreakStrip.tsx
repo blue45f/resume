@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { JobApplication } from '@/lib/api';
 import {
   buildApplicationStreakReport,
@@ -13,6 +13,10 @@ interface Props {
 const MIN_TARGET = 1;
 const MAX_TARGET = 20;
 
+function clampUiTarget(value: number): number {
+  return Math.max(MIN_TARGET, Math.min(MAX_TARGET, Math.round(value)));
+}
+
 function formatMonthDay(weekStart: string): string {
   const date = new Date(`${weekStart}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) return weekStart;
@@ -22,13 +26,9 @@ function formatMonthDay(weekStart: string): string {
 }
 
 export default function ApplicationStreakStrip({ applications = [] }: Props) {
-  const [target, setTarget] = useState<number>(() => readApplicationTarget());
+  const [target, setTarget] = useState<number>(() => clampUiTarget(readApplicationTarget()));
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<string>(String(target));
-
-  useEffect(() => {
-    setDraft(String(target));
-  }, [target]);
 
   const report = useMemo(
     () => buildApplicationStreakReport(applications, { target }),
@@ -42,11 +42,16 @@ export default function ApplicationStreakStrip({ applications = [] }: Props) {
       setEditing(false);
       return;
     }
-    const saved = writeApplicationTarget(parsed);
+    const saved = writeApplicationTarget(clampUiTarget(parsed));
     setTarget(saved);
     setDraft(String(saved));
     setEditing(false);
   }, [draft, target]);
+
+  const startEditing = useCallback(() => {
+    setDraft(String(target));
+    setEditing(true);
+  }, [target]);
 
   if (applications.length === 0 && report.currentStreak === 0) return null;
 
@@ -87,7 +92,7 @@ export default function ApplicationStreakStrip({ applications = [] }: Props) {
           ) : (
             <button
               type="button"
-              onClick={() => setEditing(true)}
+              onClick={startEditing}
               className="streak-strip__target-button"
               aria-label={`주간 목표 ${target}건 수정`}
             >

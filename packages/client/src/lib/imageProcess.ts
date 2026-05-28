@@ -11,6 +11,16 @@
 const MAX_DIM = 1920;
 const COMPRESSION_THRESHOLD_BYTES = 1.5 * 1024 * 1024; // 1.5MB 초과만 압축
 
+function toJpegFileName(fileName: string): string {
+  if (/\.(heic|heif)$/i.test(fileName)) {
+    return fileName.replace(/\.(heic|heif)$/i, '.jpg');
+  }
+  if (/\.[a-z0-9]+$/i.test(fileName)) {
+    return fileName.replace(/\.[a-z0-9]+$/i, '.jpg');
+  }
+  return `${fileName}.jpg`;
+}
+
 /** HEIC 파일 → JPEG. 다른 포맷은 그대로 반환. */
 async function convertHeicIfNeeded(file: File): Promise<File> {
   const isHeic =
@@ -23,7 +33,7 @@ async function convertHeicIfNeeded(file: File): Promise<File> {
   // heic2any 는 ESM-only 무거운 라이브러리 — 동적 로드
   const heic2any = (await import('heic2any')).default;
   const blob = (await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 })) as Blob;
-  const newName = file.name.replace(/\.(heic|heif)$/i, '.jpg');
+  const newName = toJpegFileName(file.name);
   return new File([blob], newName, { type: 'image/jpeg' });
 }
 

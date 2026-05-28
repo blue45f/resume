@@ -24,29 +24,65 @@ const TYPE_ICONS: Record<string, string> = {
   promo: '🎉',
 };
 
+const STORED_ANNOUNCEMENT_KEY = 'admin-announcement';
+const DISMISSED_ANNOUNCEMENT_KEY = 'announcement-dismissed';
+
+function isAnnouncement(value: unknown): value is Announcement {
+  if (!value || typeof value !== 'object') return false;
+  const data = value as Partial<Record<keyof Announcement, unknown>>;
+  return (
+    typeof data.id === 'string' &&
+    typeof data.message === 'string' &&
+    data.message.trim().length > 0 &&
+    typeof data.type === 'string'
+  );
+}
+
+function readDismissedAnnouncementId(): string | null {
+  try {
+    return localStorage.getItem(DISMISSED_ANNOUNCEMENT_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function readStoredAnnouncement(): Announcement | null {
+  try {
+    const stored = localStorage.getItem(STORED_ANNOUNCEMENT_KEY);
+    if (!stored) return null;
+    const parsed: unknown = JSON.parse(stored);
+    if (!isAnnouncement(parsed)) return null;
+    return readDismissedAnnouncementId() === parsed.id ? null : parsed;
+  } catch {
+    return null;
+  }
+}
+
+function markAnnouncementDismissed(id: string): void {
+  try {
+    localStorage.setItem(DISMISSED_ANNOUNCEMENT_KEY, id);
+  } catch {
+    // Storage can fail in private browsing or quota-restricted environments.
+  }
+}
+
 export default function AnnouncementBanner() {
-  const [announcement, setAnnouncement] = useState<Announcement | null>(null);
+  const [announcement, setAnnouncement] = useState<Announcement | null>(() =>
+    readStoredAnnouncement(),
+  );
   const [dismissed, setDismissed] = useState(false);
   const [progress, setProgress] = useState(100);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
+  const hasStoredAnnouncementRef = useRef(announcement !== null);
 
   useEffect(() => {
-    const stored = localStorage.getItem('admin-announcement');
-    if (stored) {
-      try {
-        const data = JSON.parse(stored);
-        if (data.message && localStorage.getItem('announcement-dismissed') !== data.id) {
-          setAnnouncement(data);
-          return;
-        }
-      } catch {}
-    }
+    if (hasStoredAnnouncementRef.current) return;
 
     fetch(`${API_URL}/api/health/announcement`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.message && localStorage.getItem('announcement-dismissed') !== data.id) {
+      .then((data: unknown) => {
+        if (isAnnouncement(data) && readDismissedAnnouncementId() !== data.id) {
           setAnnouncement(data);
         }
       })
@@ -102,7 +138,7 @@ export default function AnnouncementBanner() {
   const handleDismiss = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     setDismissed(true);
-    localStorage.setItem('announcement-dismissed', announcement.id || 'dismissed');
+    markAnnouncementDismissed(announcement.id || 'dismissed');
   };
 
   const typeStyle = TYPE_STYLES[announcement.type] || TYPE_STYLES.info;

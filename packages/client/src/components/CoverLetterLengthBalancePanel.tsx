@@ -1,11 +1,14 @@
 import { useMemo } from 'react';
-import { analyzeCoverLetterLengthBalance } from '@/lib/coverLetterLengthBalanceAnalyzer';
+import {
+  analyzeCoverLetterLengthBalance,
+  type LengthGrade,
+} from '@/lib/coverLetterLengthBalanceAnalyzer';
 
 interface Props {
   text: string;
 }
 
-const GRADE_LABEL: Record<string, string> = {
+const GRADE_LABEL: Record<LengthGrade, string> = {
   optimal: '적정',
   acceptable: '양호',
   warning: '주의',
@@ -19,6 +22,7 @@ export default function CoverLetterLengthBalancePanel({ text }: Props) {
   if (report.charCount === 0) return null;
 
   const isPoor = report.grade === 'poor';
+  const visibleSuggestions = report.suggestions.slice(0, 3);
 
   return (
     <aside
@@ -37,9 +41,9 @@ export default function CoverLetterLengthBalancePanel({ text }: Props) {
 
       <p className="cl-length-card__hint">{report.summary}</p>
 
-      {report.suggestions.length > 0 && (
+      {visibleSuggestions.length > 0 && (
         <ul className="cl-length-card__suggestions" aria-label="개선 제안">
-          {report.suggestions.map((s, i) => (
+          {visibleSuggestions.map((s, i) => (
             <li key={i} className="cl-length-card__suggestion">
               → {s}
             </li>
