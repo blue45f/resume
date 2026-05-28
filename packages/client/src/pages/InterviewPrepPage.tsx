@@ -32,6 +32,7 @@ import { parseJdRequiredVsPreferred } from '@/lib/jdRequiredVsPreferredParser';
 import { extractJdRemoteWorkPolicy } from '@/lib/jdRemoteWorkPolicyExtractor';
 import { detectJdApplicationUrgency } from '@/lib/jdApplicationUrgencyDetector';
 import { detectJdStatutoryBenefits } from '@/lib/jdStatutoryBenefitsDetector';
+import { analyzeJdTeamStructure } from '@/lib/jdTeamStructureAnalyzer';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -1661,6 +1662,45 @@ function JdApplicationUrgencyHint({ text }: { text: string }) {
   );
 }
 
+function JdTeamStructureHint({ text }: { text: string }) {
+  const report = useMemo(() => analyzeJdTeamStructure(text), [text]);
+  if (text.trim().length < 30) return null;
+  // Only surface when info is missing (opaque/partial); detailed needs no nudge.
+  if (report.clarity === 'detailed') return null;
+  if (report.questions.length === 0) return null;
+
+  const CLARITY_LABEL: Record<string, string> = {
+    partial: '일부 명시',
+    opaque: '정보 부족',
+  };
+  const cardColor =
+    report.clarity === 'opaque' ? 'border-amber-200 bg-amber-50' : 'border-sky-200 bg-sky-50';
+  const textColor = report.clarity === 'opaque' ? 'text-amber-800' : 'text-sky-800';
+  const badgeColor =
+    report.clarity === 'opaque' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800';
+
+  return (
+    <aside className={`rounded-xl border p-4 text-sm ${cardColor}`} aria-label="팀 구조 명확성">
+      <div className={`mb-2 flex items-center gap-2 font-semibold ${textColor}`}>
+        <span>👥 팀 구조</span>
+        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeColor}`}>
+          {CLARITY_LABEL[report.clarity] ?? report.clarity}
+        </span>
+      </div>
+      <p className={`mb-2 ${textColor}`}>{report.summary}</p>
+      <p className="mb-1 text-xs font-medium text-neutral-500">면접에서 확인하면 좋은 질문</p>
+      <ul className="mt-1 space-y-1 text-xs text-neutral-600">
+        {report.questions.map((q, i) => (
+          <li key={i} className="flex gap-1">
+            <span>•</span>
+            {q}
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
+}
+
 function JdCompanyStageHint({ text }: { text: string }) {
   const report = useMemo(() => detectCompanyStage(text), [text]);
   if (text.trim().length < 30) return null;
@@ -3154,6 +3194,7 @@ export default function InterviewPrepPage() {
                   <JdRequiredVsPreferredHint text={jobDescription} />
                   <JdRemoteWorkPolicyHint text={jobDescription} />
                   <JdApplicationUrgencyHint text={jobDescription} />
+                  <JdTeamStructureHint text={jobDescription} />
                   <JdCompanyStageHint text={jobDescription} />
                 </>
               )}
