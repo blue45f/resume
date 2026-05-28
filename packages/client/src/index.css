@@ -8089,6 +8089,96 @@ button:active:not(:disabled) {
   }
 }
 
+/* ── Resume weak verb / word suggestion card ─────────────────────── */
+.weak-verb-card {
+  background: var(--color-surface-raised);
+  border: 1px solid color-mix(in oklab, var(--color-warning) 35%, transparent);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.weak-verb-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.weak-verb-card__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-warning);
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+.weak-verb-card__title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  flex: 1;
+}
+.weak-verb-card__badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.15em 0.65em;
+  background: color-mix(in oklab, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
+}
+.weak-verb-card__section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+}
+.weak-verb-card__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.weak-verb-card__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.weak-verb-card__weak {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-error);
+  background: color-mix(in oklab, var(--color-error) 10%, transparent);
+  padding: 0.2em 0.5em;
+  border-radius: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+}
+.weak-verb-card__count {
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.7;
+}
+.weak-verb-card__arrow {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+.weak-verb-card__alts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.weak-verb-card__alt {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-success);
+  background: color-mix(in oklab, var(--color-success) 10%, transparent);
+  padding: 0.2em 0.5em;
+  border-radius: 0.3rem;
+}
+
 /* ── Resume section health card ─────────────────────────────────── */
 .sec-health-card {
   background: var(--color-surface-raised);
