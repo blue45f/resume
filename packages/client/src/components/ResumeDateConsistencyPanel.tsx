@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { analyzeDateConsistency } from '@/lib/dateAnalyzers';
+import { validateDateRanges } from '@/lib/experience';
 
 interface Props {
   text: string;
@@ -15,8 +16,10 @@ const FORMAT_LABEL: Record<string, string> = {
 
 export default function ResumeDateConsistencyPanel({ text }: Props) {
   const analysis = useMemo(() => analyzeDateConsistency(text), [text]);
+  const invalidRanges = useMemo(() => validateDateRanges(text), [text]);
 
-  if (analysis.consistent || analysis.hits.length === 0) return null;
+  if ((analysis.consistent || analysis.hits.length === 0) && invalidRanges.length === 0)
+    return null;
 
   return (
     <aside className="date-cons-card" aria-label="날짜 포맷 일관성 분석">
@@ -43,10 +46,26 @@ export default function ResumeDateConsistencyPanel({ text }: Props) {
           ))}
       </div>
 
-      <p className="date-cons-card__tip">
-        가장 많이 쓰인 <code>{FORMAT_LABEL[analysis.dominantFormat ?? 'dot']}</code> 형식으로
-        통일하세요.
-      </p>
+      {analysis.hits.length > 0 && (
+        <p className="date-cons-card__tip">
+          가장 많이 쓰인 <code>{FORMAT_LABEL[analysis.dominantFormat ?? 'dot']}</code> 형식으로
+          통일하세요.
+        </p>
+      )}
+
+      {invalidRanges.length > 0 && (
+        <section className="date-cons-card__invalid" aria-label="날짜 오류">
+          <h4 className="date-cons-card__invalid-title">날짜 오류 {invalidRanges.length}건</h4>
+          <ul className="date-cons-card__invalid-list">
+            {invalidRanges.map((r, i) => (
+              <li key={i} className="date-cons-card__invalid-item">
+                <code className="date-cons-card__invalid-raw">{r.raw}</code>
+                <span className="date-cons-card__invalid-reason">{r.reason}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </aside>
   );
 }
