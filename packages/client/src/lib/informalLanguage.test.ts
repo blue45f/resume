@@ -34,4 +34,26 @@ describe('detectInformalLanguage', () => {
     expect(r.level).toBe('many');
     expect(r.count).toBeGreaterThan(2);
   });
+
+  it('flags 1-2 hits as level=few', () => {
+    const r = detectInformalLanguage('근데 결과가 좋았습니다.');
+    expect(r.level).toBe('few');
+    expect(r.count).toBeLessThanOrEqual(2);
+  });
+
+  it('suggestion is non-empty', () => {
+    const r = detectInformalLanguage('ㅋㅋ 성공했어요');
+    expect(r.suggestion.length).toBeGreaterThan(0);
+  });
+
+  it('caps hits at 30', () => {
+    const heavy = 'ㅋㅋ '.repeat(40);
+    const r = detectInformalLanguage(heavy);
+    expect(r.hits.length).toBeLessThanOrEqual(30);
+  });
+
+  it('detects repeated exclamation marks', () => {
+    const r = detectInformalLanguage('정말 대단해요!!! 믿을 수 없어요??');
+    expect(r.hits.some((h) => h.category === 'exclaim')).toBe(true);
+  });
 });
