@@ -21,6 +21,7 @@ import { buildJdResumeMatchReport } from '@/lib/jdResumeMatch';
 import { buildWorkModalityReport } from '@/lib/jdWorkModality';
 import { detectHiringMode } from '@/lib/jdHiringModeDetector';
 import { detectJdRedFlags } from '@/lib/jdRedFlagDetector';
+import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
 import { analyzeInterviewAnswer as analyzeAnswerHeuristic } from '@/lib/interviewAnswerAnalyzer';
@@ -1034,6 +1035,66 @@ function JdRedFlagHint({ text }: { text: string }) {
               <span className="text-xs font-mono opacity-60">"{f.matched}"</span>
             </div>
             <span className="text-xs opacity-60 pl-1">{f.reason}</span>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
+}
+
+// ── JD Company Stage ──
+
+function JdCompanyStageHint({ text }: { text: string }) {
+  const report = useMemo(() => detectCompanyStage(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.stage === 'unclear') return null;
+
+  const stageColor: Record<string, string> = {
+    startup: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700',
+    scaleup: 'bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-700',
+    enterprise: 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700',
+    foreign: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700',
+    public: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700',
+  };
+  const stageLabel: Record<string, string> = {
+    startup: 'text-emerald-700 dark:text-emerald-300',
+    scaleup: 'text-sky-700 dark:text-sky-300',
+    enterprise: 'text-neutral-600 dark:text-neutral-300',
+    foreign: 'text-blue-700 dark:text-blue-300',
+    public: 'text-amber-700 dark:text-amber-300',
+  };
+
+  return (
+    <aside
+      className={`rounded-lg border p-3 text-sm ${stageColor[report.stage] ?? ''}`}
+      aria-label="회사 규모/단계 분석"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold uppercase tracking-wide opacity-50">
+          Company stage
+        </span>
+        <span className={`font-bold text-xs ${stageLabel[report.stage] ?? ''}`}>
+          {report.stageLabel}
+          {report.confidence === 'high' ? '' : ' (추정)'}
+        </span>
+      </div>
+      {report.signals.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {report.signals.map((s) => (
+            <span
+              key={s.label}
+              className="text-xs bg-white/60 dark:bg-black/20 rounded px-1.5 py-0.5 opacity-80"
+            >
+              {s.label}
+            </span>
+          ))}
+        </div>
+      )}
+      <ul className="space-y-1">
+        {report.tips.map((tip, i) => (
+          <li key={i} className="text-xs opacity-70 flex gap-1.5">
+            <span>•</span>
+            <span>{tip}</span>
           </li>
         ))}
       </ul>
@@ -2394,6 +2455,7 @@ export default function InterviewPrepPage() {
                   <JdInterviewStrategyHint text={jobDescription} />
                   <JdHiringModeHint text={jobDescription} />
                   <JdRedFlagHint text={jobDescription} />
+                  <JdCompanyStageHint text={jobDescription} />
                 </>
               )}
             </div>
