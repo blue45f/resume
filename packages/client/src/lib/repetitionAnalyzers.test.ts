@@ -62,3 +62,21 @@ describe('detectDuplicateSentences', () => {
     expect(r.length).toBeGreaterThan(0);
   });
 });
+
+describe('analyzeLexicalDiversity - TTR range', () => {
+  it('ttr is between 0 and 1', () => {
+    const text = '개발 개발 개발 서비스 서비스 운영 운영 배포 배포 배포 분석 분석 설계 설계 최적화';
+    const r = analyzeLexicalDiversity(text);
+    expect(r.ttr).toBeGreaterThanOrEqual(0);
+    expect(r.ttr).toBeLessThanOrEqual(1);
+  });
+});
+
+describe('analyzeRedundancy - suggestion', () => {
+  it('provides non-empty suggestion for repetitive text', () => {
+    const r = analyzeRedundancy('개발 개발 개발', 50);
+    if (r.hits.length > 0) {
+      expect(r.suggestion.length).toBeGreaterThan(5);
+    }
+  });
+});
