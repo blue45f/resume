@@ -25,6 +25,7 @@ import { detectJdTechObsolescence } from '@/lib/jdTechObsolescenceDetector';
 import { analyzeJdGrowthOpportunity } from '@/lib/jdGrowthOpportunityAnalyzer';
 import { analyzeJdWorkLifeBalance } from '@/lib/jdWorkLifeBalanceAnalyzer';
 import { detectJdCultureVagueness } from '@/lib/jdCultureVaguenessDetector';
+import { analyzeJdSalaryTransparency } from '@/lib/jdSalaryTransparencyAnalyzer';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -80,6 +81,21 @@ interface InterviewReport {
   categoryScores: ScoreBreakdown;
 }
 
+interface InterviewJobPost {
+  id: string;
+  company: string;
+  position: string;
+  description?: string;
+  skills?: string;
+}
+
+type InterviewJobsResponse =
+  | InterviewJobPost[]
+  | {
+      items?: InterviewJobPost[];
+      data?: InterviewJobPost[];
+    };
+
 // ── Storage keys ──
 
 const STORAGE_KEY = 'interview-prep-answers';
@@ -101,6 +117,10 @@ function loadJSON<T>(key: string, fallback: T): T {
 
 function saveJSON(key: string, data: unknown) {
   localStorage.setItem(key, JSON.stringify(data));
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
 }
 
 function formatTime(seconds: number): string {
@@ -1227,6 +1247,72 @@ function JdCultureVaguenessHint({ text }: { text: string }) {
   );
 }
 
+function JdSalaryTransparencyHint({ text }: { text: string }) {
+  const report = useMemo(() => analyzeJdSalaryTransparency(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.transparency === 'transparent') return null;
+
+  const containerClass =
+    report.transparency === 'silent'
+      ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700'
+      : report.transparency === 'opaque'
+        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
+        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700';
+
+  const badgeClass =
+    report.transparency === 'silent'
+      ? 'text-rose-700 dark:text-rose-300'
+      : report.transparency === 'opaque'
+        ? 'text-amber-700 dark:text-amber-300'
+        : 'text-sky-700 dark:text-sky-300';
+
+  const transparencyLabel: Record<string, string> = {
+    transparent: '공개',
+    partial: '부분 공개',
+    opaque: '모호',
+    silent: '미공개',
+  };
+
+  return (
+    <aside
+      className={`rounded-lg border p-3 text-sm ${containerClass}`}
+      aria-label="연봉 투명성 분석"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold uppercase tracking-wide opacity-50">연봉</span>
+        <span className={`font-bold text-xs ${badgeClass}`}>
+          {transparencyLabel[report.transparency]}
+        </span>
+      </div>
+      <p className="text-xs opacity-70 mb-2">{report.summary}</p>
+      {report.disclosureSignals.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {report.disclosureSignals.slice(0, 3).map((s, i) => (
+            <span
+              key={i}
+              className="text-xs bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 rounded px-1.5 py-0.5"
+            >
+              {s.excerpt.slice(0, 24)}
+            </span>
+          ))}
+        </div>
+      )}
+      {report.negotiationTips.length > 0 && (
+        <div>
+          <p className="text-xs opacity-50 mb-1">협상 전략:</p>
+          <ul className="space-y-0.5">
+            {report.negotiationTips.map((tip, i) => (
+              <li key={i} className="text-xs opacity-60">
+                → {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </aside>
+  );
+}
+
 function JdCompanyStageHint({ text }: { text: string }) {
   const report = useMemo(() => detectCompanyStage(text), [text]);
   if (text.trim().length < 30) return null;
@@ -1412,16 +1498,12 @@ function AnswerQuickScore({ text }: { text: string }) {
 
 export default function InterviewPrepPage() {
   const [searchParams] = useSearchParams();
-  const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState(searchParams.get('resumeId') || '');
   const [jobRole, setJobRole] = useState(
     searchParams.get('position') || searchParams.get('jobRole') || '',
   );
   const [jobDescription, setJobDescription] = useState('');
   const [difficulty, setDifficulty] = useState<Difficulty>('intermediate');
-  const [jobPosts, setJobPosts] = useState<
-    { id: string; company: string; position: string; description?: string; skills?: string }[]
-  >([]);
   const [showJobSelect, setShowJobSelect] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<Category>('전체');
   const [jobFieldFilter, setJobFieldFilter] = useState<JobField>('전체');
@@ -1500,8 +1582,8 @@ export default function InterviewPrepPage() {
       });
       setAiAnalysis(result);
       toast(`AI 분석 완료 — ${result.overallScore}점`, 'success');
-    } catch (err: any) {
-      toast(err?.message || 'AI 분석 실패', 'error');
+    } catch (err: unknown) {
+      toast(getErrorMessage(err, 'AI 분석 실패'), 'error');
     } finally {
       setAiAnalyzing(false);
     }
@@ -1528,7 +1610,19 @@ export default function InterviewPrepPage() {
   }, [selectedResumeDetail, jobRole]);
 
   const resumesQuery = useResumes();
-  const jobsQuery = usePublicGet<any>(['interview-prep-jobs'], '/api/jobs', { staleTime: 60_000 });
+  const jobsQuery = usePublicGet<InterviewJobsResponse>(['interview-prep-jobs'], '/api/jobs', {
+    staleTime: 60_000,
+  });
+  const resumes = useMemo<ResumeSummary[]>(
+    () => (resumesQuery.data ? (resumesQuery.data as ResumeSummary[]) : []),
+    [resumesQuery.data],
+  );
+  const jobPosts = useMemo<InterviewJobPost[]>(() => {
+    const d = jobsQuery.data;
+    if (!d) return [];
+    const items = Array.isArray(d) ? d : d.items || d.data || [];
+    return items.slice(0, 30);
+  }, [jobsQuery.data]);
 
   useEffect(() => {
     document.title = '면접 준비 — 이력서공방';
@@ -1536,16 +1630,6 @@ export default function InterviewPrepPage() {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
     };
   }, []);
-
-  useEffect(() => {
-    if (resumesQuery.data) setResumes(resumesQuery.data as ResumeSummary[]);
-  }, [resumesQuery.data]);
-  useEffect(() => {
-    const d = jobsQuery.data;
-    if (!d) return;
-    const items = Array.isArray(d) ? d : d.items || d.data || [];
-    setJobPosts(items.slice(0, 30));
-  }, [jobsQuery.data]);
 
   // List mode timer
   useEffect(() => {
@@ -1652,7 +1736,7 @@ export default function InterviewPrepPage() {
       const data = await res.json();
       const text = data.text || data.data?.text || '';
       const parsed: Question[] = text
-        .split(/\d+[\.\)]\s/)
+        .split(/\d+[.)]\s/)
         .filter(Boolean)
         .map((q: string) => {
           const parts = q.split(/모범\s*답변|샘플\s*답변|답변\s*예시/i);
@@ -1681,12 +1765,12 @@ export default function InterviewPrepPage() {
       setQuestions([...combined, ...customQuestions]);
       setViewMode('list');
       toast('면접 질문이 생성되었습니다', 'success');
-    } catch (e: any) {
-      toast(e.message || '생성에 실패했습니다', 'error');
+    } catch (e: unknown) {
+      toast(getErrorMessage(e, '생성에 실패했습니다'), 'error');
     } finally {
       setLoading(false);
     }
-  }, [selectedResumeId, jobRole, difficulty, customQuestions]);
+  }, [selectedResumeId, jobRole, difficulty, jobDescription, customQuestions]);
 
   // ── Helpers ──
 
@@ -2715,6 +2799,7 @@ export default function InterviewPrepPage() {
                   <JdGrowthOpportunityHint text={jobDescription} />
                   <JdWorkLifeBalanceHint text={jobDescription} />
                   <JdCultureVaguenessHint text={jobDescription} />
+                  <JdSalaryTransparencyHint text={jobDescription} />
                   <JdCompanyStageHint text={jobDescription} />
                 </>
               )}
