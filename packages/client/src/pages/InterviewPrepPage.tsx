@@ -22,6 +22,7 @@ import { buildWorkModalityReport } from '@/lib/jdWorkModality';
 import { detectHiringMode } from '@/lib/jdHiringModeDetector';
 import { detectJdRedFlags } from '@/lib/jdRedFlagDetector';
 import { detectJdTechObsolescence } from '@/lib/jdTechObsolescenceDetector';
+import { analyzeJdGrowthOpportunity } from '@/lib/jdGrowthOpportunityAnalyzer';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -1159,6 +1160,79 @@ function JdCompanyStageHint({ text }: { text: string }) {
           </li>
         ))}
       </ul>
+    </aside>
+  );
+}
+
+// ── JD Growth Opportunity ──
+
+function JdGrowthOpportunityHint({ text }: { text: string }) {
+  const report = useMemo(() => analyzeJdGrowthOpportunity(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.rating === 'rich') return null;
+
+  const containerClass =
+    report.rating === 'none'
+      ? 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700'
+      : report.rating === 'sparse'
+        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
+        : 'bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-700';
+
+  const badgeClass =
+    report.rating === 'none'
+      ? 'text-neutral-500'
+      : report.rating === 'sparse'
+        ? 'text-amber-700 dark:text-amber-300'
+        : 'text-sky-700 dark:text-sky-300';
+
+  const ratingLabel =
+    report.rating === 'none' ? '미언급' : report.rating === 'sparse' ? '부족' : '보통';
+
+  const typeIcon: Record<string, string> = {
+    learning_budget: '📚',
+    mentoring: '🧑‍🏫',
+    conference: '🎤',
+    promotion_path: '📈',
+    tech_challenges: '⚙️',
+    global_exposure: '🌏',
+    ownership: '🔑',
+    cross_functional: '🤝',
+  };
+
+  return (
+    <aside
+      className={`rounded-lg border p-3 text-sm ${containerClass}`}
+      aria-label="성장 기회 분석"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold uppercase tracking-wide opacity-50">Growth</span>
+        <span className={`font-bold text-xs ${badgeClass}`}>{ratingLabel}</span>
+      </div>
+      <p className="text-xs opacity-70 mb-2">{report.summary}</p>
+      {report.types.size > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {Array.from(report.types).map((t) => (
+            <span
+              key={t}
+              className="text-xs bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 rounded px-1.5 py-0.5"
+            >
+              {typeIcon[t] ?? '✓'} {t.replace(/_/g, ' ')}
+            </span>
+          ))}
+        </div>
+      )}
+      {report.missingAreas.length > 0 && (
+        <div>
+          <p className="text-xs opacity-50 mb-1">면접에서 확인할 항목:</p>
+          <ul className="space-y-0.5">
+            {report.missingAreas.map((area, i) => (
+              <li key={i} className="text-xs opacity-60">
+                → {area}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </aside>
   );
 }
@@ -2517,6 +2591,7 @@ export default function InterviewPrepPage() {
                   <JdHiringModeHint text={jobDescription} />
                   <JdRedFlagHint text={jobDescription} />
                   <JdTechObsolescenceHint text={jobDescription} />
+                  <JdGrowthOpportunityHint text={jobDescription} />
                   <JdCompanyStageHint text={jobDescription} />
                 </>
               )}
