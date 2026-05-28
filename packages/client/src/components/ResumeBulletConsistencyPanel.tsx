@@ -1,5 +1,9 @@
 import { useMemo } from 'react';
-import { analyzeParallelism, analyzeBulletMarkerConsistency } from '@/lib/bulletStructure';
+import {
+  analyzeParallelism,
+  analyzeBulletMarkerConsistency,
+  analyzePunctuationBalance,
+} from '@/lib/bulletStructure';
 
 interface Props {
   text: string;
@@ -8,9 +12,14 @@ interface Props {
 export default function ResumeBulletConsistencyPanel({ text }: Props) {
   const parallelism = useMemo(() => analyzeParallelism(text), [text]);
   const markerResult = useMemo(() => analyzeBulletMarkerConsistency(text), [text]);
+  const punctuation = useMemo(() => analyzePunctuationBalance(text), [text]);
 
   const hasBullets = parallelism.lines >= 3 || markerResult.markers.length > 0;
-  if (!hasBullets) return null;
+  const hasPunctuationIssue =
+    punctuation.total > 0 &&
+    punctuation.suggestion !== '문장부호가 감지되지 않았습니다.' &&
+    (punctuation.exclamations > 0 || punctuation.questions > punctuation.periods * 0.2);
+  if (!hasBullets && !hasPunctuationIssue) return null;
 
   const parallelScore = Math.round(parallelism.consistency * 0.5);
   const markerScore =
@@ -86,6 +95,28 @@ export default function ResumeBulletConsistencyPanel({ text }: Props) {
             ))}
           </div>
           <p className="bullet-cons-card__suggestion">{markerResult.suggestion}</p>
+        </section>
+      )}
+
+      {/* Punctuation section */}
+      {hasPunctuationIssue && (
+        <section className="bullet-cons-card__section" aria-label="문장부호 분포">
+          <h4 className="bullet-cons-card__section-title">문장부호 분포</h4>
+          <div className="bullet-cons-card__markers">
+            {punctuation.exclamations > 0 && (
+              <span className="bullet-cons-card__marker-chip">
+                <code>!</code>
+                <span>{punctuation.exclamations}개</span>
+              </span>
+            )}
+            {punctuation.questions > 0 && (
+              <span className="bullet-cons-card__marker-chip">
+                <code>?</code>
+                <span>{punctuation.questions}개</span>
+              </span>
+            )}
+          </div>
+          <p className="bullet-cons-card__suggestion">{punctuation.suggestion}</p>
         </section>
       )}
     </aside>
