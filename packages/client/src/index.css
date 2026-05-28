@@ -5890,6 +5890,136 @@ button:active:not(:disabled) {
   background: color-mix(in oklab, var(--color-surface) 92%, var(--color-text));
 }
 
+/* ── JD compensation hint ──────────────────────────────────────── */
+.jd-comp-hint {
+  margin-top: 0.55rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
+}
+.jd-comp-hint--good {
+  border-color: color-mix(in oklab, var(--color-success) 22%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-success-light) 30%, var(--color-surface));
+}
+.jd-comp-hint--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 24%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-warning-light) 32%, var(--color-surface));
+}
+.jd-comp-hint__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.jd-comp-hint__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jd-comp-hint__label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.jd-comp-hint--good .jd-comp-hint__label {
+  color: color-mix(in oklab, var(--color-success) 82%, var(--color-text));
+}
+.jd-comp-hint--warning .jd-comp-hint__label {
+  color: color-mix(in oklab, var(--color-warning) 82%, var(--color-text));
+}
+.jd-comp-hint__summary {
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+.jd-comp-hint__meter {
+  margin-top: 0.55rem;
+  height: 0.3rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-border-subtle) 88%, transparent);
+  overflow: hidden;
+}
+.jd-comp-hint__meter span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: inherit;
+  transform-origin: left center;
+  transform: scaleX(var(--comp-fill, 0));
+  transition: transform var(--transition-normal);
+}
+.jd-comp-hint--good .jd-comp-hint__meter span {
+  background: color-mix(in oklab, var(--color-success) 82%, var(--color-text));
+}
+.jd-comp-hint--warning .jd-comp-hint__meter span {
+  background: color-mix(in oklab, var(--color-warning) 82%, var(--color-text));
+}
+.jd-comp-hint__categories {
+  margin-top: 0.7rem;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+}
+.jd-comp-hint__category {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 0.78rem;
+}
+.jd-comp-hint__category:last-child {
+  border-bottom: none;
+}
+.jd-comp-hint__category-mark {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: color-mix(in oklab, var(--color-border-subtle) 80%, transparent);
+  color: var(--color-text-muted);
+}
+.jd-comp-hint__category--present .jd-comp-hint__category-mark {
+  background: color-mix(in oklab, var(--color-success-light) 70%, var(--color-surface));
+  color: color-mix(in oklab, var(--color-success) 92%, var(--color-text));
+}
+.jd-comp-hint__category-label {
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.jd-comp-hint__category--present .jd-comp-hint__category-label {
+  font-weight: 600;
+}
+.jd-comp-hint__category-excerpt {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  font-size: 0.66rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.35rem;
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.dark .jd-comp-hint__category-excerpt {
+  background: color-mix(in oklab, var(--color-surface) 92%, var(--color-text));
+}
+
 /* ── Home Pro prompt + bookmarks ───────────────────────────────── */
 .home-pro-prompt {
   display: flex;

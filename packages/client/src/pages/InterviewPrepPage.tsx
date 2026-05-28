@@ -11,6 +11,7 @@ import InterviewScoreHistory from '@/components/InterviewScoreHistory';
 import { analyzeInterviewAnswer } from '@/lib/api';
 import { analyzeJdSeniority } from '@/lib/jdSeniorityAnalyzer';
 import { buildJdBiasReport } from '@/lib/jdBiasDetector';
+import { buildJdCompensationReport } from '@/lib/jdCompensationSignals';
 import { tx } from '@/lib/i18n';
 
 // ── Types ──
@@ -391,6 +392,44 @@ function JdBiasHint({ text }: { text: string }) {
         {report.findings.length > 4 && (
           <li className="jd-bias-hint__more">+ {report.findings.length - 4}건 더</li>
         )}
+      </ul>
+    </aside>
+  );
+}
+
+function JdCompensationHint({ text }: { text: string }) {
+  const report = useMemo(() => buildJdCompensationReport(text), [text]);
+  if (text.trim().length < 30) return null;
+  const presentCount = report.categories.filter((c) => c.present).length;
+  if (presentCount === 0 && !report.salaryRangeText) return null;
+  return (
+    <aside
+      className={`jd-comp-hint jd-comp-hint--${report.tone}`}
+      aria-label="채용공고 보상 투명도"
+    >
+      <header className="jd-comp-hint__head">
+        <span className="jd-comp-hint__eyebrow">Compensation transparency</span>
+        <span className="jd-comp-hint__label">{report.label}</span>
+      </header>
+      <p className="jd-comp-hint__summary">{report.summary}</p>
+      <div className="jd-comp-hint__meter" aria-hidden="true">
+        <span style={{ ['--comp-fill' as string]: `${report.transparencyScore / 100}` }} />
+      </div>
+      <ul className="jd-comp-hint__categories">
+        {report.categories.map((cat) => (
+          <li
+            key={cat.category}
+            className={`jd-comp-hint__category${cat.present ? ' jd-comp-hint__category--present' : ''}`}
+          >
+            <span className="jd-comp-hint__category-mark" aria-hidden="true">
+              {cat.present ? '✓' : '○'}
+            </span>
+            <span className="jd-comp-hint__category-label">{cat.label}</span>
+            {cat.excerpts[0] && (
+              <code className="jd-comp-hint__category-excerpt">{cat.excerpts[0]}</code>
+            )}
+          </li>
+        ))}
       </ul>
     </aside>
   );
@@ -1682,6 +1721,7 @@ export default function InterviewPrepPage() {
               {jobDescription.trim().length >= 30 && (
                 <>
                   <JdSeniorityHint text={jobDescription} />
+                  <JdCompensationHint text={jobDescription} />
                   <JdBiasHint text={jobDescription} />
                 </>
               )}
