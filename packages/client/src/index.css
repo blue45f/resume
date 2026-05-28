@@ -12336,3 +12336,88 @@ button:active:not(:disabled) {
   font-size: 0.78rem;
   color: color-mix(in oklab, var(--color-text) 65%, transparent);
 }
+
+/* ── ResumeProjectDescriptionPanel ── */
+.proj-desc-card {
+  border: 1px solid color-mix(in oklab, var(--color-accent) 25%, var(--color-border));
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  background: color-mix(in oklab, var(--color-accent) 3%, var(--color-surface-raised));
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.proj-desc-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 35%, var(--color-border));
+  background: color-mix(in oklab, var(--color-warning) 5%, var(--color-surface-raised));
+}
+.proj-desc-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.proj-desc-card__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-accent) 80%, var(--color-text));
+}
+.proj-desc-card--warning .proj-desc-card__eyebrow {
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.proj-desc-card__badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+}
+.proj-desc-card__badge--excellent {
+  background: color-mix(in oklab, var(--color-success) 18%, transparent);
+  color: color-mix(in oklab, var(--color-success) 85%, var(--color-text));
+}
+.proj-desc-card__badge--good {
+  background: color-mix(in oklab, var(--color-accent) 15%, transparent);
+  color: color-mix(in oklab, var(--color-accent) 85%, var(--color-text));
+}
+.proj-desc-card__badge--weak {
+  background: color-mix(in oklab, var(--color-warning) 18%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 85%, var(--color-text));
+}
+.proj-desc-card__badge--vague {
+  background: color-mix(in oklab, var(--color-error) 15%, transparent);
+  color: color-mix(in oklab, var(--color-error) 85%, var(--color-text));
+}
+.proj-desc-card__hint {
+  font-size: 0.8rem;
+  color: color-mix(in oklab, var(--color-text) 75%, transparent);
+  line-height: 1.5;
+  margin: 0;
+}
+.proj-desc-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.proj-desc-card__chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+}
+.proj-desc-card__chip--good {
+  background: color-mix(in oklab, var(--color-success) 12%, transparent);
+  color: color-mix(in oklab, var(--color-success) 80%, var(--color-text));
+}
+.proj-desc-card__suggestions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.proj-desc-card__suggestion {
+  font-size: 0.78rem;
+  color: color-mix(in oklab, var(--color-text) 65%, transparent);
+}
