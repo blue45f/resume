@@ -13426,3 +13426,76 @@ button:active:not(:disabled) {
   font-size: 0.76rem;
   color: color-mix(in oklab, var(--color-text) 60%, transparent);
 }
+
+/* ── CoverLetterNegativeFramingPanel ── */
+.cl-neg-card {
+  border-radius: 0.6rem;
+  border: 1px solid color-mix(in oklab, var(--color-warning) 30%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 6%, var(--color-surface));
+  padding: 0.85rem 1rem;
+  font-size: 0.82rem;
+}
+.cl-neg-card--concerning {
+  border-color: color-mix(in oklab, var(--color-error) 40%, transparent);
+  background: color-mix(in oklab, var(--color-error) 7%, var(--color-surface));
+}
+.cl-neg-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.cl-neg-card__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.cl-neg-card__badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+.cl-neg-card__badge--minor {
+  background: color-mix(in oklab, var(--color-warning) 15%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.cl-neg-card__badge--concerning {
+  background: color-mix(in oklab, var(--color-error) 14%, transparent);
+  color: color-mix(in oklab, var(--color-error) 80%, var(--color-text));
+}
+.cl-neg-card__chips {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+.cl-neg-card__chip {
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  background: color-mix(in oklab, var(--color-error) 12%, transparent);
+  color: color-mix(in oklab, var(--color-error) 78%, var(--color-text));
+}
+.cl-neg-card__hint {
+  margin-bottom: 0.5rem;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  line-height: 1.45;
+}
+.cl-neg-card__recs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+  padding-top: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cl-neg-card__rec {
+  font-size: 0.76rem;
+  color: color-mix(in oklab, var(--color-text) 60%, transparent);
+}
