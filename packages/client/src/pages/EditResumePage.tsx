@@ -39,6 +39,7 @@ import ResumePortfolioLinksPanel from '@/components/ResumePortfolioLinksPanel';
 import ResumeJobLevelPanel from '@/components/ResumeJobLevelPanel';
 import SkillFreshnessPanel from '@/components/SkillFreshnessPanel';
 import ResumeCertificationPanel from '@/components/ResumeCertificationPanel';
+import ResumeLeadershipPanel from '@/components/ResumeLeadershipPanel';
 import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
 import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
@@ -707,6 +708,9 @@ export default function EditResumePage() {
               </div>
               <div className="sm:col-span-2">
                 <ResumeCertificationPanel text={deferredAnalysisText} />
+              </div>
+              <div className="sm:col-span-2">
+                <ResumeLeadershipPanel text={deferredAnalysisText} />
               </div>
             </div>
           </section>
