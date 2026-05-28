@@ -7067,6 +7067,96 @@ button:active:not(:disabled) {
   }
 }
 
+/* ── Cover letter paragraph structure card ──────────────────────── */
+.cl-para-card {
+  background: var(--color-surface-raised);
+  border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.cl-para-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 40%, transparent);
+}
+.cl-para-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.cl-para-card__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.cl-para-card__title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  flex: 1;
+}
+.cl-para-card__count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.15em 0.65em;
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+}
+.cl-para-card__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.cl-para-card__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 5rem;
+}
+.cl-para-card__stat-label {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+}
+.cl-para-card__stat-val {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.cl-para-card__stat-val--good {
+  color: var(--color-success);
+}
+.cl-para-card__stat-val--warn {
+  color: var(--color-warning);
+}
+.cl-para-card__meter {
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--color-surface);
+  overflow: hidden;
+  position: relative;
+}
+.cl-para-card__meter::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--para-fill, 0%);
+  background: var(--color-success);
+  border-radius: 9999px;
+  transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.cl-para-card__suggestion {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
 /* ── Cover letter cliche card ──────────────────────────────────── */
 .cliche-card {
   margin: 0.6rem 0;
