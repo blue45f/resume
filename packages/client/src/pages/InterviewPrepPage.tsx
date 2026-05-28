@@ -17,6 +17,7 @@ import { buildJdKeywordGapReport } from '@/lib/jdKeywordGap';
 import { buildSalaryBenchmarkReport } from '@/lib/jdSalaryBenchmark';
 import { buildInterviewStrategyReport, FORMAT_LABEL_MAP } from '@/lib/jdInterviewStrategy';
 import { buildJdRequirementsReport } from '@/lib/jdRequirementsExtractor';
+import { buildJdResumeMatchReport } from '@/lib/jdResumeMatch';
 import { buildWorkModalityReport } from '@/lib/jdWorkModality';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -852,6 +853,64 @@ function JdRequirementsHint({ text }: { text: string }) {
         <p className="jd-req-hint__fallback">
           섹션 구분 없이 {report.unclassified.length}개 항목 감지 (자격요건·우대사항 헤더 추가 시
           분류됩니다)
+        </p>
+      )}
+    </aside>
+  );
+}
+
+function JdResumeMatchHint({ jdText, resumeText }: { jdText: string; resumeText: string }) {
+  const report = useMemo(() => buildJdResumeMatchReport(jdText, resumeText), [jdText, resumeText]);
+  if (jdText.trim().length < 30 || resumeText.trim().length < 50) return null;
+  if (report.coverageItems.length === 0) return null;
+
+  const fill = Math.max(0.04, report.matchScore / 100);
+
+  return (
+    <aside
+      className={`jd-match-hint jd-match-hint--${report.tone}`}
+      aria-label="JD-이력서 매칭 점수"
+    >
+      <header className="jd-match-hint__head">
+        <span className="jd-match-hint__eyebrow">Resume match</span>
+        <span className="jd-match-hint__label">{report.label}</span>
+      </header>
+
+      <div
+        className="jd-match-hint__meter"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={report.matchScore}
+        aria-label="이력서 매칭 점수"
+      >
+        <span
+          className="jd-match-hint__meter-fill"
+          style={{ ['--match-fill' as never]: String(fill) }}
+        />
+      </div>
+
+      <p className="jd-match-hint__summary">{report.summary}</p>
+
+      {report.requiredCoverage.length > 0 && (
+        <ul className="jd-match-hint__coverage-list" aria-label="필수 요건 커버리지">
+          {report.requiredCoverage.map((item, i) => (
+            <li
+              key={i}
+              className={`jd-match-hint__coverage-item${item.covered ? ' jd-match-hint__coverage-item--covered' : ' jd-match-hint__coverage-item--missing'}`}
+            >
+              <span className="jd-match-hint__coverage-icon" aria-hidden="true">
+                {item.covered ? '✓' : '○'}
+              </span>
+              <span className="jd-match-hint__coverage-text">{item.requirement.text}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {report.gaps.length > 0 && (
+        <p className="jd-match-hint__gap-hint">
+          미충족 {report.gaps.length}개 항목을 이력서에 추가하면 매칭 점수가 올라갑니다.
         </p>
       )}
     </aside>
@@ -2149,6 +2208,7 @@ export default function InterviewPrepPage() {
               {jobDescription.trim().length >= 30 && (
                 <>
                   <JdRequirementsHint text={jobDescription} />
+                  <JdResumeMatchHint jdText={jobDescription} resumeText={resumeTextForGap} />
                   <JdSeniorityHint text={jobDescription} />
                   <JdCompensationHint text={jobDescription} />
                   <JdCultureHint text={jobDescription} />

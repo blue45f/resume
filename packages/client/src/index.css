@@ -6476,6 +6476,114 @@ button:active:not(:disabled) {
   border-left: 2px solid color-mix(in oklab, var(--color-accent) 35%, transparent);
 }
 
+/* ── JD-resume match card ───────────────────────────────────────── */
+.jd-match-hint {
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 20%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+  margin-top: 0.65rem;
+}
+.jd-match-hint--good {
+  border-color: color-mix(in oklab, var(--color-success) 25%, transparent);
+  background: color-mix(in oklab, var(--color-success) 4%, var(--color-surface));
+}
+.jd-match-hint--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 25%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 4%, var(--color-surface));
+}
+.jd-match-hint__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.jd-match-hint__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+}
+.jd-match-hint__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+.jd-match-hint--good .jd-match-hint__label {
+  color: var(--color-success);
+}
+.jd-match-hint--warning .jd-match-hint__label {
+  color: var(--color-warning);
+}
+.jd-match-hint__meter {
+  height: 5px;
+  border-radius: 3px;
+  background: color-mix(in oklab, var(--color-text) 10%, transparent);
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+.jd-match-hint__meter-fill {
+  display: block;
+  height: 100%;
+  width: calc(var(--match-fill) * 100%);
+  background: var(--color-accent);
+  border-radius: 3px;
+  transition: width 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.jd-match-hint--good .jd-match-hint__meter-fill {
+  background: var(--color-success);
+}
+.jd-match-hint--warning .jd-match-hint__meter-fill {
+  background: var(--color-warning);
+}
+.jd-match-hint__summary {
+  font-size: 0.73rem;
+  line-height: 1.5;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  margin-bottom: 0.5rem;
+}
+.jd-match-hint__coverage-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.jd-match-hint__coverage-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  font-size: 0.71rem;
+  line-height: 1.45;
+}
+.jd-match-hint__coverage-item--covered {
+  color: color-mix(in oklab, var(--color-text) 80%, transparent);
+}
+.jd-match-hint__coverage-item--missing {
+  color: color-mix(in oklab, var(--color-warning) 70%, var(--color-text));
+}
+.jd-match-hint__coverage-icon {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding-top: 0.05rem;
+}
+.jd-match-hint__coverage-item--covered .jd-match-hint__coverage-icon {
+  color: var(--color-success);
+}
+.jd-match-hint__coverage-item--missing .jd-match-hint__coverage-icon {
+  color: color-mix(in oklab, var(--color-warning) 70%, transparent);
+}
+.jd-match-hint__gap-hint {
+  font-size: 0.7rem;
+  font-style: italic;
+  color: color-mix(in oklab, var(--color-text) 52%, transparent);
+  margin: 0;
+}
+
 /* ── JD requirements extractor card ────────────────────────────── */
 .jd-req-hint {
   padding: 0.85rem 1rem;
