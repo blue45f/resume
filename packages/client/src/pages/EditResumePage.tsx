@@ -14,6 +14,7 @@ import OverallHealthGauge from '@/components/OverallHealthGauge';
 import QuotableHighlights from '@/components/QuotableHighlights';
 import CareerGapPanel from '@/components/CareerGapPanel';
 import UnquantifiedClaimsRewritePanel from '@/components/UnquantifiedClaimsRewritePanel';
+import ResumeTitleCoherencePanel from '@/components/ResumeTitleCoherencePanel';
 import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
 import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
@@ -601,6 +602,12 @@ export default function EditResumePage() {
                   <UnquantifiedClaimsRewritePanel resumeId={id} text={deferredAnalysisText} />
                 </div>
               )}
+              <div className="sm:col-span-2">
+                <ResumeTitleCoherencePanel
+                  title={liveData?.title ?? resume.title ?? ''}
+                  text={deferredAnalysisText}
+                />
+              </div>
             </div>
           </section>
         )}
