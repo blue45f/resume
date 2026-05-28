@@ -30,6 +30,7 @@ import { analyzeJdBenefitsSpecificity } from '@/lib/jdBenefitsSpecificityAnalyze
 import { estimateJdInterviewComplexity } from '@/lib/jdInterviewComplexityEstimator';
 import { parseJdRequiredVsPreferred } from '@/lib/jdRequiredVsPreferredParser';
 import { extractJdRemoteWorkPolicy } from '@/lib/jdRemoteWorkPolicyExtractor';
+import { detectJdApplicationUrgency } from '@/lib/jdApplicationUrgencyDetector';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -1560,6 +1561,64 @@ function JdRemoteWorkPolicyHint({ text }: { text: string }) {
   );
 }
 
+function JdApplicationUrgencyHint({ text }: { text: string }) {
+  const report = useMemo(() => detectJdApplicationUrgency(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.level === 'unspecified') return null;
+
+  const LEVEL_LABEL: Record<string, string> = {
+    urgent: '긴급',
+    deadline_fixed: '마감일 지정',
+    rolling: '상시채용',
+  };
+  const LEVEL_COLOR: Record<string, string> = {
+    urgent: 'bg-rose-100 text-rose-800',
+    deadline_fixed: 'bg-amber-100 text-amber-800',
+    rolling: 'bg-sky-100 text-sky-800',
+  };
+  const cardColor =
+    report.level === 'urgent'
+      ? 'border-rose-200 bg-rose-50'
+      : report.level === 'deadline_fixed'
+        ? 'border-amber-200 bg-amber-50'
+        : 'border-sky-200 bg-sky-50';
+  const textColor =
+    report.level === 'urgent'
+      ? 'text-rose-800'
+      : report.level === 'deadline_fixed'
+        ? 'text-amber-800'
+        : 'text-sky-800';
+
+  return (
+    <aside className={`rounded-xl border p-4 text-sm ${cardColor}`} aria-label="지원 마감/긴급도">
+      <div className={`mb-2 flex items-center gap-2 font-semibold ${textColor}`}>
+        <span>⏰ 지원 타이밍</span>
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-medium ${LEVEL_COLOR[report.level] ?? ''}`}
+        >
+          {LEVEL_LABEL[report.level] ?? report.level}
+        </span>
+        {report.deadlineText && (
+          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
+            {report.deadlineText}
+          </span>
+        )}
+      </div>
+      <p className={`mb-2 ${textColor}`}>{report.summary}</p>
+      {report.tips.length > 0 && (
+        <ul className="mt-2 space-y-1 text-xs text-neutral-600">
+          {report.tips.map((tip, i) => (
+            <li key={i} className="flex gap-1">
+              <span>•</span>
+              {tip}
+            </li>
+          ))}
+        </ul>
+      )}
+    </aside>
+  );
+}
+
 function JdCompanyStageHint({ text }: { text: string }) {
   const report = useMemo(() => detectCompanyStage(text), [text]);
   if (text.trim().length < 30) return null;
@@ -3051,6 +3110,7 @@ export default function InterviewPrepPage() {
                   <JdInterviewComplexityHint text={jobDescription} />
                   <JdRequiredVsPreferredHint text={jobDescription} />
                   <JdRemoteWorkPolicyHint text={jobDescription} />
+                  <JdApplicationUrgencyHint text={jobDescription} />
                   <JdCompanyStageHint text={jobDescription} />
                 </>
               )}
