@@ -6,6 +6,8 @@ import ResumePreview from '@/components/ResumePreview';
 import PrintFooter from '@/components/PrintFooter';
 import { downloadVCard } from '@/lib/vcard';
 import { copySignatureToClipboard } from '@/lib/emailSignature';
+import { generateHashtags } from '@/lib/metaUtils';
+import { buildResumePlainText } from '@/lib/resumeText';
 import PitchPanel from '@/components/PitchPanel';
 import ReadabilityPanel from '@/components/ReadabilityPanel';
 import SkillProficiencyPanel from '@/components/SkillProficiencyPanel';
@@ -762,6 +764,37 @@ export default function PreviewPage() {
                         />
                       </svg>
                       이메일 서명 복사
+                    </button>
+                    <button
+                      onClick={() => {
+                        const text = resume ? buildResumePlainText(resume) : '';
+                        const tags = generateHashtags(text, 8);
+                        if (!tags.length) {
+                          toast('키워드를 추출하지 못했습니다.', 'error');
+                          return;
+                        }
+                        navigator.clipboard.writeText(tags.join(' ')).then(() => {
+                          toast(`LinkedIn 해시태그 복사됨 (${tags.length}개)`, 'success');
+                        });
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                      title="이력서 키워드 기반 LinkedIn 포스팅용 해시태그 생성"
+                    >
+                      <svg
+                        className="w-4 h-4 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                        />
+                      </svg>
+                      LinkedIn 해시태그 복사
                     </button>
                     <button
                       onClick={async () => {
