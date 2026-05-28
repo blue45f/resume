@@ -31,6 +31,7 @@ import ResumeSoftSkillsPanel from '@/components/ResumeSoftSkillsPanel';
 import ResumeDateConsistencyPanel from '@/components/ResumeDateConsistencyPanel';
 import ResumeSectionHealthPanel from '@/components/ResumeSectionHealthPanel';
 import ResumeWeakVerbPanel from '@/components/ResumeWeakVerbPanel';
+import ResumeIntroStrengthPanel from '@/components/ResumeIntroStrengthPanel';
 import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
 import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
@@ -675,6 +676,9 @@ export default function EditResumePage() {
               </div>
               <div className="sm:col-span-2">
                 <ResumeWeakVerbPanel text={deferredAnalysisText} />
+              </div>
+              <div className="sm:col-span-2">
+                <ResumeIntroStrengthPanel text={deferredAnalysisText} />
               </div>
             </div>
           </section>

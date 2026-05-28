@@ -10253,3 +10253,91 @@ button:active:not(:disabled) {
     opacity: 1 !important;
   }
 }
+
+/* ── Resume intro strength card ─────────────────────────────────── */
+.intro-strength-card {
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-warning) 22%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 4%, var(--color-surface));
+  margin-top: 0.6rem;
+}
+.intro-strength-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 28%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 6%, var(--color-surface));
+}
+.intro-strength-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.intro-strength-card__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+}
+.intro-strength-card__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-warning);
+}
+.intro-strength-card__preview {
+  font-size: 0.72rem;
+  color: color-mix(in oklab, var(--color-text) 62%, transparent);
+  border-left: 2px solid color-mix(in oklab, var(--color-warning) 40%, transparent);
+  padding-left: 0.6rem;
+  margin: 0 0 0.65rem;
+  font-style: italic;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.intro-strength-card__checks {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.intro-strength-card__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: color-mix(in oklab, var(--color-success) 80%, var(--color-text));
+}
+.intro-strength-card__check--warn {
+  color: var(--color-warning);
+}
+.intro-strength-card__icon {
+  width: 1rem;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+.intro-strength-card__cliche-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+.intro-strength-card__cliche-chip {
+  background: color-mix(in oklab, var(--color-warning) 16%, transparent);
+  color: var(--color-warning);
+  border-radius: 0.25rem;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  font-style: normal;
+}
+.intro-strength-card__suggestion {
+  font-size: 0.72rem;
+  color: color-mix(in oklab, var(--color-text) 72%, transparent);
+  margin: 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
+}
