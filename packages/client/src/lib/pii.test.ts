@@ -60,4 +60,9 @@ describe('detectPersonalInfo', () => {
     expect(r.severity).toBe('none');
     expect(r.hits).toHaveLength(0);
   });
+
+  it('suggestion is non-empty for any PII hit', () => {
+    const r = detectPersonalInfo('901231-1234567');
+    expect(r.suggestion.length).toBeGreaterThan(0);
+  });
 });

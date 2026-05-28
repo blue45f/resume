@@ -25,6 +25,7 @@ import ResumeAchievementPanel from '@/components/ResumeAchievementPanel';
 import ResumeTechCasingPanel from '@/components/ResumeTechCasingPanel';
 import ResumeRepetitionPanel from '@/components/ResumeRepetitionPanel';
 import ResumeStarPatternPanel from '@/components/ResumeStarPatternPanel';
+import ResumePiiPanel from '@/components/ResumePiiPanel';
 import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
 import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
@@ -651,6 +652,9 @@ export default function EditResumePage() {
               </div>
               <div className="sm:col-span-2">
                 <ResumeStarPatternPanel text={deferredAnalysisText} />
+              </div>
+              <div className="sm:col-span-2">
+                <ResumePiiPanel text={deferredAnalysisText} />
               </div>
             </div>
           </section>
