@@ -24,6 +24,7 @@ import { detectJdRedFlags } from '@/lib/jdRedFlagDetector';
 import { detectJdTechObsolescence } from '@/lib/jdTechObsolescenceDetector';
 import { analyzeJdGrowthOpportunity } from '@/lib/jdGrowthOpportunityAnalyzer';
 import { analyzeJdWorkLifeBalance } from '@/lib/jdWorkLifeBalanceAnalyzer';
+import { detectJdCultureVagueness } from '@/lib/jdCultureVaguenessDetector';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -1144,6 +1145,71 @@ function JdWorkLifeBalanceHint({ text }: { text: string }) {
             </li>
           ))}
         </ul>
+      )}
+      {report.interviewQuestions.length > 0 && (
+        <div>
+          <p className="text-xs opacity-50 mb-1">면접에서 확인할 항목:</p>
+          <ul className="space-y-0.5">
+            {report.interviewQuestions.map((q, i) => (
+              <li key={i} className="text-xs opacity-60">
+                → {q}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </aside>
+  );
+}
+
+function JdCultureVaguenessHint({ text }: { text: string }) {
+  const report = useMemo(() => detectJdCultureVagueness(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.clarity === 'concrete') return null;
+  if (report.vagueCount === 0 && report.concreteCount === 0) return null;
+
+  const containerClass =
+    report.riskLevel === 'high'
+      ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700'
+      : report.riskLevel === 'medium'
+        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
+        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700';
+
+  const badgeClass =
+    report.riskLevel === 'high'
+      ? 'text-rose-700 dark:text-rose-300'
+      : report.riskLevel === 'medium'
+        ? 'text-amber-700 dark:text-amber-300'
+        : 'text-neutral-500';
+
+  const clarityLabel: Record<string, string> = {
+    concrete: '구체적',
+    mixed: '혼재',
+    vague: '모호',
+    none: '미언급',
+  };
+
+  return (
+    <aside
+      className={`rounded-lg border p-3 text-sm ${containerClass}`}
+      aria-label="문화·가치 모호성 분석"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold uppercase tracking-wide opacity-50">Culture</span>
+        <span className={`font-bold text-xs ${badgeClass}`}>{clarityLabel[report.clarity]}</span>
+      </div>
+      <p className="text-xs opacity-70 mb-2">{report.summary}</p>
+      {report.vagueSignals.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {report.vagueSignals.slice(0, 4).map((s, i) => (
+            <span
+              key={i}
+              className="text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 rounded px-1.5 py-0.5"
+            >
+              {s.excerpt.slice(0, 20)}
+            </span>
+          ))}
+        </div>
       )}
       {report.interviewQuestions.length > 0 && (
         <div>
@@ -2648,6 +2714,7 @@ export default function InterviewPrepPage() {
                   <JdTechObsolescenceHint text={jobDescription} />
                   <JdGrowthOpportunityHint text={jobDescription} />
                   <JdWorkLifeBalanceHint text={jobDescription} />
+                  <JdCultureVaguenessHint text={jobDescription} />
                   <JdCompanyStageHint text={jobDescription} />
                 </>
               )}
