@@ -23,6 +23,7 @@ import { detectHiringMode } from '@/lib/jdHiringModeDetector';
 import { detectJdRedFlags } from '@/lib/jdRedFlagDetector';
 import { detectJdTechObsolescence } from '@/lib/jdTechObsolescenceDetector';
 import { analyzeJdGrowthOpportunity } from '@/lib/jdGrowthOpportunityAnalyzer';
+import { analyzeJdWorkLifeBalance } from '@/lib/jdWorkLifeBalanceAnalyzer';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -1105,6 +1106,60 @@ function JdTechObsolescenceHint({ text }: { text: string }) {
 }
 
 // ── JD Company Stage ──
+
+function JdWorkLifeBalanceHint({ text }: { text: string }) {
+  const report = useMemo(() => analyzeJdWorkLifeBalance(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.rating === 'excellent') return null;
+
+  const containerClass =
+    report.rating === 'concern'
+      ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700'
+      : report.rating === 'neutral'
+        ? 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700'
+        : 'bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-700';
+
+  const badgeClass =
+    report.rating === 'concern'
+      ? 'text-rose-700 dark:text-rose-300'
+      : report.rating === 'neutral'
+        ? 'text-neutral-500'
+        : 'text-sky-700 dark:text-sky-300';
+
+  const ratingLabel =
+    report.rating === 'concern' ? '주의' : report.rating === 'neutral' ? '미언급' : '보통';
+
+  return (
+    <aside className={`rounded-lg border p-3 text-sm ${containerClass}`} aria-label="워라밸 분석">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold uppercase tracking-wide opacity-50">WLB</span>
+        <span className={`font-bold text-xs ${badgeClass}`}>{ratingLabel}</span>
+      </div>
+      <p className="text-xs opacity-70 mb-2">{report.summary}</p>
+      {report.redFlags.length > 0 && (
+        <ul className="space-y-0.5 mb-2">
+          {report.redFlags.map((flag, i) => (
+            <li key={i} className="text-xs text-rose-600 dark:text-rose-400">
+              ⚠ {flag}
+            </li>
+          ))}
+        </ul>
+      )}
+      {report.interviewQuestions.length > 0 && (
+        <div>
+          <p className="text-xs opacity-50 mb-1">면접에서 확인할 항목:</p>
+          <ul className="space-y-0.5">
+            {report.interviewQuestions.map((q, i) => (
+              <li key={i} className="text-xs opacity-60">
+                → {q}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </aside>
+  );
+}
 
 function JdCompanyStageHint({ text }: { text: string }) {
   const report = useMemo(() => detectCompanyStage(text), [text]);
@@ -2592,6 +2647,7 @@ export default function InterviewPrepPage() {
                   <JdRedFlagHint text={jobDescription} />
                   <JdTechObsolescenceHint text={jobDescription} />
                   <JdGrowthOpportunityHint text={jobDescription} />
+                  <JdWorkLifeBalanceHint text={jobDescription} />
                   <JdCompanyStageHint text={jobDescription} />
                 </>
               )}
