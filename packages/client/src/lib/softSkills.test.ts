@@ -45,4 +45,23 @@ describe('detectAbbreviations', () => {
     // PWA 가 unexplained 에 없어야 함
     expect(r.unexplained.find((h) => h.acronym === 'PWA')).toBeUndefined();
   });
+
+  it('suggestion is non-empty', () => {
+    const r = detectAbbreviations('XYZ 시스템');
+    expect(r.suggestion.length).toBeGreaterThan(0);
+  });
+});
+
+describe('detectSoftSkills - suggestion', () => {
+  it('mentions 역량 다양화 when few skills detected', () => {
+    const r = detectSoftSkills('소통을 잘합니다.');
+    expect(r.suggestion).toContain('다양화');
+  });
+
+  it('hits sorted by count descending', () => {
+    const r = detectSoftSkills('협업 협업 협업. 소통. 분석. 문제해결.');
+    if (r.hits.length >= 2) {
+      expect(r.hits[0].count).toBeGreaterThanOrEqual(r.hits[1].count);
+    }
+  });
 });
