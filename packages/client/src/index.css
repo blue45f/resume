@@ -7668,6 +7668,145 @@ button:active:not(:disabled) {
   }
 }
 
+/* ── Resume achievement density card ───────────────────────────── */
+.achievement-card {
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 18%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+  margin-top: 0.6rem;
+}
+.achievement-card--good {
+  border-color: color-mix(in oklab, var(--color-success) 22%, transparent);
+  background: color-mix(in oklab, var(--color-success) 4%, var(--color-surface));
+}
+.achievement-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 22%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 4%, var(--color-surface));
+}
+.achievement-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.achievement-card__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+}
+.achievement-card__label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+.achievement-card--good .achievement-card__label {
+  color: var(--color-success);
+}
+.achievement-card--warning .achievement-card__label {
+  color: var(--color-warning);
+}
+.achievement-card__section {
+  margin-top: 0.5rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
+}
+.achievement-card__section:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+.achievement-card__section-title {
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 48%, transparent);
+  margin-bottom: 0.35rem;
+}
+.achievement-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.3rem;
+}
+.achievement-card__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: color-mix(in oklab, var(--color-success) 10%, transparent);
+  color: color-mix(in oklab, var(--color-success) 80%, var(--color-text));
+  border: 1px solid color-mix(in oklab, var(--color-success) 20%, transparent);
+}
+.achievement-card__chip-count {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--color-success) 60%, transparent);
+}
+.achievement-card__hint {
+  font-size: 0.71rem;
+  line-height: 1.5;
+  color: color-mix(in oklab, var(--color-text) 64%, transparent);
+  margin: 0;
+}
+.achievement-card__hint--warn {
+  color: color-mix(in oklab, var(--color-warning) 75%, var(--color-text));
+}
+.achievement-card__verb-meter {
+  display: grid;
+  grid-template-columns: 3rem 1fr 3rem;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+.achievement-card__verb-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-align: center;
+}
+.achievement-card__verb-label--strong {
+  color: var(--color-success);
+}
+.achievement-card__verb-label--weak {
+  color: var(--color-warning);
+}
+.achievement-card__verb-bar {
+  height: 7px;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--color-warning) 25%, transparent);
+  overflow: hidden;
+}
+.achievement-card__verb-fill {
+  display: block;
+  height: 100%;
+  width: calc(var(--verb-ratio) * 100%);
+  background: var(--color-success);
+  border-radius: 4px;
+  transition: width 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.achievement-card__weak-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  margin-bottom: 0.25rem;
+}
+.achievement-card__weak-chip {
+  display: inline-block;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  font-size: 0.66rem;
+  background: color-mix(in oklab, var(--color-warning) 10%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 75%, var(--color-text));
+  border: 1px solid color-mix(in oklab, var(--color-warning) 18%, transparent);
+}
+
 /* ── Resume voice & variety card ───────────────────────────────── */
 .resume-voice-card {
   padding: 0.85rem 1rem;
