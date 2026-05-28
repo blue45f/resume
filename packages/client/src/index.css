@@ -11210,3 +11210,86 @@ button:active:not(:disabled) {
   left: 0;
   color: color-mix(in oklab, var(--color-accent) 60%, transparent);
 }
+
+/* ── CoverLetterMotivationPanel ── */
+.cl-motivation-card {
+  background: var(--color-surface);
+  border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.cl-motivation-card--warning {
+  background: color-mix(in oklab, var(--color-warning) 6%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--color-warning) 28%, transparent);
+}
+.cl-motivation-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.cl-motivation-card__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+}
+.cl-motivation-card__badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.cl-motivation-card__badge--specific {
+  color: var(--color-success);
+  border-color: color-mix(in oklab, var(--color-success) 40%, transparent);
+  background: color-mix(in oklab, var(--color-success) 10%, transparent);
+}
+.cl-motivation-card__badge--generic {
+  color: var(--color-warning);
+  border-color: color-mix(in oklab, var(--color-warning) 40%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 10%, transparent);
+}
+.cl-motivation-card__badge--missing {
+  color: var(--color-error);
+  border-color: color-mix(in oklab, var(--color-error) 40%, transparent);
+  background: color-mix(in oklab, var(--color-error) 10%, transparent);
+}
+.cl-motivation-card__hint {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  line-height: 1.5;
+  margin: 0;
+}
+.cl-motivation-card__generic-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cl-motivation-card__generic-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.cl-motivation-card__warn-icon {
+  font-size: 0.65rem;
+  color: var(--color-warning);
+}
+.cl-motivation-card__tip {
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-text) 60%, transparent);
+  border-left: 2px solid color-mix(in oklab, var(--color-accent) 40%, transparent);
+  padding-left: 0.5rem;
+  margin: 0;
+  line-height: 1.5;
+}
