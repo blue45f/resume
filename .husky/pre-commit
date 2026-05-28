@@ -5,7 +5,7 @@ pnpm exec tsc -b --noEmit || {
 }
 
 echo "Running lint-staged..."
-npx lint-staged || {
+pnpm exec lint-staged || {
   echo "lint-staged failed. Commit aborted."
   exit 1
 }

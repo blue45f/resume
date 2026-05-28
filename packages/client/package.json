@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "cd ../.. && pnpm dev:client",
     "build": "cd ../.. && pnpm build:client",
+    "lint": "cd ../.. && pnpm exec eslint packages/client",
+    "typecheck": "cd ../.. && pnpm exec tsc -p packages/client/tsconfig.json --noEmit",
     "preview": "cd ../.. && pnpm preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
