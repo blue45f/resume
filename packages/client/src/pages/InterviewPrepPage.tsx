@@ -12,6 +12,7 @@ import { analyzeInterviewAnswer } from '@/lib/api';
 import { analyzeJdSeniority } from '@/lib/jdSeniorityAnalyzer';
 import { buildJdBiasReport } from '@/lib/jdBiasDetector';
 import { buildJdCompensationReport } from '@/lib/jdCompensationSignals';
+import { buildJdCultureReport } from '@/lib/jdCultureSignals';
 import { tx } from '@/lib/i18n';
 
 // ── Types ──
@@ -431,6 +432,90 @@ function JdCompensationHint({ text }: { text: string }) {
           </li>
         ))}
       </ul>
+    </aside>
+  );
+}
+
+function JdCultureHint({ text }: { text: string }) {
+  const report = useMemo(() => buildJdCultureReport(text), [text]);
+  const [expanded, setExpanded] = useState(false);
+  if (text.trim().length < 30) return null;
+  if (report.hits.length === 0 && report.concreteSignals === 0) return null;
+
+  const fill = Math.max(0.04, Math.min(1, report.specificityScore / 100));
+  const visibleHits = expanded ? report.hits : report.hits.slice(0, 2);
+  const remaining = report.hits.length - visibleHits.length;
+
+  return (
+    <aside
+      className={`jd-culture-hint jd-culture-hint--${report.tone}`}
+      aria-label="채용공고 문화 신호"
+    >
+      <header className="jd-culture-hint__head">
+        <span className="jd-culture-hint__eyebrow">Culture specificity</span>
+        <span className="jd-culture-hint__label">{report.label}</span>
+      </header>
+
+      <div
+        className="jd-culture-hint__meter"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={report.specificityScore}
+        aria-label="문화 표현 구체성"
+      >
+        <span
+          className="jd-culture-hint__meter-fill"
+          style={{ ['--culture-fill' as never]: String(fill) }}
+        />
+      </div>
+
+      <p className="jd-culture-hint__summary">{report.summary}</p>
+
+      {report.concreteSignals > 0 && (
+        <p className="jd-culture-hint__concrete">
+          구체 신호 <strong>{report.concreteSignals}개</strong> 발견 (숫자·명시 프로그램 등)
+        </p>
+      )}
+
+      {visibleHits.length > 0 && (
+        <ul className="jd-culture-hint__hits" aria-label="모호한 문화 표현">
+          {visibleHits.map((hit, i) => (
+            <li
+              key={`${hit.match}-${i}`}
+              className={`jd-culture-hint__hit jd-culture-hint__hit--${hit.severity}`}
+            >
+              <div className="jd-culture-hint__hit-head">
+                <span className="jd-culture-hint__hit-cat">{hit.categoryLabel}</span>
+                <mark className="jd-culture-hint__hit-match">{hit.match}</mark>
+              </div>
+              <p className="jd-culture-hint__hit-concern">{hit.concern}</p>
+              <p className="jd-culture-hint__hit-question">면접 질문 → {hit.interviewQuestion}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {remaining > 0 && (
+        <button
+          type="button"
+          className="jd-culture-hint__more"
+          onClick={() => setExpanded(true)}
+          aria-expanded={false}
+        >
+          + {remaining}개 더 보기
+        </button>
+      )}
+      {expanded && report.hits.length > 2 && (
+        <button
+          type="button"
+          className="jd-culture-hint__more"
+          onClick={() => setExpanded(false)}
+          aria-expanded
+        >
+          접기
+        </button>
+      )}
     </aside>
   );
 }
@@ -1722,6 +1807,7 @@ export default function InterviewPrepPage() {
                 <>
                   <JdSeniorityHint text={jobDescription} />
                   <JdCompensationHint text={jobDescription} />
+                  <JdCultureHint text={jobDescription} />
                   <JdBiasHint text={jobDescription} />
                 </>
               )}

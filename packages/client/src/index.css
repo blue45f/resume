@@ -6020,6 +6020,166 @@ button:active:not(:disabled) {
   background: color-mix(in oklab, var(--color-surface) 92%, var(--color-text));
 }
 
+/* ── JD culture hint ───────────────────────────────────────────── */
+.jd-culture-hint {
+  margin-top: 0.65rem;
+  padding: 0.95rem 1.05rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+}
+.jd-culture-hint--good {
+  border-color: color-mix(in oklab, var(--color-success) 22%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-success-light) 26%, var(--color-surface));
+}
+.jd-culture-hint--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 28%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-warning-light) 30%, var(--color-surface));
+}
+.jd-culture-hint__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.jd-culture-hint__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jd-culture-hint__label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.005em;
+}
+.jd-culture-hint--good .jd-culture-hint__label {
+  color: color-mix(in oklab, var(--color-success) 82%, var(--color-text));
+}
+.jd-culture-hint--warning .jd-culture-hint__label {
+  color: color-mix(in oklab, var(--color-warning) 82%, var(--color-text));
+}
+.jd-culture-hint__meter {
+  --culture-fill: 0.04;
+  margin-top: 0.7rem;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-border-subtle) 70%, transparent);
+  position: relative;
+  overflow: hidden;
+}
+.jd-culture-hint__meter-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-warning) 70%, var(--color-accent)) 0%,
+    var(--color-accent) 100%
+  );
+  transform-origin: left center;
+  transform: scaleX(var(--culture-fill));
+  transition: transform 320ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+.jd-culture-hint--good .jd-culture-hint__meter-fill {
+  background: linear-gradient(
+    90deg,
+    var(--color-success) 0%,
+    color-mix(in oklab, var(--color-success) 70%, var(--color-accent)) 100%
+  );
+}
+.jd-culture-hint__summary {
+  margin-top: 0.7rem;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+.jd-culture-hint__concrete {
+  margin-top: 0.35rem;
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+.jd-culture-hint__concrete strong {
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-success) 70%, var(--color-text));
+}
+.jd-culture-hint__hits {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+.jd-culture-hint__hit {
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--color-surface-raised, var(--color-surface));
+  border: 1px solid var(--color-border-subtle);
+}
+.jd-culture-hint__hit--high {
+  border-left: 3px solid var(--color-warning);
+}
+.jd-culture-hint__hit--medium {
+  border-left: 3px solid color-mix(in oklab, var(--color-warning) 60%, var(--color-border-subtle));
+}
+.jd-culture-hint__hit--low {
+  border-left: 3px solid var(--color-border-subtle);
+}
+.jd-culture-hint__hit-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+.jd-culture-hint__hit-cat {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jd-culture-hint__hit-match {
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--color-warning) 14%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.jd-culture-hint__hit-concern {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+.jd-culture-hint__hit-question {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--color-accent);
+  font-weight: 500;
+}
+.jd-culture-hint__more {
+  margin-top: 0.7rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--color-border-subtle);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    color 180ms,
+    border-color 180ms;
+}
+.jd-culture-hint__more:hover {
+  color: var(--color-text);
+  border-color: var(--color-accent);
+}
+
 /* ── Home Pro prompt + bookmarks ───────────────────────────────── */
 .home-pro-prompt {
   display: flex;
