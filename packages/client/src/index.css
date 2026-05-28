@@ -7028,6 +7028,118 @@ button:active:not(:disabled) {
   border-color: var(--color-accent);
 }
 
+/* ── Cover letter tone card ────────────────────────────────────── */
+.cl-tone-card {
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 18%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+  margin-top: 0.6rem;
+}
+.cl-tone-card--good {
+  border-color: color-mix(in oklab, var(--color-success) 22%, transparent);
+  background: color-mix(in oklab, var(--color-success) 4%, var(--color-surface));
+}
+.cl-tone-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 22%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 4%, var(--color-surface));
+}
+.cl-tone-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+.cl-tone-card__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+}
+.cl-tone-card__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+.cl-tone-card--good .cl-tone-card__label {
+  color: var(--color-success);
+}
+.cl-tone-card--warning .cl-tone-card__label {
+  color: var(--color-warning);
+}
+.cl-tone-card__checks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.cl-tone-card__check {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.4rem;
+  background: color-mix(in oklab, var(--color-success) 5%, transparent);
+  border-left: 3px solid var(--color-success);
+}
+.cl-tone-card__check--warn {
+  background: color-mix(in oklab, var(--color-warning) 7%, transparent);
+  border-left-color: var(--color-warning);
+}
+.cl-tone-card__check-icon {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-success);
+  padding-top: 0.05rem;
+  flex-shrink: 0;
+}
+.cl-tone-card__check--warn .cl-tone-card__check-icon {
+  color: var(--color-warning);
+}
+.cl-tone-card__check-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem;
+  flex: 1;
+}
+.cl-tone-card__check-body strong {
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.cl-tone-card__badge {
+  display: inline-block;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+}
+.cl-tone-card__badge--positive,
+.cl-tone-card__badge--fp-low,
+.cl-tone-card__badge--eng-low {
+  background: color-mix(in oklab, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+}
+.cl-tone-card__badge--negative,
+.cl-tone-card__badge--fp-high,
+.cl-tone-card__badge--eng-high {
+  background: color-mix(in oklab, var(--color-warning) 12%, transparent);
+  color: var(--color-warning);
+}
+.cl-tone-card__check-hint {
+  flex-basis: 100%;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: color-mix(in oklab, var(--color-text) 62%, transparent);
+  margin: 0;
+}
+
 /* ── Cover letter structure card ───────────────────────────────── */
 .cl-struct-card {
   padding: 1rem 1.1rem;
