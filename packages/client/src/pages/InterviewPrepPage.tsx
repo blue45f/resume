@@ -34,6 +34,7 @@ import { detectJdApplicationUrgency } from '@/lib/jdApplicationUrgencyDetector';
 import { detectJdStatutoryBenefits } from '@/lib/jdStatutoryBenefitsDetector';
 import { analyzeJdTeamStructure } from '@/lib/jdTeamStructureAnalyzer';
 import { extractJdHiringProcess } from '@/lib/jdHiringProcessExtractor';
+import { detectJdResponsibilityVagueness } from '@/lib/jdResponsibilityVaguenessDetector';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -1663,6 +1664,44 @@ function JdApplicationUrgencyHint({ text }: { text: string }) {
   );
 }
 
+function JdResponsibilityVaguenessHint({ text }: { text: string }) {
+  const report = useMemo(() => detectJdResponsibilityVagueness(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.clarity === 'clear') return null;
+
+  const CLARITY_LABEL: Record<string, string> = {
+    some: '범위 확인 필요',
+    vague: '범위 불명확',
+  };
+  const cardColor =
+    report.clarity === 'vague' ? 'border-amber-200 bg-amber-50' : 'border-sky-200 bg-sky-50';
+  const textColor = report.clarity === 'vague' ? 'text-amber-800' : 'text-sky-800';
+  const badgeColor =
+    report.clarity === 'vague' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800';
+
+  return (
+    <aside className={`rounded-xl border p-4 text-sm ${cardColor}`} aria-label="담당업무 모호성">
+      <div className={`mb-2 flex items-center gap-2 font-semibold ${textColor}`}>
+        <span>📋 담당업무 명확성</span>
+        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeColor}`}>
+          {CLARITY_LABEL[report.clarity] ?? report.clarity}
+        </span>
+      </div>
+      <p className={`mb-2 ${textColor}`}>{report.summary}</p>
+      {report.tips.length > 0 && (
+        <ul className="mt-2 space-y-1 text-xs text-neutral-600">
+          {report.tips.map((tip, i) => (
+            <li key={i} className="flex gap-1">
+              <span>•</span>
+              {tip}
+            </li>
+          ))}
+        </ul>
+      )}
+    </aside>
+  );
+}
+
 function JdHiringProcessHint({ text }: { text: string }) {
   const report = useMemo(() => extractJdHiringProcess(text), [text]);
   if (text.trim().length < 30) return null;
@@ -3228,6 +3267,7 @@ export default function InterviewPrepPage() {
                   <JdHiringProcessHint text={jobDescription} />
                   <JdHiringModeHint text={jobDescription} />
                   <JdRedFlagHint text={jobDescription} />
+                  <JdResponsibilityVaguenessHint text={jobDescription} />
                   <JdTechObsolescenceHint text={jobDescription} />
                   <JdGrowthOpportunityHint text={jobDescription} />
                   <JdWorkLifeBalanceHint text={jobDescription} />
