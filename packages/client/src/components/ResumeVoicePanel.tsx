@@ -1,5 +1,9 @@
 import { useMemo } from 'react';
-import { analyzePassiveVoice, analyzeSentenceEndings } from '@/lib/sentenceStructure';
+import {
+  analyzePassiveVoice,
+  analyzeSentenceEndings,
+  analyzeSentenceStarts,
+} from '@/lib/sentenceStructure';
 
 interface Props {
   text: string;
@@ -8,12 +12,14 @@ interface Props {
 export default function ResumeVoicePanel({ text }: Props) {
   const passive = useMemo(() => analyzePassiveVoice(text), [text]);
   const endings = useMemo(() => analyzeSentenceEndings(text), [text]);
+  const starts = useMemo(() => analyzeSentenceStarts(text), [text]);
 
   const passiveIssue = passive.level === 'high' || passive.level === 'medium';
   const endingIssue = endings.monotonyScore >= 60;
-  if (!passiveIssue && !endingIssue) return null;
+  const startsIssue = starts.repeatedStartRatio >= 0.4 && starts.totalSentences >= 5;
+  if (!passiveIssue && !endingIssue && !startsIssue) return null;
 
-  const issueCount = [passiveIssue, endingIssue].filter(Boolean).length;
+  const issueCount = [passiveIssue, endingIssue, startsIssue].filter(Boolean).length;
   const tone = passive.level === 'high' || endings.monotonyScore >= 80 ? 'warning' : 'neutral';
 
   return (
@@ -76,6 +82,37 @@ export default function ResumeVoicePanel({ text }: Props) {
                       className={`resume-voice-card__ending-chip${e.percent >= 50 ? ' resume-voice-card__ending-chip--dominant' : ''}`}
                     >
                       {e.ending} <span>{Math.round(e.percent)}%</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </li>
+        )}
+
+        {/* Sentence start variety */}
+        {startsIssue && (
+          <li
+            className="resume-voice-card__check resume-voice-card__check--warn"
+            aria-label="문장 시작 반복"
+          >
+            <span className="resume-voice-card__icon" aria-hidden="true">
+              ▲
+            </span>
+            <div>
+              <strong>문장 시작 반복</strong>
+              <span className="resume-voice-card__badge">
+                {Math.round(starts.repeatedStartRatio * 100)}% 반복
+              </span>
+              <p className="resume-voice-card__hint">{starts.suggestion}</p>
+              {starts.topStarts.length > 0 && (
+                <div className="resume-voice-card__ending-chips">
+                  {starts.topStarts.slice(0, 3).map((s) => (
+                    <span
+                      key={s.word}
+                      className={`resume-voice-card__ending-chip${s.percent >= 30 ? ' resume-voice-card__ending-chip--dominant' : ''}`}
+                    >
+                      {s.word} <span>{Math.round(s.percent)}%</span>
                     </span>
                   ))}
                 </div>
