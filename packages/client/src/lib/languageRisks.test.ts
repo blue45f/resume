@@ -41,4 +41,24 @@ describe('detectExaggeration', () => {
     const r = detectExaggeration('세계 최초로 완벽한 시스템을 구축했습니다.');
     expect(r.hits.length).toBeGreaterThan(0);
   });
+
+  it('detects 100% completion claim', () => {
+    const r = detectExaggeration('100% 완료된 시스템을 납품했습니다.');
+    expect(r.hits.length).toBeGreaterThan(0);
+  });
+});
+
+describe('detectCliches - edge cases', () => {
+  it('suggestion is non-empty for any level', () => {
+    const r = detectCliches('열정을 가지고 최선을 다해 노력했습니다.');
+    expect(r.suggestion.length).toBeGreaterThan(0);
+  });
+});
+
+describe('detectJargon - level thresholds', () => {
+  it('flags many when >= 3 jargon uses', () => {
+    const r = detectJargon('시너지, 인사이트, 패러다임, 이니셔티브, 오너십을 강조합니다.');
+    expect(r.level).toBe('many');
+    expect(r.totalCount).toBeGreaterThanOrEqual(3);
+  });
 });
