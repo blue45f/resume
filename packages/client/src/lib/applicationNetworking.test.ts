@@ -65,6 +65,7 @@ describe('buildNetworkingSearchUrl', () => {
     );
 
     expect(url).toContain('https://www.linkedin.com/search/results/people/');
-    expect(decodeURIComponent(url)).toContain('라인 플러스 Data Analyst recruiter hiring');
+    const keywords = new URLSearchParams(url.split('?')[1]).get('keywords');
+    expect(keywords).toContain('라인 플러스 Data Analyst recruiter hiring');
   });
 });

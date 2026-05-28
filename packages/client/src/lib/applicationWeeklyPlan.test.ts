@@ -56,6 +56,7 @@ describe('buildApplicationWeeklyPlan', () => {
           id: 'old',
           appliedDate: '2026-05-01',
           createdAt: '2026-05-01T09:00:00Z',
+          updatedAt: '2026-05-25T09:00:00Z', // 2 days ago — not stale, not in followUps
         }),
       ],
       new Date('2026-05-27T12:00:00Z'),
