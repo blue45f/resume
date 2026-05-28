@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { detectEmptyClaims, analyzeVerbTense, detectAllCapsOveruse } from '@/lib/qualitySignals';
 import { analyzeNumericFormat } from '@/lib/numericFormat';
 import { estimateReadingTime } from '@/lib/metaUtils';
+import { analyzeBracketBalance, detectWhitespaceAnomalies } from '@/lib/textFormat';
 
 interface Props {
   text: string;
@@ -13,6 +14,8 @@ export default function ResumeQualitySignalsPanel({ text }: Props) {
   const allCaps = useMemo(() => detectAllCapsOveruse(text), [text]);
   const numericFmt = useMemo(() => analyzeNumericFormat(text), [text]);
   const readingTime = useMemo(() => estimateReadingTime(text), [text]);
+  const brackets = useMemo(() => analyzeBracketBalance(text), [text]);
+  const whitespace = useMemo(() => detectWhitespaceAnomalies(text), [text]);
   const [expanded, setExpanded] = useState(false);
 
   const tenseGood = tense.dominant === 'past' || tense.dominant === 'none';
@@ -23,13 +26,28 @@ export default function ResumeQualitySignalsPanel({ text }: Props) {
   const readingThin = readingTime.minutes < 0.5 && readingTime.chars > 0;
   const readingLong = readingTime.minutes > 4;
   const readingOk = !readingThin && !readingLong;
+  const bracketsOk = !brackets.unbalanced;
+  const whitespaceOk = whitespace.clean;
 
-  const hasIssues = !claimsGood || !tenseGood || !capsGood || !numericGood || !readingOk;
+  const hasIssues =
+    !claimsGood ||
+    !tenseGood ||
+    !capsGood ||
+    !numericGood ||
+    !readingOk ||
+    !bracketsOk ||
+    !whitespaceOk;
   if (!hasIssues) return null;
 
-  const issueCount = [!tenseGood, !claimsGood, !capsGood, !numericGood, !readingOk].filter(
-    Boolean,
-  ).length;
+  const issueCount = [
+    !tenseGood,
+    !claimsGood,
+    !capsGood,
+    !numericGood,
+    !readingOk,
+    !bracketsOk,
+    !whitespaceOk,
+  ].filter(Boolean).length;
   const tone =
     issueCount === 0
       ? 'good'
@@ -113,6 +131,39 @@ export default function ResumeQualitySignalsPanel({ text }: Props) {
                 쉼표형 {numericFmt.comma} · 단순형 {numericFmt.plain} · 한글형 {numericFmt.korean}
               </span>
               <p className="quality-signals-card__hint">{numericFmt.suggestion}</p>
+            </div>
+          </li>
+        )}
+
+        {/* Bracket balance */}
+        {!bracketsOk && (
+          <li
+            className="quality-signals-card__check quality-signals-card__check--warn"
+            aria-label="괄호 균형"
+          >
+            <span className="quality-signals-card__icon" aria-hidden="true">
+              ▲
+            </span>
+            <div>
+              <strong>괄호 불균형</strong>
+              <p className="quality-signals-card__hint">{brackets.suggestion}</p>
+            </div>
+          </li>
+        )}
+
+        {/* Whitespace anomalies */}
+        {!whitespaceOk && (
+          <li
+            className="quality-signals-card__check quality-signals-card__check--warn"
+            aria-label="공백 이상"
+          >
+            <span className="quality-signals-card__icon" aria-hidden="true">
+              ▲
+            </span>
+            <div>
+              <strong>공백/포맷 이상</strong>
+              <span className="quality-signals-card__meta">{whitespace.anomalies.length}건</span>
+              <p className="quality-signals-card__hint">{whitespace.suggestion}</p>
             </div>
           </li>
         )}
