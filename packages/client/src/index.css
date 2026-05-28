@@ -6739,6 +6739,156 @@ button:active:not(:disabled) {
   }
 }
 
+/* ── Resume quantification rate card ──────────────────────────── */
+.quant-card {
+  padding: 1rem 1.1rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 22%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+}
+.quant-card--good {
+  border-color: color-mix(in oklab, var(--color-success) 30%, transparent);
+  background: color-mix(in oklab, var(--color-success) 5%, var(--color-surface));
+}
+.quant-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 30%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 5%, var(--color-surface));
+}
+.quant-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+.quant-card__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+}
+.quant-card__label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+.quant-card--good .quant-card__label {
+  color: var(--color-success);
+}
+.quant-card--warning .quant-card__label {
+  color: var(--color-warning);
+}
+.quant-card__meter {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+.quant-card__meter-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--color-accent);
+  transform: scaleX(var(--quant-fill, 0));
+  transform-origin: left center;
+  transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.quant-card--good .quant-card__meter {
+  background: color-mix(in oklab, var(--color-success) 15%, transparent);
+}
+.quant-card--good .quant-card__meter-fill {
+  background: var(--color-success);
+}
+.quant-card--warning .quant-card__meter {
+  background: color-mix(in oklab, var(--color-warning) 15%, transparent);
+}
+.quant-card--warning .quant-card__meter-fill {
+  background: var(--color-warning);
+}
+.quant-card__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.quant-card__cell {
+  text-align: center;
+}
+.quant-card__cell dt {
+  font-size: 0.65rem;
+  color: color-mix(in oklab, var(--color-text) 55%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+.quant-card__cell dd {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.3;
+}
+.quant-card__summary {
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: color-mix(in oklab, var(--color-text) 75%, transparent);
+  margin-bottom: 0.5rem;
+}
+.quant-card__suggestions {
+  margin-top: 0.6rem;
+  border-top: 1px solid color-mix(in oklab, var(--color-accent) 15%, transparent);
+  padding-top: 0.6rem;
+}
+.quant-card--warning .quant-card__suggestions {
+  border-top-color: color-mix(in oklab, var(--color-warning) 20%, transparent);
+}
+.quant-card__suggestions-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+  margin-bottom: 0.4rem;
+}
+.quant-card__suggestions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.quant-card__suggestion-item {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.3rem;
+  background: color-mix(in oklab, var(--color-warning) 8%, transparent);
+  border-left: 2px solid color-mix(in oklab, var(--color-warning) 50%, transparent);
+}
+.quant-card__toggle {
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.quant-card__toggle:hover {
+  text-decoration: underline;
+}
+@media (max-width: 480px) {
+  .quant-card__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* ── Application streak strip ──────────────────────────────────── */
 .streak-strip {
   margin-bottom: 1.25rem;

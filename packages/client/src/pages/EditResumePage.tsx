@@ -16,6 +16,7 @@ import CareerGapPanel from '@/components/CareerGapPanel';
 import UnquantifiedClaimsRewritePanel from '@/components/UnquantifiedClaimsRewritePanel';
 import ResumeTitleCoherencePanel from '@/components/ResumeTitleCoherencePanel';
 import ResumeActionVerbPanel from '@/components/ResumeActionVerbPanel';
+import ResumeQuantificationPanel from '@/components/ResumeQuantificationPanel';
 import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
 import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
@@ -615,6 +616,9 @@ export default function EditResumePage() {
               </div>
               <div className="sm:col-span-2">
                 <ResumeActionVerbPanel text={deferredAnalysisText} />
+              </div>
+              <div className="sm:col-span-2">
+                <ResumeQuantificationPanel text={deferredAnalysisText} />
               </div>
             </div>
           </section>
