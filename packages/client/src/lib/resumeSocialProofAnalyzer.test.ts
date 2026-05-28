@@ -36,7 +36,9 @@ describe('analyzeResumeSocialProof', () => {
   });
 
   it('detects publication signals', () => {
-    const r = analyzeResumeSocialProof('CVPR 2022 논문 게재. 기술 블로그 운영 (velog 월 방문자 5천).');
+    const r = analyzeResumeSocialProof(
+      'CVPR 2022 논문 게재. 기술 블로그 운영 (velog 월 방문자 5천).',
+    );
     expect(r.types.has('publication')).toBe(true);
   });
 

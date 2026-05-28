@@ -49,9 +49,7 @@ export default function ResumeSocialProofPanel({ text }: Props) {
     >
       <header className="social-proof-card__head">
         <span className="social-proof-card__eyebrow">외부 검증</span>
-        <span
-          className={`social-proof-card__badge social-proof-card__badge--${report.level}`}
-        >
+        <span className={`social-proof-card__badge social-proof-card__badge--${report.level}`}>
           {LEVEL_LABEL[report.level]}
         </span>
       </header>

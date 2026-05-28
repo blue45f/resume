@@ -38,15 +38,43 @@ interface ProofPattern {
 
 const PROOF_PATTERNS: ProofPattern[] = [
   // Publications
-  { re: /(?:논문|paper|arXiv|preprint)\s*(?:게재|출판|발표|제출|accept|reject)/, type: 'publication', weight: 25 },
-  { re: /(?:KCI|SCI|SCIE|IEEE|ACM|CVPR|NeurIPS|ICLR|ICML)\s*(?:게재|논문|발표)/, type: 'publication', weight: 30 },
-  { re: /(?:기술\s*(?:블로그|아티클)|Tech\s*blog)\s*(?:운영|연재|작성)/, type: 'publication', weight: 10 },
-  { re: /(?:velog|tistory|medium|brunch)\s*(?:블로그|연재|작성|기고)/, type: 'publication', weight: 8 },
+  {
+    re: /(?:논문|paper|arXiv|preprint)\s*(?:게재|출판|발표|제출|accept|reject)/,
+    type: 'publication',
+    weight: 25,
+  },
+  {
+    re: /(?:KCI|SCI|SCIE|IEEE|ACM|CVPR|NeurIPS|ICLR|ICML)\s*(?:게재|논문|발표)/,
+    type: 'publication',
+    weight: 30,
+  },
+  {
+    re: /(?:기술\s*(?:블로그|아티클)|Tech\s*blog)\s*(?:운영|연재|작성)/,
+    type: 'publication',
+    weight: 10,
+  },
+  {
+    re: /(?:velog|tistory|medium|brunch)\s*(?:블로그|연재|작성|기고)/,
+    type: 'publication',
+    weight: 8,
+  },
 
   // Conference / meetup talks
-  { re: /(?:DEVIEW|if\s*Kakao|Pycon|JSConf|GDC|우아콘|토스콘|당근마켓\s*컨퍼)\s*(?:발표|연사|스피커)/, type: 'conference_talk', weight: 30 },
-  { re: /(?:컨퍼런스|세미나|밋업|meetup)\s*(?:발표|연사|스피커|진행)/, type: 'conference_talk', weight: 20 },
-  { re: /사내\s*(?:Tech\s*Talk|테크\s*토크|발표|세션)\s*(?:진행|운영)/, type: 'conference_talk', weight: 10 },
+  {
+    re: /(?:DEVIEW|if\s*Kakao|Pycon|JSConf|GDC|우아콘|토스콘|당근마켓\s*컨퍼)\s*(?:발표|연사|스피커)/,
+    type: 'conference_talk',
+    weight: 30,
+  },
+  {
+    re: /(?:컨퍼런스|세미나|밋업|meetup)\s*(?:발표|연사|스피커|진행)/,
+    type: 'conference_talk',
+    weight: 20,
+  },
+  {
+    re: /사내\s*(?:Tech\s*Talk|테크\s*토크|발표|세션)\s*(?:진행|운영)/,
+    type: 'conference_talk',
+    weight: 10,
+  },
 
   // Patents
   { re: /(?:특허|patent)\s*(?:등록|출원|취득|보유)\s*(?:\d+건)?/, type: 'patent', weight: 30 },
@@ -55,23 +83,51 @@ const PROOF_PATTERNS: ProofPattern[] = [
   // Awards / competitions
   { re: /(?:해커톤|hackathon)\s*(?:우승|대상|최우수|1위|수상)/, type: 'award', weight: 20 },
   { re: /(?:공모전|경진대회|contest)\s*(?:우수|최우수|수상|입선|당선)/, type: 'award', weight: 15 },
-  { re: /(?:포상|대상|금상|은상|동상|장관상|수상)\s*(?:수상|수여|받음)?/, type: 'award', weight: 15 },
-  { re: /(?:MVP|Best\s*(?:Employee|Developer|Engineer))\s*(?:선정|수상)/, type: 'award', weight: 15 },
+  {
+    re: /(?:포상|대상|금상|은상|동상|장관상|수상)\s*(?:수상|수여|받음)?/,
+    type: 'award',
+    weight: 15,
+  },
+  {
+    re: /(?:MVP|Best\s*(?:Employee|Developer|Engineer))\s*(?:선정|수상)/,
+    type: 'award',
+    weight: 15,
+  },
 
   // Open source
   { re: /(?:GitHub|깃허브)\s*(?:star|스타)\s*\d+/, type: 'open_source', weight: 20 },
-  { re: /(?:오픈소스|open\s*source)\s*(?:메인테이너|contributor|기여자|운영)/, type: 'open_source', weight: 20 },
-  { re: /(?:npm|pypi|crates\.io)\s*(?:패키지|라이브러리)\s*(?:배포|공개|운영)/, type: 'open_source', weight: 18 },
-  { re: /(?:PR|pull\s*request)\s*(?:merge|merged|승인|기여)\s*(?:\d+건)?/, type: 'open_source', weight: 12 },
+  {
+    re: /(?:오픈소스|open\s*source)\s*(?:메인테이너|contributor|기여자|운영)/,
+    type: 'open_source',
+    weight: 20,
+  },
+  {
+    re: /(?:npm|pypi|crates\.io)\s*(?:패키지|라이브러리)\s*(?:배포|공개|운영)/,
+    type: 'open_source',
+    weight: 18,
+  },
+  {
+    re: /(?:PR|pull\s*request)\s*(?:merge|merged|승인|기여)\s*(?:\d+건)?/,
+    type: 'open_source',
+    weight: 12,
+  },
 
   // Teaching / tutoring
   { re: /(?:인강|강의|강좌)\s*(?:제작|운영|출강|진행|촬영)/, type: 'teaching', weight: 15 },
-  { re: /(?:멘토\s*프로그램|패스트캠퍼스|인프런|유데미)\s*(?:강사|강의|출강)/, type: 'teaching', weight: 18 },
+  {
+    re: /(?:멘토\s*프로그램|패스트캠퍼스|인프런|유데미)\s*(?:강사|강의|출강)/,
+    type: 'teaching',
+    weight: 18,
+  },
   { re: /(?:사내\s*교육|팀\s*교육)\s*(?:개발|운영|진행|담당)/, type: 'teaching', weight: 10 },
 
   // Media / press
   { re: /(?:언론|뉴스|인터뷰|기사)\s*(?:게재|보도|인용)/, type: 'media', weight: 15 },
-  { re: /(?:팟캐스트|podcast|유튜브|YouTube)\s*(?:출연|인터뷰|영상|채널)/, type: 'media', weight: 10 },
+  {
+    re: /(?:팟캐스트|podcast|유튜브|YouTube)\s*(?:출연|인터뷰|영상|채널)/,
+    type: 'media',
+    weight: 10,
+  },
 ];
 
 // ---------------------------------------------------------------------------
