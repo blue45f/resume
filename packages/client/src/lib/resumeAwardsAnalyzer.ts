@@ -86,14 +86,12 @@ export function analyzeResumeAwards(text: string): ResumeAwardsReport {
     .filter(Boolean);
 
   const awards: AwardMatch[] = [];
-  const seen = new Set<AwardCategory>();
 
   for (const line of lines) {
     for (const { category, re } of CATEGORY_PATTERNS) {
       if (re.test(line)) {
         const hasContext = CONTEXT_RE.test(line);
         awards.push({ category, excerpt: line.slice(0, 50), hasContext });
-        seen.add(category);
         break; // one category per line
       }
     }
