@@ -15,6 +15,7 @@ import QuotableHighlights from '@/components/QuotableHighlights';
 import CareerGapPanel from '@/components/CareerGapPanel';
 import UnquantifiedClaimsRewritePanel from '@/components/UnquantifiedClaimsRewritePanel';
 import ResumeTitleCoherencePanel from '@/components/ResumeTitleCoherencePanel';
+import ResumeActionVerbPanel from '@/components/ResumeActionVerbPanel';
 import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
 import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
@@ -359,14 +360,18 @@ export default function EditResumePage() {
   const [showVersions, setShowVersions] = useState(false);
   const [showAllowedViewers, setShowAllowedViewers] = useState(false);
   const [liveData, setLiveData] = useState<Partial<Resume> | null>(null);
+  const [liveSyncedId, setLiveSyncedId] = useState<string | null>(null);
 
   const loadResume = () => {
     queryClient.invalidateQueries({ queryKey: ['resume', id] });
   };
 
-  useEffect(() => {
-    if (resume) setLiveData(resume);
-  }, [resume?.id]);
+  // Sync liveData when the loaded resume id changes (React's recommended
+  // pattern for "reset state when a prop changes" — no effect needed).
+  if (resume && resume.id !== liveSyncedId) {
+    setLiveSyncedId(resume.id);
+    setLiveData(resume);
+  }
 
   useEffect(() => {
     if (resume) {
@@ -607,6 +612,9 @@ export default function EditResumePage() {
                   title={liveData?.title ?? resume.title ?? ''}
                   text={deferredAnalysisText}
                 />
+              </div>
+              <div className="sm:col-span-2">
+                <ResumeActionVerbPanel text={deferredAnalysisText} />
               </div>
             </div>
           </section>

@@ -6244,6 +6244,164 @@ button:active:not(:disabled) {
   }
 }
 
+/* ── Action verb diversity card ────────────────────────────────── */
+.verb-card {
+  padding: 0.95rem 1.05rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+}
+.verb-card--good {
+  border-color: color-mix(in oklab, var(--color-success) 22%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-success-light) 30%, var(--color-surface));
+}
+.verb-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 26%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-warning-light) 32%, var(--color-surface));
+}
+.verb-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.verb-card__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.verb-card__label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--color-text);
+}
+.verb-card--good .verb-card__label {
+  color: color-mix(in oklab, var(--color-success) 82%, var(--color-text));
+}
+.verb-card--warning .verb-card__label {
+  color: color-mix(in oklab, var(--color-warning) 82%, var(--color-text));
+}
+.verb-card__meter {
+  --verb-fill: 0.04;
+  margin-top: 0.7rem;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-border-subtle) 70%, transparent);
+  overflow: hidden;
+  position: relative;
+}
+.verb-card__meter-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent) 0%,
+    color-mix(in oklab, var(--color-accent) 70%, var(--color-info)) 100%
+  );
+  transform-origin: left center;
+  transform: scaleX(var(--verb-fill));
+  transition: transform 320ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+.verb-card--good .verb-card__meter-fill {
+  background: linear-gradient(
+    90deg,
+    var(--color-success) 0%,
+    color-mix(in oklab, var(--color-success) 70%, var(--color-accent)) 100%
+  );
+}
+.verb-card--warning .verb-card__meter-fill {
+  background: linear-gradient(
+    90deg,
+    var(--color-warning) 0%,
+    color-mix(in oklab, var(--color-warning) 70%, var(--color-accent)) 100%
+  );
+}
+.verb-card__grid {
+  margin: 0.75rem 0 0;
+  padding: 0.55rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+  border-top: 1px solid var(--color-border-subtle);
+}
+.verb-card__cell {
+  padding: 0.35rem 0.45rem;
+}
+.verb-card__cell dt {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.verb-card__cell dd {
+  margin-top: 0.25rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+.verb-card__chips {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.verb-card__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  background: color-mix(in oklab, var(--color-surface-sunken) 60%, transparent);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+}
+.verb-card__chip small {
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.verb-card__chip--strong {
+  background: color-mix(in oklab, var(--color-success-light) 60%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--color-success) 30%, var(--color-border-subtle));
+  color: color-mix(in oklab, var(--color-success) 80%, var(--color-text));
+}
+.verb-card__chip--weak {
+  background: color-mix(in oklab, var(--color-warning-light) 60%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--color-warning) 30%, var(--color-border-subtle));
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.verb-card__summary {
+  margin-top: 0.7rem;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+.verb-card__suggestion {
+  margin-top: 0.45rem;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  color: var(--color-accent);
+  font-weight: 500;
+}
+.verb-card__suggestion strong {
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-accent) 75%, var(--color-text));
+}
+@media (max-width: 480px) {
+  .verb-card__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* ── Application streak strip ──────────────────────────────────── */
 .streak-strip {
   margin-bottom: 1.25rem;
