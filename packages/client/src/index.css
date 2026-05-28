@@ -10662,6 +10662,97 @@ button:active:not(:disabled) {
   border-top: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
 }
 
+/* ── SkillFreshnessPanel ── */
+.skill-freshness-card {
+  background: var(--color-surface);
+  border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.skill-freshness-card--warning {
+  background: color-mix(in oklab, var(--color-warning) 6%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--color-warning) 28%, transparent);
+}
+.skill-freshness-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.skill-freshness-card__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.skill-freshness-card__badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+.skill-freshness-card__badge--legacy {
+  background: color-mix(in oklab, var(--color-warning) 16%, transparent);
+  color: var(--color-warning);
+}
+.skill-freshness-card__badge--aging {
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+}
+.skill-freshness-card__hint {
+  font-size: 0.76rem;
+  color: color-mix(in oklab, var(--color-text) 80%, transparent);
+  margin: 0;
+  line-height: 1.5;
+}
+.skill-freshness-card__section-title {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.3rem;
+}
+.skill-freshness-card__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.skill-freshness-card__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.3rem 0.45rem;
+  border-radius: 0.4rem;
+}
+.skill-freshness-card__item--legacy {
+  background: color-mix(in oklab, var(--color-warning) 8%, transparent);
+}
+.skill-freshness-card__item--aging {
+  background: color-mix(in oklab, var(--color-accent) 6%, transparent);
+}
+.skill-freshness-card__skill {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-text) 85%, transparent);
+}
+.skill-freshness-card__note {
+  font-size: 0.68rem;
+  color: color-mix(in oklab, var(--color-text) 60%, transparent);
+  line-height: 1.4;
+}
+.skill-freshness-card__alt {
+  font-size: 0.68rem;
+  color: color-mix(in oklab, var(--color-success) 75%, var(--color-text));
+  font-weight: 500;
+}
+
 /* ── ResumeJobLevelPanel ── */
 .job-level-card {
   background: var(--color-surface);
