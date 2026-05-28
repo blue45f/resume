@@ -22,6 +22,7 @@ import ResumeBulletConsistencyPanel from '@/components/ResumeBulletConsistencyPa
 import ResumeQualitySignalsPanel from '@/components/ResumeQualitySignalsPanel';
 import ResumeVoicePanel from '@/components/ResumeVoicePanel';
 import ResumeAchievementPanel from '@/components/ResumeAchievementPanel';
+import ResumeTechCasingPanel from '@/components/ResumeTechCasingPanel';
 import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
 import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
@@ -639,6 +640,9 @@ export default function EditResumePage() {
               </div>
               <div className="sm:col-span-2">
                 <ResumeAchievementPanel text={deferredAnalysisText} />
+              </div>
+              <div className="sm:col-span-2">
+                <ResumeTechCasingPanel text={deferredAnalysisText} />
               </div>
             </div>
           </section>
