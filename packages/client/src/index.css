@@ -6877,6 +6877,120 @@ button:active:not(:disabled) {
   border-color: var(--color-accent);
 }
 
+/* ── Cover letter structure card ───────────────────────────────── */
+.cl-struct-card {
+  padding: 1rem 1.1rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 22%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+}
+.cl-struct-card--good {
+  border-color: color-mix(in oklab, var(--color-success) 28%, transparent);
+  background: color-mix(in oklab, var(--color-success) 5%, var(--color-surface));
+}
+.cl-struct-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 28%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 5%, var(--color-surface));
+}
+.cl-struct-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+.cl-struct-card__eyebrow {
+  font-size: 0.67rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 48%, transparent);
+}
+.cl-struct-card__label {
+  font-size: 0.81rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+.cl-struct-card--good .cl-struct-card__label {
+  color: var(--color-success);
+}
+.cl-struct-card--warning .cl-struct-card__label {
+  color: var(--color-warning);
+}
+.cl-struct-card__meter {
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  overflow: hidden;
+  margin-bottom: 0.65rem;
+}
+.cl-struct-card__meter-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--color-accent);
+  transform: scaleX(var(--cl-struct-fill, 0));
+  transform-origin: left center;
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.cl-struct-card--good .cl-struct-card__meter-fill {
+  background: var(--color-success);
+}
+.cl-struct-card--warning .cl-struct-card__meter-fill {
+  background: var(--color-warning);
+}
+.cl-struct-card__meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.7rem;
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+  margin-bottom: 0.6rem;
+}
+.cl-struct-card__checks {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.cl-struct-card__check {
+  display: grid;
+  grid-template-columns: 1rem auto 1fr;
+  gap: 0 0.4rem;
+  align-items: baseline;
+}
+.cl-struct-card__check-icon {
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+.cl-struct-card__check--pass .cl-struct-card__check-icon {
+  color: var(--color-success);
+}
+.cl-struct-card__check--warn .cl-struct-card__check-icon {
+  color: var(--color-warning);
+}
+.cl-struct-card__check--fail .cl-struct-card__check-icon {
+  color: var(--color-danger, var(--color-warning));
+}
+.cl-struct-card__check-label {
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.cl-struct-card__check-msg {
+  font-size: 0.71rem;
+  line-height: 1.45;
+  color: color-mix(in oklab, var(--color-text) 65%, transparent);
+}
+.cl-struct-card__summary {
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+}
+
 /* ── Action verb diversity card ────────────────────────────────── */
 .verb-card {
   padding: 0.95rem 1.05rem 1rem;

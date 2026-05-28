@@ -21,6 +21,7 @@ import OverallHealthGauge from '@/components/OverallHealthGauge';
 import QuotableHighlights from '@/components/QuotableHighlights';
 import CareerGapPanel from '@/components/CareerGapPanel';
 import CoverLetterClichePanel from '@/components/CoverLetterClichePanel';
+import CoverLetterStructurePanel from '@/components/CoverLetterStructurePanel';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import {
   computeJDMatch,
@@ -906,6 +907,7 @@ export default function CoverLetterPage() {
                       <SectionInsightsPanel text={deferredFeedbackText} />
                       <CareerGapPanel text={deferredFeedbackText} />
                       <CoverLetterClichePanel text={deferredFeedbackText} />
+                      <CoverLetterStructurePanel text={deferredFeedbackText} />
                       <QuotableHighlights text={deferredFeedbackText} />
                       <UnquantifiedClaimsPanel text={deferredFeedbackText} />
                       <OpenerSuggestionsPanel text={deferredFeedbackText} />
