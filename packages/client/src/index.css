@@ -6244,6 +6244,183 @@ button:active:not(:disabled) {
   }
 }
 
+/* ── Cover letter cliche card ──────────────────────────────────── */
+.cliche-card {
+  margin: 0.6rem 0;
+  padding: 0.95rem 1.05rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+}
+.cliche-card--good {
+  border-color: color-mix(in oklab, var(--color-success) 22%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-success-light) 28%, var(--color-surface));
+}
+.cliche-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 28%, var(--color-border-subtle));
+  background: color-mix(in oklab, var(--color-warning-light) 30%, var(--color-surface));
+}
+.cliche-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.cliche-card__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.cliche-card__label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--color-text);
+}
+.cliche-card--good .cliche-card__label {
+  color: color-mix(in oklab, var(--color-success) 82%, var(--color-text));
+}
+.cliche-card--warning .cliche-card__label {
+  color: color-mix(in oklab, var(--color-warning) 82%, var(--color-text));
+}
+.cliche-card__meter {
+  --cliche-fill: 0.04;
+  margin-top: 0.7rem;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-border-subtle) 70%, transparent);
+  overflow: hidden;
+  position: relative;
+}
+.cliche-card__meter-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    var(--color-warning) 0%,
+    color-mix(in oklab, var(--color-warning) 65%, var(--color-accent)) 100%
+  );
+  transform-origin: left center;
+  transform: scaleX(var(--cliche-fill));
+  transition: transform 320ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+.cliche-card--good .cliche-card__meter-fill {
+  background: linear-gradient(
+    90deg,
+    var(--color-success) 0%,
+    color-mix(in oklab, var(--color-success) 70%, var(--color-accent)) 100%
+  );
+}
+.cliche-card__summary {
+  margin-top: 0.7rem;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+.cliche-card__chips {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.cliche-card__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  background: color-mix(in oklab, var(--color-warning-light) 60%, var(--color-surface));
+  border: 1px solid color-mix(in oklab, var(--color-warning) 30%, var(--color-border-subtle));
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.cliche-card__chip small {
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.cliche-card__hits {
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+.cliche-card__hit {
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--color-surface-raised, var(--color-surface));
+  border: 1px solid var(--color-border-subtle);
+}
+.cliche-card__hit--high {
+  border-left: 3px solid var(--color-warning);
+}
+.cliche-card__hit--medium {
+  border-left: 3px solid color-mix(in oklab, var(--color-warning) 60%, var(--color-border-subtle));
+}
+.cliche-card__hit--low {
+  border-left: 3px solid var(--color-border-subtle);
+}
+.cliche-card__hit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.cliche-card__match {
+  display: inline-block;
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--color-warning) 14%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.cliche-card__severity {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+.cliche-card__excerpt {
+  margin-top: 0.3rem;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+.cliche-card__suggestion {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--color-accent);
+}
+.cliche-card__more {
+  margin-top: 0.7rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--color-border-subtle);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    color 180ms,
+    border-color 180ms;
+}
+.cliche-card__more:hover {
+  color: var(--color-text);
+  border-color: var(--color-accent);
+}
+
 /* ── Action verb diversity card ────────────────────────────────── */
 .verb-card {
   padding: 0.95rem 1.05rem 1rem;
