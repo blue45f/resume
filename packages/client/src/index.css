@@ -12056,3 +12056,95 @@ button:active:not(:disabled) {
   background: color-mix(in oklab, var(--color-error) 12%, transparent);
   color: color-mix(in oklab, var(--color-error) 80%, var(--color-text));
 }
+
+/* ── ResumeCareerNarrativePanel ── */
+.career-narrative-card {
+  border: 1px solid color-mix(in oklab, var(--color-warning) 35%, var(--color-border));
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  background: color-mix(in oklab, var(--color-warning) 5%, var(--color-surface-raised));
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.career-narrative-card--warning {
+  border-color: color-mix(in oklab, var(--color-error) 35%, var(--color-border));
+  background: color-mix(in oklab, var(--color-error) 5%, var(--color-surface-raised));
+}
+.career-narrative-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.career-narrative-card__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.career-narrative-card--warning .career-narrative-card__eyebrow {
+  color: color-mix(in oklab, var(--color-error) 80%, var(--color-text));
+}
+.career-narrative-card__badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+}
+.career-narrative-card__badge--coherent {
+  background: color-mix(in oklab, var(--color-success) 18%, transparent);
+  color: color-mix(in oklab, var(--color-success) 85%, var(--color-text));
+}
+.career-narrative-card__badge--adequate {
+  background: color-mix(in oklab, var(--color-warning) 18%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 85%, var(--color-text));
+}
+.career-narrative-card__badge--fragmented {
+  background: color-mix(in oklab, var(--color-error) 15%, transparent);
+  color: color-mix(in oklab, var(--color-error) 85%, var(--color-text));
+}
+.career-narrative-card__hint {
+  font-size: 0.8rem;
+  color: color-mix(in oklab, var(--color-text) 75%, transparent);
+  line-height: 1.5;
+  margin: 0;
+}
+.career-narrative-card__issues {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.career-narrative-card__issue {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.career-narrative-card__issue-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  white-space: nowrap;
+  background: color-mix(in oklab, var(--color-error) 12%, transparent);
+  color: color-mix(in oklab, var(--color-error) 80%, var(--color-text));
+}
+.career-narrative-card__issue-evidence {
+  font-size: 0.78rem;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+}
+.career-narrative-card__positives {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.career-narrative-card__positive {
+  font-size: 0.78rem;
+  color: color-mix(in oklab, var(--color-success) 80%, var(--color-text));
+}
