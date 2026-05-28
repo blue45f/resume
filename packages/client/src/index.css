@@ -12421,3 +12421,88 @@ button:active:not(:disabled) {
   font-size: 0.78rem;
   color: color-mix(in oklab, var(--color-text) 65%, transparent);
 }
+
+/* ── CoverLetterOpeningHookPanel ── */
+.cl-hook-card {
+  border: 1px solid color-mix(in oklab, var(--color-accent) 25%, var(--color-border));
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface-raised));
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.cl-hook-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 35%, var(--color-border));
+  background: color-mix(in oklab, var(--color-warning) 5%, var(--color-surface-raised));
+}
+.cl-hook-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.cl-hook-card__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-accent) 80%, var(--color-text));
+}
+.cl-hook-card--warning .cl-hook-card__eyebrow {
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.cl-hook-card__badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+}
+.cl-hook-card__badge--strong {
+  background: color-mix(in oklab, var(--color-success) 18%, transparent);
+  color: color-mix(in oklab, var(--color-success) 85%, var(--color-text));
+}
+.cl-hook-card__badge--adequate {
+  background: color-mix(in oklab, var(--color-accent) 15%, transparent);
+  color: color-mix(in oklab, var(--color-accent) 85%, var(--color-text));
+}
+.cl-hook-card__badge--weak {
+  background: color-mix(in oklab, var(--color-warning) 18%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 85%, var(--color-text));
+}
+.cl-hook-card__badge--generic {
+  background: color-mix(in oklab, var(--color-error) 15%, transparent);
+  color: color-mix(in oklab, var(--color-error) 85%, var(--color-text));
+}
+.cl-hook-card__hint {
+  font-size: 0.8rem;
+  color: color-mix(in oklab, var(--color-text) 75%, transparent);
+  line-height: 1.5;
+  margin: 0;
+}
+.cl-hook-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.cl-hook-card__chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+}
+.cl-hook-card__chip--warn {
+  background: color-mix(in oklab, var(--color-warning) 12%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.cl-hook-card__suggestions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.cl-hook-card__suggestion {
+  font-size: 0.78rem;
+  color: color-mix(in oklab, var(--color-text) 65%, transparent);
+}
