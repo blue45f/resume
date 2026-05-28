@@ -39,12 +39,12 @@ pnpm dev:mock     # MSW 기반 목 서버 구동 (VITE_MSW=true)
 
 ## 환경 변수
 
-| 파일 | 용도 | 커밋 여부 |
-|------|------|-----------|
-| `.env.example` | 템플릿·참조용 | 커밋 O |
-| `.env.development` | 로컬 개발 (Vite 자동 로드) | 커밋 X |
-| `.env.production` | 프로덕션 빌드 | 커밋 X |
-| `.env.local` | 개인 오버라이드 (가장 높은 우선순위) | 커밋 X |
+| 파일               | 용도                                 | 커밋 여부 |
+| ------------------ | ------------------------------------ | --------- |
+| `.env.example`     | 템플릿·참조용                        | 커밋 O    |
+| `.env.development` | 로컬 개발 (Vite 자동 로드)           | 커밋 X    |
+| `.env.production`  | 프로덕션 빌드                        | 커밋 X    |
+| `.env.local`       | 개인 오버라이드 (가장 높은 우선순위) | 커밋 X    |
 
 주요 키:
 
@@ -124,6 +124,55 @@ pnpm deploy:gcp
 
 마이그레이션: `pnpm prisma:migrate deploy` (프로덕션) / `pnpm prisma:migrate dev` (개발).
 
+## React 빌드 도입 가이드
+
+React를 처음 도입하거나 React 런타임/번들러를 교체할 때는 기능 개발 이전에 빌드 파이프라인부터 고정해야 합니다.
+
+### 1) 최소 빌드 스크립트 기준
+
+레포에서 React 산출물을 다루는 최소 기준은 아래와 같습니다.
+
+| 영역                  | 스크립트           | 목적                                                   |
+| --------------------- | ------------------ | ------------------------------------------------------ |
+| 앱(`packages/client`) | `build:client`     | `vite build` 실행                                      |
+| 앱(`packages/client`) | `preview`          | `vite preview` 실행                                    |
+| 앱 타입체크           | `typecheck` (루트) | `tsc -b --noEmit` + Prisma 생성까지 포함               |
+| 루트                  | `build`            | `build:client` + `build:server` + Prisma generate 결합 |
+
+### 2) 도입/업그레이드 실행 순서
+
+1. 패키지 정합성 확인
+   - React/ReactDOM/Vite/ESLint 관련 패키지 버전 일치
+   - `vite.config.ts`에 `@vitejs/plugin-react` 적용 여부 확인
+   - `tsconfig`의 JSX 모드(`react-jsx`) 확인
+2. 정적 빌드 점검
+
+   ```bash
+   pnpm typecheck    # 타입 게이트
+   pnpm build        # 전체 산출물 생성
+   pnpm preview      # 생성물 실행 확인
+   ```
+
+3. 산출물 점검
+   - `packages/client/dist`에 진입점 HTML/CSS/JS 아티팩트 생성 여부 확인
+   - `vite build --mode production` 과 `--mode development` 로그 차이를 비교해 sourcemap/트리셰이킹 이슈 탐지
+   - 번들 크기 급증 구간은 `--json` 기반 산출물 로그로 회귀 이슈 분리
+
+### 3) CI에서의 게이트 반영
+
+- PR/푸시에서 최소 `pnpm build`가 필수로 통과되도록 유지
+- `pnpm ci` 또는 `pnpm verify`에 `build`/`typecheck`를 명시적으로 포함
+- Storybook이 추가되는 경우 `build-storybook`을 별도 job으로 분리해 타임아웃·메모리 부담을 줄임
+
+### 4) 회귀 대응 체크리스트
+
+- 번들 크기 급증: 중복 번들링 라이브러리나 peerDependency 중복, `exclude` 누락 여부를 우선 점검
+- SSR/CSR 경계 오류: `window`, `document` 접근부의 클라이언트 분기 검증
+- 타입 체인 실패: `tsc -b` 기준으로 루트에서 재현(패키지별 `node_modules` 차이보다 우선)
+- 증분 빌드 불안정: cache key 입력(패키지 매니저/lockfile/tsconfig/build 설정)에 캐시 키를 반영
+
+문서와 PR에는 `pnpm typecheck`, `pnpm build`, `pnpm preview` 실행 결과 또는 요약 증빙을 남기고 병합하세요.
+
 ## Husky pre-commit
 
 `.husky/pre-commit` 훅은 아래를 순차 실행하며 하나라도 실패하면 커밋을 중단합니다.
@@ -140,21 +189,21 @@ pnpm deploy:gcp
 
 ## 주요 스크립트 레퍼런스
 
-| 스크립트 | 설명 |
-|---------|------|
-| `pnpm dev` | Vite + Nest 동시 기동 (concurrently) |
-| `pnpm dev:mock` | MSW 활성화된 프론트 단독 구동 |
-| `pnpm build` | 클라이언트 + 서버 동시 빌드 |
-| `pnpm lint` | 전체 ESLint 검사 |
-| `pnpm format` | Prettier 포맷 적용 |
-| `pnpm format:check` | 포맷 체크 (CI) |
-| `pnpm typecheck` | `tsc --noEmit` |
-| `pnpm prisma:generate` | Prisma Client 재생성 |
-| `pnpm prisma:migrate` | 마이그레이션 개발 모드 |
-| `pnpm prisma:push` | 스키마 즉시 push (초기 프로토타입) |
-| `pnpm prisma:studio` | Prisma Studio GUI |
-| `pnpm prisma:reset` | DB 전체 리셋 + 시드 |
-| `pnpm start:server` | 프로덕션 Nest 구동 |
+| 스크립트               | 설명                                 |
+| ---------------------- | ------------------------------------ |
+| `pnpm dev`             | Vite + Nest 동시 기동 (concurrently) |
+| `pnpm dev:mock`        | MSW 활성화된 프론트 단독 구동        |
+| `pnpm build`           | 클라이언트 + 서버 동시 빌드          |
+| `pnpm lint`            | 전체 ESLint 검사                     |
+| `pnpm format`          | Prettier 포맷 적용                   |
+| `pnpm format:check`    | 포맷 체크 (CI)                       |
+| `pnpm typecheck`       | `tsc --noEmit`                       |
+| `pnpm prisma:generate` | Prisma Client 재생성                 |
+| `pnpm prisma:migrate`  | 마이그레이션 개발 모드               |
+| `pnpm prisma:push`     | 스키마 즉시 push (초기 프로토타입)   |
+| `pnpm prisma:studio`   | Prisma Studio GUI                    |
+| `pnpm prisma:reset`    | DB 전체 리셋 + 시드                  |
+| `pnpm start:server`    | 프로덕션 Nest 구동                   |
 
 ## 디버깅 팁
 
