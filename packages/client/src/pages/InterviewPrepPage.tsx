@@ -35,6 +35,7 @@ import { detectJdStatutoryBenefits } from '@/lib/jdStatutoryBenefitsDetector';
 import { analyzeJdTeamStructure } from '@/lib/jdTeamStructureAnalyzer';
 import { extractJdHiringProcess } from '@/lib/jdHiringProcessExtractor';
 import { detectJdResponsibilityVagueness } from '@/lib/jdResponsibilityVaguenessDetector';
+import { checkJdPostingCompleteness } from '@/lib/jdPostingCompletenessChecker';
 import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -1664,6 +1665,74 @@ function JdApplicationUrgencyHint({ text }: { text: string }) {
   );
 }
 
+function JdPostingCompletenessHint({ text }: { text: string }) {
+  const report = useMemo(() => checkJdPostingCompleteness(text), [text]);
+  if (text.trim().length < 40) return null;
+  // Only surface when the posting is missing something worth flagging.
+  if (report.grade === 'complete') return null;
+
+  const GRADE_LABEL: Record<string, string> = {
+    good: '일부 누락',
+    partial: '정보 부족',
+    sparse: '정보 부실',
+  };
+  const SECTION_LABEL: Record<string, string> = {
+    responsibilities: '담당업무',
+    qualifications: '자격요건',
+    conditions: '근무조건',
+    preferred: '우대사항',
+    benefits: '복리후생',
+    process: '전형절차',
+  };
+  const cardColor =
+    report.grade === 'sparse' || report.grade === 'partial'
+      ? 'border-amber-200 bg-amber-50'
+      : 'border-sky-200 bg-sky-50';
+  const textColor =
+    report.grade === 'sparse' || report.grade === 'partial' ? 'text-amber-800' : 'text-sky-800';
+  const badgeColor =
+    report.grade === 'sparse' || report.grade === 'partial'
+      ? 'bg-amber-100 text-amber-800'
+      : 'bg-sky-100 text-sky-800';
+
+  return (
+    <aside className={`rounded-xl border p-4 text-sm ${cardColor}`} aria-label="공고 완성도">
+      <div className={`mb-2 flex items-center gap-2 font-semibold ${textColor}`}>
+        <span>📑 공고 완성도</span>
+        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeColor}`}>
+          {GRADE_LABEL[report.grade] ?? report.grade}
+        </span>
+        <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
+          필수 {report.essentialPresent}/3
+        </span>
+      </div>
+      <p className={`mb-2 ${textColor}`}>{report.summary}</p>
+      {report.missingSections.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-1" aria-label="누락 섹션">
+          {report.missingSections.map((s) => (
+            <span
+              key={s}
+              className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500 line-through"
+            >
+              {SECTION_LABEL[s] ?? s}
+            </span>
+          ))}
+        </div>
+      )}
+      {report.tips.length > 0 && (
+        <ul className="mt-1 space-y-1 text-xs text-neutral-600">
+          {report.tips.map((tip, i) => (
+            <li key={i} className="flex gap-1">
+              <span>•</span>
+              {tip}
+            </li>
+          ))}
+        </ul>
+      )}
+    </aside>
+  );
+}
+
 function JdResponsibilityVaguenessHint({ text }: { text: string }) {
   const report = useMemo(() => detectJdResponsibilityVagueness(text), [text]);
   if (text.trim().length < 30) return null;
@@ -3263,6 +3332,7 @@ export default function InterviewPrepPage() {
                   <JdKeywordGapHint jdText={jobDescription} resumeText={resumeTextForGap} />
                   <JdWorkModalityHint text={jobDescription} />
                   <JdSalaryBenchmarkHint text={jobDescription} />
+                  <JdPostingCompletenessHint text={jobDescription} />
                   <JdInterviewStrategyHint text={jobDescription} />
                   <JdHiringProcessHint text={jobDescription} />
                   <JdHiringModeHint text={jobDescription} />
