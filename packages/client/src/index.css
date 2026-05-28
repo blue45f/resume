@@ -12598,3 +12598,100 @@ button:active:not(:disabled) {
   font-size: 0.78rem;
   color: color-mix(in oklab, var(--color-text) 65%, transparent);
 }
+
+/* ── ResumeGapFillerLanguagePanel ── */
+.gap-filler-card {
+  border-radius: 0.6rem;
+  border: 1px solid color-mix(in oklab, var(--color-warning) 30%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 6%, var(--color-surface));
+  padding: 0.85rem 1rem;
+  font-size: 0.82rem;
+}
+.gap-filler-card--heavy {
+  border-color: color-mix(in oklab, var(--color-error) 35%, transparent);
+  background: color-mix(in oklab, var(--color-error) 6%, var(--color-surface));
+}
+.gap-filler-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.gap-filler-card__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.gap-filler-card--heavy .gap-filler-card__eyebrow {
+  color: color-mix(in oklab, var(--color-error) 70%, transparent);
+}
+.gap-filler-card__badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+.gap-filler-card__badge--heavy {
+  background: color-mix(in oklab, var(--color-error) 15%, transparent);
+  color: color-mix(in oklab, var(--color-error) 80%, var(--color-text));
+}
+.gap-filler-card__badge--moderate {
+  background: color-mix(in oklab, var(--color-warning) 18%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.gap-filler-card__badge--light {
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  color: color-mix(in oklab, var(--color-accent) 70%, var(--color-text));
+}
+.gap-filler-card__count {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: color-mix(in oklab, var(--color-text) 40%, transparent);
+}
+.gap-filler-card__hint {
+  margin-bottom: 0.55rem;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  line-height: 1.45;
+}
+.gap-filler-card__phrases {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.55rem;
+}
+.gap-filler-card__phrase-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.gap-filler-card__phrase-cat {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: color-mix(in oklab, var(--color-warning) 75%, var(--color-text));
+  white-space: nowrap;
+}
+.gap-filler-card--heavy .gap-filler-card__phrase-cat {
+  color: color-mix(in oklab, var(--color-error) 70%, var(--color-text));
+}
+.gap-filler-card__phrase-text {
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-text) 55%, transparent);
+  font-style: italic;
+}
+.gap-filler-card__guide {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+  padding-top: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.gap-filler-card__guide-item {
+  font-size: 0.76rem;
+  color: color-mix(in oklab, var(--color-text) 60%, transparent);
+}
