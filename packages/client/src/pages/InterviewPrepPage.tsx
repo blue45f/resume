@@ -19,6 +19,7 @@ import { buildInterviewStrategyReport, FORMAT_LABEL_MAP } from '@/lib/jdIntervie
 import { buildJdRequirementsReport } from '@/lib/jdRequirementsExtractor';
 import { buildJdResumeMatchReport } from '@/lib/jdResumeMatch';
 import { buildWorkModalityReport } from '@/lib/jdWorkModality';
+import { detectHiringMode } from '@/lib/jdHiringModeDetector';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
 import { analyzeInterviewAnswer as analyzeAnswerHeuristic } from '@/lib/interviewAnswerAnalyzer';
@@ -914,6 +915,67 @@ function JdResumeMatchHint({ jdText, resumeText }: { jdText: string; resumeText:
           미충족 {report.gaps.length}개 항목을 이력서에 추가하면 매칭 점수가 올라갑니다.
         </p>
       )}
+    </aside>
+  );
+}
+
+// ── JD Hiring Mode ──
+
+function JdHiringModeHint({ text }: { text: string }) {
+  const report = useMemo(() => detectHiringMode(text), [text]);
+  if (text.trim().length < 30) return null;
+  if (report.mode === 'unclear') return null;
+
+  const toneMap: Record<string, string> = {
+    batch: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700',
+    rolling: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700',
+    mixed: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700',
+    unclear: '',
+  };
+  const labelMap: Record<string, string> = {
+    batch: 'text-blue-700 dark:text-blue-300',
+    rolling: 'text-emerald-700 dark:text-emerald-300',
+    mixed: 'text-amber-700 dark:text-amber-300',
+    unclear: '',
+  };
+
+  return (
+    <aside
+      className={`rounded-lg border p-3 text-sm ${toneMap[report.mode]}`}
+      aria-label="채용 방식 분석"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold uppercase tracking-wide opacity-50">
+          Hiring mode
+        </span>
+        <span className={`font-bold text-xs ${labelMap[report.mode]}`}>{report.modeLabel}</span>
+      </div>
+      <div className="flex flex-wrap gap-1 mb-2">
+        {report.batchSignals.map((s) => (
+          <span
+            key={s.label}
+            className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded px-1.5 py-0.5"
+          >
+            {s.label}
+          </span>
+        ))}
+        {report.rollingSignals.map((s) => (
+          <span
+            key={s.label}
+            className="text-xs bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded px-1.5 py-0.5"
+          >
+            {s.label}
+          </span>
+        ))}
+      </div>
+      <ul className="space-y-1">
+        {report.tips.map((tip, i) => (
+          <li key={i} className="text-xs opacity-70 flex gap-1.5">
+            <span>•</span>
+            <span>{tip}</span>
+          </li>
+        ))}
+      </ul>
     </aside>
   );
 }
@@ -2269,6 +2331,7 @@ export default function InterviewPrepPage() {
                   <JdWorkModalityHint text={jobDescription} />
                   <JdSalaryBenchmarkHint text={jobDescription} />
                   <JdInterviewStrategyHint text={jobDescription} />
+                  <JdHiringModeHint text={jobDescription} />
                 </>
               )}
             </div>
