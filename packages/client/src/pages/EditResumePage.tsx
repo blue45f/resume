@@ -51,6 +51,7 @@ import ResumeProjectDescriptionPanel from '@/components/ResumeProjectDescription
 import ResumeSkillsOrganizationPanel from '@/components/ResumeSkillsOrganizationPanel';
 import ResumeGapFillerLanguagePanel from '@/components/ResumeGapFillerLanguagePanel';
 import ResumeContactInfoPanel from '@/components/ResumeContactInfoPanel';
+import ResumeFormattingConsistencyPanel from '@/components/ResumeFormattingConsistencyPanel';
 import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
 import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
@@ -755,6 +756,9 @@ export default function EditResumePage() {
               </div>
               <div className="sm:col-span-2">
                 <ResumeContactInfoPanel text={deferredAnalysisText} />
+              </div>
+              <div className="sm:col-span-2">
+                <ResumeFormattingConsistencyPanel text={deferredAnalysisText} />
               </div>
             </div>
           </section>

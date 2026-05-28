@@ -13025,3 +13025,89 @@ button:active:not(:disabled) {
   font-size: 0.76rem;
   color: color-mix(in oklab, var(--color-text) 60%, transparent);
 }
+
+/* ── ResumeFormattingConsistencyPanel ── */
+.fmt-consistency-card {
+  border-radius: 0.6rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 20%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+  padding: 0.85rem 1rem;
+  font-size: 0.82rem;
+}
+.fmt-consistency-card--warn {
+  border-color: color-mix(in oklab, var(--color-warning) 35%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 6%, var(--color-surface));
+}
+.fmt-consistency-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.fmt-consistency-card__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.fmt-consistency-card__badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+.fmt-consistency-card__badge--minor_issues {
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  color: color-mix(in oklab, var(--color-accent) 70%, var(--color-text));
+}
+.fmt-consistency-card__badge--inconsistent {
+  background: color-mix(in oklab, var(--color-warning) 18%, transparent);
+  color: color-mix(in oklab, var(--color-warning) 80%, var(--color-text));
+}
+.fmt-consistency-card__count {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: color-mix(in oklab, var(--color-text) 40%, transparent);
+}
+.fmt-consistency-card__hint {
+  margin-bottom: 0.5rem;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  line-height: 1.45;
+}
+.fmt-consistency-card__issues {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+.fmt-consistency-card__issue-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.fmt-consistency-card__issue-type {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-warning) 75%, var(--color-text));
+  white-space: nowrap;
+}
+.fmt-consistency-card__issue-detail {
+  font-size: 0.74rem;
+  color: color-mix(in oklab, var(--color-text) 55%, transparent);
+}
+.fmt-consistency-card__guide {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+  padding-top: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.fmt-consistency-card__guide-item {
+  font-size: 0.76rem;
+  color: color-mix(in oklab, var(--color-text) 60%, transparent);
+}
