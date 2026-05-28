@@ -27,6 +27,7 @@ import CoverLetterReadabilityPanel from '@/components/CoverLetterReadabilityPane
 import CoverLetterJdAlignmentPanel from '@/components/CoverLetterJdAlignmentPanel';
 import CoverLetterInformalPanel from '@/components/CoverLetterInformalPanel';
 import CoverLetterParagraphPanel from '@/components/CoverLetterParagraphPanel';
+import CoverLetterConfidencePanel from '@/components/CoverLetterConfidencePanel';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import {
   computeJDMatch,
@@ -916,6 +917,7 @@ export default function CoverLetterPage() {
                       <CoverLetterTonePanel text={deferredFeedbackText} />
                       <CoverLetterParagraphPanel text={deferredFeedbackText} />
                       <CoverLetterInformalPanel text={deferredFeedbackText} />
+                      <CoverLetterConfidencePanel text={deferredFeedbackText} />
                       <CoverLetterReadabilityPanel text={deferredFeedbackText} />
                       <CoverLetterJdAlignmentPanel
                         coverLetterText={deferredFeedbackText}

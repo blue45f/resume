@@ -10254,6 +10254,91 @@ button:active:not(:disabled) {
   }
 }
 
+/* ── Cover letter confidence & CTA card ─────────────────────────── */
+.cl-confidence-card {
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-warning) 22%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 4%, var(--color-surface));
+  margin-top: 0.6rem;
+}
+.cl-confidence-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 30%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 7%, var(--color-surface));
+}
+.cl-confidence-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.cl-confidence-card__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+}
+.cl-confidence-card__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-warning);
+}
+.cl-confidence-card__section {
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
+}
+.cl-confidence-card__section-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+  margin-bottom: 0.3rem;
+}
+.cl-confidence-card__hint {
+  font-size: 0.72rem;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  margin: 0 0 0.35rem;
+}
+.cl-confidence-card__hits {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cl-confidence-card__hit {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.cl-confidence-card__hit-phrase {
+  background: color-mix(in oklab, var(--color-warning) 18%, transparent);
+  color: var(--color-warning);
+  border-radius: 0.25rem;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  font-style: normal;
+}
+.cl-confidence-card__hit-reason {
+  font-size: 0.65rem;
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+}
+.cl-confidence-card__last-para {
+  font-size: 0.7rem;
+  color: color-mix(in oklab, var(--color-text) 55%, transparent);
+  border-left: 2px solid color-mix(in oklab, var(--color-warning) 35%, transparent);
+  padding-left: 0.55rem;
+  margin: 0.3rem 0 0;
+  font-style: italic;
+}
+
 /* ── Resume intro strength card ─────────────────────────────────── */
 .intro-strength-card {
   padding: 0.85rem 1rem;
