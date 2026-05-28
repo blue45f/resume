@@ -40,6 +40,7 @@ import HiringTrends from '@/components/HiringTrends';
 import OnboardingBanner from '@/components/OnboardingBanner';
 import WeeklyRecapCard from '@/components/WeeklyRecapCard';
 import ApplicationReadinessPanel from '@/components/ApplicationReadinessPanel';
+import ApplicationStreakStrip from '@/components/ApplicationStreakStrip';
 import ProfileCompleteness from '@/components/ProfileCompleteness';
 import ProfileWizard from '@/components/ProfileWizard';
 import ResumeHealthRing from '@/widgets/resume-health-ring';
@@ -1201,6 +1202,7 @@ export default function HomePage() {
             <ProfileCompleteness />
             <OnboardingBanner />
             <WeeklyRecapCard />
+            <ApplicationStreakStrip applications={applications} />
             <ApplicationReadinessPanel resumes={resumes} applications={applications} />
 
             {wizardResume && resumes.length > 0 && (
