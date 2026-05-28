@@ -7028,6 +7028,112 @@ button:active:not(:disabled) {
   border-color: var(--color-accent);
 }
 
+/* ── Cover letter readability card ─────────────────────────────── */
+.cl-readability-card {
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 18%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+  margin-top: 0.6rem;
+}
+.cl-readability-card--good {
+  border-color: color-mix(in oklab, var(--color-success) 22%, transparent);
+  background: color-mix(in oklab, var(--color-success) 4%, var(--color-surface));
+}
+.cl-readability-card--warning {
+  border-color: color-mix(in oklab, var(--color-warning) 22%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 4%, var(--color-surface));
+}
+.cl-readability-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.cl-readability-card__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+}
+.cl-readability-card__label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+.cl-readability-card--good .cl-readability-card__label {
+  color: var(--color-success);
+}
+.cl-readability-card--warning .cl-readability-card__label {
+  color: var(--color-warning);
+}
+.cl-readability-card__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.cl-readability-card__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
+}
+.cl-readability-card__stat dt {
+  font-size: 0.6rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: color-mix(in oklab, var(--color-text) 44%, transparent);
+}
+.cl-readability-card__stat dd {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.cl-readability-card__hint {
+  font-size: 0.71rem;
+  line-height: 1.5;
+  color: color-mix(in oklab, var(--color-text) 64%, transparent);
+  margin: 0 0 0.4rem;
+}
+.cl-readability-card__style {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.cl-readability-card__style-label {
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 44%, transparent);
+}
+.cl-readability-card__style-badge {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: color-mix(in oklab, var(--color-accent) 10%, transparent);
+  color: var(--color-accent);
+}
+.cl-readability-card__style-badge--formal {
+  background: color-mix(in oklab, var(--color-success) 10%, transparent);
+  color: var(--color-success);
+}
+.cl-readability-card__style-badge--mixed {
+  background: color-mix(in oklab, var(--color-warning) 10%, transparent);
+  color: var(--color-warning);
+}
+.cl-readability-card__style-note {
+  font-size: 0.66rem;
+  color: color-mix(in oklab, var(--color-text) 54%, transparent);
+}
+
 /* ── Cover letter tone card ────────────────────────────────────── */
 .cl-tone-card {
   padding: 0.85rem 1rem;

@@ -23,6 +23,7 @@ import CareerGapPanel from '@/components/CareerGapPanel';
 import CoverLetterClichePanel from '@/components/CoverLetterClichePanel';
 import CoverLetterStructurePanel from '@/components/CoverLetterStructurePanel';
 import CoverLetterTonePanel from '@/components/CoverLetterTonePanel';
+import CoverLetterReadabilityPanel from '@/components/CoverLetterReadabilityPanel';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import {
   computeJDMatch,
@@ -910,6 +911,7 @@ export default function CoverLetterPage() {
                       <CoverLetterClichePanel text={deferredFeedbackText} />
                       <CoverLetterStructurePanel text={deferredFeedbackText} />
                       <CoverLetterTonePanel text={deferredFeedbackText} />
+                      <CoverLetterReadabilityPanel text={deferredFeedbackText} />
                       <QuotableHighlights text={deferredFeedbackText} />
                       <UnquantifiedClaimsPanel text={deferredFeedbackText} />
                       <OpenerSuggestionsPanel text={deferredFeedbackText} />
