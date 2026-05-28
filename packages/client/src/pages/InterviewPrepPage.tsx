@@ -15,6 +15,7 @@ import { buildJdCompensationReport } from '@/lib/jdCompensationSignals';
 import { buildJdCultureReport } from '@/lib/jdCultureSignals';
 import { buildJdKeywordGapReport } from '@/lib/jdKeywordGap';
 import { buildSalaryBenchmarkReport } from '@/lib/jdSalaryBenchmark';
+import { buildInterviewStrategyReport, FORMAT_LABEL_MAP } from '@/lib/jdInterviewStrategy';
 import { buildWorkModalityReport } from '@/lib/jdWorkModality';
 import { buildResumePlainText } from '@/lib/resumeText';
 import { tx } from '@/lib/i18n';
@@ -703,6 +704,69 @@ function JdSalaryBenchmarkHint({ text }: { text: string }) {
           {report.tips.map((tip, i) => (
             <li key={i} className="jd-salary-hint__tip">
               {tip}
+            </li>
+          ))}
+        </ul>
+      )}
+    </aside>
+  );
+}
+
+function JdInterviewStrategyHint({ text }: { text: string }) {
+  const report = useMemo(() => buildInterviewStrategyReport(text), [text]);
+  const [expanded, setExpanded] = useState(false);
+  if (text.trim().length < 30) return null;
+
+  return (
+    <aside className="jd-strategy-hint" aria-label="면접 전략 추천">
+      <header className="jd-strategy-hint__head">
+        <span className="jd-strategy-hint__eyebrow">Interview strategy</span>
+        <span className="jd-strategy-hint__label">{report.label}</span>
+      </header>
+
+      <p className="jd-strategy-hint__summary">{report.summary}</p>
+
+      <div className="jd-strategy-hint__formats" aria-label="예상 면접 형식">
+        <span className="jd-strategy-hint__formats-title">예상 면접 형식</span>
+        <div className="jd-strategy-hint__format-chips">
+          {report.formats.map((fmt, i) => (
+            <span
+              key={fmt}
+              className={`jd-strategy-hint__format-chip ${i === 0 ? 'jd-strategy-hint__format-chip--primary' : ''}`}
+            >
+              {FORMAT_LABEL_MAP[fmt]}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        className="jd-strategy-hint__toggle"
+        onClick={() => setExpanded((v) => !v)}
+      >
+        {expanded ? '준비 영역 접기' : `준비 영역 ${report.prepAreas.length}개 보기`}
+      </button>
+
+      {expanded && (
+        <ul className="jd-strategy-hint__areas" aria-label="준비 영역">
+          {report.prepAreas.map((area) => (
+            <li
+              key={area.area}
+              className={`jd-strategy-hint__area jd-strategy-hint__area--${area.priority}`}
+            >
+              <div className="jd-strategy-hint__area-head">
+                <strong>{area.area}</strong>
+                <span className="jd-strategy-hint__area-priority">
+                  {area.priority === 'high' ? '필수' : area.priority === 'medium' ? '중요' : '권장'}
+                </span>
+              </div>
+              <p className="jd-strategy-hint__area-reason">{area.reason}</p>
+              <ul className="jd-strategy-hint__resources">
+                {area.resources.map((r, i) => (
+                  <li key={i}>{r}</li>
+                ))}
+              </ul>
             </li>
           ))}
         </ul>
@@ -2008,6 +2072,7 @@ export default function InterviewPrepPage() {
                   <JdKeywordGapHint jdText={jobDescription} resumeText={resumeTextForGap} />
                   <JdWorkModalityHint text={jobDescription} />
                   <JdSalaryBenchmarkHint text={jobDescription} />
+                  <JdInterviewStrategyHint text={jobDescription} />
                 </>
               )}
             </div>

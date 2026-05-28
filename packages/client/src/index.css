@@ -6476,6 +6476,157 @@ button:active:not(:disabled) {
   border-left: 2px solid color-mix(in oklab, var(--color-accent) 35%, transparent);
 }
 
+/* ── JD interview strategy card ────────────────────────────────── */
+.jd-strategy-hint {
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 20%, transparent);
+  background: color-mix(in oklab, var(--color-accent) 4%, var(--color-surface));
+  margin-top: 0.65rem;
+}
+.jd-strategy-hint__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+.jd-strategy-hint__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-text) 46%, transparent);
+}
+.jd-strategy-hint__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+.jd-strategy-hint__summary {
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+  margin-bottom: 0.55rem;
+}
+.jd-strategy-hint__formats {
+  margin-bottom: 0.5rem;
+}
+.jd-strategy-hint__formats-title {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-text) 48%, transparent);
+  margin-bottom: 0.3rem;
+}
+.jd-strategy-hint__format-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+}
+.jd-strategy-hint__format-chip {
+  display: inline-flex;
+  padding: 0.18rem 0.45rem;
+  border-radius: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: color-mix(in oklab, var(--color-accent) 10%, transparent);
+  color: color-mix(in oklab, var(--color-accent) 80%, var(--color-text));
+  border: 1px solid color-mix(in oklab, var(--color-accent) 20%, transparent);
+}
+.jd-strategy-hint__format-chip--primary {
+  background: color-mix(in oklab, var(--color-accent) 18%, transparent);
+  font-weight: 700;
+  border-color: color-mix(in oklab, var(--color-accent) 35%, transparent);
+}
+.jd-strategy-hint__toggle {
+  display: inline-block;
+  margin-top: 0.1rem;
+  font-size: 0.71rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.jd-strategy-hint__toggle:hover {
+  text-decoration: underline;
+}
+.jd-strategy-hint__areas {
+  list-style: none;
+  padding: 0;
+  margin: 0.4rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.jd-strategy-hint__area {
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.4rem;
+  border-left: 3px solid var(--color-accent);
+  background: color-mix(in oklab, var(--color-accent) 5%, transparent);
+}
+.jd-strategy-hint__area--high {
+  border-left-color: var(--color-warning);
+  background: color-mix(in oklab, var(--color-warning) 5%, transparent);
+}
+.jd-strategy-hint__area--medium {
+  border-left-color: var(--color-accent);
+}
+.jd-strategy-hint__area--low {
+  border-left-color: color-mix(in oklab, var(--color-text) 30%, transparent);
+  background: color-mix(in oklab, var(--color-text) 3%, transparent);
+}
+.jd-strategy-hint__area-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+.jd-strategy-hint__area-head strong {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.jd-strategy-hint__area-priority {
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.jd-strategy-hint__area-reason {
+  font-size: 0.71rem;
+  line-height: 1.45;
+  color: color-mix(in oklab, var(--color-text) 65%, transparent);
+  margin: 0 0 0.3rem;
+}
+.jd-strategy-hint__resources {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.jd-strategy-hint__resources li {
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: color-mix(in oklab, var(--color-text) 58%, transparent);
+  padding-left: 0.65rem;
+  position: relative;
+}
+.jd-strategy-hint__resources li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: color-mix(in oklab, var(--color-accent) 60%, transparent);
+}
+
 /* ── Home Pro prompt + bookmarks ───────────────────────────────── */
 .home-pro-prompt {
   display: flex;
