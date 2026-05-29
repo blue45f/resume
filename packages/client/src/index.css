@@ -14196,3 +14196,137 @@ button:active:not(:disabled) {
 .hl-preview__hint {
   color: color-mix(in oklab, var(--color-warning) 78%, var(--color-text));
 }
+
+/* ── CoverLetterScoreRing (SVG donut) ── */
+.cl-ring {
+  --ring-accent: var(--color-accent);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in oklab, var(--ring-accent) 26%, transparent);
+  background:
+    radial-gradient(
+      90% 80% at 100% 0%,
+      color-mix(in oklab, var(--ring-accent) 12%, transparent),
+      transparent 55%
+    ),
+    color-mix(in oklab, var(--color-surface) 93%, var(--ring-accent));
+  padding: 1rem 1.1rem;
+}
+.cl-ring--excellent {
+  --ring-accent: var(--color-success);
+}
+.cl-ring--good {
+  --ring-accent: var(--color-accent);
+}
+.cl-ring--fair {
+  --ring-accent: var(--color-warning);
+}
+.cl-ring--weak {
+  --ring-accent: var(--color-error);
+}
+.cl-ring__chart {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 96px;
+}
+.cl-ring__svg {
+  width: 96px;
+  height: 96px;
+}
+.cl-ring__track {
+  fill: none;
+  stroke: color-mix(in oklab, var(--color-text) 12%, transparent);
+  stroke-width: 10;
+}
+.cl-ring__value {
+  fill: none;
+  stroke: var(--ring-accent);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: var(--ring-c);
+  stroke-dashoffset: var(--ring-offset);
+  animation: cl-ring-fill 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.cl-ring__num {
+  fill: color-mix(in oklab, var(--ring-accent) 85%, var(--color-text));
+  font-size: 28px;
+  font-weight: 900;
+}
+.cl-ring__unit {
+  fill: color-mix(in oklab, var(--color-text) 55%, transparent);
+  font-size: 11px;
+  font-weight: 800;
+}
+.cl-ring__detail {
+  flex: 1 1 180px;
+  min-width: 170px;
+}
+.cl-ring__title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: color-mix(in oklab, var(--color-text) 80%, transparent);
+}
+.cl-ring__headline {
+  margin: 0.3rem 0 0.55rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: color-mix(in oklab, var(--color-text) 70%, transparent);
+}
+.cl-ring__axes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.cl-ring__axis {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.cl-ring__axis-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-text) 65%, transparent);
+  width: 2.4rem;
+  flex-shrink: 0;
+}
+.cl-ring__bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-text) 10%, transparent);
+  overflow: hidden;
+}
+.cl-ring__bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ring-accent);
+  transition: width 0.6s ease;
+}
+.cl-ring__axis-score {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: color-mix(in oklab, var(--ring-accent) 75%, var(--color-text));
+  width: 1.6rem;
+  text-align: right;
+  flex-shrink: 0;
+}
+@keyframes cl-ring-fill {
+  from {
+    stroke-dashoffset: var(--ring-c);
+  }
+  to {
+    stroke-dashoffset: var(--ring-offset);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cl-ring__value {
+    animation: none;
+  }
+}
