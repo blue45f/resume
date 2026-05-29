@@ -40,6 +40,7 @@ import CoverLetterFirstPersonPanel from '@/components/CoverLetterFirstPersonPane
 import CoverLetterCtaPanel from '@/components/CoverLetterCtaPanel';
 import CoverLetterNegativeFramingPanel from '@/components/CoverLetterNegativeFramingPanel';
 import CoverLetterCoveragePanel from '@/components/CoverLetterCoveragePanel';
+import CoverLetterFlowStrip from '@/components/CoverLetterFlowStrip';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import {
   computeJDMatch,
@@ -922,6 +923,7 @@ export default function CoverLetterPage() {
                       <KeywordCloud text={deferredFeedbackText} topN={12} />
                       <SkillMentionsBar text={deferredFeedbackText} />
                       <AnalysisSummaryBar text={deferredFeedbackText} />
+                      <CoverLetterFlowStrip text={deferredFeedbackText} />
                       <CoverLetterCoveragePanel text={deferredFeedbackText} />
                       <SectionInsightsPanel text={deferredFeedbackText} />
                       <CareerGapPanel text={deferredFeedbackText} />

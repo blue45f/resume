@@ -14011,3 +14011,104 @@ button:active:not(:disabled) {
   color: color-mix(in oklab, var(--cell) 80%, var(--color-text));
   white-space: nowrap;
 }
+
+/* ── CoverLetterFlowStrip (narrative flow viz) ── */
+.flow-strip {
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 22%, transparent);
+  background: color-mix(in oklab, var(--color-surface) 95%, var(--color-accent));
+  padding: 0.9rem 1rem 1rem;
+}
+.flow-strip__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.55rem;
+}
+.flow-strip__title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: color-mix(in oklab, var(--color-text) 80%, transparent);
+}
+.flow-strip__meta {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-text) 48%, transparent);
+}
+.flow-strip__bar {
+  display: flex;
+  gap: 3px;
+  height: 30px;
+  margin-bottom: 0.55rem;
+}
+.flow-strip__seg {
+  --seg: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  border-radius: 0.3rem;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--seg) 22%, var(--color-surface));
+  border: 1px solid color-mix(in oklab, var(--seg) 38%, transparent);
+  transition: flex-grow 0.4s ease;
+}
+.flow-strip__seg-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 0.2rem;
+  color: color-mix(in oklab, var(--seg) 88%, var(--color-text));
+}
+.flow-strip__seg--motivation,
+.flow-strip__legend-item--motivation {
+  --seg: var(--color-accent);
+}
+.flow-strip__seg--competency,
+.flow-strip__legend-item--competency {
+  --seg: var(--color-info, var(--color-accent));
+}
+.flow-strip__seg--experience,
+.flow-strip__legend-item--experience {
+  --seg: var(--color-success);
+}
+.flow-strip__seg--aspiration,
+.flow-strip__legend-item--aspiration {
+  --seg: var(--color-warning);
+}
+.flow-strip__seg--narrative,
+.flow-strip__legend-item--narrative {
+  --seg: color-mix(in oklab, var(--color-text) 45%, transparent);
+}
+.flow-strip__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+.flow-strip__legend-item {
+  --seg: var(--color-text);
+  font-size: 0.64rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.08rem 0.5rem;
+  color: color-mix(in oklab, var(--seg) 85%, var(--color-text));
+  background: color-mix(in oklab, var(--seg) 14%, transparent);
+}
+.flow-strip__notes {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+  padding-top: 0.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.flow-strip__note {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: color-mix(in oklab, var(--color-text) 65%, transparent);
+}
