@@ -47,6 +47,10 @@ export default function RichEditor({
       ...(maxLength ? [CharacterCount.configure({ limit: maxLength })] : [CharacterCount]),
     ],
     content: value,
+    // React 19 StrictMode는 dev에서 컴포넌트를 mount→unmount→remount하며 에디터를
+    // 즉시 렌더하면 destroy된 인스턴스에 getHTML이 경합해 schema=null 크래시가 난다.
+    // 초기 렌더를 effect 단계로 미뤄(immediatelyRender:false) 이 경합을 제거한다.
+    immediatelyRender: false,
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[80px] px-3 py-2',
@@ -58,6 +62,7 @@ export default function RichEditor({
       },
     },
     onUpdate: ({ editor }) => {
+      if (editor.isDestroyed) return;
       const html = editor.getHTML();
       onChange(html === '<p></p>' ? '' : html);
     },
@@ -69,7 +74,7 @@ export default function RichEditor({
 
   // 외부에서 value가 변경될 때 (초기값 설정)
   useEffect(() => {
-    if (editor && value && !editor.isFocused) {
+    if (editor && !editor.isDestroyed && value && !editor.isFocused) {
       const currentHtml = editor.getHTML();
       if (currentHtml !== value && value !== '<p></p>') {
         editor.commands.setContent(value);
