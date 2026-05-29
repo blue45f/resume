@@ -136,8 +136,11 @@ pnpm deploy:gcp           # Cloud Run 배포
 - ✅ **RichEditor StrictMode 크래시 fix** — tiptap `getHTML()` 가 destroy 된 에디터(schema=null)에서 호출 → `immediatelyRender:false` + `isDestroyed` 가드. dev 전용. (142f47c)
 - ✅ **a11y** — LoginPage 무효 `role="tab"` → `aria-pressed` 토글, 비번 강도 `aria-describedby`, NewResume 중첩 label 해소 + AI 진행 `role=status`, 시작카드 focus-visible(전역 규칙이 단일 소스라 per-card 중복 제거), CommandPalette/CommunityPage 접근명, TagsPage `aria-pressed`.
 - ✅ **분석기 3종(순수 TS + vitest + 패널, 라이브 검증)** — `extractResumeCoreMessages`(핵심 메시지 강도·카테고리·배치 추천 / EditResume), `analyzeJdCompetitiveLandscape`(경쟁 강도·기술 장벽·암묵적 난제·적합성 / InterviewPrep), `analyzeCoverLetterJdResonance`(자소서↔공고 가치 정합성 / CoverLetter). (5105561·60615f1·f4eaf46)
-- ✅ **테스트** — client 1176 → 1199 green. 테스트 계정으로 dev 라이브 검증(공개 라우트는 프론트만, 인증 페이지는 백엔드 잠깐 후 즉시 종료 — prod Neon @Cron 주의).
-- 잔여 후보: `resumeKeywordDensityVariation`(섹션별 키워드 밀도 — 섹션 파싱 필요).
+- ✅ **개선 우선순위 종합(캡스톤)** — `buildResumeImprovementPlan`: scoreInterviewability 가중 breakdown 을 임팩트=(100-value)\*weight(종합점수 상승 잠재폭) 순으로 재가공해 18+개 품질 패널을 "무엇부터 고칠까" Top-3 결정 지원으로 종합. EditResume 분석 최상단 헤드라인 카드. (143b173)
+- ✅ **a11y/UX 추가** — CommandPalette/CommunityPage 접근명, TagsPage aria-pressed, dead watch 구독 제거, CoverLetter 80자 분석 임계 안내. (957e55b·95588f2)
+- ✅ **2차 견고성 스카우트** — 렌더루프/메모리릭/stale-closure 재탐색 → 실질 신규 버그 0 (setTimeout=React18 no-op, ScrollToTop/TagSelector/MobileBottomNav=오탐으로 검증·제외). 코드베이스 견고성 확인.
+- ✅ **테스트** — client 1176 → 1206 green. 테스트 계정으로 dev 라이브 검증(공개 라우트는 프론트만, 인증 페이지는 백엔드 잠깐 후 즉시 종료 — prod Neon @Cron 주의).
+- 참고: `resumeKeywordDensityVariation`(섹션별 밀도)은 기존 `analyzeSectionDensity`/`analyzeSectionBalance`와 중복 확인 → 미진행.
 
 다음 사이클 후보 (대부분 사용자/시간 의존):
 
@@ -150,4 +153,4 @@ pnpm deploy:gcp           # Cloud Run 배포
 
 ---
 
-작성일: 2026-04-20 · 최근 갱신: 2026-05-29 (라이브 검증 버그픽스 + a11y + 분석기 3종)
+작성일: 2026-04-20 · 최근 갱신: 2026-05-29 (버그픽스 + a11y + 분석기 3종 + 개선 우선순위 종합)
