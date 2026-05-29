@@ -272,6 +272,27 @@ describe('LlmService', () => {
       expect(systemPrompt).toContain('English');
     });
 
+    it('specificity 타입 → 구체화 프롬프트 사용', async () => {
+      geminiProvider.generate.mockResolvedValue(mockLlmResponse('gemini'));
+      await service.inlineAssist('다양한 업무를 수행했다', 'specificity');
+      const systemPrompt = geminiProvider.generate.mock.calls[0][0] as string;
+      expect(systemPrompt).toContain('구체');
+    });
+
+    it('strong-verb 타입 → 강한 동사 프롬프트 사용', async () => {
+      geminiProvider.generate.mockResolvedValue(mockLlmResponse('gemini'));
+      await service.inlineAssist('프로젝트를 담당했다', 'strong-verb');
+      const systemPrompt = geminiProvider.generate.mock.calls[0][0] as string;
+      expect(systemPrompt).toContain('동사');
+    });
+
+    it('positive-tone 타입 → 긍정 톤 프롬프트 사용', async () => {
+      geminiProvider.generate.mockResolvedValue(mockLlmResponse('gemini'));
+      await service.inlineAssist('부족하지만 열심히 하겠습니다', 'positive-tone');
+      const systemPrompt = geminiProvider.generate.mock.calls[0][0] as string;
+      expect(systemPrompt).toContain('긍정');
+    });
+
     it('알 수 없는 타입 → improve 폴백', async () => {
       geminiProvider.generate.mockResolvedValue(mockLlmResponse('gemini'));
       await service.inlineAssist('테스트 문장', 'unknown-type');
