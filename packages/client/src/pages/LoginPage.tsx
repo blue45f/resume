@@ -354,11 +354,10 @@ export default function LoginPage() {
           {/* Card */}
           <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-7 sm:p-8 shadow-sm">
             {/* Login / Register tab toggle */}
-            <div className="auth-tabs mb-6" role="tablist" aria-label="인증 방식">
+            <div className="auth-tabs mb-6" role="group" aria-label="로그인 또는 회원가입 선택">
               <button
                 type="button"
-                role="tab"
-                aria-selected={activeTab === 'login'}
+                aria-pressed={activeTab === 'login'}
                 onClick={() => {
                   setActiveTab('login');
                   setAuthError('');
@@ -369,8 +368,7 @@ export default function LoginPage() {
               </button>
               <button
                 type="button"
-                role="tab"
-                aria-selected={activeTab === 'register'}
+                aria-pressed={activeTab === 'register'}
                 onClick={() => {
                   setActiveTab('register');
                   setAuthError('');
