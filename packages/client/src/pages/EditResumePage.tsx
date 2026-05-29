@@ -12,6 +12,7 @@ import AllowedViewersDialog from '@/components/AllowedViewersDialog';
 import LiveAtsBadge from '@/components/LiveAtsBadge';
 import OverallHealthGauge from '@/components/OverallHealthGauge';
 import ResumeHealthRadar from '@/components/ResumeHealthRadar';
+import ResumeHighlightPreview from '@/components/ResumeHighlightPreview';
 import QuotableHighlights from '@/components/QuotableHighlights';
 import CareerGapPanel from '@/components/CareerGapPanel';
 import UnquantifiedClaimsRewritePanel from '@/components/UnquantifiedClaimsRewritePanel';
@@ -635,6 +636,9 @@ export default function EditResumePage() {
           <section aria-label="이력서 실시간 분석" className="mb-4">
             <div className="mb-2 sm:mb-3">
               <ResumeHealthRadar text={deferredAnalysisText} />
+            </div>
+            <div className="mb-2 sm:mb-3">
+              <ResumeHighlightPreview text={deferredAnalysisText} />
             </div>
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
               <OverallHealthGauge text={deferredAnalysisText} />
