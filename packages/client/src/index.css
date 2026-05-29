@@ -14555,12 +14555,40 @@ button:active:not(:disabled) {
   outline-offset: 1px;
 }
 
+/* 선택 동의 접기 — 가입 첫 화면 인지부하를 줄이는 점진 공개 */
+.auth-optional__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  border-radius: 0.4rem;
+}
+.auth-optional__summary::-webkit-details-marker {
+  display: none;
+}
+.auth-optional__summary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.auth-optional__chevron {
+  color: var(--color-text-muted);
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.auth-optional[open] .auth-optional__chevron {
+  transform: rotate(180deg);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-field,
   .auth-cta,
   .auth-tab,
   .auth-social,
-  .auth-type {
+  .auth-type,
+  .auth-optional__chevron {
     transition: none;
   }
   .auth-cta:active:not(:disabled) {

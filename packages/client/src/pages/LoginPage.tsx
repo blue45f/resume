@@ -55,26 +55,15 @@ function KakaoIcon() {
   );
 }
 
+// 소셜 버튼은 모두 동일한 ghost 표면으로 통일한다. 색은 아이콘에만 싣고,
+// 가장 강한 색 신호(Signal Blue)는 1차 CTA가 독점한다 (The One Signal Rule).
+const SOCIAL_BTN_CLASS =
+  'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-sunken)] hover:border-[var(--color-text-muted)] hover:shadow-sm';
+
 const PROVIDERS = [
-  {
-    id: 'google',
-    name: 'Google',
-    icon: GoogleIcon,
-    className:
-      'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-sunken)] hover:border-[var(--color-text-muted)] hover:shadow-sm',
-  },
-  {
-    id: 'github',
-    name: 'GitHub',
-    icon: GitHubIcon,
-    className: 'bg-[#1a1a1a] text-white hover:bg-[#000000] hover:shadow-sm',
-  },
-  {
-    id: 'kakao',
-    name: 'Kakao',
-    icon: KakaoIcon,
-    className: 'bg-[#FEE500] text-[#191919] hover:bg-[#FDD835] hover:shadow-sm',
-  },
+  { id: 'google', name: 'Google', icon: GoogleIcon },
+  { id: 'github', name: 'GitHub', icon: GitHubIcon },
+  { id: 'kakao', name: 'Kakao', icon: KakaoIcon },
 ];
 
 export default function LoginPage() {
@@ -141,7 +130,19 @@ export default function LoginPage() {
       body: JSON.stringify(body),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || '인증에 실패했습니다');
+    if (!res.ok) {
+      // 서버가 한국어 메시지를 주면(예: 중복 이메일) 그대로 쓰고,
+      // "Unauthorized" 같은 영문/기술 메시지는 상태코드별 한국어로 대체한다.
+      const serverMsg =
+        typeof data?.message === 'string' && /[가-힣]/.test(data.message) ? data.message : '';
+      const fallback =
+        res.status === 401
+          ? '이메일 또는 비밀번호를 확인해 주세요.'
+          : res.status === 429
+            ? '요청이 많습니다. 잠시 후 다시 시도해 주세요.'
+            : '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+      throw new Error(serverMsg || fallback);
+    }
     localStorage.setItem('token', data.token);
     let me: any = null;
     const meRes = await fetch(`${API_URL}/api/auth/me`, {
@@ -329,8 +330,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right form panel */}
-      <div className="flex-1 flex items-center justify-center bg-[var(--color-surface-sunken)] px-4 py-10">
+      {/* Right form panel — 모바일은 상단 정렬 + 하단 여백으로 고정 쿠키 배너가 CTA를 가리지 않게 */}
+      <div className="flex-1 flex items-start md:items-center justify-center bg-[var(--color-surface-sunken)] px-4 pt-10 pb-32 md:py-10">
         <div className="w-full max-w-sm">
           {/* Logo */}
           <div className="text-center mb-9">
@@ -419,7 +420,7 @@ export default function LoginPage() {
                   <a
                     key={p.id}
                     href={getSocialLoginUrl(p.id)}
-                    className={`auth-social focus:outline-none ${p.className}`}
+                    className={`auth-social focus:outline-none ${SOCIAL_BTN_CLASS}`}
                   >
                     <Icon />
                     {p.name}&#xC73C;&#xB85C; {isRegister ? '가입하기' : '계속하기'}
@@ -710,7 +711,7 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-9 h-9 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--color-accent)] transition-colors"
                     aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
-                    tabIndex={-1}
+                    aria-pressed={showPassword}
                   >
                     {showPassword ? (
                       <svg
@@ -757,9 +758,11 @@ export default function LoginPage() {
                 {isRegister &&
                   password &&
                   (() => {
+                    // 진행 톤: 첫 타이핑은 부정 신호(rose)가 아니라 중립에서 시작해
+                    // 충족할수록 채워진다. rose는 실제 에러 전용으로 남긴다.
                     const barColor =
                       pwStrength.level <= 1
-                        ? 'var(--color-error)'
+                        ? 'var(--color-text-muted)'
                         : pwStrength.level <= 2
                           ? 'var(--color-warning)'
                           : pwStrength.level <= 3
@@ -794,13 +797,7 @@ export default function LoginPage() {
               </div>
 
               {!isRegister && (
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="auth-check" />
-                    <span className="text-xs text-[var(--color-text-secondary)]">
-                      로그인 상태 유지
-                    </span>
-                  </label>
+                <div className="flex items-center justify-end">
                   <Link
                     to={ROUTES.forgotPassword}
                     className="text-xs font-medium text-[var(--color-accent)] rounded focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] hover:underline underline-offset-2"
@@ -865,30 +862,39 @@ export default function LoginPage() {
                     </p>
                   )}
 
-                  <label className="flex items-start gap-2.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      {...registerForm.register('llmOptIn')}
-                      className="auth-check mt-0.5"
-                    />
-                    <span className="text-xs text-[var(--color-text-secondary)] leading-snug">
-                      <span className="text-[var(--color-text-muted)] font-medium">[선택]</span> AI
-                      변환/분석 기능 사용을 위한 개인정보 국외 이전(미국 소재 LLM 제공사)에
-                      동의합니다
-                    </span>
-                  </label>
-
-                  <label className="flex items-start gap-2.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      {...registerForm.register('marketingOptIn')}
-                      className="auth-check mt-0.5"
-                    />
-                    <span className="text-xs text-[var(--color-text-secondary)] leading-snug">
-                      <span className="text-[var(--color-text-muted)] font-medium">[선택]</span>{' '}
-                      마케팅 정보 수신(이메일·푸시)에 동의합니다
-                    </span>
-                  </label>
+                  <details className="auth-optional">
+                    <summary className="auth-optional__summary">
+                      <span>추가 동의 (선택)</span>
+                      <span className="auth-optional__chevron" aria-hidden="true">
+                        ⌄
+                      </span>
+                    </summary>
+                    <div className="space-y-3 pt-3">
+                      <label className="flex items-start gap-2.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          {...registerForm.register('llmOptIn')}
+                          className="auth-check mt-0.5"
+                        />
+                        <span className="text-xs text-[var(--color-text-secondary)] leading-snug">
+                          <span className="text-[var(--color-text-muted)] font-medium">[선택]</span>{' '}
+                          AI 변환/분석 기능 사용을 위한 개인정보 국외 이전(미국 소재 LLM 제공사)에
+                          동의합니다
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-2.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          {...registerForm.register('marketingOptIn')}
+                          className="auth-check mt-0.5"
+                        />
+                        <span className="text-xs text-[var(--color-text-secondary)] leading-snug">
+                          <span className="text-[var(--color-text-muted)] font-medium">[선택]</span>{' '}
+                          마케팅 정보 수신(이메일·푸시)에 동의합니다
+                        </span>
+                      </label>
+                    </div>
+                  </details>
                 </div>
               )}
 
