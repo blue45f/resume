@@ -56,6 +56,7 @@ import ResumeEducationCompletenessPanel from '@/components/ResumeEducationComple
 import ResumeAwardsPanel from '@/components/ResumeAwardsPanel';
 import ResumePersonalInfoDisclosurePanel from '@/components/ResumePersonalInfoDisclosurePanel';
 import ResumeChronologyPanel from '@/components/ResumeChronologyPanel';
+import ResumeContributionClarityPanel from '@/components/ResumeContributionClarityPanel';
 import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
 import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
@@ -775,6 +776,9 @@ export default function EditResumePage() {
               </div>
               <div className="sm:col-span-2">
                 <ResumeChronologyPanel text={deferredAnalysisText} />
+              </div>
+              <div className="sm:col-span-2">
+                <ResumeContributionClarityPanel text={deferredAnalysisText} />
               </div>
             </div>
           </section>
