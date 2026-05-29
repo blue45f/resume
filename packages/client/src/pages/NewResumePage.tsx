@@ -619,9 +619,14 @@ function WizardMode({
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>
-                      종료일
-                      <label className="ml-2 inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-2 mb-1">
+                      <label
+                        className="text-sm font-medium text-slate-700 dark:text-slate-300"
+                        htmlFor={`exp-end-${exp.id}`}
+                      >
+                        종료일
+                      </label>
+                      <label className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={exp.current}
@@ -630,8 +635,9 @@ function WizardMode({
                         />
                         재직중
                       </label>
-                    </label>
+                    </div>
                     <input
+                      id={`exp-end-${exp.id}`}
                       type="month"
                       className={inputClass}
                       value={exp.endDate}
@@ -1529,6 +1535,11 @@ export default function NewResumePage() {
                       </>
                     )}
                   </button>
+                  {aiLoading && (
+                    <p role="status" aria-live="polite" className="sr-only">
+                      {aiProgress || 'AI가 이력서를 분석하고 있습니다'}
+                    </p>
+                  )}
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                     AI가 텍스트를 분석하여 인적사항, 경력, 학력, 기술 등을 자동으로 채워줍니다.
                   </p>
