@@ -42,6 +42,7 @@ import CoverLetterNegativeFramingPanel from '@/components/CoverLetterNegativeFra
 import CoverLetterCoveragePanel from '@/components/CoverLetterCoveragePanel';
 import CoverLetterFlowStrip from '@/components/CoverLetterFlowStrip';
 import CoverLetterScoreRing from '@/components/CoverLetterScoreRing';
+import CoverLetterJdResonancePanel from '@/components/CoverLetterJdResonancePanel';
 import CollapsibleAnalysisSection from '@/components/CollapsibleAnalysisSection';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import {
@@ -928,6 +929,11 @@ export default function CoverLetterPage() {
                       <CoverLetterScoreRing text={deferredFeedbackText} />
                       <CoverLetterFlowStrip text={deferredFeedbackText} />
                       <CoverLetterCoveragePanel text={deferredFeedbackText} />
+                      <CoverLetterJdResonancePanel
+                        coverLetter={deferredFeedbackText}
+                        jd={feedbackJd || ''}
+                        className="mt-2"
+                      />
                       <CollapsibleAnalysisSection title="📋 항목별 상세 분석">
                         <SectionInsightsPanel text={deferredFeedbackText} />
                         <CareerGapPanel text={deferredFeedbackText} />
