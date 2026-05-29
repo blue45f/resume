@@ -43,6 +43,7 @@ import CoverLetterCoveragePanel from '@/components/CoverLetterCoveragePanel';
 import CoverLetterFlowStrip from '@/components/CoverLetterFlowStrip';
 import CoverLetterScoreRing from '@/components/CoverLetterScoreRing';
 import CoverLetterJdResonancePanel from '@/components/CoverLetterJdResonancePanel';
+import CoverLetterImprovementPlanPanel from '@/components/CoverLetterImprovementPlanPanel';
 import CollapsibleAnalysisSection from '@/components/CollapsibleAnalysisSection';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import {
@@ -924,6 +925,10 @@ export default function CoverLetterPage() {
                   )}
                   {deferredFeedbackText.length >= 80 && (
                     <div className="mt-2">
+                      <CoverLetterImprovementPlanPanel
+                        text={deferredFeedbackText}
+                        className="mb-2"
+                      />
                       <TldrHeadline text={deferredFeedbackText} />
                       <OverallHealthGauge text={deferredFeedbackText} className="mb-2" />
                       <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">

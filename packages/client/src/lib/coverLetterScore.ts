@@ -14,6 +14,7 @@ export interface CoverLetterScoreAxis {
   key: CoverLetterScoreAxisKey;
   label: string;
   score: number; // 0–100
+  weight: number; // 정규화 가중치(합=1) — 개선 플랜이 임팩트 계산에 재사용
 }
 
 export type CoverLetterScoreGrade = 'excellent' | 'good' | 'fair' | 'weak';
@@ -53,23 +54,29 @@ export function buildCoverLetterScore(text: string): CoverLetterScoreReport {
   const neg = detectCoverLetterNegativeFraming(t);
   const tone = { clean: 100, minor: 60, concerning: 25 }[neg.grade];
 
-  const axes: CoverLetterScoreAxis[] = [
-    { key: 'coverage', label: AXIS_LABEL.coverage, score: coverage },
-    { key: 'structure', label: AXIS_LABEL.structure, score: structure },
-    { key: 'closing', label: AXIS_LABEL.closing, score: clamp(closing) },
-    { key: 'tone', label: AXIS_LABEL.tone, score: clamp(tone) },
-  ];
-
-  // 가중 평균: 구성·구조에 약간 더 비중.
-  const weights: Record<CoverLetterScoreAxisKey, number> = {
+  // 가중치: 구성·구조에 약간 더 비중. 정규화(합=1)해 axis.weight 로 노출 → 개선 플랜이 재사용.
+  const rawWeights: Record<CoverLetterScoreAxisKey, number> = {
     coverage: 1.2,
     structure: 1.2,
     closing: 0.8,
     tone: 0.8,
   };
-  const weightedSum = axes.reduce((sum, a) => sum + a.score * weights[a.key], 0);
-  const weightTotal = Object.values(weights).reduce((s, w) => s + w, 0);
-  const overall = clamp(weightedSum / weightTotal);
+  const weightTotal = Object.values(rawWeights).reduce((s, w) => s + w, 0);
+  const scoreByKey: Record<CoverLetterScoreAxisKey, number> = {
+    coverage,
+    structure,
+    closing: clamp(closing),
+    tone: clamp(tone),
+  };
+  const axes: CoverLetterScoreAxis[] = (
+    ['coverage', 'structure', 'closing', 'tone'] as CoverLetterScoreAxisKey[]
+  ).map((key) => ({
+    key,
+    label: AXIS_LABEL[key],
+    score: scoreByKey[key],
+    weight: rawWeights[key] / weightTotal,
+  }));
+  const overall = clamp(axes.reduce((sum, a) => sum + a.score * a.weight, 0));
 
   let grade: CoverLetterScoreGrade;
   if (overall >= 80) grade = 'excellent';
