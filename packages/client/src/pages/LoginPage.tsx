@@ -330,8 +330,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right form panel — 모바일은 상단 정렬 + 하단 여백으로 고정 쿠키 배너가 CTA를 가리지 않게 */}
-      <div className="flex-1 flex items-start md:items-center justify-center bg-[var(--color-surface-sunken)] px-4 pt-10 pb-32 md:py-10">
+      {/* Right form panel — 모바일 상단 정렬(긴 폼 스크롤 시작점 고정). 쿠키 배너 여백은 body.has-cookie-banner 전역 처리 */}
+      <div className="flex-1 flex items-start md:items-center justify-center bg-[var(--color-surface-sunken)] px-4 py-10">
         <div className="w-full max-w-sm">
           {/* Logo */}
           <div className="text-center mb-9">

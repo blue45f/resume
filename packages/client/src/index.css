@@ -14595,3 +14595,13 @@ button:active:not(:disabled) {
     transform: none;
   }
 }
+
+/* 쿠키 동의 배너가 떠 있는 동안 본문 하단 여백 — 고정 배너가 CTA를 가리지 않게 */
+body.has-cookie-banner {
+  padding-bottom: 124px;
+}
+@media (min-width: 640px) {
+  body.has-cookie-banner {
+    padding-bottom: 72px;
+  }
+}
