@@ -347,10 +347,19 @@ export default function ResumeForm({
     : [...DEFAULT_SECTION_ORDER];
   const hiddenSections: SectionId[] = (watchedData.hiddenSections || []) as SectionId[];
 
-  // Notify parent of data changes for live completeness tracking
+  // Notify parent of data changes for live completeness tracking.
+  // watch()는 매 렌더 새 객체를 반환하므로 deps에 직접 넣으면
+  // onDataChange→setLiveData(부모)→재렌더→effect 재실행의 무한 루프가 된다.
+  // onDataChange는 ref로 읽고 RHF 구독으로 실제 필드 변경 시에만 통지하여,
+  // 콜백 메모이즈 여부와 무관하게 루프를 차단한다.
+  const onDataChangeRef = useRef(onDataChange);
+  onDataChangeRef.current = onDataChange;
   useEffect(() => {
-    onDataChange?.(toResumeData(watchedData));
-  }, [watchedData, onDataChange]);
+    const notify = () => onDataChangeRef.current?.(toResumeData(getValues()));
+    notify();
+    const subscription = watch(notify);
+    return () => subscription.unsubscribe();
+  }, [watch, getValues]);
 
   const doAutoSave = useCallback(async () => {
     const handler = onAutoSave || onSave;

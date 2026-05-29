@@ -398,6 +398,29 @@ export default function EditResumePage() {
   const { data: resumeData, error: resumeError } = useResume(id);
   const resume: Resume | null = (resumeData as Resume | undefined) ?? null;
   const notFound = !!resumeError;
+
+  // ResumeForm은 initialData 참조가 바뀌면 reset()을 호출한다(계약). 인라인 객체
+  // 리터럴을 넘기면 매 렌더 새 참조가 되어 reset→onDataChange→setLiveData→재렌더가
+  // 무한 루프가 된다. React Query의 resume는 fetch 단위로 안정적이므로, 그 참조에
+  // 묶어 메모이즈해 실제 데이터 로드 시에만 initialData 참조가 바뀌도록 한다.
+  const formInitialData = useMemo(
+    () =>
+      resume
+        ? {
+            title: resume.title,
+            personalInfo: resume.personalInfo,
+            experiences: resume.experiences,
+            educations: resume.educations,
+            skills: resume.skills,
+            projects: resume.projects,
+            certifications: resume.certifications,
+            languages: resume.languages,
+            awards: resume.awards,
+            activities: resume.activities,
+          }
+        : null,
+    [resume],
+  );
   const [saving, setSaving] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
@@ -795,18 +818,7 @@ export default function EditResumePage() {
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6">
           <ResumeForm
             resumeId={id}
-            initialData={{
-              title: resume.title,
-              personalInfo: resume.personalInfo,
-              experiences: resume.experiences,
-              educations: resume.educations,
-              skills: resume.skills,
-              projects: resume.projects,
-              certifications: resume.certifications,
-              languages: resume.languages,
-              awards: resume.awards,
-              activities: resume.activities,
-            }}
+            initialData={formInitialData!}
             onSave={handleSave}
             onAutoSave={handleAutoSave}
             onDataChange={handleDataChange}
