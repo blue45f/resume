@@ -18,7 +18,7 @@ const COLOR_PRESETS = [
   '#06b6d4',
   '#84cc16',
   '#f97316',
-  '#6366f1',
+  '#2563eb',
 ];
 
 export default function TagsPage() {
@@ -26,7 +26,7 @@ export default function TagsPage() {
   const { data: tagsData, isLoading: loading } = useTags();
   const tags = tagsData ?? [];
   const [newName, setNewName] = useState('');
-  const [newColor, setNewColor] = useState('#6366f1');
+  const [newColor, setNewColor] = useState('#2563eb');
   const [error, setError] = useState('');
 
   useEffect(() => {

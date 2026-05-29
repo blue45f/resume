@@ -1068,8 +1068,8 @@ export default function PreviewPage() {
           {(() => {
             const PRESET_COLORS = [
               { hex: '', label: '기본' },
-              { hex: '#6366f1', label: '인디고' },
-              { hex: '#3b82f6', label: '블루' },
+              { hex: '#2563eb', label: '블루' },
+              { hex: '#3b82f6', label: '스카이블루' },
               { hex: '#10b981', label: '에메랄드' },
               { hex: '#8b5cf6', label: '퍼플' },
               { hex: '#f59e0b', label: '앰버' },
@@ -1118,7 +1118,7 @@ export default function PreviewPage() {
                   <label className="flex items-center gap-1 cursor-pointer" title="직접 색상 선택">
                     <input
                       type="color"
-                      value={customAccentHex || '#6366f1'}
+                      value={customAccentHex || '#2563eb'}
                       onChange={(e) => setCustomAccentHex(e.target.value)}
                       className="w-5 h-5 rounded cursor-pointer border border-slate-200 p-0 overflow-hidden"
                       style={{ padding: '1px' }}

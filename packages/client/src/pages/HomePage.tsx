@@ -389,7 +389,7 @@ function WeeklyGoalWidget() {
   };
 
   const goalColor =
-    pct >= 100 ? '#10b981' : pct >= 60 ? '#6366f1' : pct >= 30 ? '#f59e0b' : '#ef4444';
+    pct >= 100 ? '#10b981' : pct >= 60 ? '#2563eb' : pct >= 30 ? '#f59e0b' : '#ef4444';
 
   return (
     <div className="mb-6 imp-card p-5">

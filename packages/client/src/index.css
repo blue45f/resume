@@ -1097,7 +1097,7 @@ nav {
   top: 0;
   left: 0;
   height: 3px;
-  background: linear-gradient(90deg, #3b82f6, #6366f1);
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
   z-index: 9999;
   transition:
     width 0.1s linear,
@@ -1105,7 +1105,7 @@ nav {
   pointer-events: none;
 }
 .dark .scroll-progress {
-  background: linear-gradient(90deg, #60a5fa, #818cf8);
+  background: linear-gradient(90deg, #60a5fa, #2563eb);
 }
 
 /* Animations */
@@ -1710,18 +1710,12 @@ button:active:not(:disabled) {
   box-shadow: 0 4px 12px -2px rgba(2, 132, 199, 0.4);
 }
 
-/* Gradient text for section headers */
+/* Section header accent — solid Signal Blue (no gradient text per No-Purple Rule) */
 .gradient-heading {
-  background: linear-gradient(135deg, #1e40af, #4f46e5);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1d4ed8;
 }
 .dark .gradient-heading {
-  background: linear-gradient(135deg, #60a5fa, #818cf8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #60a5fa;
 }
 
 /* Gradient border for selected/active cards */
@@ -1736,7 +1730,7 @@ button:active:not(:disabled) {
   inset: -2px;
   border-radius: inherit;
   padding: 2px;
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -2019,9 +2013,9 @@ button:active:not(:disabled) {
 
 /* --- Color Tokens (CSS custom properties) --- */
 :root {
-  --color-primary: #6366f1; /* indigo-500 */
-  --color-primary-hover: #4f46e5; /* indigo-600 */
-  --color-primary-light: #e0e7ff; /* indigo-100 */
+  --color-primary: #2563eb; /* Signal Blue (blue-600) */
+  --color-primary-hover: #1d4ed8; /* blue-700 */
+  --color-primary-light: #dbeafe; /* blue-100 */
   --color-success: #059669; /* emerald-600 */
   --color-success-light: #d1fae5; /* emerald-100 */
   --color-warning: #f59e0b; /* amber-500 */
@@ -2041,9 +2035,9 @@ button:active:not(:disabled) {
 }
 
 .dark {
-  --color-primary: #818cf8; /* indigo-400 for dark */
-  --color-primary-hover: #a5b4fc; /* indigo-300 */
-  --color-primary-light: #312e81;
+  --color-primary: #60a5fa; /* Dark Accent (blue-400) */
+  --color-primary-hover: #93c5fd; /* blue-300 */
+  --color-primary-light: #1e3a5f;
   --color-success: #34d399; /* emerald-400 */
   --color-success-light: #064e3b;
   --color-warning: #fbbf24; /* amber-400 */
@@ -2329,7 +2323,7 @@ button:active:not(:disabled) {
   position: absolute;
   inset: -1px;
   border-radius: inherit;
-  background: linear-gradient(135deg, #6366f1, #3b82f6, #10b981, #6366f1);
+  background: linear-gradient(135deg, #2563eb, #3b82f6, #10b981, #2563eb);
   background-size: 300% 300%;
   animation: gradientBorder 4s ease infinite;
   z-index: -1;
@@ -2356,10 +2350,10 @@ button:active:not(:disabled) {
 @keyframes pulseGlow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
   }
 }
 .animate-pulse-glow {
@@ -2486,8 +2480,8 @@ button:active:not(:disabled) {
     box-shadow 0.15s;
 }
 .input-focus-ring:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
   outline: none;
 }
 
@@ -2519,7 +2513,7 @@ button:active:not(:disabled) {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #6366f1, #3b82f6);
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
   border-radius: 1px;
   transition: width 0.25s var(--ease-out-quart);
 }
@@ -2557,7 +2551,7 @@ button:active:not(:disabled) {
 /* Footer gradient divider */
 .footer-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, #6366f1 30%, #3b82f6 70%, transparent);
+  background: linear-gradient(90deg, transparent, #2563eb 30%, #3b82f6 70%, transparent);
   opacity: 0.4;
 }
 .dark .footer-divider {
@@ -2572,10 +2566,10 @@ button:active:not(:disabled) {
 }
 .footer-social-icon:hover {
   transform: translateY(-2px) scale(1.1);
-  color: #6366f1;
+  color: #2563eb;
 }
 .dark .footer-social-icon:hover {
-  color: #818cf8;
+  color: #60a5fa;
 }
 
 /* Reduce motion overrides */
@@ -2632,7 +2626,7 @@ button:active:not(:disabled) {
   background-image:
     radial-gradient(at 20% 30%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
     radial-gradient(at 80% 20%, rgba(14, 165, 233, 0.1) 0px, transparent 50%),
-    radial-gradient(at 40% 80%, rgba(99, 102, 241, 0.08) 0px, transparent 50%);
+    radial-gradient(at 40% 80%, rgba(37, 99, 235, 0.08) 0px, transparent 50%);
   background-size:
     200% 200%,
     200% 200%,

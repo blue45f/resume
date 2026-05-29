@@ -945,7 +945,7 @@ function DashboardHome({ stats }: { stats: Stats }) {
           <AreaChartCard
             data={stats.dailyUsers || [0, 0, 0, 0, 0, 0, stats.users.today]}
             labels={dayLabels}
-            color="#6366f1"
+            color="#2563eb"
             title="일별 신규 가입"
           />
           <AreaChartCard
@@ -1385,8 +1385,8 @@ interface Banner {
 
 const BANNER_COLORS = [
   {
-    label: '인디고',
-    value: 'linear-gradient(135deg, #6366f1, #9333ea)',
+    label: '블루',
+    value: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
     preview: 'from-sky-500 to-sky-700',
   },
   {
@@ -1411,7 +1411,7 @@ const BANNER_COLORS = [
   },
   {
     label: '스카이',
-    value: 'linear-gradient(135deg, #0ea5e9, #6366f1)',
+    value: 'linear-gradient(135deg, #0ea5e9, #2563eb)',
     preview: 'from-sky-500 to-sky-700',
   },
 ];
@@ -1647,7 +1647,7 @@ function AdminBannersTab() {
             <div className="rounded-xl overflow-hidden">
               <div
                 style={{
-                  background: form.bgColor || 'linear-gradient(135deg, #6366f1, #9333ea)',
+                  background: form.bgColor || 'linear-gradient(135deg, #2563eb, #1d4ed8)',
                   backgroundImage: form.imageUrl
                     ? `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url(${form.imageUrl})`
                     : form.bgColor,
@@ -3807,8 +3807,8 @@ function AdminExtLinksTab() {
     logoEmoji: '🔗',
     badgeText: '',
     description: '',
-    gradientFrom: '#6366f1',
-    gradientTo: '#4f46e5',
+    gradientFrom: '#2563eb',
+    gradientTo: '#1d4ed8',
     category: 'general',
     companySize: 'all',
     careerLevel: 'all',
@@ -3924,7 +3924,7 @@ function AdminExtLinksTab() {
                     <input
                       type="color"
                       className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer"
-                      value={editing.gradientFrom || '#6366f1'}
+                      value={editing.gradientFrom || '#2563eb'}
                       onChange={(e) => setEditing((p) => ({ ...p, gradientFrom: e.target.value }))}
                     />
                   </div>
@@ -3933,7 +3933,7 @@ function AdminExtLinksTab() {
                     <input
                       type="color"
                       className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer"
-                      value={editing.gradientTo || '#4f46e5'}
+                      value={editing.gradientTo || '#1d4ed8'}
                       onChange={(e) => setEditing((p) => ({ ...p, gradientTo: e.target.value }))}
                     />
                   </div>

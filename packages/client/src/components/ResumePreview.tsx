@@ -164,7 +164,7 @@ function SkillsDisplay({
       blue: 'bg-blue-100 text-blue-700 border-blue-200',
       indigo: 'bg-sky-100 text-sky-700 border-sky-200',
       slate: 'bg-sky-100 text-sky-700 border-sky-200',
-      purple: 'bg-cyan-100 text-pink-700 border-cyan-200',
+      purple: 'bg-cyan-100 text-cyan-700 border-cyan-200',
     };
     const pillColor = colorMap[accentColor] || colorMap.blue;
     return (

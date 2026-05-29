@@ -56,7 +56,7 @@ interface Props {
   resumeId: string;
 }
 
-const COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+const COLORS = ['#2563eb', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
 function HourHeatmap({ hours }: { hours: HourStat[] }) {
   const maxCount = Math.max(...hours.map((h) => h.count), 1);

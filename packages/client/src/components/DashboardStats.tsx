@@ -177,8 +177,8 @@ export default function DashboardStats() {
                 >
                   <defs>
                     <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -205,7 +205,7 @@ export default function DashboardStats() {
                   <Area
                     type="monotone"
                     dataKey="value"
-                    stroke="#6366f1"
+                    stroke="#2563eb"
                     strokeWidth={2}
                     fill="url(#colorViews)"
                   />
