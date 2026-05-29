@@ -1259,7 +1259,7 @@ export default function NewResumePage() {
                 {/* Step-by-step Wizard (1순위) */}
                 <button
                   onClick={() => setStartMode('wizard')}
-                  className={`relative text-left p-5 rounded-xl border-2 transition-all duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+                  className={`relative text-left p-5 rounded-xl border-2 transition-all duration-200 ${
                     startMode === 'wizard'
                       ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
@@ -1294,7 +1294,7 @@ export default function NewResumePage() {
                 {/* AI Upload (1순위) */}
                 <button
                   onClick={() => setStartMode('ai-upload')}
-                  className={`relative text-left p-5 rounded-xl border-2 transition-all duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+                  className={`relative text-left p-5 rounded-xl border-2 transition-all duration-200 ${
                     startMode === 'ai-upload'
                       ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
@@ -1332,7 +1332,7 @@ export default function NewResumePage() {
                 {/* Empty */}
                 <button
                   onClick={() => setStartMode('empty')}
-                  className={`text-left p-3.5 rounded-xl border-2 transition-all duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+                  className={`text-left p-3.5 rounded-xl border-2 transition-all duration-200 ${
                     startMode === 'empty'
                       ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
@@ -1349,7 +1349,7 @@ export default function NewResumePage() {
                 {/* Sample Data */}
                 <button
                   onClick={() => setStartMode('sample')}
-                  className={`text-left p-3.5 rounded-xl border-2 transition-all duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+                  className={`text-left p-3.5 rounded-xl border-2 transition-all duration-200 ${
                     startMode === 'sample'
                       ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
@@ -1367,7 +1367,7 @@ export default function NewResumePage() {
                 <button
                   onClick={() => setStartMode('copy')}
                   disabled={existingResumes.length === 0}
-                  className={`text-left p-3.5 rounded-xl border-2 transition-all duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+                  className={`text-left p-3.5 rounded-xl border-2 transition-all duration-200 ${
                     existingResumes.length === 0
                       ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700'
                       : startMode === 'copy'
