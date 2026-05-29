@@ -1,0 +1,293 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-29T00:00:00.000Z",
+  "title": "Design System: 이력서공방 (Resume Workshop)",
+  "extensions": {
+    "colorMeta": {
+      "signal-blue": {
+        "role": "primary",
+        "displayName": "Signal Blue",
+        "canonical": "oklch(0.55 0.22 264)",
+        "tonalRamp": [
+          "oklch(0.20 0.07 264)",
+          "oklch(0.30 0.11 264)",
+          "oklch(0.40 0.16 264)",
+          "oklch(0.50 0.21 264)",
+          "oklch(0.60 0.19 264)",
+          "oklch(0.72 0.13 264)",
+          "oklch(0.85 0.07 264)",
+          "oklch(0.95 0.03 264)"
+        ]
+      },
+      "coastal-cyan": {
+        "role": "secondary",
+        "displayName": "Coastal Cyan",
+        "canonical": "oklch(0.70 0.14 207)",
+        "tonalRamp": [
+          "oklch(0.25 0.06 207)",
+          "oklch(0.35 0.09 207)",
+          "oklch(0.45 0.12 207)",
+          "oklch(0.55 0.14 207)",
+          "oklch(0.65 0.14 207)",
+          "oklch(0.78 0.10 207)",
+          "oklch(0.88 0.06 207)",
+          "oklch(0.96 0.02 207)"
+        ]
+      },
+      "deep-sapphire": {
+        "role": "secondary",
+        "displayName": "Deep Sapphire",
+        "canonical": "oklch(0.38 0.09 240)",
+        "tonalRamp": [
+          "oklch(0.18 0.05 240)",
+          "oklch(0.26 0.07 240)",
+          "oklch(0.34 0.09 240)",
+          "oklch(0.42 0.10 240)",
+          "oklch(0.52 0.10 240)",
+          "oklch(0.66 0.08 240)",
+          "oklch(0.82 0.05 240)",
+          "oklch(0.94 0.02 240)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(0.22 0.004 264)",
+        "tonalRamp": [
+          "oklch(0.18 0.004 264)",
+          "oklch(0.28 0.004 264)",
+          "oklch(0.40 0.004 264)",
+          "oklch(0.52 0.004 264)",
+          "oklch(0.64 0.004 264)",
+          "oklch(0.78 0.004 264)",
+          "oklch(0.90 0.004 264)",
+          "oklch(0.98 0.003 264)"
+        ]
+      },
+      "paper-white": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": [
+          "oklch(0.90 0.002 264)",
+          "oklch(0.93 0.002 264)",
+          "oklch(0.95 0.002 264)",
+          "oklch(0.965 0.002 264)",
+          "oklch(0.975 0.001 264)",
+          "oklch(0.985 0.001 264)",
+          "oklch(0.995 0 0)",
+          "oklch(1 0 0)"
+        ]
+      },
+      "emerald": {
+        "role": "semantic-success",
+        "displayName": "Emerald",
+        "canonical": "oklch(0.60 0.14 162)",
+        "tonalRamp": [
+          "oklch(0.25 0.06 162)",
+          "oklch(0.35 0.09 162)",
+          "oklch(0.45 0.12 162)",
+          "oklch(0.55 0.14 162)",
+          "oklch(0.66 0.13 162)",
+          "oklch(0.78 0.10 162)",
+          "oklch(0.88 0.06 162)",
+          "oklch(0.96 0.02 162)"
+        ]
+      },
+      "amber": {
+        "role": "semantic-warning",
+        "displayName": "Amber",
+        "canonical": "oklch(0.77 0.16 76)",
+        "tonalRamp": [
+          "oklch(0.32 0.07 76)",
+          "oklch(0.42 0.10 76)",
+          "oklch(0.55 0.13 76)",
+          "oklch(0.66 0.15 76)",
+          "oklch(0.77 0.16 76)",
+          "oklch(0.85 0.12 76)",
+          "oklch(0.91 0.07 76)",
+          "oklch(0.97 0.03 76)"
+        ]
+      },
+      "rose": {
+        "role": "semantic-error",
+        "displayName": "Rose Red",
+        "canonical": "oklch(0.64 0.21 25)",
+        "tonalRamp": [
+          "oklch(0.30 0.10 25)",
+          "oklch(0.40 0.14 25)",
+          "oklch(0.50 0.18 25)",
+          "oklch(0.60 0.21 25)",
+          "oklch(0.70 0.18 25)",
+          "oklch(0.80 0.12 25)",
+          "oklch(0.89 0.07 25)",
+          "oklch(0.96 0.02 25)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "페이지 제목·히어로. fluid clamp(1.35rem→3rem)."
+      },
+      "title": { "displayName": "Title", "purpose": "섹션·카드 제목." },
+      "body": { "displayName": "Body", "purpose": "본문. 65–75ch 제한." },
+      "label": { "displayName": "Label", "purpose": "버튼·배지·메타·폼 라벨." },
+      "mono": { "displayName": "Mono", "purpose": "수치·코드·키워드 토큰." }
+    },
+    "shadows": [
+      {
+        "name": "shadow-sm",
+        "value": "0 1px 2px rgba(0,0,0,0.04)",
+        "purpose": "카드·배지 정지 상태의 미세 융기."
+      },
+      { "name": "shadow-md", "value": "0 2px 8px rgba(0,0,0,0.06)", "purpose": "드롭다운·팝오버." },
+      {
+        "name": "shadow-lg",
+        "value": "0 4px 16px rgba(0,0,0,0.08)",
+        "purpose": "다이얼로그·시트."
+      },
+      {
+        "name": "shadow-hover",
+        "value": "0 8px 24px rgba(0,0,0,0.1)",
+        "purpose": "인터랙티브 카드 hover 상승."
+      }
+    ],
+    "motion": [
+      {
+        "name": "transition-fast",
+        "value": "150ms cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "버튼·상태 변화 기본 전환 (ease-out-quart)."
+      },
+      {
+        "name": "transition-normal",
+        "value": "250ms cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "카드·패널 전환."
+      },
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "진입 애니메이션·시각화 채우기."
+      },
+      {
+        "name": "ease-in-out-quart",
+        "value": "cubic-bezier(0.76, 0, 0.24, 1)",
+        "purpose": "양방향 전환."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "1차 액션. Signal Blue 배경, hover 시 Deep Sapphire로 깊어지고 active 시 눌림.",
+      "html": "<button class=\"ds-btn-primary\">이력서 만들기</button>",
+      "css": ".ds-btn-primary { background: #2563eb; color: #ffffff; font-size: 0.8rem; font-weight: 500; padding: 10px 18px; border: none; border-radius: 12px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1), transform 150ms cubic-bezier(0.25,1,0.5,1); } .ds-btn-primary:hover { background: #0c4a6e; } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "보조 액션. 흰 배경 + 1px 경계 + Ink 텍스트.",
+      "html": "<button class=\"ds-btn-ghost\">취소</button>",
+      "css": ".ds-btn-ghost { background: #ffffff; color: #1a1a1a; font-size: 0.8rem; font-weight: 500; padding: 10px 18px; border: 1px solid #e8e8e8; border-radius: 12px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1), border-color 150ms; } .ds-btn-ghost:hover { background: #fafafa; border-color: #d4d4d4; } .ds-btn-ghost:active { transform: scale(0.98); } .ds-btn-ghost:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "기본 컨테이너. 정지 시 평면(shadow-sm), 인터랙티브 시 hover에 상승.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card__title\">분석 결과</div><div class=\"ds-card__body\">응답 시간을 40% 단축했습니다.</div></div>",
+      "css": ".ds-card { background: #ffffff; color: #1a1a1a; border: 1px solid #f0f0f0; border-radius: 16px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: box-shadow 250ms cubic-bezier(0.25,1,0.5,1), transform 250ms cubic-bezier(0.25,1,0.5,1); } .ds-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); transform: translateY(-2px); } .ds-card__title { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 6px; } .ds-card__body { font-size: 1rem; line-height: 1.6; color: #666666; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-default",
+      "description": "텍스트 입력. 포커스 시 또렷한 Signal Blue 링.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"채용공고를 붙여넣으세요\" />",
+      "css": ".ds-input { background: #ffffff; color: #1a1a1a; font-size: 1rem; padding: 10px 12px; border: 1px solid #e8e8e8; border-radius: 12px; width: 100%; box-sizing: border-box; transition: border-color 150ms cubic-bezier(0.25,1,0.5,1); } .ds-input::placeholder { color: #999999; } .ds-input:focus-visible { outline: 2px solid #2563eb; outline-offset: 1px; border-color: #2563eb; }"
+    },
+    {
+      "name": "Blue Badge",
+      "kind": "chip",
+      "refersTo": "badge-blue",
+      "description": "의미 기반 배지. blue/cyan/neutral/green/amber/red 중 blue 예시.",
+      "html": "<span class=\"ds-badge-blue\">AI 변환</span>",
+      "css": ".ds-badge-blue { display: inline-flex; align-items: center; background: #eff6ff; color: #1e40af; font-size: 0.8rem; font-weight: 500; padding: 2px 8px; border-radius: 8px; }"
+    },
+    {
+      "name": "Icon Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "아이콘 전용 버튼. 최소 44×44px 터치 타깃.",
+      "html": "<button class=\"ds-icon-btn\" aria-label=\"북마크\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z\"/></svg></button>",
+      "css": ".ds-icon-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; background: transparent; color: #666666; border: none; border-radius: 12px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1), color 150ms; } .ds-icon-btn:hover { background: #f5f5f5; color: #1a1a1a; } .ds-icon-btn:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Impeccable Standard",
+    "overview": "이력서공방의 화면은 흠결 없음을 지향한다. 취업·이직이라는 진지한 순간에 사용자가 기대는 도구이므로, 디자인은 스스로를 내세우지 않고 신뢰감으로 물러선다. 무채색 종이 위에 정제된 잉크, 그리고 꼭 필요한 곳에만 떨어지는 한 점의 파란 신호. 정보가 주인공이고 장식은 조연이다. 이 시스템은 흔한 'AI 도구' 미학(purple→blue 그라디언트, 네온 cyan, 글래스모피즘, hero-metric 템플릿)을 의도적으로 거부하고 차분한 전문성과 현대적 절제를 택한다.",
+    "keyCharacteristics": [
+      "무채색 종이 + 잉크 베이스에 blue/cyan/sapphire 강조를 소량만",
+      "정보 우선, 장식 최소. 카드는 최후의 수단",
+      "subtle한 그림자, ease-out 모션, bounce/elastic 금지",
+      "WCAG AA(대비 ≥ 4.5:1), prefers-reduced-motion 존중",
+      "purple/violet/pink/magenta 전면 금지"
+    ],
+    "rules": [
+      {
+        "name": "The One Signal Rule",
+        "body": "Signal Blue는 어느 화면에서도 면적의 10% 이하로만 쓴다. 희소함이 곧 신호다.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Purple Rule",
+        "body": "purple·violet·pink·magenta는 전면 금지. 레거시 --color-primary #6366f1(indigo)는 Signal Blue로 대체·정리 대상이다.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tinted-Neutral Rule",
+        "body": "순수 #000/#fff 대신 톤다운한 잉크(#1a1a1a)와 표면(#fafafa/#f5f5f5)을 쓴다.",
+        "section": "colors"
+      },
+      {
+        "name": "The Scale-and-Weight Rule",
+        "body": "위계는 색이 아니라 크기·굵기 대비(≥1.25)로 만든다.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "표면은 정지 시 평면이다. 그림자는 hover/elevation/focus 상태 응답으로만 등장한다.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do Signal Blue(#2563eb)를 포커스·활성·1차 강조에만, 화면의 10% 이하로 쓴다",
+      "Do 중립색을 톤다운한다: 텍스트 #1a1a1a, 표면 #fafafa/#f5f5f5",
+      "Do 깊이를 표면 톤 단계(paper→raised→sunken)로 먼저 표현하고 그림자는 상태 응답으로만 쓴다",
+      "Do 위계를 크기·굵기 대비(≥1.25)로 만든다. 본문은 65–75ch",
+      "Do 모든 인터랙티브 요소에 또렷한 :focus-visible 링과 ≥44×44px 터치 타깃을 준다",
+      "Do ease-out 곡선으로 부드럽게 전환하고 prefers-reduced-motion을 존중한다",
+      "Do 의미색(emerald/amber/rose)은 상태 표현에만 쓴다"
+    ],
+    "donts": [
+      "Don't purple/violet/pink/magenta를 쓰지 않는다. 레거시 indigo(--color-primary)도 신규 작업에서 금지하고 Signal Blue로 대체한다",
+      "Don't AI 슬롭 색조합(cyan-on-dark 네온, purple→blue 그라디언트, 네온 강조)을 쓰지 않는다",
+      "Don't 글래스모피즘을 기본값으로 쓰지 않는다",
+      "Don't background-clip: text 그라디언트 텍스트를 쓰지 않는다",
+      "Don't 1px 초과 색 side-stripe(border-left/right 강조 줄)를 쓰지 않는다",
+      "Don't hero-metric 템플릿이나 똑같은 카드 격자를 반복하지 않는다",
+      "Don't 카드를 중첩하지 않는다",
+      "Don't bounce/elastic easing이나 CSS 레이아웃 속성 애니메이션을 쓰지 않는다",
+      "Don't em dash나 -- 를 본문에 쓰지 않는다"
+    ]
+  }
+}
