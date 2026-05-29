@@ -14330,3 +14330,51 @@ button:active:not(:disabled) {
     animation: none;
   }
 }
+
+/* ── InterviewPrep JD 상세 힌트 접기 (details) ── */
+.jd-hints {
+  margin-top: 0.5rem;
+  border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent);
+  border-radius: 0.7rem;
+  background: color-mix(in oklab, var(--color-surface) 97%, var(--color-accent));
+  overflow: hidden;
+}
+.jd-hints__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  cursor: pointer;
+  list-style: none;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-text) 75%, transparent);
+  user-select: none;
+}
+.jd-hints__summary::-webkit-details-marker {
+  display: none;
+}
+.jd-hints__summary:hover {
+  background: color-mix(in oklab, var(--color-accent) 7%, transparent);
+}
+.jd-hints__chevron {
+  font-size: 1.05rem;
+  line-height: 1;
+  color: color-mix(in oklab, var(--color-text) 50%, transparent);
+  transition: transform 0.2s ease;
+}
+.jd-hints[open] .jd-hints__chevron {
+  transform: rotate(180deg);
+}
+.jd-hints__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.1rem 0.6rem 0.7rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .jd-hints__chevron {
+    transition: none;
+  }
+}

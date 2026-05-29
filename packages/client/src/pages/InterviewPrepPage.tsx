@@ -3324,35 +3324,45 @@ export default function InterviewPrepPage() {
               />
               {jobDescription.trim().length >= 30 && (
                 <>
-                  <JdRequirementsHint text={jobDescription} />
-                  <JdResumeMatchHint jdText={jobDescription} resumeText={resumeTextForGap} />
-                  <JdSeniorityHint text={jobDescription} />
-                  <JdCompensationHint text={jobDescription} />
-                  <JdCultureHint text={jobDescription} />
-                  <JdBiasHint text={jobDescription} />
-                  <JdKeywordGapHint jdText={jobDescription} resumeText={resumeTextForGap} />
-                  <JdWorkModalityHint text={jobDescription} />
-                  <JdSalaryBenchmarkHint text={jobDescription} />
                   <JdSignalDashboard text={jobDescription} />
-                  <JdPostingCompletenessHint text={jobDescription} />
-                  <JdInterviewStrategyHint text={jobDescription} />
-                  <JdHiringProcessHint text={jobDescription} />
-                  <JdHiringModeHint text={jobDescription} />
-                  <JdRedFlagHint text={jobDescription} />
-                  <JdResponsibilityVaguenessHint text={jobDescription} />
-                  <JdTechObsolescenceHint text={jobDescription} />
-                  <JdGrowthOpportunityHint text={jobDescription} />
-                  <JdWorkLifeBalanceHint text={jobDescription} />
-                  <JdCultureVaguenessHint text={jobDescription} />
-                  <JdSalaryTransparencyHint text={jobDescription} />
-                  <JdBenefitsSpecificityHint text={jobDescription} />
-                  <JdStatutoryBenefitsHint text={jobDescription} />
-                  <JdInterviewComplexityHint text={jobDescription} />
-                  <JdRequiredVsPreferredHint text={jobDescription} />
-                  <JdRemoteWorkPolicyHint text={jobDescription} />
-                  <JdApplicationUrgencyHint text={jobDescription} />
-                  <JdTeamStructureHint text={jobDescription} />
-                  <JdCompanyStageHint text={jobDescription} />
+                  <details className="jd-hints">
+                    <summary className="jd-hints__summary">
+                      <span>📋 항목별 상세 신호 분석</span>
+                      <span className="jd-hints__chevron" aria-hidden="true">
+                        ⌄
+                      </span>
+                    </summary>
+                    <div className="jd-hints__body">
+                      <JdRequirementsHint text={jobDescription} />
+                      <JdResumeMatchHint jdText={jobDescription} resumeText={resumeTextForGap} />
+                      <JdSeniorityHint text={jobDescription} />
+                      <JdCompensationHint text={jobDescription} />
+                      <JdCultureHint text={jobDescription} />
+                      <JdBiasHint text={jobDescription} />
+                      <JdKeywordGapHint jdText={jobDescription} resumeText={resumeTextForGap} />
+                      <JdWorkModalityHint text={jobDescription} />
+                      <JdSalaryBenchmarkHint text={jobDescription} />
+                      <JdPostingCompletenessHint text={jobDescription} />
+                      <JdInterviewStrategyHint text={jobDescription} />
+                      <JdHiringProcessHint text={jobDescription} />
+                      <JdHiringModeHint text={jobDescription} />
+                      <JdRedFlagHint text={jobDescription} />
+                      <JdResponsibilityVaguenessHint text={jobDescription} />
+                      <JdTechObsolescenceHint text={jobDescription} />
+                      <JdGrowthOpportunityHint text={jobDescription} />
+                      <JdWorkLifeBalanceHint text={jobDescription} />
+                      <JdCultureVaguenessHint text={jobDescription} />
+                      <JdSalaryTransparencyHint text={jobDescription} />
+                      <JdBenefitsSpecificityHint text={jobDescription} />
+                      <JdStatutoryBenefitsHint text={jobDescription} />
+                      <JdInterviewComplexityHint text={jobDescription} />
+                      <JdRequiredVsPreferredHint text={jobDescription} />
+                      <JdRemoteWorkPolicyHint text={jobDescription} />
+                      <JdApplicationUrgencyHint text={jobDescription} />
+                      <JdTeamStructureHint text={jobDescription} />
+                      <JdCompanyStageHint text={jobDescription} />
+                    </div>
+                  </details>
                 </>
               )}
             </div>
