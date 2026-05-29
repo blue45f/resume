@@ -14372,3 +14372,198 @@ button:active:not(:disabled) {
     transition: none;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   인증 화면 전용 (LoginPage) — Impeccable 토큰 기반 스코프 클래스
+   입력/CTA/탭/소셜/체크박스의 상태(default·hover·focus·error)를 한곳에서
+   표준화한다. 전역 변경 없이 .auth- 프리픽스로만 한정.
+   ════════════════════════════════════════════════════════════════ */
+
+/* 입력 필드 — 1px 경계, :focus-visible 시 또렷한 2px accent 링 + border 강조.
+   glow 대신 또렷한 outline. placeholder 는 muted. */
+.auth-field {
+  width: 100%;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.6875rem 0.875rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+.auth-field::placeholder {
+  color: var(--color-text-muted);
+}
+.auth-field:hover:not(:focus-visible):not(:disabled) {
+  border-color: color-mix(in oklab, var(--color-accent) 35%, var(--color-border));
+}
+.auth-field:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 0;
+  border-color: var(--color-accent);
+}
+.auth-field:disabled {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+.auth-field--error {
+  border-color: var(--color-error);
+}
+.auth-field--error:focus-visible {
+  outline-color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+/* 1차 CTA — Signal Blue 배경, hover 시 깊은 톤, active scale(0.98), weight 500.
+   The One Signal Rule: 화면의 주된 파란 신호는 이 버튼 하나. */
+.auth-cta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.875rem;
+  padding: 0.6875rem 1.125rem;
+  background: var(--color-accent);
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  border-radius: var(--radius-md);
+  transition:
+    background-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  cursor: pointer;
+}
+.auth-cta:hover:not(:disabled) {
+  background: #1d4ed8;
+  box-shadow: var(--shadow-md);
+}
+.auth-cta:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.auth-cta:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.auth-cta:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.dark .auth-cta {
+  color: #0a1424;
+}
+.dark .auth-cta:hover:not(:disabled) {
+  background: #93c5fd;
+}
+
+/* 탭 토글 컨테이너 — sunken 트랙 위 활성 탭이 surface 로 떠오른다. */
+.auth-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-md);
+}
+.auth-tab {
+  flex: 1;
+  min-height: 2.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  cursor: pointer;
+}
+.auth-tab:hover:not(.auth-tab--active) {
+  color: var(--color-text);
+}
+.auth-tab--active {
+  background: var(--color-surface);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+}
+.auth-tab:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+/* 소셜 로그인 버튼 — 보조 액션. 1px 경계 + 미세 hover 융기. */
+.auth-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  width: 100%;
+  min-height: 2.875rem;
+  padding: 0 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+.auth-social:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* 회원 유형 선택 타일 — 활성 시 accent 경계 + soft 배경. */
+.auth-type {
+  min-height: 4.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
+  cursor: pointer;
+}
+.auth-type:hover:not(.auth-type--active) {
+  border-color: color-mix(in oklab, var(--color-accent) 35%, var(--color-border));
+}
+.auth-type--active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+.auth-type:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* 체크박스 — accent 색상 통일. */
+.auth-check {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  accent-color: var(--color-accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.auth-check:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-field,
+  .auth-cta,
+  .auth-tab,
+  .auth-social,
+  .auth-type {
+    transition: none;
+  }
+  .auth-cta:active:not(:disabled) {
+    transform: none;
+  }
+}

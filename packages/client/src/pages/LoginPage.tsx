@@ -61,14 +61,13 @@ const PROVIDERS = [
     name: 'Google',
     icon: GoogleIcon,
     className:
-      'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 hover:border-slate-300 hover:shadow-sm',
+      'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-sunken)] hover:border-[var(--color-text-muted)] hover:shadow-sm',
   },
   {
     id: 'github',
     name: 'GitHub',
     icon: GitHubIcon,
-    className:
-      'bg-slate-900 dark:bg-slate-700 text-white hover:bg-slate-800 dark:hover:bg-slate-600 hover:shadow-sm',
+    className: 'bg-[#1a1a1a] text-white hover:bg-[#000000] hover:shadow-sm',
   },
   {
     id: 'kakao',
@@ -206,7 +205,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex">
       {/* Left decorative panel - hidden on mobile.
           Solid sapphire surface + subtle dot grid. mesh blob/floating squares 제거. */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-sky-900">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0c4a6e]">
         {/* refined dot grid — purposeful texture, not glassmorphic */}
         <div
           aria-hidden="true"
@@ -331,42 +330,51 @@ export default function LoginPage() {
       </div>
 
       {/* Right form panel */}
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-sky-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 px-4 py-8">
+      <div className="flex-1 flex items-center justify-center bg-[var(--color-surface-sunken)] px-4 py-10">
         <div className="w-full max-w-sm">
           {/* Logo */}
-          <div className="text-center mb-8">
-            <Link to={ROUTES.home} className="inline-block group">
-              <div className="w-14 h-14 bg-neutral-900 dark:bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-shadow duration-200 lg:hidden">
-                <span className="text-white text-2xl font-bold">&#xC774;</span>
+          <div className="text-center mb-9">
+            <Link
+              to={ROUTES.home}
+              className="inline-block rounded-md focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
+            >
+              <div className="w-14 h-14 bg-[#1a1a1a] dark:bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md lg:hidden">
+                <span className="text-white dark:text-[#1a1a1a] text-2xl font-bold">&#xC774;</span>
               </div>
-              <h1 className="heading-accent text-2xl font-bold text-slate-900 dark:text-slate-100">
+              <h1 className="text-[1.625rem] font-bold tracking-[-0.02em] text-[var(--color-text)]">
                 &#xC774;&#xB825;&#xC11C;&#xACF5;&#xBC29;
               </h1>
             </Link>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
+            <p className="text-sm text-[var(--color-text-secondary)] mt-2">
               AI &#xAE30;&#xBC18; &#xC774;&#xB825;&#xC11C; &#xAD00;&#xB9AC; &#xD50C;&#xB7AB;&#xD3FC;
             </p>
           </div>
 
           {/* Card */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-7 sm:p-8 shadow-sm">
             {/* Login / Register tab toggle */}
-            <div className="flex mb-6 bg-slate-100 dark:bg-slate-700 rounded-xl p-1">
+            <div className="auth-tabs mb-6" role="tablist" aria-label="인증 방식">
               <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'login'}
                 onClick={() => {
                   setActiveTab('login');
                   setAuthError('');
                 }}
-                className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === 'login' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                className={`auth-tab ${activeTab === 'login' ? 'auth-tab--active' : ''}`}
               >
                 &#xB85C;&#xADF8;&#xC778;
               </button>
               <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'register'}
                 onClick={() => {
                   setActiveTab('register');
                   setAuthError('');
                 }}
-                className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === 'register' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                className={`auth-tab ${activeTab === 'register' ? 'auth-tab--active' : ''}`}
               >
                 &#xD68C;&#xC6D0;&#xAC00;&#xC785;
               </button>
@@ -377,9 +385,28 @@ export default function LoginPage() {
                 <div
                   role="alert"
                   id="auth-error"
-                  className="mb-5 p-3.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-400 text-center animate-fade-in"
+                  className="mb-5 flex items-start gap-2.5 p-3.5 rounded-xl border text-sm leading-snug animate-fade-in"
+                  style={{
+                    borderColor: 'var(--color-error)',
+                    backgroundColor: 'var(--color-error-light)',
+                    color: 'var(--color-error)',
+                  }}
                 >
-                  {authError || '로그인에 실패했습니다. 다시 시도해주세요.'}
+                  <svg
+                    className="w-4 h-4 mt-0.5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+                    />
+                  </svg>
+                  <span>{authError || '로그인에 실패했습니다. 다시 시도해주세요.'}</span>
                 </div>
               )}
             </div>
@@ -392,7 +419,7 @@ export default function LoginPage() {
                   <a
                     key={p.id}
                     href={getSocialLoginUrl(p.id)}
-                    className={`flex items-center justify-center gap-3 w-full py-3 px-4 rounded-xl font-medium text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800 ${p.className}`}
+                    className={`auth-social focus:outline-none ${p.className}`}
                   >
                     <Icon />
                     {p.name}&#xC73C;&#xB85C; {isRegister ? '가입하기' : '계속하기'}
@@ -403,11 +430,11 @@ export default function LoginPage() {
 
             {/* Divider */}
             <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200 dark:border-slate-700" />
+              <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div className="w-full border-t border-[var(--color-border-subtle)]" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-white dark:bg-slate-800 px-3 text-xs text-slate-500 dark:text-slate-400">
+                <span className="bg-[var(--color-surface)] px-3 text-xs text-[var(--color-text-muted)]">
                   &#xB610;&#xB294; &#xC774;&#xBA54;&#xC77C;&#xB85C;
                 </span>
               </div>
@@ -418,128 +445,133 @@ export default function LoginPage() {
               onSubmit={
                 isRegister ? registerForm.handleSubmit(onRegister) : loginForm.handleSubmit(onLogin)
               }
-              className="space-y-3"
+              className="space-y-4"
               noValidate
             >
               {isRegister && (
                 <>
-                  <div>
-                    <label htmlFor="register-name" className="sr-only">
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="register-name"
+                      className="block text-sm font-medium text-[var(--color-text)]"
+                    >
                       이름
                     </label>
                     <input
                       id="register-name"
                       type="text"
                       {...registerForm.register('name')}
-                      placeholder="이름"
+                      placeholder="홍길동"
                       aria-required="true"
                       aria-invalid={!!nameError}
                       aria-describedby={nameError ? 'name-error' : undefined}
-                      className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors ${nameError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`}
+                      className={`auth-field ${nameError ? 'auth-field--error' : ''}`}
                     />
                     {nameError && (
-                      <p id="name-error" className="mt-1 text-xs text-red-500" role="alert">
+                      <p id="name-error" className="text-xs text-[var(--color-error)]" role="alert">
                         {nameError}
                       </p>
                     )}
                   </div>
-                  <div className="stagger-children grid grid-cols-3 gap-2">
-                    {(
-                      [
-                        {
-                          value: 'personal',
-                          label: '개인',
-                          icon: (
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                              />
-                            </svg>
-                          ),
-                          desc: '구직자',
-                          features: ['이력서 작성/관리', 'AI 분석 & ATS', '채용정보 열람'],
-                        },
-                        {
-                          value: 'recruiter',
-                          label: '리크루터',
-                          icon: (
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                              />
-                            </svg>
-                          ),
-                          desc: '채용 담당',
-                          features: ['인재 탐색/스카우트', '채용공고 등록', '지원자 관리'],
-                        },
-                        {
-                          value: 'company',
-                          label: '기업',
-                          icon: (
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                              />
-                            </svg>
-                          ),
-                          desc: '기업 회원',
-                          features: ['채용 대시보드', '팀 스카우트 관리', '기업 브랜딩'],
-                        },
-                      ] as const
-                    ).map((tp) => (
-                      <button
-                        key={tp.value}
-                        type="button"
-                        onClick={() =>
-                          registerForm.setValue('userType', tp.value, { shouldValidate: true })
-                        }
-                        className={`p-2.5 rounded-xl border text-center transition-all duration-200 ${
-                          userType === tp.value
-                            ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20 ring-1 ring-sky-500'
-                            : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
-                        }`}
-                      >
-                        <span
-                          className={`flex justify-center mb-1 ${userType === tp.value ? 'text-sky-700 dark:text-sky-400' : 'text-slate-400 dark:text-slate-500'}`}
+                  <fieldset className="space-y-1.5">
+                    <legend className="text-sm font-medium text-[var(--color-text)] mb-1.5">
+                      회원 유형
+                    </legend>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(
+                        [
+                          {
+                            value: 'personal',
+                            label: '개인',
+                            icon: (
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                />
+                              </svg>
+                            ),
+                            desc: '구직자',
+                            features: ['이력서 작성/관리', 'AI 분석 & ATS', '채용정보 열람'],
+                          },
+                          {
+                            value: 'recruiter',
+                            label: '리크루터',
+                            icon: (
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                />
+                              </svg>
+                            ),
+                            desc: '채용 담당',
+                            features: ['인재 탐색/스카우트', '채용공고 등록', '지원자 관리'],
+                          },
+                          {
+                            value: 'company',
+                            label: '기업',
+                            icon: (
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                                />
+                              </svg>
+                            ),
+                            desc: '기업 회원',
+                            features: ['채용 대시보드', '팀 스카우트 관리', '기업 브랜딩'],
+                          },
+                        ] as const
+                      ).map((tp) => (
+                        <button
+                          key={tp.value}
+                          type="button"
+                          aria-pressed={userType === tp.value}
+                          onClick={() =>
+                            registerForm.setValue('userType', tp.value, { shouldValidate: true })
+                          }
+                          className={`auth-type flex flex-col items-center justify-center px-2 py-2.5 text-center ${userType === tp.value ? 'auth-type--active' : ''}`}
                         >
-                          {tp.icon}
-                        </span>
-                        <span className="text-xs font-medium text-slate-900 dark:text-slate-100">
-                          {tp.label}
-                        </span>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
-                          {tp.desc}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                  {/* 회원 유형별 기능 안내 */}
-                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                    <p className="text-[10px] font-semibold text-sky-700 dark:text-sky-400 mb-1.5 uppercase tracking-wider">
+                          <span
+                            className={`flex justify-center mb-1 ${userType === tp.value ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'}`}
+                          >
+                            {tp.icon}
+                          </span>
+                          <span className="text-xs font-medium text-[var(--color-text)]">
+                            {tp.label}
+                          </span>
+                          <span className="text-[10px] text-[var(--color-text-secondary)] block">
+                            {tp.desc}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
+                  {/* 회원 유형별 기능 안내 — 카드 안 중첩 회피: 배경 틴트만, 보더 없음 */}
+                  <div className="p-3.5 bg-[var(--color-surface-sunken)] rounded-xl">
+                    <p className="text-[11px] font-semibold text-[var(--color-text-secondary)] mb-2 uppercase tracking-wider">
                       {userType === 'personal'
                         ? '구직자'
                         : userType === 'recruiter'
@@ -547,7 +579,7 @@ export default function LoginPage() {
                           : '기업'}{' '}
                       주요 기능
                     </p>
-                    <ul className="space-y-1">
+                    <ul className="space-y-1.5">
                       {(userType === 'personal'
                         ? [
                             '이력서 작성 및 AI 분석',
@@ -571,13 +603,15 @@ export default function LoginPage() {
                       ).map((f) => (
                         <li
                           key={f}
-                          className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400"
+                          className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]"
                         >
                           <svg
-                            className="w-3 h-3 text-emerald-500 shrink-0"
+                            className="w-3 h-3 shrink-0"
+                            style={{ color: 'var(--color-success)' }}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
+                            aria-hidden="true"
                           >
                             <path
                               strokeLinecap="round"
@@ -592,15 +626,33 @@ export default function LoginPage() {
                     </ul>
                   </div>
                   {userType !== 'personal' && (
-                    <div>
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="register-company"
+                        className="block text-sm font-medium text-[var(--color-text)]"
+                      >
+                        {userType === 'company' ? '회사명' : '소속 회사'}
+                        {userType === 'company' && (
+                          <span className="text-[var(--color-error)] ml-0.5">*</span>
+                        )}
+                      </label>
                       <input
+                        id="register-company"
                         type="text"
                         {...registerForm.register('companyName')}
-                        placeholder={userType === 'company' ? '회사명 *' : '소속 회사'}
-                        className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        placeholder={
+                          userType === 'company' ? '주식회사 이력서공방' : '소속 회사 (선택)'
+                        }
+                        aria-invalid={!!companyNameError}
+                        aria-describedby={companyNameError ? 'company-error' : undefined}
+                        className={`auth-field ${companyNameError ? 'auth-field--error' : ''}`}
                       />
                       {companyNameError && (
-                        <p className="mt-1 text-xs text-red-500" role="alert">
+                        <p
+                          id="company-error"
+                          className="text-xs text-[var(--color-error)]"
+                          role="alert"
+                        >
                           {companyNameError}
                         </p>
                       )}
@@ -608,47 +660,55 @@ export default function LoginPage() {
                   )}
                 </>
               )}
-              <div>
-                <label htmlFor="login-email" className="sr-only">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="login-email"
+                  className="block text-sm font-medium text-[var(--color-text)]"
+                >
                   이메일
                 </label>
                 <input
                   id="login-email"
                   type="email"
+                  autoComplete="email"
                   {...(isRegister ? registerForm.register('email') : loginForm.register('email'))}
-                  placeholder="이메일"
+                  placeholder="you@example.com"
                   aria-required="true"
                   aria-invalid={!!emailError}
                   aria-describedby={emailError ? 'email-error' : undefined}
-                  className={`w-full px-4 py-3 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors ${emailError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`}
+                  className={`auth-field ${emailError ? 'auth-field--error' : ''}`}
                 />
                 {emailError && (
-                  <p id="email-error" className="mt-1 text-xs text-red-500" role="alert">
+                  <p id="email-error" className="text-xs text-[var(--color-error)]" role="alert">
                     {emailError}
                   </p>
                 )}
               </div>
-              <div>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="login-password"
+                  className="block text-sm font-medium text-[var(--color-text)]"
+                >
+                  비밀번호
+                </label>
                 <div className="relative">
-                  <label htmlFor="login-password" className="sr-only">
-                    비밀번호
-                  </label>
                   <input
                     id="login-password"
                     type={showPassword ? 'text' : 'password'}
+                    autoComplete={isRegister ? 'new-password' : 'current-password'}
                     {...(isRegister
                       ? registerForm.register('password')
                       : loginForm.register('password'))}
-                    placeholder="비밀번호 (8자 이상)"
+                    placeholder="8자 이상 입력"
                     aria-required="true"
                     aria-invalid={!!passwordError}
                     aria-describedby={passwordError ? 'password-error' : undefined}
-                    className={`w-full px-4 py-3 pr-11 border rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors ${passwordError ? 'border-red-400 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'}`}
+                    className={`auth-field pr-11 ${passwordError ? 'auth-field--error' : ''}`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-0.5"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-9 h-9 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--color-accent)] transition-colors"
                     aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
                     tabIndex={-1}
                   >
@@ -690,88 +750,60 @@ export default function LoginPage() {
                   </button>
                 </div>
                 {passwordError && (
-                  <p id="password-error" className="mt-1 text-xs text-red-500" role="alert">
+                  <p id="password-error" className="text-xs text-[var(--color-error)]" role="alert">
                     {passwordError}
                   </p>
                 )}
                 {isRegister &&
-                  password.length > 0 &&
+                  password &&
                   (() => {
-                    const hasLen = password.length >= 8;
-                    const hasUpper = /[A-Z]/.test(password);
-                    const hasNumber = /\d/.test(password);
-                    const hasSpecial = /[!@#$%^&*]/.test(password);
-                    const score = [hasLen, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
-                    const labels = ['매우 약함', '약함', '보통', '강함', '매우 강함'];
-                    const colors = [
-                      'bg-red-500',
-                      'bg-orange-500',
-                      'bg-yellow-500',
-                      'bg-emerald-500',
-                      'bg-emerald-600',
-                    ];
+                    const barColor =
+                      pwStrength.level <= 1
+                        ? 'var(--color-error)'
+                        : pwStrength.level <= 2
+                          ? 'var(--color-warning)'
+                          : pwStrength.level <= 3
+                            ? 'var(--color-accent)'
+                            : 'var(--color-success)';
                     return (
-                      <div className="mt-1.5">
-                        <div className="flex gap-1 mb-1">
-                          {[0, 1, 2, 3].map((i) => (
+                      <div className="mt-2" aria-live="polite">
+                        <div className="flex gap-1 mb-1.5">
+                          {[1, 2, 3, 4].map((i) => (
                             <div
                               key={i}
-                              className={`h-1 flex-1 rounded-full ${i < score ? colors[score] : 'bg-slate-200 dark:bg-slate-700'}`}
+                              className="h-1 flex-1 rounded-full transition-colors duration-200"
+                              style={{
+                                backgroundColor:
+                                  i <= pwStrength.level ? barColor : 'var(--color-border)',
+                              }}
                             />
                           ))}
                         </div>
-                        <p
-                          className={`text-[10px] ${score <= 1 ? 'text-red-500' : score <= 2 ? 'text-yellow-500' : 'text-emerald-500'}`}
-                        >
-                          {labels[score]} —{' '}
-                          {!hasLen
-                            ? '8자 이상'
-                            : !hasUpper
-                              ? '대문자 포함'
-                              : !hasNumber
-                                ? '숫자 포함'
-                                : !hasSpecial
-                                  ? '특수문자 포함'
-                                  : '안전한 비밀번호'}
+                        <p className="text-xs" style={{ color: barColor }}>
+                          {pwStrength.label}
+                          {pwStrength.level <= 2 && (
+                            <span className="text-[var(--color-text-muted)]">
+                              {' '}
+                              (대문자, 숫자, 특수문자를 포함하세요)
+                            </span>
+                          )}
                         </p>
                       </div>
                     );
                   })()}
-                {isRegister && password && (
-                  <div className="mt-2">
-                    <div className="flex gap-1 mb-1">
-                      {[1, 2, 3, 4].map((i) => (
-                        <div
-                          key={i}
-                          className={`h-1 flex-1 rounded-full transition-colors duration-200 ${i <= pwStrength.level ? pwStrength.color : 'bg-slate-200 dark:bg-slate-700'}`}
-                        />
-                      ))}
-                    </div>
-                    <p
-                      className={`text-xs ${pwStrength.level <= 1 ? 'text-red-500' : pwStrength.level <= 2 ? 'text-amber-500' : pwStrength.level <= 3 ? 'text-sky-500' : 'text-emerald-500'}`}
-                    >
-                      {pwStrength.label}
-                      {pwStrength.level <= 2 && ' - 대문자, 숫자, 특수문자를 포함하세요'}
-                    </p>
-                  </div>
-                )}
               </div>
 
               {!isRegister && (
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      defaultChecked
-                      className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-sky-700 focus:ring-sky-500"
-                    />
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                    <input type="checkbox" defaultChecked className="auth-check" />
+                    <span className="text-xs text-[var(--color-text-secondary)]">
                       로그인 상태 유지
                     </span>
                   </label>
                   <Link
                     to={ROUTES.forgotPassword}
-                    className="text-xs text-sky-700 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 transition-colors"
+                    className="text-xs font-medium text-[var(--color-accent)] rounded focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] hover:underline underline-offset-2"
                   >
                     비밀번호 찾기
                   </Link>
@@ -779,23 +811,23 @@ export default function LoginPage() {
               )}
 
               {isRegister && (
-                <div className="space-y-2.5 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                  <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <div className="space-y-3 p-3.5 bg-[var(--color-surface-sunken)] rounded-xl">
+                  <p className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
                     개인정보 동의
                   </p>
-                  <label className="flex items-start gap-2 cursor-pointer">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
                     <input
                       type="checkbox"
                       {...registerForm.register('agreeTerms')}
-                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-sky-700 focus:ring-sky-500"
+                      className="auth-check mt-0.5"
                     />
-                    <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
-                      <span className="text-red-500 font-medium">[필수]</span>{' '}
+                    <span className="text-xs text-[var(--color-text)] leading-snug">
+                      <span className="text-[var(--color-error)] font-medium">[필수]</span>{' '}
                       <Link
                         to={ROUTES.terms}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline underline-offset-2 hover:text-sky-700 dark:hover:text-sky-400"
+                        className="text-[var(--color-accent)] underline underline-offset-2"
                       >
                         이용약관
                       </Link>
@@ -803,24 +835,24 @@ export default function LoginPage() {
                     </span>
                   </label>
                   {registerForm.formState.errors.agreeTerms && (
-                    <p className="text-[11px] text-red-500 ml-6" role="alert">
+                    <p className="text-[11px] text-[var(--color-error)] ml-6" role="alert">
                       {registerForm.formState.errors.agreeTerms.message}
                     </p>
                   )}
 
-                  <label className="flex items-start gap-2 cursor-pointer">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
                     <input
                       type="checkbox"
                       {...registerForm.register('agreePrivacy')}
-                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-sky-700 focus:ring-sky-500"
+                      className="auth-check mt-0.5"
                     />
-                    <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
-                      <span className="text-red-500 font-medium">[필수]</span>{' '}
+                    <span className="text-xs text-[var(--color-text)] leading-snug">
+                      <span className="text-[var(--color-error)] font-medium">[필수]</span>{' '}
                       <Link
                         to={ROUTES.privacy}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline underline-offset-2 hover:text-sky-700 dark:hover:text-sky-400"
+                        className="text-[var(--color-accent)] underline underline-offset-2"
                       >
                         개인정보 수집·이용
                       </Link>
@@ -828,42 +860,39 @@ export default function LoginPage() {
                     </span>
                   </label>
                   {registerForm.formState.errors.agreePrivacy && (
-                    <p className="text-[11px] text-red-500 ml-6" role="alert">
+                    <p className="text-[11px] text-[var(--color-error)] ml-6" role="alert">
                       {registerForm.formState.errors.agreePrivacy.message}
                     </p>
                   )}
 
-                  <label className="flex items-start gap-2 cursor-pointer">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
                     <input
                       type="checkbox"
                       {...registerForm.register('llmOptIn')}
-                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-sky-700 focus:ring-sky-500"
+                      className="auth-check mt-0.5"
                     />
-                    <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
-                      <span className="text-slate-400 font-medium">[선택]</span> AI 변환/분석 기능
-                      사용을 위한 개인정보 국외 이전(미국 소재 LLM 제공사)에 동의합니다
+                    <span className="text-xs text-[var(--color-text-secondary)] leading-snug">
+                      <span className="text-[var(--color-text-muted)] font-medium">[선택]</span> AI
+                      변환/분석 기능 사용을 위한 개인정보 국외 이전(미국 소재 LLM 제공사)에
+                      동의합니다
                     </span>
                   </label>
 
-                  <label className="flex items-start gap-2 cursor-pointer">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
                     <input
                       type="checkbox"
                       {...registerForm.register('marketingOptIn')}
-                      className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-sky-700 focus:ring-sky-500"
+                      className="auth-check mt-0.5"
                     />
-                    <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
-                      <span className="text-slate-400 font-medium">[선택]</span> 마케팅 정보
-                      수신(이메일·푸시)에 동의합니다
+                    <span className="text-xs text-[var(--color-text-secondary)] leading-snug">
+                      <span className="text-[var(--color-text-muted)] font-medium">[선택]</span>{' '}
+                      마케팅 정보 수신(이메일·푸시)에 동의합니다
                     </span>
                   </label>
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-shine imp-btn w-full py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-              >
+              <button type="submit" disabled={loading} className="auth-cta mt-1">
                 {loading && (
                   <svg
                     className="w-4 h-4 animate-spin"
@@ -890,19 +919,19 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400 text-center leading-relaxed">
+            <div className="mt-8 pt-6 border-t border-[var(--color-border-subtle)]">
+              <p className="text-xs text-[var(--color-text-muted)] text-center leading-relaxed">
                 {isRegister ? '가입' : '로그인'}하면{' '}
                 <Link
                   to={ROUTES.terms}
-                  className="text-slate-500 dark:text-slate-400 underline underline-offset-2 hover:text-slate-700 dark:hover:text-slate-300 transition-colors duration-200"
+                  className="text-[var(--color-text-secondary)] underline underline-offset-2 hover:text-[var(--color-text)] transition-colors duration-200"
                 >
                   이용약관
                 </Link>{' '}
                 및{' '}
                 <Link
                   to={ROUTES.privacy}
-                  className="text-slate-500 dark:text-slate-400 underline underline-offset-2 hover:text-slate-700 dark:hover:text-slate-300 transition-colors duration-200"
+                  className="text-[var(--color-text-secondary)] underline underline-offset-2 hover:text-[var(--color-text)] transition-colors duration-200"
                 >
                   개인정보처리방침
                 </Link>
@@ -911,46 +940,34 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <p className="text-center text-sm text-slate-400 dark:text-slate-500 mt-6">
+          <p className="text-center text-sm text-[var(--color-text-muted)] mt-6">
             <Link
               to={ROUTES.home}
-              className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200"
+              className="rounded px-1 hover:text-[var(--color-text-secondary)] focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] transition-colors duration-200"
             >
               비로그인으로 사용하기 &rarr;
             </Link>
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4 mt-6 text-xs text-slate-500 dark:text-slate-400">
-            <span className="flex items-center gap-1">
-              <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              무료 사용
-            </span>
-            <span className="flex items-center gap-1">
-              <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              데이터 안전
-            </span>
-            <span className="flex items-center gap-1">
-              <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              오픈소스
-            </span>
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-6 text-xs text-[var(--color-text-muted)]">
+            {['무료 사용', '데이터 안전', '오픈소스'].map((label) => (
+              <span key={label} className="flex items-center gap-1.5">
+                <svg
+                  className="w-3.5 h-3.5 shrink-0"
+                  style={{ color: 'var(--color-success)' }}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {label}
+              </span>
+            ))}
           </div>
         </div>
       </div>
