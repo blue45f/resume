@@ -17,9 +17,9 @@ describe('plans utility', () => {
       expect(PLANS).toHaveLength(3);
     });
 
-    it('플랜 ID가 free, standard, premium', () => {
+    it('플랜 ID가 free, pro, enterprise', () => {
       const ids = PLANS.map((p: any) => p.id);
-      expect(ids).toEqual(['free', 'standard', 'premium']);
+      expect(ids).toEqual(['free', 'pro', 'enterprise']);
     });
 
     it('free 플랜 가격은 0', () => {
@@ -28,8 +28,8 @@ describe('plans utility', () => {
       expect(free.yearlyPrice).toBe(0);
     });
 
-    it('standard 플랜이 popular로 표시됨', () => {
-      const standard = PLANS.find((p: any) => p.id === 'standard');
+    it('pro 플랜이 popular로 표시됨', () => {
+      const standard = PLANS.find((p: any) => p.id === 'pro');
       expect(standard.popular).toBe(true);
     });
   });
@@ -59,8 +59,8 @@ describe('plans utility', () => {
   describe('getPlan', () => {
     it('유효한 planId → 해당 플랜 반환', () => {
       expect(getPlan('free').id).toBe('free');
-      expect(getPlan('standard').id).toBe('standard');
-      expect(getPlan('premium').id).toBe('premium');
+      expect(getPlan('pro').id).toBe('pro');
+      expect(getPlan('enterprise').id).toBe('enterprise');
     });
 
     it('잘못된 planId → free 플랜 반환 (기본값)', () => {
@@ -101,23 +101,23 @@ describe('plans utility', () => {
         expect(canAccess('free', 'translation')).toBe(false);
       });
 
-      it('standard 플랜 → aiCoaching 가능', () => {
-        expect(canAccess('standard', 'aiCoaching')).toBe(true);
+      it('pro 플랜 → aiCoaching 가능', () => {
+        expect(canAccess('pro', 'aiCoaching')).toBe(true);
       });
 
-      it('standard 플랜 → coverLetter 가능', () => {
-        expect(canAccess('standard', 'coverLetter')).toBe(true);
+      it('pro 플랜 → coverLetter 가능', () => {
+        expect(canAccess('pro', 'coverLetter')).toBe(true);
       });
 
-      it('standard 플랜 → translation 불가', () => {
-        expect(canAccess('standard', 'translation')).toBe(false);
+      it('pro 플랜 → translation 불가', () => {
+        expect(canAccess('pro', 'translation')).toBe(false);
       });
 
-      it('premium 플랜 → 모든 기능 가능', () => {
-        expect(canAccess('premium', 'aiCoaching')).toBe(true);
-        expect(canAccess('premium', 'coverLetter')).toBe(true);
-        expect(canAccess('premium', 'translation')).toBe(true);
-        expect(canAccess('premium', 'prioritySupport')).toBe(true);
+      it('enterprise 플랜 → 모든 기능 가능', () => {
+        expect(canAccess('enterprise', 'aiCoaching')).toBe(true);
+        expect(canAccess('enterprise', 'coverLetter')).toBe(true);
+        expect(canAccess('enterprise', 'translation')).toBe(true);
+        expect(canAccess('enterprise', 'prioritySupport')).toBe(true);
       });
     });
 
@@ -130,20 +130,20 @@ describe('plans utility', () => {
         expect(canAccess('free', 'scoutMessages')).toBe(false);
       });
 
-      it('standard 플랜 → scoutMessages > 0 이므로 접근 가능', () => {
-        expect(canAccess('standard', 'scoutMessages')).toBe(true);
+      it('pro 플랜 → scoutMessages > 0 이므로 접근 가능', () => {
+        expect(canAccess('pro', 'scoutMessages')).toBe(true);
       });
     });
 
     describe('역할 없는 일반 사용자', () => {
       it('userRole가 undefined일 때 플랜에 따라 결정', () => {
         expect(canAccess('free', 'aiCoaching', undefined)).toBe(false);
-        expect(canAccess('premium', 'aiCoaching', undefined)).toBe(true);
+        expect(canAccess('enterprise', 'aiCoaching', undefined)).toBe(true);
       });
 
       it('userRole가 user일 때 플랜에 따라 결정', () => {
         expect(canAccess('free', 'aiCoaching', 'user')).toBe(false);
-        expect(canAccess('premium', 'aiCoaching', 'user')).toBe(true);
+        expect(canAccess('enterprise', 'aiCoaching', 'user')).toBe(true);
       });
     });
   });
