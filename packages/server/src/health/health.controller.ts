@@ -19,8 +19,20 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AdminStatsService } from './admin-stats.service';
 import { UsageService } from './usage.service';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pkg = require('../../package.json');
+// swc(dev)와 tsc(build)의 dist 레이아웃이 달라 package.json 상대 경로가 바뀐다.
+// 후보 경로를 순서대로 시도하고 실패 시 env로 폴백한다.
+function loadPkg(): { version?: string } {
+  for (const candidate of ['../../package.json', '../../../package.json']) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      return require(candidate);
+    } catch {
+      // 다음 후보 경로 시도
+    }
+  }
+  return { version: process.env.npm_package_version };
+}
+const pkg = loadPkg();
 
 @ApiTags('health')
 @Controller('health')
