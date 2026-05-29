@@ -21,6 +21,22 @@
 
 ## 프로덕션 활성화 체크리스트
 
+### 0. ⚠️ 선행(필수): 클라↔서버 plan 모델 통일
+
+**현재 클라이언트와 서버의 plan 카탈로그가 불일치합니다.** 이걸 먼저 해결하지 않으면 결제/trial로
+plan을 부여해도 기능 게이팅이 풀리지 않습니다(유료 사용자가 free로 취급됨).
+
+- 클라(`packages/client/src/lib/plans.ts`): `PlanId = 'free' | 'standard' | 'premium'`, 가격 필드 `price`/`yearlyPrice`.
+- 서버(`packages/server/src/billing/billing.service.ts`): `PlanId = 'free' | 'pro' | 'enterprise'`, 가격 필드 `priceMonthlyKRW`/`priceYearlyKRW`.
+- 영향: 서버 `grantPlan`/`startTrial`이 `user.plan = 'pro'` 저장 → 클라 `getPlan('pro')`는 미매칭이라 `free`로 폴백(`plans.ts` `getPlan`은 `... || PLANS[0]`) → `canAccess`가 무료 권한으로 판정. 즉 **모네타이제이션 on 상태에서 유료/trial 사용자도 게이팅이 안 풀림.**
+
+조치(택1, 데이터 마이그레이션 동반 — 운영 결정):
+
+1. **서버 vocab으로 통일(권장)**: 클라 `PlanId`/`PLANS`를 `free/pro/enterprise` + `priceMonthlyKRW/priceYearlyKRW`로 맞추고, 모든 클라 사용처(PaymentPage·FeatureGate·plans UI) 갱신. 기존 `user.plan` 값(`standard/premium`이 있다면) → `pro/enterprise`로 DB 마이그레이션.
+2. 또는 **서버에 매핑 레이어** 추가: `getMyBilling`/`grantPlan` 경계에서 server↔client ID 변환. (이중 vocab 유지라 비권장.)
+
+검증: 통일 후 `mockCheckout`(trial)로 plan 부여 → 클라에서 해당 유료 기능 게이팅이 실제로 풀리는지 확인.
+
 ### 1. Toss Payments 가맹점 가입 + 실 키 발급
 
 - https://www.tosspayments.com 가맹점 등록 → **클라이언트 키(live `ck_...`)** + **시크릿 키(live `sk_...`)** 발급.
