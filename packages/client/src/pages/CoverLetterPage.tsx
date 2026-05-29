@@ -42,6 +42,7 @@ import CoverLetterNegativeFramingPanel from '@/components/CoverLetterNegativeFra
 import CoverLetterCoveragePanel from '@/components/CoverLetterCoveragePanel';
 import CoverLetterFlowStrip from '@/components/CoverLetterFlowStrip';
 import CoverLetterScoreRing from '@/components/CoverLetterScoreRing';
+import CollapsibleAnalysisSection from '@/components/CollapsibleAnalysisSection';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
 import {
   computeJDMatch,
@@ -927,34 +928,36 @@ export default function CoverLetterPage() {
                       <CoverLetterScoreRing text={deferredFeedbackText} />
                       <CoverLetterFlowStrip text={deferredFeedbackText} />
                       <CoverLetterCoveragePanel text={deferredFeedbackText} />
-                      <SectionInsightsPanel text={deferredFeedbackText} />
-                      <CareerGapPanel text={deferredFeedbackText} />
-                      <CoverLetterOpeningPanel text={deferredFeedbackText} />
-                      <CoverLetterOpeningHookPanel text={deferredFeedbackText} />
-                      <CoverLetterMotivationPanel text={deferredFeedbackText} />
-                      <CoverLetterAspirationPanel text={deferredFeedbackText} />
-                      <CoverLetterEndingMonotonyPanel text={deferredFeedbackText} />
-                      <CoverLetterCompanyKnowledgePanel text={deferredFeedbackText} />
-                      <CoverLetterStarPatternPanel text={deferredFeedbackText} />
-                      <CoverLetterLengthBalancePanel text={deferredFeedbackText} />
-                      <CoverLetterFirstPersonPanel text={deferredFeedbackText} />
-                      <CoverLetterCtaPanel text={deferredFeedbackText} />
-                      <CoverLetterNegativeFramingPanel text={deferredFeedbackText} />
-                      <CoverLetterClichePanel text={deferredFeedbackText} />
-                      <CoverLetterStructurePanel text={deferredFeedbackText} />
-                      <CoverLetterTonePanel text={deferredFeedbackText} />
-                      <CoverLetterParagraphPanel text={deferredFeedbackText} />
-                      <CoverLetterInformalPanel text={deferredFeedbackText} />
-                      <CoverLetterConfidencePanel text={deferredFeedbackText} />
-                      <CoverLetterReadabilityPanel text={deferredFeedbackText} />
-                      <CoverLetterJdAlignmentPanel
-                        coverLetterText={deferredFeedbackText}
-                        jdText={feedbackJd || ''}
-                      />
-                      <QuotableHighlights text={deferredFeedbackText} />
-                      <UnquantifiedClaimsPanel text={deferredFeedbackText} />
-                      <OpenerSuggestionsPanel text={deferredFeedbackText} />
-                      <InterviewQuestionsPanel text={deferredFeedbackText} />
+                      <CollapsibleAnalysisSection title="📋 항목별 상세 분석">
+                        <SectionInsightsPanel text={deferredFeedbackText} />
+                        <CareerGapPanel text={deferredFeedbackText} />
+                        <CoverLetterOpeningPanel text={deferredFeedbackText} />
+                        <CoverLetterOpeningHookPanel text={deferredFeedbackText} />
+                        <CoverLetterMotivationPanel text={deferredFeedbackText} />
+                        <CoverLetterAspirationPanel text={deferredFeedbackText} />
+                        <CoverLetterEndingMonotonyPanel text={deferredFeedbackText} />
+                        <CoverLetterCompanyKnowledgePanel text={deferredFeedbackText} />
+                        <CoverLetterStarPatternPanel text={deferredFeedbackText} />
+                        <CoverLetterLengthBalancePanel text={deferredFeedbackText} />
+                        <CoverLetterFirstPersonPanel text={deferredFeedbackText} />
+                        <CoverLetterCtaPanel text={deferredFeedbackText} />
+                        <CoverLetterNegativeFramingPanel text={deferredFeedbackText} />
+                        <CoverLetterClichePanel text={deferredFeedbackText} />
+                        <CoverLetterStructurePanel text={deferredFeedbackText} />
+                        <CoverLetterTonePanel text={deferredFeedbackText} />
+                        <CoverLetterParagraphPanel text={deferredFeedbackText} />
+                        <CoverLetterInformalPanel text={deferredFeedbackText} />
+                        <CoverLetterConfidencePanel text={deferredFeedbackText} />
+                        <CoverLetterReadabilityPanel text={deferredFeedbackText} />
+                        <CoverLetterJdAlignmentPanel
+                          coverLetterText={deferredFeedbackText}
+                          jdText={feedbackJd || ''}
+                        />
+                        <QuotableHighlights text={deferredFeedbackText} />
+                        <UnquantifiedClaimsPanel text={deferredFeedbackText} />
+                        <OpenerSuggestionsPanel text={deferredFeedbackText} />
+                        <InterviewQuestionsPanel text={deferredFeedbackText} />
+                      </CollapsibleAnalysisSection>
                     </div>
                   )}
                 </div>
