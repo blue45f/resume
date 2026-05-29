@@ -11,7 +11,7 @@
 | Toss Payments 클라이언트 SDK | `packages/client/src/lib/payment.ts` (`requestPayment`)                                 | ✅ 카드 결제 요청 + success/fail 리다이렉트 wired |
 | 결제 페이지                  | `PaymentPage.tsx` (월/연 선택, 약관 동의, 베타 안내)                                    | ✅                                                |
 | 결제 결과 페이지             | `PaymentResultPage.tsx` (`/payment/success`·`/payment/fail`)                            | ✅ 서버 신뢰원 검증 사용                          |
-| 플랜 정의                    | `lib/plans.ts` (`PLANS`/`RECRUITER_PLANS`, free/standard/premium)                       | ✅                                                |
+| 플랜 정의                    | `lib/plans.ts` (`PLANS`/`RECRUITER_PLANS`, free/pro/enterprise — 서버 정렬됨)           | ✅                                                |
 | 기능 게이팅                  | `FeatureGate.tsx` + `canAccess`/`isMonetizationEnabled`                                 | ✅                                                |
 | 백엔드 billing               | `server/src/billing/` (controller·service·module, `Subscription`·`Payment` Prisma 모델) | ✅ mock checkout·구독·검증·취소·admin grant       |
 | 서버 신뢰원 검증             | `billing.service.ts > verifyRecentPayment`                                              | ✅ URL 위조 방지(클라가 아닌 서버가 성공 판정)    |
