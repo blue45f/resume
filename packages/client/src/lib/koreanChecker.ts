@@ -2439,6 +2439,11 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     category: '파생',
     description: '핵심 메시지 추출·강도 점수·카테고리·배치 추천',
   },
+  {
+    name: 'buildResumeImprovementPlan',
+    category: '파생',
+    description: '개선 우선순위 플랜 (임팩트=(100-value)*weight 순)',
+  },
   { name: 'computeTextSimilarity', category: '파생', description: 'Jaccard 텍스트 유사도 비교' },
   { name: 'quickScore', category: '파생', description: '빠른 품질 점수(단일 숫자)' },
   { name: 'detectEmptyClaims', category: '문체', description: '빈 주장(근거 없는 역량 주장) 검출' },
@@ -2783,6 +2788,14 @@ export type { StarBulletTemplate, QuotableLine, TextSimilarityResult } from './r
 // 이력서 핵심 메시지 추출기(강도·카테고리·배치 추천) — ./resumeCoreMessages
 export { extractResumeCoreMessages, CORE_MESSAGE_CATEGORY_LABELS } from './resumeCoreMessages';
 export type { CoreMessage, CoreMessagesAnalysis, CoreMessageCategory } from './resumeCoreMessages';
+
+// 개선 우선순위 플랜(scoreInterviewability breakdown 재가공) — ./resumeImprovementPlan
+export { buildResumeImprovementPlan } from './resumeImprovementPlan';
+export type {
+  ResumeImprovementPlan,
+  ImprovementItem,
+  ImprovementSeverity,
+} from './resumeImprovementPlan';
 
 // countCharsByCategory 는 ./metaUtils 로 이동됨.
 

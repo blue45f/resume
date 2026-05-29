@@ -15,6 +15,7 @@ import ResumeHealthRadar from '@/components/ResumeHealthRadar';
 import ResumeHighlightPreview from '@/components/ResumeHighlightPreview';
 import QuotableHighlights from '@/components/QuotableHighlights';
 import ResumeCoreMessagesPanel from '@/components/ResumeCoreMessagesPanel';
+import ResumeImprovementPlanPanel from '@/components/ResumeImprovementPlanPanel';
 import CareerGapPanel from '@/components/CareerGapPanel';
 import UnquantifiedClaimsRewritePanel from '@/components/UnquantifiedClaimsRewritePanel';
 import ResumeTitleCoherencePanel from '@/components/ResumeTitleCoherencePanel';
@@ -658,6 +659,9 @@ export default function EditResumePage() {
         {/* Live resume analysis panels (text ≥ 200자일 때만 렌더) — 모바일 1열, sm↑ 2열 그리드 */}
         {deferredAnalysisText.length >= 200 && (
           <section aria-label="이력서 실시간 분석" className="mb-4">
+            <div className="mb-2 sm:mb-3">
+              <ResumeImprovementPlanPanel text={deferredAnalysisText} />
+            </div>
             <div className="mb-2 sm:mb-3">
               <ResumeHealthRadar text={deferredAnalysisText} />
             </div>
