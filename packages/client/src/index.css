@@ -13898,3 +13898,116 @@ button:active:not(:disabled) {
     animation: none;
   }
 }
+
+/* ── JdSignalDashboard (traffic-light grid) ── */
+.jd-board {
+  --board-accent: var(--color-accent);
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in oklab, var(--board-accent) 26%, transparent);
+  border-left: 4px solid var(--board-accent);
+  background: color-mix(in oklab, var(--color-surface) 94%, var(--board-accent));
+  padding: 0.9rem 1rem 1rem;
+}
+.jd-board--good {
+  --board-accent: var(--color-success);
+}
+.jd-board--caution {
+  --board-accent: var(--color-warning);
+}
+.jd-board--concern {
+  --board-accent: var(--color-error);
+}
+.jd-board__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+.jd-board__title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: color-mix(in oklab, var(--color-text) 80%, transparent);
+}
+.jd-board__counts {
+  display: flex;
+  gap: 0.3rem;
+}
+.jd-board__count {
+  font-size: 0.66rem;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+}
+.jd-board__count--good {
+  color: color-mix(in oklab, var(--color-success) 85%, var(--color-text));
+  background: color-mix(in oklab, var(--color-success) 14%, transparent);
+}
+.jd-board__count--caution {
+  color: color-mix(in oklab, var(--color-warning) 85%, var(--color-text));
+  background: color-mix(in oklab, var(--color-warning) 15%, transparent);
+}
+.jd-board__count--concern {
+  color: color-mix(in oklab, var(--color-error) 85%, var(--color-text));
+  background: color-mix(in oklab, var(--color-error) 14%, transparent);
+}
+.jd-board__headline {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: color-mix(in oklab, var(--color-text) 72%, transparent);
+}
+.jd-board__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+@media (min-width: 640px) {
+  .jd-board__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.jd-board__cell {
+  --cell: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  background: color-mix(in oklab, var(--cell) 7%, var(--color-surface));
+  border: 1px solid color-mix(in oklab, var(--cell) 18%, transparent);
+}
+.jd-board__cell--good {
+  --cell: var(--color-success);
+}
+.jd-board__cell--caution {
+  --cell: var(--color-warning);
+}
+.jd-board__cell--concern {
+  --cell: var(--color-error);
+}
+.jd-board__cell--unknown {
+  --cell: color-mix(in oklab, var(--color-text) 40%, transparent);
+}
+.jd-board__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: color-mix(in oklab, var(--cell) 85%, var(--color-text));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--cell) 20%, transparent);
+}
+.jd-board__label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-text) 80%, transparent);
+  flex: 1;
+  min-width: 0;
+}
+.jd-board__note {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--cell) 80%, var(--color-text));
+  white-space: nowrap;
+}

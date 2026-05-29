@@ -8,6 +8,7 @@ import { API_URL } from '@/lib/config';
 import { useResume, useResumes, usePublicGet } from '@/hooks/useResources';
 import RelatedGroupsWidget from '@/features/study-groups/ui/RelatedGroupsWidget';
 import InterviewScoreHistory from '@/components/InterviewScoreHistory';
+import JdSignalDashboard from '@/components/JdSignalDashboard';
 import { analyzeInterviewAnswer } from '@/lib/api';
 import { analyzeJdSeniority } from '@/lib/jdSeniorityAnalyzer';
 import { buildJdBiasReport } from '@/lib/jdBiasDetector';
@@ -3332,6 +3333,7 @@ export default function InterviewPrepPage() {
                   <JdKeywordGapHint jdText={jobDescription} resumeText={resumeTextForGap} />
                   <JdWorkModalityHint text={jobDescription} />
                   <JdSalaryBenchmarkHint text={jobDescription} />
+                  <JdSignalDashboard text={jobDescription} />
                   <JdPostingCompletenessHint text={jobDescription} />
                   <JdInterviewStrategyHint text={jobDescription} />
                   <JdHiringProcessHint text={jobDescription} />
