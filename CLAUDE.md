@@ -130,6 +130,15 @@ pnpm deploy:gcp           # Cloud Run 배포
 - ✅ **Prisma migrate** — 신규 2개 (interview_analysis + job_post_application) prod DB 적용 완료
 - ✅ **gcloud + Python 3.13 (pyenv)** — 운영 로그 분석 가능 (CLOUDSDK_PYTHON 환경변수 사용)
 
+2026-05-29 사이클 — 라이브 검증 기반 버그픽스 + a11y + 분석기 3종:
+
+- ✅ **프로덕션 무한 렌더 루프 fix** — EditResume 진입 시 `Maximum update depth exceeded`. 원인 2개: ResumeForm 의 `watch()` 결과를 useEffect deps 에 넣어 매 렌더 onDataChange → setLiveData 루프(→ ref + RHF 구독으로 전환), EditResumePage 가 ResumeForm 에 `initialData` 를 인라인 객체 리터럴로 전달해 매 렌더 reset() 루프(→ `useMemo([resume])` 안정화). StrictMode 무관 = prod 영향. (7e99672)
+- ✅ **RichEditor StrictMode 크래시 fix** — tiptap `getHTML()` 가 destroy 된 에디터(schema=null)에서 호출 → `immediatelyRender:false` + `isDestroyed` 가드. dev 전용. (142f47c)
+- ✅ **a11y** — LoginPage 무효 `role="tab"` → `aria-pressed` 토글, 비번 강도 `aria-describedby`, NewResume 중첩 label 해소 + AI 진행 `role=status`, 시작카드 focus-visible(전역 규칙이 단일 소스라 per-card 중복 제거), CommandPalette/CommunityPage 접근명, TagsPage `aria-pressed`.
+- ✅ **분석기 3종(순수 TS + vitest + 패널, 라이브 검증)** — `extractResumeCoreMessages`(핵심 메시지 강도·카테고리·배치 추천 / EditResume), `analyzeJdCompetitiveLandscape`(경쟁 강도·기술 장벽·암묵적 난제·적합성 / InterviewPrep), `analyzeCoverLetterJdResonance`(자소서↔공고 가치 정합성 / CoverLetter). (5105561·60615f1·f4eaf46)
+- ✅ **테스트** — client 1176 → 1199 green. 테스트 계정으로 dev 라이브 검증(공개 라우트는 프론트만, 인증 페이지는 백엔드 잠깐 후 즉시 종료 — prod Neon @Cron 주의).
+- 잔여 후보: `resumeKeywordDensityVariation`(섹션별 키워드 밀도 — 섹션 파싱 필요).
+
 다음 사이클 후보 (대부분 사용자/시간 의존):
 
 - 본격 사용자 트래픽 발생 시: OpenRelay → Cloudflare Calls / Twilio NTS 마이그
@@ -141,4 +150,4 @@ pnpm deploy:gcp           # Cloud Run 배포
 
 ---
 
-작성일: 2026-04-20 · 최근 갱신: 2026-04-27 EOD (7 sweeps + ops fix + TURN 도입 + Prisma migrate)
+작성일: 2026-04-20 · 최근 갱신: 2026-05-29 (라이브 검증 버그픽스 + a11y + 분석기 3종)
