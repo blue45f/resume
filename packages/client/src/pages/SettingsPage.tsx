@@ -583,10 +583,10 @@ export default function SettingsPage() {
                 {user.provider === 'local' ? '이메일 계정' : `${user.provider} 계정`}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {user.plan === 'premium'
-                  ? '💎 프리미엄'
-                  : user.plan === 'standard'
-                    ? '⭐ 스탠다드'
+                {user.plan === 'enterprise'
+                  ? '💎 Enterprise'
+                  : user.plan === 'pro'
+                    ? '⭐ Pro'
                     : '🆓 무료'}
               </p>
               {/* 포트폴리오 URL (username) */}
@@ -955,10 +955,10 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                {user.plan === 'premium'
-                  ? '💎 프리미엄'
-                  : user.plan === 'standard'
-                    ? '⭐ 스탠다드'
+                {user.plan === 'enterprise'
+                  ? '💎 Enterprise'
+                  : user.plan === 'pro'
+                    ? '⭐ Pro'
                     : '🆓 무료'}{' '}
                 플랜
               </p>

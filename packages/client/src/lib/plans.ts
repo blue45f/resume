@@ -1,4 +1,8 @@
-export type PlanId = 'free' | 'standard' | 'premium';
+// Plan ID·가격은 서버 billing.service PLANS(정본, 실제 charge/grant/gate 사용)와 일치시킨다.
+// 서버가 user.plan 에 free/pro/enterprise 를 쓰므로 클라도 동일 vocab 을 써야 게이팅이 풀린다.
+// features 모델(게이팅 키)은 클라 고유 — FeatureGate 가 의존하므로 유지.
+// 가격(월/연): pro 9900/99000, enterprise 49000/490000 (서버 priceMonthlyKRW/priceYearlyKRW).
+export type PlanId = 'free' | 'pro' | 'enterprise';
 
 export interface PlanConfig {
   id: PlanId;
@@ -48,10 +52,10 @@ export const PLANS: PlanConfig[] = [
     badge: '🆓',
   },
   {
-    id: 'standard',
-    name: '스탠다드',
-    price: 2900,
-    yearlyPrice: 29000,
+    id: 'pro',
+    name: 'Pro',
+    price: 9900,
+    yearlyPrice: 99000,
     description: '본격적인 취업 활동에',
     features: {
       maxResumes: 10,
@@ -71,10 +75,10 @@ export const PLANS: PlanConfig[] = [
     popular: true,
   },
   {
-    id: 'premium',
-    name: '프리미엄',
-    price: 5900,
-    yearlyPrice: 59000,
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: 49000,
+    yearlyPrice: 490000,
     description: '모든 기능 무제한',
     features: {
       maxResumes: -1,
@@ -94,6 +98,10 @@ export const PLANS: PlanConfig[] = [
   },
 ];
 
+// 리쿠르터 표시용 카탈로그. ID 는 게이팅을 위해 서버 vocab(free/pro/enterprise)과 일치시키되,
+// 가격(19900/49900)은 시커와 다른 리쿠르터 전용 값으로 유지한다. 단 서버 billing 은 단일
+// 카탈로그(9900/49000)만 charge 하므로, 리쿠르터 차등 과금이 필요하면 서버에 리쿠르터 카탈로그
+// 추가가 선행되어야 한다(docs/PAYMENT_ACTIVATION.md). 현재는 게이팅만 정상화.
 export const RECRUITER_PLANS: PlanConfig[] = [
   {
     id: 'free' as PlanId,
@@ -118,7 +126,7 @@ export const RECRUITER_PLANS: PlanConfig[] = [
     badge: '🆓',
   },
   {
-    id: 'standard' as PlanId,
+    id: 'pro',
     name: '비즈니스',
     price: 19900,
     yearlyPrice: 199000,
@@ -141,7 +149,7 @@ export const RECRUITER_PLANS: PlanConfig[] = [
     popular: true,
   },
   {
-    id: 'premium' as PlanId,
+    id: 'enterprise',
     name: '프리미엄',
     price: 49900,
     yearlyPrice: 499000,
