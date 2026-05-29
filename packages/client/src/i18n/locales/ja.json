@@ -470,6 +470,60 @@
         "major": "重要"
       },
       "hint": "💡 面接回答や履歴書内の1〜2行説明(学習/充電/フリーランス等)でギャップを透明化しましょう。"
+    },
+    "coreMessages": {
+      "title": "核心メッセージ",
+      "avgStrength": "平均強度",
+      "category": {
+        "achievement": "成果",
+        "leadership": "リーダーシップ",
+        "impact": "インパクト",
+        "growth": "成長",
+        "expertise": "専門性"
+      },
+      "signal": {
+        "quantified": "数値",
+        "strongVerb": "強い動詞",
+        "achievement": "成果",
+        "proper": "固有名詞"
+      }
+    },
+    "jdLandscape": {
+      "title": "競争環境",
+      "competition": "競争",
+      "barrier": "技術障壁",
+      "intensity": {
+        "low": "低",
+        "medium": "中",
+        "high": "高",
+        "unknown": "不明"
+      }
+    },
+    "clResonance": {
+      "title": "価値整合性",
+      "reflected": "反映された価値",
+      "missing": "不足の価値"
+    },
+    "improvementPlan": {
+      "title": "優先改善課題",
+      "pointSuffix": "点",
+      "severity": {
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      },
+      "tier": {
+        "call-back": "コールバック有力",
+        "promising": "有望",
+        "needs-work": "要改善",
+        "below-bar": "基準未満"
+      },
+      "grade": {
+        "excellent": "優秀",
+        "good": "良好",
+        "fair": "普通",
+        "weak": "不十分"
+      }
     }
   },
   "sharing": {

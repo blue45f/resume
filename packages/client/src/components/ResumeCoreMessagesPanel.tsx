@@ -1,9 +1,6 @@
 import { useMemo } from 'react';
-import {
-  extractResumeCoreMessages,
-  CORE_MESSAGE_CATEGORY_LABELS,
-  type CoreMessageCategory,
-} from '@/lib/koreanChecker';
+import { extractResumeCoreMessages, type CoreMessageCategory } from '@/lib/koreanChecker';
+import { tx } from '@/lib/i18n';
 
 interface Props {
   text: string;
@@ -48,13 +45,14 @@ export default function ResumeCoreMessagesPanel({
     <section className={`mt-3 ${className}`} aria-labelledby={titleId}>
       <div className="flex items-center justify-between mb-1.5">
         <h3 id={titleId} className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-          <span aria-hidden="true">🎯 </span>핵심 메시지
+          <span aria-hidden="true">🎯 </span>
+          {tx('resumeAnalysis.coreMessages.title')}
         </h3>
         <span
           className="text-[10px] text-slate-400 dark:text-slate-500 tabular-nums"
-          aria-label={`핵심 메시지 평균 강도 ${analysis.averageStrength}점`}
+          aria-label={`${tx('resumeAnalysis.coreMessages.avgStrength')} ${analysis.averageStrength}`}
         >
-          평균 강도 {analysis.averageStrength}
+          {tx('resumeAnalysis.coreMessages.avgStrength')} {analysis.averageStrength}
         </span>
       </div>
 
@@ -68,7 +66,7 @@ export default function ResumeCoreMessagesPanel({
               <span
                 className={`shrink-0 px-1.5 py-0.5 text-[9px] font-bold rounded-full border ${CATEGORY_STYLE[m.category]}`}
               >
-                {CORE_MESSAGE_CATEGORY_LABELS[m.category]}
+                {tx(`resumeAnalysis.coreMessages.category.${m.category}`)}
               </span>
               <div
                 className="flex-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden"
@@ -91,10 +89,18 @@ export default function ResumeCoreMessagesPanel({
               {m.message}
             </p>
             <div className="mt-0.5 flex flex-wrap gap-1 text-[9px]">
-              {m.signals.quantified && <SignalChip>수치</SignalChip>}
-              {m.signals.strongVerb && <SignalChip>강한 동사</SignalChip>}
-              {m.signals.achievement && <SignalChip>성취</SignalChip>}
-              {m.signals.proper && <SignalChip>고유명사</SignalChip>}
+              {m.signals.quantified && (
+                <SignalChip>{tx('resumeAnalysis.coreMessages.signal.quantified')}</SignalChip>
+              )}
+              {m.signals.strongVerb && (
+                <SignalChip>{tx('resumeAnalysis.coreMessages.signal.strongVerb')}</SignalChip>
+              )}
+              {m.signals.achievement && (
+                <SignalChip>{tx('resumeAnalysis.coreMessages.signal.achievement')}</SignalChip>
+              )}
+              {m.signals.proper && (
+                <SignalChip>{tx('resumeAnalysis.coreMessages.signal.proper')}</SignalChip>
+              )}
             </div>
           </li>
         ))}

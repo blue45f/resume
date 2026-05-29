@@ -4,10 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - 'server/**'
+      - 'packages/server/**'
+      - 'packages/shared/**'
       - 'prisma/**'
       - 'Dockerfile'
       - 'prisma.config.ts'
+      - '.github/workflows/deploy-gcp.yml'
       - 'package.json'
       - 'pnpm-lock.yaml'
   workflow_dispatch:

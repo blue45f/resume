@@ -110,6 +110,12 @@ vercel --prod       # 프로덕션
 
 설정(`vercel.json`): Vite 프리셋, `outputDirectory: dist`, SPA rewrites + 정적 에셋 캐시 헤더. 환경 변수는 Vercel 대시보드에서 관리합니다.
 
+운영 배포 자동화:
+
+- `main` 브랜치에서 `packages/client/**`, `packages/shared/**`, `vercel.json` 변경 시
+  `.github/workflows/deploy-vercel.yml`가 Vercel 프로덕션 배포를 실행합니다.
+- 수동 배포가 필요하면 GitHub Actions에서 `Run workflow`로 `deploy-vercel`를 트리거하세요.
+
 ### GCP Cloud Run (백엔드)
 
 ```bash

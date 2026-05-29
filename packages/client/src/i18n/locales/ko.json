@@ -570,6 +570,60 @@
         "major": "중요"
       },
       "hint": "💡 면접 답변 또는 이력서 내 1~2줄 설명(학습/재충전/프리랜서 등)으로 공백을 투명화하세요."
+    },
+    "coreMessages": {
+      "title": "핵심 메시지",
+      "avgStrength": "평균 강도",
+      "category": {
+        "achievement": "성취",
+        "leadership": "리더십",
+        "impact": "임팩트",
+        "growth": "성장",
+        "expertise": "전문성"
+      },
+      "signal": {
+        "quantified": "수치",
+        "strongVerb": "강한 동사",
+        "achievement": "성취",
+        "proper": "고유명사"
+      }
+    },
+    "jdLandscape": {
+      "title": "경쟁 환경",
+      "competition": "경쟁",
+      "barrier": "기술 장벽",
+      "intensity": {
+        "low": "낮음",
+        "medium": "보통",
+        "high": "높음",
+        "unknown": "불명"
+      }
+    },
+    "clResonance": {
+      "title": "가치 정합성",
+      "reflected": "공고 가치 반영",
+      "missing": "빠진 가치"
+    },
+    "improvementPlan": {
+      "title": "우선 개선 과제",
+      "pointSuffix": "점",
+      "severity": {
+        "high": "높음",
+        "medium": "중간",
+        "low": "낮음"
+      },
+      "tier": {
+        "call-back": "콜백 유력",
+        "promising": "유망",
+        "needs-work": "보완 필요",
+        "below-bar": "문턱 미달"
+      },
+      "grade": {
+        "excellent": "우수",
+        "good": "양호",
+        "fair": "보통",
+        "weak": "미흡"
+      }
     }
   },
   "sharing": {

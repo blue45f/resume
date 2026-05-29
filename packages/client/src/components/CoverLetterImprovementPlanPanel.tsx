@@ -4,6 +4,7 @@ import {
   type CoverLetterImprovementSeverity,
 } from '@/lib/coverLetterImprovementPlan';
 import type { CoverLetterScoreGrade } from '@/lib/coverLetterScore';
+import { tx } from '@/lib/i18n';
 
 interface Props {
   text: string;
@@ -19,27 +20,17 @@ const SEVERITY_BADGE: Record<CoverLetterImprovementSeverity, string> = {
   low: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
 };
 
-const SEVERITY_LABEL: Record<CoverLetterImprovementSeverity, string> = {
-  high: '높음',
-  medium: '중간',
-  low: '낮음',
-};
-
-const GRADE: Record<CoverLetterScoreGrade, { label: string; cls: string }> = {
+const GRADE: Record<CoverLetterScoreGrade, { cls: string }> = {
   excellent: {
-    label: '우수',
     cls: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-900/40',
   },
   good: {
-    label: '양호',
     cls: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-900/40',
   },
   fair: {
-    label: '보통',
     cls: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-900/40',
   },
   weak: {
-    label: '미흡',
     cls: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-900/40',
   },
 };
@@ -70,11 +61,12 @@ export default function CoverLetterImprovementPlanPanel({
     >
       <div className="flex items-center justify-between gap-2 mb-2.5">
         <h3 id={titleId} className="text-[13px] font-bold text-slate-800 dark:text-slate-100">
-          <span aria-hidden="true">🎯 </span>우선 개선 과제
+          <span aria-hidden="true">🎯 </span>
+          {tx('resumeAnalysis.improvementPlan.title')}
         </h3>
         <div className="flex items-center gap-1.5">
           <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full border ${grade.cls}`}>
-            {grade.label}
+            {tx(`resumeAnalysis.improvementPlan.grade.${plan.grade}`)}
           </span>
           <span
             className="text-[12px] font-bold tabular-nums text-slate-700 dark:text-slate-200"
@@ -106,10 +98,11 @@ export default function CoverLetterImprovementPlanPanel({
                 <span
                   className={`px-1 py-0.5 text-[8.5px] font-bold rounded border ${SEVERITY_BADGE[item.severity]}`}
                 >
-                  {SEVERITY_LABEL[item.severity]}
+                  {tx(`resumeAnalysis.improvementPlan.severity.${item.severity}`)}
                 </span>
                 <span className="ml-auto text-[10px] font-bold tabular-nums text-blue-600 dark:text-blue-400">
-                  +{item.impact}점
+                  +{item.impact}
+                  {tx('resumeAnalysis.improvementPlan.pointSuffix')}
                 </span>
               </div>
               <p className="text-[10.5px] leading-snug text-slate-600 dark:text-slate-300">

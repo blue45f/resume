@@ -1,9 +1,6 @@
 import { useMemo } from 'react';
-import {
-  analyzeJdCompetitiveLandscape,
-  INTENSITY_LABELS,
-  type Intensity,
-} from '@/lib/jdCompetitiveLandscape';
+import { analyzeJdCompetitiveLandscape, type Intensity } from '@/lib/jdCompetitiveLandscape';
+import { tx } from '@/lib/i18n';
 
 interface Props {
   text: string;
@@ -26,7 +23,7 @@ function Stat({ label, value }: { label: string; value: Intensity }) {
     <div className="flex items-center gap-1.5">
       <span className="text-[10px] text-slate-500 dark:text-slate-400">{label}</span>
       <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full border ${TONE[value]}`}>
-        {INTENSITY_LABELS[value]}
+        {tx(`resumeAnalysis.jdLandscape.intensity.${value}`)}
       </span>
     </div>
   );
@@ -53,11 +50,15 @@ export default function JdCompetitiveLandscapePanel({
     >
       <div className="flex items-center justify-between gap-2 mb-2">
         <h3 id={titleId} className="text-[12px] font-semibold text-slate-700 dark:text-slate-200">
-          <span aria-hidden="true">🧭 </span>경쟁 환경
+          <span aria-hidden="true">🧭 </span>
+          {tx('resumeAnalysis.jdLandscape.title')}
         </h3>
         <div className="flex items-center gap-3">
-          <Stat label="경쟁" value={r.competitionIntensity} />
-          <Stat label="기술 장벽" value={r.technicalBarrier} />
+          <Stat
+            label={tx('resumeAnalysis.jdLandscape.competition')}
+            value={r.competitionIntensity}
+          />
+          <Stat label={tx('resumeAnalysis.jdLandscape.barrier')} value={r.technicalBarrier} />
         </div>
       </div>
 

@@ -570,6 +570,60 @@
         "major": "Major"
       },
       "hint": "💡 Explain gaps in 1–2 lines (learning / recharge / freelance) either in the resume or interview."
+    },
+    "coreMessages": {
+      "title": "Core Messages",
+      "avgStrength": "Avg strength",
+      "category": {
+        "achievement": "Achievement",
+        "leadership": "Leadership",
+        "impact": "Impact",
+        "growth": "Growth",
+        "expertise": "Expertise"
+      },
+      "signal": {
+        "quantified": "Number",
+        "strongVerb": "Strong verb",
+        "achievement": "Achievement",
+        "proper": "Proper noun"
+      }
+    },
+    "jdLandscape": {
+      "title": "Competitive Landscape",
+      "competition": "Competition",
+      "barrier": "Tech barrier",
+      "intensity": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "unknown": "N/A"
+      }
+    },
+    "clResonance": {
+      "title": "Value Fit",
+      "reflected": "Reflected values",
+      "missing": "Missing values"
+    },
+    "improvementPlan": {
+      "title": "Priority Improvements",
+      "pointSuffix": "pts",
+      "severity": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "tier": {
+        "call-back": "Likely callback",
+        "promising": "Promising",
+        "needs-work": "Needs work",
+        "below-bar": "Below bar"
+      },
+      "grade": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "weak": "Weak"
+      }
     }
   },
   "sharing": {

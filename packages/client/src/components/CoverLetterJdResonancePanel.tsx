@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { analyzeCoverLetterJdResonance, type ResonanceTone } from '@/lib/coverLetterJdResonance';
+import { tx } from '@/lib/i18n';
 
 interface Props {
   coverLetter: string;
@@ -38,7 +39,8 @@ export default function CoverLetterJdResonancePanel({ coverLetter, jd, className
     >
       <div className="flex items-center justify-between gap-2 mb-2">
         <h3 id={titleId} className="text-[12px] font-semibold text-slate-700 dark:text-slate-200">
-          <span aria-hidden="true">🎯 </span>가치 정합성
+          <span aria-hidden="true">🎯 </span>
+          {tx('resumeAnalysis.clResonance.title')}
         </h3>
         <span
           className={`text-[13px] font-bold tabular-nums ${TONE_RING[report.tone]}`}
@@ -51,7 +53,9 @@ export default function CoverLetterJdResonancePanel({ coverLetter, jd, className
 
       {report.resonantLabels.length > 0 && (
         <div className="mb-1.5">
-          <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-1">공고 가치 반영 ✓</p>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-1">
+            {tx('resumeAnalysis.clResonance.reflected')} ✓
+          </p>
           <div className="flex flex-wrap gap-1">
             {report.resonantLabels.map((label) => (
               <span
@@ -67,7 +71,9 @@ export default function CoverLetterJdResonancePanel({ coverLetter, jd, className
 
       {report.missingLabels.length > 0 && (
         <div className="mb-1.5">
-          <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-1">빠진 가치</p>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-1">
+            {tx('resumeAnalysis.clResonance.missing')}
+          </p>
           <div className="flex flex-wrap gap-1">
             {report.missingLabels.map((label) => (
               <span
