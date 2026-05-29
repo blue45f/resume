@@ -214,7 +214,7 @@ function WizardMode({
   onBack: () => void;
 }) {
   const inputClass =
-    'w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 transition-colors';
+    'w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 transition-colors';
   const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1';
 
   const updatePI = (field: string, value: string) => {
@@ -343,7 +343,7 @@ function WizardMode({
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={onBack}
-          className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 rounded"
+          className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
         >
           &larr; 돌아가기
         </button>
@@ -355,7 +355,7 @@ function WizardMode({
       {/* Progress bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-teal-700 dark:text-teal-400">
+          <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
             {wizardStep + 1}/{WIZARD_STEPS.length} 단계
           </span>
           <span className="text-sm text-slate-500 dark:text-slate-400">
@@ -364,7 +364,7 @@ function WizardMode({
         </div>
         <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-teal-500 rounded-full transition-all duration-300"
+            className="h-full bg-blue-500 rounded-full transition-all duration-300"
             style={{ width: `${((wizardStep + 1) / WIZARD_STEPS.length) * 100}%` }}
           />
         </div>
@@ -381,9 +381,9 @@ function WizardMode({
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                   i === wizardStep
-                    ? 'bg-teal-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : i < wizardStep
-                      ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                       : 'bg-slate-100 dark:bg-slate-700 text-slate-400'
                 }`}
               >
@@ -410,7 +410,7 @@ function WizardMode({
                 )}
               </div>
               <span
-                className={`text-[10px] hidden sm:block ${i === wizardStep ? 'text-teal-700 dark:text-teal-400 font-semibold' : 'text-slate-400'}`}
+                className={`text-[10px] hidden sm:block ${i === wizardStep ? 'text-blue-700 dark:text-blue-400 font-semibold' : 'text-slate-400'}`}
               >
                 {s.label}
               </span>
@@ -421,9 +421,9 @@ function WizardMode({
 
       {/* Tips */}
       {WIZARD_TIPS[wizardStep] && (
-        <div className="mb-6 p-3 bg-teal-50 dark:bg-teal-900/10 rounded-xl border border-teal-100 dark:border-teal-800">
-          <p className="text-xs font-semibold text-teal-700 dark:text-teal-400 mb-1.5">TIP</p>
-          <ul className="text-xs text-teal-600 dark:text-teal-300 space-y-0.5">
+        <div className="mb-6 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800">
+          <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1.5">TIP</p>
+          <ul className="text-xs text-blue-600 dark:text-blue-300 space-y-0.5">
             {WIZARD_TIPS[wizardStep].map((tip, i) => (
               <li key={i}>&#8226; {tip}</li>
             ))}
@@ -450,8 +450,8 @@ function WizardMode({
                   onClick={() => setWizardJobTitle(title)}
                   className={`text-left px-3 py-2.5 rounded-lg border-2 text-sm transition-all ${
                     wizardJobTitle === title
-                      ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 font-medium'
-                      : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-teal-300 dark:hover:border-teal-600'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium'
+                      : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-600'
                   }`}
                 >
                   {title}
@@ -554,7 +554,7 @@ function WizardMode({
               <button
                 type="button"
                 onClick={addExperience}
-                className="px-3 py-1.5 text-xs font-medium text-teal-600 bg-teal-50 dark:bg-teal-900/20 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
               >
                 + 경력 추가
               </button>
@@ -568,7 +568,7 @@ function WizardMode({
                 <button
                   type="button"
                   onClick={addExperience}
-                  className="px-4 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700 transition-colors"
+                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   첫 경력 추가하기
                 </button>
@@ -626,7 +626,7 @@ function WizardMode({
                           type="checkbox"
                           checked={exp.current}
                           onChange={(e) => updateExperience(exp.id, 'current', e.target.checked)}
-                          className="rounded text-teal-600"
+                          className="rounded text-blue-600"
                         />
                         재직중
                       </label>
@@ -678,7 +678,7 @@ function WizardMode({
               <button
                 type="button"
                 onClick={addEducation}
-                className="px-3 py-1.5 text-xs font-medium text-teal-600 bg-teal-50 dark:bg-teal-900/20 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
               >
                 + 학력 추가
               </button>
@@ -692,7 +692,7 @@ function WizardMode({
                 <button
                   type="button"
                   onClick={addEducation}
-                  className="px-4 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700 transition-colors"
+                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   학력 추가하기
                 </button>
@@ -789,7 +789,7 @@ function WizardMode({
               <button
                 type="button"
                 onClick={addSkill}
-                className="px-3 py-1.5 text-xs font-medium text-teal-600 bg-teal-50 dark:bg-teal-900/20 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
               >
                 + 기술 추가
               </button>
@@ -803,7 +803,7 @@ function WizardMode({
                 <button
                   type="button"
                   onClick={addSkill}
-                  className="px-4 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700 transition-colors"
+                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   기술 추가하기
                 </button>
@@ -982,7 +982,7 @@ function WizardMode({
                     {wizardData.skills.map((s) => (
                       <div
                         key={s.id}
-                        className="text-xs bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 px-2 py-1 rounded-lg"
+                        className="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-lg"
                       >
                         <span className="font-medium">{s.category}:</span> {s.items}
                       </div>
@@ -1013,7 +1013,7 @@ function WizardMode({
             type="button"
             onClick={handleNext}
             disabled={!canProceed()}
-            className="px-5 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-xl hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             다음 &rarr;
           </button>
@@ -1382,7 +1382,7 @@ export default function NewResumePage() {
 
               {/* Wizard start button */}
               {startMode === 'wizard' && (
-                <div className="mt-3 p-4 bg-teal-50 dark:bg-teal-900/10 rounded-xl border border-teal-200 dark:border-teal-800">
+                <div className="mt-3 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800">
                   <p className="text-sm text-slate-700 dark:text-slate-300 mb-3">
                     6단계로 나누어 이력서를 쉽게 작성합니다. 각 단계에서 팁과 예시를 확인하며 작성할
                     수 있습니다.
@@ -1392,7 +1392,7 @@ export default function NewResumePage() {
                       (label, i) => (
                         <span
                           key={i}
-                          className="px-2 py-1 text-[10px] bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 rounded-full"
+                          className="px-2 py-1 text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full"
                         >
                           {i + 1}. {label}
                         </span>
@@ -1406,7 +1406,7 @@ export default function NewResumePage() {
                       setWizardJobTitle('');
                       setStep('wizard');
                     }}
-                    className="w-full py-2.5 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors"
+                    className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     단계별 작성 시작하기
                   </button>
@@ -1443,7 +1443,7 @@ export default function NewResumePage() {
                   <button
                     onClick={handleCopyFromExisting}
                     disabled={!copySourceId || loadingCopy}
-                    className="w-full py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                    className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                   >
                     {loadingCopy ? '복사 중...' : '선택한 이력서 복사하여 시작'}
                   </button>
@@ -1452,7 +1452,7 @@ export default function NewResumePage() {
 
               {/* AI Upload mode */}
               {startMode === 'ai-upload' && (
-                <div className="mt-3 p-4 bg-sky-50 dark:bg-sky-900/10 rounded-xl border border-sky-200 dark:border-sky-800">
+                <div className="mt-3 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     경력증명서, 기존 이력서, 자기소개 텍스트 등을 붙여넣거나 파일을 업로드하세요
                   </label>
@@ -1463,12 +1463,12 @@ export default function NewResumePage() {
                       '경력 메모, LinkedIn 프로필, 이전 이력서 내용 등을 자유롭게 붙여넣기...\n\n예시:\n이름: 홍길동\n경력: 네이버 프론트엔드 개발자 3년\n기술: React, TypeScript, Node.js'
                     }
                     rows={6}
-                    className="w-full px-3 py-2 text-sm border border-sky-200 dark:border-sky-700 rounded-xl dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 resize-none mb-3"
+                    className="w-full px-3 py-2 text-sm border border-blue-200 dark:border-blue-700 rounded-xl dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 resize-none mb-3"
                   />
                   <div className="flex items-center gap-3 mb-3">
-                    <label className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-700 rounded-lg cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-colors text-sm">
+                    <label className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 rounded-lg cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-sm">
                       <svg
-                        className="w-4 h-4 text-sky-500"
+                        className="w-4 h-4 text-blue-500"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1489,7 +1489,7 @@ export default function NewResumePage() {
                       />
                     </label>
                     {uploadFile && (
-                      <div className="flex items-center gap-2 text-sm text-sky-600 dark:text-sky-400">
+                      <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
                         <span>{uploadFile.name}</span>
                         <button
                           onClick={() => setUploadFile(null)}
@@ -1503,7 +1503,7 @@ export default function NewResumePage() {
                   <button
                     onClick={handleAiUpload}
                     disabled={aiLoading || (!uploadText.trim() && !uploadFile)}
-                    className="w-full py-2.5 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                   >
                     {aiLoading ? (
                       <>
@@ -1984,12 +1984,12 @@ export default function NewResumePage() {
                   </span>
                 )}
                 {startMode === 'sample' && (
-                  <span className="px-2 py-1 text-xs bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 rounded-full">
+                  <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full">
                     샘플 데이터
                   </span>
                 )}
                 {startMode === 'copy' && (
-                  <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 rounded-full">
+                  <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full">
                     복사본
                   </span>
                 )}
