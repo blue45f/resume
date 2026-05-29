@@ -306,10 +306,6 @@ export default function CommunityWritePage() {
   // 서버 Draft 자동 저장 (3초 디바운스)
   useEffect(() => {
     if (isEdit || !user) return;
-    const sub = watch((values) => {
-      // no-op: subscription body handled via timer below
-      void values;
-    });
     const timer = setTimeout(() => {
       if (title?.trim() || content?.trim()) {
         const token = localStorage.getItem('token');
@@ -328,9 +324,8 @@ export default function CommunityWritePage() {
     }, 3000);
     return () => {
       clearTimeout(timer);
-      sub.unsubscribe();
     };
-  }, [title, content, category, isEdit, user?.id, watch]);
+  }, [title, content, category, isEdit, user?.id]);
 
   const clearDraft = () => {
     const token = localStorage.getItem('token');

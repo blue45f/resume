@@ -358,6 +358,7 @@ export default function CommunityPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                aria-label="게시글 검색"
                 placeholder="제목 또는 내용 검색..."
                 className="w-full pl-9 pr-20 py-2.5 imp-card text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400"
               />
@@ -384,6 +385,7 @@ export default function CommunityPage() {
           <select
             value={sortBy}
             onChange={(e) => handleSortChange(e.target.value)}
+            aria-label="정렬 기준"
             className="px-3 py-2.5 text-xs imp-card text-slate-600 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 cursor-pointer"
           >
             {getSORT_OPTIONS().map((opt) => (

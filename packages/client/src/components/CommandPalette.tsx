@@ -281,6 +281,7 @@ export default function CommandPalette() {
                 setQuery(e.target.value);
                 setActiveIndex(0);
               }}
+              aria-label="명령 검색"
               placeholder="어디로 갈까요? 무엇을 할까요?"
               className="flex-1 bg-transparent outline-none text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
             />

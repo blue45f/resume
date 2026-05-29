@@ -117,6 +117,7 @@ export default function TagsPage() {
                     }`}
                     style={{ backgroundColor: c }}
                     aria-label={`색상 ${c}`}
+                    aria-pressed={newColor === c}
                   />
                 ))}
               </div>
