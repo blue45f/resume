@@ -14,6 +14,7 @@ import OverallHealthGauge from '@/components/OverallHealthGauge';
 import ResumeHealthRadar from '@/components/ResumeHealthRadar';
 import ResumeHighlightPreview from '@/components/ResumeHighlightPreview';
 import QuotableHighlights from '@/components/QuotableHighlights';
+import ResumeCoreMessagesPanel from '@/components/ResumeCoreMessagesPanel';
 import CareerGapPanel from '@/components/CareerGapPanel';
 import UnquantifiedClaimsRewritePanel from '@/components/UnquantifiedClaimsRewritePanel';
 import ResumeTitleCoherencePanel from '@/components/ResumeTitleCoherencePanel';
@@ -673,6 +674,9 @@ export default function EditResumePage() {
               </div>
               <div className="sm:col-span-2">
                 <QuotableHighlights text={deferredAnalysisText} className="mt-0" />
+              </div>
+              <div className="sm:col-span-2">
+                <ResumeCoreMessagesPanel text={deferredAnalysisText} className="mt-0" />
               </div>
               {id && (
                 <div className="sm:col-span-2">

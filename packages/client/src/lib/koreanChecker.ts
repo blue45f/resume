@@ -2434,6 +2434,11 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     description: '문장부호 분포 (느낌표·물음표·쉼표)',
   },
   { name: 'extractQuotableLines', category: '파생', description: '인용 가능한 임팩트 문장 Top-N' },
+  {
+    name: 'extractResumeCoreMessages',
+    category: '파생',
+    description: '핵심 메시지 추출·강도 점수·카테고리·배치 추천',
+  },
   { name: 'computeTextSimilarity', category: '파생', description: 'Jaccard 텍스트 유사도 비교' },
   { name: 'quickScore', category: '파생', description: '빠른 품질 점수(단일 숫자)' },
   { name: 'detectEmptyClaims', category: '문체', description: '빈 주장(근거 없는 역량 주장) 검출' },
@@ -2774,6 +2779,10 @@ export {
   computeTextSimilarity,
 } from './resumeGenerators';
 export type { StarBulletTemplate, QuotableLine, TextSimilarityResult } from './resumeGenerators';
+
+// 이력서 핵심 메시지 추출기(강도·카테고리·배치 추천) — ./resumeCoreMessages
+export { extractResumeCoreMessages, CORE_MESSAGE_CATEGORY_LABELS } from './resumeCoreMessages';
+export type { CoreMessage, CoreMessagesAnalysis, CoreMessageCategory } from './resumeCoreMessages';
 
 // countCharsByCategory 는 ./metaUtils 로 이동됨.
 
