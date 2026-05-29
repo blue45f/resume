@@ -916,6 +916,12 @@ export default function CoverLetterPage() {
                   {feedbackErrors.content && (
                     <p className="text-xs text-red-500 mt-1">{feedbackErrors.content.message}</p>
                   )}
+                  {deferredFeedbackText.trim().length > 0 && deferredFeedbackText.length < 80 && (
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">
+                      <span aria-hidden="true">💡 </span>80자 이상 입력하면 실시간
+                      분석(점수·키워드·가치 정합성 등)이 표시됩니다.
+                    </p>
+                  )}
                   {deferredFeedbackText.length >= 80 && (
                     <div className="mt-2">
                       <TldrHeadline text={deferredFeedbackText} />
