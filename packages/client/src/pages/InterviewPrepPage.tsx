@@ -9,6 +9,7 @@ import { useResume, useResumes, usePublicGet } from '@/hooks/useResources';
 import RelatedGroupsWidget from '@/features/study-groups/ui/RelatedGroupsWidget';
 import InterviewScoreHistory from '@/components/InterviewScoreHistory';
 import JdSignalDashboard from '@/components/JdSignalDashboard';
+import JdCompetitiveLandscapePanel from '@/components/JdCompetitiveLandscapePanel';
 import CollapsibleAnalysisSection from '@/components/CollapsibleAnalysisSection';
 import { analyzeInterviewAnswer } from '@/lib/api';
 import { analyzeJdSeniority } from '@/lib/jdSeniorityAnalyzer';
@@ -3326,6 +3327,7 @@ export default function InterviewPrepPage() {
               {jobDescription.trim().length >= 30 && (
                 <>
                   <JdSignalDashboard text={jobDescription} />
+                  <JdCompetitiveLandscapePanel text={jobDescription} />
                   <CollapsibleAnalysisSection title="📋 항목별 상세 신호 분석">
                     <JdRequirementsHint text={jobDescription} />
                     <JdResumeMatchHint jdText={jobDescription} resumeText={resumeTextForGap} />
