@@ -10,6 +10,7 @@
 import { scoreSpecificity, detectMissingResumeSections } from './resumeScoring';
 import { analyzeQuantification, analyzeActionVerbs, countAchievements } from './achievementSignals';
 import { estimateExperienceYears } from './experience';
+import { memoizeByText } from './memoize';
 
 export interface InterviewabilityScore {
   overall: number;
@@ -22,7 +23,7 @@ export interface InterviewabilityScore {
  * 면접 적합도(interviewability) 점수 — 이력서를 본 리쿠르터가 면접으로 부를 확률을
  * 근사하는 0~100 지표. 문체·맞춤법은 제외하고 "채용 가치"에 집중.
  */
-export function scoreInterviewability(text: string): InterviewabilityScore {
+function computeInterviewability(text: string): InterviewabilityScore {
   const spec = scoreSpecificity(text);
   const quant = analyzeQuantification(text);
   const verbs = analyzeActionVerbs(text);
@@ -66,6 +67,13 @@ export function scoreInterviewability(text: string): InterviewabilityScore {
           : `면접 문턱 미달 (${overall}점). 섹션 완성도·정량 지표·구체 경험을 전면 재작성 권장.`;
   return { overall, breakdown, tier, suggestion };
 }
+
+/**
+ * 면접 적합도 — 동일 텍스트에 대해 InterviewabilityRow·개선 플랜 등 여러 패널이 호출하므로
+ * memoizeByText 로 deferred 변경당 1회만 계산하도록 캐시(중복 분석 제거).
+ */
+export const scoreInterviewability: (text: string) => InterviewabilityScore =
+  memoizeByText(computeInterviewability);
 
 export interface CareerGap {
   from: { year: number; month: number };
