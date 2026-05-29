@@ -21,19 +21,23 @@
 
 ## 프로덕션 활성화 체크리스트
 
-### 0. ⚠️ 선행(필수): 클라↔서버 plan 모델 통일
+### 0. 클라↔서버 plan 모델 통일 — ✅ 시커 정렬 완료 (commit b187c5f·eb329c4)
 
-**현재 클라이언트와 서버의 plan 카탈로그가 불일치합니다.** 이걸 먼저 해결하지 않으면 결제/trial로
-plan을 부여해도 기능 게이팅이 풀리지 않습니다(유료 사용자가 free로 취급됨).
+과거 클라(`free/standard/premium`)와 서버(`free/pro/enterprise`)의 plan vocab 불일치로, 서버가
+`user.plan='pro'` 저장 시 클라 `getPlan('pro')`이 `free`로 폴백 → 유료/trial 사용자가 무료로
+게이팅되고 `mockCheckout`(plan='standard')이 서버에 거부되던 버그가 있었음.
 
-- 클라(`packages/client/src/lib/plans.ts`): `PlanId = 'free' | 'standard' | 'premium'`, 가격 필드 `price`/`yearlyPrice`.
-- 서버(`packages/server/src/billing/billing.service.ts`): `PlanId = 'free' | 'pro' | 'enterprise'`, 가격 필드 `priceMonthlyKRW`/`priceYearlyKRW`.
-- 영향: 서버 `grantPlan`/`startTrial`이 `user.plan = 'pro'` 저장 → 클라 `getPlan('pro')`는 미매칭이라 `free`로 폴백(`plans.ts` `getPlan`은 `... || PLANS[0]`) → `canAccess`가 무료 권한으로 판정. 즉 **모네타이제이션 on 상태에서 유료/trial 사용자도 게이팅이 안 풀림.**
+**조치 완료(서버 기준 통일)**: 클라 `plans.ts`를 `free/pro/enterprise` + 서버 가격(pro 9900/99000,
+enterprise 49000/490000)으로 정렬, 소비처(PaymentPage·SettingsPage) 갱신, `plans.test.ts` 회귀 가드
+추가, cross-package `common/plans.spec.ts` 갱신. `user.plan`은 이미 서버 vocab이라 **DB
+마이그레이션 불필요**. → 게이팅·mockCheckout 정상화.
 
-조치(택1, 데이터 마이그레이션 동반 — 운영 결정):
+**남은 항목**:
 
-1. **서버 vocab으로 통일(권장)**: 클라 `PlanId`/`PLANS`를 `free/pro/enterprise` + `priceMonthlyKRW/priceYearlyKRW`로 맞추고, 모든 클라 사용처(PaymentPage·FeatureGate·plans UI) 갱신. 기존 `user.plan` 값(`standard/premium`이 있다면) → `pro/enterprise`로 DB 마이그레이션.
-2. 또는 **서버에 매핑 레이어** 추가: `getMyBilling`/`grantPlan` 경계에서 server↔client ID 변환. (이중 vocab 유지라 비권장.)
+- **리쿠르터 차등 가격**: 클라 `RECRUITER_PLANS`는 19900/49900 표시이나 서버 billing은 단일
+  카탈로그(9900/49000)만 charge. 리쿠르터 차등 과금이 필요하면 서버 billing에 리쿠르터 카탈로그
+  추가가 선행되어야 함(현재는 게이팅 ID만 정렬됨).
+- 아래 step 1~4(Toss 키·confirm 엔드포인트)는 그대로 유효.
 
 검증: 통일 후 `mockCheckout`(trial)로 plan 부여 → 클라에서 해당 유료 기능 게이팅이 실제로 풀리는지 확인.
 
