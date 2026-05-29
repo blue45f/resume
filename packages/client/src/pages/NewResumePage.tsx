@@ -1248,152 +1248,23 @@ export default function NewResumePage() {
               <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                 시작 방법
               </h2>
-              <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                {/* Empty */}
-                <button
-                  onClick={() => setStartMode('empty')}
-                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
-                    startMode === 'empty'
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500'
-                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                  }`}
-                >
-                  <div className="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center mb-2">
-                    <svg
-                      className="w-5 h-5 text-slate-500 dark:text-slate-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">
-                    빈 이력서로 시작
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    처음부터 직접 작성합니다
-                  </p>
-                </button>
-
-                {/* Sample Data */}
-                <button
-                  onClick={() => setStartMode('sample')}
-                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
-                    startMode === 'sample'
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500'
-                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                  }`}
-                >
-                  <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-lg flex items-center justify-center mb-2">
-                    <svg
-                      className="w-5 h-5 text-sky-500 dark:text-sky-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">
-                    샘플 데이터로 시작
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    예시 데이터를 수정하며 작성합니다
-                  </p>
-                </button>
-
-                {/* Copy from existing */}
-                <button
-                  onClick={() => setStartMode('copy')}
-                  disabled={existingResumes.length === 0}
-                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
-                    existingResumes.length === 0
-                      ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700'
-                      : startMode === 'copy'
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500'
-                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                  }`}
-                >
-                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-2">
-                    <svg
-                      className="w-5 h-5 text-green-500 dark:text-green-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">
-                    이전 이력서에서 복사
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    {existingResumes.length > 0
-                      ? `${existingResumes.length}개의 이력서에서 선택`
-                      : '기존 이력서가 없습니다'}
-                  </p>
-                </button>
-
-                {/* AI Upload */}
-                <button
-                  onClick={() => setStartMode('ai-upload')}
-                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
-                    startMode === 'ai-upload'
-                      ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20 ring-1 ring-sky-500'
-                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                  }`}
-                >
-                  <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-lg flex items-center justify-center mb-2">
-                    <svg
-                      className="w-5 h-5 text-sky-500 dark:text-sky-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">
-                    AI 문서 분석
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    파일/텍스트로 자동 채우기
-                  </p>
-                </button>
-
-                {/* Step-by-step Wizard */}
+              {/* 추천 경로 — 처음 작성/빠른 시작에 시각적으로 우세하게 (1순위) */}
+              <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                {/* Step-by-step Wizard (1순위) */}
                 <button
                   onClick={() => setStartMode('wizard')}
-                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
+                  className={`relative text-left p-5 rounded-xl border-2 transition-all duration-200 ${
                     startMode === 'wizard'
-                      ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 ring-1 ring-teal-500'
+                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                 >
-                  <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center mb-2">
+                  <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/40 rounded-full px-2 py-0.5">
+                    추천
+                  </span>
+                  <div className="w-11 h-11 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-3">
                     <svg
-                      className="w-5 h-5 text-teal-500 dark:text-teal-400"
+                      className="w-5 h-5 text-blue-600 dark:text-blue-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1406,11 +1277,105 @@ export default function NewResumePage() {
                       />
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">
+                  <h3 className="font-semibold text-[15px] text-slate-900 dark:text-slate-100">
                     단계별 작성
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    6단계 가이드로 쉽게 작성
+                    6단계 가이드로 처음이어도 막힘 없이 완성합니다
+                  </p>
+                </button>
+
+                {/* AI Upload (1순위) */}
+                <button
+                  onClick={() => setStartMode('ai-upload')}
+                  className={`relative text-left p-5 rounded-xl border-2 transition-all duration-200 ${
+                    startMode === 'ai-upload'
+                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                  }`}
+                >
+                  <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/40 rounded-full px-2 py-0.5">
+                    추천
+                  </span>
+                  <div className="w-11 h-11 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-3">
+                    <svg
+                      className="w-5 h-5 text-blue-600 dark:text-blue-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-[15px] text-slate-900 dark:text-slate-100">
+                    AI 문서 분석
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    기존 파일·텍스트를 올리면 자동으로 채워 드립니다
+                  </p>
+                </button>
+              </div>
+
+              {/* 보조 경로 — 컴팩트하게 (2순위) */}
+              <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {/* Empty */}
+                <button
+                  onClick={() => setStartMode('empty')}
+                  className={`text-left p-3.5 rounded-xl border-2 transition-all duration-200 ${
+                    startMode === 'empty'
+                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                  }`}
+                >
+                  <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">
+                    빈 이력서
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    처음부터 직접 작성
+                  </p>
+                </button>
+
+                {/* Sample Data */}
+                <button
+                  onClick={() => setStartMode('sample')}
+                  className={`text-left p-3.5 rounded-xl border-2 transition-all duration-200 ${
+                    startMode === 'sample'
+                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                  }`}
+                >
+                  <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">
+                    샘플 데이터
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    예시를 수정하며 작성
+                  </p>
+                </button>
+
+                {/* Copy from existing */}
+                <button
+                  onClick={() => setStartMode('copy')}
+                  disabled={existingResumes.length === 0}
+                  className={`text-left p-3.5 rounded-xl border-2 transition-all duration-200 ${
+                    existingResumes.length === 0
+                      ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700'
+                      : startMode === 'copy'
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                  }`}
+                >
+                  <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">
+                    이전 이력서 복사
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {existingResumes.length > 0
+                      ? `${existingResumes.length}개에서 선택`
+                      : '기존 이력서 없음'}
                   </p>
                 </button>
               </div>
