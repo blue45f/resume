@@ -701,7 +701,13 @@ export default function LoginPage() {
                     placeholder="8자 이상 입력"
                     aria-required="true"
                     aria-invalid={!!passwordError}
-                    aria-describedby={passwordError ? 'password-error' : undefined}
+                    aria-describedby={
+                      passwordError
+                        ? 'password-error'
+                        : isRegister && password
+                          ? 'password-strength-label'
+                          : undefined
+                    }
                     className={`auth-field pr-11 ${passwordError ? 'auth-field--error' : ''}`}
                   />
                   <button
@@ -780,8 +786,12 @@ export default function LoginPage() {
                             />
                           ))}
                         </div>
-                        <p className="text-xs" style={{ color: barColor }}>
-                          {pwStrength.label}
+                        <p
+                          id="password-strength-label"
+                          className="text-xs"
+                          style={{ color: barColor }}
+                        >
+                          비밀번호 강도: {pwStrength.label}
                           {pwStrength.level <= 2 && (
                             <span className="text-[var(--color-text-muted)]">
                               {' '}
