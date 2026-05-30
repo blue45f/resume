@@ -142,6 +142,20 @@ pnpm deploy:gcp           # Cloud Run 배포
 - ✅ **테스트** — client 1176 → 1212 green. 테스트 계정으로 dev 라이브 검증(공개 라우트는 프론트만, 인증 페이지는 백엔드 잠깐 후 즉시 종료 — prod Neon @Cron 주의). 신규 패널은 형제 detail 패널 관례대로 한글 하드코딩(i18n 미적용).
 - 참고: `resumeKeywordDensityVariation`(섹션별 밀도)은 기존 `analyzeSectionDensity`/`analyzeSectionBalance`와 중복 확인 → 미진행.
 
+2026-05-30 사이클 — 적대적 보안 감사 3라운드 (Workflow find→2검증자→confirmed + 직접 코드 검증):
+
+모든 발견을 워크플로 적대적 검증 + 직접 코드 추적으로 confirmed 한 뒤에만 수정. **전역 AuthGuard 가
+비-@Public 라우트도 토큰 없이 통과(req.user=null)시키므로, 가시성/소유권 검증이 빠진 read 경로는
+미인증 IDOR 가 된다** — 이 패턴이 다수 발견의 공통 뿌리.
+
+- ✅ **plan 모델 통일** — 클라(free/standard/premium) ↔ 서버(free/pro/enterprise) vocab 불일치로 유료 게이팅·mockCheckout 깨지던 버그. 클라 plans.ts 를 서버 기준 정렬 + 회귀 가드. (b187c5f·eb329c4)
+- ✅ **R1 보안** — job-url-parser SSRF(IPv6/난독화 IP/DNS·redirect 재검증), attachments selective IDOR, social PII(email) 노출, custom-throttler GET 전체 우회, LoginPage open-redirect(protocol-relative/백슬래시/userinfo 차단), client plan-trust 문서화. (ad3df1d·5c55a87)
+- ✅ **R2 보안 (CRITICAL 2 + HIGH 4)** — OAuth 계정연동 탈취(링크 state 의 userId 가 HMAC 미서명 → 위조 userId 로 피해자 계정에 공격자 소셜 연동 → `generateLinkOAuthState` 로 서명 바인딩), resume export/slug/shortcode IDOR(미인증 비공개 이력서 유출 → `assertCanAccess`/`canViewResume` 공유 게이트), setSuspended superadmin 정지 차단, coffee-chat recordJoin IDOR, community 금칙어 update 우회, JWT role staleness(guard isSuspended 30s 캐시에 role piggyback). (cbaf045·de7c625·d1b745e)
+- ✅ **R3 보안** — LLM 전 엔드포인트 가시성 게이트(aiSpellCheck/enhanceWithDocument/getTransformationHistory 가 `prisma.resume.findUnique` 직접 호출 → `assertCanAccess` 추가; feedback/job-match/stream/interview 는 findOne 에 userId 스레딩으로 소유자 접근 복구+게이트), templates authz(미인증 create·isDefault mass-assignment·findOne 비공개 템플릿 IDOR), interview quota 우회(save=false 시 row 미생성으로 quota 미카운트 → 항상 기록). (f66495d·667b8fa)
+- ✅ **적대적 검증 신뢰성** — 워크플로 confirmed 를 직접 코드 추적으로 재검증, refuted(POST role guard·mockCheckout·community 댓글 XSS·cover-letters mass-assign 등)는 전부 독립 분석과 일치. cover-letters/notifications/interview-ownership 은 직접 검증으로 깨끗 확인. R3 검증자 다수가 StructuredOutput 미호출로 실패 → 해당 미검증 claim 전량 직접 검증 처리(중요: 워크플로 verify 실패 시 reasons:[] 는 "반박"이 아니라 "미검증").
+- ✅ **테스트** — server 1487 → 1513 green (+26 회귀). client 1218 green. tsc green. 전 커밋 pre-commit(tsc+lint-staged) 통과.
+- ⏸️ 알려진 low-sev (제품 입력 필요 → 문서화·미수정): billing startTrial 멱등성 check-then-act 레이스(PAYMENT_ACTIVATION §8 — $0·향후 trial 차단 유지, 실 PG 연동 시 이 흐름 교체 예정), templates findAll 이 비공개 사용자 템플릿(layout/prompt)을 목록에 노출(캐시 + AdminPage 영향이라 필터링 보류).
+
 다음 사이클 후보 (대부분 사용자/시간 의존):
 
 - 본격 사용자 트래픽 발생 시: OpenRelay → Cloudflare Calls / Twilio NTS 마이그
@@ -153,4 +167,4 @@ pnpm deploy:gcp           # Cloud Run 배포
 
 ---
 
-작성일: 2026-04-20 · 최근 갱신: 2026-05-29 (버그픽스 + a11y + 분석기 3종 + 개선 우선순위 종합)
+작성일: 2026-04-20 · 최근 갱신: 2026-05-30 (적대적 보안 감사 3라운드 — plan 통일 + SSRF/IDOR/OAuth 탈취/quota 우회 등)
