@@ -40,11 +40,11 @@ describe('TemplatesController', () => {
   });
 
   it('findAll / findPublic / findOne / seed 직접 위임', () => {
-    controller.findAll();
+    controller.findAll({ user: { id: 'u1', role: 'user' } });
     controller.findPublicTemplates('design');
     controller.findOne('t1', { user: { id: 'u1', role: 'user' } });
     controller.seed();
-    expect(mockTemplates.findAll).toHaveBeenCalled();
+    expect(mockTemplates.findAll).toHaveBeenCalledWith('u1', 'user');
     expect(mockTemplates.findPublic).toHaveBeenCalledWith('design');
     expect(mockTemplates.findOne).toHaveBeenCalledWith('t1', 'u1', 'user');
     expect(mockTemplates.seed).toHaveBeenCalled();

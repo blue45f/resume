@@ -5,8 +5,22 @@ import { PrismaService } from '../prisma/prisma.service';
 export class TemplatesService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(userId?: string, role?: string) {
+    // 비공개 사용자 템플릿(layout/prompt)이 목록으로 노출되지 않도록 스코프 (IDOR 방지).
+    // 시스템 기본·공개 템플릿은 누구나, 본인 비공개 템플릿은 본인만, 관리자는 전체.
+    const isAdmin = role === 'admin' || role === 'superadmin';
+    const where = isAdmin
+      ? {}
+      : {
+          OR: [
+            { isDefault: true },
+            { visibility: 'public' },
+            { userId: null },
+            ...(userId ? [{ userId }] : []),
+          ],
+        };
     return this.prisma.template.findMany({
+      where,
       orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
     });
   }

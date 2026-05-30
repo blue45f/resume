@@ -27,14 +27,38 @@ describe('TemplatesService', () => {
   });
 
   describe('findAll', () => {
-    it('템플릿 목록 반환 (isDefault DESC, name ASC)', async () => {
-      mockPrisma.template.findMany.mockResolvedValue([
-        { id: '1', name: '표준', isDefault: true },
-        { id: '2', name: '커스텀', isDefault: false },
-      ]);
-      const result = await service.findAll();
-      expect(result).toHaveLength(2);
+    it('비로그인 → 공개/기본/시스템 템플릿만 (비공개 사용자 템플릿 미노출)', async () => {
+      mockPrisma.template.findMany.mockResolvedValue([{ id: '1', name: '표준', isDefault: true }]);
+      await service.findAll();
       expect(mockPrisma.template.findMany).toHaveBeenCalledWith({
+        where: {
+          OR: [{ isDefault: true }, { visibility: 'public' }, { userId: null }],
+        },
+        orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
+      });
+    });
+
+    it('로그인 사용자 → 공개/기본/시스템 + 본인 비공개 템플릿', async () => {
+      mockPrisma.template.findMany.mockResolvedValue([]);
+      await service.findAll('user-1', 'user');
+      expect(mockPrisma.template.findMany).toHaveBeenCalledWith({
+        where: {
+          OR: [
+            { isDefault: true },
+            { visibility: 'public' },
+            { userId: null },
+            { userId: 'user-1' },
+          ],
+        },
+        orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
+      });
+    });
+
+    it('관리자 → 전체 템플릿 (where 무제한)', async () => {
+      mockPrisma.template.findMany.mockResolvedValue([]);
+      await service.findAll('admin-1', 'admin');
+      expect(mockPrisma.template.findMany).toHaveBeenCalledWith({
+        where: {},
         orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
       });
     });

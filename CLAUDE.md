@@ -154,7 +154,8 @@ pnpm deploy:gcp           # Cloud Run 배포
 - ✅ **R3 보안** — LLM 전 엔드포인트 가시성 게이트(aiSpellCheck/enhanceWithDocument/getTransformationHistory 가 `prisma.resume.findUnique` 직접 호출 → `assertCanAccess` 추가; feedback/job-match/stream/interview 는 findOne 에 userId 스레딩으로 소유자 접근 복구+게이트), templates authz(미인증 create·isDefault mass-assignment·findOne 비공개 템플릿 IDOR), interview quota 우회(save=false 시 row 미생성으로 quota 미카운트 → 항상 기록). (f66495d·667b8fa)
 - ✅ **적대적 검증 신뢰성** — 워크플로 confirmed 를 직접 코드 추적으로 재검증, refuted(POST role guard·mockCheckout·community 댓글 XSS·cover-letters mass-assign 등)는 전부 독립 분석과 일치. cover-letters/notifications/interview-ownership 은 직접 검증으로 깨끗 확인. R3 검증자 다수가 StructuredOutput 미호출로 실패 → 해당 미검증 claim 전량 직접 검증 처리(중요: 워크플로 verify 실패 시 reasons:[] 는 "반박"이 아니라 "미검증").
 - ✅ **테스트** — server 1487 → 1513 green (+26 회귀). client 1218 green. tsc green. 전 커밋 pre-commit(tsc+lint-staged) 통과.
-- ⏸️ 알려진 low-sev (제품 입력 필요 → 문서화·미수정): billing startTrial 멱등성 check-then-act 레이스(PAYMENT_ACTIVATION §8 — $0·향후 trial 차단 유지, 실 PG 연동 시 이 흐름 교체 예정), templates findAll 이 비공개 사용자 템플릿(layout/prompt)을 목록에 노출(캐시 + AdminPage 영향이라 필터링 보류).
+- ✅ **templates findAll 누출 수정** — 목록이 모든 사용자의 비공개 템플릿(layout/prompt)을 노출하던 것을 viewer 스코프(공개/기본/시스템 + 본인, admin 전체)로 제한. 서버 `@CacheTTL` 제거(클라 5분 캐시가 커버).
+- ⏸️ 알려진 low-sev (제품 입력 필요 → 문서화·미수정): billing startTrial 멱등성 check-then-act 레이스(PAYMENT_ACTIVATION §8 — $0·향후 trial 차단 유지, 실 PG 연동 시 이 흐름 교체 예정).
 
 다음 사이클 후보 (대부분 사용자/시간 의존):
 

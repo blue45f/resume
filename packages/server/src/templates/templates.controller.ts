@@ -16,7 +16,6 @@ import { LocalTransformService } from './local-transform.service';
 import { ResumesService } from '../resumes/resumes.service';
 import { CreateTemplateDto, UpdateTemplateDto, LocalTransformDto } from './dto/template.dto';
 import { Public } from '../auth/auth.guard';
-import { CacheTTL } from '../common/interceptors/cache.interceptor';
 
 @ApiTags('templates')
 @Controller('templates')
@@ -28,10 +27,10 @@ export class TemplatesController {
   ) {}
 
   @Get()
-  @CacheTTL(300)
-  @ApiOperation({ summary: '템플릿 목록 조회' })
-  findAll() {
-    return this.templatesService.findAll();
+  @ApiOperation({ summary: '템플릿 목록 조회 (공개/기본 + 본인 비공개)' })
+  findAll(@Req() req: any) {
+    // viewer 별 응답(본인 비공개 포함)이라 공개 캐시 미적용 (클라가 5분 캐시). 비공개 템플릿 노출 방지.
+    return this.templatesService.findAll(req.user?.id, req.user?.role);
   }
 
   @Get('public')
