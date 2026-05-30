@@ -86,7 +86,7 @@ export class LlmController {
           if (req.user?.id) {
             await this.usageService.checkAndLog(req.user.id, 'ai_transform_stream');
           }
-          generator = this.llmService.transformStream(resumeId, dto);
+          generator = this.llmService.transformStream(resumeId, dto, req.user?.id);
           for await (const chunk of generator) {
             if (!isAlive) break;
             subscriber.next({ data: JSON.stringify(chunk) } as MessageEvent);
@@ -124,8 +124,8 @@ export class LlmController {
 
   @Get('history')
   @ApiOperation({ summary: 'LLM 변환 이력 조회' })
-  getHistory(@Param('resumeId') resumeId: string) {
-    return this.llmService.getTransformationHistory(resumeId);
+  getHistory(@Param('resumeId') resumeId: string, @Req() req: any) {
+    return this.llmService.getTransformationHistory(resumeId, req.user?.id);
   }
 
   @Get('providers')
@@ -153,7 +153,7 @@ export class LlmController {
     if (req.user?.id) {
       await this.usageService.checkAndLog(req.user.id, 'ai_feedback');
     }
-    return this.llmService.analyzeFeedback(resumeId, dto.provider);
+    return this.llmService.analyzeFeedback(resumeId, dto.provider, req.user?.id);
   }
 
   @Post('job-match')
@@ -167,7 +167,12 @@ export class LlmController {
     if (req.user?.id) {
       await this.usageService.checkAndLog(req.user.id, 'ai_job_match');
     }
-    return this.llmService.analyzeJobMatch(resumeId, dto.jobDescription, dto.provider);
+    return this.llmService.analyzeJobMatch(
+      resumeId,
+      dto.jobDescription,
+      dto.provider,
+      req.user?.id,
+    );
   }
 
   @Post('interview')
@@ -187,6 +192,7 @@ export class LlmController {
       dto.provider,
       dto.jobDescription,
       dto.difficulty,
+      req.user?.id,
     );
   }
 
@@ -211,7 +217,7 @@ export class LlmController {
     if (req.user?.id) {
       await this.usageService.checkAndLog(req.user.id, 'ai_spell_check');
     }
-    return this.llmService.aiSpellCheck(resumeId, dto.provider);
+    return this.llmService.aiSpellCheck(resumeId, dto.provider, req.user?.id);
   }
 
   @Post('enhance-with-document')
@@ -230,6 +236,7 @@ export class LlmController {
       dto.documentText,
       dto.instruction,
       dto.provider,
+      req.user?.id,
     );
   }
 }

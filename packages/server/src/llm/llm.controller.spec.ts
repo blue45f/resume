@@ -66,9 +66,9 @@ describe('LlmController', () => {
     });
   });
 
-  it('getHistory: resumeId 전달', () => {
-    controller.getHistory('r1');
-    expect(mockLlm.getTransformationHistory).toHaveBeenCalledWith('r1');
+  it('getHistory: resumeId + userId 전달 (가시성 게이트)', () => {
+    controller.getHistory('r1', { user: { id: 'u1' } });
+    expect(mockLlm.getTransformationHistory).toHaveBeenCalledWith('r1', 'u1');
   });
 
   it('getProviders / getUsage: 서비스 위임', () => {
@@ -83,7 +83,7 @@ describe('LlmController', () => {
 
     it('analyzeFeedback: provider 전달', async () => {
       await controller.analyzeFeedback('r1', { provider: 'openai' } as any, reqStub);
-      expect(mockLlm.analyzeFeedback).toHaveBeenCalledWith('r1', 'openai');
+      expect(mockLlm.analyzeFeedback).toHaveBeenCalledWith('r1', 'openai', undefined);
     });
 
     it('analyzeJobMatch: JD + provider 전달', async () => {
@@ -92,7 +92,7 @@ describe('LlmController', () => {
         { jobDescription: 'Senior React', provider: 'groq' } as any,
         reqStub,
       );
-      expect(mockLlm.analyzeJobMatch).toHaveBeenCalledWith('r1', 'Senior React', 'groq');
+      expect(mockLlm.analyzeJobMatch).toHaveBeenCalledWith('r1', 'Senior React', 'groq', undefined);
     });
 
     it('generateInterview: 5개 인자 분해 전달', async () => {
@@ -112,6 +112,7 @@ describe('LlmController', () => {
         'openai',
         'JD',
         'advanced',
+        undefined,
       );
     });
 

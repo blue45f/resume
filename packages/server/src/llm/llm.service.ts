@@ -133,9 +133,10 @@ export class LlmService {
   async *transformStream(
     resumeId: string,
     dto: TransformResumeDto,
+    userId?: string,
   ): AsyncGenerator<LlmStreamChunk> {
     const provider = this.getProvider(dto.provider);
-    const resume = await this.resumesService.findOne(resumeId);
+    const resume = await this.resumesService.findOne(resumeId, userId);
     const systemPrompt = this.buildSystemPrompt(dto);
     const userMessage = this.buildUserMessage(resume);
 
@@ -173,7 +174,9 @@ export class LlmService {
     };
   }
 
-  async getTransformationHistory(resumeId: string) {
+  async getTransformationHistory(resumeId: string, userId?: string) {
+    // 가시성 게이트 — 변환 결과(이력서 본문 포함)를 비권한자(미인증 포함)에게 노출하지 않음 (IDOR).
+    await this.resumesService.assertCanAccess(resumeId, userId);
     const transformations = await this.prisma.llmTransformation.findMany({
       where: { resumeId },
       orderBy: { createdAt: 'desc' },
@@ -273,7 +276,10 @@ export class LlmService {
     documentText: string,
     instruction?: string,
     _provider?: string,
+    userId?: string,
   ) {
+    // 가시성 게이트 — 비공개/선택 이력서를 비권한자(미인증 포함)가 LLM 출력으로 유출하는 IDOR 방지.
+    await this.resumesService.assertCanAccess(resumeId, userId);
     const existing = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       include: {
@@ -364,7 +370,9 @@ export class LlmService {
    * 정규식 규칙이 잡지 못하는 문맥 의존적 오류(어절 단위, 조사, 맥락상 부자연스러운 표현)를
    * LLM으로 검출·수정하고 구조화된 JSON 을 반환.
    */
-  async aiSpellCheck(resumeId: string, provider?: string) {
+  async aiSpellCheck(resumeId: string, provider?: string, userId?: string) {
+    // 가시성 게이트 — 비공개/선택 이력서를 비권한자(미인증 포함)가 LLM 출력으로 유출하는 IDOR 방지.
+    await this.resumesService.assertCanAccess(resumeId, userId);
     const r = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       include: {
@@ -554,9 +562,9 @@ export class LlmService {
   // ==========================================
 
   /** AI 이력서 피드백 (점수 + 강점 + 개선점) */
-  async analyzeFeedback(resumeId: string, provider?: string) {
-    // 자동 fallback 사용 (provider 무시)
-    const resume = await this.resumesService.findOne(resumeId);
+  async analyzeFeedback(resumeId: string, provider?: string, userId?: string) {
+    // 자동 fallback 사용 (provider 무시). userId 로 가시성 게이트(소유자/공개만 — IDOR 방지).
+    const resume = await this.resumesService.findOne(resumeId, userId);
 
     const systemPrompt = `당신은 채용 전문가이자 이력서 컨설턴트입니다. 주어진 이력서를 분석하여 JSON으로 응답해주세요.
 
@@ -606,7 +614,12 @@ export class LlmService {
   }
 
   /** AI JD 매칭 분석 */
-  async analyzeJobMatch(resumeId: string, jobDescription: string, provider?: string) {
+  async analyzeJobMatch(
+    resumeId: string,
+    jobDescription: string,
+    provider?: string,
+    userId?: string,
+  ) {
     if (!jobDescription || jobDescription.length < 20) {
       throw new BadRequestException('채용공고(JD)를 20자 이상 입력해주세요.');
     }
@@ -615,7 +628,7 @@ export class LlmService {
     }
 
     // 자동 fallback 사용 (provider 무시)
-    const resume = await this.resumesService.findOne(resumeId);
+    const resume = await this.resumesService.findOne(resumeId, userId);
 
     const systemPrompt = `당신은 채용 전문가입니다. 이력서와 채용공고(JD)를 비교 분석하여 JSON으로 응답해주세요.
 
@@ -661,8 +674,9 @@ export class LlmService {
     provider?: string,
     jobDescription?: string,
     difficulty?: string,
+    userId?: string,
   ) {
-    const resume = await this.resumesService.findOne(resumeId);
+    const resume = await this.resumesService.findOne(resumeId, userId);
 
     const roleContext = jobRole ? `지원 직무: ${jobRole}\n` : '';
     const jdContext = jobDescription

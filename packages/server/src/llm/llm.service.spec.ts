@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { LlmService } from './llm.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ResumesService } from '../resumes/resumes.service';
@@ -42,6 +42,7 @@ const mockResumesService = {
     personalInfo: { name: '홍길동' },
     experiences: [],
   }),
+  assertCanAccess: jest.fn().mockResolvedValue(undefined),
 };
 
 describe('LlmService', () => {
@@ -348,7 +349,7 @@ describe('LlmService', () => {
       expect(result.analysis.matchScore).toBe(78);
       expect(result.analysis.matchGrade).toBe('B+');
       expect(result.tokensUsed).toBe(200);
-      expect(mockResumesService.findOne).toHaveBeenCalledWith('resume-1');
+      expect(mockResumesService.findOne).toHaveBeenCalledWith('resume-1', undefined);
     });
 
     it('JD가 20자 미만 → BadRequestException', async () => {
@@ -414,7 +415,7 @@ describe('LlmService', () => {
       expect(result.interview.questions).toHaveLength(1);
       expect(result.interview.questions[0].category).toBe('경험/프로젝트');
       expect(result.tokensUsed).toBe(300);
-      expect(mockResumesService.findOne).toHaveBeenCalledWith('resume-1');
+      expect(mockResumesService.findOne).toHaveBeenCalledWith('resume-1', undefined);
     });
 
     it('jobRole 지정 시 프롬프트에 포함', async () => {
@@ -550,6 +551,34 @@ describe('LlmService', () => {
 
       await expect(service.autoGenerate('데이터')).rejects.toThrow(BadRequestException);
       await expect(service.autoGenerate('데이터')).rejects.toThrow('파싱할 수 없습니다');
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // 가시성 게이트 (IDOR 방지) — 직접 resume 을 읽는 LLM 메서드
+  // ──────────────────────────────────────────────────
+  describe('가시성 게이트 (IDOR 방지)', () => {
+    it('aiSpellCheck — 접근 권한 없으면 ForbiddenException 전파 (LLM 미호출)', async () => {
+      mockResumesService.assertCanAccess.mockRejectedValueOnce(new ForbiddenException());
+      await expect(service.aiSpellCheck('resume-x', undefined, 'attacker')).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(mockResumesService.assertCanAccess).toHaveBeenCalledWith('resume-x', 'attacker');
+    });
+
+    it('enhanceWithDocument — 접근 권한 없으면 ForbiddenException 전파', async () => {
+      mockResumesService.assertCanAccess.mockRejectedValueOnce(new ForbiddenException());
+      await expect(
+        service.enhanceWithDocument('resume-x', 'doc', undefined, undefined, 'attacker'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockResumesService.assertCanAccess).toHaveBeenCalledWith('resume-x', 'attacker');
+    });
+
+    it('getTransformationHistory — 접근 권한 없으면 ForbiddenException 전파 (변환 결과 유출 차단)', async () => {
+      mockResumesService.assertCanAccess.mockRejectedValueOnce(new ForbiddenException());
+      await expect(service.getTransformationHistory('resume-x', 'attacker')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });
