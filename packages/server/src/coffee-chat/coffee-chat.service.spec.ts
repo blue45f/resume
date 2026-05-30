@@ -547,4 +547,35 @@ describe('CoffeeChatService', () => {
       await expect(service.generateIcs('c1', 'stranger')).rejects.toThrow();
     });
   });
+
+  describe('recordJoin', () => {
+    it('참여자(host)는 입장 기록 가능', async () => {
+      mockPrisma.coffeeChat.findUnique.mockResolvedValue({
+        id: 'c1',
+        hostId: 'h1',
+        requesterId: 'r1',
+        status: 'accepted',
+        hostJoined: false,
+      });
+      mockPrisma.coffeeChat.update.mockResolvedValue({ id: 'c1', hostJoined: true });
+      await service.recordJoin('c1', 'h1');
+      expect(mockPrisma.coffeeChat.update).toHaveBeenCalled();
+    });
+
+    it('비참여자 → ForbiddenException (IDOR — id 로 타인 커피챗 열람 차단)', async () => {
+      mockPrisma.coffeeChat.findUnique.mockResolvedValue({
+        id: 'c1',
+        hostId: 'h1',
+        requesterId: 'r1',
+        status: 'pending',
+      });
+      await expect(service.recordJoin('c1', 'attacker-9')).rejects.toThrow(ForbiddenException);
+      expect(mockPrisma.coffeeChat.update).not.toHaveBeenCalled();
+    });
+
+    it('존재하지 않는 커피챗 → NotFoundException', async () => {
+      mockPrisma.coffeeChat.findUnique.mockResolvedValue(null);
+      await expect(service.recordJoin('missing', 'h1')).rejects.toThrow(NotFoundException);
+    });
+  });
 });

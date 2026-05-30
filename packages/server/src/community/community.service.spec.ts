@@ -182,6 +182,23 @@ describe('CommunityService', () => {
     });
   });
 
+  describe('updatePost (금칙어 재검증)', () => {
+    it('수정 시 제목/본문 금칙어 재검증 호출', async () => {
+      mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' });
+      await service.updatePost('p1', 'u1', 'user', { title: '새 제목', content: '새 본문' });
+      expect(mockForbiddenWords.validateOrThrow).toHaveBeenCalledWith('새 제목', '새 본문');
+    });
+
+    it('수정 내용에 금칙어 → 차단 (clean 등록 후 update 우회 방지)', async () => {
+      mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' });
+      mockForbiddenWords.validateOrThrow.mockRejectedValueOnce(new ForbiddenException('금칙어'));
+      await expect(service.updatePost('p1', 'u1', 'user', { content: '나쁜말' })).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(mockPrisma.communityPost.update).not.toHaveBeenCalled();
+    });
+  });
+
   describe('toggleLike', () => {
     it('좋아요 추가 — likeCount 응답 포함', async () => {
       mockPrisma.communityLike.findUnique.mockResolvedValue(null);

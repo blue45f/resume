@@ -244,6 +244,11 @@ export class CommunityService {
     if (post.userId !== userId && role !== 'admin' && role !== 'superadmin')
       throw new ForbiddenException('권한이 없습니다');
 
+    // 금칙어 재검증 — createPost 와 동일. 깨끗하게 등록 후 수정으로 우회하는 것을 차단.
+    if (body.title !== undefined || body.content !== undefined) {
+      await this.forbiddenWords.validateOrThrow(body.title, body.content);
+    }
+
     const data: any = {};
     if (body.title !== undefined) data.title = body.title;
     if (body.content !== undefined) data.content = body.content;

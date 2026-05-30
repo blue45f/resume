@@ -484,6 +484,10 @@ export class CoffeeChatService {
     if (!userId) throw new ForbiddenException('로그인이 필요합니다');
     const chat = await this.prisma.coffeeChat.findUnique({ where: { id } });
     if (!chat) throw new NotFoundException();
+    // 참여자(host/requester)만 조회·기록 가능 (IDOR — 제3자가 id 로 chat 내용 열람 방지)
+    if (chat.hostId !== userId && chat.requesterId !== userId) {
+      throw new ForbiddenException('이 커피챗의 참여자가 아닙니다');
+    }
     if (chat.status !== 'accepted') return chat; // 수락 후만 기록
     const data: Record<string, boolean> = {};
     if (chat.hostId === userId && !chat.hostJoined) data.hostJoined = true;
