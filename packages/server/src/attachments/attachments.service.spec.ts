@@ -37,6 +37,9 @@ const mockPrisma = {
     create: jest.fn(),
     delete: jest.fn(),
   },
+  resumeViewer: {
+    findUnique: jest.fn(),
+  },
 };
 
 const createMockFile = (overrides: Partial<Express.Multer.File> = {}): Express.Multer.File => ({
@@ -190,6 +193,37 @@ describe('AttachmentsService', () => {
       mockPrisma.attachment.findMany.mockResolvedValue([mockAttachment]);
       const result = await service.findAll('resume-1', 'user-1');
       expect(result).toHaveLength(1);
+    });
+
+    it('선택 공개(selective) - 화이트리스트 미등록 타인 → ForbiddenException (IDOR 방지)', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        userId: 'user-1',
+        visibility: 'selective',
+      });
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null); // 등록 안 됨
+      await expect(service.findAll('resume-1', 'other-user')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('선택 공개(selective) - 유효 viewer 등록자는 접근 가능', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        userId: 'user-1',
+        visibility: 'selective',
+      });
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue({ expiresAt: null }); // 미만료
+      mockPrisma.attachment.findMany.mockResolvedValue([mockAttachment]);
+      const result = await service.findAll('resume-1', 'viewer-user');
+      expect(result).toHaveLength(1);
+    });
+
+    it('선택 공개(selective) - 만료된 viewer → ForbiddenException', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        userId: 'user-1',
+        visibility: 'selective',
+      });
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue({
+        expiresAt: new Date(Date.now() - 1000),
+      });
+      await expect(service.findAll('resume-1', 'expired-user')).rejects.toThrow(ForbiddenException);
     });
 
     it('첨부파일 없으면 빈 배열', async () => {

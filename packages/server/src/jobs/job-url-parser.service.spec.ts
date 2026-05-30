@@ -74,6 +74,21 @@ describe('JobUrlParserService', () => {
       await expect(service.parse('http://192.168.1.1/x')).rejects.toThrow(BadRequestException);
       await expect(service.parse('http://10.0.0.1/x')).rejects.toThrow(BadRequestException);
     });
+
+    it('IPv6 loopback / 사설 → SSRF 차단', async () => {
+      await expect(service.parse('http://[::1]:5432/')).rejects.toThrow(BadRequestException);
+      await expect(service.parse('http://[fc00::1]/x')).rejects.toThrow(BadRequestException);
+      await expect(service.parse('http://[fe80::1]/x')).rejects.toThrow(BadRequestException);
+      await expect(service.parse('http://[::ffff:127.0.0.1]/x')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('난독화 숫자 IPv4 (10진 정수 / 8진) → SSRF 차단', async () => {
+      await expect(service.parse('http://2130706433/x')).rejects.toThrow(BadRequestException); // 127.0.0.1
+      await expect(service.parse('http://0177.0.0.1/x')).rejects.toThrow(BadRequestException); // octal 127
+      await expect(service.parse('http://0.0.0.0/x')).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('JSON-LD JobPosting 파싱', () => {

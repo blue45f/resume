@@ -154,6 +154,16 @@ export class AttachmentsService {
     return this.format(attachment);
   }
 
+  /** 선택 공개(selective) 이력서의 유효(미만료) ResumeViewer 화이트리스트 등록자인지. */
+  private async isValidSelectiveViewer(resumeId: string, userId?: string): Promise<boolean> {
+    if (!userId) return false;
+    const v = await this.prisma.resumeViewer.findUnique({
+      where: { resumeId_userId: { resumeId, userId } },
+      select: { expiresAt: true },
+    });
+    return !!v && (!v.expiresAt || v.expiresAt > new Date());
+  }
+
   async findAll(resumeId: string, userId?: string, role?: string) {
     // 소유권/가시성 검증: 비공개 이력서는 소유자 또는 관리자만 조회
     const resume = await this.prisma.resume.findUnique({
@@ -165,6 +175,15 @@ export class AttachmentsService {
     const isAdmin = role === 'admin' || role === 'superadmin';
     const isOwner = resume.userId && resume.userId === userId;
     if (resume.visibility === 'private' && !isOwner && !isAdmin) {
+      throw new ForbiddenException('이 이력서의 첨부파일에 접근할 권한이 없습니다');
+    }
+    // 선택 공개(selective): ResumeViewer 화이트리스트(미만료) 등록자만 첨부 목록 조회 가능 (IDOR 방지).
+    if (
+      resume.visibility === 'selective' &&
+      !isOwner &&
+      !isAdmin &&
+      !(await this.isValidSelectiveViewer(resumeId, userId))
+    ) {
       throw new ForbiddenException('이 이력서의 첨부파일에 접근할 권한이 없습니다');
     }
 
@@ -197,6 +216,16 @@ export class AttachmentsService {
       attachment.resume.visibility === 'private' &&
       attachment.resume.userId &&
       attachment.resume.userId !== userId
+    ) {
+      throw new NotFoundException('파일을 찾을 수 없습니다');
+    }
+    // 선택 공개(selective): 화이트리스트(미만료) 등록자만 파일 다운로드 가능 (IDOR 방지).
+    // 존재 노출 방지를 위해 NotFound 로 통일.
+    if (
+      attachment.resume.visibility === 'selective' &&
+      attachment.resume.userId &&
+      attachment.resume.userId !== userId &&
+      !(await this.isValidSelectiveViewer(attachment.resumeId, userId))
     ) {
       throw new NotFoundException('파일을 찾을 수 없습니다');
     }

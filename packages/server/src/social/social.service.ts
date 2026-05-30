@@ -27,7 +27,8 @@ export class SocialService {
   async getFollowers(userId: string) {
     const follows = await this.prisma.follow.findMany({
       where: { followingId: userId },
-      include: { follower: { select: { id: true, name: true, email: true, avatar: true } } },
+      // email 은 PII — 팔로워 목록에 노출하지 않음 (id/name/avatar 만)
+      include: { follower: { select: { id: true, name: true, avatar: true } } },
     });
     return follows.map((f) => ({ ...f.follower, followedAt: f.createdAt }));
   }
@@ -35,7 +36,8 @@ export class SocialService {
   async getFollowing(userId: string) {
     const follows = await this.prisma.follow.findMany({
       where: { followerId: userId },
-      include: { following: { select: { id: true, name: true, email: true, avatar: true } } },
+      // email 은 PII — 팔로잉 목록에 노출하지 않음 (id/name/avatar 만)
+      include: { following: { select: { id: true, name: true, avatar: true } } },
     });
     return follows.map((f) => ({ ...f.following, followedAt: f.createdAt }));
   }
@@ -220,7 +222,8 @@ export class SocialService {
       });
       const partner = await this.prisma.user.findUnique({
         where: { id: partnerId },
-        select: { id: true, name: true, email: true, avatar: true },
+        // email 은 PII — DM 대화 상대 정보에 노출하지 않음
+        select: { id: true, name: true, avatar: true },
       });
       if (partner && lastMessage) {
         conversations.push({

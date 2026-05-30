@@ -1,4 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { lookup } from 'node:dns/promises';
+import { isIP } from 'node:net';
 import { LlmService } from '../llm/llm.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -23,6 +25,26 @@ const MAX_TEXT_LEN = 8000;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24시간
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
 const PRIVATE_HOST_RE = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.)/;
+// IPv6 로컬/사설 (브래킷 제거된 hostname 기준): loopback, unspecified, ULA(fc/fd), link-local(fe80),
+// multicast(ff), IPv4-mapped 사설/loopback.
+const PRIVATE_IPV6_RE =
+  /^(::1|::|fc[0-9a-f]{2}:|fd[0-9a-f]{2}:|fe80:|ff[0-9a-f]{2}:|::ffff:(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.))/i;
+const MAX_REDIRECTS = 5;
+
+/** IP 리터럴(IPv4/IPv6)이 로컬/사설/예약 범위인지. SSRF 차단용. */
+function isPrivateIp(ip: string): boolean {
+  const v = isIP(ip);
+  if (v === 4) {
+    // RFC1918 + loopback + link-local + 0.0.0.0/8 + CGNAT(100.64/10)
+    return (
+      PRIVATE_HOST_RE.test(ip) ||
+      /^0\./.test(ip) ||
+      /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(ip)
+    );
+  }
+  if (v === 6) return PRIVATE_IPV6_RE.test(ip);
+  return false;
+}
 
 /**
  * 채용공고 URL → 구조화된 ParsedJob 변환.
@@ -46,7 +68,7 @@ export class JobUrlParserService {
   ) {}
 
   async parse(url: string): Promise<ParsedJob> {
-    this.validateUrl(url);
+    await this.assertPublicUrl(url);
 
     // 0차: 24시간 캐시 hit 시 즉시 반환 (외부 fetch + LLM 비용 절감)
     const cached = await this.readCache(url);
@@ -122,7 +144,8 @@ export class JobUrlParserService {
     });
   }
 
-  private validateUrl(url: string) {
+  /** protocol + host 검증. 호스트는 DNS 해석 후 모든 IP 를 사설/로컬 범위 대조(SSRF 방지). */
+  private async assertPublicUrl(url: string) {
     let u: URL;
     try {
       u = new URL(url);
@@ -132,26 +155,57 @@ export class JobUrlParserService {
     if (!ALLOWED_PROTOCOLS.has(u.protocol)) {
       throw new BadRequestException('http/https URL 만 지원합니다');
     }
-    if (PRIVATE_HOST_RE.test(u.hostname)) {
-      throw new BadRequestException('로컬/사설 IP 는 차단됩니다 (SSRF 방지)');
+    await this.assertPublicHost(u.hostname);
+  }
+
+  private async assertPublicHost(hostname: string) {
+    const host = hostname.replace(/^\[|\]$/g, ''); // IPv6 브래킷 제거
+    const blocked = () => new BadRequestException('로컬/사설 IP 는 차단됩니다 (SSRF 방지)');
+
+    if (/^localhost$/i.test(host)) throw blocked();
+    // IP 리터럴 (점표기 IPv4 / IPv6)
+    if (isIP(host)) {
+      if (isPrivateIp(host)) throw blocked();
+      return;
     }
+    // 이름 기반 사설 차단
+    if (PRIVATE_HOST_RE.test(host) || PRIVATE_IPV6_RE.test(host)) throw blocked();
+    // 난독화 숫자 IP (10진 정수·8진 leading-zero·16진 0x) → 보수적 차단.
+    // 정상 도메인은 글자를 포함하고, 정상 점표기 IPv4 는 위 isIP 에서 이미 처리됨.
+    if (/^[0-9.]+$/.test(host) || /0x/i.test(host)) throw blocked();
+    // 호스트명 → DNS 해석(best-effort): 사설 IP 로 해석되면 차단. 해석 실패는 통과
+    // (네트워크 없는 CI/오프라인에서도 동작 — 어차피 fetch 도 불가).
+    let addrs: { address: string }[] | null = null;
+    try {
+      addrs = await lookup(host, { all: true });
+    } catch {
+      // 해석 실패 → addrs 는 null 유지 (best-effort, 오프라인/NXDOMAIN 도 통과)
+    }
+    if (addrs && addrs.some((a) => isPrivateIp(a.address))) throw blocked();
   }
 
   private async fetchHtml(url: string): Promise<string> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
-      const res = await fetch(url, {
-        signal: controller.signal,
-        headers: {
-          // 봇 차단 우회용 일반 데스크톱 UA
-          'User-Agent':
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-          Accept: 'text/html,application/xhtml+xml',
-          'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
-        },
-        redirect: 'follow',
-      });
+      const headers = {
+        // 봇 차단 우회용 일반 데스크톱 UA
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+      };
+      // 리다이렉트를 수동 추적하며 매 대상을 재검증 (DNS rebinding / redirect→내부망 SSRF 차단)
+      let currentUrl = url;
+      let res = await fetch(currentUrl, { signal: controller.signal, headers, redirect: 'manual' });
+      for (let hop = 0; hop < MAX_REDIRECTS; hop++) {
+        if (![301, 302, 303, 307, 308].includes(res.status)) break;
+        const loc = res.headers.get('location');
+        if (!loc) break;
+        currentUrl = new URL(loc, currentUrl).toString();
+        await this.assertPublicUrl(currentUrl);
+        res = await fetch(currentUrl, { signal: controller.signal, headers, redirect: 'manual' });
+      }
       if (!res.ok) {
         throw new BadRequestException(`채용공고 페이지를 가져오지 못했습니다 (HTTP ${res.status})`);
       }
