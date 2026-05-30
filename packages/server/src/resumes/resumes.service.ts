@@ -398,7 +398,7 @@ export class ResumesService {
     };
   }
 
-  async findBySlug(_username: string, slug: string) {
+  async findBySlug(_username: string, slug: string, userId?: string) {
     // slug 는 site-wide unique (updateSlug 에서 검증). username (URL path 의 @handle)
     // 은 user.username, user.name, resume.personalInfo.name 셋 중 어느 것일지 클라이언트
     // PublicLinkSettings 의 fallback 체인 때문에 일관 보장이 어렵다 — slug 자체가 unique
@@ -408,6 +408,17 @@ export class ResumesService {
       include: FULL_INCLUDE,
     });
     if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+    // 선택 공개(selective): slug 를 알아도 화이트리스트(미만료 ResumeViewer)·소유자·연결코치만
+    // 열람 가능 (IDOR 방지). 권한 없으면 존재 비노출을 위해 NotFound 로 통일.
+    if (
+      resume.visibility === 'selective' &&
+      !(await this.canViewResume(
+        { id: resume.id, userId: resume.userId, visibility: resume.visibility },
+        userId,
+      ))
+    ) {
+      throw new NotFoundException('이력서를 찾을 수 없습니다');
+    }
     // 조회수 증가 (비동기, 에러 무시)
     this.prisma.resume
       .update({ where: { id: resume.id }, data: { viewCount: { increment: 1 } } })
@@ -415,7 +426,7 @@ export class ResumesService {
     return this.formatFull(resume);
   }
 
-  async findByShortCode(code: string) {
+  async findByShortCode(code: string, userId?: string) {
     // UUID 앞 8자로 검색 (숏코드)
     const resume = await this.prisma.resume.findFirst({
       where: {
@@ -425,10 +436,60 @@ export class ResumesService {
       include: FULL_INCLUDE,
     });
     if (!resume) return null;
+    // 선택 공개(selective): 숏코드를 알아도 화이트리스트·소유자·연결코치만 열람 (IDOR 방지).
+    if (
+      resume.visibility === 'selective' &&
+      !(await this.canViewResume(
+        { id: resume.id, userId: resume.userId, visibility: resume.visibility },
+        userId,
+      ))
+    ) {
+      return null;
+    }
     this.prisma.resume
       .update({ where: { id: resume.id }, data: { viewCount: { increment: 1 } } })
       .catch(() => {});
     return this.formatFull(resume);
+  }
+
+  /**
+   * 이력서 열람 권한 판정 (side-effect 없음). findOne 의 가시성 규칙을 공유한다.
+   * public/link-only → 누구나. private → 소유자/연결코치. selective → 소유자/미만료 viewer/연결코치.
+   */
+  private async canViewResume(
+    meta: { id: string; userId: string | null; visibility: string },
+    userId?: string,
+  ): Promise<boolean> {
+    // private/selective 만 제한, 그 외(public, link-only 등)는 공개
+    if (meta.visibility !== 'private' && meta.visibility !== 'selective') return true;
+    if (meta.userId && meta.userId === userId) return true; // 소유자
+    if (!userId) return false;
+    if (meta.visibility === 'selective') {
+      const v = await this.prisma.resumeViewer.findUnique({
+        where: { resumeId_userId: { resumeId: meta.id, userId } },
+        select: { expiresAt: true },
+      });
+      if (v && (!v.expiresAt || v.expiresAt > new Date())) return true;
+    }
+    // private 또는 selective 비등록 → 연결된 CoachingSession 코치 폴백
+    return this.isCoachOfResumeSession(meta.id, userId);
+  }
+
+  /**
+   * 열람/내보내기 게이트 — 권한 없으면 throw (side-effect 없음).
+   * export 등 본문을 반환하기 전 호출. findOne 과 달리 조회수/알림을 발생시키지 않는다.
+   */
+  async assertCanAccess(id: string, userId?: string): Promise<void> {
+    const resume = await this.prisma.resume.findUnique({
+      where: { id },
+      select: { id: true, userId: true, visibility: true },
+    });
+    if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+    const ok = await this.canViewResume(
+      { id: resume.id, userId: resume.userId, visibility: resume.visibility },
+      userId,
+    );
+    if (!ok) throw new ForbiddenException('이 이력서에 접근할 권한이 없습니다');
   }
 
   async findOne(id: string, userId?: string) {
@@ -1038,6 +1099,12 @@ export class ResumesService {
     resumeId: string,
     viewerId?: string,
   ): Promise<Record<string, { count: number; endorsed: boolean }>> {
+    // 비공개/선택 공개 이력서의 스킬 추천 데이터는 열람 권한자에게만 노출 (정보 노출 방지).
+    const meta = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      select: { id: true, userId: true, visibility: true },
+    });
+    if (!meta || !(await this.canViewResume(meta, viewerId))) return {};
     const rows = await this.prisma.skillEndorsement.findMany({ where: { resumeId } });
     const result: Record<string, { count: number; endorsed: boolean }> = {};
     for (const row of rows) {
@@ -1056,9 +1123,13 @@ export class ResumesService {
   ): Promise<{ endorsed: boolean; count: number }> {
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
-      select: { id: true },
+      select: { id: true, userId: true, visibility: true },
     });
     if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
+    // 열람 권한이 없는(비공개/선택 비등록) 이력서에는 추천을 달 수 없음 (무단 변경 방지).
+    if (!(await this.canViewResume(resume, userId))) {
+      throw new ForbiddenException('이 이력서에 접근할 권한이 없습니다');
+    }
 
     const existing = await this.prisma.skillEndorsement.findUnique({
       where: { resumeId_userId_skill: { resumeId, userId, skill } },

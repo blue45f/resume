@@ -956,5 +956,101 @@ describe('ResumesService', () => {
       expect(result.count).toBe(0);
       expect(mockPrisma.skillEndorsement.delete).toHaveBeenCalledWith({ where: { id: 'end-1' } });
     });
+
+    it('getEndorsements — 비공개 이력서 + 비소유자 → 빈 객체 (정보 노출 차단)', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 'resume-1',
+        userId: 'owner-1',
+        visibility: 'private',
+      });
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
+      const result = await service.getEndorsements('resume-1', 'attacker-2');
+      expect(result).toEqual({});
+      expect(mockPrisma.skillEndorsement.findMany).not.toHaveBeenCalled();
+    });
+
+    it('toggleEndorse — 비공개 이력서 + 비소유자 → ForbiddenException (무단 변경 차단)', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 'resume-1',
+        userId: 'owner-1',
+        visibility: 'private',
+      });
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
+      await expect(service.toggleEndorse('resume-1', 'attacker-2', 'React')).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(mockPrisma.skillEndorsement.create).not.toHaveBeenCalled();
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // 가시성 접근 제어 (IDOR 방지) — assertCanAccess / findBySlug / findByShortCode
+  // ──────────────────────────────────────────────────
+  describe('visibility access control (IDOR)', () => {
+    const selectiveResume = {
+      ...mockResume,
+      id: 'sel-1',
+      visibility: 'selective',
+      userId: 'owner-1',
+      slug: 'sel-slug',
+    };
+
+    it('assertCanAccess — 공개 이력서는 비로그인도 통과', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 'pub-1',
+        userId: 'owner-1',
+        visibility: 'public',
+      });
+      await expect(service.assertCanAccess('pub-1', undefined)).resolves.toBeUndefined();
+    });
+
+    it('assertCanAccess — 비공개 + 비소유자 → ForbiddenException', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 'priv-1',
+        userId: 'owner-1',
+        visibility: 'private',
+      });
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
+      await expect(service.assertCanAccess('priv-1', 'attacker-2')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('assertCanAccess — selective + 화이트리스트 미등록 → ForbiddenException', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 'sel-1',
+        userId: 'owner-1',
+        visibility: 'selective',
+      });
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
+      await expect(service.assertCanAccess('sel-1', 'attacker-2')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('assertCanAccess — selective + 미만료 화이트리스트 등록자 → 통과', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 'sel-1',
+        userId: 'owner-1',
+        visibility: 'selective',
+      });
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue({ expiresAt: null });
+      await expect(service.assertCanAccess('sel-1', 'viewer-9')).resolves.toBeUndefined();
+    });
+
+    it('findBySlug — selective + 비등록자 → NotFoundException (slug 알아도 차단)', async () => {
+      mockPrisma.resume.findFirst.mockResolvedValue(selectiveResume);
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
+      await expect(service.findBySlug('owner', 'sel-slug', 'attacker-2')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('findByShortCode — selective + 비등록자 → null (숏코드 알아도 차단)', async () => {
+      mockPrisma.resume.findFirst.mockResolvedValue(selectiveResume);
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
+      const result = await service.findByShortCode('sel-1', 'attacker-2');
+      expect(result).toBeNull();
+    });
   });
 });

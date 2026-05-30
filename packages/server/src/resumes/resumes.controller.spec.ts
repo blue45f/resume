@@ -27,7 +27,9 @@ const mockResumesService = {
   transferOwnership: jest.fn(),
   incrementViewCount: jest.fn(),
   findBySlug: jest.fn(),
+  findByShortCode: jest.fn(),
   updateSlug: jest.fn(),
+  assertCanAccess: jest.fn().mockResolvedValue(undefined),
 };
 
 const mockExportService = {
@@ -369,8 +371,9 @@ describe('ResumesController', () => {
       mockExportService.exportAsText.mockResolvedValue(textContent);
       const res = mockResponse();
 
-      await controller.exportText('r1', res);
+      await controller.exportText('r1', { user: { id: 'u1' } }, res);
 
+      expect(mockResumesService.assertCanAccess).toHaveBeenCalledWith('r1', 'u1');
       expect(mockExportService.exportAsText).toHaveBeenCalledWith('r1');
       expect(mockResumesService.incrementViewCount).toHaveBeenCalledWith('r1');
       expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/plain; charset=utf-8');
@@ -387,14 +390,18 @@ describe('ResumesController', () => {
       );
       const res = mockResponse();
 
-      await expect(controller.exportText('nonexistent', res)).rejects.toThrow(NotFoundException);
+      await expect(
+        controller.exportText('nonexistent', { user: { id: 'u1' } }, res),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('예상치 못한 오류 → InternalServerErrorException', async () => {
       mockExportService.exportAsText.mockRejectedValue(new Error('DB error'));
       const res = mockResponse();
 
-      await expect(controller.exportText('r1', res)).rejects.toThrow(InternalServerErrorException);
+      await expect(controller.exportText('r1', { user: { id: 'u1' } }, res)).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 
@@ -498,9 +505,9 @@ describe('ResumesController', () => {
       const resume = { id: 'r1', title: '이력서', slug: 'my-resume' };
       mockResumesService.findBySlug.mockResolvedValue(resume);
 
-      const result = await controller.findBySlug('hong', 'my-resume');
+      const result = await controller.findBySlug('hong', 'my-resume', { user: { id: 'u1' } });
       expect(result).toEqual(resume);
-      expect(mockResumesService.findBySlug).toHaveBeenCalledWith('hong', 'my-resume');
+      expect(mockResumesService.findBySlug).toHaveBeenCalledWith('hong', 'my-resume', 'u1');
     });
   });
 });

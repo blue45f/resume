@@ -15,6 +15,7 @@ import {
   NotFoundException,
   InternalServerErrorException,
   BadRequestException,
+  HttpException,
 } from '@nestjs/common';
 import { AdminGuard } from '../common/guards/admin.guard';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
@@ -101,17 +102,17 @@ export class ResumesController {
 
   @Get('@:username/:slug')
   @Public()
-  @CacheTTL(60)
   @ApiOperation({ summary: '슬러그로 이력서 조회 (/@username/slug)' })
-  findBySlug(@Param('username') username: string, @Param('slug') slug: string) {
-    return this.resumesService.findBySlug(username, slug);
+  findBySlug(@Param('username') username: string, @Param('slug') slug: string, @Req() req: any) {
+    // selective 가시성은 viewer 별로 응답이 달라지므로 @CacheTTL(public 캐시) 미적용 (CDN 교차유출 방지)
+    return this.resumesService.findBySlug(username, slug, req.user?.id);
   }
 
   @Get('short/:code')
   @Public()
   @ApiOperation({ summary: '숏코드로 이력서 조회 (/r/xxxxxxxx)' })
-  async findByShortCode(@Param('code') code: string, @Res() res: Response) {
-    const resume = await this.resumesService.findByShortCode(code);
+  async findByShortCode(@Param('code') code: string, @Req() req: any, @Res() res: Response) {
+    const resume = await this.resumesService.findByShortCode(code, req.user?.id);
     if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
     // 이력서 미리보기 페이지로 리다이렉트
     return res.json(resume);
@@ -284,53 +285,57 @@ export class ResumesController {
 
   @Get(':id/export/text')
   @ApiOperation({ summary: '이력서 텍스트 내보내기' })
-  async exportText(@Param('id') id: string, @Res() res: Response) {
+  async exportText(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
     try {
+      await this.resumesService.assertCanAccess(id, req.user?.id);
       const text = await this.exportService.exportAsText(id);
       this.resumesService.incrementViewCount(id);
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="resume.txt"`);
       res.send(text);
     } catch (e) {
-      if (e instanceof NotFoundException) throw e;
+      if (e instanceof HttpException) throw e;
       throw new InternalServerErrorException('이력서 내보내기에 실패했습니다');
     }
   }
 
   @Get(':id/export/markdown')
   @ApiOperation({ summary: '이력서 마크다운 내보내기' })
-  async exportMarkdown(@Param('id') id: string, @Res() res: Response) {
+  async exportMarkdown(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
     try {
+      await this.resumesService.assertCanAccess(id, req.user?.id);
       const text = await this.exportService.exportAsMarkdown(id);
       this.resumesService.incrementViewCount(id);
       res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="resume.md"`);
       res.send(text);
     } catch (e) {
-      if (e instanceof NotFoundException) throw e;
+      if (e instanceof HttpException) throw e;
       throw new InternalServerErrorException('이력서 내보내기에 실패했습니다');
     }
   }
 
   @Get(':id/export/json')
   @ApiOperation({ summary: '이력서 JSON 내보내기' })
-  async exportJson(@Param('id') id: string, @Res() res: Response) {
+  async exportJson(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
     try {
+      await this.resumesService.assertCanAccess(id, req.user?.id);
       const json = await this.exportService.exportAsJson(id);
       this.resumesService.incrementViewCount(id);
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="resume.json"`);
       res.send(json);
     } catch (e) {
-      if (e instanceof NotFoundException) throw e;
+      if (e instanceof HttpException) throw e;
       throw new InternalServerErrorException('이력서 내보내기에 실패했습니다');
     }
   }
 
   @Get(':id/export/docx')
   @ApiOperation({ summary: '이력서 Word(.docx) 내보내기' })
-  async exportDocx(@Param('id') id: string, @Res() res: Response) {
+  async exportDocx(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
     try {
+      await this.resumesService.assertCanAccess(id, req.user?.id);
       const buffer = await this.exportService.exportAsDocx(id);
       this.resumesService.incrementViewCount(id);
       res.setHeader(
@@ -340,22 +345,23 @@ export class ResumesController {
       res.setHeader('Content-Disposition', `attachment; filename="resume.docx"`);
       res.send(buffer);
     } catch (e) {
-      if (e instanceof NotFoundException) throw e;
+      if (e instanceof HttpException) throw e;
       throw new InternalServerErrorException('Word 내보내기에 실패했습니다');
     }
   }
 
   @Get(':id/export/html')
   @ApiOperation({ summary: '이력서 HTML 내보내기 (독립형 파일)' })
-  async exportHtml(@Param('id') id: string, @Res() res: Response) {
+  async exportHtml(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
     try {
+      await this.resumesService.assertCanAccess(id, req.user?.id);
       const html = await this.exportService.exportAsHtml(id);
       this.resumesService.incrementViewCount(id);
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="resume.html"`);
       res.send(html);
     } catch (e) {
-      if (e instanceof NotFoundException) throw e;
+      if (e instanceof HttpException) throw e;
       throw new InternalServerErrorException('HTML 내보내기에 실패했습니다');
     }
   }
