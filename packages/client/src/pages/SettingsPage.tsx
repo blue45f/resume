@@ -666,6 +666,7 @@ export default function SettingsPage() {
                       to={ROUTES.profile.userShort(user.username)}
                       className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                       target="_blank"
+                      rel="noopener noreferrer"
                     >
                       보기 →
                     </Link>

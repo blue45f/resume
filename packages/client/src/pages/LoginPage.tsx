@@ -155,8 +155,25 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search);
     const next = params.get('next');
     let dest: string = ROUTES.home;
-    if (next && next.startsWith('/')) {
-      dest = next;
+    // open-redirect 방지: 같은 오리진의 절대 경로만 허용.
+    // '//attacker.com'(protocol-relative)·'/\\'·'/@host' 등 외부 리다이렉트 우회 차단.
+    let safeNext: string | null = null;
+    if (
+      next &&
+      next.startsWith('/') &&
+      !next.startsWith('//') &&
+      !next.includes('\\') &&
+      !next.includes('@')
+    ) {
+      try {
+        if (new URL(next, window.location.origin).origin === window.location.origin)
+          safeNext = next;
+      } catch {
+        safeNext = null;
+      }
+    }
+    if (safeNext) {
+      dest = safeNext;
     } else if (me?.userType === 'coach') {
       dest = ROUTES.coaching.dashboard;
     } else if (me?.userType === 'recruiter' || me?.userType === 'company') {
