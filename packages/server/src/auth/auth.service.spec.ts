@@ -65,6 +65,29 @@ describe('AuthService - OAuth State (HMAC)', () => {
       expect(service.validateOAuthState(state)).toBe(false);
     });
   });
+
+  describe('generateLinkOAuthState (계정 연동 state — userId 서명 바인딩)', () => {
+    it('정상 링크 state → validate true + extractLinkUserId 일치', () => {
+      const state = service.generateLinkOAuthState('user-123');
+      expect(service.validateOAuthState(state)).toBe(true);
+      expect(service.extractLinkUserId(state)).toBe('user-123');
+    });
+
+    it('계정탈취 차단 — 유효한 3-part 로그인 state 에 임의 userId 를 덧붙인 위조 → false', () => {
+      // 공격자가 공개 /auth/google 리다이렉트에서 얻은 유효한 3-part 로그인 state
+      const loginState = service.generateOAuthState();
+      // 서명되지 않은 victim userId 를 4번째로 덧붙여 링크 모드로 위장
+      const forged = `${loginState}.victim-user-id`;
+      expect(service.validateOAuthState(forged)).toBe(false);
+    });
+
+    it('링크 state 의 userId 변조 → false (userId 가 HMAC 에 바인딩됨)', () => {
+      const state = service.generateLinkOAuthState('user-123');
+      const [ts, nonce, hmac] = state.split('.');
+      const tampered = `${ts}.${nonce}.${hmac}.attacker-id`;
+      expect(service.validateOAuthState(tampered)).toBe(false);
+    });
+  });
 });
 
 // ──────────────────────────────────────────────────
@@ -130,6 +153,27 @@ describe('AuthService - Admin (setUserRole / getAllUsers)', () => {
       await expect(service.setUserRole('nonexistent', 'user-1', 'admin')).rejects.toThrow(
         '관리자만 역할을 변경할 수 있습니다',
       );
+    });
+  });
+
+  describe('setSuspended', () => {
+    it('일반 사용자 정지 성공', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'u1', role: 'user' });
+      mockPrisma.user.update.mockResolvedValue({ id: 'u1', isSuspended: true });
+      const result = await service.setSuspended('u1', true);
+      expect(result).toEqual({ success: true, userId: 'u1', isSuspended: true });
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: 'u1' },
+        data: { isSuspended: true },
+      });
+    });
+
+    it('슈퍼관리자는 정지 불가 → UnauthorizedException (admin 의 superadmin 락아웃 방지)', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'super-1', role: 'superadmin' });
+      await expect(service.setSuspended('super-1', true)).rejects.toThrow(
+        '슈퍼관리자는 정지할 수 없습니다',
+      );
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
     });
   });
 

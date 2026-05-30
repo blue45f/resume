@@ -69,6 +69,18 @@ describe('AuthGuard', () => {
     });
   });
 
+  it('DB 의 최신 role 을 반영 — 토큰이 admin 이어도 강등되었으면 user (stale-claim 권한 차단)', async () => {
+    (reflector.getAllAndOverride as jest.Mock).mockReturnValue(false);
+    (jwtService.verify as jest.Mock).mockReturnValue({ sub: 'demoted-9', role: 'admin' });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
+      isSuspended: false,
+      role: 'user',
+    });
+    const ctx = createContext({ authorization: 'Bearer valid-token' });
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
+    expect((ctx.switchToHttp().getRequest() as any).user.role).toBe('user');
+  });
+
   it('role이 없는 JWT → 기본 role "user" 설정', async () => {
     (reflector.getAllAndOverride as jest.Mock).mockReturnValue(false);
     (jwtService.verify as jest.Mock).mockReturnValue({ sub: 'user-456' });

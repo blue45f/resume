@@ -57,6 +57,23 @@ export class AuthService {
     return `${payload}.${hmac}`;
   }
 
+  /**
+   * 소셜 계정 연동(linking) 전용 state — userId 를 HMAC 서명에 포함한다.
+   * 형식: {timestamp}.{nonce}.{hmac}.{userId} (hmac = HMAC(timestamp.nonce.userId)).
+   *
+   * 보안: `generateOAuthState() + '.' + userId` 처럼 userId 를 서명 밖에 두면,
+   * 공격자가 공개 로그인 flow 에서 얻은 유효한 3-part state 에 임의(피해자) userId 를
+   * 덧붙여 4-part 로 위장 → 콜백에서 공격자 소셜계정이 피해자 계정에 연동되어 계정 탈취가
+   * 가능하다. userId 를 서명에 바인딩해 이를 차단한다.
+   */
+  generateLinkOAuthState(userId: string): string {
+    const timestamp = Date.now().toString(36);
+    const nonce = randomBytes(8).toString('hex');
+    const payload = `${timestamp}.${nonce}.${userId}`;
+    const hmac = createHmac('sha256', this.stateSecret).update(payload).digest('hex').slice(0, 16);
+    return `${timestamp}.${nonce}.${hmac}.${userId}`;
+  }
+
   validateOAuthState(state: string | undefined): boolean {
     if (!state) return false;
     const parts = state.split('.');
@@ -64,7 +81,10 @@ export class AuthService {
     if (parts.length !== 3 && parts.length !== 4) return false;
 
     const [timestamp, nonce, hmac] = parts;
-    const payload = `${timestamp}.${nonce}`;
+    // 링크 모드(4-part)에서는 userId(parts[3])도 서명 payload 에 포함해 검증한다.
+    // userId 가 서명되지 않으면 위조된 userId 로 임의 계정 연동(계정 탈취)이 가능하다.
+    const payload =
+      parts.length === 4 ? `${timestamp}.${nonce}.${parts[3]}` : `${timestamp}.${nonce}`;
     const expected = createHmac('sha256', this.stateSecret)
       .update(payload)
       .digest('hex')
@@ -268,6 +288,11 @@ export class AuthService {
   async setSuspended(userId: string, isSuspended: boolean) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+    // 슈퍼관리자는 admin 채널로 정지할 수 없음 (admin 이 superadmin 을 잠가버리는 권한상승 방지).
+    // adminDeleteUser 와 동일 정책.
+    if (user.role === 'superadmin') {
+      throw new UnauthorizedException('슈퍼관리자는 정지할 수 없습니다');
+    }
     await this.prisma.user.update({ where: { id: userId }, data: { isSuspended } });
     return { success: true, userId, isSuspended };
   }

@@ -7,11 +7,13 @@ export const IS_PUBLIC_KEY = 'isPublic';
 import { SetMetadata } from '@nestjs/common';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
-// In-memory suspended-user cache to avoid a DB round-trip per request.
-// TTL keeps the cost of admin suspension actions near-instant, while limiting load.
-const SUSPENDED_CACHE_TTL_MS = 30 * 1000; // 30s
-type SuspendedEntry = { suspended: boolean; expiresAt: number };
-const suspendedCache = new Map<string, SuspendedEntry>();
+// In-memory auth-status cache (suspended flag + current role) to avoid a DB round-trip
+// per request. A single 30s-TTL query backs both the suspension check and a fresh role
+// read, so admin demotion/suspension takes effect within 30s instead of waiting for the
+// (7-day) JWT to expire — without adding any extra query to the hot path.
+const AUTH_STATUS_CACHE_TTL_MS = 30 * 1000; // 30s
+type AuthStatusEntry = { suspended: boolean; role: string | null; expiresAt: number };
+const authStatusCache = new Map<string, AuthStatusEntry>();
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -43,11 +45,13 @@ export class AuthGuard implements CanActivate {
       const userId = payload.sub as string;
       request.user = { id: userId, role: payload.role || 'user' };
 
-      // Suspended check (cached)
-      const suspended = await this.isSuspended(userId);
-      if (suspended) {
+      // 정지 여부 + 최신 role 을 DB 기준으로 확인 (30s 캐시, 단일 쿼리).
+      const status = await this.getAuthStatus(userId);
+      if (status.suspended) {
         throw new ForbiddenException('정지된 계정입니다. 관리자에게 문의하세요');
       }
+      // DB 의 최신 role 반영 — 강등/승격이 토큰(7일) 만료 전에 즉시 적용 (stale-claim 권한 방지).
+      if (status.role) request.user.role = status.role;
     } catch (err) {
       if (err instanceof ForbiddenException) throw err;
       request.user = null;
@@ -56,20 +60,26 @@ export class AuthGuard implements CanActivate {
     return true;
   }
 
-  private async isSuspended(userId: string): Promise<boolean> {
+  private async getAuthStatus(
+    userId: string,
+  ): Promise<{ suspended: boolean; role: string | null }> {
     const now = Date.now();
-    const cached = suspendedCache.get(userId);
-    if (cached && cached.expiresAt > now) return cached.suspended;
+    const cached = authStatusCache.get(userId);
+    if (cached && cached.expiresAt > now) return cached;
     try {
       const u = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { isSuspended: true },
+        select: { isSuspended: true, role: true },
       });
-      const suspended = !!u?.isSuspended;
-      suspendedCache.set(userId, { suspended, expiresAt: now + SUSPENDED_CACHE_TTL_MS });
-      return suspended;
+      const entry: AuthStatusEntry = {
+        suspended: !!u?.isSuspended,
+        role: u?.role ?? null,
+        expiresAt: now + AUTH_STATUS_CACHE_TTL_MS,
+      };
+      authStatusCache.set(userId, entry);
+      return entry;
     } catch {
-      return false;
+      return { suspended: false, role: null };
     }
   }
 

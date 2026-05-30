@@ -300,7 +300,8 @@ export class AuthController {
       res.redirect(`${this.authService.getFrontendUrl()}/login`);
       return;
     }
-    const state = this.authService.generateOAuthState() + '.' + req.user.id;
+    // userId 를 HMAC 서명에 바인딩한 링크 전용 state (위조 userId 로 계정 탈취 방지)
+    const state = this.authService.generateLinkOAuthState(req.user.id);
     switch (provider) {
       case 'google':
         res.redirect(this.authService.getGoogleAuthUrl(state));
