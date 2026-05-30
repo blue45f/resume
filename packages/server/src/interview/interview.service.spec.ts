@@ -9,7 +9,7 @@ const mockPrisma: any = {
   interviewAnswer: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
-    create: jest.fn(),
+    create: jest.fn().mockResolvedValue({}),
     delete: jest.fn(),
     count: jest.fn().mockResolvedValue(0),
   },
@@ -226,11 +226,13 @@ describe('InterviewService', () => {
       });
     });
 
-    it('save=false 또는 미지정 → row 저장 안 함', async () => {
+    it('save 값과 무관하게 항상 row 저장 (quota 무결성 — save:false 우회 차단)', async () => {
       mockLlm.generateWithFallback.mockResolvedValue(validResp);
+      mockPrisma.interviewAnswer.create.mockResolvedValue({ id: 'a1' });
       await service.analyzeAnswer('u1', { question: 'Q', answer: 'A' });
       await service.analyzeAnswer('u1', { question: 'Q', answer: 'A', save: false });
-      expect(mockPrisma.interviewAnswer.create).not.toHaveBeenCalled();
+      // LLM 비용이 발생한 분석은 save 여부와 무관하게 반드시 카운트되어야 quota 우회 불가
+      expect(mockPrisma.interviewAnswer.create).toHaveBeenCalledTimes(2);
     });
   });
 

@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Req, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Req,
+  Query,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { TemplatesService } from './templates.service';
 import { LocalTransformService } from './local-transform.service';
@@ -32,14 +43,15 @@ export class TemplatesController {
 
   @Get(':id')
   @ApiOperation({ summary: '템플릿 상세 조회' })
-  findOne(@Param('id') id: string) {
-    return this.templatesService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.templatesService.findOne(id, req.user?.id, req.user?.role);
   }
 
   @Post()
   @ApiOperation({ summary: '템플릿 생성' })
   create(@Body() dto: CreateTemplateDto, @Req() req: any) {
-    return this.templatesService.create(dto, req.user?.id);
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    return this.templatesService.create(dto, req.user.id, req.user.role);
   }
 
   @Put(':id')
@@ -70,7 +82,11 @@ export class TemplatesController {
     const resume = await this.resumesService.findOne(resumeId, req.user?.id);
 
     if (dto.templateId) {
-      const template = await this.templatesService.findOne(dto.templateId);
+      const template = await this.templatesService.findOne(
+        dto.templateId,
+        req.user?.id,
+        req.user?.role,
+      );
       const layout = JSON.parse(template.layout || '{}');
       const text = this.localTransformService.transform(resume, layout);
       return { text, method: 'template', templateName: template.name };

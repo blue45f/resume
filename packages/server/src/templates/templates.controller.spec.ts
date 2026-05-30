@@ -42,17 +42,17 @@ describe('TemplatesController', () => {
   it('findAll / findPublic / findOne / seed 직접 위임', () => {
     controller.findAll();
     controller.findPublicTemplates('design');
-    controller.findOne('t1');
+    controller.findOne('t1', { user: { id: 'u1', role: 'user' } });
     controller.seed();
     expect(mockTemplates.findAll).toHaveBeenCalled();
     expect(mockTemplates.findPublic).toHaveBeenCalledWith('design');
-    expect(mockTemplates.findOne).toHaveBeenCalledWith('t1');
+    expect(mockTemplates.findOne).toHaveBeenCalledWith('t1', 'u1', 'user');
     expect(mockTemplates.seed).toHaveBeenCalled();
   });
 
   it('create/update/remove: user meta 전달', () => {
     controller.create({ name: 'T' } as any, reqWith({ id: 'u1' }));
-    expect(mockTemplates.create).toHaveBeenCalledWith({ name: 'T' }, 'u1');
+    expect(mockTemplates.create).toHaveBeenCalledWith({ name: 'T' }, 'u1', undefined);
 
     controller.update('t1', { name: 'T2' } as any, reqWith({ id: 'u1', role: 'admin' }));
     expect(mockTemplates.update).toHaveBeenCalledWith('t1', { name: 'T2' }, 'u1', 'admin');

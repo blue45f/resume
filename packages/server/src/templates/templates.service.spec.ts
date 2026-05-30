@@ -51,6 +51,41 @@ describe('TemplatesService', () => {
       mockPrisma.template.findUnique.mockResolvedValue(null);
       await expect(service.findOne('fake')).rejects.toThrow(NotFoundException);
     });
+
+    it('비공개 사용자 템플릿 + 비소유자 → NotFoundException (IDOR 방지)', async () => {
+      mockPrisma.template.findUnique.mockResolvedValue({
+        id: 't1',
+        name: 'priv',
+        visibility: 'private',
+        userId: 'owner-1',
+        isDefault: false,
+      });
+      await expect(service.findOne('t1', 'attacker-2')).rejects.toThrow(NotFoundException);
+    });
+
+    it('시스템 기본 템플릿(userId=null) → 누구나 조회 가능', async () => {
+      mockPrisma.template.findUnique.mockResolvedValue({
+        id: 't0',
+        name: 'sys',
+        visibility: 'private',
+        userId: null,
+        isDefault: true,
+      });
+      const r = await service.findOne('t0', 'anyone');
+      expect(r.id).toBe('t0');
+    });
+
+    it('소유자는 자신의 비공개 템플릿 조회 가능', async () => {
+      mockPrisma.template.findUnique.mockResolvedValue({
+        id: 't2',
+        name: 'mine',
+        visibility: 'private',
+        userId: 'owner-1',
+        isDefault: false,
+      });
+      const r = await service.findOne('t2', 'owner-1');
+      expect(r.id).toBe('t2');
+    });
   });
 
   describe('create', () => {
@@ -59,6 +94,22 @@ describe('TemplatesService', () => {
       mockPrisma.template.create.mockResolvedValue({ id: '1', ...data });
       const result = await service.create(data);
       expect(result.name).toBe('새 템플릿');
+    });
+
+    it('비관리자는 isDefault:true 설정 불가 (강제 false)', async () => {
+      mockPrisma.template.create.mockResolvedValue({ id: '1' });
+      await service.create({ name: 't', isDefault: true }, 'user-1', 'user');
+      expect(mockPrisma.template.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ isDefault: false, userId: 'user-1' }),
+      });
+    });
+
+    it('관리자는 isDefault:true 설정 가능', async () => {
+      mockPrisma.template.create.mockResolvedValue({ id: '1' });
+      await service.create({ name: 't', isDefault: true }, 'admin-1', 'admin');
+      expect(mockPrisma.template.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ isDefault: true, userId: 'admin-1' }),
+      });
     });
   });
 

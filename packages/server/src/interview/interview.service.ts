@@ -92,22 +92,23 @@ ${body.answer}`;
 
     const res = await this.llm.generateWithFallback(systemPrompt, userMessage);
     const parsed = this.parseLlmJson(res.text);
-    // save=true 면 InterviewAnswer row 로 누적 저장 (시간별 점수 추세 비교용)
-    if (body.save) {
-      await this.prisma.interviewAnswer
-        .create({
-          data: {
-            userId,
-            question: body.question.slice(0, 500),
-            answer: body.answer,
-            jobRole: body.jobRole ?? null,
-            analysisScore: parsed.overallScore,
-            analysisJson: JSON.stringify(parsed),
-            analyzedAt: new Date(),
-          },
-        })
-        .catch(() => {});
-    }
+    // 모든 분석을 InterviewAnswer row 로 기록한다 — 시간별 점수 추세 + 월간 quota 카운팅의
+    // 단일 신뢰원. quota(checkQuotaAtomic)가 이 row 수를 세므로, save=false 로 호출해도 LLM
+    // 비용이 발생한 분석은 반드시 카운트되어야 quota 우회가 불가능하다. (실 클라이언트는 항상
+    // save:true 전송 → UX 변화 없음. body.save 는 하위호환 위해 시그니처에만 유지.)
+    await this.prisma.interviewAnswer
+      .create({
+        data: {
+          userId,
+          question: body.question.slice(0, 500),
+          answer: body.answer,
+          jobRole: body.jobRole ?? null,
+          analysisScore: parsed.overallScore,
+          analysisJson: JSON.stringify(parsed),
+          analyzedAt: new Date(),
+        },
+      })
+      .catch(() => {});
     return parsed;
   }
 

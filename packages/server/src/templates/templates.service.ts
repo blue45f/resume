@@ -11,9 +11,17 @@ export class TemplatesService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId?: string, role?: string) {
     const template = await this.prisma.template.findUnique({ where: { id } });
     if (!template) throw new NotFoundException('템플릿을 찾을 수 없습니다');
+    // 비공개 사용자 템플릿은 소유자/관리자만 조회 (IDOR 방지). 시스템 기본(userId=null·isDefault)·
+    // 공개(visibility='public') 템플릿은 누구나. 존재 비노출을 위해 NotFound 로 통일.
+    const isAdmin = role === 'admin' || role === 'superadmin';
+    const isShared =
+      template.isDefault || template.visibility === 'public' || template.userId === null;
+    if (!isShared && template.userId !== userId && !isAdmin) {
+      throw new NotFoundException('템플릿을 찾을 수 없습니다');
+    }
     return template;
   }
 
@@ -27,8 +35,17 @@ export class TemplatesService {
       isDefault?: boolean;
     },
     userId?: string,
+    role?: string,
   ) {
-    return this.prisma.template.create({ data: { ...data, userId: userId || null } });
+    // 비관리자는 시스템 기본 템플릿(isDefault)을 만들 수 없음 (기본 갤러리 오염 + 자기 잠금 방지).
+    const isAdmin = role === 'admin' || role === 'superadmin';
+    return this.prisma.template.create({
+      data: {
+        ...data,
+        isDefault: isAdmin ? (data.isDefault ?? false) : false,
+        userId: userId || null,
+      },
+    });
   }
 
   async update(
@@ -54,6 +71,8 @@ export class TemplatesService {
       if (existing.userId && existing.userId !== userId) {
         throw new ForbiddenException('이 템플릿을 수정할 권한이 없습니다');
       }
+      // 비관리자는 isDefault 를 변경할 수 없음 (자기 템플릿을 기본으로 승격 → 잠금/오염 차단).
+      delete data.isDefault;
     }
     return this.prisma.template.update({ where: { id }, data });
   }
