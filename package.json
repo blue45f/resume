@@ -68,7 +68,7 @@
     "@tanstack/react-query-devtools": "^5.100.14",
     "@tiptap/extension-character-count": "^3.23.6",
     "@tiptap/extension-link": "^3.23.6",
-    "@tiptap/extension-placeholder": "^3.23.6",
+    "@tiptap/extension-placeholder": "^3.24.0",
     "@tiptap/pm": "^3.23.6",
     "@tiptap/react": "^3.23.6",
     "@tiptap/starter-kit": "^3.23.6",
