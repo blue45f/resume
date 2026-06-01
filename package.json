@@ -45,7 +45,7 @@
     "validate:architecture": "node scripts/validate-architecture.mjs"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.99.0",
+    "@anthropic-ai/sdk": "^0.100.1",
     "@hookform/resolvers": "^5.4.0",
     "@nestjs/common": "^11.1.24",
     "@nestjs/config": "^4.0.4",
