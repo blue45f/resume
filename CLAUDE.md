@@ -11,7 +11,7 @@
 
 ## 스택
 
-- **Frontend**: React 19 · Vite 8 · TypeScript strict · TailwindCSS 4 · Radix UI · tiptap · React Query · RHF+Zod
+- **Frontend**: React 19 (React Compiler 활성화) · Vite 8 · TypeScript strict · TailwindCSS 4 · Radix UI · tiptap · React Query · RHF+Zod
 - **Backend**: NestJS 11 · Prisma 7 · Jest
 - **Monorepo**: pnpm workspaces (`packages/client`, `packages/server`, `packages/shared`)
 - **LLM**: Groq · Gemini · OpenRouter (cost-optimized fallback)
