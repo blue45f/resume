@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
+import { formatDate } from '@/lib/time';
 
 type VerifyState =
   | { phase: 'verifying' }
@@ -70,9 +71,7 @@ export default function PaymentResultPage() {
 
   const planLabel = state.phase === 'success' ? state.planName || '프로' : '';
   const expiresLabel =
-    state.phase === 'success' && state.currentPeriodEnd
-      ? new Date(state.currentPeriodEnd).toLocaleDateString('ko-KR')
-      : '';
+    state.phase === 'success' && state.currentPeriodEnd ? formatDate(state.currentPeriodEnd) : '';
 
   return (
     <>

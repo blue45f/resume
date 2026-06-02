@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchMyJobApplications, withdrawJobApplication } from '@/lib/api';
+import { formatDate } from '@/lib/time';
 import { toast } from '@/components/Toast';
 
 interface PlatformApp {
@@ -115,7 +116,7 @@ export default function MyPlatformApplications() {
                     </span>
                   </p>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    {new Date(a.createdAt).toLocaleDateString('ko-KR')} 지원
+                    {formatDate(a.createdAt)} 지원
                     {a.job.location && ` · ${a.job.location}`}
                   </p>
                 </div>

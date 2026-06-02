@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import { usePublicGet } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
+import { formatDate } from '@/lib/time';
 
 const TYPE_COLOR: Record<string, { color: string; icon: string }> = {
   GENERAL: {
@@ -31,7 +32,7 @@ function timeAgo(date: string) {
   const days = Math.floor(diff / 86400000);
   if (days === 0) return '오늘';
   if (days < 7) return `${days}일 전`;
-  return new Date(date).toLocaleDateString('ko-KR');
+  return formatDate(date);
 }
 
 interface Notice {
@@ -267,13 +268,12 @@ function NoticeDetail() {
               <div className="flex items-center gap-3 mt-3 text-xs text-slate-500 dark:text-slate-400">
                 <span>관리자</span>
                 <span>·</span>
-                <span>{new Date(notice.createdAt).toLocaleDateString('ko-KR')}</span>
+                <span>{formatDate(notice.createdAt)}</span>
                 {notice.startAt && notice.endAt && (
                   <>
                     <span>·</span>
                     <span>
-                      {new Date(notice.startAt).toLocaleDateString('ko-KR')} ~{' '}
-                      {new Date(notice.endAt).toLocaleDateString('ko-KR')}
+                      {formatDate(notice.startAt)} ~ {formatDate(notice.endAt)}
                     </span>
                   </>
                 )}

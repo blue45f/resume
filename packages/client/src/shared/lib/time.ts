@@ -1,3 +1,7 @@
+// NOTE: 이 모듈은 server 테스트(`packages/server/src/common/time.spec.ts`)가
+// cross-package 로 직접 require 하므로 client 전용 alias(`@/...`)나 client 전용
+// 런타임 의존성(date-fns 등)을 top-level import 하지 않는다.
+// 로케일 연동 날짜 포맷(`formatDate`)은 client 전용 stub `@/lib/time` 에 둔다.
 export function timeAgo(dateStr: string): string {
   const now = Date.now();
   const date = new Date(dateStr).getTime();

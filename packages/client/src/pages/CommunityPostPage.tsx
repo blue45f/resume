@@ -16,6 +16,7 @@ import {
   communityCommentSchema,
   type CommunityCommentFormValues,
 } from '@/shared/lib/schemas/comment';
+import { formatDate } from '@/lib/time';
 
 const CATEGORY_INFO: Record<string, { label: string; icon: string; color: string }> = {
   notice: {
@@ -121,7 +122,7 @@ function timeAgo(date: string) {
   if (hours < 24) return `${hours}시간 전`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}일 전`;
-  return new Date(date).toLocaleDateString('ko-KR');
+  return formatDate(date);
 }
 
 function readingTime(text: string): string {

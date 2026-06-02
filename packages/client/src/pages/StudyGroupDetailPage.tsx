@@ -22,6 +22,7 @@ import {
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { t, tx } from '@/lib/i18n';
+import { formatDate } from '@/lib/time';
 
 type StudyGroupDetail = StudyGroup & {
   companyTier?: string;
@@ -492,7 +493,7 @@ export default function StudyGroupDetailPage() {
                         <div className="mt-1.5 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
                           <span>{p.user?.name || '익명'}</span>
                           <span>·</span>
-                          <span>{new Date(p.createdAt).toLocaleDateString('ko-KR')}</span>
+                          <span>{formatDate(p.createdAt)}</span>
                           <span>·</span>
                           <span>👁 {p.viewCount}</span>
                           <button

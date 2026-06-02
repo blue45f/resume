@@ -15,6 +15,7 @@ import { getPlan } from '@/lib/plans';
 import { getTheme, setTheme } from '@/lib/theme';
 import { API_URL } from '@/lib/config';
 import { tx } from '@/lib/i18n';
+import { formatDate } from '@/lib/time';
 import {
   changePassword as apiChangePassword,
   deleteAccount as apiDeleteAccount,
@@ -96,7 +97,7 @@ function RecentActivityList() {
             {a.desc}
           </span>
           <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
-            {new Date(a.date).toLocaleDateString('ko-KR')}
+            {formatDate(a.date)}
           </span>
         </div>
       ))}

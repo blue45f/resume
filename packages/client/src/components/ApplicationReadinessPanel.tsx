@@ -11,6 +11,7 @@ import {
   getApplicationNetworkingInsight,
 } from '@/lib/applicationNetworking';
 import { ROUTES, withQuery } from '@/lib/routes';
+import { formatDate } from '@/lib/time';
 import type { JobApplication } from '@/lib/api';
 import { toast } from '@/components/Toast';
 import type { ResumeSummary } from '@/types/resume';
@@ -281,9 +282,7 @@ function savePacketProgress(applicationId: string, progress: PacketProgress) {
 }
 
 function buildFollowUpEmail(application: JobApplication) {
-  const appliedDate = application.appliedDate
-    ? new Date(application.appliedDate).toLocaleDateString('ko-KR')
-    : '최근';
+  const appliedDate = application.appliedDate ? formatDate(application.appliedDate) : '최근';
   return [
     `제목: ${application.position} 지원 건 확인 요청드립니다`,
     '',

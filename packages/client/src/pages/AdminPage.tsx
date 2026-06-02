@@ -10,6 +10,7 @@ import { ROUTES } from '@/lib/routes';
 import { PLANS } from '@/lib/plans';
 import { API_URL } from '@/lib/config';
 import { tx } from '@/lib/i18n';
+import { formatDate } from '@/lib/time';
 import AdminPostsTab from '@/features/admin/ui/AdminPostsTab';
 import AdminStudyGroupsTab from '@/features/admin/ui/AdminStudyGroupsTab';
 import AdminInterviewQuestionsTab from '@/features/admin/ui/AdminInterviewQuestionsTab';
@@ -305,7 +306,7 @@ export default function AdminPage() {
                             {u.email}
                           </p>
                           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            {new Date(u.createdAt).toLocaleDateString('ko-KR')}
+                            {formatDate(u.createdAt)}
                           </p>
                         </div>
                       ))}
@@ -348,7 +349,7 @@ export default function AdminPage() {
                                 </span>
                               </td>
                               <td className="px-4 py-2.5 text-xs text-slate-500 dark:text-slate-400">
-                                {new Date(u.createdAt).toLocaleDateString('ko-KR')}
+                                {formatDate(u.createdAt)}
                               </td>
                             </tr>
                           ))}
@@ -482,7 +483,7 @@ function relativeTime(dateStr?: string) {
   if (hours < 24) return `${hours}시간 전`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}일 전`;
-  return new Date(dateStr).toLocaleDateString('ko-KR');
+  return formatDate(dateStr);
 }
 
 // ─── Helper: Day labels ─────────────────────────────────
@@ -2118,7 +2119,7 @@ function AdminNoticesTab() {
                     <span>👁 {n.viewCount || 0}</span>
                     <span>💬 {n._count?.comments || 0}</span>
                     {n.author && <span>작성: {n.author.name}</span>}
-                    <span>{new Date(n.createdAt).toLocaleDateString('ko')}</span>
+                    <span>{formatDate(n.createdAt)}</span>
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0 flex-wrap justify-end">
@@ -3438,7 +3439,7 @@ function ResumeReportsQueue() {
                     {r.title || '(제목 없음)'}
                   </div>
                   <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                    신고 {r.reportCount}회 · {new Date(r.updatedAt).toLocaleDateString('ko-KR')}
+                    신고 {r.reportCount}회 · {formatDate(r.updatedAt)}
                   </div>
                 </div>
                 <button

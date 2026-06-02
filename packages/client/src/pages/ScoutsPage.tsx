@@ -14,7 +14,7 @@ import {
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { t } from '@/lib/i18n';
-import { timeAgo } from '@/lib/time';
+import { formatDate, timeAgo } from '@/lib/time';
 import { toast } from '@/components/Toast';
 import SendMessageButton from '@/components/SendMessageButton';
 import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog';
@@ -901,7 +901,7 @@ export default function ScoutsPage() {
                         )}
                     </div>
                     <span className="text-xs text-slate-500 dark:text-slate-400">
-                      {new Date(selected.createdAt).toLocaleDateString('ko-KR')}
+                      {formatDate(selected.createdAt)}
                     </span>
                   </div>
                   <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl">

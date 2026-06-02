@@ -6,6 +6,7 @@ import {
   type InterviewScorePoint,
   type InterviewAnswerDetail,
 } from '@/lib/api';
+import { formatDate } from '@/lib/time';
 
 /**
  * 면접 답변 점수 추세 mini-chart — 최근 30개 분석 결과를 가로 bar 로 시각화.
@@ -193,7 +194,7 @@ export default function InterviewScoreHistory() {
                   type="button"
                   onClick={() => openDetail(p.id)}
                   className="flex-1 min-w-[6px] flex flex-col items-center group cursor-pointer"
-                  title={`클릭: 답변 detail · ${p.analysisScore}점 · ${new Date(p.createdAt).toLocaleDateString('ko-KR')}${p.jobRole ? ' · ' + p.jobRole : ''}`}
+                  title={`클릭: 답변 detail · ${p.analysisScore}점 · ${formatDate(p.createdAt)}${p.jobRole ? ' · ' + p.jobRole : ''}`}
                 >
                   <div
                     className={`w-full ${color} rounded-t transition-all group-hover:opacity-80 group-hover:-translate-y-0.5`}

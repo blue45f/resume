@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { API_URL } from '@/lib/config';
+import { formatDate } from '@/lib/time';
 import type { Resume } from '@/types/resume';
 
 interface Props {
@@ -812,8 +813,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
                                 {entry.jdSnippet}
                               </p>
                               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                {new Date(entry.date).toLocaleDateString('ko-KR')} &middot;{' '}
-                                {entry.grade} 등급
+                                {formatDate(entry.date)} &middot; {entry.grade} 등급
                               </p>
                             </div>
                           </div>

@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import EmptyState from '@/components/EmptyState';
 import { toast } from '@/components/Toast';
-import { timeAgo } from '@/lib/time';
+import { formatDate, timeAgo } from '@/lib/time';
 import { deleteCoverLetter } from '@/lib/api';
 import { useCoverLetters } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
@@ -268,8 +268,7 @@ export default function MyCoverLettersPage() {
                             {selected.company} — {selected.position}
                           </h2>
                           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            {toneLabels[selected.tone]} &middot;{' '}
-                            {new Date(selected.createdAt).toLocaleDateString('ko-KR')}
+                            {toneLabels[selected.tone]} &middot; {formatDate(selected.createdAt)}
                           </p>
                         </div>
                         <div className="flex gap-2">

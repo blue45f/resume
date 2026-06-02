@@ -10,6 +10,7 @@ import type { Template, ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
 import { t, tx } from '@/lib/i18n';
+import { formatDate } from '@/lib/time';
 
 const EXAMPLES = [
   '경력 메모, 자기소개 텍스트',
@@ -675,7 +676,7 @@ export default function AutoGeneratePage() {
                         {r.personalInfo?.name || ''}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        {new Date(r.updatedAt).toLocaleDateString('ko-KR')}
+                        {formatDate(r.updatedAt)}
                       </p>
                     </button>
                   ))}

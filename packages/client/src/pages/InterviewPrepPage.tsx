@@ -12,6 +12,7 @@ import JdSignalDashboard from '@/components/JdSignalDashboard';
 import JdCompetitiveLandscapePanel from '@/components/JdCompetitiveLandscapePanel';
 import CollapsibleAnalysisSection from '@/components/CollapsibleAnalysisSection';
 import { analyzeInterviewAnswer } from '@/lib/api';
+import { formatDate } from '@/lib/time';
 import { analyzeJdSeniority } from '@/lib/jdSeniorityAnalyzer';
 import { buildJdBiasReport } from '@/lib/jdBiasDetector';
 import { buildJdCompensationReport } from '@/lib/jdCompensationSignals';
@@ -3055,8 +3056,8 @@ export default function InterviewPrepPage() {
             <div className="bg-sky-700 px-6 py-10 text-center text-white">
               <h1 className="text-2xl font-bold mb-2">면접 연습 리포트</h1>
               <p className="text-blue-200 text-sm">
-                {new Date(currentReport.date).toLocaleDateString('ko-KR')} | {currentReport.jobRole}{' '}
-                | {difficultyLabels[currentReport.difficulty]}
+                {formatDate(currentReport.date)} | {currentReport.jobRole} |{' '}
+                {difficultyLabels[currentReport.difficulty]}
               </p>
 
               {/* Grade */}
@@ -3204,7 +3205,7 @@ export default function InterviewPrepPage() {
                         </div>
                       </div>
                       <span className="text-xs text-slate-500 dark:text-slate-400">
-                        {new Date(r.date).toLocaleDateString('ko-KR')}
+                        {formatDate(r.date)}
                       </span>
                     </div>
                   ))}
@@ -3782,7 +3783,7 @@ export default function InterviewPrepPage() {
                                 >
                                   <div className="flex items-center justify-between mb-1">
                                     <span className="text-xs text-sky-500 dark:text-sky-400">
-                                      {new Date(h.date).toLocaleDateString('ko-KR')}{' '}
+                                      {formatDate(h.date)}{' '}
                                       {new Date(h.date).toLocaleTimeString('ko-KR', {
                                         hour: '2-digit',
                                         minute: '2-digit',

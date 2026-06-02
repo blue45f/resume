@@ -4,6 +4,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_URL } from '@/lib/config';
+import { formatDate } from '@/lib/time';
 import { toast } from '@/components/Toast';
 import AlertDialog from '@/shared/ui/AlertDialog';
 import { AdminTable, type AdminTableColumn } from './AdminTable';
@@ -196,7 +197,7 @@ export default function AdminPostsTab() {
               {p.title}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              {new Date(p.createdAt).toLocaleDateString('ko-KR')}
+              {formatDate(p.createdAt)}
             </p>
           </div>
         ),

@@ -12,6 +12,7 @@ import type { ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
 import RelatedJobsWidget from '@/features/interview-prep/ui/RelatedJobsWidget';
 import { tx } from '@/lib/i18n';
+import { formatDate } from '@/lib/time';
 import { useResumes } from '@/hooks/useResources';
 import KoreanQualityBadge from '@/components/KoreanQualityBadge';
 import KeywordCloud from '@/components/KeywordCloud';
@@ -452,7 +453,7 @@ export default function CoverLetterPage() {
       .content { white-space: pre-wrap; }
     </style></head><body>
       <h1>${companyName ? companyName + ' — ' : ''}${position || '자기소개서'}</h1>
-      <div class="meta">${toneKorean[tone]} | ${new Date().toLocaleDateString('ko-KR')}</div>
+      <div class="meta">${toneKorean[tone]} | ${formatDate(new Date())}</div>
       <div class="content">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
     </body></html>`);
     printWindow.document.close();

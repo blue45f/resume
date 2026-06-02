@@ -14,6 +14,7 @@ import { createResume, fetchResume, duplicateResume } from '@/lib/api';
 import { useTemplates, useResumes } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
+import { formatDate } from '@/lib/time';
 import { getUser } from '@/lib/auth';
 import { getPlan } from '@/lib/plans';
 import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes';
@@ -1440,8 +1441,7 @@ export default function NewResumePage() {
                           {r.title || '제목 없음'}
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                          {r.personalInfo?.name || ''} --{' '}
-                          {new Date(r.updatedAt).toLocaleDateString('ko-KR')}
+                          {r.personalInfo?.name || ''} -- {formatDate(r.updatedAt)}
                         </p>
                       </button>
                     ))}

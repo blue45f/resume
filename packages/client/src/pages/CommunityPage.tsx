@@ -8,6 +8,7 @@ import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import SendMessageButton from '@/components/SendMessageButton';
 import { tx } from '@/lib/i18n';
+import { formatDate } from '@/lib/time';
 
 interface CategoryDef {
   id: string;
@@ -89,7 +90,7 @@ function timeAgo(date: string) {
   if (hours < 24) return `${hours}시간 전`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}일 전`;
-  return new Date(date).toLocaleDateString('ko-KR');
+  return formatDate(date);
 }
 
 function isHot(post: Post) {

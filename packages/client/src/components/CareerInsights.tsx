@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '@/lib/config';
+import { formatDate } from '@/lib/time';
 import { fetchResumes } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
@@ -1084,7 +1085,7 @@ export default function CareerInsights({ now }: CareerInsightsProps = {}) {
                         )}
                         {item.pubDate && (
                           <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-auto">
-                            {new Date(item.pubDate).toLocaleDateString('ko-KR')}
+                            {formatDate(item.pubDate)}
                           </span>
                         )}
                       </div>

@@ -10,6 +10,7 @@ import {
   type UserSearchResult,
 } from '@/lib/api';
 import { tx } from '@/lib/i18n';
+import { formatDate } from '@/lib/time';
 
 interface Props {
   resumeId: string;
@@ -376,7 +377,7 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
                         )}
                         {v.expiresAt && (
                           <>
-                            {' · '}만료 {new Date(v.expiresAt).toLocaleDateString('ko-KR')}
+                            {' · '}만료 {formatDate(v.expiresAt)}
                           </>
                         )}
                       </p>
