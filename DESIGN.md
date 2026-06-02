@@ -7,18 +7,22 @@ colors:
   coastal-cyan: '#06b6d4'
   deep-sapphire: '#0c4a6e'
   paper-white: '#ffffff'
-  raised-gray: '#fafafa'
-  sunken-gray: '#f5f5f5'
-  mist-border: '#e8e8e8'
-  subtle-border: '#f0f0f0'
-  ink: '#1a1a1a'
-  slate-gray: '#666666'
-  muted-gray: '#999999'
+  slate-50: '#f8fafc'
+  slate-100: '#f1f5f9'
+  slate-200: '#e2e8f0'
+  slate-300: '#cbd5e1'
+  slate-400: '#94a3b8'
+  slate-500: '#64748b'
+  slate-600: '#475569'
+  slate-700: '#334155'
+  slate-800: '#1e293b'
+  slate-900: '#0f172a'
+  slate-950: '#020617'
   emerald: '#059669'
   amber: '#f59e0b'
   rose: '#ef4444'
-  dark-surface: '#0f0f0f'
-  dark-raised: '#171717'
+  dark-surface: '#0f172a'
+  dark-raised: '#1e293b'
   dark-accent: '#60a5fa'
 typography:
   display:
@@ -70,20 +74,20 @@ components:
     textColor: '{colors.paper-white}'
   button-ghost:
     backgroundColor: '{colors.paper-white}'
-    textColor: '{colors.ink}'
+    textColor: '{colors.slate-900}'
     rounded: '{rounded.md}'
     padding: '10px 18px'
   card:
     backgroundColor: '{colors.paper-white}'
-    textColor: '{colors.ink}'
+    textColor: '{colors.slate-900}'
     rounded: '{rounded.lg}'
     padding: '20px'
   card-hover:
     backgroundColor: '{colors.paper-white}'
-    textColor: '{colors.ink}'
+    textColor: '{colors.slate-900}'
   input-default:
     backgroundColor: '{colors.paper-white}'
-    textColor: '{colors.ink}'
+    textColor: '{colors.slate-900}'
     rounded: '{rounded.md}'
     padding: '10px 12px'
   badge-blue:
@@ -108,7 +112,7 @@ components:
 
 **Key Characteristics:**
 
-- 무채색 종이 + 잉크 베이스에 blue/cyan/sapphire 강조를 소량만.
+- slate 중립 종이 + 잉크 베이스에 blue/cyan/sapphire 강조를 소량만.
 - 정보 우선, 장식 최소. 카드는 최후의 수단.
 - subtle한 그림자, ease-out 모션, bounce/elastic 금지.
 - WCAG AA(텍스트 대비 ≥ 4.5:1), `prefers-reduced-motion` 존중.
@@ -130,12 +134,17 @@ components:
 
 ### Neutral
 
-- **Ink** (#1a1a1a): 본문·제목 기본 텍스트. 순흑(#000)이 아닌 한 단계 부드러운 먹색.
-- **Slate Gray** (#666666): 보조 텍스트, 캡션, 메타 정보.
-- **Muted Gray** (#999999): 비활성·플레이스홀더.
-- **Paper White** (#ffffff): 기본 표면. **Raised Gray** (#fafafa) 융기면, **Sunken Gray** (#f5f5f5) 침강면으로 깊이를 표현.
-- **Mist Border** (#e8e8e8) / **Subtle Border** (#f0f0f0): 1px 경계·구분선. 무거운 구분선은 쓰지 않는다.
-- 다크 모드: 표면 #0f0f0f → #171717 → #0a0a0a, 텍스트 #f5f5f5, 경계 #262626.
+중립 시스템은 **Tailwind `slate` 램프**다. 제품 전반(~10,700개 유틸리티)이 이미 slate로 그려지므로, 이를 공식 단일 중립 체계로 선언한다. 약간 푸른 기가 도는 차가운 그레이 계열로, "차분한 전문성"이라는 North Star와 맞물린다. `--color-*` CSS 토큰들도 이 램프 위의 값으로 매핑되어, 토큰을 쓰든 `slate-*` 유틸리티를 쓰든 같은 중립을 가리킨다.
+
+slate 램프 (light):
+
+- **slate-50** (#f8fafc) / **slate-100** (#f1f5f9): 융기·침강 표면 (`--color-surface-raised` / `--color-surface-sunken`). 기본 표면은 **Paper White** (#ffffff, `--color-surface`).
+- **slate-200** (#e2e8f0) / **slate-100** (#f1f5f9): 1px 경계·구분선 (`--color-border` / `--color-border-subtle`). 무거운 구분선은 쓰지 않는다.
+- **slate-400** (#94a3b8): 비활성·플레이스홀더 (`--color-text-muted`).
+- **slate-500** (#64748b): 보조 텍스트·캡션·메타 (`--color-text-secondary`). 흰 배경 대비 4.76:1로 AA 통과.
+- **slate-600~800** (#475569 / #334155 / #1e293b): 제목·강조 텍스트의 짙은 단계.
+- **slate-900** (#0f172a): 본문·제목 기본 텍스트 (`--color-text`). 순흑(#000) 대신 한 단계 부드러운 잉크.
+- 다크 모드: 표면 slate-900(#0f172a) → slate-800(#1e293b) 융기 / slate-950(#020617) 침강, 텍스트 slate-100(#f1f5f9), 보조 slate-400, 경계 slate-700(#334155).
 
 ### Semantic (상태 전용)
 
@@ -149,7 +158,7 @@ components:
 
 **The No-Purple Rule.** purple·violet·pink·magenta는 전면 금지다. 레거시 `--color-primary: #6366f1`(indigo)는 hue가 violet 쪽으로 기운 드리프트이며, Signal Blue(#2563eb)로 대체·정리 대상이다. 신규 작업에서 indigo 토큰을 쓰지 않는다.
 
-**The Tinted-Neutral Rule.** 순수 #000/#fff 대신 한 단계 톤다운한 잉크(#1a1a1a)와 표면(#fafafa/#f5f5f5)으로 눈의 피로를 줄인다.
+**The Slate-Neutral Rule.** 중립은 단일 램프(Tailwind `slate`)로 통일한다. 순수 #000/#fff 대신 톤다운한 잉크(slate-900 #0f172a)와 푸른 기가 도는 차가운 표면(slate-50/100)으로 눈의 피로를 줄인다. 같은 화면에서 slate 와 순수 그레이(#666/#999 등)를 섞지 않는다 — 토큰(`--color-text*`)과 `slate-*` 유틸리티가 같은 값을 가리키도록 유지한다.
 
 ## 3. Typography
 
@@ -195,7 +204,7 @@ components:
 - **Shape:** 부드러운 모서리(12px, `--radius-md`).
 - **Primary:** Signal Blue(#2563eb) 배경 + Paper White 텍스트, 패딩 10×18px, 굵기 500.
 - **Hover / Active:** hover 시 Deep Sapphire(#0c4a6e)로 깊어지고, active 시 `scale(0.98)`로 눌림. 전환은 `--transition-fast`(150ms, ease-out-quart).
-- **Ghost / Secondary:** 투명/흰 배경 + Ink 텍스트 + 1px Mist 경계. 보조 액션.
+- **Ghost / Secondary:** 투명/흰 배경 + slate-900 텍스트 + 1px slate-200 경계. 보조 액션.
 
 ### Chips / Badges
 
@@ -206,7 +215,7 @@ components:
 ### Cards / Containers
 
 - **Corner Style:** 16px(`--radius-lg`).
-- **Background:** Paper White(다크: #171717), 침강 영역은 Sunken Gray.
+- **Background:** Paper White(다크: slate-900 #0f172a), 침강 영역은 slate-100(다크: slate-950).
 - **Shadow Strategy:** 정지 시 shadow-sm, 인터랙티브 카드는 hover 시 shadow-hover + `translateY(-2px)`.
 - **Border:** 1px Subtle Border.
 - **Internal Padding:** 20px 기준, 밀도에 따라 16–24px.
@@ -214,13 +223,13 @@ components:
 
 ### Inputs / Fields
 
-- **Style:** Paper White 배경 + 1px Mist 경계 + 12px(`--radius-md`).
+- **Style:** Paper White 배경 + 1px slate-200 경계 + 12px(`--radius-md`).
 - **Focus:** `:focus-visible` 시 Signal Blue 2px outline(테마 프리뷰에서는 활성 테마 accent). glow 대신 또렷한 링.
 - **Error:** Rose 경계 + 하단 Rose 메시지.
 
 ### Navigation
 
-- **Style:** 무채색 바탕, Label 타이포. 기본 Slate Gray, hover 시 Ink, 활성 시 Signal Blue 텍스트 + 하단 인디케이터.
+- **Style:** 무채색 바탕, Label 타이포. 기본 slate-500, hover 시 slate-900, 활성 시 Signal Blue 텍스트 + 하단 인디케이터.
 - **Mobile:** 하단 탭 또는 햄버거. 모든 탭 타깃 ≥ 44×44px(`.icon-btn`).
 
 ### Signature: 분석 시각화 (Analysis Visualizations)
@@ -237,7 +246,7 @@ components:
 ### Do:
 
 - **Do** Signal Blue(#2563eb)를 포커스·활성·1차 강조에만, 화면의 10% 이하로 쓴다 (The One Signal Rule).
-- **Do** 중립색을 톤다운한다: 텍스트 #1a1a1a, 표면 #fafafa/#f5f5f5. 순수 #000/#fff를 피한다.
+- **Do** 중립색은 단일 slate 램프로 통일한다: 텍스트 slate-900(#0f172a), 표면 slate-50/100. 순수 #000/#fff와 순수 그레이(#666/#999)를 피한다.
 - **Do** 깊이를 표면 톤 단계(paper→raised→sunken)로 먼저 표현하고 그림자는 상태 응답으로만 쓴다.
 - **Do** 위계를 크기·굵기 대비(≥1.25)로 만든다. 본문은 65–75ch.
 - **Do** 모든 인터랙티브 요소에 또렷한 `:focus-visible` 링과 ≥44×44px 터치 타깃을 준다.
