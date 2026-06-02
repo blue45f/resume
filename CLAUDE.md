@@ -16,6 +16,26 @@
 - **Monorepo**: pnpm workspaces (`packages/client`, `packages/server`, `packages/shared`)
 - **LLM**: Groq · Gemini · OpenRouter (cost-optimized fallback)
 
+## 라이브러리 (용도별)
+
+클라이언트(`packages/client`) 핵심 의존성을 용도별로 정리. (런타임 의존성은 루트 `package.json` 에 모여 있고, `date-fns` 만 `packages/client/package.json` 에 둠)
+
+- `@tanstack/react-query` — 서버 상태·캐싱·데이터 패칭 (`useResources` 훅 계층)
+- `react-hook-form` + `@hookform/resolvers` + `zod` — 폼 상태·검증 (스키마는 `shared/lib/schemas`)
+- `zustand` — 클라이언트 전역 상태 (`stores/useAuthStore` 등)
+- `react-router-dom` — 라우팅 (`ROUTES` 헬퍼)
+- `i18next` + `react-i18next` + `i18next-browser-languagedetector` — 다국어 (ko/en, `tx()`/`t()` + `lib/i18n`)
+- `date-fns` (+ `date-fns/locale` ko/en-US) — 날짜 포맷 (`shared/lib/time#formatDate`, 활성 로케일 연동). 상대시간 `timeAgo` 는 한글 고정 버킷이라 유지
+- `@tiptap/*` (react/starter-kit/extension-\*) — 리치 텍스트 에디터 (`RichEditor`)
+- `@radix-ui/*` (dialog/dropdown/select/popover/tooltip 등) — 접근성 프리미티브
+- `recharts` — 차트·통계 시각화 (lazy load)
+- `tailwindcss` (+ `tw-animate-css`) — 스타일링 (Impeccable 디자인 토큰)
+- `sonner` — 토스트 알림 (`components/Toast`)
+- `dompurify` — 사용자 HTML XSS 살균 (`components/SafeHtml`; 서버는 `sanitize-html`)
+- `swiper` — 배너 슬라이더 (`BannerSlider`)
+- `react-to-print` — 이력서 인쇄·PDF 출력 (`PreviewPage`)
+- `browser-image-compression` + `heic2any` — 이미지 업로드 압축·HEIC 변환 (`lib/imageProcess`)
+
 ## 주요 명령
 
 ```bash
