@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { calculateOverallHealth } from '@/lib/koreanChecker';
 import { tx } from '@/lib/i18n';
+import { useCountUp } from '@/hooks/useCountUp';
 
 interface Props {
   text: string;
@@ -47,6 +48,9 @@ export default function OverallHealthGauge({ text, minLength = 200, className = 
     return calculateOverallHealth(text);
   }, [text, minLength]);
 
+  // hooks 는 조건부 return 전에 호출 (Rules of Hooks). 점수 reveal 시 0 → 값으로 count-up.
+  const animatedHealth = useCountUp(health ? health.health : 0, { durationMs: 800 });
+
   if (!health) return null;
   const meta = TIER_META[health.tier];
   const tierLabel = tx(`resumeAnalysis.health.tier.${health.tier}`);
@@ -61,7 +65,9 @@ export default function OverallHealthGauge({ text, minLength = 200, className = 
         <div
           className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ring-4 ${meta.ring}`}
         >
-          <span className={`text-[20px] font-bold tabular-nums ${meta.text}`}>{health.health}</span>
+          <span aria-hidden="true" className={`text-[20px] font-bold tabular-nums ${meta.text}`}>
+            {animatedHealth}
+          </span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between gap-2">
