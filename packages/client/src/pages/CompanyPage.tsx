@@ -196,7 +196,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
     }
     setSubmitting(true);
     const review: CompanyReview = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      id: crypto.randomUUID(),
       companyName,
       position: form.position,
       rating: form.rating,

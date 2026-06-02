@@ -13,7 +13,9 @@ export interface PaymentRequest {
 }
 
 export function generateOrderId(): string {
-  return `order_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  // Toss orderId: 6~64자 영숫자/-/_. crypto.randomUUID()(36자, 하이픈 포함)로
+  // 충돌 없이 생성하고 디버깅용 `order_` 프리픽스를 유지한다.
+  return `order_${crypto.randomUUID()}`;
 }
 
 export async function requestPayment(params: PaymentRequest): Promise<void> {

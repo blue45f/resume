@@ -41,7 +41,11 @@ export default function PublicLinkSettings({
       .replace(/[^a-z0-9가-힣\s-]/g, '')
       .replace(/\s+/g, '-')
       .slice(0, 30);
-    const suffix = Math.random().toString(36).slice(2, 6);
+    // 사용자가 편집·서버 저장하는 슬러그라 짧은 4자 base36 접미사 포맷은 유지하고,
+    // 무작위성만 crypto.getRandomValues 로 보강한다.
+    const bytes = new Uint8Array(4);
+    crypto.getRandomValues(bytes);
+    const suffix = Array.from(bytes, (b) => (b % 36).toString(36)).join('');
     setSlug(`${base}-${suffix}`);
     setEditing(true);
   }, [ownerName]);

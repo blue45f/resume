@@ -146,7 +146,7 @@ export default function MockInterviewPage() {
     if (!pendingBlob) return;
     const ext = pendingBlob.type.includes('mp4') ? 'mp4' : 'webm';
     const entry: SavedAnswer = {
-      id: `mi-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: `mi-${crypto.randomUUID()}`,
       question,
       note: note.trim(),
       durationSec: pendingDuration,
