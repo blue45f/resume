@@ -53,6 +53,7 @@ jobs:
             --project resume-platform-prod \
             --region asia-northeast3 \
             --allow-unauthenticated \
+            --clear-base-image \
             --quiet
 
       - name: Health check
