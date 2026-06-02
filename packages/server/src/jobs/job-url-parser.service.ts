@@ -36,10 +36,16 @@ function isPrivateIp(ip: string): boolean {
   const v = isIP(ip);
   if (v === 4) {
     // RFC1918 + loopback + link-local + 0.0.0.0/8 + CGNAT(100.64/10)
+    // + IETF protocol assignment(192.0.0/24·TEST-NET 192.0.2/24) + 벤치마킹(198.18/15)
+    // + multicast/reserved(>=224, 즉 224~255) — 모두 외부 채용공고가 정상적으로 위치할 수 없는 대역.
+    const [a, b] = ip.split('.').map(Number);
     return (
       PRIVATE_HOST_RE.test(ip) ||
       /^0\./.test(ip) ||
-      /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(ip)
+      /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(ip) ||
+      (a === 192 && b === 0) || // 192.0.0/24(IETF) · 192.0.2/24(TEST-NET-1)
+      (a === 198 && (b === 18 || b === 19)) || // 198.18/15 벤치마킹
+      a >= 224 // multicast(224/4) + reserved(240/4)
     );
   }
   if (v === 6) return PRIVATE_IPV6_RE.test(ip);
@@ -155,6 +161,10 @@ export class JobUrlParserService {
     if (!ALLOWED_PROTOCOLS.has(u.protocol)) {
       throw new BadRequestException('http/https URL 만 지원합니다');
     }
+    // URL 내 자격증명(user:pass@host) 거부 — credential 누출 + 파서 혼란/우회 방지.
+    if (u.username || u.password) {
+      throw new BadRequestException('자격증명이 포함된 URL 은 지원하지 않습니다');
+    }
     await this.assertPublicHost(u.hostname);
   }
 
@@ -163,6 +173,16 @@ export class JobUrlParserService {
     const blocked = () => new BadRequestException('로컬/사설 IP 는 차단됩니다 (SSRF 방지)');
 
     if (/^localhost$/i.test(host)) throw blocked();
+    // 내부 전용 TLD/suffix (.local mDNS, .internal 클라우드 내부망, *.localhost)
+    const lowerHost = host.toLowerCase();
+    if (
+      lowerHost.endsWith('.local') ||
+      lowerHost.endsWith('.internal') ||
+      lowerHost.endsWith('.localhost') ||
+      lowerHost === 'localhost.localdomain'
+    ) {
+      throw blocked();
+    }
     // IP 리터럴 (점표기 IPv4 / IPv6)
     if (isIP(host)) {
       if (isPrivateIp(host)) throw blocked();

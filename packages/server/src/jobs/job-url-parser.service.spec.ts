@@ -89,6 +89,28 @@ describe('JobUrlParserService', () => {
       await expect(service.parse('http://0177.0.0.1/x')).rejects.toThrow(BadRequestException); // octal 127
       await expect(service.parse('http://0.0.0.0/x')).rejects.toThrow(BadRequestException);
     });
+
+    it('자격증명(user:pass@host) 포함 URL → 차단 (credential 누출 + 우회 방지)', async () => {
+      await expect(service.parse('https://user:pass@example.com/job')).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.parse('https://user@example.com/job')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('내부 전용 suffix (.local / .internal / *.localhost) → 차단', async () => {
+      await expect(service.parse('http://intranet.local/x')).rejects.toThrow(BadRequestException);
+      await expect(service.parse('http://svc.internal/x')).rejects.toThrow(BadRequestException);
+      await expect(service.parse('http://api.localhost/x')).rejects.toThrow(BadRequestException);
+    });
+
+    it('multicast / 벤치마킹 / IETF 예약 IPv4 → 차단', async () => {
+      await expect(service.parse('http://224.0.0.1/x')).rejects.toThrow(BadRequestException); // multicast
+      await expect(service.parse('http://240.0.0.1/x')).rejects.toThrow(BadRequestException); // reserved
+      await expect(service.parse('http://198.18.0.1/x')).rejects.toThrow(BadRequestException); // 벤치마킹
+      await expect(service.parse('http://192.0.2.1/x')).rejects.toThrow(BadRequestException); // TEST-NET-1
+    });
   });
 
   describe('JSON-LD JobPosting 파싱', () => {
