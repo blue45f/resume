@@ -7,12 +7,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+    <!--
+      No-FOUC 테마 부트스트랩: 번들(main.tsx 의 initTheme)이 실행되기 전,
+      페인트 이전에 .dark 클래스를 결정해 다크 사용자에게 흰 화면 깜빡임을 방지한다.
+      lib/theme.ts 와 동일한 계약: localStorage['resume-theme'](light|dark|system),
+      system 은 prefers-color-scheme 로 해석. 토큰 오버라이드는 :root 와 .dark 가 담당.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('resume-theme');
+          var isDark =
+            stored === 'dark' ||
+            ((stored === 'system' || stored === null || stored === undefined) &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) document.documentElement.classList.add('dark');
+        } catch (e) {
+          /* localStorage/matchMedia 미지원 환경은 기본 라이트로 둔다. */
+        }
+      })();
+    </script>
     <link rel="manifest" href="/manifest.json" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="이력서공방" />
     <link rel="dns-prefetch" href="https://resume-api-464016453534.asia-northeast3.run.app" />
-    <link rel="preconnect" href="https://resume-api-464016453534.asia-northeast3.run.app" crossorigin />
+    <link
+      rel="preconnect"
+      href="https://resume-api-464016453534.asia-northeast3.run.app"
+      crossorigin
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
@@ -20,12 +44,18 @@
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
     <title>이력서공방 - AI 기반 이력서 관리 플랫폼</title>
-    <meta name="description" content="AI로 이력서를 자동 변환하고, 체계적으로 관리하세요. 무료 LLM 활용, 소셜 로그인, 버전 관리, 공유 기능." />
+    <meta
+      name="description"
+      content="AI로 이력서를 자동 변환하고, 체계적으로 관리하세요. 무료 LLM 활용, 소셜 로그인, 버전 관리, 공유 기능."
+    />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="이력서공방 - AI 기반 이력서 관리 플랫폼" />
-    <meta property="og:description" content="AI로 이력서를 작성하고, 다양한 양식으로 변환하세요. 무료 LLM 활용, ATS 호환성 검사, 자기소개서 생성기 제공." />
+    <meta
+      property="og:description"
+      content="AI로 이력서를 작성하고, 다양한 양식으로 변환하세요. 무료 LLM 활용, ATS 호환성 검사, 자기소개서 생성기 제공."
+    />
     <meta property="og:url" content="https://resume-gongbang.vercel.app" />
     <meta property="og:locale" content="ko_KR" />
     <meta property="og:site_name" content="이력서공방" />
@@ -36,7 +66,10 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="이력서공방 - AI 기반 이력서 관리 플랫폼" />
-    <meta name="twitter:description" content="AI로 이력서를 작성하고, 다양한 양식으로 변환하세요. 무료 LLM 활용, ATS 호환성 검사." />
+    <meta
+      name="twitter:description"
+      content="AI로 이력서를 작성하고, 다양한 양식으로 변환하세요. 무료 LLM 활용, ATS 호환성 검사."
+    />
     <meta name="twitter:image" content="https://resume-gongbang.vercel.app/og-image.svg" />
 
     <!-- Performance hints -->
@@ -46,26 +79,29 @@
 
     <!-- SEO -->
     <meta name="robots" content="index, follow" />
-    <meta name="keywords" content="이력서, 레주메, AI, 자기소개서, 취업, 포트폴리오, resume, CV, ATS, 채용, 면접, 이력서 템플릿, 커버레터, 경력기술서, 취업준비" />
+    <meta
+      name="keywords"
+      content="이력서, 레주메, AI, 자기소개서, 취업, 포트폴리오, resume, CV, ATS, 채용, 면접, 이력서 템플릿, 커버레터, 경력기술서, 취업준비"
+    />
     <link rel="canonical" href="https://resume-gongbang.vercel.app" />
 
     <!-- Structured Data -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "이력서공방",
-      "url": "https://resume-gongbang.vercel.app",
-      "description": "AI 기반 이력서 관리 플랫폼. 15종 테마, ATS 호환성 검사, 자기소개서 생성, 채용 공고 관리.",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "KRW"
-      },
-      "inLanguage": ["ko", "en", "ja"]
-    }
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "이력서공방",
+        "url": "https://resume-gongbang.vercel.app",
+        "description": "AI 기반 이력서 관리 플랫폼. 15종 테마, ATS 호환성 검사, 자기소개서 생성, 채용 공고 관리.",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "KRW"
+        },
+        "inLanguage": ["ko", "en", "ja"]
+      }
     </script>
   </head>
   <body>
