@@ -1,3 +1,6 @@
+// Sentry must be imported before everything else so its instrumentation hooks
+// are installed first. No-op unless SENTRY_DSN is set (see instrument.ts).
+import './instrument';
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';

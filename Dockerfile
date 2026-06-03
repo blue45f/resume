@@ -74,5 +74,12 @@ USER node
 
 EXPOSE 8080
 
+# Liveness probe — hits the cheap `/api/health/live` alias which never touches
+# the DB (NOT readiness, which pings Postgres). The base image has no wget/curl,
+# so probe with the bundled node binary over plain http. Exit non-zero on any
+# error or non-2xx status so Docker/orchestrators mark the container unhealthy.
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=20s \
+  CMD node -e "require('http').get('http://127.0.0.1:'+(process.env.PORT||8080)+'/api/health/live',r=>process.exit(r.statusCode>=200&&r.statusCode<300?0:1)).on('error',()=>process.exit(1))"
+
 # main.ts reads PORT from the environment.
 CMD ["node", "packages/server/dist/main.js"]
