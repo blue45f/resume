@@ -6,7 +6,10 @@ import './index.css';
 import App from './App.tsx';
 import { initTheme } from './lib/theme';
 import { setMonetizationEnabled } from './lib/plans';
+import { initSentry } from './lib/sentry';
 
+// Error tracking — no-op unless VITE_SENTRY_DSN is set at build time.
+initSentry();
 initTheme();
 
 function loadPublicConfig() {
