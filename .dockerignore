@@ -1,12 +1,36 @@
+# Cloud Run / Docker build context exclusions.
+#
+# IMPORTANT: do NOT exclude `src/` or `prisma/` — the Dockerfile runs
+# `nest build` + `prisma generate`, which require both. (The previous version
+# excluded `src`, which silently broke the Dockerfile build path.)
+
+# Dependencies & build outputs (reinstalled/rebuilt inside the image)
 node_modules
+**/node_modules
 dist
 dist-server
-.git
-.env
-.env.local
-.env.development
-src
-public
+**/dist
 coverage
+**/coverage
+# Incremental TS build caches — if copied in, tsc thinks it already emitted .js
+# and writes only .d.ts, producing a broken runtime image. Always rebuild clean.
+**/*.tsbuildinfo
+
+# VCS & local secrets (never ship env files into the image)
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+# Editor / tooling
 .idea
 .vscode
+.claude
+.husky
+
+# Tests & docs are not needed at runtime (keep the build context small).
+**/*.spec.ts
+**/*.e2e-spec.ts
+packages/server/test
+uploads

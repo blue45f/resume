@@ -18,6 +18,16 @@ import { CacheTTL } from '../common/interceptors/cache.interceptor';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminStatsService } from './admin-stats.service';
 import { UsageService } from './usage.service';
+import { evaluateReadiness } from '../gcp/readiness';
+
+// LLM provider env keys — readiness considers AI "available" if any is set.
+const LLM_PROVIDER_KEYS = [
+  'GEMINI_API_KEY',
+  'GROQ_API_KEY',
+  'ANTHROPIC_API_KEY',
+  'OPENAI_COMPATIBLE_URL',
+  'N8N_WEBHOOK_URL',
+];
 
 // swc(dev)와 tsc(build)의 dist 레이아웃이 달라 package.json 상대 경로가 바뀐다.
 // 후보 경로를 순서대로 시도하고 실패 시 env로 폴백한다.
@@ -56,6 +66,47 @@ export class HealthController {
       version: pkg.version as string,
       uptime: Math.floor(process.uptime()),
       env: process.env.NODE_ENV || 'development',
+    };
+  }
+
+  /**
+   * Liveness alias (`/api/health/live`) for Cloud Run/k8s-style probes.
+   * Identical cheap response to the canonical `/api/health` — never touches the DB.
+   */
+  @Get('live')
+  @Public()
+  @CacheTTL(10)
+  @ApiOperation({ summary: 'Cloud Run liveness 별칭 (DB 미접근)' })
+  live() {
+    return this.ping();
+  }
+
+  /**
+   * Cloud Run readiness check. Cheap DB ping + LLM-provider availability.
+   * Returns HTTP 503 when the DB is unreachable so Cloud Run can hold traffic;
+   * 200 (status "degraded") when the DB is up but AI providers are absent,
+   * since the core app still works (AI features degrade gracefully).
+   */
+  @Get('ready')
+  @Public()
+  @ApiOperation({ summary: 'Cloud Run 준비성 체크 (DB ping + LLM provider)' })
+  async ready(@Res({ passthrough: true }) res: Response) {
+    let database: boolean;
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+      database = true;
+    } catch {
+      database = false;
+    }
+
+    const llm = LLM_PROVIDER_KEYS.some((k) => !!this.config.get(k));
+    const verdict = evaluateReadiness({ database, llm });
+
+    res.status(verdict.httpStatus);
+    return {
+      status: verdict.status,
+      timestamp: new Date().toISOString(),
+      checks: verdict.checks,
     };
   }
 

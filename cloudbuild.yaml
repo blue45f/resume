@@ -1,0 +1,68 @@
+# Cloud Build pipeline for the resume-api Cloud Run service.
+#
+# This is an explicit alternative to `gcloud run deploy --source .` (which runs
+# an implicit Cloud Build using the repo Dockerfile). Use this when wiring a
+# Cloud Build trigger (e.g. on push to main) so the build/deploy is versioned
+# and auditable.
+#
+# It builds the Dockerfile, pushes to Artifact Registry, and deploys a new
+# Cloud Run revision. It does NOT run database migrations — the shared Neon DB
+# schema is managed out-of-band.
+#
+# Substitutions (override per-trigger or with --substitutions):
+#   _SERVICE   Cloud Run service name      (default: resume-api)
+#   _REGION    Cloud Run region            (default: asia-northeast3)
+#   _REPO      Artifact Registry repo name (default: containers)
+#
+# Secrets/env are configured on the Cloud Run service (Secret Manager), not here.
+
+substitutions:
+  _SERVICE: resume-api
+  _REGION: asia-northeast3
+  _REPO: containers
+
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+
+steps:
+  # 1) Build the Cloud Run image from the repo Dockerfile.
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest'
+      - '.'
+
+  # 2) Push both tags to Artifact Registry.
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}'
+
+  # 3) Deploy a new Cloud Run revision from the pushed image.
+  #    NODE_ENV=production activates the structured Cloud Logging logger.
+  #    --update-env-vars (never --set-env-vars) preserves existing vars/secrets.
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - '${_SERVICE}'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA'
+      - '--region'
+      - '${_REGION}'
+      - '--allow-unauthenticated'
+      - '--update-env-vars'
+      - 'NODE_ENV=production'

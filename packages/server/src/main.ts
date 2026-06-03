@@ -12,13 +12,35 @@ import cookieParser from 'cookie-parser';
 import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
+import { GcpLoggerService } from './gcp/gcp-logger.service';
+import { validateEnv, formatValidationReport } from './gcp/env-validation';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log'],
-  });
-
   const isProd = process.env.NODE_ENV === 'production';
+
+  // --- Boot-time env validation (GCP/Cloud Run) ---
+  // Validate before creating the app so misconfiguration fails fast with a
+  // clear message. In production, missing required secrets abort startup.
+  const validation = validateEnv(process.env, isProd);
+  const report = formatValidationReport(validation);
+  for (const line of report.lines) {
+    if (line.startsWith('ERROR:')) console.error(line);
+    else if (line.startsWith('WARN:')) console.warn(line);
+    else console.log(line);
+  }
+  if (isProd && validation.errors.length) {
+    console.error(
+      `Refusing to start: ${validation.errors.length} required env var(s) missing. ` +
+        'On Cloud Run, source secrets from Secret Manager (see docs/DEPLOYMENT.md).',
+    );
+    process.exit(1);
+  }
+
+  const app = await NestFactory.create(AppModule, {
+    // In production, emit Cloud Logging-friendly structured JSON logs so they
+    // are queryable in GCP. In dev, keep Nest's pretty console logger.
+    logger: isProd ? new GcpLoggerService(['error', 'warn', 'log']) : ['error', 'warn', 'log'],
+  });
 
   // Graceful shutdown
   app.enableShutdownHooks();
