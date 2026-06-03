@@ -586,7 +586,8 @@
         "strongVerb": "Strong verb",
         "achievement": "Achievement",
         "proper": "Proper noun"
-      }
+      },
+      "strengthAria": "Message strength {strength}"
     },
     "jdLandscape": {
       "title": "Competitive Landscape",
@@ -597,12 +598,14 @@
         "medium": "Medium",
         "high": "High",
         "unknown": "N/A"
-      }
+      },
+      "demandedAria": "Required experience and roles"
     },
     "clResonance": {
       "title": "Value Fit",
       "reflected": "Reflected values",
-      "missing": "Missing values"
+      "missing": "Missing values",
+      "scoreAria": "Value fit score {score}"
     },
     "improvementPlan": {
       "title": "Priority Improvements",

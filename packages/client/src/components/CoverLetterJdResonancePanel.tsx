@@ -44,7 +44,7 @@ export default function CoverLetterJdResonancePanel({ coverLetter, jd, className
         </h3>
         <span
           className={`text-[13px] font-bold tabular-nums ${TONE_RING[report.tone]}`}
-          aria-label={`가치 정합성 점수 ${report.resonanceScore}점`}
+          aria-label={tx('resumeAnalysis.clResonance.scoreAria', { score: report.resonanceScore })}
         >
           {report.resonanceScore}
           <span className="text-[10px] font-normal text-slate-400">/100</span>
