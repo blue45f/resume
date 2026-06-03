@@ -586,7 +586,8 @@
         "strongVerb": "강한 동사",
         "achievement": "성취",
         "proper": "고유명사"
-      }
+      },
+      "strengthAria": "메시지 강도 {strength}점"
     },
     "jdLandscape": {
       "title": "경쟁 환경",
@@ -597,12 +598,14 @@
         "medium": "보통",
         "high": "높음",
         "unknown": "불명"
-      }
+      },
+      "demandedAria": "요구 경력·역할"
     },
     "clResonance": {
       "title": "가치 정합성",
       "reflected": "공고 가치 반영",
-      "missing": "빠진 가치"
+      "missing": "빠진 가치",
+      "scoreAria": "가치 정합성 점수 {score}점"
     },
     "improvementPlan": {
       "title": "우선 개선 과제",

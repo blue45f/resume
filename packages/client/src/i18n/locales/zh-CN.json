@@ -212,5 +212,98 @@
     "networkError": "网络错误",
     "unauthorized": "请先登录",
     "notFound": "未找到"
+  },
+  "resumeAnalysis": {
+    "health": {
+      "title": "综合准备度",
+      "axis": {
+        "quality": "文体",
+        "completeness": "完整度",
+        "interviewability": "面试契合度"
+      },
+      "tier": {
+        "excellent": "优秀",
+        "good": "良好",
+        "fair": "一般",
+        "poor": "薄弱"
+      },
+      "ariaLabel": "简历综合准备度 {score}分 {tier}"
+    },
+    "quotable": {
+      "title": "可引用语句",
+      "signal": {
+        "number": "数值",
+        "strongVerb": "强动词",
+        "properNoun": "专有名词"
+      }
+    },
+    "careerGap": {
+      "title": "职业空窗 {count} 处",
+      "totalLabel": "共 {months} 个月",
+      "monthsLabel": "{months} 个月",
+      "severity": {
+        "minor": "轻微",
+        "notable": "注意",
+        "major": "重要"
+      },
+      "hint": "💡 在面试回答或简历中用 1~2 行说明(学习/充电/自由职业等)来透明化空窗期。"
+    },
+    "coreMessages": {
+      "title": "核心信息",
+      "avgStrength": "平均强度",
+      "category": {
+        "achievement": "成就",
+        "leadership": "领导力",
+        "impact": "影响力",
+        "growth": "成长",
+        "expertise": "专业性"
+      },
+      "signal": {
+        "quantified": "数值",
+        "strongVerb": "强动词",
+        "achievement": "成就",
+        "proper": "专有名词"
+      },
+      "strengthAria": "信息强度 {strength}分"
+    },
+    "jdLandscape": {
+      "title": "竞争环境",
+      "competition": "竞争",
+      "barrier": "技术门槛",
+      "intensity": {
+        "low": "低",
+        "medium": "中",
+        "high": "高",
+        "unknown": "不明"
+      },
+      "demandedAria": "所需经历与角色"
+    },
+    "clResonance": {
+      "title": "价值契合度",
+      "reflected": "已体现的公告价值",
+      "missing": "缺失的价值",
+      "scoreAria": "价值契合度评分 {score}分"
+    },
+    "improvementPlan": {
+      "title": "优先改进事项",
+      "pointSuffix": "分",
+      "severity": {
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      },
+      "tier": {
+        "call-back": "有望回复",
+        "promising": "有潜力",
+        "needs-work": "需补强",
+        "below-bar": "未达标"
+      },
+      "grade": {
+        "excellent": "优秀",
+        "good": "良好",
+        "fair": "一般",
+        "weak": "不足"
+      }
+    }
   }
 }

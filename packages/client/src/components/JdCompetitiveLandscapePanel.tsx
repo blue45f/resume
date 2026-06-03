@@ -63,7 +63,10 @@ export default function JdCompetitiveLandscapePanel({
       </div>
 
       {r.demandedExperience.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2" aria-label="요구 경력·역할">
+        <div
+          className="flex flex-wrap gap-1 mb-2"
+          aria-label={tx('resumeAnalysis.jdLandscape.demandedAria')}
+        >
           {r.demandedExperience.map((d, i) => (
             <span
               key={i}

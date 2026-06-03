@@ -486,7 +486,8 @@
         "strongVerb": "強い動詞",
         "achievement": "成果",
         "proper": "固有名詞"
-      }
+      },
+      "strengthAria": "メッセージ強度 {strength}点"
     },
     "jdLandscape": {
       "title": "競争環境",
@@ -497,12 +498,14 @@
         "medium": "中",
         "high": "高",
         "unknown": "不明"
-      }
+      },
+      "demandedAria": "要求される経歴・役割"
     },
     "clResonance": {
       "title": "価値整合性",
       "reflected": "反映された価値",
-      "missing": "不足の価値"
+      "missing": "不足の価値",
+      "scoreAria": "価値整合性スコア {score}点"
     },
     "improvementPlan": {
       "title": "優先改善課題",

@@ -74,7 +74,9 @@ export default function ResumeCoreMessagesPanel({
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={m.strength}
-                aria-label={`메시지 강도 ${m.strength}점`}
+                aria-label={tx('resumeAnalysis.coreMessages.strengthAria', {
+                  strength: m.strength,
+                })}
               >
                 <span
                   className="block h-full rounded-full bg-blue-500 dark:bg-blue-400"
