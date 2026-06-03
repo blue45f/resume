@@ -12,18 +12,44 @@ import { LlmProvider, LlmResponse, LlmStreamChunk } from '../llm-provider.interf
  * - GEMINI_API_KEY: Google AI Studio API Key
  * - GEMINI_MODEL: 모델 (기본: gemini-2.0-flash)
  */
+/**
+ * Safety settings — résumé/cover-letter text (career stories, military service,
+ * health/medical roles, etc.) can falsely trip Gemini's default harm filters and
+ * return an empty candidate. We relax thresholds to BLOCK_NONE for this
+ * professional-document use case so legitimate content is not silently dropped.
+ */
+const SAFETY_SETTINGS = [
+  { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+  { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+  { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+  { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+];
+
 @Injectable()
 export class GeminiProvider implements LlmProvider {
   readonly name = 'gemini';
   private readonly apiKey: string | undefined;
   private readonly model: string;
+  /** Optional secondary model to retry once with on persistent server errors. */
+  private readonly fallbackModel: string | undefined;
+  private readonly timeoutMs: number;
+  private readonly maxOutputTokens: number;
   private readonly logger = new Logger(GeminiProvider.name);
 
   constructor(private config: ConfigService) {
     this.apiKey = this.config.get<string>('GEMINI_API_KEY');
     this.model = this.config.get<string>('GEMINI_MODEL') || 'gemini-2.0-flash';
+    // Optional fallback model (e.g. gemini-1.5-flash) tried once if the primary
+    // model keeps failing — keeps AI available during a model-specific outage.
+    this.fallbackModel = this.config.get<string>('GEMINI_FALLBACK_MODEL') || undefined;
+    this.timeoutMs = Number(this.config.get('GEMINI_TIMEOUT_MS')) || 60000;
+    this.maxOutputTokens = Number(this.config.get('GEMINI_MAX_OUTPUT_TOKENS')) || 4096;
     if (this.apiKey) {
-      this.logger.log(`Gemini provider initialized (model: ${this.model})`);
+      this.logger.log(
+        `Gemini provider initialized (model: ${this.model}${
+          this.fallbackModel ? `, fallback: ${this.fallbackModel}` : ''
+        })`,
+      );
     }
   }
 
@@ -34,11 +60,32 @@ export class GeminiProvider implements LlmProvider {
   async generate(systemPrompt: string, userMessage: string): Promise<LlmResponse> {
     if (!this.apiKey) throw new Error('GEMINI_API_KEY not configured');
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+    try {
+      return await this.generateOnce(this.model, systemPrompt, userMessage);
+    } catch (primaryError) {
+      // Model-level fallback: if a secondary model is configured, try it once.
+      if (this.fallbackModel && this.fallbackModel !== this.model) {
+        this.logger.warn(
+          `Gemini primary model '${this.model}' failed, trying fallback '${this.fallbackModel}'`,
+        );
+        return await this.generateOnce(this.fallbackModel, systemPrompt, userMessage);
+      }
+      throw primaryError;
+    }
+  }
+
+  /** One model attempt, with exponential backoff retries on 429/5xx/transient errors. */
+  private async generateOnce(
+    model: string,
+    systemPrompt: string,
+    userMessage: string,
+  ): Promise<LlmResponse> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
     const body = JSON.stringify({
       system_instruction: { parts: [{ text: systemPrompt }] },
       contents: [{ parts: [{ text: userMessage }] }],
-      generationConfig: { maxOutputTokens: 4096 },
+      safetySettings: SAFETY_SETTINGS,
+      generationConfig: { maxOutputTokens: this.maxOutputTokens },
     });
 
     let lastError: Error | null = null;
@@ -48,7 +95,7 @@ export class GeminiProvider implements LlmProvider {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body,
-          signal: AbortSignal.timeout(60000),
+          signal: AbortSignal.timeout(this.timeoutMs),
         });
 
         if (!res.ok) {
@@ -63,10 +110,17 @@ export class GeminiProvider implements LlmProvider {
 
         const data = await res.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        // Surface safety/recitation blocks as retryable errors instead of
+        // returning empty text (which would silently produce a broken result).
+        if (!text) {
+          const reason =
+            data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason || 'EMPTY';
+          throw new Error(`Gemini returned no text (finishReason: ${reason})`);
+        }
         const usage = data.usageMetadata || {};
         const tokensUsed = (usage.promptTokenCount || 0) + (usage.candidatesTokenCount || 0);
 
-        return { text, tokensUsed, model: this.model, provider: this.name };
+        return { text, tokensUsed, model, provider: this.name };
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         if (attempt < 2 && lastError.name !== 'AbortError') {
@@ -103,14 +157,15 @@ export class GeminiProvider implements LlmProvider {
           ],
         },
       ],
-      generationConfig: { maxOutputTokens: 4096 },
+      safetySettings: SAFETY_SETTINGS,
+      generationConfig: { maxOutputTokens: this.maxOutputTokens },
     });
 
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body,
-      signal: AbortSignal.timeout(60000),
+      signal: AbortSignal.timeout(this.timeoutMs),
     });
 
     if (!res.ok) {
@@ -133,9 +188,10 @@ export class GeminiProvider implements LlmProvider {
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents: [{ parts: [{ text: userMessage }] }],
-        generationConfig: { maxOutputTokens: 4096 },
+        safetySettings: SAFETY_SETTINGS,
+        generationConfig: { maxOutputTokens: this.maxOutputTokens },
       }),
-      signal: AbortSignal.timeout(60000),
+      signal: AbortSignal.timeout(this.timeoutMs),
     });
 
     if (!res.ok || !res.body) {

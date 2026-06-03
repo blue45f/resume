@@ -87,6 +87,67 @@ describe('HealthController', () => {
   });
 
   // ──────────────────────────────────────────────────
+  // GET /api/health/live — Cloud Run liveness 별칭 (DB 미접근)
+  // ──────────────────────────────────────────────────
+  describe('live (GET /health/live)', () => {
+    it('ping 과 동일한 cheap 응답 반환 (DB 미접근)', () => {
+      const result = controller.live();
+      expect(result.status).toBe('ok');
+      expect(result.version).toBeDefined();
+      // DB 를 건드리지 않아야 함
+      expect(mockPrisma.$queryRaw).not.toHaveBeenCalled();
+    });
+  });
+
+  // ──────────────────────────────────────────────────
+  // GET /api/health/ready — Cloud Run 준비성 체크
+  // ──────────────────────────────────────────────────
+  describe('ready (GET /health/ready)', () => {
+    const makeRes = () => {
+      const res: any = { status: jest.fn().mockReturnThis() };
+      return res;
+    };
+
+    it('DB 정상 + LLM 키 있음 → ok / 200', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([{ '?column?': 1 }]);
+      mockConfig.get.mockImplementation((k: string) =>
+        k === 'GEMINI_API_KEY' ? 'key' : undefined,
+      );
+      const res = makeRes();
+
+      const result = await controller.ready(res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(result.status).toBe('ok');
+      expect(result.checks.database).toBe('ok');
+      expect(result.checks.llm).toBe('ok');
+    });
+
+    it('DB 정상 + LLM 키 없음 → degraded / 200', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([{ '?column?': 1 }]);
+      mockConfig.get.mockReturnValue(undefined);
+      const res = makeRes();
+
+      const result = await controller.ready(res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(result.status).toBe('degraded');
+      expect(result.checks.llm).toBe('error');
+    });
+
+    it('DB 다운 → error / 503', async () => {
+      mockPrisma.$queryRaw.mockRejectedValue(new Error('db down'));
+      mockConfig.get.mockImplementation((k: string) =>
+        k === 'GEMINI_API_KEY' ? 'key' : undefined,
+      );
+      const res = makeRes();
+
+      const result = await controller.ready(res);
+      expect(res.status).toHaveBeenCalledWith(503);
+      expect(result.status).toBe('error');
+      expect(result.checks.database).toBe('error');
+    });
+  });
+
+  // ──────────────────────────────────────────────────
   // GET /api/health/detailed — 서버 상태 상세 확인
   // ──────────────────────────────────────────────────
   describe('check (GET /health/detailed)', () => {
