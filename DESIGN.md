@@ -264,3 +264,40 @@ slate 램프 (light):
 - **Don't** 카드를 중첩하지 않는다. 카드 안의 카드는 항상 틀렸다.
 - **Don't** bounce/elastic easing이나 CSS 레이아웃 속성 애니메이션을 쓰지 않는다.
 - **Don't** em dash(—)나 `--`를 본문에 쓰지 않는다.
+
+## 7. 접근성 (Accessibility) 구현 노트
+
+§1 의 WCAG-AA 목표를 코드에서 실제로 보장하는 클라이언트 측 베이스라인. 신규 인터랙티브
+UI 는 아래 패턴을 따른다(기존 컴포넌트가 단일 소스 — 새로 만들기 전에 형제 컴포넌트를 먼저 읽는다).
+
+### 전역 인프라
+
+- **포커스 링**: 모든 인터랙티브 요소는 `:focus-visible` 시 또렷한 2px outline(`index.css`).
+  테마 프리뷰에서는 활성 테마 accent 로 전환. glow 금지.
+- **스킵 링크**: `App.tsx` 에 "본문으로 건너뛰기" → `#main-content`. 평소 `sr-only`, 포커스 시 노출.
+- **라우트 전환 포커스 관리**: `ScrollReset` 이 SPA 라우트 전환 시 스크롤을 최상단으로
+  되돌리는 동시에 본문 랜드마크(`#main-content`)로 포커스를 옮긴다. 키보드/스크린리더
+  사용자가 매 페이지를 이전 요소부터 다시 Tab 하지 않도록 한다(스킵 링크와 동일 진입점).
+  본문 랜드마크는 `tabindex=-1` 로 프로그램적 포커스만 받으며, 포커스 링은 표시하지 않는다
+  (`#main-content[tabindex='-1']` CSS 규칙). 최초 페이지 로드에서는 포커스를 가로채지 않는다.
+
+### 컴포넌트 규약
+
+- **아이콘 전용 버튼**: 반드시 `aria-label`(한국어). 내부 장식 SVG 는 `aria-hidden="true"`.
+  토치 타깃 ≥44×44px(`.icon-btn` / `min-h-[44px]`).
+- **토글 버튼**: 상태를 `aria-pressed`(서식 토글) 또는 `aria-expanded`(접기/펼치기)로 노출.
+- **탭(이력서 편집 섹션 등)**: `role="tablist"` + `role="tab"`/`role="tabpanel"`, roving
+  `tabIndex`(활성 0, 나머지 -1), ArrowLeft/Right 이동, `aria-selected`, 패널은
+  `aria-labelledby` 로 해당 탭을 가리킨다(라벨 중복·드리프트 방지, i18n 연동).
+- **헤딩 아웃라인**: 페이지당 `<h1>` 하나. 접기형 섹션 제목(`CollapsibleSection`)은 disclosure
+  버튼을 `<h2>` 안에 두어 스크린리더 본문 아웃라인을 제공한다(WAI-ARIA Disclosure 패턴).
+- **폼**: 모든 입력에 연결된 `<label htmlFor>`, 오류 메시지는 `role="alert"` +
+  `aria-describedby`, 필수 항목은 `aria-required`/`aria-invalid`.
+- **상태 영역**: 저장/진행 등 라이브 영역은 `role="status"`, 진행바는 `role="progressbar"`
+  - `aria-valuenow/min/max`.
+
+### 테스트
+
+- `ScrollReset.test.tsx` — 라우트 전환 포커스 관리 a11y 스모크(초기 마운트 미가로채기 / 전환 후
+  `#main-content` 포커스 / `tabindex=-1` 부여 / 스크롤 리셋). Vitest + Testing Library(신규 의존성 없음).
+- 컴포넌트 단위 테스트는 `getByRole`/접근명 쿼리를 우선 사용해 ARIA 회귀를 자연스럽게 잡는다.
