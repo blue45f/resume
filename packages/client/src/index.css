@@ -1194,6 +1194,14 @@ nav {
   border-radius: 4px;
 }
 
+/* 라우트 전환/스킵 링크가 포커스를 옮기는 본문 랜드마크는 프로그램적 포커스
+   타깃일 뿐 인터랙티브하지 않으므로 포커스 링을 표시하지 않는다.
+   (ScrollReset 이 #main-content 에 tabindex=-1 을 부여한다) */
+#main-content[tabindex='-1']:focus,
+#main-content[tabindex='-1']:focus-visible {
+  outline: none;
+}
+
 .dark :focus-visible {
   outline-color: #60a5fa;
 }

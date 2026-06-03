@@ -110,24 +110,29 @@ function CollapsibleSection({
   };
   return (
     <div>
-      <button
-        type="button"
-        onClick={toggle}
-        className="flex items-center gap-2 w-full py-2 text-left text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
-        aria-expanded={expanded}
-        aria-controls={`collapse-${id}`}
-      >
-        <svg
-          className={`w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
+      {/* 섹션 제목을 heading 안의 disclosure 버튼으로 — 스크린리더의 본문 아웃라인(페이지 h1
+          아래 h2) 제공 + aria-expanded 로 접힘 상태 노출 (WAI-ARIA Disclosure 패턴). */}
+      <h2 className="m-0">
+        <button
+          type="button"
+          onClick={toggle}
+          className="flex items-center gap-2 w-full py-2 text-left text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
+          aria-expanded={expanded}
+          aria-controls={`collapse-${id}`}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-        {title}
-      </button>
+          <svg
+            className={`w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+          {title}
+        </button>
+      </h2>
       {expanded && <div id={`collapse-${id}`}>{children}</div>}
     </div>
   );
@@ -527,6 +532,7 @@ export default function ResumeForm({
           {tabs.map((tab, idx) => (
             <button
               key={tab.id}
+              id={`tab-${tab.id}`}
               type="button"
               role="tab"
               tabIndex={activeTab === tab.id ? 0 : -1}
@@ -573,7 +579,7 @@ export default function ResumeForm({
 
       {/* Personal Info */}
       {activeTab === 'personal' && (
-        <fieldset id="panel-personal" role="tabpanel" aria-label="인적사항">
+        <fieldset id="panel-personal" role="tabpanel" aria-labelledby="tab-personal">
           <CollapsibleSection id="personal" title={t('resume.personal')}>
             {/* 증명사진 */}
             <Controller
@@ -783,7 +789,7 @@ export default function ResumeForm({
 
       {/* Experience */}
       {activeTab === 'experience' && (
-        <div id="panel-experience" role="tabpanel" aria-label="경력">
+        <div id="panel-experience" role="tabpanel" aria-labelledby="tab-experience">
           <CollapsibleSection id="experience" title={t('resume.experience')}>
             <div className="space-y-4">
               {experiencesArr.fields.map((exp, idx) => (
@@ -1017,7 +1023,7 @@ export default function ResumeForm({
 
       {/* Education */}
       {activeTab === 'education' && (
-        <div id="panel-education" role="tabpanel" aria-label="학력">
+        <div id="panel-education" role="tabpanel" aria-labelledby="tab-education">
           <CollapsibleSection id="education" title={t('resume.education')}>
             <div className="space-y-4">
               {educationsArr.fields.map((edu, idx) => (
@@ -1160,7 +1166,7 @@ export default function ResumeForm({
 
       {/* Skills */}
       {activeTab === 'skills' && (
-        <div id="panel-skills" role="tabpanel" aria-label="기술">
+        <div id="panel-skills" role="tabpanel" aria-labelledby="tab-skills">
           <CollapsibleSection id="skills" title={t('resume.skills')}>
             <div className="space-y-4">
               {skillsArr.fields.map((skill, idx) => (
@@ -1242,7 +1248,7 @@ export default function ResumeForm({
 
       {/* Projects */}
       {activeTab === 'projects' && (
-        <div id="panel-projects" role="tabpanel" aria-label="프로젝트">
+        <div id="panel-projects" role="tabpanel" aria-labelledby="tab-projects">
           <CollapsibleSection id="projects" title={t('resume.projects')}>
             <div className="space-y-4">
               {projectsArr.fields.map((proj, idx) => (
@@ -1410,7 +1416,7 @@ export default function ResumeForm({
 
       {/* Certifications */}
       {activeTab === 'certifications' && (
-        <div id="panel-certifications" role="tabpanel" aria-label="자격증">
+        <div id="panel-certifications" role="tabpanel" aria-labelledby="tab-certifications">
           <CollapsibleSection id="certifications" title={t('resume.certifications')}>
             <div className="space-y-4">
               {certificationsArr.fields.map((cert, idx) => (
@@ -1526,7 +1532,7 @@ export default function ResumeForm({
 
       {/* Languages */}
       {activeTab === 'languages' && (
-        <div id="panel-languages" role="tabpanel" aria-label="어학">
+        <div id="panel-languages" role="tabpanel" aria-labelledby="tab-languages">
           <CollapsibleSection id="languages" title={t('resume.languages')}>
             <div className="space-y-4">
               {languagesArr.fields.map((lang, idx) => (
@@ -1622,7 +1628,7 @@ export default function ResumeForm({
 
       {/* Awards */}
       {activeTab === 'awards' && (
-        <div id="panel-awards" role="tabpanel" aria-label="수상">
+        <div id="panel-awards" role="tabpanel" aria-labelledby="tab-awards">
           <CollapsibleSection id="awards" title={t('resume.awards')}>
             <div className="space-y-4">
               {awardsArr.fields.map((award, idx) => (
@@ -1716,7 +1722,7 @@ export default function ResumeForm({
 
       {/* Activities */}
       {activeTab === 'activities' && (
-        <div id="panel-activities" role="tabpanel" aria-label="활동">
+        <div id="panel-activities" role="tabpanel" aria-labelledby="tab-activities">
           <CollapsibleSection id="activities" title={t('resume.activities')}>
             <div className="space-y-4">
               {activitiesArr.fields.map((act, idx) => (
