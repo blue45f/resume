@@ -3,395 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Breadcrumb from '@/components/Breadcrumb';
 import ResumeForm from '@/components/ResumeForm';
-import { FormSkeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Toast';
-import TagSelector from '@/components/TagSelector';
-import AttachmentPanel from '@/components/AttachmentPanel';
-import VersionPanel from '@/components/VersionPanel';
-import AllowedViewersDialog from '@/components/AllowedViewersDialog';
 import LiveAtsBadge from '@/components/LiveAtsBadge';
-import OverallHealthGauge from '@/components/OverallHealthGauge';
-import ResumeHealthRadar from '@/components/ResumeHealthRadar';
-import ResumeHighlightPreview from '@/components/ResumeHighlightPreview';
-import QuotableHighlights from '@/components/QuotableHighlights';
-import ResumeCoreMessagesPanel from '@/components/ResumeCoreMessagesPanel';
-import ResumeImprovementPlanPanel from '@/components/ResumeImprovementPlanPanel';
-import CareerGapPanel from '@/components/CareerGapPanel';
-import UnquantifiedClaimsRewritePanel from '@/components/UnquantifiedClaimsRewritePanel';
-import ResumeTitleCoherencePanel from '@/components/ResumeTitleCoherencePanel';
-import ResumeActionVerbPanel from '@/components/ResumeActionVerbPanel';
-import ResumeQuantificationPanel from '@/components/ResumeQuantificationPanel';
-import SectionInsightsPanel from '@/components/SectionInsightsPanel';
-import ResumeBulletConsistencyPanel from '@/components/ResumeBulletConsistencyPanel';
-import ResumeQualitySignalsPanel from '@/components/ResumeQualitySignalsPanel';
-import ResumeVoicePanel from '@/components/ResumeVoicePanel';
-import ResumeAchievementPanel from '@/components/ResumeAchievementPanel';
-import ResumeTechCasingPanel from '@/components/ResumeTechCasingPanel';
-import ResumeRepetitionPanel from '@/components/ResumeRepetitionPanel';
-import ResumeStarPatternPanel from '@/components/ResumeStarPatternPanel';
-import ResumePiiPanel from '@/components/ResumePiiPanel';
-import ResumeLanguageRisksPanel from '@/components/ResumeLanguageRisksPanel';
-import ResumeSoftSkillsPanel from '@/components/ResumeSoftSkillsPanel';
-import ResumeDateConsistencyPanel from '@/components/ResumeDateConsistencyPanel';
-import ResumeSectionHealthPanel from '@/components/ResumeSectionHealthPanel';
-import ResumeWeakVerbPanel from '@/components/ResumeWeakVerbPanel';
-import ResumeIntroStrengthPanel from '@/components/ResumeIntroStrengthPanel';
-import ResumeStarGuidePanel from '@/components/ResumeStarGuidePanel';
-import ResumeRoleKeywordPanel from '@/components/ResumeRoleKeywordPanel';
-import CareerProgressionPanel from '@/components/CareerProgressionPanel';
-import ResumePortfolioLinksPanel from '@/components/ResumePortfolioLinksPanel';
-import ResumeJobLevelPanel from '@/components/ResumeJobLevelPanel';
-import SkillFreshnessPanel from '@/components/SkillFreshnessPanel';
-import ResumeCertificationPanel from '@/components/ResumeCertificationPanel';
-import ResumeLeadershipPanel from '@/components/ResumeLeadershipPanel';
-import ResumeInterviewBaitPanel from '@/components/ResumeInterviewBaitPanel';
-import CareerGapExplanationPanel from '@/components/CareerGapExplanationPanel';
-import ResumeSocialProofPanel from '@/components/ResumeSocialProofPanel';
-import ResumeSoftSkillEvidencePanel from '@/components/ResumeSoftSkillEvidencePanel';
-import ResumeKpiOkrPanel from '@/components/ResumeKpiOkrPanel';
-import ResumeCareerNarrativePanel from '@/components/ResumeCareerNarrativePanel';
-import ResumeTechDepthPanel from '@/components/ResumeTechDepthPanel';
-import ResumeProjectDescriptionPanel from '@/components/ResumeProjectDescriptionPanel';
-import ResumeSkillsOrganizationPanel from '@/components/ResumeSkillsOrganizationPanel';
-import ResumeGapFillerLanguagePanel from '@/components/ResumeGapFillerLanguagePanel';
-import ResumeContactInfoPanel from '@/components/ResumeContactInfoPanel';
-import ResumeFormattingConsistencyPanel from '@/components/ResumeFormattingConsistencyPanel';
-import ResumeEducationCompletenessPanel from '@/components/ResumeEducationCompletenessPanel';
-import ResumeAwardsPanel from '@/components/ResumeAwardsPanel';
-import ResumePersonalInfoDisclosurePanel from '@/components/ResumePersonalInfoDisclosurePanel';
-import ResumeChronologyPanel from '@/components/ResumeChronologyPanel';
-import ResumeContributionClarityPanel from '@/components/ResumeContributionClarityPanel';
-import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
 import { buildResumePlainText } from '@/lib/resumeText';
 import type { Resume } from '@/types/resume';
 import { useQueryClient } from '@tanstack/react-query';
-import { updateResume, setResumeVisibility } from '@/lib/api';
+import { updateResume } from '@/lib/api';
 import { useResume } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
-import { calculateCompleteness } from '@/lib/completeness';
-
-interface RoadmapTask {
-  label: string;
-  tip: string;
-  gain: number;
-  done: boolean;
-  sectionId: string;
-}
-
-function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
-  if (!resume.personalInfo) return [];
-  const r = resume as Resume;
-  const tasks: RoadmapTask[] = [];
-  const pi = r.personalInfo;
-
-  if (!pi.summary || pi.summary.replace(/<[^>]*>/g, '').length < 30)
-    tasks.push({
-      label: '자기소개 작성',
-      tip: '30자 이상 자기소개를 작성하면 +8점',
-      gain: 8,
-      done: false,
-      sectionId: 'summary',
-    });
-  else
-    tasks.push({
-      label: '자기소개 완성',
-      tip: '자기소개가 잘 작성되어 있습니다',
-      gain: 8,
-      done: true,
-      sectionId: 'summary',
-    });
-
-  if (!pi.github && !pi.website)
-    tasks.push({
-      label: 'GitHub / 포트폴리오 링크 추가',
-      tip: 'URL 추가 시 +3점, ATS 매칭률 향상',
-      gain: 3,
-      done: false,
-      sectionId: 'links',
-    });
-  else
-    tasks.push({
-      label: 'GitHub / 포트폴리오 링크',
-      tip: '링크가 등록되어 있습니다',
-      gain: 3,
-      done: true,
-      sectionId: 'links',
-    });
-
-  const hasDescriptions = r.experiences.some(
-    (e) => e.description && e.description.replace(/<[^>]*>/g, '').length > 30,
-  );
-  if (r.experiences.length === 0)
-    tasks.push({
-      label: '경력 사항 추가',
-      tip: '경력 1개 추가 시 +10점',
-      gain: 10,
-      done: false,
-      sectionId: 'experience',
-    });
-  else if (!hasDescriptions)
-    tasks.push({
-      label: '경력 업무 내용 상세화',
-      tip: '업무 설명 30자+ 입력 시 +5점',
-      gain: 5,
-      done: false,
-      sectionId: 'experience',
-    });
-  else if (!r.experiences.some((e) => e.techStack))
-    tasks.push({
-      label: '경력에 기술 스택 명시',
-      tip: '사용 기술 추가 시 +2점, ATS 키워드 강화',
-      gain: 2,
-      done: false,
-      sectionId: 'experience',
-    });
-  else
-    tasks.push({
-      label: '경력 섹션 완성',
-      tip: '경력이 충실하게 작성되어 있습니다',
-      gain: 25,
-      done: true,
-      sectionId: 'experience',
-    });
-
-  if (r.educations.length === 0)
-    tasks.push({
-      label: '학력 추가',
-      tip: '학력 입력 시 +7점',
-      gain: 7,
-      done: false,
-      sectionId: 'education',
-    });
-  else
-    tasks.push({
-      label: '학력 완성',
-      tip: '학력이 등록되어 있습니다',
-      gain: 10,
-      done: true,
-      sectionId: 'education',
-    });
-
-  if (r.skills.length === 0)
-    tasks.push({
-      label: '기술 스택 추가',
-      tip: '기술 1개 카테고리 추가 시 +6점',
-      gain: 6,
-      done: false,
-      sectionId: 'skills',
-    });
-  else if (r.skills.length < 2)
-    tasks.push({
-      label: '기술 카테고리 추가',
-      tip: '2개 이상 카테고리 입력 시 +4점 추가',
-      gain: 4,
-      done: false,
-      sectionId: 'skills',
-    });
-  else
-    tasks.push({
-      label: '기술 스택 완성',
-      tip: '다양한 기술이 등록되어 있습니다',
-      gain: 15,
-      done: true,
-      sectionId: 'skills',
-    });
-
-  if (r.projects.length === 0)
-    tasks.push({
-      label: '프로젝트 추가',
-      tip: '프로젝트 1개 추가 시 +5점',
-      gain: 5,
-      done: false,
-      sectionId: 'projects',
-    });
-  else
-    tasks.push({
-      label: '프로젝트 완성',
-      tip: '프로젝트가 등록되어 있습니다',
-      gain: 10,
-      done: true,
-      sectionId: 'projects',
-    });
-
-  const hasExtras = r.certifications.length > 0 || r.languages.length > 0 || r.awards.length > 0;
-  if (!hasExtras)
-    tasks.push({
-      label: '자격증 또는 어학 추가',
-      tip: '자격증/어학/수상 추가 시 +3~5점',
-      gain: 5,
-      done: false,
-      sectionId: 'extras',
-    });
-  else
-    tasks.push({
-      label: '자격증 / 어학',
-      tip: '추가 스펙이 등록되어 있습니다',
-      gain: 10,
-      done: true,
-      sectionId: 'extras',
-    });
-
-  // Sort: incomplete tasks first, by gain descending
-  return tasks.sort((a, b) => {
-    if (a.done !== b.done) return a.done ? 1 : -1;
-    return b.gain - a.gain;
-  });
-}
-
-/** Enhanced live completeness + roadmap widget */
-function LiveCompletenessBar({ resume }: { resume: Partial<Resume> }) {
-  const [expanded, setExpanded] = useState(false);
-  if (!resume.personalInfo) return null;
-  const result = calculateCompleteness(resume as Resume);
-  const pct = result.percentage;
-  const roadmap = buildRoadmap(resume);
-  const pendingTasks = roadmap.filter((t) => !t.done);
-  const potentialGain = pendingTasks.reduce((s, t) => s + t.gain, 0);
-
-  const color = pct >= 80 ? '#3b82f6' : pct >= 60 ? '#22c55e' : pct >= 40 ? '#f97316' : '#ef4444';
-  const label = pct >= 80 ? '우수' : pct >= 60 ? '양호' : pct >= 40 ? '보통' : '부족';
-  const grade = result.grade;
-
-  const gradeColors: Record<string, string> = {
-    S: 'text-sky-600 bg-sky-50 border-sky-200 dark:bg-sky-900/20 dark:border-sky-800 dark:text-sky-400',
-    A: 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400',
-    B: 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400',
-    C: 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400',
-    D: 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400',
-  };
-
-  const sectionIcons: Record<string, string> = {
-    summary: '✍️',
-    links: '🔗',
-    experience: '💼',
-    education: '🎓',
-    skills: '⚡',
-    projects: '🚀',
-    extras: '🏆',
-  };
-
-  return (
-    <div className="mb-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-      {/* Header row */}
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        className="w-full p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left"
-        aria-expanded={expanded}
-      >
-        {/* Circular mini-progress */}
-        <svg width="36" height="36" viewBox="0 0 36 36" className="shrink-0">
-          <circle
-            cx="18"
-            cy="18"
-            r="15"
-            fill="none"
-            stroke="#e2e8f0"
-            strokeWidth="3"
-            className="dark:stroke-slate-700"
-          />
-          <circle
-            cx="18"
-            cy="18"
-            r="15"
-            fill="none"
-            stroke={color}
-            strokeWidth="3"
-            strokeDasharray={`${(pct / 100) * 94.2} 94.2`}
-            strokeLinecap="round"
-            transform="rotate(-90 18 18)"
-            style={{ transition: 'stroke-dasharray 0.6s ease' }}
-          />
-          <text x="18" y="22" textAnchor="middle" fontSize="9" fontWeight="bold" fill={color}>
-            {pct}%
-          </text>
-        </svg>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              이력서 완성도
-            </span>
-            <span
-              className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${gradeColors[grade]}`}
-            >
-              {grade}등급 · {label}
-            </span>
-          </div>
-          <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
-            <div
-              className="h-1.5 rounded-full transition-all duration-700 ease-out"
-              style={{ width: `${pct}%`, backgroundColor: color }}
-            />
-          </div>
-        </div>
-
-        <div className="shrink-0 flex items-center gap-2">
-          {pendingTasks.length > 0 && (
-            <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
-              +{potentialGain}점 가능
-            </span>
-          )}
-          <svg
-            className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </button>
-
-      {/* Roadmap panel */}
-      {expanded && (
-        <div className="border-t border-slate-100 dark:border-slate-700 px-3 pb-3 pt-2 animate-fade-in">
-          <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-2">
-            개선 로드맵
-          </p>
-          <div className="space-y-1.5">
-            {roadmap.slice(0, 6).map((task) => (
-              <div
-                key={task.sectionId}
-                className={`flex items-start gap-2.5 p-2 rounded-lg ${
-                  task.done
-                    ? 'bg-slate-50 dark:bg-slate-700/30 opacity-60'
-                    : 'bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30'
-                }`}
-              >
-                <span className="text-sm shrink-0 mt-0.5">
-                  {task.done ? '✅' : sectionIcons[task.sectionId]}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={`text-[11px] font-medium leading-tight ${task.done ? 'text-slate-500 dark:text-slate-400 line-through' : 'text-slate-700 dark:text-slate-300'}`}
-                  >
-                    {task.label}
-                  </p>
-                  {!task.done && (
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      {task.tip}
-                    </p>
-                  )}
-                </div>
-                {!task.done && (
-                  <span className="shrink-0 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                    +{task.gain}점
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-          {pct === 100 && (
-            <p className="mt-2 text-[11px] text-center text-sky-600 dark:text-sky-400 font-medium">
-              🎉 완벽한 이력서! 이제 공개로 전환해 보세요.
-            </p>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
+import LiveCompletenessBar from '@/features/edit-resume/LiveCompletenessBar';
+import EditResumeToolbar from '@/features/edit-resume/EditResumeToolbar';
+import ResumeAnalysisPanels from '@/features/edit-resume/ResumeAnalysisPanels';
+import EditResumeNotFound from '@/features/edit-resume/EditResumeNotFound';
+import EditResumeLoading from '@/features/edit-resume/EditResumeLoading';
+import EditResumeDialogs from '@/features/edit-resume/EditResumeDialogs';
 
 export default function EditResumePage() {
   const { id } = useParams<{ id: string }>();
@@ -483,60 +108,11 @@ export default function EditResumePage() {
   const deferredAnalysisText = useDeferredValue(liveAnalysisText);
 
   if (notFound) {
-    return (
-      <>
-        <Header />
-        <main id="main-content" className="flex-1 flex items-center justify-center" role="main">
-          <div className="text-center px-4 animate-fade-in">
-            <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-slate-400 dark:text-slate-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9.75m0 0l2.25-2.25M9.75 15l2.25 2.25M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-1">
-              이력서를 찾을 수 없습니다
-            </p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
-              삭제되었거나 존재하지 않는 이력서입니다.
-            </p>
-            <button
-              onClick={() => navigate(ROUTES.home)}
-              className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-            >
-              목록으로 돌아가기
-            </button>
-          </div>
-        </main>
-      </>
-    );
+    return <EditResumeNotFound onBackHome={() => navigate(ROUTES.home)} />;
   }
 
   if (!resume) {
-    return (
-      <>
-        <Header />
-        <main
-          id="main-content"
-          className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
-          role="main"
-        >
-          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-48 mb-6 animate-pulse" />
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-            <FormSkeleton />
-          </div>
-        </main>
-      </>
-    );
+    return <EditResumeLoading />;
   }
 
   return (
@@ -562,90 +138,14 @@ export default function EditResumePage() {
           <h1 className="heading-accent text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
             이력서 수정
           </h1>
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* 공개 설정 */}
-            {id && (
-              <select
-                value={resume.visibility || 'private'}
-                onChange={async (e) => {
-                  const next = e.target.value;
-                  const prev = resume.visibility || 'private';
-                  try {
-                    await setResumeVisibility(id, next);
-                    loadResume();
-                    toast(
-                      next === 'public'
-                        ? '공개로 전환했습니다'
-                        : next === 'link-only'
-                          ? '링크 가진 사람만 볼 수 있도록 변경했습니다'
-                          : next === 'selective'
-                            ? '선택한 사용자만 볼 수 있도록 변경했습니다'
-                            : '비공개로 전환했습니다',
-                      'success',
-                    );
-                  } catch (err) {
-                    if (import.meta.env.DEV)
-                      console.warn('[EditResumePage] setResumeVisibility 실패:', err);
-                    toast(
-                      err instanceof Error
-                        ? err.message
-                        : '공개 설정 변경에 실패했습니다. 다시 시도해주세요.',
-                      'error',
-                    );
-                    // revert select to previous value (re-render through query refetch)
-                    void prev;
-                    loadResume();
-                  }
-                }}
-                className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 dark:text-slate-100"
-                aria-label="공개 설정"
-              >
-                <option value="private">비공개</option>
-                <option value="public">공개</option>
-                <option value="link-only">링크만 공개</option>
-                <option value="selective">선택 사용자만 공개</option>
-              </select>
-            )}
-            {id && resume.visibility === 'selective' && (
-              <button
-                type="button"
-                onClick={() => setShowAllowedViewers(true)}
-                className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors inline-flex items-center gap-1"
-                title="이 이력서를 볼 수 있는 사용자 목록 관리"
-              >
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6 0a4 4 0 10-4-4 4 4 0 004 4z"
-                  />
-                </svg>
-                허용 사용자 관리
-              </button>
-            )}
-            <button
-              onClick={() => setShowAttachments(true)}
-              className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-300"
-            >
-              첨부파일
-            </button>
-            <button
-              onClick={() => setShowVersions(true)}
-              className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-300"
-            >
-              버전 이력
-            </button>
-            {id && (
-              <TagSelector resumeId={id} currentTags={resume.tags || []} onUpdate={loadResume} />
-            )}
-          </div>
+          <EditResumeToolbar
+            id={id}
+            resume={resume}
+            onReload={loadResume}
+            onShowAttachments={() => setShowAttachments(true)}
+            onShowVersions={() => setShowVersions(true)}
+            onShowAllowedViewers={() => setShowAllowedViewers(true)}
+          />
         </div>
 
         {/* Live completeness indicator */}
@@ -656,171 +156,13 @@ export default function EditResumePage() {
           </>
         )}
 
-        {/* Live resume analysis panels (text ≥ 200자일 때만 렌더) — 모바일 1열, sm↑ 2열 그리드 */}
+        {/* Live resume analysis panels (text ≥ 200자일 때만 렌더) */}
         {deferredAnalysisText.length >= 200 && (
-          <section aria-label="이력서 실시간 분석" className="mb-4">
-            <div className="mb-2 sm:mb-3">
-              <ResumeImprovementPlanPanel text={deferredAnalysisText} />
-            </div>
-            <div className="mb-2 sm:mb-3">
-              <ResumeHealthRadar text={deferredAnalysisText} />
-            </div>
-            <div className="mb-2 sm:mb-3">
-              <ResumeHighlightPreview text={deferredAnalysisText} />
-            </div>
-            <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-              <OverallHealthGauge text={deferredAnalysisText} />
-              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 text-[11px]">
-                <InterviewabilityRow text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <CareerGapPanel text={deferredAnalysisText} className="mt-0" />
-              </div>
-              <div className="sm:col-span-2">
-                <QuotableHighlights text={deferredAnalysisText} className="mt-0" />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeCoreMessagesPanel text={deferredAnalysisText} className="mt-0" />
-              </div>
-              {id && (
-                <div className="sm:col-span-2">
-                  <UnquantifiedClaimsRewritePanel resumeId={id} text={deferredAnalysisText} />
-                </div>
-              )}
-              <div className="sm:col-span-2">
-                <ResumeTitleCoherencePanel
-                  title={liveData?.title ?? resume.title ?? ''}
-                  text={deferredAnalysisText}
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeActionVerbPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeQuantificationPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <SectionInsightsPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeBulletConsistencyPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeQualitySignalsPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeVoicePanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeAchievementPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeTechCasingPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeRepetitionPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeStarPatternPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumePiiPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeLanguageRisksPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeSoftSkillsPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeDateConsistencyPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeSectionHealthPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeWeakVerbPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeIntroStrengthPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeStarGuidePanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeRoleKeywordPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <CareerProgressionPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumePortfolioLinksPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeJobLevelPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <SkillFreshnessPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeCertificationPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeLeadershipPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeInterviewBaitPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <CareerGapExplanationPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeSocialProofPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeSoftSkillEvidencePanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeKpiOkrPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeCareerNarrativePanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeTechDepthPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeProjectDescriptionPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeSkillsOrganizationPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeGapFillerLanguagePanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeContactInfoPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeFormattingConsistencyPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeEducationCompletenessPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeAwardsPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumePersonalInfoDisclosurePanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeChronologyPanel text={deferredAnalysisText} />
-              </div>
-              <div className="sm:col-span-2">
-                <ResumeContributionClarityPanel text={deferredAnalysisText} />
-              </div>
-            </div>
-          </section>
+          <ResumeAnalysisPanels
+            text={deferredAnalysisText}
+            id={id}
+            title={liveData?.title ?? resume.title ?? ''}
+          />
         )}
 
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6">
@@ -834,21 +176,18 @@ export default function EditResumePage() {
           />
         </div>
       </main>
-      {showAttachments && id && (
-        <AttachmentPanel resumeId={id} onClose={() => setShowAttachments(false)} />
-      )}
-      {showVersions && id && (
-        <VersionPanel
-          resumeId={id}
-          onClose={() => setShowVersions(false)}
-          onRestore={() => {
-            loadResume();
-          }}
-        />
-      )}
-      {showAllowedViewers && id && (
-        <AllowedViewersDialog resumeId={id} onClose={() => setShowAllowedViewers(false)} />
-      )}
+      <EditResumeDialogs
+        id={id}
+        showAttachments={showAttachments}
+        showVersions={showVersions}
+        showAllowedViewers={showAllowedViewers}
+        onCloseAttachments={() => setShowAttachments(false)}
+        onCloseVersions={() => setShowVersions(false)}
+        onCloseAllowedViewers={() => setShowAllowedViewers(false)}
+        onRestoreVersion={() => {
+          loadResume();
+        }}
+      />
     </>
   );
 }
