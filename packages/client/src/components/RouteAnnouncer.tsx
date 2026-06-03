@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
+// 낭독되지 않는 폭 0 공백(U+200B). 동일 안내 문구가 연속될 때도 aria-live 라이브 영역
+// 콘텐츠를 변동시켜 재낭독을 보장하기 위한 보이지 않는 토글 문자.
+const ZERO_WIDTH_SPACE = String.fromCharCode(0x200b);
+
 /**
  * SPA 라우트 전환을 보조기술에 polite 하게 안내한다(WCAG 2.2 SC 4.1.3 Status Messages).
  *
@@ -19,6 +23,7 @@ export default function RouteAnnouncer() {
   const { pathname, search } = useLocation();
   const [message, setMessage] = useState('');
   const isFirstRender = useRef(true);
+  const announceCountRef = useRef(0);
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -33,7 +38,10 @@ export default function RouteAnnouncer() {
     const announce = (text: string) => {
       if (announced) return;
       announced = true;
-      setMessage(text);
+      announceCountRef.current += 1;
+      // 연속 안내가 동일 문구여도 라이브 영역 콘텐츠가 매번 바뀌도록 ZWSP 를 0/1 개 토글한다.
+      const nonce = announceCountRef.current % 2 === 0 ? '' : ZERO_WIDTH_SPACE;
+      setMessage(text + nonce);
     };
 
     // 새 페이지가 document.title 을 갱신하면 그 시점에 정확한 제목으로 안내한다.
