@@ -7,6 +7,7 @@ import { toast } from '@/components/Toast';
 import { createTag, deleteTag } from '@/lib/api';
 import { useTags } from '@/hooks/useResources';
 import { t } from '@/lib/i18n';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 const COLOR_PRESETS = [
   '#3b82f6',
@@ -28,6 +29,7 @@ export default function TagsPage() {
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('#2563eb');
   const [error, setError] = useState('');
+  const confirm = useConfirm();
 
   useEffect(() => {
     document.title = '태그 관리 — 이력서공방';
@@ -67,8 +69,15 @@ export default function TagsPage() {
     createMutation.mutate({ name: newName.trim(), color: newColor });
   };
 
-  const handleDelete = (id: string, name: string) => {
-    if (!confirm(`"${name}" 태그를 삭제하시겠습니까?`)) return;
+  const handleDelete = async (id: string, name: string) => {
+    if (
+      !(await confirm({
+        title: `"${name}" 태그를 삭제하시겠습니까?`,
+        danger: true,
+        confirmText: '삭제',
+      }))
+    )
+      return;
     deleteMutation.mutate(id);
   };
 

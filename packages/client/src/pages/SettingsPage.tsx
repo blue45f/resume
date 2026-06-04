@@ -16,6 +16,7 @@ import { getTheme, setTheme } from '@/lib/theme';
 import { API_URL } from '@/lib/config';
 import { tx } from '@/lib/i18n';
 import { formatDate } from '@/lib/time';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 import {
   changePassword as apiChangePassword,
   deleteAccount as apiDeleteAccount,
@@ -204,6 +205,7 @@ const NAV_ITEMS = [
 export default function SettingsPage() {
   const navigate = useNavigate();
   const user = getUser();
+  const confirm = useConfirm();
 
   /* ── 상태 ── */
   const [openSections, setOpenSections] = useState<Set<string>>(
@@ -790,12 +792,15 @@ export default function SettingsPage() {
                     }
                     // recruiter/company 전환 시 개인정보 보호 경고
                     if (opt.value === 'recruiter' || opt.value === 'company') {
-                      const warn = window.confirm(
-                        `${opt.label} 모드로 전환합니다.\n\n` +
+                      const warn = await confirm({
+                        title: `${opt.label} 모드로 전환합니다.`,
+                        description:
                           '⚠️ 주의: 채용 담당자 모드로 전환해도 본인의 공개(public) 이력서는 계속 검색·열람 가능합니다.\n\n' +
                           '본인의 공개 이력서를 private로 먼저 변경한 뒤 전환하시는 것을 권장합니다.\n\n' +
                           '그래도 계속 전환하시겠습니까?',
-                      );
+                        danger: true,
+                        confirmText: '계속',
+                      });
                       if (!warn) return;
                     }
                     setSwitchingType(true);

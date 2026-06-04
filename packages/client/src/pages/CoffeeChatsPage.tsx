@@ -6,6 +6,7 @@ import { fetchCoffeeChats, respondCoffeeChat, cancelCoffeeChat, type CoffeeChat 
 import { getUser } from '@/lib/auth';
 import { toast } from '@/components/Toast';
 import { timeAgo } from '@/lib/time';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 type Tab = 'received' | 'sent';
 
@@ -48,6 +49,7 @@ export default function CoffeeChatsPage() {
   const [tab, setTab] = useState<Tab>('received');
   const [chats, setChats] = useState<CoffeeChat[]>([]);
   const [loading, setLoading] = useState(true);
+  const confirm = useConfirm();
 
   const load = () => {
     setLoading(true);
@@ -77,7 +79,8 @@ export default function CoffeeChatsPage() {
   };
 
   const handleCancel = async (id: string) => {
-    if (!confirm('이 신청을 취소할까요?')) return;
+    if (!(await confirm({ title: '이 신청을 취소할까요?', danger: true, confirmText: '취소' })))
+      return;
     try {
       await cancelCoffeeChat(id);
       toast('취소했습니다', 'success');

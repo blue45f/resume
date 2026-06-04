@@ -23,6 +23,7 @@ import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { t, tx } from '@/lib/i18n';
 import { formatDate } from '@/lib/time';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 type StudyGroupDetail = StudyGroup & {
   companyTier?: string;
@@ -35,6 +36,7 @@ export default function StudyGroupDetailPage() {
   const navigate = useNavigate();
   const user = getUser();
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
   // P2-5 — join/leave 직후 server 응답이 stale 일 수 있어 (members[] 빈 배열 race) 낙관적 상태 유지.
   const [localMembership, setLocalMembership] = useState<'joined' | 'left' | null>(null);
@@ -159,7 +161,8 @@ export default function StudyGroupDetailPage() {
 
   const handleDelete = async () => {
     if (!id) return;
-    if (!confirm(tx('confirm.deleteStudy'))) return;
+    if (!(await confirm({ title: tx('confirm.deleteStudy'), danger: true, confirmText: '삭제' })))
+      return;
     setBusy(true);
     try {
       await deleteStudyGroup(id);
@@ -178,7 +181,7 @@ export default function StudyGroupDetailPage() {
     const msg = next
       ? '비공개로 전환하면 검색에 노출되지 않고 초대받은 멤버만 볼 수 있습니다. 진행할까요?'
       : '공개로 전환하면 누구나 그룹을 검색하고 가입할 수 있습니다. 진행할까요?';
-    if (!confirm(msg)) return;
+    if (!(await confirm({ title: msg }))) return;
     setBusy(true);
     try {
       await updateStudyGroup(id, { isPrivate: next });

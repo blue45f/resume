@@ -11,6 +11,7 @@ import { deleteCoverLetter } from '@/lib/api';
 import { useCoverLetters } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
 import { t } from '@/lib/i18n';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 interface CoverLetter {
   id: string;
@@ -34,6 +35,7 @@ export default function MyCoverLettersPage() {
   const [sortMode, setSortMode] = useState<SortMode>('recent');
   const [batchMode, setBatchMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const confirm = useConfirm();
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteCoverLetter(id),
@@ -73,7 +75,14 @@ export default function MyCoverLettersPage() {
   }, [letters, searchQuery, sortMode]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('이 자소서를 삭제하시겠습니까?')) return;
+    if (
+      !(await confirm({
+        title: '이 자소서를 삭제하시겠습니까?',
+        danger: true,
+        confirmText: '삭제',
+      }))
+    )
+      return;
     await deleteMutation.mutateAsync(id).catch(() => {});
     if (selectedId === id) setSelectedId(null);
     toast('자소서가 삭제되었습니다', 'success');
@@ -84,7 +93,14 @@ export default function MyCoverLettersPage() {
       toast('삭제할 자소서를 선택해주세요', 'warning');
       return;
     }
-    if (!confirm(`선택한 ${selectedIds.size}개의 자소서를 삭제하시겠습니까?`)) return;
+    if (
+      !(await confirm({
+        title: `선택한 ${selectedIds.size}개의 자소서를 삭제하시겠습니까?`,
+        danger: true,
+        confirmText: '삭제',
+      }))
+    )
+      return;
     await Promise.allSettled(Array.from(selectedIds).map((id) => deleteCoverLetter(id)));
     queryClient.invalidateQueries({ queryKey: ['cover-letters'] });
     if (selectedId && selectedIds.has(selectedId)) setSelectedId(null);

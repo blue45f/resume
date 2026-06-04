@@ -9,6 +9,7 @@ import { createTemplate, updateTemplate, deleteTemplate } from '@/lib/api';
 import { useTemplates } from '@/hooks/useResources';
 import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes';
 import { t } from '@/lib/i18n';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 const SECTION_OPTIONS = [
   { value: 'personalInfo', label: '인적사항' },
@@ -84,6 +85,7 @@ function parseLayout(layout: string): LayoutConfig {
 
 export default function TemplatesPage() {
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const { data: templatesData, isLoading: loading } = useTemplates();
   const templates: Template[] = templatesData ?? [];
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -201,7 +203,14 @@ export default function TemplatesPage() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`"${name}" 템플릿을 삭제하시겠습니까?`)) return;
+    if (
+      !(await confirm({
+        title: `"${name}" 템플릿을 삭제하시겠습니까?`,
+        danger: true,
+        confirmText: '삭제',
+      }))
+    )
+      return;
     await deleteMutation.mutateAsync(id);
     if (editingId === id) cancelEdit();
   };

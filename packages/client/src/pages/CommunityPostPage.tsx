@@ -17,6 +17,7 @@ import {
   type CommunityCommentFormValues,
 } from '@/shared/lib/schemas/comment';
 import { formatDate } from '@/lib/time';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 const CATEGORY_INFO: Record<string, { label: string; icon: string; color: string }> = {
   notice: {
@@ -286,6 +287,7 @@ export default function CommunityPostPage() {
   const navigate = useNavigate();
   const user = getUser();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   const {
     data: postData,
@@ -413,7 +415,8 @@ export default function CommunityPostPage() {
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!confirm('댓글을 삭제하시겠습니까?')) return;
+    if (!(await confirm({ title: '댓글을 삭제하시겠습니까?', danger: true, confirmText: '삭제' })))
+      return;
     const token = localStorage.getItem('token');
     const r = await fetch(`${API_URL}/api/community/${id}/comments/${commentId}`, {
       method: 'DELETE',
@@ -445,7 +448,10 @@ export default function CommunityPostPage() {
   };
 
   const handleDeletePost = async () => {
-    if (!confirm('게시글을 삭제하시겠습니까?')) return;
+    if (
+      !(await confirm({ title: '게시글을 삭제하시겠습니까?', danger: true, confirmText: '삭제' }))
+    )
+      return;
     setDeleting(true);
     const token = localStorage.getItem('token');
     const r = await fetch(`${API_URL}/api/community/${id}`, {

@@ -31,6 +31,7 @@ import {
 import HomeLanding from '@/features/home/HomeLanding';
 import HomeDashboardWidgets from '@/features/home/HomeDashboardWidgets';
 import MyResumesSection from '@/features/home/MyResumesSection';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 const BannerSlider = lazy(() => import('@/components/BannerSlider'));
 
@@ -61,6 +62,7 @@ export default function HomePage() {
   const [selectMode, setSelectMode] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const confirm = useConfirm();
 
   useScrollRevealAll('.reveal');
 
@@ -105,7 +107,14 @@ export default function HomePage() {
   const socialProofTitle = safeContent.socialProofTitle || '이미 수천 명이 선택했습니다';
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`"${title || '제목 없음'}" 이력서를 삭제하시겠습니까?`)) return;
+    if (
+      !(await confirm({
+        title: `"${title || '제목 없음'}" 이력서를 삭제하시겠습니까?`,
+        danger: true,
+        confirmText: '삭제',
+      }))
+    )
+      return;
     try {
       await deleteResume(id);
       toast('이력서가 삭제되었습니다', 'success');
@@ -140,7 +149,14 @@ export default function HomePage() {
   };
 
   const handleBulkDelete = async () => {
-    if (!confirm(`선택한 ${selectedIds.size}개의 이력서를 삭제하시겠습니까?`)) return;
+    if (
+      !(await confirm({
+        title: `선택한 ${selectedIds.size}개의 이력서를 삭제하시겠습니까?`,
+        danger: true,
+        confirmText: '삭제',
+      }))
+    )
+      return;
     for (const id of selectedIds) {
       try {
         await deleteResume(id);

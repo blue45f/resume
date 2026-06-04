@@ -36,6 +36,7 @@ import MyPlatformApplications from '@/components/MyPlatformApplications';
 import type { ResumeSummary } from '@/types/resume';
 import { applicationSchema, type ApplicationFormValues } from '@/shared/lib/schemas/application';
 import { tx } from '@/lib/i18n';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 interface StatusDef {
   value: string;
@@ -190,6 +191,7 @@ export default function ApplicationsPage() {
     return { year: now.getFullYear(), month: now.getMonth() };
   });
   const formRef = useRef<HTMLFormElement>(null);
+  const confirm = useConfirm();
 
   const load = () => {
     queryClient.invalidateQueries({ queryKey: ['applications'] });
@@ -236,10 +238,12 @@ export default function ApplicationsPage() {
           `🎉 ${app?.company ?? ''} ${app?.position ?? ''} 합격 후기`,
         );
         toast(`🎉 축하합니다! 합격 경험을 커뮤니티에 나눠보시겠어요?`, 'success');
-        setTimeout(() => {
-          const share = window.confirm(
-            '합격 후기를 커뮤니티에 작성하면 다른 분들에게 큰 도움이 됩니다. 지금 작성하시겠어요?',
-          );
+        setTimeout(async () => {
+          const share = await confirm({
+            title:
+              '합격 후기를 커뮤니티에 작성하면 다른 분들에게 큰 도움이 됩니다. 지금 작성하시겠어요?',
+            confirmText: '작성하기',
+          });
           if (share) {
             window.location.href = `/community/write?category=interview&title=${successTitle}`;
           }
@@ -261,7 +265,14 @@ export default function ApplicationsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('이 지원 내역을 삭제하시겠습니까?')) return;
+    if (
+      !(await confirm({
+        title: '이 지원 내역을 삭제하시겠습니까?',
+        danger: true,
+        confirmText: '삭제',
+      }))
+    )
+      return;
     try {
       await deleteApplication(id);
       toast('삭제되었습니다', 'success');
