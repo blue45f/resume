@@ -11,6 +11,7 @@ import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
 import { createJob } from '@/lib/api';
 import { useJob } from '@/hooks/useResources';
+import { FieldError, fieldAria } from '@/shared/ui/FieldError';
 import {
   jobPostSchema,
   type JobPostFormValues,
@@ -163,7 +164,6 @@ export default function JobPostPage() {
 
   const inputClass =
     'w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
-  const errorClass = 'text-xs text-red-500 mt-1';
 
   const formatSalary = (v: number) => `${v.toLocaleString()}만원`;
 
@@ -349,8 +349,13 @@ export default function JobPostPage() {
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
                   회사명 *
                 </label>
-                <input {...register('company')} className={inputClass} placeholder="예: 네이버" />
-                {errors.company && <p className={errorClass}>{errors.company.message}</p>}
+                <input
+                  {...register('company')}
+                  {...fieldAria('jobpost-company', errors.company)}
+                  className={inputClass}
+                  placeholder="예: 네이버"
+                />
+                <FieldError id="jobpost-company" message={errors.company?.message} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
@@ -358,10 +363,11 @@ export default function JobPostPage() {
                 </label>
                 <input
                   {...register('position')}
+                  {...fieldAria('jobpost-position', errors.position)}
                   className={inputClass}
                   placeholder="예: 프론트엔드 개발자"
                 />
-                {errors.position && <p className={errorClass}>{errors.position.message}</p>}
+                <FieldError id="jobpost-position" message={errors.position?.message} />
               </div>
             </div>
 
@@ -372,23 +378,28 @@ export default function JobPostPage() {
                 </label>
                 <input
                   {...register('location')}
+                  {...fieldAria('jobpost-location', errors.location)}
                   className={inputClass}
                   placeholder="예: 서울시 강남구"
                 />
-                {errors.location && <p className={errorClass}>{errors.location.message}</p>}
+                <FieldError id="jobpost-location" message={errors.location?.message} />
               </div>
               <div className="sm:col-span-1">
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
                   고용 형태
                 </label>
-                <select {...register('type')} className={inputClass}>
+                <select
+                  {...register('type')}
+                  {...fieldAria('jobpost-type', errors.type)}
+                  className={inputClass}
+                >
                   {JOB_TYPES.map((t) => (
                     <option key={t.value} value={t.value}>
                       {t.label}
                     </option>
                   ))}
                 </select>
-                {errors.type && <p className={errorClass}>{errors.type.message}</p>}
+                <FieldError id="jobpost-type" message={errors.type?.message} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
@@ -396,10 +407,11 @@ export default function JobPostPage() {
                 </label>
                 <input
                   {...register('salaryText')}
+                  {...fieldAria('jobpost-salaryText', errors.salaryText)}
                   className={inputClass}
                   placeholder="비워두면 슬라이더 값 사용"
                 />
-                {errors.salaryText && <p className={errorClass}>{errors.salaryText.message}</p>}
+                <FieldError id="jobpost-salaryText" message={errors.salaryText?.message} />
               </div>
             </div>
 
@@ -451,8 +463,8 @@ export default function JobPostPage() {
                   {formatSalary(form.salaryMax)}
                 </span>
               </div>
-              {errors.salaryMin && <p className={errorClass}>{errors.salaryMin.message}</p>}
-              {errors.salaryMax && <p className={errorClass}>{errors.salaryMax.message}</p>}
+              <FieldError id="jobpost-salaryMin" message={errors.salaryMin?.message} />
+              <FieldError id="jobpost-salaryMax" message={errors.salaryMax?.message} />
             </div>
 
             {/* Skill Tags Input */}
@@ -495,7 +507,7 @@ export default function JobPostPage() {
                   }
                 />
               </div>
-              {errors.skills && <p className={errorClass}>{errors.skills.message}</p>}
+              <FieldError id="jobpost-skills" message={errors.skills?.message} />
             </div>
 
             {/* Description with formatting hints */}
@@ -518,11 +530,12 @@ export default function JobPostPage() {
               </div>
               <textarea
                 {...register('description')}
+                {...fieldAria('jobpost-description', errors.description)}
                 rows={6}
                 className={inputClass + ' resize-none font-mono text-xs'}
                 placeholder="## 업무 내용\n- 주요 업무 1\n- 주요 업무 2\n\n## 팀 소개\n우리 팀은..."
               />
-              {errors.description && <p className={errorClass}>{errors.description.message}</p>}
+              <FieldError id="jobpost-description" message={errors.description?.message} />
             </div>
 
             <div>
@@ -533,11 +546,12 @@ export default function JobPostPage() {
               </div>
               <textarea
                 {...register('requirements')}
+                {...fieldAria('jobpost-requirements', errors.requirements)}
                 rows={4}
                 className={inputClass + ' resize-none font-mono text-xs'}
                 placeholder="## 필수\n- 3년 이상 경력\n\n## 우대\n- 관련 자격증"
               />
-              {errors.requirements && <p className={errorClass}>{errors.requirements.message}</p>}
+              <FieldError id="jobpost-requirements" message={errors.requirements?.message} />
             </div>
 
             <div>
@@ -546,11 +560,12 @@ export default function JobPostPage() {
               </label>
               <textarea
                 {...register('benefits')}
+                {...fieldAria('jobpost-benefits', errors.benefits)}
                 rows={3}
                 className={inputClass + ' resize-none font-mono text-xs'}
                 placeholder="- 자유로운 연차 사용\n- 교육비 지원\n- 유연근무제"
               />
-              {errors.benefits && <p className={errorClass}>{errors.benefits.message}</p>}
+              <FieldError id="jobpost-benefits" message={errors.benefits?.message} />
             </div>
 
             <div className="flex gap-3 pt-2">

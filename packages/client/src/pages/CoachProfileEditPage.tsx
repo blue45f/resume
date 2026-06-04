@@ -10,6 +10,7 @@ import { useMyCoachingSessions } from '@/hooks/useResources';
 import { fetchMe, getUser, setAuth, getToken } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
+import { FieldError, fieldAria } from '@/shared/ui/FieldError';
 import {
   coachProfileSchema,
   type CoachProfileFormInput,
@@ -312,9 +313,7 @@ export default function CoachProfileEditPage() {
                   </button>
                 ))}
               </div>
-              {errors.specialty && (
-                <p className="text-xs text-red-500 mt-1">{errors.specialty.message}</p>
-              )}
+              <FieldError id="coach-specialty" message={errors.specialty?.message} />
             </div>
 
             {/* Hourly rate + years */}
@@ -333,11 +332,10 @@ export default function CoachProfileEditPage() {
                   min={0}
                   step={1000}
                   {...register('hourlyRate')}
+                  {...fieldAria('coach-hourlyRate', errors.hourlyRate)}
                   className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
                 />
-                {errors.hourlyRate && (
-                  <p className="text-xs text-red-500 mt-1">{errors.hourlyRate.message}</p>
-                )}
+                <FieldError id="coach-hourlyRate" message={errors.hourlyRate?.message} />
               </div>
               <div>
                 <label
@@ -353,11 +351,10 @@ export default function CoachProfileEditPage() {
                   min={0}
                   step={1}
                   {...register('yearsExp')}
+                  {...fieldAria('coach-yearsExp', errors.yearsExp)}
                   className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
                 />
-                {errors.yearsExp && (
-                  <p className="text-xs text-red-500 mt-1">{errors.yearsExp.message}</p>
-                )}
+                <FieldError id="coach-yearsExp" message={errors.yearsExp?.message} />
               </div>
             </div>
 
@@ -373,11 +370,10 @@ export default function CoachProfileEditPage() {
                 id="languages"
                 placeholder="예: 한국어, English"
                 {...register('languages')}
+                {...fieldAria('coach-languages', errors.languages)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
               />
-              {errors.languages && (
-                <p className="text-xs text-red-500 mt-1">{errors.languages.message}</p>
-              )}
+              <FieldError id="coach-languages" message={errors.languages?.message} />
             </div>
 
             {/* Available hours */}
@@ -392,11 +388,10 @@ export default function CoachProfileEditPage() {
                 id="availableHours"
                 placeholder="예: 평일 19:00~22:00 / 주말 10:00~17:00"
                 {...register('availableHours')}
+                {...fieldAria('coach-availableHours', errors.availableHours)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
               />
-              {errors.availableHours && (
-                <p className="text-xs text-red-500 mt-1">{errors.availableHours.message}</p>
-              )}
+              <FieldError id="coach-availableHours" message={errors.availableHours?.message} />
             </div>
 
             {/* Bio */}
@@ -413,9 +408,10 @@ export default function CoachProfileEditPage() {
                 maxLength={2000}
                 placeholder="어떤 분야의 전문가이신가요? 어떤 경험을 바탕으로 코칭하시나요?"
                 {...register('bio')}
+                {...fieldAria('coach-bio', errors.bio)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 resize-none focus:ring-2 focus:ring-blue-500"
               />
-              {errors.bio && <p className="text-xs text-red-500 mt-1">{errors.bio.message}</p>}
+              <FieldError id="coach-bio" message={errors.bio?.message} />
             </div>
 
             <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-700/60">
