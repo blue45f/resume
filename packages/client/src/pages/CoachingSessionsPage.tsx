@@ -16,6 +16,7 @@ import { useMyCoachingSessions } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 type TabKey = 'client' | 'coach';
 
@@ -291,6 +292,7 @@ function SessionRow({
   submitting,
   onSubmitReview,
 }: SessionRowProps) {
+  const confirm = useConfirm();
   const badge = STATUS_LABEL[session.status] || STATUS_LABEL.requested;
   const coachName = session.coach?.user?.name || '코치';
   const clientName = session.client?.name || '고객';
@@ -405,11 +407,12 @@ function SessionRow({
           )}
           {canCancel && (
             <button
-              onClick={() => {
+              onClick={async () => {
                 const msg = isLateCancellation
                   ? '세션 시작 24시간 이내 취소는 환불이 불가합니다.\n정말 취소하시겠습니까?'
                   : '세션을 취소하시겠습니까?';
-                if (confirm(msg)) onChangeStatus(session, 'cancelled');
+                if (await confirm({ title: msg, danger: true, confirmText: '취소' }))
+                  onChangeStatus(session, 'cancelled');
               }}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg border ${
                 isLateCancellation

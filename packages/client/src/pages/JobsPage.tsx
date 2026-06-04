@@ -19,6 +19,7 @@ import Tabs from '@/shared/ui/Tabs';
 import JobQuestionsPanel from '@/features/interview-prep/ui/JobQuestionsPanel';
 import JobStudyGroupsPanel from '@/features/study-groups/ui/JobStudyGroupsPanel';
 import { tx } from '@/lib/i18n';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 /* ------------------------------------------------------------------ */
 /*  One-Click Apply: localStorage tracking for applied jobs            */
@@ -492,6 +493,7 @@ function ExternalJobLinks({
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingLink, setEditingLink] = useState<ExternalLink | null>(null);
   const { canDo } = usePermissions();
+  const confirm = useConfirm();
   const canCreate = canDo('externalLinks', 'create');
   const canEdit = canDo('externalLinks', 'edit');
   const canDelete = canDo('externalLinks', 'delete');
@@ -558,7 +560,14 @@ function ExternalJobLinks({
   };
 
   const handleDeleteLink = async (link: ExternalLink) => {
-    if (!confirm(`"${link.name}" ���크를 삭제하시겠습니까?`)) return;
+    if (
+      !(await confirm({
+        title: `"${link.name}" 링크를 삭제하시겠습니까?`,
+        danger: true,
+        confirmText: '삭제',
+      }))
+    )
+      return;
     const token = localStorage.getItem('token');
     const res = await fetch(`${API_URL}/api/jobs/external-links/${link.id}`, {
       method: 'DELETE',
@@ -1497,6 +1506,7 @@ function CuratedJobsTab() {
   const [showForm, setShowForm] = useState(false);
   const [editingJob, setEditingJob] = useState<CuratedJob | null>(null);
   const { canDo } = usePermissions();
+  const confirm = useConfirm();
   const canCreate = canDo('curatedJobs', 'create');
   const canEdit = canDo('curatedJobs', 'edit');
   const canDelete = canDo('curatedJobs', 'delete');
@@ -1565,7 +1575,14 @@ function CuratedJobsTab() {
   };
 
   const handleDelete = async (job: CuratedJob) => {
-    if (!confirm(`"${job.position}" 채용 정보를 삭제하시겠습니까?`)) return;
+    if (
+      !(await confirm({
+        title: `"${job.position}" 채용 정보를 삭제하시겠습니까?`,
+        danger: true,
+        confirmText: '삭제',
+      }))
+    )
+      return;
     const token = localStorage.getItem('token');
     const res = await fetch(`${API_URL}/api/jobs/curated/${job.id}`, {
       method: 'DELETE',

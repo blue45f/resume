@@ -18,6 +18,7 @@ import { formatDate } from '@/lib/time';
 import { getUser } from '@/lib/auth';
 import { getPlan } from '@/lib/plans';
 import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 // Zod schema for resume meta (title) validation before save
 const newResumeSchema = z.object({
@@ -1041,6 +1042,7 @@ function WizardMode({
 
 export default function NewResumePage() {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const [saving, setSaving] = useState(false);
   const templatesQuery = useTemplates();
   const templates: Template[] = templatesQuery.data ?? [];
@@ -1090,7 +1092,13 @@ export default function NewResumePage() {
       return;
     }
     const isDuplicate = existingTitles.includes((data.title || '').toLowerCase());
-    if (isDuplicate && !confirm('같은 제목의 이력서가 이미 있습니다. 계속 생성하시겠습니까?'))
+    if (
+      isDuplicate &&
+      !(await confirm({
+        title: '같은 제목의 이력서가 이미 있습니다. 계속 생성하시겠습니까?',
+        confirmText: '계속',
+      }))
+    )
       return;
     setSaving(true);
     try {
