@@ -351,10 +351,14 @@ export default function CoachDetailPage() {
                   id="scheduledAt"
                   type="datetime-local"
                   {...register('scheduledAt')}
+                  aria-invalid={!!errors.scheduledAt}
+                  aria-describedby={errors.scheduledAt ? 'scheduledAt-error' : undefined}
                   className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
                 />
                 {errors.scheduledAt && (
-                  <p className="text-xs text-red-500 mt-1">{errors.scheduledAt.message}</p>
+                  <p id="scheduledAt-error" role="alert" className="text-xs text-red-500 mt-1">
+                    {errors.scheduledAt.message}
+                  </p>
                 )}
               </div>
 
@@ -368,6 +372,8 @@ export default function CoachDetailPage() {
                 <select
                   id="duration"
                   {...register('duration')}
+                  aria-invalid={!!errors.duration}
+                  aria-describedby={errors.duration ? 'duration-error' : undefined}
                   className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
                 >
                   {DURATION_OPTIONS.map((d) => (
@@ -377,7 +383,9 @@ export default function CoachDetailPage() {
                   ))}
                 </select>
                 {errors.duration && (
-                  <p className="text-xs text-red-500 mt-1">{errors.duration.message}</p>
+                  <p id="duration-error" role="alert" className="text-xs text-red-500 mt-1">
+                    {errors.duration.message}
+                  </p>
                 )}
               </div>
 
@@ -393,9 +401,15 @@ export default function CoachDetailPage() {
                   rows={4}
                   placeholder="원하시는 코칭 주제나 준비 자료를 적어주세요"
                   {...register('note')}
+                  aria-invalid={!!errors.note}
+                  aria-describedby={errors.note ? 'note-error' : undefined}
                   className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 resize-none focus:ring-2 focus:ring-blue-500"
                 />
-                {errors.note && <p className="text-xs text-red-500 mt-1">{errors.note.message}</p>}
+                {errors.note && (
+                  <p id="note-error" role="alert" className="text-xs text-red-500 mt-1">
+                    {errors.note.message}
+                  </p>
+                )}
               </div>
 
               {/* 이력서 공유 (선택) — 코치가 예약 확정 후 열람 가능 */}

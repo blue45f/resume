@@ -206,17 +206,27 @@ export default function FeedbackPage() {
             <input
               {...register('title')}
               placeholder="제목"
+              aria-invalid={!!errors.title}
+              aria-describedby={errors.title ? 'feedback-title-error' : undefined}
               className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
             />
-            {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>}
+            {errors.title && (
+              <p id="feedback-title-error" role="alert" className="text-xs text-red-500 mt-1">
+                {errors.title.message}
+              </p>
+            )}
             <textarea
               {...register('content')}
               placeholder="내용을 자세히 작성해주세요..."
               rows={4}
+              aria-invalid={!!errors.content}
+              aria-describedby={errors.content ? 'feedback-content-error' : undefined}
               className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 mt-3 focus:ring-2 focus:ring-blue-500 resize-none"
             />
             {errors.content && (
-              <p className="text-xs text-red-500 mt-1">{errors.content.message}</p>
+              <p id="feedback-content-error" role="alert" className="text-xs text-red-500 mt-1">
+                {errors.content.message}
+              </p>
             )}
             <div className="flex justify-end gap-2 mt-3">
               <button
