@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { uploadAvatar, setPresetAvatar, deleteAvatar } from '@/lib/api';
 import { processImageForUpload } from '@/lib/imageProcess';
 import { toast } from '@/components/Toast';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 interface Props {
   current: string;
@@ -82,8 +83,11 @@ export default function AvatarEditor({ current, fallbackInitial, onChange, class
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDelete = async () => {
-    if (!confirm('프로필 사진을 삭제할까요?')) return;
+    if (!(await confirm({ title: '프로필 사진을 삭제할까요?', confirmText: '삭제', danger: true })))
+      return;
     setBusy(true);
     try {
       await deleteAvatar();

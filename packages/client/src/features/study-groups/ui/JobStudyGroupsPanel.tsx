@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { toast } from '@/components/Toast';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 import { getUser } from '@/lib/auth';
 import {
   fetchStudyGroups,
@@ -121,9 +122,18 @@ export default function JobStudyGroupsPanel({
     }
   };
 
+  const confirm = useConfirm();
+
   const handleLeave = async (group: StudyGroup) => {
     if (!user) return;
-    if (!confirm('스터디 그룹에서 나가시겠습니까?')) return;
+    if (
+      !(await confirm({
+        title: '스터디 그룹에서 나가시겠습니까?',
+        confirmText: '나가기',
+        danger: true,
+      }))
+    )
+      return;
     setJoiningId(group.id);
     try {
       await leaveStudyGroup(group.id);
