@@ -390,31 +390,38 @@ export default function HomeLanding({
         ))}
       </div>
 
-      {/* Social Proof */}
-      <div className="mt-14 reveal">
-        <h2 className="text-xl font-bold text-center text-slate-800 dark:text-slate-200 mb-8">
-          {socialProofTitle}
-        </h2>
+      {/* Social Proof — editorial eyebrow rhythm to match 주요 기능 divider */}
+      <div className="mt-16 reveal">
+        <div className="flex items-baseline gap-3 mb-7">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-700 dark:text-slate-300">
+            {socialProofTitle}
+          </h2>
+          <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
+        </div>
         <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {testimonials.map((review, i) => (
-            <div
+            <figure
               key={i}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+              className="home-testimonial-card p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
             >
-              <div className="flex gap-0.5 mb-2">
+              <div
+                className="flex gap-0.5 mb-2.5"
+                role="img"
+                aria-label={`별점 ${review.stars}점 / 5점`}
+              >
                 {Array.from({ length: review.stars }).map((_, j) => (
-                  <span key={j} className="text-amber-400 text-sm">
+                  <span key={j} className="text-amber-400 text-sm" aria-hidden="true">
                     ★
                   </span>
                 ))}
               </div>
-              <p className="text-sm text-slate-700 dark:text-slate-300 mb-3 leading-relaxed">
-                "{review.text}"
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                — {review.author}
-              </p>
-            </div>
+              <blockquote className="text-sm text-slate-700 dark:text-slate-300 mb-4 leading-relaxed max-w-[42ch]">
+                &ldquo;{review.text}&rdquo;
+              </blockquote>
+              <figcaption className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-tight">
+                {review.author}
+              </figcaption>
+            </figure>
           ))}
         </div>
       </div>
