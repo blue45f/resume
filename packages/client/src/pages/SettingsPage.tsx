@@ -7,6 +7,7 @@ import * as RadixAlertDialog from '@radix-ui/react-alert-dialog';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AvatarEditor from '@/components/AvatarEditor';
+import { FieldError, fieldAria } from '@/shared/ui/FieldError';
 import { toast } from '@/components/Toast';
 import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
@@ -535,6 +536,7 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       {...nameForm.register('name')}
+                      {...fieldAria('settings-name', nameForm.formState.errors.name)}
                       onKeyDown={(e) => {
                         if (e.key === 'Escape') {
                           setEditingName(false);
@@ -562,11 +564,10 @@ export default function SettingsPage() {
                       취소
                     </button>
                   </div>
-                  {nameForm.formState.errors.name && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {nameForm.formState.errors.name.message}
-                    </p>
-                  )}
+                  <FieldError
+                    id="settings-name"
+                    message={nameForm.formState.errors.name?.message}
+                  />
                 </form>
               ) : (
                 <div className="flex items-center gap-2 mb-0.5">
@@ -623,6 +624,7 @@ export default function SettingsPage() {
                             e.target.value = e.target.value.toLowerCase();
                           },
                         })}
+                        {...fieldAria('settings-username', usernameForm.formState.errors.username)}
                         onKeyDown={(e) => {
                           if (e.key === 'Escape') {
                             setEditingUsername(false);
@@ -651,11 +653,10 @@ export default function SettingsPage() {
                         취소
                       </button>
                     </div>
-                    {usernameForm.formState.errors.username && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {usernameForm.formState.errors.username.message}
-                      </p>
-                    )}
+                    <FieldError
+                      id="settings-username"
+                      message={usernameForm.formState.errors.username?.message}
+                    />
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                       영문 소문자, 숫자, -, _ 만 사용 가능 (3-20자)
                     </p>
@@ -1133,40 +1134,46 @@ export default function SettingsPage() {
                 <input
                   type="password"
                   {...passwordForm.register('currentPassword')}
+                  {...fieldAria(
+                    'settings-currentPassword',
+                    passwordForm.formState.errors.currentPassword,
+                  )}
                   placeholder="현재 비밀번호"
                   className={inputClass}
                 />
-                {passwordForm.formState.errors.currentPassword && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {passwordForm.formState.errors.currentPassword.message}
-                  </p>
-                )}
+                <FieldError
+                  id="settings-currentPassword"
+                  message={passwordForm.formState.errors.currentPassword?.message}
+                />
               </div>
               <div>
                 <input
                   type="password"
                   {...passwordForm.register('newPassword')}
+                  {...fieldAria('settings-newPassword', passwordForm.formState.errors.newPassword)}
                   placeholder="새 비밀번호 (8자 이상)"
                   className={inputClass}
                 />
-                {passwordForm.formState.errors.newPassword && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {passwordForm.formState.errors.newPassword.message}
-                  </p>
-                )}
+                <FieldError
+                  id="settings-newPassword"
+                  message={passwordForm.formState.errors.newPassword?.message}
+                />
               </div>
               <div>
                 <input
                   type="password"
                   {...passwordForm.register('confirmPassword')}
+                  {...fieldAria(
+                    'settings-confirmPassword',
+                    passwordForm.formState.errors.confirmPassword,
+                  )}
                   placeholder="새 비밀번호 확인"
                   className={inputClass}
                 />
-                {passwordForm.formState.errors.confirmPassword && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {passwordForm.formState.errors.confirmPassword.message}
-                  </p>
-                )}
+                <FieldError
+                  id="settings-confirmPassword"
+                  message={passwordForm.formState.errors.confirmPassword?.message}
+                />
               </div>
               <button
                 type="submit"
