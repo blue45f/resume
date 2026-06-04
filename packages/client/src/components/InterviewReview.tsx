@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/time';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 interface InterviewReviewData {
   difficulty: number;
@@ -88,8 +89,17 @@ export default function InterviewReview({ applicationId }: Props) {
     setEditing(false);
   };
 
-  const handleDelete = () => {
-    if (!confirm('면접 후기를 삭제하시겠습니까?')) return;
+  const confirm = useConfirm();
+
+  const handleDelete = async () => {
+    if (
+      !(await confirm({
+        title: '면접 후기를 삭제하시겠습니까?',
+        confirmText: '삭제',
+        danger: true,
+      }))
+    )
+      return;
     localStorage.removeItem(getStorageKey(applicationId));
     setReview(null);
     setEditing(false);
