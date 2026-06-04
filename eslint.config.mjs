@@ -33,12 +33,13 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
-      // 네이티브 window.confirm 금지 — 브랜드 useConfirm()/ConfirmDialog를 쓴다.
-      // (useConfirm() 같은 로컬 confirm 변수는 섀도잉이라 영향 없음)
-      // alert/prompt는 toast/입력 다이얼로그 마이그레이션 후 추가 예정.
+      // 네이티브 window.confirm/alert/prompt 금지 — 브랜드 useConfirm()/toast()/usePrompt()를 쓴다.
+      // (useConfirm()/usePrompt() 같은 로컬 변수는 섀도잉이라 영향 없음)
       'no-restricted-globals': [
         'error',
         { name: 'confirm', message: 'useConfirm()/ConfirmDialog를 사용하세요 (window.confirm 금지).' },
+        { name: 'alert', message: 'toast()를 사용하세요 (window.alert 금지).' },
+        { name: 'prompt', message: 'usePrompt()/PromptProvider를 사용하세요 (window.prompt 금지).' },
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],

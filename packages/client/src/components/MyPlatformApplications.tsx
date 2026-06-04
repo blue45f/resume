@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { fetchMyJobApplications, withdrawJobApplication } from '@/lib/api';
 import { formatDate } from '@/lib/time';
 import { toast } from '@/components/Toast';
+import { usePrompt } from '@/shared/ui/PromptProvider';
 
 interface PlatformApp {
   id: string;
@@ -54,6 +55,7 @@ const STAGE_META: Record<string, { label: string; color: string; icon: string }>
 export default function MyPlatformApplications() {
   const [apps, setApps] = useState<PlatformApp[]>([]);
   const [loading, setLoading] = useState(true);
+  const prompt = usePrompt();
 
   const refresh = () => {
     fetchMyJobApplications()
@@ -69,10 +71,12 @@ export default function MyPlatformApplications() {
   }, []);
 
   const withdraw = async (a: PlatformApp) => {
-    const reason = window.prompt(
-      `[${a.job.position}] 지원을 철회하시겠어요?\n\n철회 이유를 알려주시면 다음 매칭에 도움이 됩니다 (선택, 200자):`,
-      '',
-    );
+    const reason = await prompt({
+      title: '지원을 철회하시겠어요?',
+      description: `[${a.job.position}] 철회 이유를 알려주시면 다음 매칭에 도움이 됩니다 (선택, 200자).`,
+      label: '철회 이유',
+      confirmText: '철회',
+    });
     if (reason === null) return; // 취소
     try {
       await withdrawJobApplication(a.id, reason || undefined);
