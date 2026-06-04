@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { API_URL } from '@/lib/config';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 interface Attachment {
   id: string;
@@ -98,8 +99,17 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
     load();
   };
 
+  const confirm = useConfirm();
+
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`"${name}" 파일을 삭제하시겠습니까?`)) return;
+    if (
+      !(await confirm({
+        title: `"${name}" 파일을 삭제하시겠습니까?`,
+        confirmText: '삭제',
+        danger: true,
+      }))
+    )
+      return;
     await fetch(`${API_URL}/api/attachments/${id}`, { method: 'DELETE' });
     load();
   };

@@ -8,6 +8,7 @@ import {
   type SavedJobSearch,
 } from '@/lib/api';
 import { toast } from '@/components/Toast';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 interface Props {
   /** 현재 검색 컨텍스트 — '이 검색 저장' 버튼 prefill 용 */
@@ -81,8 +82,17 @@ export default function SavedSearchPanel({ currentSearch }: Props) {
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDelete = async (s: SavedJobSearch) => {
-    if (!confirm(`'${s.name || s.query}' 저장된 검색을 삭제할까요?`)) return;
+    if (
+      !(await confirm({
+        title: `'${s.name || s.query}' 저장된 검색을 삭제할까요?`,
+        confirmText: '삭제',
+        danger: true,
+      }))
+    )
+      return;
     try {
       await deleteSavedJobSearch(s.id);
       toast('삭제됨', 'success');

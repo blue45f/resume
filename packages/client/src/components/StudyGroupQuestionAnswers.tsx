@@ -9,6 +9,7 @@ import {
 } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { toast } from '@/components/Toast';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 import { tx } from '@/lib/i18n';
 
 interface Props {
@@ -62,8 +63,11 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
     }
   };
 
+  const confirm = useConfirm();
+
   const remove = async (id: string) => {
-    if (!confirm('답변을 삭제하시겠습니까?')) return;
+    if (!(await confirm({ title: '답변을 삭제하시겠습니까?', confirmText: '삭제', danger: true })))
+      return;
     try {
       await deleteStudyGroupQuestionAnswer(id);
       invalidate();
