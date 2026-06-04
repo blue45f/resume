@@ -16,6 +16,20 @@
 
 ---
 
+## 화면
+
+<p align="center">
+  <img src="docs/screenshots/home.png" alt="이력서공방 홈 화면 — 서류 합격률을 데이터로 올리는 AI 이력서 플랫폼" width="820" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/home-mobile.png" alt="이력서공방 모바일 홈 화면" width="240" />
+</p>
+
+> 데모(mock) 모드 실행 화면입니다 — 로컬에서 `cd packages/client && VITE_MSW=true pnpm exec vite` 로 백엔드 없이 확인할 수 있습니다.
+
+---
+
 ## 아키텍처
 
 ```
@@ -118,34 +132,34 @@
 
 ### Frontend
 
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| React | 19 | UI 프레임워크 |
-| Vite | 8 | 빌드 도구 |
-| TailwindCSS | 4 | 스타일링 |
-| Tiptap | 3 | 리치 텍스트 에디터 |
-| React Router | 7 | 클라이언트 라우팅 |
-| MSW | 2 | 목 서비스 워커 (개발용) |
+| 기술         | 버전 | 용도                    |
+| ------------ | ---- | ----------------------- |
+| React        | 19   | UI 프레임워크           |
+| Vite         | 8    | 빌드 도구               |
+| TailwindCSS  | 4    | 스타일링                |
+| Tiptap       | 3    | 리치 텍스트 에디터      |
+| React Router | 7    | 클라이언트 라우팅       |
+| MSW          | 2    | 목 서비스 워커 (개발용) |
 
 ### Backend
 
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| NestJS | 11 | API 서버 프레임워크 |
-| Prisma | 6 | ORM / 마이그레이션 |
-| PostgreSQL | - | 데이터베이스 |
-| Anthropic SDK | 0.39 | AI LLM 연동 |
-| Helmet | 8 | HTTP 보안 헤더 |
-| Throttler | 6 | Rate Limiting |
+| 기술          | 버전 | 용도                |
+| ------------- | ---- | ------------------- |
+| NestJS        | 11   | API 서버 프레임워크 |
+| Prisma        | 6    | ORM / 마이그레이션  |
+| PostgreSQL    | -    | 데이터베이스        |
+| Anthropic SDK | 0.39 | AI LLM 연동         |
+| Helmet        | 8    | HTTP 보안 헤더      |
+| Throttler     | 6    | Rate Limiting       |
 
 ### Infra
 
-| 서비스 | 용도 |
-|--------|------|
-| Vercel | 프론트엔드 호스팅 |
-| Render | 백엔드 호스팅 |
-| Neon | PostgreSQL (서버리스) |
-| Cloudinary | 이미지/파일 저장소 |
+| 서비스     | 용도                  |
+| ---------- | --------------------- |
+| Vercel     | 프론트엔드 호스팅     |
+| Render     | 백엔드 호스팅         |
+| Neon       | PostgreSQL (서버리스) |
+| Cloudinary | 이미지/파일 저장소    |
 
 ---
 
@@ -191,12 +205,12 @@ VITE_API_URL=http://localhost:3000
 
 AI 기능을 사용하려면 최소 1개의 LLM 프로바이더 API 키가 필요합니다. 무료 프로바이더만으로 모든 AI 기능을 이용할 수 있습니다.
 
-| 프로바이더 | 무료 티어 | 모델 | 발급 URL |
-|-----------|----------|------|---------|
-| **Gemini** (추천) | 무료 (15 RPM) | `gemini-2.0-flash` | [Google AI Studio](https://aistudio.google.com/apikey) |
-| **Groq** | 무료 (30 RPM) | `llama-3.3-70b-versatile` | [Groq Console](https://console.groq.com/keys) |
-| **OpenAI Compatible** | 로컬 무료 | Ollama 등 | `OPENAI_COMPATIBLE_URL=http://localhost:11434/v1` |
-| **Anthropic** | 유료 | `claude-opus-4-6` | [Anthropic Console](https://console.anthropic.com) |
+| 프로바이더            | 무료 티어     | 모델                      | 발급 URL                                               |
+| --------------------- | ------------- | ------------------------- | ------------------------------------------------------ |
+| **Gemini** (추천)     | 무료 (15 RPM) | `gemini-2.0-flash`        | [Google AI Studio](https://aistudio.google.com/apikey) |
+| **Groq**              | 무료 (30 RPM) | `llama-3.3-70b-versatile` | [Groq Console](https://console.groq.com/keys)          |
+| **OpenAI Compatible** | 로컬 무료     | Ollama 등                 | `OPENAI_COMPATIBLE_URL=http://localhost:11434/v1`      |
+| **Anthropic**         | 유료          | `claude-opus-4-6`         | [Anthropic Console](https://console.anthropic.com)     |
 
 **자동 Fallback:** Gemini -> Groq -> OpenAI Compatible -> Anthropic 순으로 자동 전환됩니다. 하나의 프로바이더가 rate limit에 걸리면 다음 프로바이더를 자동으로 시도합니다.
 
@@ -270,15 +284,15 @@ resume/
 
 Vite 8 코드 스플리팅 적용. 각 페이지/컴포넌트는 lazy load됩니다.
 
-| 번들 | 크기 | Gzip |
-|------|------|------|
-| `react-vendor` (React + Router) | 443 KB | 135 KB |
-| `tiptap` (리치 텍스트 에디터) | 368 KB | 115 KB |
-| `index` (앱 코어) | 193 KB | 40 KB |
-| `index.css` (TailwindCSS) | 169 KB | - |
-| `ResumeForm` (편집기) | 103 KB | 21 KB |
-| `PreviewPage` (미리보기) | 105 KB | 22 KB |
-| 기타 페이지 청크 | 12-64 KB | 3-12 KB |
+| 번들                            | 크기     | Gzip    |
+| ------------------------------- | -------- | ------- |
+| `react-vendor` (React + Router) | 443 KB   | 135 KB  |
+| `tiptap` (리치 텍스트 에디터)   | 368 KB   | 115 KB  |
+| `index` (앱 코어)               | 193 KB   | 40 KB   |
+| `index.css` (TailwindCSS)       | 169 KB   | -       |
+| `ResumeForm` (편집기)           | 103 KB   | 21 KB   |
+| `PreviewPage` (미리보기)        | 105 KB   | 22 KB   |
+| 기타 페이지 청크                | 12-64 KB | 3-12 KB |
 
 > 총 JS 번들: ~2.2 MB (gzip ~450 KB). 초기 로드에는 `react-vendor` + `index`만 필요 (gzip ~175 KB).
 
@@ -300,6 +314,7 @@ vercel env add VITE_API_URL
 ```
 
 **Build Settings:**
+
 - Framework Preset: Vite
 - Build Command: `pnpm build`
 - Output Directory: `dist`
@@ -326,24 +341,24 @@ vercel env add VITE_API_URL
 
 ### 개인 사용자
 
-| | 무료 | 스탠다드 | 프리미엄 |
-|---|---|---|---|
-| **가격** | 0원 | 2,900원/월 | 5,900원/월 |
-| 이력서 | 3개 | 10개 | 무제한 |
-| AI 변환 | 5회/월 | 30회/월 | 무제한 |
-| 테마 | 3개 | 10개 | 15개 |
-| 자기소개서 | - | O | O |
-| 번역 | - | - | O |
-| 우선 지원 | - | - | O |
+|            | 무료   | 스탠다드   | 프리미엄   |
+| ---------- | ------ | ---------- | ---------- |
+| **가격**   | 0원    | 2,900원/월 | 5,900원/월 |
+| 이력서     | 3개    | 10개       | 무제한     |
+| AI 변환    | 5회/월 | 30회/월    | 무제한     |
+| 테마       | 3개    | 10개       | 15개       |
+| 자기소개서 | -      | O          | O          |
+| 번역       | -      | -          | O          |
+| 우선 지원  | -      | -          | O          |
 
 ### 리크루터
 
-| | 무료 | 비즈니스 | 프리미엄 |
-|---|---|---|---|
-| **가격** | 0원 | 19,900원/월 | 49,900원/월 |
-| 스카우트 | 3건/월 | 30건/월 | 무제한 |
-| 채용 공고 | 1건 | 10건 | 무제한 |
-| 우선 지원 | - | O | O |
+|           | 무료   | 비즈니스    | 프리미엄    |
+| --------- | ------ | ----------- | ----------- |
+| **가격**  | 0원    | 19,900원/월 | 49,900원/월 |
+| 스카우트  | 3건/월 | 30건/월     | 무제한      |
+| 채용 공고 | 1건    | 10건        | 무제한      |
+| 우선 지원 | -      | O           | O           |
 
 ---
 
