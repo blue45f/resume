@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import * as RadixDialog from '@radix-ui/react-dialog';
+import { toast } from '@/components/Toast';
 import { API_URL } from '@/lib/config';
 import { formatDate } from '@/lib/time';
 import type { Resume } from '@/types/resume';
@@ -381,7 +382,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || '최적화 실패');
       // Optimization done - the transform endpoint handles saving
       setError('');
-      alert('JD에 맞춰 이력서가 최적화되었습니다. 변환 기록에서 확인하세요.');
+      toast('JD에 맞춰 이력서가 최적화되었습니다. 변환 기록에서 확인하세요.', 'success');
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -736,7 +737,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(coverLetter);
-                            alert('자소서가 클립보드에 복사되었습니다.');
+                            toast('자소서가 클립보드에 복사되었습니다.', 'success');
                           }}
                           className="text-xs px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-200 transition-colors"
                         >

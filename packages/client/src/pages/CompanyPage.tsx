@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ErrorRetry from '@/components/ErrorRetry';
+import { toast } from '@/components/Toast';
 import { timeAgo } from '@/lib/time';
 import { getUser } from '@/lib/auth';
 import { useJobs } from '@/hooks/useResources';
@@ -187,11 +188,11 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
 
   const handleSubmit = useCallback(() => {
     if (form.rating === 0) {
-      alert('전체 평점을 선택해주세요');
+      toast('전체 평점을 선택해주세요', 'error');
       return;
     }
     if (!form.pros.trim() && !form.cons.trim()) {
-      alert('장점 또는 단점을 작성해주세요');
+      toast('장점 또는 단점을 작성해주세요', 'error');
       return;
     }
     setSubmitting(true);

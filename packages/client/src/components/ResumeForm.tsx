@@ -616,7 +616,7 @@ export default function ResumeForm({
                             const file = e.target.files?.[0];
                             if (!file) return;
                             if (file.size > 2 * 1024 * 1024) {
-                              alert('사진은 2MB 이하만 가능합니다');
+                              toast('사진은 2MB 이하만 가능합니다', 'error');
                               return;
                             }
                             const reader = new FileReader();

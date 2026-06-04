@@ -5,6 +5,7 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { usePrompt } from '@/shared/ui/PromptProvider';
 
 interface Props {
   value: string;
@@ -26,6 +27,7 @@ export default function RichEditor({
   const [, setShowAiButton] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const aiButtonRef = useRef<HTMLButtonElement>(null);
+  const prompt = usePrompt();
 
   const editor = useEditor({
     extensions: [
@@ -162,11 +164,15 @@ export default function RichEditor({
         <div className="w-px h-4 bg-slate-300 mx-1" />
         <ToolbarBtn
           active={editor.isActive('link')}
-          onClick={() => {
+          onClick={async () => {
             if (editor.isActive('link')) {
               editor.chain().focus().unsetLink().run();
             } else {
-              const url = prompt('URL을 입력하세요:');
+              const url = await prompt({
+                title: 'URL 입력',
+                label: 'URL',
+                placeholder: 'https://...',
+              });
               if (url) editor.chain().focus().setLink({ href: url }).run();
             }
           }}
