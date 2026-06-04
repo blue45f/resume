@@ -205,7 +205,10 @@ export default function HomePage() {
           role="main"
           aria-busy="true"
         >
-          <div className="h-8 bg-slate-200 rounded w-48 mb-6 animate-pulse" />
+          <span className="sr-only" role="status">
+            이력서를 불러오는 중입니다
+          </span>
+          <div className="h-8 shimmer rounded w-48 mb-6" aria-hidden="true" />
           <CardGridSkeleton count={6} />
         </main>
         <Footer />

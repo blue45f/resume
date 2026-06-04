@@ -3856,6 +3856,32 @@ button:active:not(:disabled) {
   border-color: color-mix(in oklab, var(--color-accent) 35%, var(--color-border));
   box-shadow: var(--shadow-hover);
 }
+/* Static (non-link) feature/testimonial cards: honest hover that conveys
+   "readable detail," not navigability — quiet border + shadow lift, no translate.
+   (Product register: motion conveys state, not decoration.) */
+.home-feature-card.cursor-default:hover {
+  transform: none;
+  box-shadow: var(--shadow-md);
+}
+.home-feature-card.cursor-default .text-lg {
+  transition: transform var(--transition-fast);
+}
+.home-feature-card.cursor-default:hover .text-lg {
+  transform: translateY(-1px);
+}
+.home-testimonial-card {
+  position: relative;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+.home-testimonial-card:hover {
+  border-color: color-mix(in oklab, var(--color-accent) 26%, var(--color-border-subtle));
+  box-shadow: var(--shadow-md);
+}
+.home-testimonial-card blockquote {
+  text-wrap: pretty;
+}
 .home-subtle-link {
   color: color-mix(in oklab, var(--color-accent) 84%, var(--color-text) 16%);
   transition:
