@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Resume } from '@/types/resume';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 import {
   checkKorean,
   autoFixResume,
@@ -91,6 +92,8 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
     }
   };
 
+  const confirm = useConfirm();
+
   const handleAutoFix = async () => {
     if (!onApplyFix) return;
     const { resume: fixed, totalChanges } = autoFixResume(resume, 'error');
@@ -99,9 +102,11 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
       return;
     }
     if (
-      !confirm(
-        `${totalChanges}개의 맞춤법 오타를 자동 수정할까요?\n(경력·자기소개·프로젝트 설명 대상)`,
-      )
+      !(await confirm({
+        title: `${totalChanges}개의 맞춤법 오타를 자동 수정할까요?`,
+        description: '경력·자기소개·프로젝트 설명 대상',
+        confirmText: '수정',
+      }))
     )
       return;
     setApplying(true);

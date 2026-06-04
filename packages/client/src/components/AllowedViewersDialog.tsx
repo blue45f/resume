@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Dialog from '@/shared/ui/Dialog';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 import { toast } from '@/components/Toast';
 import {
   listAllowedViewers,
@@ -137,8 +138,10 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
     setShowSuggestions(false);
   };
 
+  const confirm = useConfirm();
+
   const handleRemove = async (userId: string, name: string) => {
-    if (!confirm(tx('sharing.removeConfirm', { name }))) return;
+    if (!(await confirm({ title: tx('sharing.removeConfirm', { name }), danger: true }))) return;
     try {
       await removeAllowedViewer(resumeId, userId);
       toast(tx('sharing.removed'), 'success');

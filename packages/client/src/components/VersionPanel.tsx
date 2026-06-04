@@ -3,6 +3,7 @@ import * as RadixDialog from '@radix-ui/react-dialog';
 import { fetchVersions, restoreVersion } from '@/lib/api';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
 interface Version {
   id: string;
@@ -392,8 +393,18 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
     }
   };
 
+  const confirm = useConfirm();
+
   const handleRestore = async (versionId: string, versionNumber: number) => {
-    if (!confirm(`버전 ${versionNumber}으로 복원하시겠습니까? 현재 내용이 덮어씌워집니다.`)) return;
+    if (
+      !(await confirm({
+        title: `버전 ${versionNumber}으로 복원하시겠습니까?`,
+        description: '현재 내용이 덮어씌워집니다.',
+        confirmText: '복원',
+        danger: true,
+      }))
+    )
+      return;
     setRestoring(versionId);
     setError('');
     setSuccess('');
