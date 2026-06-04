@@ -11,6 +11,7 @@ import { PLANS } from '@/lib/plans';
 import { API_URL } from '@/lib/config';
 import { tx } from '@/lib/i18n';
 import { formatDate } from '@/lib/time';
+import { useConfirm } from '@/shared/ui/ConfirmProvider';
 import AdminPostsTab from '@/features/admin/ui/AdminPostsTab';
 import AdminStudyGroupsTab from '@/features/admin/ui/AdminStudyGroupsTab';
 import AdminInterviewQuestionsTab from '@/features/admin/ui/AdminInterviewQuestionsTab';
@@ -704,6 +705,7 @@ function StatCard({
 // 0. Announcement Push Panel — 활성 사용자에게 1회성 알림 발송
 // ═══════════════════════════════════════════════════════════
 function AnnouncementPushPanel() {
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState(
     '✨ 새 기능 가이드 추가 — AI 자동 생성 / 채용공고 URL / 선택 공개 / 커피챗 / AI 면접 분석 등 8종',
@@ -722,7 +724,14 @@ function AnnouncementPushPanel() {
       toast('메시지를 입력해주세요', 'error');
       return;
     }
-    if (!confirm(`최근 ${activeWithinDays}일 활성 사용자에게 공지 발송할까요?`)) return;
+    if (
+      !(await confirm({
+        title: `최근 ${activeWithinDays}일 활성 사용자에게 공지 발송할까요?`,
+        danger: true,
+        confirmText: '발송',
+      }))
+    )
+      return;
     setSubmitting(true);
     setResult(null);
     try {
@@ -1418,6 +1427,7 @@ const BANNER_COLORS = [
 ];
 
 function AdminBannersTab() {
+  const confirm = useConfirm();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Banner | null>(null);
@@ -1473,7 +1483,8 @@ function AdminBannersTab() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('배너를 삭제하시겠습니까?')) return;
+    if (!(await confirm({ title: '배너를 삭제하시겠습니까?', danger: true, confirmText: '삭제' })))
+      return;
     const res = await fetch(`${API_URL}/api/banners/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
@@ -1783,6 +1794,7 @@ const NOTICE_TYPE_COLORS: Record<string, string> = {
 };
 
 function AdminNoticesTab() {
+  const confirm = useConfirm();
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -1844,7 +1856,10 @@ function AdminNoticesTab() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('공지사항을 삭제하시겠습니까?')) return;
+    if (
+      !(await confirm({ title: '공지사항을 삭제하시겠습니까?', danger: true, confirmText: '삭제' }))
+    )
+      return;
     const res = await fetch(`${API_URL}/api/notices/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` } as any,
@@ -2161,6 +2176,7 @@ function AdminNoticesTab() {
 // Community Moderation Tab
 // ═══════════════════════════════════════════════════════════
 function AdminCommunityTab() {
+  const confirm = useConfirm();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [page, setPage] = useState(1);
@@ -2189,7 +2205,15 @@ function AdminCommunityTab() {
   const fetchPosts = () => communityQuery.refetch();
 
   const deletePost = async (id: string) => {
-    if (!confirm('게시글을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+    if (
+      !(await confirm({
+        title: '게시글을 삭제하시겠습니까?',
+        description: '이 작업은 되돌릴 수 없습니다.',
+        danger: true,
+        confirmText: '삭제',
+      }))
+    )
+      return;
     setActionId(id);
     const r = await fetch(`${API_URL}/api/community/${id}`, {
       method: 'DELETE',
@@ -3076,6 +3100,7 @@ function SystemSettings() {
 // Existing: RecentResumes
 // ═══════════════════════════════════════════════════════════
 function RecentResumes() {
+  const confirm = useConfirm();
   const recentResumesQuery = useQuery<{ data: any[] }>({
     queryKey: ['admin-recent-resumes'],
     queryFn: async () => {
@@ -3096,7 +3121,14 @@ function RecentResumes() {
   }, [recentResumesQuery.data, recentResumesQuery.isLoading]);
 
   const handleHide = async (id: string) => {
-    if (!confirm('이 이력서를 비공개로 변경하시겠습니까?')) return;
+    if (
+      !(await confirm({
+        title: '이 이력서를 비공개로 변경하시겠습니까?',
+        danger: true,
+        confirmText: '변경',
+      }))
+    )
+      return;
     const token = localStorage.getItem('token');
     const res = await fetch(`${API_URL}/api/resumes/${id}/visibility`, {
       method: 'PATCH',
@@ -3110,7 +3142,15 @@ function RecentResumes() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('이 이력서를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+    if (
+      !(await confirm({
+        title: '이 이력서를 삭제하시겠습니까?',
+        description: '이 작업은 되돌릴 수 없습니다.',
+        danger: true,
+        confirmText: '삭제',
+      }))
+    )
+      return;
     const token = localStorage.getItem('token');
     const res = await fetch(`${API_URL}/api/resumes/${id}`, {
       method: 'DELETE',
@@ -3360,6 +3400,7 @@ const REPORT_REASON_LABEL: Record<string, string> = {
   other: '기타',
 };
 function ResumeReportsQueue() {
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const token = localStorage.getItem('token');
   const reportsQuery = useQuery<{ items: ResumeReportItem[]; total: number }>({
@@ -3386,7 +3427,14 @@ function ResumeReportsQueue() {
   });
 
   const unhide = async (id: string) => {
-    if (!confirm('자동숨김을 해제하고 신고 카운트를 리셋하시겠습니까?')) return;
+    if (
+      !(await confirm({
+        title: '자동숨김을 해제하고 신고 카운트를 리셋하시겠습니까?',
+        danger: true,
+        confirmText: '해제',
+      }))
+    )
+      return;
     const res = await fetch(`${API_URL}/api/resumes/admin/${id}/unhide`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
@@ -3401,7 +3449,15 @@ function ResumeReportsQueue() {
   };
 
   const dismissReport = async (reportId: string) => {
-    if (!confirm('이 신고를 기각하시겠습니까? (reportCount 재계산)')) return;
+    if (
+      !(await confirm({
+        title: '이 신고를 기각하시겠습니까?',
+        description: '(reportCount 재계산)',
+        danger: true,
+        confirmText: '기각',
+      }))
+    )
+      return;
     const res = await fetch(`${API_URL}/api/resumes/admin/reports/${reportId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
@@ -3526,6 +3582,7 @@ interface CommunityReportItem {
   reporter: { id: string; name: string; email: string };
 }
 function CommunityPostReportsQueue() {
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const token = localStorage.getItem('token');
   const { data } = useQuery<{ items: CommunityReportItem[]; total: number }>({
@@ -3540,7 +3597,14 @@ function CommunityPostReportsQueue() {
     staleTime: 30_000,
   });
   const unhide = async (id: string) => {
-    if (!confirm('자동숨김을 해제하고 신고 카운트를 리셋하시겠습니까?')) return;
+    if (
+      !(await confirm({
+        title: '자동숨김을 해제하고 신고 카운트를 리셋하시겠습니까?',
+        danger: true,
+        confirmText: '해제',
+      }))
+    )
+      return;
     const res = await fetch(`${API_URL}/api/community/admin/${id}/unhide`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
@@ -3736,6 +3800,7 @@ const EXT_LOCATIONS = [
   { key: 'global', label: '글로벌' },
 ];
 function AdminExtLinksTab() {
+  const confirm = useConfirm();
   const [links, setLinks] = useState<ExtLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<ExtLink> | null>(null);
@@ -3782,7 +3847,8 @@ function AdminExtLinksTab() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
+    if (!(await confirm({ title: '정말 삭제하시겠습니까?', danger: true, confirmText: '삭제' })))
+      return;
     const res = await fetch(`${API_URL}/api/jobs/external-links/${id}`, {
       method: 'DELETE',
       headers,
@@ -4408,6 +4474,7 @@ const FORBIDDEN_CATEGORIES = [
 ];
 
 function AdminForbiddenWordsTab() {
+  const confirm = useConfirm();
   const [words, setWords] = useState<ForbiddenWord[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -4561,14 +4628,23 @@ function AdminForbiddenWordsTab() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
+    if (!(await confirm({ title: '정말 삭제하시겠습니까?', danger: true, confirmText: '삭제' })))
+      return;
     await fetch(`${API_URL}/api/forbidden-words/${id}`, { method: 'DELETE', headers });
     load();
     loadStats();
   };
 
   const handleBulkDelete = async () => {
-    if (!selected.size || !confirm(`${selected.size}개 금칙어를 삭제하시겠습니까?`)) return;
+    if (!selected.size) return;
+    if (
+      !(await confirm({
+        title: `${selected.size}개 금칙어를 삭제하시겠습니까?`,
+        danger: true,
+        confirmText: '삭제',
+      }))
+    )
+      return;
     await fetch(`${API_URL}/api/forbidden-words/bulk`, {
       method: 'DELETE',
       headers,
