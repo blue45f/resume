@@ -1,14 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="이력서공방">
   <defs>
-    <linearGradient id="paper" x1="8" y1="6" x2="42" y2="44" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#f8fafc" />
-      <stop offset="1" stop-color="#e2e8f0" />
+    <!-- Paper warm gradient -->
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f8fafc" />
     </linearGradient>
+    <!-- Glow filter -->
+    <filter id="softGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#2563eb" flood-opacity="0.12" />
+    </filter>
   </defs>
-  <rect x="3" y="3" width="42" height="42" rx="12" fill="#0f172a" />
-  <path d="M15 8.5h13l7 7V38a2.5 2.5 0 0 1-2.5 2.5h-17A2.5 2.5 0 0 1 13 38V11a2.5 2.5 0 0 1 2.5-2.5Z" fill="url(#paper)" />
-  <path d="M28 8.5v6a2 2 0 0 0 2 2h5" fill="none" stroke="#94a3b8" stroke-width="1.6" />
-  <path d="M18 22h12M18 26h10M18 30h7" stroke="#475569" stroke-width="1.8" stroke-linecap="round" />
-  <circle cx="34" cy="34" r="7" fill="#2563eb" />
-  <path d="M30.8 34.1 33.2 36.5 38 31.2" fill="none" stroke="#eff6ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Background plate -->
+  <rect x="3" y="3" width="42" height="42" rx="13" fill="#0f172a" stroke="#1e293b" stroke-width="1.5" />
+  
+  <!-- Stylized Resume Paper Sheet -->
+  <path d="M14 8h14l8 8v24a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2Z" fill="url(#paper)" filter="url(#softGlow)" />
+  <!-- Folded corner -->
+  <path d="M28 8v6a2 2 0 0 0 2 2h6" fill="none" stroke="#cbd5e1" stroke-width="1.8" />
+  
+  <!-- Resume text lines -->
+  <path d="M17 21h14M17 25h12M17 29h8" stroke="#334155" stroke-width="2" stroke-linecap="round" />
+  
+  <!-- AI Status Check Badge -->
+  <circle cx="34" cy="34" r="7" fill="#0ea5e9" />
+  <path d="M31 34 l2 2 l4 -4" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 </svg>
