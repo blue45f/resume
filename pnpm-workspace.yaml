@@ -21,3 +21,7 @@ packageExtensions:
   minimatch:
     dependencies:
       brace-expansion: "^5.0.5"
+
+minimumReleaseAgeExclude:
+  - react-hook-form
+
