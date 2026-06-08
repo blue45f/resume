@@ -99,7 +99,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.7",
     "react-error-boundary": "^6.1.2",
-    "react-hook-form": "^7.76.1",
+    "react-hook-form": "^7.78.0",
     "react-i18next": "^17.0.8",
     "react-router-dom": "^7.17.0",
     "react-to-print": "^3.3.0",
