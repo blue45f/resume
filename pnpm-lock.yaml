@@ -362,16 +362,16 @@ importers:
         version: 7.29.7
       '@capacitor/android':
         specifier: ^8.3.4
-        version: 8.3.4(@capacitor/core@8.3.4)
+        version: 8.3.4(@capacitor/core@8.4.0)
       '@capacitor/cli':
         specifier: ^8.3.4
         version: 8.3.4
       '@capacitor/core':
-        specifier: ^8.3.4
-        version: 8.3.4
+        specifier: ^8.4.0
+        version: 8.4.0
       '@capacitor/ios':
         specifier: ^8.4.0
-        version: 8.4.0(@capacitor/core@8.3.4)
+        version: 8.4.0(@capacitor/core@8.4.0)
       '@rolldown/plugin-babel':
         specifier: ^0.2.3
         version: 0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.0.3)(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
@@ -640,8 +640,8 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
-  '@capacitor/core@8.3.4':
-    resolution: {integrity: sha512-CqRQCkb6HXxcx/N7s+hHTN6ef2CmamFiRMITwm4qB840ph56mS42bzUgn6tKCP+RZjdDweiRHj9ytDDeN6jFag==}
+  '@capacitor/core@8.4.0':
+    resolution: {integrity: sha512-LrS1xPIrqLtJABBIPDGXxxKmI9OyesrzWw8DiHbxhSC9JoiLUleUAJlX1a0LWIVLRbuY4Szgf9huFeRqYH2SAQ==}
 
   '@capacitor/ios@8.4.0':
     resolution: {integrity: sha512-tnwstEdbTJ2nHAfoAwnurXgYRscWeLY+IIGdz69o24gN2Crfj9Xc0TWo8L5uFLF1LmpbUywH1IT0U1oHV8c+CA==}
@@ -8890,9 +8890,9 @@ snapshots:
     dependencies:
       css-tree: 3.2.1
 
-  '@capacitor/android@8.3.4(@capacitor/core@8.3.4)':
+  '@capacitor/android@8.3.4(@capacitor/core@8.4.0)':
     dependencies:
-      '@capacitor/core': 8.3.4
+      '@capacitor/core': 8.4.0
 
   '@capacitor/cli@8.3.4':
     dependencies:
@@ -8916,13 +8916,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@capacitor/core@8.3.4':
+  '@capacitor/core@8.4.0':
     dependencies:
       tslib: 2.8.1
 
-  '@capacitor/ios@8.4.0(@capacitor/core@8.3.4)':
+  '@capacitor/ios@8.4.0(@capacitor/core@8.4.0)':
     dependencies:
-      '@capacitor/core': 8.3.4
+      '@capacitor/core': 8.4.0
 
   '@clack/core@0.4.1':
     dependencies:
