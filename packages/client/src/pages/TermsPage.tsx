@@ -1,8 +1,88 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import {
+  formatCommunityDemoTime,
+  readCommunityDemoLog,
+  summarizeCommunityDemoLog,
+} from '@/lib/communityDemoLog';
+
+const TERMS_DEMO_CHECKLIST_STORAGE_KEY = 'resume-terms-demo-checklist-v1';
+const TERMS_DEMO_CHECKS = [
+  {
+    id: 'resume-privacy',
+    title: '이력서 개인정보 처리 확인',
+    detail: '인적사항, 경력, 학력 등 민감한 자기소개 데이터의 수집·보관 범위',
+  },
+  {
+    id: 'ai-provider',
+    title: 'AI 처리 고지 확인',
+    detail: 'LLM 변환 시 외부 AI 서비스로 데이터가 전송될 수 있다는 고지',
+  },
+  {
+    id: 'community-rule',
+    title: '커뮤니티 이용 제한 확인',
+    detail: '비방, 권리 침해, 운영 방해 글쓰기 제한 기준',
+  },
+  {
+    id: 'sharing',
+    title: '공개·공유 설정 확인',
+    detail: '공개, 링크만 공개, 비공개 설정의 접근 범위',
+  },
+] as const;
+
+type TermsDemoCheckId = (typeof TERMS_DEMO_CHECKS)[number]['id'];
+
+const readTermsChecklist = (): TermsDemoCheckId[] => {
+  if (typeof window === 'undefined') return [];
+
+  try {
+    const raw = window.localStorage.getItem(TERMS_DEMO_CHECKLIST_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((id): id is TermsDemoCheckId =>
+      TERMS_DEMO_CHECKS.some((check) => check.id === id),
+    );
+  } catch {
+    return [];
+  }
+};
+
+const writeTermsChecklist = (items: TermsDemoCheckId[]) => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.localStorage.setItem(TERMS_DEMO_CHECKLIST_STORAGE_KEY, JSON.stringify(items));
+  } catch {}
+};
 
 export default function TermsPage() {
+  const [checkedTerms, setCheckedTerms] = useState<TermsDemoCheckId[]>(readTermsChecklist);
+  const [communityLogs] = useState(() => readCommunityDemoLog());
+  const communityDemoSummary = useMemo(
+    () => summarizeCommunityDemoLog(communityLogs),
+    [communityLogs],
+  );
+  const recentBlockedLogs = useMemo(
+    () =>
+      communityLogs
+        .filter((log) => log.action === 'blocked')
+        .slice(-3)
+        .reverse(),
+    [communityLogs],
+  );
+  const termsReadinessRate = Math.round((checkedTerms.length / TERMS_DEMO_CHECKS.length) * 100);
+  const toggleTermsCheck = (id: TermsDemoCheckId, checked: boolean) => {
+    setCheckedTerms((current) => {
+      const next = checked
+        ? Array.from(new Set([...current, id]))
+        : current.filter((item) => item !== id);
+      writeTermsChecklist(next);
+      return next;
+    });
+  };
+
   useEffect(() => {
     document.title = '이용약관 — 이력서공방';
     return () => {
@@ -21,6 +101,86 @@ export default function TermsPage() {
         <h1 className="heading-accent text-2xl font-bold text-slate-900 dark:text-slate-100 mb-8">
           이용약관
         </h1>
+
+        <section
+          className="mb-8 rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800/70"
+          aria-label="약관 데모 체크리스트"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700 dark:text-sky-400">
+                Terms readiness
+              </p>
+              <h2 className="mt-1 text-lg font-bold text-slate-900 dark:text-slate-100">
+                커뮤니티 이용 전 확인
+              </h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                커뮤니티에서 남긴 검색·열람·작성 제한 로그를 약관 확인 항목과 연결합니다.
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-right dark:border-slate-700 dark:bg-slate-900/40">
+              <p className="text-[11px] text-slate-500">완료율</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                {termsReadinessRate}%
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+            <span
+              className="block h-full rounded-full bg-sky-700"
+              style={{ width: `${termsReadinessRate}%` }}
+            />
+          </div>
+          <div className="mt-4 grid gap-2">
+            {TERMS_DEMO_CHECKS.map((check) => (
+              <label
+                key={check.id}
+                className="flex cursor-pointer gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900/40"
+              >
+                <input
+                  type="checkbox"
+                  checked={checkedTerms.includes(check.id)}
+                  onChange={(event) => toggleTermsCheck(check.id, event.target.checked)}
+                  className="mt-1 h-4 w-4 accent-sky-700"
+                />
+                <span>
+                  <strong className="block text-slate-800 dark:text-slate-100">
+                    {check.title}
+                  </strong>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{check.detail}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <div className="mt-4 grid gap-2 text-xs sm:grid-cols-4">
+            <span className="rounded-lg bg-slate-100 px-2 py-1.5 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+              검색 {communityDemoSummary.searchCount}
+            </span>
+            <span className="rounded-lg bg-slate-100 px-2 py-1.5 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+              열람 {communityDemoSummary.readCount}
+            </span>
+            <span className="rounded-lg bg-slate-100 px-2 py-1.5 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+              작성 {communityDemoSummary.writeCount}
+            </span>
+            <span className="rounded-lg bg-amber-100 px-2 py-1.5 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+              차단 {communityDemoSummary.blockedCount}
+            </span>
+          </div>
+          {recentBlockedLogs.length > 0 ? (
+            <div className="mt-4 space-y-2">
+              {recentBlockedLogs.map((log) => (
+                <div
+                  key={log.id}
+                  className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
+                >
+                  <strong>{log.label}</strong>
+                  {log.detail ? <span> · {log.detail}</span> : null}
+                  <span className="ml-2 opacity-70">{formatCommunityDemoTime(log.at)}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </section>
 
         <div className="prose prose-slate max-w-none space-y-8">
           <section>
@@ -162,6 +322,86 @@ export default function TermsPage() {
         >
           개인정보 처리방침
         </h1>
+
+        <section
+          className="mb-8 rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800/70"
+          aria-label="약관 데모 체크리스트"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700 dark:text-sky-400">
+                Terms readiness
+              </p>
+              <h2 className="mt-1 text-lg font-bold text-slate-900 dark:text-slate-100">
+                커뮤니티 이용 전 확인
+              </h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                커뮤니티에서 남긴 검색·열람·작성 제한 로그를 약관 확인 항목과 연결합니다.
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-right dark:border-slate-700 dark:bg-slate-900/40">
+              <p className="text-[11px] text-slate-500">완료율</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                {termsReadinessRate}%
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+            <span
+              className="block h-full rounded-full bg-sky-700"
+              style={{ width: `${termsReadinessRate}%` }}
+            />
+          </div>
+          <div className="mt-4 grid gap-2">
+            {TERMS_DEMO_CHECKS.map((check) => (
+              <label
+                key={check.id}
+                className="flex cursor-pointer gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900/40"
+              >
+                <input
+                  type="checkbox"
+                  checked={checkedTerms.includes(check.id)}
+                  onChange={(event) => toggleTermsCheck(check.id, event.target.checked)}
+                  className="mt-1 h-4 w-4 accent-sky-700"
+                />
+                <span>
+                  <strong className="block text-slate-800 dark:text-slate-100">
+                    {check.title}
+                  </strong>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{check.detail}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <div className="mt-4 grid gap-2 text-xs sm:grid-cols-4">
+            <span className="rounded-lg bg-slate-100 px-2 py-1.5 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+              검색 {communityDemoSummary.searchCount}
+            </span>
+            <span className="rounded-lg bg-slate-100 px-2 py-1.5 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+              열람 {communityDemoSummary.readCount}
+            </span>
+            <span className="rounded-lg bg-slate-100 px-2 py-1.5 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+              작성 {communityDemoSummary.writeCount}
+            </span>
+            <span className="rounded-lg bg-amber-100 px-2 py-1.5 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+              차단 {communityDemoSummary.blockedCount}
+            </span>
+          </div>
+          {recentBlockedLogs.length > 0 ? (
+            <div className="mt-4 space-y-2">
+              {recentBlockedLogs.map((log) => (
+                <div
+                  key={log.id}
+                  className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
+                >
+                  <strong>{log.label}</strong>
+                  {log.detail ? <span> · {log.detail}</span> : null}
+                  <span className="ml-2 opacity-70">{formatCommunityDemoTime(log.at)}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </section>
 
         <div className="prose prose-slate max-w-none space-y-8">
           <section>

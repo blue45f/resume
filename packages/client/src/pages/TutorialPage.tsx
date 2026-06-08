@@ -1,9 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
+import {
+  appendCommunityDemoLog,
+  readCommunityDemoLog,
+  summarizeCommunityDemoLog,
+} from '@/lib/communityDemoLog';
 
 const steps = [
   {
@@ -991,9 +996,35 @@ export default function TutorialPage() {
     return firstStep || 'create';
   });
   const [guideType, setGuideTypeState] = useState<GuideType>(initialGuide);
+  const [communityLogs, setCommunityLogs] = useState(() => readCommunityDemoLog());
+  const communityDemoSummary = useMemo(
+    () => summarizeCommunityDemoLog(communityLogs),
+    [communityLogs],
+  );
+  const tutorialChecks = useMemo(
+    () => [
+      {
+        label: '커뮤니티 검색·필터 사용',
+        done: communityDemoSummary.searchCount + communityDemoSummary.filterCount > 0,
+      },
+      { label: '게시글 열람 경험', done: communityDemoSummary.readCount > 0 },
+      {
+        label: '글쓰기 또는 작성 제한 확인',
+        done: communityDemoSummary.writeCount + communityDemoSummary.blockedCount > 0,
+      },
+      { label: '가이드 유형 전환', done: communityDemoSummary.tutorialCount > 0 },
+    ],
+    [communityDemoSummary],
+  );
+  const tutorialDemoRate = Math.round(
+    (tutorialChecks.filter((check) => check.done).length / tutorialChecks.length) * 100,
+  );
 
   // guideType 변경 시 URL 동기화 (북마크/공유 가능)
   const setGuideType = (next: GuideType) => {
+    setCommunityLogs(
+      appendCommunityDemoLog('tutorial-guide', '튜토리얼 가이드 전환', GUIDE_REGISTRY[next].label),
+    );
     setGuideTypeState(next);
     const params = new URLSearchParams(searchParams);
     if (next === 'personal') params.delete('guide');
@@ -1026,6 +1057,65 @@ export default function TutorialPage() {
             이력서공방를 처음 사용하시나요? 아래 가이드를 따라해보세요.
           </p>
         </div>
+
+        <section
+          className="mb-6 rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800/70"
+          aria-label="튜토리얼 데모 미션"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700 dark:text-sky-400">
+                Tutorial mission
+              </p>
+              <h2 className="mt-1 text-lg font-bold text-slate-900 dark:text-slate-100">
+                커뮤니티 플로우 기반 미션
+              </h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                커뮤니티에서 만든 로그를 읽어, 실제 사용자가 놓치기 쉬운 검색·열람·작성 제한 흐름을
+                가이드에 반영합니다.
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-right dark:border-slate-700 dark:bg-slate-900/40">
+              <p className="text-[11px] text-slate-500">완료율</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                {tutorialDemoRate}%
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-4">
+            {tutorialChecks.map((check) => (
+              <div
+                key={check.label}
+                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-900/40"
+              >
+                <span
+                  className={
+                    check.done
+                      ? 'font-semibold text-emerald-600 dark:text-emerald-400'
+                      : 'font-semibold text-slate-400'
+                  }
+                >
+                  {check.done ? '완료' : '대기'}
+                </span>
+                <p className="mt-1 text-slate-600 dark:text-slate-300">{check.label}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2 text-xs">
+            <Link
+              to={ROUTES.community.list}
+              className="rounded-lg bg-sky-700 px-3 py-2 font-semibold text-white"
+            >
+              커뮤니티에서 로그 만들기
+            </Link>
+            <Link
+              to="/terms"
+              className="rounded-lg border border-slate-200 px-3 py-2 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300"
+            >
+              약관 체크 보기
+            </Link>
+          </div>
+        </section>
 
         {/* 6개 가이드 segmented toggle — overflow-x-auto 로 모바일도 수용 */}
         <div

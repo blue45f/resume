@@ -9,6 +9,12 @@ import { ROUTES } from '@/lib/routes';
 import SendMessageButton from '@/components/SendMessageButton';
 import { tx } from '@/lib/i18n';
 import { formatDate } from '@/lib/time';
+import {
+  appendCommunityDemoLog,
+  formatCommunityDemoTime,
+  readCommunityDemoLog,
+  summarizeCommunityDemoLog,
+} from '@/lib/communityDemoLog';
 
 interface CategoryDef {
   id: string;
@@ -127,7 +133,17 @@ export default function CommunityPage() {
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [sortBy, setSortBy] = useState<string>(searchParams.get('sort') || 'recent');
   const [readPosts, setReadPosts] = useState<Set<string>>(() => getReadPosts());
+  const [demoLogs, setDemoLogs] = useState(() => readCommunityDemoLog());
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const logCommunityDemo = useCallback(
+    (action: Parameters<typeof appendCommunityDemoLog>[0], label: string, detail?: string) => {
+      setDemoLogs(appendCommunityDemoLog(action, label, detail));
+    },
+    [],
+  );
+  const communityDemoSummary = useMemo(() => summarizeCommunityDemoLog(demoLogs), [demoLogs]);
+  const recentDemoLogs = useMemo(() => demoLogs.slice().reverse().slice(0, 4), [demoLogs]);
 
   const category = searchParams.get('category') || 'all';
   const page = parseInt(searchParams.get('page') || '1');
@@ -182,6 +198,12 @@ export default function CommunityPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    const query = search.trim();
+    logCommunityDemo(
+      query ? 'search' : 'search-clear',
+      query ? '커뮤니티 검색 실행' : '빈 검색으로 목록 재설정',
+      query || '전체',
+    );
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       if (search) next.set('search', search);
@@ -192,6 +214,7 @@ export default function CommunityPage() {
   };
 
   const clearSearch = () => {
+    logCommunityDemo('search-clear', '커뮤니티 검색어 초기화');
     setSearch('');
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -203,6 +226,8 @@ export default function CommunityPage() {
   };
 
   const setCategory = (cat: string) => {
+    const catInfo = getCATEGORIES().find((item) => item.id === cat);
+    logCommunityDemo('category', '커뮤니티 카테고리 필터', catInfo?.label ?? cat);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       if (cat === 'all') next.delete('category');
@@ -222,6 +247,8 @@ export default function CommunityPage() {
   };
 
   const handleSortChange = (s: string) => {
+    const sortLabel = getSORT_OPTIONS().find((option) => option.value === s)?.label ?? s;
+    logCommunityDemo('sort', '커뮤니티 정렬 변경', sortLabel);
     setSortBy(s);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -232,6 +259,7 @@ export default function CommunityPage() {
   };
 
   const handlePostClick = (id: string) => {
+    logCommunityDemo('read', '커뮤니티 게시글 열람', id);
     markRead(id);
     setReadPosts((prev) => new Set([...prev, id]));
   };
@@ -259,9 +287,10 @@ export default function CommunityPage() {
               취업 정보와 경험을 나눠보세요
             </p>
           </div>
-          {user && (
+          {user ? (
             <Link
               to={ROUTES.community.write}
+              onClick={() => logCommunityDemo('write-open', '커뮤니티 글쓰기 진입', category)}
               className="inline-flex items-center gap-2 px-4 py-2 bg-sky-700 text-white text-sm font-medium rounded-xl hover:bg-sky-800 transition-colors shadow-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -274,8 +303,83 @@ export default function CommunityPage() {
               </svg>
               글쓰기
             </Link>
+          ) : (
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  logCommunityDemo('blocked', '비로그인 글쓰기 차단', '로그인 후 작성 가능')
+                }
+                className="px-3 py-2 text-xs font-medium rounded-xl border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/50 dark:bg-amber-900/20 dark:text-amber-300"
+              >
+                작성 제한 데모
+              </button>
+              <Link
+                to={ROUTES.login}
+                className="px-3 py-2 text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+              >
+                로그인
+              </Link>
+            </div>
           )}
         </div>
+
+        <section
+          className="mb-5 rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800/70"
+          aria-label="커뮤니티 데모 로그"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700 dark:text-sky-400">
+                Community demo
+              </p>
+              <h2 className="mt-1 text-base font-bold text-slate-900 dark:text-slate-100">
+                약관·튜토리얼로 이어지는 활동 로그
+              </h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                검색, 카테고리, 정렬, 열람, 작성 제한을 기록해 약관 체크와 튜토리얼 미션에서
+                재사용합니다.
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5 text-center text-[11px] sm:min-w-72">
+              <span className="rounded-lg bg-slate-100 px-2 py-1.5 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                검색 {communityDemoSummary.searchCount}
+              </span>
+              <span className="rounded-lg bg-slate-100 px-2 py-1.5 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                필터 {communityDemoSummary.filterCount}
+              </span>
+              <span className="rounded-lg bg-slate-100 px-2 py-1.5 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                열람 {communityDemoSummary.readCount}
+              </span>
+              <span className="rounded-lg bg-slate-100 px-2 py-1.5 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                작성 {communityDemoSummary.writeCount}
+              </span>
+              <span className="rounded-lg bg-amber-100 px-2 py-1.5 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                차단 {communityDemoSummary.blockedCount}
+              </span>
+              <Link
+                to="/terms"
+                className="rounded-lg bg-sky-700 px-2 py-1.5 font-semibold text-white"
+              >
+                약관
+              </Link>
+            </div>
+          </div>
+          {recentDemoLogs.length > 0 ? (
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {recentDemoLogs.map((log) => (
+                <div
+                  key={log.id}
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-300"
+                >
+                  <strong className="text-slate-800 dark:text-slate-100">{log.label}</strong>
+                  {log.detail ? <span> · {log.detail}</span> : null}
+                  <span className="ml-2 text-slate-400">{formatCommunityDemoTime(log.at)}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </section>
 
         {/* Hot posts strip - only show when not searching */}
         {!search && page === 1 && hotPosts.length > 0 && category === 'all' && (

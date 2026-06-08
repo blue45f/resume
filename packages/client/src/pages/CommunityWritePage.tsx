@@ -11,6 +11,7 @@ import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
 import { t, tx } from '@/lib/i18n';
+import { appendCommunityDemoLog } from '@/lib/communityDemoLog';
 
 const CATEGORY_PATTERN = /^[\w가-힣 ·/\-()]{1,24}$/;
 
@@ -316,6 +317,7 @@ export default function CommunityWritePage() {
           body: JSON.stringify({ title, content, category }),
         })
           .then(() => {
+            appendCommunityDemoLog('draft-save', '커뮤니티 글 임시 저장', category);
             setDraftSaved(true);
             setTimeout(() => setDraftSaved(false), 2000);
           })
@@ -388,6 +390,7 @@ export default function CommunityWritePage() {
       if (r.ok) {
         const data = await r.json();
         setAttachments((prev) => [...prev, data]);
+        appendCommunityDemoLog('upload', '커뮤니티 첨부파일 업로드', file.name);
       } else {
         setError(`${file.name} 업로드 실패`);
       }
@@ -440,6 +443,7 @@ export default function CommunityWritePage() {
         }
       }
 
+      appendCommunityDemoLog('editor-tool', '마크다운 도구 사용', action.label);
       setValue('content', newContent, { shouldValidate: true, shouldDirty: true });
       requestAnimationFrame(() => {
         ta.focus();
@@ -480,6 +484,7 @@ export default function CommunityWritePage() {
           const prefix = listMatch[1];
           const newContent =
             currentContent.slice(0, start) + '\n' + prefix + currentContent.slice(ta.selectionEnd);
+          appendCommunityDemoLog('editor-tool', '목록 자동완성', 'Enter');
           setValue('content', newContent, { shouldValidate: true, shouldDirty: true });
           requestAnimationFrame(() => {
             ta.setSelectionRange(start + 1 + prefix.length, start + 1 + prefix.length);
@@ -493,6 +498,7 @@ export default function CommunityWritePage() {
         const start = ta.selectionStart;
         const end = ta.selectionEnd;
         const newContent = currentContent.slice(0, start) + '  ' + currentContent.slice(end);
+        appendCommunityDemoLog('editor-tool', '탭 들여쓰기', 'Tab');
         setValue('content', newContent, { shouldValidate: true, shouldDirty: true });
         requestAnimationFrame(() => {
           ta.setSelectionRange(start + 2, start + 2);
@@ -522,6 +528,11 @@ export default function CommunityWritePage() {
 
     if (r.ok) {
       const data = await r.json();
+      appendCommunityDemoLog(
+        isEdit ? 'post-submit' : 'post-submit',
+        isEdit ? '커뮤니티 글 수정 완료' : '커뮤니티 글 등록 완료',
+        values.category,
+      );
       clearDraft();
       navigate(ROUTES.community.post(isEdit ? (id as string) : data.id));
     } else {
@@ -567,6 +578,13 @@ export default function CommunityWritePage() {
         </div>
 
         <FeatureDisabledBanner feature="community.create" label="커뮤니티 게시물 작성">
+          <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50/80 p-4 text-sm text-sky-800 dark:border-sky-900/50 dark:bg-sky-900/20 dark:text-sky-200">
+            <p className="font-semibold">커뮤니티 데모 로그</p>
+            <p className="mt-1 text-xs leading-relaxed">
+              카테고리 선택, 마크다운 도구, 미리보기, 임시 저장, 등록 결과가 약관·튜토리얼
+              체크리스트에 연결됩니다.
+            </p>
+          </div>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Category */}
             <div>
@@ -587,6 +605,7 @@ export default function CommunityWritePage() {
                       type="button"
                       onClick={() => {
                         setCustomCatMode(false);
+                        appendCommunityDemoLog('category', '글쓰기 카테고리 선택', cat.id);
                         setValue('category', cat.id, { shouldValidate: true, shouldDirty: true });
                       }}
                       className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-xl border transition-all ${
@@ -603,6 +622,7 @@ export default function CommunityWritePage() {
                     type="button"
                     onClick={() => {
                       setCustomCatMode(true);
+                      appendCommunityDemoLog('category', '커스텀 카테고리 입력 시작');
                       setCustomCat('');
                       setValue('category', '', { shouldValidate: false });
                     }}
@@ -706,7 +726,15 @@ export default function CommunityWritePage() {
                 {/* Preview toggle */}
                 <button
                   type="button"
-                  onClick={() => setPreview((p) => !p)}
+                  onClick={() => {
+                    const nextPreview = !preview;
+                    appendCommunityDemoLog(
+                      'preview',
+                      nextPreview ? '커뮤니티 글 미리보기' : '커뮤니티 글 편집 복귀',
+                      `${charCount}자`,
+                    );
+                    setPreview(nextPreview);
+                  }}
                   className={`ml-2 px-3 py-1 text-xs rounded-lg border transition-all ${
                     preview
                       ? 'border-sky-400 bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400'
