@@ -31,6 +31,9 @@ type StudyGroupDetail = StudyGroup & {
   experienceLevel?: string;
 };
 
+// fetchStudyGroupPosts 응답 — ['study-group-posts', id, category] 캐시 형태
+type PostsCache = { items: StudyGroupPost[]; total: number; page: number; limit: number };
+
 export default function StudyGroupDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -96,12 +99,32 @@ export default function StudyGroupDetailPage() {
     }
   };
 
+  // 좋아요 토글 — 낙관적 +1 즉시 반영 → 서버 응답(멱등 토글의 실제 likeCount)으로 보정,
+  // 실패 시 스냅샷 롤백 + 에러 토스트, 종료 시 invalidate 로 서버 정합 회복
   const handleLike = async (postId: string) => {
+    const postsKey = ['study-group-posts', id];
+    await qc.cancelQueries({ queryKey: postsKey });
+    const snapshots = qc.getQueriesData<PostsCache>({ queryKey: postsKey });
+    const patchLikeCount = (next: (prev: number) => number) =>
+      qc.setQueriesData<PostsCache>({ queryKey: postsKey }, (cache) =>
+        cache
+          ? {
+              ...cache,
+              items: cache.items.map((p) =>
+                p.id === postId ? { ...p, likeCount: next(p.likeCount) } : p,
+              ),
+            }
+          : cache,
+      );
+    patchLikeCount((prev) => prev + 1);
     try {
-      await likeStudyGroupPost(postId);
-      qc.invalidateQueries({ queryKey: ['study-group-posts', id] });
+      const result = await likeStudyGroupPost(postId);
+      patchLikeCount(() => result.likeCount);
     } catch {
-      /* noop */
+      snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
+      toast('좋아요 처리에 실패했습니다', 'error');
+    } finally {
+      qc.invalidateQueries({ queryKey: postsKey });
     }
   };
 

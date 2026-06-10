@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_URL } from '@/lib/config';
+import { toast } from '@/components/Toast';
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem('token');
@@ -26,18 +27,57 @@ export function useApiQuery<T>(
   });
 }
 
-export function useApiMutation<T, V = any>(
+/**
+ * 낙관적 업데이트 옵션 — onMutate 에서 캐시를 즉시 패치해 토글성 액션(북마크·팔로우·좋아요)에
+ * 즉각적인 피드백을 준다. 실패 시 스냅샷으로 롤백 + 에러 토스트, 종료 시 invalidate 로 서버 정합 회복.
+ */
+export interface OptimisticUpdate<TCache, V> {
+  /** 즉시 패치할 쿼리 캐시 키 */
+  queryKey: readonly unknown[];
+  /** 현재 캐시(없으면 undefined)와 mutation 변수로 다음 캐시를 계산하는 순수 함수 */
+  updater: (current: TCache | undefined, variables: V) => TCache | undefined;
+  /** 롤백 시 보여줄 에러 토스트 문구 (기본: '처리에 실패했습니다') */
+  errorMessage?: string;
+}
+
+export function useApiMutation<T, V = any, TCache = unknown>(
   url: string,
   method = 'POST',
   invalidateKeys?: string[][],
+  optimistic?: OptimisticUpdate<TCache, V>,
 ) {
   const queryClient = useQueryClient();
-  return useMutation<T, Error, V>({
+  const invalidateAll = () => {
+    if (invalidateKeys) {
+      invalidateKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
+    }
+    if (optimistic) {
+      queryClient.invalidateQueries({ queryKey: optimistic.queryKey });
+    }
+  };
+  return useMutation<T, Error, V, { snapshot: TCache | undefined }>({
     mutationFn: (variables) => apiFetch<T>(url, { method, body: JSON.stringify(variables) }),
+    onMutate: async (variables) => {
+      if (!optimistic) return { snapshot: undefined };
+      await queryClient.cancelQueries({ queryKey: optimistic.queryKey });
+      const snapshot = queryClient.getQueryData<TCache>(optimistic.queryKey);
+      queryClient.setQueryData<TCache>(optimistic.queryKey, (current) =>
+        optimistic.updater(current, variables),
+      );
+      return { snapshot };
+    },
+    onError: (_error, _variables, context) => {
+      if (!optimistic) return;
+      queryClient.setQueryData(optimistic.queryKey, context?.snapshot);
+      toast(optimistic.errorMessage ?? '처리에 실패했습니다', 'error');
+    },
     onSuccess: () => {
-      if (invalidateKeys) {
-        invalidateKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
-      }
+      // 비낙관 경로 기존 동작 보존: 성공 시에만 invalidate
+      if (!optimistic) invalidateAll();
+    },
+    onSettled: () => {
+      // 낙관 경로: 성공/실패 모두 서버 정합 회복
+      if (optimistic) invalidateAll();
     },
   });
 }

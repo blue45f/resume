@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { followUser, unfollowUser } from '@/lib/api';
 import { toast } from '@/components/Toast';
 
@@ -17,41 +18,47 @@ export default function FollowButton({
 }: Props) {
   const [following, setFollowing] = useState(initialFollowing);
   const [mutual, setMutual] = useState(isMutual);
-  const [loading, setLoading] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const queryClient = useQueryClient();
 
-  const toggle = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
-    // Optimistic update
-    const prevFollowing = following;
-    const prevMutual = mutual;
-    const newFollowing = !following;
-    setFollowing(newFollowing);
-    if (!newFollowing) setMutual(false);
-    onFollowChange?.(newFollowing);
-    setLoading(true);
-
-    try {
-      if (prevFollowing) {
-        await unfollowUser(userId);
-      } else {
-        const result = await followUser(userId);
+  const mutation = useMutation({
+    mutationFn: (next: boolean) => (next ? followUser(userId) : unfollowUser(userId)),
+    // 낙관적 토글 — 클릭 즉시 반영, 실패 시 onError 에서 스냅샷 롤백
+    onMutate: (next) => {
+      const snapshot = { following, mutual };
+      setFollowing(next);
+      if (!next) setMutual(false);
+      onFollowChange?.(next);
+      return snapshot;
+    },
+    onSuccess: (result, next) => {
+      if (next) {
         if ((result as any)?.mutual) setMutual(true);
         toast('팔로우했습니다', 'success');
       }
-    } catch {
-      // Revert on error
-      setFollowing(prevFollowing);
-      setMutual(prevMutual);
-      onFollowChange?.(prevFollowing);
+    },
+    onError: (_error, _next, snapshot) => {
+      if (snapshot) {
+        setFollowing(snapshot.following);
+        setMutual(snapshot.mutual);
+        onFollowChange?.(snapshot.following);
+      }
       toast('팔로우 처리에 실패했습니다', 'error');
-    } finally {
-      setLoading(false);
-    }
+    },
+    // 팔로워/팔로잉 목록·카운트 서버 정합 회복 (FollowListPage 통계 등)
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['followers'] });
+      queryClient.invalidateQueries({ queryKey: ['following'] });
+    },
+  });
+  const loading = mutation.isPending;
+
+  const toggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const token = localStorage.getItem('token');
+    if (!token || mutation.isPending) return;
+    mutation.mutate(!following);
   };
 
   const showUnfollow = following && hovered;

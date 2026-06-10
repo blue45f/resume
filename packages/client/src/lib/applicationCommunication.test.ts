@@ -14,11 +14,13 @@ const baseApplication = (overrides: Partial<JobApplication>): JobApplication => 
 
 describe('buildStageCommunicationTemplates', () => {
   it('returns application follow-up and withdrawal templates for early active stages', () => {
+    // now 미고정 시 실행 시점에 따라 3주 경과 분기(no-response-final-check)가 끼어드는 date-rot — 고정
     const templates = buildStageCommunicationTemplates(
       baseApplication({
         status: 'screening',
         appliedDate: '2026-05-20',
       }),
+      new Date('2026-05-27T12:00:00Z'),
     );
 
     expect(templates.map((template) => template.id)).toEqual([

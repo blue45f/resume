@@ -9,6 +9,7 @@ import {
 import { API_URL } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
+import { ErrorState } from '@/shared/ui/ErrorState';
 
 const TIER_LABEL: Record<string, string> = {
   public: '공공기관·공기업',
@@ -95,7 +96,7 @@ export default function StudyGroupsPage() {
     setParams(next);
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: [
       'study-groups',
       { companyTier, cafeCategory, experienceLevel, sort, openOnly, minMembers, search },
@@ -283,6 +284,8 @@ export default function StudyGroupsPage() {
             />
           ))}
         </div>
+      ) : isError ? (
+        <ErrorState message="스터디 목록을 불러오지 못했습니다" onRetry={() => refetch()} />
       ) : groups.length === 0 ? (
         <div className="imp-card p-12 text-center">
           <div className="text-4xl mb-3">🧑‍🤝‍🧑</div>

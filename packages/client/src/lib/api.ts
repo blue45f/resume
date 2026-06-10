@@ -1359,8 +1359,12 @@ export const updateStudyGroupPost = (
 export const deleteStudyGroupPost = (postId: string) =>
   request<{ success: boolean }>(`${BASE}/study-groups/posts/${postId}`, { method: 'DELETE' });
 
+// 서버는 멱등 토글 — 두번째 호출이면 좋아요 해제. 응답은 실제 likeCount 와 토글 결과.
 export const likeStudyGroupPost = (postId: string) =>
-  request<StudyGroupPost>(`${BASE}/study-groups/posts/${postId}/like`, { method: 'POST' });
+  request<{ id: string; likeCount: number; liked: boolean }>(
+    `${BASE}/study-groups/posts/${postId}/like`,
+    { method: 'POST' },
+  );
 
 // ── 스터디 게시글 이모지 리액션 ───────────────────────────
 export const STUDY_POST_EMOJIS = ['👍', '❤️', '🔥', '👏', '🎉', '🤔'] as const;

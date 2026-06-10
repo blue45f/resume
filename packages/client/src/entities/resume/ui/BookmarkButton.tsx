@@ -1,7 +1,8 @@
 import { useState, memo } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { addBookmark, removeBookmark } from '@/lib/api';
 import { toast } from '@/components/Toast';
 import Tooltip from '@/shared/ui/Tooltip';
-import { API_URL } from '@/lib/config';
 
 interface Props {
   resumeId: string;
@@ -9,37 +10,51 @@ interface Props {
   size?: 'sm' | 'md';
 }
 
+// useBookmarks(['bookmarks']) 캐시 행 — fetchBookmarks 응답과 동일 형태
+type BookmarkRow = { id: string; resumeId: string; title: string; name: string; createdAt: string };
+
 export default memo(function BookmarkButton({
   resumeId,
   initialBookmarked = false,
   size = 'md',
 }: Props) {
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
-  const toggle = async (e: React.MouseEvent) => {
+  const mutation = useMutation({
+    mutationFn: (next: boolean) => (next ? addBookmark(resumeId) : removeBookmark(resumeId)),
+    // 낙관적 토글 — 버튼 즉시 반영 + 해제 시 ['bookmarks'] 목록에서도 제거, 실패 시 롤백
+    onMutate: async (next) => {
+      await queryClient.cancelQueries({ queryKey: ['bookmarks'] });
+      const snapshot = queryClient.getQueryData<BookmarkRow[]>(['bookmarks']);
+      setBookmarked(next);
+      if (!next) {
+        queryClient.setQueryData<BookmarkRow[]>(['bookmarks'], (rows) =>
+          rows?.filter((row) => row.resumeId !== resumeId),
+        );
+      }
+      return { prev: !next, snapshot };
+    },
+    onError: (_error, _next, context) => {
+      if (context) {
+        setBookmarked(context.prev);
+        queryClient.setQueryData(['bookmarks'], context.snapshot);
+      }
+      toast('북마크 처리에 실패했습니다', 'error');
+    },
+    // 추가 시 목록 행(title/name)은 서버만 알므로 invalidate 로 서버 정합 회복
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+    },
+  });
+  const loading = mutation.isPending;
+
+  const toggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const token = localStorage.getItem('token');
-    if (!token) return;
-
-    const prev = bookmarked;
-    setBookmarked(!prev);
-    setLoading(true);
-
-    try {
-      const method = prev ? 'DELETE' : 'POST';
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/bookmark`, {
-        method,
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error();
-    } catch {
-      setBookmarked(prev);
-      toast('북마크 처리에 실패했습니다', 'error');
-    } finally {
-      setLoading(false);
-    }
+    if (!token || mutation.isPending) return;
+    mutation.mutate(!bookmarked);
   };
 
   const sizeClass = size === 'sm' ? 'w-8 h-8' : 'w-9 h-9';

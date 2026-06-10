@@ -17,6 +17,7 @@ import {
 } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { toast } from '@/components/Toast';
+import { ErrorState } from '@/shared/ui/ErrorState';
 
 interface Notification {
   id: string;
@@ -188,7 +189,12 @@ const GROUP_ORDER = ['오늘', '어제', '이번 주', '이번 달', '이전'];
 
 export default function NotificationsPage() {
   const queryClient = useQueryClient();
-  const { data: notifications = [], isLoading: loading } = useQuery({
+  const {
+    data: notifications = [],
+    isLoading: loading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ['notifications'],
     queryFn: apiFetchNotifications,
     enabled: !!getToken(),
@@ -456,6 +462,8 @@ export default function NotificationsPage() {
               로그인
             </Link>
           </div>
+        ) : isError ? (
+          <ErrorState message="알림을 불러오지 못했습니다" onRetry={() => refetch()} />
         ) : filtered.length === 0 ? (
           <EmptyState type="notification" />
         ) : (

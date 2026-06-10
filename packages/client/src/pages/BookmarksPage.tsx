@@ -10,10 +10,11 @@ import { timeAgo } from '@/lib/time';
 import { useBookmarks } from '@/hooks/useResources';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
+import { ErrorState } from '@/shared/ui/ErrorState';
 
 export default function BookmarksPage() {
   const queryClient = useQueryClient();
-  const { data: bookmarks = [], isLoading: loading } = useBookmarks();
+  const { data: bookmarks = [], isLoading: loading, isError, refetch } = useBookmarks();
 
   const removeMutation = useMutation({
     mutationFn: (resumeId: string) => removeBookmark(resumeId),
@@ -60,6 +61,8 @@ export default function BookmarksPage() {
 
         {loading ? (
           <CardGridSkeleton count={3} />
+        ) : isError ? (
+          <ErrorState message="북마크를 불러오지 못했습니다" onRetry={() => refetch()} />
         ) : bookmarks.length === 0 ? (
           <div className="text-center py-16 animate-fade-in">
             <svg
