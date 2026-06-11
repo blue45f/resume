@@ -50,6 +50,7 @@ const mockPrisma: any = {
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
   },
   studyGroupQuestionAnswerVote: {
     findUnique: jest.fn(),
@@ -59,7 +60,18 @@ const mockPrisma: any = {
   },
   studyGroupPost: {
     findUnique: jest.fn(),
+    findMany: jest.fn(),
     update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+  },
+  studyGroupPostComment: {
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
   },
   studyGroupPostLike: {
     findUnique: jest.fn(),
@@ -611,6 +623,33 @@ describe('StudyGroupsService', () => {
       ]);
       expect(out).toHaveLength(1);
     });
+
+    it('업로드 폴백 data: URL — 허용 prefix(이미지/PDF base64)는 통과', () => {
+      const out = normalize([
+        { url: 'data:image/png;base64,iVBORw0KGgo=', name: 'img.png', size: 10, type: 'image/png' },
+        {
+          url: 'data:application/pdf;base64,JVBERi0=',
+          name: 'doc.pdf',
+          size: 10,
+          type: 'application/pdf',
+        },
+      ]);
+      expect(out).toHaveLength(2);
+    });
+
+    it('data:image/svg+xml 등 비허용 mimetype 의 data: URL 은 차단', () => {
+      const out = normalize([
+        { url: 'data:image/svg+xml;base64,PHN2Zz4=', name: 'x.svg', size: 10, type: 'image/svg' },
+        { url: 'data:text/html;base64,PGh0bWw+', name: 'x.html', size: 10, type: 'text/html' },
+      ]);
+      expect(out).toEqual([]);
+    });
+
+    it('data: URL 길이 상한(2.9M) 초과 → 차단', () => {
+      const huge = `data:image/png;base64,${'A'.repeat(2_900_001)}`;
+      const out = normalize([{ url: huge, name: 'huge.png', size: 1, type: 'image/png' }]);
+      expect(out).toEqual([]);
+    });
   });
 
   // ─────────────────────────────────────────────
@@ -830,34 +869,307 @@ describe('StudyGroupsService', () => {
       await expect(service.deleteAnswer('a1', 'u1')).rejects.toThrow(ForbiddenException);
     });
 
-    it('top-level 본인 삭제 → answerCount 감소', async () => {
+    it('top-level 본인 삭제 (답글 없음) → hard delete + answerCount 감소', async () => {
       mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
         id: 'a1',
         userId: 'u1',
         parentId: null,
+        body: '평범한 답변',
         question: { id: 'q1', groupId: 'g1' },
       });
       mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({ ownerId: 'owner' });
+      mockPrisma.studyGroupQuestionAnswer.count.mockResolvedValueOnce(0);
       mockPrisma.studyGroupQuestionAnswer.delete.mockResolvedValueOnce({});
       mockPrisma.studyGroupQuestion.update.mockResolvedValueOnce({});
       const res = await service.deleteAnswer('a1', 'u1');
-      expect(res.success).toBe(true);
+      expect(res).toEqual({ success: true, tombstoned: false });
+      expect(mockPrisma.studyGroupQuestionAnswer.delete).toHaveBeenCalledWith({
+        where: { id: 'a1' },
+      });
       expect(mockPrisma.studyGroupQuestion.update).toHaveBeenCalledWith(
         expect.objectContaining({ data: { answerCount: { decrement: 1 } } }),
       );
     });
 
     it('답글 삭제 → answerCount 미감소', async () => {
-      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
-        id: 'a2',
-        userId: 'u1',
-        parentId: 'a1',
-        question: { id: 'q1', groupId: 'g1' },
-      });
+      mockPrisma.studyGroupQuestionAnswer.findUnique
+        .mockResolvedValueOnce({
+          id: 'a2',
+          userId: 'u1',
+          parentId: 'a1',
+          body: '답글',
+          question: { id: 'q1', groupId: 'g1' },
+        })
+        // 삭제 후 부모 tombstone 정리 검사 — 부모는 정상 답변
+        .mockResolvedValueOnce({ id: 'a1', body: '부모 답변', _count: { replies: 1 } });
       mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({ ownerId: 'owner' });
+      mockPrisma.studyGroupQuestionAnswer.count.mockResolvedValueOnce(0);
       mockPrisma.studyGroupQuestionAnswer.delete.mockResolvedValueOnce({});
       await service.deleteAnswer('a2', 'u1');
       expect(mockPrisma.studyGroupQuestion.update).not.toHaveBeenCalled();
+    });
+
+    it('답글 달린 top-level 삭제 → tombstone (body="") + answerCount 차감, hard delete 없음', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'a1',
+        userId: 'u1',
+        parentId: null,
+        body: '답글이 달린 답변',
+        question: { id: 'q1', groupId: 'g1' },
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({ ownerId: 'owner' });
+      mockPrisma.studyGroupQuestionAnswer.count.mockResolvedValueOnce(2);
+      const res = await service.deleteAnswer('a1', 'u1');
+      expect(res).toEqual({ success: true, tombstoned: true });
+      expect(mockPrisma.studyGroupQuestionAnswer.update).toHaveBeenCalledWith({
+        where: { id: 'a1' },
+        data: { body: '' },
+      });
+      expect(mockPrisma.studyGroupQuestionAnswer.delete).not.toHaveBeenCalled();
+      expect(mockPrisma.studyGroupQuestion.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { answerCount: { decrement: 1 } } }),
+      );
+    });
+
+    it('이미 tombstone 인 답변 재삭제 → 멱등 (answerCount 이중 차감 없음)', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'a1',
+        userId: 'u1',
+        parentId: null,
+        body: '',
+        question: { id: 'q1', groupId: 'g1' },
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({ ownerId: 'owner' });
+      const res = await service.deleteAnswer('a1', 'u1');
+      expect(res).toEqual({ success: true, tombstoned: true });
+      expect(mockPrisma.studyGroupQuestionAnswer.update).not.toHaveBeenCalled();
+      expect(mockPrisma.studyGroupQuestion.update).not.toHaveBeenCalled();
+    });
+
+    it('마지막 답글 삭제 시 빈 tombstone 부모도 정리', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique
+        .mockResolvedValueOnce({
+          id: 'a2',
+          userId: 'u1',
+          parentId: 'a1',
+          body: '마지막 답글',
+          question: { id: 'q1', groupId: 'g1' },
+        })
+        .mockResolvedValueOnce({ id: 'a1', body: '', _count: { replies: 0 } });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({ ownerId: 'owner' });
+      mockPrisma.studyGroupQuestionAnswer.count.mockResolvedValueOnce(0);
+      await service.deleteAnswer('a2', 'u1');
+      expect(mockPrisma.studyGroupQuestionAnswer.delete).toHaveBeenCalledWith({
+        where: { id: 'a2' },
+      });
+      expect(mockPrisma.studyGroupQuestionAnswer.delete).toHaveBeenCalledWith({
+        where: { id: 'a1' },
+      });
+    });
+  });
+
+  describe('tombstone 상호작용 가드', () => {
+    it('삭제된(tombstone) 답변에 답글 작성 → BadRequest', async () => {
+      mockPrisma.studyGroupQuestion.findUnique.mockResolvedValueOnce({
+        id: 'q1',
+        groupId: 'g1',
+        userId: 'author',
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'p1',
+        questionId: 'q1',
+        parentId: null,
+        body: '',
+      });
+      await expect(
+        service.createAnswer('q1', 'u1', { body: '답글입니다', parentId: 'p1' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('삭제된(tombstone) 답변 추천 → BadRequest', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce({
+        id: 'a1',
+        userId: 'author',
+        body: '',
+        question: { groupId: 'g1' },
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      await expect(service.upvoteAnswer('a1', 'u2')).rejects.toThrow(BadRequestException);
+    });
+
+    it('삭제된(tombstone) 댓글에 답글 작성 → BadRequest', async () => {
+      mockPrisma.studyGroupPost.findUnique.mockResolvedValueOnce({ id: 'p1', groupId: 'g1' });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({
+        id: 'g1',
+        isPrivate: false,
+        ownerId: 'owner',
+      });
+      mockPrisma.studyGroupPostComment.findUnique.mockResolvedValueOnce({
+        id: 'c0',
+        postId: 'p1',
+        parentId: null,
+        content: '',
+      });
+      await expect(
+        service.createComment('p1', 'u1', { content: '답글', parentId: 'c0' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('deleteComment (tombstone 정책)', () => {
+    const seedComment = (content: string) => {
+      mockPrisma.studyGroupPostComment.findUnique.mockResolvedValueOnce({
+        id: 'c1',
+        postId: 'p1',
+        userId: 'u1',
+        content,
+        post: { id: 'p1', groupId: 'g1' },
+      });
+      mockPrisma.studyGroup.findUnique.mockResolvedValueOnce({ ownerId: 'owner' });
+    };
+
+    it('답글 달린 댓글 → content="" tombstone + commentCount 차감', async () => {
+      seedComment('지워질 댓글');
+      mockPrisma.studyGroupPostComment.count.mockResolvedValueOnce(1);
+      const res = await service.deleteComment('c1', 'u1');
+      expect(res).toEqual({ success: true, tombstoned: true });
+      expect(mockPrisma.studyGroupPostComment.update).toHaveBeenCalledWith({
+        where: { id: 'c1' },
+        data: { content: '' },
+      });
+      expect(mockPrisma.studyGroupPostComment.delete).not.toHaveBeenCalled();
+      expect(mockPrisma.studyGroupPost.update).toHaveBeenCalledWith({
+        where: { id: 'p1' },
+        data: { commentCount: { decrement: 1 } },
+      });
+    });
+
+    it('답글 없는 댓글 → hard delete', async () => {
+      seedComment('흔적 없이 삭제');
+      mockPrisma.studyGroupPostComment.count.mockResolvedValueOnce(0);
+      mockPrisma.studyGroupPostComment.findUnique.mockResolvedValueOnce({ parentId: null });
+      const res = await service.deleteComment('c1', 'u1');
+      expect(res).toEqual({ success: true, tombstoned: false });
+      expect(mockPrisma.studyGroupPostComment.delete).toHaveBeenCalledWith({
+        where: { id: 'c1' },
+      });
+    });
+
+    it('이미 tombstone → 멱등 (commentCount 이중 차감 없음)', async () => {
+      seedComment('');
+      const res = await service.deleteComment('c1', 'u1');
+      expect(res).toEqual({ success: true, tombstoned: true });
+      expect(mockPrisma.studyGroupPost.update).not.toHaveBeenCalled();
+    });
+
+    it('권한 없는 유저 → Forbidden', async () => {
+      seedComment('남의 댓글');
+      await expect(service.deleteComment('c1', 'intruder')).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // 관리자 모더레이션 (게시글/댓글/답변/첨부)
+  // ─────────────────────────────────────────────
+  describe('admin moderation', () => {
+    it('adminListPosts: q 검색 → title/content OR + 페이지네이션 shape', async () => {
+      mockPrisma.studyGroupPost.findMany.mockResolvedValueOnce([{ id: 'p1' }]);
+      mockPrisma.studyGroupPost.count.mockResolvedValueOnce(41);
+      const res = await service.adminListPosts({ q: '면접', page: 2, limit: 20 });
+      const args = mockPrisma.studyGroupPost.findMany.mock.calls[0][0];
+      expect(args.where.OR).toHaveLength(2);
+      expect(args.skip).toBe(20);
+      expect(res).toEqual({ items: [{ id: 'p1' }], total: 41, page: 2, limit: 20, totalPages: 3 });
+    });
+
+    it('adminDeletePost: 없는 게시글 → NotFound, 있으면 delete', async () => {
+      mockPrisma.studyGroupPost.findUnique.mockResolvedValueOnce(null);
+      await expect(service.adminDeletePost('missing')).rejects.toThrow(NotFoundException);
+
+      mockPrisma.studyGroupPost.findUnique.mockResolvedValueOnce({ id: 'p1' });
+      await expect(service.adminDeletePost('p1')).resolves.toEqual({ success: true });
+      expect(mockPrisma.studyGroupPost.delete).toHaveBeenCalledWith({ where: { id: 'p1' } });
+    });
+
+    it('adminRemovePostAttachment: url 미지정 → BadRequest', async () => {
+      await expect(service.adminRemovePostAttachment('p1', '')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('adminRemovePostAttachment: 일치 url 만 제거하고 나머지 보존', async () => {
+      const keep = { url: 'https://res.cloudinary.com/a.png', name: 'a', size: 1, type: 'x' };
+      const drop = { url: 'https://res.cloudinary.com/b.pdf', name: 'b', size: 2, type: 'y' };
+      mockPrisma.studyGroupPost.findUnique.mockResolvedValueOnce({
+        id: 'p1',
+        attachments: [keep, drop],
+      });
+      mockPrisma.studyGroupPost.update.mockResolvedValueOnce({ id: 'p1', attachments: [keep] });
+      await service.adminRemovePostAttachment('p1', drop.url);
+      expect(mockPrisma.studyGroupPost.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'p1' }, data: { attachments: [keep] } }),
+      );
+    });
+
+    it('adminRemovePostAttachment: 일치 항목 없으면 NotFound', async () => {
+      mockPrisma.studyGroupPost.findUnique.mockResolvedValueOnce({
+        id: 'p1',
+        attachments: [{ url: 'https://res.cloudinary.com/a.png' }],
+      });
+      await expect(
+        service.adminRemovePostAttachment('p1', 'https://res.cloudinary.com/zzz.png'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('adminDeleteComment: 권한 검증 없이 tombstone 코어 재사용', async () => {
+      mockPrisma.studyGroupPostComment.findUnique.mockResolvedValueOnce({
+        id: 'c1',
+        postId: 'p1',
+        content: '신고된 댓글',
+      });
+      mockPrisma.studyGroupPostComment.count.mockResolvedValueOnce(3);
+      const res = await service.adminDeleteComment('c1');
+      expect(res).toEqual({ success: true, tombstoned: true });
+    });
+
+    it('adminDeleteAnswer: 없는 답변 → NotFound', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findUnique.mockResolvedValueOnce(null);
+      await expect(service.adminDeleteAnswer('missing')).rejects.toThrow(NotFoundException);
+    });
+
+    it('adminListPostComments: 없는 게시글 → NotFound', async () => {
+      mockPrisma.studyGroupPost.findUnique.mockResolvedValueOnce(null);
+      await expect(service.adminListPostComments('missing')).rejects.toThrow(NotFoundException);
+    });
+
+    it('adminListPostComments: 작성순 정렬로 전체(tombstone 포함) 반환', async () => {
+      mockPrisma.studyGroupPost.findUnique.mockResolvedValueOnce({ id: 'p1' });
+      mockPrisma.studyGroupPostComment.findMany.mockResolvedValueOnce([
+        { id: 'c1', content: '' },
+        { id: 'c2', content: '답글' },
+      ]);
+      const res = await service.adminListPostComments('p1');
+      expect(res).toHaveLength(2);
+      const args = mockPrisma.studyGroupPostComment.findMany.mock.calls[0][0];
+      expect(args.orderBy).toEqual([{ createdAt: 'asc' }]);
+    });
+
+    it('adminListAnswers: q → body contains, groupId → question.groupId 필터', async () => {
+      mockPrisma.studyGroupQuestionAnswer.findMany.mockResolvedValueOnce([]);
+      mockPrisma.studyGroupQuestionAnswer.count.mockResolvedValueOnce(0);
+      await service.adminListAnswers({ q: '검색어', groupId: 'g1', page: 1, limit: 20 });
+      const args = mockPrisma.studyGroupQuestionAnswer.findMany.mock.calls[0][0];
+      expect(args.where.body).toEqual({ contains: '검색어', mode: 'insensitive' });
+      expect(args.where.question).toEqual({ groupId: 'g1' });
     });
   });
 

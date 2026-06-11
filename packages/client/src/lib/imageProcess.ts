@@ -37,13 +37,23 @@ async function convertHeicIfNeeded(file: File): Promise<File> {
   return new File([blob], newName, { type: 'image/jpeg' });
 }
 
-/** 큰 이미지 압축 — 1.5MB 미만이면 그대로 반환. */
-async function compressIfLarge(file: File): Promise<File> {
-  if (file.size < COMPRESSION_THRESHOLD_BYTES) return file;
+export interface ImageProcessOptions {
+  /** 최대 가로/세로 px (기본 1920) */
+  maxDim?: number;
+  /** 압축 목표 MB (기본 1.5) */
+  maxSizeMB?: number;
+  /** 이 바이트 미만이면 압축 생략 (기본 1.5MB). 0 이면 항상 리사이즈/압축. */
+  thresholdBytes?: number;
+}
+
+/** 큰 이미지 압축 — threshold 미만이면 그대로 반환 (threshold 0 은 항상 압축). */
+async function compressIfLarge(file: File, opts: ImageProcessOptions = {}): Promise<File> {
+  const threshold = opts.thresholdBytes ?? COMPRESSION_THRESHOLD_BYTES;
+  if (file.size < threshold) return file;
   const imageCompression = (await import('browser-image-compression')).default;
   const compressed = await imageCompression(file, {
-    maxSizeMB: 1.5,
-    maxWidthOrHeight: MAX_DIM,
+    maxSizeMB: opts.maxSizeMB ?? 1.5,
+    maxWidthOrHeight: opts.maxDim ?? MAX_DIM,
     useWebWorker: true,
     fileType: file.type === 'image/png' ? 'image/png' : 'image/jpeg',
   });
@@ -54,11 +64,17 @@ async function compressIfLarge(file: File): Promise<File> {
 /**
  * 업로드 전 이미지 처리 — HEIC → JPEG 변환 + 큰 파일 압축.
  * 실패 시 원본 그대로 반환 (silent fallback) — 업로드는 계속 가능.
+ *
+ * options 로 용도별 정책 조정 가능 — 예: 스터디 게시글 첨부는
+ * `{ maxDim: 1600, maxSizeMB: 1.8, thresholdBytes: 0 }` (서버 2MB 캡 하위 보장).
  */
-export async function processImageForUpload(file: File): Promise<File> {
+export async function processImageForUpload(
+  file: File,
+  options?: ImageProcessOptions,
+): Promise<File> {
   try {
     const converted = await convertHeicIfNeeded(file);
-    const compressed = await compressIfLarge(converted);
+    const compressed = await compressIfLarge(converted, options);
     return compressed;
   } catch (err) {
     if (import.meta.env.DEV) {

@@ -1199,6 +1199,9 @@ export const createStudyGroup = (data: {
   jobKey?: string | null;
   companyName?: string | null;
   position?: string | null;
+  companyTier?: string;
+  cafeCategory?: string;
+  experienceLevel?: string;
   isPrivate?: boolean;
   maxMembers?: number;
 }) =>
@@ -1349,12 +1352,44 @@ export const updateStudyGroupPost = (
   postId: string,
   data: Partial<Pick<StudyGroupPost, 'title' | 'content' | 'category' | 'isPinned'>> & {
     tags?: string[];
+    attachments?: StudyGroupPost['attachments'];
   },
 ) =>
   request<StudyGroupPost>(`${BASE}/study-groups/posts/${postId}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
+
+/**
+ * 스터디 게시글 첨부 업로드 — 이미지(클라에서 1600px 리사이즈)·PDF, 파일당 2MB 캡.
+ * 반환 shape 은 게시글 attachments 항목과 동일: { url, name, size, type }.
+ */
+export const uploadStudyGroupPostAttachment = async (
+  groupId: string,
+  file: File,
+): Promise<StudyGroupPost['attachments'][number]> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const token = localStorage.getItem('token');
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${BASE}/study-groups/${groupId}/attachments`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+  if (!res.ok) {
+    let message = '';
+    try {
+      const body = await res.json();
+      message = Array.isArray(body?.message) ? body.message[0] : body?.message || '';
+    } catch {
+      /* 서버가 JSON 이 아닌 에러를 반환한 경우 — 호출부 기본 문구 사용 */
+    }
+    throw new Error(message);
+  }
+  return res.json();
+};
 
 export const deleteStudyGroupPost = (postId: string) =>
   request<{ success: boolean }>(`${BASE}/study-groups/posts/${postId}`, { method: 'DELETE' });

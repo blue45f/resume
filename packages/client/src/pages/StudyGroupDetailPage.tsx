@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
@@ -16,10 +16,12 @@ import {
   fetchStudyGroupPosts,
   createStudyGroupPost,
   likeStudyGroupPost,
+  uploadStudyGroupPostAttachment,
   type StudyGroup,
   type StudyGroupPost,
 } from '@/lib/api';
 import { getUser } from '@/lib/auth';
+import { processImageForUpload } from '@/lib/imageProcess';
 import { ROUTES } from '@/lib/routes';
 import { t, tx } from '@/lib/i18n';
 import { formatDate } from '@/lib/time';
@@ -33,6 +35,59 @@ type StudyGroupDetail = StudyGroup & {
 
 // fetchStudyGroupPosts 응답 — ['study-group-posts', id, category] 캐시 형태
 type PostsCache = { items: StudyGroupPost[]; total: number; page: number; limit: number };
+
+type PostAttachment = StudyGroupPost['attachments'][number];
+
+// 첨부 정책 — 서버(study-groups.controller)와 동일: 이미지·PDF, 파일당 2MB.
+// 이미지는 업로드 전 1600px 리사이즈로 캡 하위 보장. UI 는 글당 5개로 제한 (서버 상한 10).
+const ATTACH_MAX_BYTES = 2 * 1024 * 1024;
+const MAX_POST_ATTACHMENTS = 5;
+
+const formatBytes = (n: number) =>
+  n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)}MB` : `${Math.max(1, Math.round(n / 1024))}KB`;
+
+/** 게시글 첨부 렌더 — 이미지는 썸네일, PDF 는 파일 칩. data: URL(개발 폴백)은 download 로 저장. */
+function PostAttachmentList({ list }: { list: PostAttachment[] }) {
+  if (!list?.length) return null;
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      {list.map((att) => {
+        const isDataUrl = att.url.startsWith('data:');
+        const download = isDataUrl ? att.name || 'attachment' : undefined;
+        return att.type?.startsWith('image/') ? (
+          <a
+            key={att.url}
+            href={att.url}
+            target="_blank"
+            rel="noreferrer"
+            download={download}
+            className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg"
+          >
+            <img
+              src={att.url}
+              alt={att.name}
+              loading="lazy"
+              className="h-20 w-20 object-cover rounded-lg border border-slate-200 dark:border-slate-600"
+            />
+          </a>
+        ) : (
+          <a
+            key={att.url}
+            href={att.url}
+            target="_blank"
+            rel="noreferrer"
+            download={download}
+            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-[10px] text-slate-600 dark:text-slate-300 hover:border-blue-300 transition-colors"
+          >
+            <span aria-hidden>📄</span>
+            <span className="max-w-[160px] truncate">{att.name || 'PDF'}</span>
+            {att.size > 0 && <span className="text-slate-400">{formatBytes(att.size)}</span>}
+          </a>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function StudyGroupDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -74,10 +129,59 @@ export default function StudyGroupDetailPage() {
   const [newPostCategory, setNewPostCategory] = useState<StudyGroupPost['category']>('free');
   const [posting, setPosting] = useState(false);
 
+  // 첨부 — 업로드 완료된 { url, name, size, type } 목록 (게시 시 본문과 함께 전송)
+  const [attachments, setAttachments] = useState<PostAttachment[]>([]);
+  const [attaching, setAttaching] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePickFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = ''; // 같은 파일 재선택 허용
+    if (!files.length || !id) return;
+    if (attachments.length + files.length > MAX_POST_ATTACHMENTS) {
+      toast(tx('study.attach.max', { max: MAX_POST_ATTACHMENTS }), 'info');
+      return;
+    }
+    setAttaching(true);
+    try {
+      for (const original of files) {
+        const isPdf = original.type === 'application/pdf';
+        const isImage = original.type.startsWith('image/') || /\.(heic|heif)$/i.test(original.name);
+        if (!isPdf && !isImage) {
+          toast(tx('study.attach.unsupported', { name: original.name }), 'error');
+          continue;
+        }
+        // 이미지는 업로드 전 1600px 리사이즈 + 압축 — 서버 2MB 캡 하위 보장.
+        // GIF 는 재인코딩 시 애니메이션이 깨지므로 원본 그대로 (2MB 검사만).
+        let file = original;
+        if (isImage && original.type !== 'image/gif') {
+          file = await processImageForUpload(original, {
+            maxDim: 1600,
+            maxSizeMB: 1.8,
+            thresholdBytes: 0,
+          });
+        }
+        if (file.size > ATTACH_MAX_BYTES) {
+          toast(tx('study.attach.tooLarge', { name: original.name }), 'error');
+          continue;
+        }
+        const uploaded = await uploadStudyGroupPostAttachment(id, file);
+        setAttachments((prev) => [...prev, uploaded]);
+      }
+    } catch (err) {
+      toast(err instanceof Error && err.message ? err.message : tx('study.attach.failed'), 'error');
+    } finally {
+      setAttaching(false);
+    }
+  };
+
+  const removeAttachment = (url: string) =>
+    setAttachments((prev) => prev.filter((a) => a.url !== url));
+
   const submitPost = async () => {
     if (!id) return;
     if (newPostTitle.trim().length < 2 || newPostContent.trim().length < 2) {
-      toast('제목·내용을 입력하세요', 'info');
+      toast(tx('study.titleContentRequired'), 'info');
       return;
     }
     setPosting(true);
@@ -86,14 +190,16 @@ export default function StudyGroupDetailPage() {
         title: newPostTitle,
         content: newPostContent,
         category: newPostCategory,
+        attachments,
       });
       toast(tx('toast.posted'), 'success');
       setNewPostTitle('');
       setNewPostContent('');
+      setAttachments([]);
       setShowComposer(false);
       qc.invalidateQueries({ queryKey: ['study-group-posts', id] });
     } catch (e) {
-      toast(e instanceof Error ? e.message : '게시 실패', 'error');
+      toast(e instanceof Error ? e.message : tx('toast.failed'), 'error');
     } finally {
       setPosting(false);
     }
@@ -240,13 +346,13 @@ export default function StudyGroupDetailPage() {
         <main className="flex-1 max-w-xl mx-auto w-full px-4 py-12 text-center">
           <div className="imp-card p-8">
             <p className="text-4xl mb-3">🔍</p>
-            <h1 className="text-lg font-semibold mb-2">그룹을 찾을 수 없습니다</h1>
-            <p className="text-sm text-slate-500 mb-4">삭제됐거나 비공개여서 접근할 수 없습니다.</p>
+            <h1 className="text-lg font-semibold mb-2">{tx('study.notFound')}</h1>
+            <p className="text-sm text-slate-500 mb-4">{tx('study.notFoundDesc')}</p>
             <button
               onClick={() => navigate(ROUTES.interview.studyGroups)}
               className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
             >
-              스터디 목록으로
+              {tx('study.backToList')}
             </button>
           </div>
         </main>
@@ -267,7 +373,7 @@ export default function StudyGroupDetailPage() {
           onClick={() => navigate(ROUTES.interview.studyGroups)}
           className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 mb-3 inline-flex items-center gap-1"
         >
-          ← 스터디 목록
+          ← {tx('study.backToList')}
         </button>
 
         <div className="imp-card p-5 sm:p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 mb-6">
@@ -327,7 +433,7 @@ export default function StudyGroupDetailPage() {
                   disabled={busy}
                   className="px-3 py-2 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-50"
                 >
-                  탈퇴
+                  {tx('study.leave')}
                 </button>
               ) : (
                 <button
@@ -335,7 +441,7 @@ export default function StudyGroupDetailPage() {
                   disabled={busy || group.memberCount >= group.maxMembers}
                   className="px-4 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {group.memberCount >= group.maxMembers ? '정원 초과' : '가입하기'}
+                  {group.memberCount >= group.maxMembers ? tx('study.full') : tx('study.join')}
                 </button>
               )}
             </div>
@@ -438,7 +544,7 @@ export default function StudyGroupDetailPage() {
                     type="text"
                     value={newPostTitle}
                     onChange={(e) => setNewPostTitle(e.target.value.slice(0, 100))}
-                    placeholder="제목"
+                    placeholder={tx('study.titlePlaceholder')}
                     className="flex-1 text-sm px-2 py-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700"
                   />
                 </div>
@@ -446,9 +552,63 @@ export default function StudyGroupDetailPage() {
                   value={newPostContent}
                   onChange={(e) => setNewPostContent(e.target.value.slice(0, 20000))}
                   rows={4}
-                  placeholder="내용을 입력하세요"
+                  placeholder={tx('study.contentPlaceholder')}
                   className="w-full text-sm px-2 py-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 resize-y"
                 />
+
+                {/* 첨부 — 이미지(1600px 자동 리사이즈)·PDF, 파일당 2MB */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*,.heic,.heif,application/pdf"
+                    className="hidden"
+                    onChange={handlePickFiles}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={attaching || attachments.length >= MAX_POST_ATTACHMENTS}
+                    className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-300 disabled:opacity-50 transition-colors"
+                  >
+                    📎 {attaching ? tx('study.attach.uploading') : tx('study.attach.add')}
+                  </button>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                    {tx('study.attach.hint', { max: MAX_POST_ATTACHMENTS })}
+                  </span>
+                </div>
+                {attachments.length > 0 && (
+                  <ul className="flex flex-wrap gap-2">
+                    {attachments.map((a) => (
+                      <li
+                        key={a.url}
+                        className="flex items-center gap-1.5 pl-1.5 pr-1 py-1 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600"
+                      >
+                        {a.type.startsWith('image/') ? (
+                          <img src={a.url} alt="" className="w-6 h-6 rounded object-cover" />
+                        ) : (
+                          <span aria-hidden className="text-sm">
+                            📄
+                          </span>
+                        )}
+                        <span className="text-[10px] text-slate-600 dark:text-slate-300 max-w-[140px] truncate">
+                          {a.name}
+                        </span>
+                        <span className="text-[9px] text-slate-400">{formatBytes(a.size)}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(a.url)}
+                          aria-label={tx('study.attach.remove')}
+                          className="w-4 h-4 inline-flex items-center justify-center rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20"
+                        >
+                          ×
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
                 <div className="flex items-center justify-end gap-2 flex-wrap">
                   <span className="text-[10px] text-slate-500 dark:text-slate-400 mr-auto">
                     {newPostContent.length}/20,000
@@ -456,7 +616,7 @@ export default function StudyGroupDetailPage() {
                   <KoreanQualityBadge text={newPostContent} label="스터디 글" minLength={100} />
                   <button
                     onClick={submitPost}
-                    disabled={posting}
+                    disabled={posting || attaching}
                     className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                   >
                     {posting ? tx('common.loading') : tx('study.newPost')}
@@ -516,6 +676,7 @@ export default function StudyGroupDetailPage() {
                         <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed whitespace-pre-wrap">
                           {p.content}
                         </p>
+                        <PostAttachmentList list={p.attachments} />
                         <div className="mt-1.5 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
                           <span>{p.user?.name || '익명'}</span>
                           <span>·</span>

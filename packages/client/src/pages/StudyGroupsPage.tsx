@@ -11,32 +11,11 @@ import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
 import { ErrorState } from '@/shared/ui/ErrorState';
 
-const TIER_LABEL: Record<string, string> = {
-  public: '공공기관·공기업',
-  large: '대기업',
-  mid: '중견기업',
-  startup: '스타트업',
-  foreign: '외국계',
-  sme: '중소기업',
-  freelance: '프리랜서',
-  etc: '기타',
-};
-
-const CAFE_LABEL: Record<string, string> = {
-  interview: '면접 스터디',
-  resume: '이력서 첨삭',
-  'coding-test': '코딩 테스트',
-  study: '기술 공부',
-  networking: '네트워킹',
-};
-
-const EXPERIENCE_LABEL: Record<string, string> = {
-  new: '신입',
-  junior: '주니어 (1-3년)',
-  mid: '중간 (4-7년)',
-  senior: '시니어 (8년+)',
-  any: '전체',
-};
+// 라벨은 i18n 사전(companyTier/cafeCategory/experienceLevel)을 단일 소스로 사용 —
+// 생성 폼(NewStudyGroupPage)과 동일한 번역을 공유한다.
+const tierLabel = (v: string) => tx(`companyTier.${v}`);
+const cafeLabel = (v: string) => tx(`cafeCategory.${v === 'coding-test' ? 'codingTest' : v}`);
+const levelLabel = (v: string) => tx(`experienceLevel.${v}`);
 
 interface StudyGroup {
   id: string;
@@ -123,11 +102,9 @@ export default function StudyGroupsPage() {
       {/* Header */}
       <header className="space-y-2">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-          {tx('study.cafe')}
+          {tx('study.title')}
         </h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
-          공기업·대기업·스타트업별로 면접 준비와 이력서 첨삭을 함께하는 스터디 그룹을 찾아보세요
-        </p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">{tx('study.explore.subtitle')}</p>
       </header>
 
       {/* Search + CTA */}
@@ -137,7 +114,8 @@ export default function StudyGroupsPage() {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="그룹명·기업명·직무로 검색"
+            placeholder={tx('study.explore.searchPlaceholder')}
+            aria-label={tx('study.explore.searchPlaceholder')}
             className="w-full h-11 pl-10 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <svg
@@ -158,7 +136,7 @@ export default function StudyGroupsPage() {
           to={ROUTES.interview.newStudyGroup}
           className="imp-btn inline-flex items-center justify-center h-11 px-5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
         >
-          + 새 스터디 만들기
+          + {tx('study.create')}
         </Link>
       </div>
 
@@ -166,14 +144,14 @@ export default function StudyGroupsPage() {
       <div className="space-y-3">
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-            기업 유형
+            {tx('study.explore.tierLabel')}
           </div>
           <div className="flex flex-wrap gap-2">
             {STUDY_GROUP_COMPANY_TIERS.map((tier) => (
               <FilterChip
                 key={tier}
                 value={tier}
-                label={TIER_LABEL[tier] || tier}
+                label={tierLabel(tier)}
                 active={companyTier === tier}
                 onClick={(v) => setFilter('companyTier', v)}
               />
@@ -182,14 +160,14 @@ export default function StudyGroupsPage() {
         </div>
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-            카페 주제
+            {tx('study.explore.topicLabel')}
           </div>
           <div className="flex flex-wrap gap-2">
             {STUDY_GROUP_CAFE_CATEGORIES.map((cat) => (
               <FilterChip
                 key={cat}
                 value={cat}
-                label={CAFE_LABEL[cat] || cat}
+                label={cafeLabel(cat)}
                 active={cafeCategory === cat}
                 onClick={(v) => setFilter('cafeCategory', v)}
               />
@@ -198,14 +176,14 @@ export default function StudyGroupsPage() {
         </div>
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-            경력
+            {tx('study.explore.expLabel')}
           </div>
           <div className="flex flex-wrap gap-2">
             {STUDY_GROUP_EXPERIENCE_LEVELS.map((lvl) => (
               <FilterChip
                 key={lvl}
                 value={lvl}
-                label={EXPERIENCE_LABEL[lvl] || lvl}
+                label={levelLabel(lvl)}
                 active={experienceLevel === lvl}
                 onClick={(v) => setFilter('experienceLevel', v)}
               />
@@ -215,19 +193,23 @@ export default function StudyGroupsPage() {
 
         <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              정렬
+            <label
+              htmlFor="study-sort"
+              className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              {tx('study.explore.sortLabel')}
             </label>
             <select
+              id="study-sort"
               value={sort}
               onChange={(e) => setFilter('sort', e.target.value === 'recent' ? '' : e.target.value)}
               className="h-8 px-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
             >
-              <option value="recent">최신순</option>
-              <option value="oldest">오래된순</option>
-              <option value="members">멤버 많은순</option>
-              <option value="seats">여유석 많은순</option>
-              <option value="active">최근 활동순</option>
+              <option value="recent">{tx('study.explore.sortRecent')}</option>
+              <option value="oldest">{tx('study.explore.sortOldest')}</option>
+              <option value="members">{tx('study.explore.sortMembers')}</option>
+              <option value="seats">{tx('study.explore.sortSeats')}</option>
+              <option value="active">{tx('study.explore.sortActive')}</option>
             </select>
           </div>
           <label className="inline-flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
@@ -237,14 +219,14 @@ export default function StudyGroupsPage() {
               onChange={(e) => setFilter('openOnly', e.target.checked ? '1' : '')}
               className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
             />
-            빈 자리만
+            {tx('study.explore.openOnly')}
           </label>
           <div className="flex items-center gap-2">
             <label
               htmlFor="minMembers"
               className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
             >
-              최소 인원
+              {tx('study.explore.minMembers')}
             </label>
             <input
               id="minMembers"
@@ -268,7 +250,7 @@ export default function StudyGroupsPage() {
               onClick={() => setParams(new URLSearchParams())}
               className="ml-auto text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline underline-offset-2"
             >
-              필터 초기화
+              {tx('study.explore.resetFilters')}
             </button>
           )}
         </div>
@@ -285,21 +267,21 @@ export default function StudyGroupsPage() {
           ))}
         </div>
       ) : isError ? (
-        <ErrorState message="스터디 목록을 불러오지 못했습니다" onRetry={() => refetch()} />
+        <ErrorState message={tx('study.explore.loadFailed')} onRetry={() => refetch()} />
       ) : groups.length === 0 ? (
         <div className="imp-card p-12 text-center">
           <div className="text-4xl mb-3">🧑‍🤝‍🧑</div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-            조건에 맞는 스터디가 없어요
+            {tx('study.explore.emptyTitle')}
           </h3>
           <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-            필터를 바꿔 다시 검색하거나, 직접 새 스터디를 만들어보세요
+            {tx('study.explore.emptyDesc')}
           </p>
           <Link
             to={ROUTES.interview.newStudyGroup}
             className="imp-btn inline-flex items-center gap-2 px-5 h-10 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700"
           >
-            + 새 스터디 만들기
+            + {tx('study.create')}
           </Link>
         </div>
       ) : (
@@ -314,24 +296,24 @@ export default function StudyGroupsPage() {
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 line-clamp-2">
                   {g.name}
                 </h3>
-                {g.isPrivate && <span className="badge-xs badge-neutral shrink-0">비공개</span>}
+                {g.isPrivate && (
+                  <span className="badge-xs badge-neutral shrink-0">
+                    {tx('study.explore.privateBadge')}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-3">
-                {g.description || '(설명 없음)'}
+                {g.description || tx('study.explore.noDescription')}
               </p>
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 {g.companyName && <span className="badge-xs badge-blue">{g.companyName}</span>}
-                <span className="badge-xs badge-cyan">
-                  {TIER_LABEL[g.companyTier] || g.companyTier}
-                </span>
-                <span className="badge-xs badge-neutral">
-                  {CAFE_LABEL[g.cafeCategory] || g.cafeCategory}
-                </span>
+                <span className="badge-xs badge-cyan">{tierLabel(g.companyTier)}</span>
+                <span className="badge-xs badge-neutral">{cafeLabel(g.cafeCategory)}</span>
               </div>
               <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                <span>{EXPERIENCE_LABEL[g.experienceLevel] || g.experienceLevel}</span>
+                <span>{levelLabel(g.experienceLevel)}</span>
                 <span>
-                  {g.memberCount}/{g.maxMembers}명
+                  {tx('study.explore.memberCount', { count: g.memberCount, max: g.maxMembers })}
                 </span>
               </div>
             </Link>

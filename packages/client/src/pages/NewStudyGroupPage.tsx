@@ -16,7 +16,16 @@ import {
   type StudyGroupFormOutput,
 } from '@/shared/lib/schemas/studyGroup';
 
-const TIER_KEYS = ['public', 'large', 'mid', 'startup', 'foreign', 'sme', 'etc'] as const;
+const TIER_KEYS = [
+  'public',
+  'large',
+  'mid',
+  'startup',
+  'foreign',
+  'sme',
+  'freelance',
+  'etc',
+] as const;
 const CAFE_KEYS = [
   { value: 'interview', k: 'interview' },
   { value: 'resume', k: 'resume' },
@@ -50,6 +59,11 @@ export default function NewStudyGroupPage() {
     defaultValues: {
       name: '',
       description: '',
+      companyTier: 'etc',
+      cafeCategory: 'interview',
+      experienceLevel: 'any',
+      companyName: '',
+      position: '',
       isPrivate: false,
       maxMembers: 10,
     },
@@ -57,25 +71,16 @@ export default function NewStudyGroupPage() {
 
   const onSubmit = async (data: StudyGroupFormOutput) => {
     try {
-      const tierEl = document.querySelector<HTMLSelectElement>('select[name="companyTier"]');
-      const cafeEl = document.querySelector<HTMLSelectElement>('select[name="cafeCategory"]');
-      const levelEl = document.querySelector<HTMLSelectElement>('select[name="experienceLevel"]');
-      const companyEl = document.querySelector<HTMLInputElement>('input[name="companyName"]');
-      const positionEl = document.querySelector<HTMLInputElement>('input[name="position"]');
-
       const created = await createStudyGroup({
         name: data.name,
         description: data.description || undefined,
         isPrivate: data.isPrivate,
         maxMembers: data.maxMembers,
-        companyName: companyEl?.value.trim() || undefined,
-        position: positionEl?.value.trim() || undefined,
-        // 추가 필드를 아래처럼 래핑해 서버에 같이 전달
-        ...({
-          companyTier: tierEl?.value,
-          cafeCategory: cafeEl?.value,
-          experienceLevel: levelEl?.value,
-        } as any),
+        companyName: data.companyName || undefined,
+        position: data.position || undefined,
+        companyTier: data.companyTier,
+        cafeCategory: data.cafeCategory,
+        experienceLevel: data.experienceLevel,
       });
       toast('스터디 그룹이 생성됐습니다', 'success');
       navigate(ROUTES.interview.studyGroup(created.id));
@@ -134,8 +139,7 @@ export default function NewStudyGroupPage() {
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="기업 카테고리">
                 <select
-                  name="companyTier"
-                  defaultValue="etc"
+                  {...register('companyTier')}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
                 >
                   {getTIERS().map((t) => (
@@ -147,8 +151,7 @@ export default function NewStudyGroupPage() {
               </Field>
               <Field label="카페 유형">
                 <select
-                  name="cafeCategory"
-                  defaultValue="interview"
+                  {...register('cafeCategory')}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
                 >
                   {getCAFES().map((c) => (
@@ -163,8 +166,7 @@ export default function NewStudyGroupPage() {
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="경력 단계">
                 <select
-                  name="experienceLevel"
-                  defaultValue="any"
+                  {...register('experienceLevel')}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
                 >
                   {getLEVELS().map((l) => (
@@ -186,18 +188,20 @@ export default function NewStudyGroupPage() {
             </div>
 
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="타겟 회사 (선택)">
+              <Field label="타겟 회사 (선택)" error={errors.companyName?.message}>
                 <input
-                  name="companyName"
+                  {...register('companyName')}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
                   placeholder="예: 네이버"
+                  maxLength={100}
                 />
               </Field>
-              <Field label="타겟 직무 (선택)">
+              <Field label="타겟 직무 (선택)" error={errors.position?.message}>
                 <input
-                  name="position"
+                  {...register('position')}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
                   placeholder="예: 프론트엔드"
+                  maxLength={100}
                 />
               </Field>
             </div>

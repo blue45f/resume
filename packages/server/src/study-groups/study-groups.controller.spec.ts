@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { StudyGroupsController } from './study-groups.controller';
 import { StudyGroupsService } from './study-groups.service';
 
@@ -12,7 +13,11 @@ const mockService = {
   remove: jest.fn(),
   listQuestions: jest.fn(),
   addQuestion: jest.fn(),
+  assertPostAccess: jest.fn(),
 };
+
+// Cloudinary 미설정 환경 시뮬레이션 → 업로드는 data: URL 폴백 경로
+const mockConfig = { get: jest.fn().mockReturnValue(undefined) };
 
 const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
 
@@ -22,7 +27,10 @@ describe('StudyGroupsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StudyGroupsController],
-      providers: [{ provide: StudyGroupsService, useValue: mockService }],
+      providers: [
+        { provide: StudyGroupsService, useValue: mockService },
+        { provide: ConfigService, useValue: mockConfig },
+      ],
     }).compile();
     controller = module.get(StudyGroupsController);
     jest.clearAllMocks();
@@ -139,5 +147,63 @@ describe('StudyGroupsController', () => {
     );
     controller.addQuestion('g1', { question: 'Q' } as any, reqWith({ id: 'u1' }));
     expect(mockService.addQuestion).toHaveBeenCalledWith('g1', 'u1', { question: 'Q' });
+  });
+
+  describe('uploadPostAttachment (이미지/PDF, 2MB 캡)', () => {
+    const makeFile = (over: Partial<Express.Multer.File> = {}): Express.Multer.File =>
+      ({
+        originalname: 'doc.pdf',
+        mimetype: 'application/pdf',
+        size: 1024,
+        buffer: Buffer.from('PDF'),
+        ...over,
+      }) as Express.Multer.File;
+
+    it('비로그인 → Unauthorized', async () => {
+      await expect(controller.uploadPostAttachment('g1', makeFile(), reqWith())).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('파일 없음 → BadRequest', async () => {
+      await expect(
+        controller.uploadPostAttachment('g1', undefined as any, reqWith({ id: 'u1' })),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('허용 외 mimetype (zip) → BadRequest', async () => {
+      await expect(
+        controller.uploadPostAttachment(
+          'g1',
+          makeFile({ mimetype: 'application/zip' }),
+          reqWith({ id: 'u1' }),
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('2MB 초과 → BadRequest', async () => {
+      await expect(
+        controller.uploadPostAttachment(
+          'g1',
+          makeFile({ size: 2 * 1024 * 1024 + 1 }),
+          reqWith({ id: 'u1' }),
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('정상 업로드 (Cloudinary 미설정) → data: URL 폴백 + 그룹 접근 검증', async () => {
+      mockService.assertPostAccess.mockResolvedValueOnce({ id: 'g1' });
+      const res = await controller.uploadPostAttachment('g1', makeFile(), reqWith({ id: 'u1' }));
+      expect(mockService.assertPostAccess).toHaveBeenCalledWith('g1', 'u1');
+      expect(res.url.startsWith('data:application/pdf;base64,')).toBe(true);
+      expect(res).toMatchObject({ name: 'doc.pdf', size: 1024, type: 'application/pdf' });
+    });
+
+    it('접근 거부 시 업로드 중단 (assertPostAccess 예외 전파)', async () => {
+      mockService.assertPostAccess.mockRejectedValueOnce(new Error('forbidden'));
+      await expect(
+        controller.uploadPostAttachment('g1', makeFile(), reqWith({ id: 'u1' })),
+      ).rejects.toThrow('forbidden');
+    });
   });
 });

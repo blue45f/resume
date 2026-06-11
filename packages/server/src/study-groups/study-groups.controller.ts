@@ -10,15 +10,31 @@ import {
   Req,
   Query,
   UnauthorizedException,
+  BadRequestException,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import { ConfigService } from '@nestjs/config';
+import { v2 as cloudinary } from 'cloudinary';
 import { Public } from '../auth/auth.guard';
 import {
   StudyGroupsService,
   CreateStudyGroupDto,
   CreateStudyGroupQuestionDto,
 } from './study-groups.service';
+
+/** 게시글 첨부 정책 — 이미지(클라 1600px 리사이즈) + PDF, 파일당 2MB 캡. */
+const STUDY_ATTACH_MAX_SIZE = 2 * 1024 * 1024; // 2MB
+const STUDY_ATTACH_ALLOWED_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'application/pdf',
+];
 
 /**
  * P3-1 — 컨트롤러 레벨 기본 throttle. 모든 endpoint 는 사용자당 60/min 으로 시작.
@@ -28,7 +44,26 @@ import {
 @Controller('study-groups')
 @Throttle({ default: { limit: 60, ttl: 60_000 } })
 export class StudyGroupsController {
-  constructor(private readonly service: StudyGroupsService) {}
+  /** Cloudinary 설정 여부 — 미설정(개발) 시 data: URL 폴백 (community/upload 와 동일 패턴). */
+  private useCloudinary: boolean;
+
+  constructor(
+    private readonly service: StudyGroupsService,
+    private readonly config: ConfigService,
+  ) {
+    const cloudName = this.config.get('CLOUDINARY_CLOUD_NAME');
+    const apiKey = this.config.get('CLOUDINARY_API_KEY');
+    const apiSecret = this.config.get('CLOUDINARY_API_SECRET');
+    this.useCloudinary = !!(cloudName && apiKey && apiSecret);
+    if (this.useCloudinary) {
+      cloudinary.config({
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
+        secure: true,
+      });
+    }
+  }
 
   @Get()
   @Public()
@@ -233,14 +268,75 @@ export class StudyGroupsController {
   }
 
   @Put('posts/:postId')
-  @ApiOperation({ summary: '스터디 그룹 게시글 수정' })
+  @ApiOperation({ summary: '스터디 그룹 게시글 수정 (첨부 교체 포함)' })
   updatePost(
     @Param('postId') postId: string,
-    @Body() body: { title?: string; content?: string; category?: string; isPinned?: boolean },
+    @Body()
+    body: {
+      title?: string;
+      content?: string;
+      category?: string;
+      isPinned?: boolean;
+      tags?: string[];
+      attachments?: Array<{ url: string; name: string; size: number; type: string }>;
+    },
     @Req() req: any,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.updatePost(postId, req.user.id, body);
+  }
+
+  /**
+   * 게시글 첨부 업로드 — 멤버(또는 공개 그룹 사용자) 전용.
+   * Cloudinary 설정 시 원격 저장, 미설정(개발) 시 data: URL 폴백.
+   * 반환 shape 은 게시글 attachments JSON 항목과 동일: { url, name, size, type }.
+   */
+  @Post(':id/attachments')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ApiOperation({ summary: '스터디 게시글 첨부 업로드 (이미지/PDF, 2MB)' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: STUDY_ATTACH_MAX_SIZE } }))
+  async uploadPostAttachment(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: any,
+  ) {
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    if (!file) throw new BadRequestException('파일이 없습니다');
+    if (!STUDY_ATTACH_ALLOWED_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException('이미지(JPEG/PNG/WebP/GIF) 또는 PDF만 첨부할 수 있습니다');
+    }
+    // multer limits 가 1차 차단하지만 방어적으로 한 번 더 확인
+    if (file.size > STUDY_ATTACH_MAX_SIZE) {
+      throw new BadRequestException('파일 크기는 2MB 이하여야 합니다');
+    }
+    await this.service.assertPostAccess(id, req.user.id);
+
+    // Multer 는 파일명을 Latin1 로 인코딩 → UTF-8 복원 (attachments.service 와 동일 처리)
+    const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8').slice(0, 200);
+
+    if (this.useCloudinary) {
+      const result = await new Promise<any>((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: `study-group-attachments/${id}`, resource_type: 'auto' },
+          (err, uploaded) => {
+            if (err) reject(err);
+            else resolve(uploaded);
+          },
+        );
+        stream.end(file.buffer);
+      });
+      return { url: result.secure_url, name: originalName, size: file.size, type: file.mimetype };
+    }
+
+    // Cloudinary 미설정: base64 data URL 폴백 (개발용 — normalizeAttachments 의 허용 prefix)
+    const b64 = file.buffer.toString('base64');
+    return {
+      url: `data:${file.mimetype};base64,${b64}`,
+      name: originalName,
+      size: file.size,
+      type: file.mimetype,
+    };
   }
 
   @Patch(':id')

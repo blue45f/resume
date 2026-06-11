@@ -10,7 +10,7 @@ import {
 import { getUser } from '@/lib/auth';
 import { toast } from '@/components/Toast';
 import { useConfirm } from '@/shared/ui/ConfirmProvider';
-import { tx } from '@/lib/i18n';
+import { t, tx } from '@/lib/i18n';
 
 interface Props {
   questionId: string;
@@ -45,7 +45,7 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
   const submit = async () => {
     const trimmed = body.trim();
     if (trimmed.length < 2) {
-      toast(tx('study.answerMin') || '답변은 2자 이상 입력하세요', 'info');
+      toast(tx('study.answerPlaceholder'), 'info');
       return;
     }
     setSubmitting(true);
@@ -66,7 +66,13 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
   const confirm = useConfirm();
 
   const remove = async (id: string) => {
-    if (!(await confirm({ title: '답변을 삭제하시겠습니까?', confirmText: '삭제', danger: true })))
+    if (
+      !(await confirm({
+        title: tx('confirm.delete'),
+        confirmText: tx('common.delete'),
+        danger: true,
+      }))
+    )
       return;
     try {
       await deleteStudyGroupQuestionAnswer(id);
@@ -107,17 +113,17 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
     >
       <header className="flex items-center justify-between mb-2 gap-2">
         <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-          💡 {tx('study.answers') || '답변'} ({topLevel.length})
+          💡 {tx('study.answers')} ({topLevel.length})
         </h4>
         <div className="flex items-center gap-2">
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as 'upvotes' | 'recent')}
             className="text-[11px] px-1.5 py-1 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700"
-            aria-label="정렬"
+            aria-label={tx('study.explore.sortLabel')}
           >
-            <option value="upvotes">추천순</option>
-            <option value="recent">최신순</option>
+            <option value="upvotes">{tx('study.sortUpvotes')}</option>
+            <option value="recent">{tx('study.sortRecent')}</option>
           </select>
           {user && (
             <button
@@ -127,9 +133,7 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
               }}
               className="text-[11px] px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              {composing && !replyTo
-                ? tx('common.cancel')
-                : `+ ${tx('study.newAnswer') || '답변 작성'}`}
+              {composing && !replyTo ? tx('common.cancel') : `+ ${tx('study.newAnswer')}`}
             </button>
           )}
         </div>
@@ -141,7 +145,7 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
             value={body}
             onChange={(e) => setBody(e.target.value.slice(0, 5000))}
             rows={3}
-            placeholder="답변을 입력하세요 (2~5000자)"
+            placeholder={tx('study.answerPlaceholder')}
             className="w-full text-xs px-2 py-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 resize-y"
           />
           <div className="flex items-center justify-end gap-2 mt-2">
@@ -153,7 +157,7 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
               disabled={submitting}
               className="text-[11px] px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
             >
-              {submitting ? tx('common.loading') : tx('common.submit') || '제출'}
+              {submitting ? tx('common.loading') : t('common.submit')}
             </button>
           </div>
         </div>
@@ -165,13 +169,15 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
 
       {!isLoading && topLevel.length === 0 && (
         <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-3">
-          {tx('study.noAnswers') || '아직 답변이 없습니다. 첫 번째 답변을 남겨보세요!'}
+          {tx('study.noAnswers')}
         </p>
       )}
 
       <ul className="space-y-2">
         {topLevel.map((a) => {
           const replies = repliesByParent.get(a.id) || [];
+          // 서버 tombstone sentinel — 답글이 달린 답변을 삭제하면 body='' 로 전환되어 스레드만 보존
+          const isTombstone = a.body === '';
           return (
             <li
               key={a.id}
@@ -188,49 +194,57 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
                     <span className="font-medium text-slate-700 dark:text-slate-300">
-                      {a.user?.name || tx('common.anonymous') || '익명'}
+                      {a.user?.name || tx('common.anonymous')}
                     </span>
                     <span>·</span>
                     <span>{new Date(a.createdAt).toLocaleDateString()}</span>
                   </div>
-                  <p className="mt-1 text-xs text-slate-700 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
-                    {a.body}
-                  </p>
-                  <div className="mt-1.5 flex items-center gap-3 text-[10px]">
-                    <button
-                      onClick={() => toggleUpvote(a.id)}
-                      disabled={!user || a.userId === user.id}
-                      className={`flex items-center gap-1 transition-colors ${
-                        a.upvoted
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-slate-500 dark:text-slate-400 hover:text-amber-600'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
-                      aria-label={a.upvoted ? '추천 취소' : '추천'}
-                    >
-                      <span aria-hidden>👍</span>
-                      <span>{a.upvotes}</span>
-                    </button>
-                    {user && (
+                  {isTombstone ? (
+                    <p className="mt-1 text-xs italic text-slate-400 dark:text-slate-500">
+                      {tx('study.deletedAnswer')}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs text-slate-700 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+                      {a.body}
+                    </p>
+                  )}
+                  {!isTombstone && (
+                    <div className="mt-1.5 flex items-center gap-3 text-[10px]">
                       <button
-                        onClick={() => {
-                          setReplyTo(a.id);
-                          setComposing(true);
-                          setBody('');
-                        }}
-                        className="text-slate-500 dark:text-slate-400 hover:text-blue-600"
+                        onClick={() => toggleUpvote(a.id)}
+                        disabled={!user || a.userId === user.id}
+                        className={`flex items-center gap-1 transition-colors ${
+                          a.upvoted
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-amber-600'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        aria-label={a.upvoted ? '추천 취소' : '추천'}
                       >
-                        답글
+                        <span aria-hidden>👍</span>
+                        <span>{a.upvotes}</span>
                       </button>
-                    )}
-                    {canDelete(a) && (
-                      <button
-                        onClick={() => remove(a.id)}
-                        className="text-slate-500 dark:text-slate-400 hover:text-rose-600"
-                      >
-                        {tx('common.delete')}
-                      </button>
-                    )}
-                  </div>
+                      {user && (
+                        <button
+                          onClick={() => {
+                            setReplyTo(a.id);
+                            setComposing(true);
+                            setBody('');
+                          }}
+                          className="text-slate-500 dark:text-slate-400 hover:text-blue-600"
+                        >
+                          {tx('study.reply')}
+                        </button>
+                      )}
+                      {canDelete(a) && (
+                        <button
+                          onClick={() => remove(a.id)}
+                          className="text-slate-500 dark:text-slate-400 hover:text-rose-600"
+                        >
+                          {tx('common.delete')}
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   {/* 답글 폼 */}
                   {composing && replyTo === a.id && (
@@ -239,7 +253,7 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
                         value={body}
                         onChange={(e) => setBody(e.target.value.slice(0, 5000))}
                         rows={2}
-                        placeholder="답글을 입력하세요"
+                        placeholder={tx('study.replyPlaceholder')}
                         className="w-full text-[11px] px-2 py-1 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 resize-y"
                       />
                       <div className="flex items-center justify-end gap-2 mt-1">
@@ -258,7 +272,7 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
                           disabled={submitting}
                           className="text-[10px] px-2 py-0.5 bg-blue-600 text-white rounded disabled:opacity-50"
                         >
-                          {submitting ? tx('common.loading') : '답글'}
+                          {submitting ? tx('common.loading') : tx('study.reply')}
                         </button>
                       </div>
                     </div>
@@ -271,7 +285,7 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
                         <li key={r.id} className="text-[11px]">
                           <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400">
                             <span className="font-medium text-slate-700 dark:text-slate-300">
-                              {r.user?.name || tx('common.anonymous') || '익명'}
+                              {r.user?.name || tx('common.anonymous')}
                             </span>
                             <span>·</span>
                             <span>{new Date(r.createdAt).toLocaleDateString()}</span>

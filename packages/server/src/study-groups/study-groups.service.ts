@@ -434,6 +434,131 @@ export class StudyGroupsService {
     return { success: true };
   }
 
+  /** [관리자] 전체 그룹 게시글 모더레이션 목록 — 그룹/작성자/첨부 포함, 최신순. */
+  async adminListPosts(params: { q?: string; groupId?: string; page: number; limit: number }) {
+    const { q, groupId, page, limit } = params;
+    const where: any = {};
+    if (groupId) where.groupId = groupId;
+    if (q) {
+      where.OR = [
+        { title: { contains: q, mode: 'insensitive' } },
+        { content: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+    const [items, total] = await Promise.all([
+      this.prisma.studyGroupPost.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          group: { select: { id: true, name: true } },
+          user: { select: { id: true, name: true, email: true } },
+        },
+      }),
+      this.prisma.studyGroupPost.count({ where }),
+    ]);
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  /** [관리자] 게시글 삭제 — 댓글/리액션/좋아요 cascade. */
+  async adminDeletePost(postId: string) {
+    const post = await this.prisma.studyGroupPost.findUnique({
+      where: { id: postId },
+      select: { id: true },
+    });
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
+    await this.prisma.studyGroupPost.delete({ where: { id: postId } });
+    return { success: true };
+  }
+
+  /** [관리자] 게시글에서 특정 첨부(url 일치) 제거. */
+  async adminRemovePostAttachment(postId: string, url: string) {
+    if (!url || typeof url !== 'string') {
+      throw new BadRequestException('제거할 첨부 url 이 필요합니다');
+    }
+    const post = await this.prisma.studyGroupPost.findUnique({
+      where: { id: postId },
+      select: { id: true, attachments: true },
+    });
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
+    const list = Array.isArray(post.attachments)
+      ? (post.attachments as Array<{ url?: string }>)
+      : [];
+    const next = list.filter((a) => a?.url !== url);
+    if (next.length === list.length) {
+      throw new NotFoundException('해당 첨부를 찾을 수 없습니다');
+    }
+    return this.prisma.studyGroupPost.update({
+      where: { id: postId },
+      data: { attachments: next as any },
+      select: { id: true, attachments: true },
+    });
+  }
+
+  /** [관리자] 댓글 삭제 — 권한 검증 없이 tombstone 코어 재사용. */
+  async adminDeleteComment(commentId: string) {
+    const c = await this.prisma.studyGroupPostComment.findUnique({
+      where: { id: commentId },
+      select: { id: true, postId: true, content: true },
+    });
+    if (!c) throw new NotFoundException('댓글을 찾을 수 없습니다');
+    return this.deleteCommentCore(c);
+  }
+
+  /** [관리자] 문제 답변 삭제 — 권한 검증 없이 tombstone 코어 재사용. */
+  async adminDeleteAnswer(answerId: string) {
+    const answer = await this.prisma.studyGroupQuestionAnswer.findUnique({
+      where: { id: answerId },
+      include: { question: { select: { id: true } } },
+    });
+    if (!answer) throw new NotFoundException('답변을 찾을 수 없습니다');
+    return this.deleteAnswerCore(answer);
+  }
+
+  /** [관리자] 게시글 댓글 목록 — 접근 게이트 없이 모더레이션용 조회 (tombstone 포함). */
+  async adminListPostComments(postId: string) {
+    const post = await this.prisma.studyGroupPost.findUnique({
+      where: { id: postId },
+      select: { id: true },
+    });
+    if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
+    return this.prisma.studyGroupPostComment.findMany({
+      where: { postId },
+      orderBy: [{ createdAt: 'asc' }],
+      include: { user: { select: { id: true, name: true, email: true } } },
+    });
+  }
+
+  /** [관리자] 전체 그룹 문제 답변 모더레이션 목록 — 질문/그룹/작성자 포함, 최신순. */
+  async adminListAnswers(params: { q?: string; groupId?: string; page: number; limit: number }) {
+    const { q, groupId, page, limit } = params;
+    const where: any = {};
+    if (q) where.body = { contains: q, mode: 'insensitive' };
+    if (groupId) where.question = { groupId };
+    const [items, total] = await Promise.all([
+      this.prisma.studyGroupQuestionAnswer.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          question: {
+            select: {
+              id: true,
+              question: true,
+              groupId: true,
+              group: { select: { id: true, name: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.studyGroupQuestionAnswer.count({ where }),
+    ]);
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
   /** 카페형 게시판 — 멤버 전용 글 작성·조회 */
   private async assertMemberOrPublic(groupId: string, userId?: string) {
     const group = await this.prisma.studyGroup.findUnique({
@@ -613,7 +738,8 @@ export class StudyGroupsService {
 
   /**
    * P2-9 — 게시글 첨부 JSON 검증 + sanitize.
-   * URL 은 https 또는 cloudinary/이미 host whitelist 만 허용. file:// , javascript:, data: URI 차단.
+   * URL 은 https + host whitelist, 또는 안전한 data: 이미지/PDF(업로드 폴백)만 허용.
+   * file:// , javascript:, data:text/html 등은 차단.
    * shape: { url, name, size, type } 각 필드 길이/타입 검증. 최대 10개.
    */
   private static readonly ALLOWED_ATTACHMENT_HOSTS = [
@@ -623,6 +749,21 @@ export class StudyGroupsService {
     'lh3.googleusercontent.com',
     'images.unsplash.com',
   ];
+
+  /**
+   * data: URL 허용 prefix — Cloudinary 미설정(개발) 업로드 폴백 전용.
+   * 렌더링이 안전한 이미지/PDF mimetype 의 base64 만 통과 (data:text/html XSS 차단).
+   */
+  private static readonly ALLOWED_DATA_URL_PREFIXES = [
+    'data:image/jpeg;base64,',
+    'data:image/png;base64,',
+    'data:image/webp;base64,',
+    'data:image/gif;base64,',
+    'data:application/pdf;base64,',
+  ];
+
+  /** 첨부 1개당 2MB 상한 — base64 팽창(4/3) + prefix 여유 포함 문자열 길이 상한 */
+  private static readonly MAX_DATA_URL_LENGTH = 2_900_000;
 
   private normalizeAttachments(
     raw: unknown,
@@ -638,8 +779,22 @@ export class StudyGroupsService {
       const size = typeof obj.size === 'number' && Number.isFinite(obj.size) ? obj.size : 0;
       const type = typeof obj.type === 'string' ? obj.type.trim().slice(0, 100) : '';
 
-      // URL 검증 — https + 허용 host 화이트리스트
-      if (!url || url.length > 2048) continue;
+      if (!url) continue;
+      // size: 50MB 상한 (메타데이터)
+      if (size < 0 || size > 50 * 1024 * 1024) continue;
+
+      // 1) data: URL — 허용 prefix + 길이 상한 (업로드 폴백 경로)
+      if (url.startsWith('data:')) {
+        const prefixOk = StudyGroupsService.ALLOWED_DATA_URL_PREFIXES.some((p) =>
+          url.startsWith(p),
+        );
+        if (!prefixOk || url.length > StudyGroupsService.MAX_DATA_URL_LENGTH) continue;
+        out.push({ url, name, size, type });
+        continue;
+      }
+
+      // 2) https URL — 허용 host 화이트리스트
+      if (url.length > 2048) continue;
       let parsed: URL;
       try {
         parsed = new URL(url);
@@ -651,12 +806,19 @@ export class StudyGroupsService {
         (h) => parsed.hostname === h || parsed.hostname.endsWith(`.${h}`),
       );
       if (!hostOk) continue;
-      // size: 50MB 상한
-      if (size < 0 || size > 50 * 1024 * 1024) continue;
 
       out.push({ url, name, size, type });
     }
     return out;
+  }
+
+  /**
+   * 업로드 전 그룹 접근 검증 — createPost 와 동일한 게이트 (멤버 또는 공개 그룹).
+   * 첨부 업로드 endpoint (controller) 에서 사용.
+   */
+  async assertPostAccess(groupId: string, userId: string) {
+    if (!userId) throw new ForbiddenException('로그인이 필요합니다');
+    return this.assertMemberOrPublic(groupId, userId);
   }
 
   async updatePost(
@@ -668,6 +830,7 @@ export class StudyGroupsService {
       category: string;
       isPinned: boolean;
       tags: string[];
+      attachments: Array<{ url: string; name: string; size: number; type: string }>;
     }>,
   ) {
     const post = await this.prisma.studyGroupPost.findUnique({ where: { id: postId } });
@@ -684,6 +847,10 @@ export class StudyGroupsService {
     if (data.category !== undefined) patch.category = data.category;
     if (data.isPinned !== undefined && group?.ownerId === userId) patch.isPinned = data.isPinned;
     if (data.tags !== undefined) patch.tags = this.normalizeTags(data.tags);
+    // 첨부 교체(작성자 삭제 포함) — 동일한 sanitize 경로
+    if (data.attachments !== undefined) {
+      patch.attachments = this.normalizeAttachments(data.attachments);
+    }
     return this.prisma.studyGroupPost.update({ where: { id: postId }, data: patch });
   }
 
@@ -927,13 +1094,16 @@ export class StudyGroupsService {
     if (data.parentId) {
       const parent = await this.prisma.studyGroupPostComment.findUnique({
         where: { id: data.parentId },
-        select: { id: true, postId: true, parentId: true },
+        select: { id: true, postId: true, parentId: true, content: true },
       });
       if (!parent || parent.postId !== postId) {
         throw new BadRequestException('잘못된 부모 댓글입니다');
       }
       if (parent.parentId) {
         throw new BadRequestException('대대댓글은 지원하지 않습니다');
+      }
+      if (parent.content === '') {
+        throw new BadRequestException('삭제된 댓글에는 답글을 달 수 없습니다');
       }
     }
     const [comment] = await this.prisma.$transaction([
@@ -967,14 +1137,59 @@ export class StudyGroupsService {
     if (c.userId !== userId && group?.ownerId !== userId) {
       throw new ForbiddenException('댓글 삭제 권한이 없습니다');
     }
+    return this.deleteCommentCore(c);
+  }
+
+  /**
+   * 댓글 삭제 공통 코어 (권한 검증은 호출부 책임).
+   * 답글이 달린 댓글은 hard delete 대신 content='' tombstone 으로 전환해
+   * 스레드(답글)를 보존한다 — 클라이언트는 빈 content 를 "삭제된 댓글" 플레이스홀더로 렌더.
+   * content==='' 는 작성 시 최소 1자 검증으로 정상 댓글에선 불가능한 sentinel.
+   */
+  private async deleteCommentCore(c: { id: string; postId: string; content: string }) {
+    // 이미 tombstone — 멱등 처리 (count 이중 차감 방지)
+    if (c.content === '') return { success: true, tombstoned: true };
+
+    const replyCount = await this.prisma.studyGroupPostComment.count({
+      where: { parentId: c.id },
+    });
+
+    if (replyCount > 0) {
+      await this.prisma.$transaction([
+        this.prisma.studyGroupPostComment.update({
+          where: { id: c.id },
+          data: { content: '' },
+        }),
+        this.prisma.studyGroupPost.update({
+          where: { id: c.postId },
+          data: { commentCount: { decrement: 1 } },
+        }),
+      ]);
+      return { success: true, tombstoned: true };
+    }
+
+    const target = await this.prisma.studyGroupPostComment.findUnique({
+      where: { id: c.id },
+      select: { parentId: true },
+    });
     await this.prisma.$transaction([
-      this.prisma.studyGroupPostComment.delete({ where: { id: commentId } }),
+      this.prisma.studyGroupPostComment.delete({ where: { id: c.id } }),
       this.prisma.studyGroupPost.update({
         where: { id: c.postId },
         data: { commentCount: { decrement: 1 } },
       }),
     ]);
-    return { success: true };
+    // 부모가 tombstone 인데 남은 답글이 없으면 빈 껍데기 정리 (count 는 tombstone 시점에 이미 차감됨)
+    if (target?.parentId) {
+      const parent = await this.prisma.studyGroupPostComment.findUnique({
+        where: { id: target.parentId },
+        select: { id: true, content: true, _count: { select: { replies: true } } },
+      });
+      if (parent && parent.content === '' && parent._count.replies === 0) {
+        await this.prisma.studyGroupPostComment.delete({ where: { id: parent.id } });
+      }
+    }
+    return { success: true, tombstoned: false };
   }
 
   // ─────────────────────────────────────────────
@@ -1218,13 +1433,16 @@ export class StudyGroupsService {
     if (data.parentId) {
       const parent = await this.prisma.studyGroupQuestionAnswer.findUnique({
         where: { id: data.parentId },
-        select: { id: true, questionId: true, parentId: true },
+        select: { id: true, questionId: true, parentId: true, body: true },
       });
       if (!parent || parent.questionId !== questionId) {
         throw new BadRequestException('잘못된 부모 답변입니다');
       }
       if (parent.parentId) {
         throw new BadRequestException('답글에는 답글을 달 수 없습니다');
+      }
+      if (parent.body === '') {
+        throw new BadRequestException('삭제된 답변에는 답글을 달 수 없습니다');
       }
     }
 
@@ -1286,8 +1504,43 @@ export class StudyGroupsService {
     if (answer.userId !== userId && group?.ownerId !== userId) {
       throw new ForbiddenException('답변 삭제 권한이 없습니다');
     }
+    return this.deleteAnswerCore(answer);
+  }
+
+  /**
+   * 답변 삭제 공통 코어 (권한 검증은 호출부 책임).
+   * 답글이 달린 top-level 답변은 body='' tombstone 으로 전환해 답글 스레드를 보존.
+   * body==='' 는 작성 시 최소 2자 검증으로 정상 답변에선 불가능한 sentinel.
+   */
+  private async deleteAnswerCore(answer: {
+    id: string;
+    parentId: string | null;
+    body: string;
+    question: { id: string };
+  }) {
+    // 이미 tombstone — 멱등 처리 (answerCount 이중 차감 방지)
+    if (answer.body === '') return { success: true, tombstoned: true };
+
+    const replyCount = await this.prisma.studyGroupQuestionAnswer.count({
+      where: { parentId: answer.id },
+    });
+
+    if (!answer.parentId && replyCount > 0) {
+      await this.prisma.$transaction([
+        this.prisma.studyGroupQuestionAnswer.update({
+          where: { id: answer.id },
+          data: { body: '' },
+        }),
+        this.prisma.studyGroupQuestion.update({
+          where: { id: answer.question.id },
+          data: { answerCount: { decrement: 1 } },
+        }),
+      ]);
+      return { success: true, tombstoned: true };
+    }
+
     await this.prisma.$transaction([
-      this.prisma.studyGroupQuestionAnswer.delete({ where: { id: answerId } }),
+      this.prisma.studyGroupQuestionAnswer.delete({ where: { id: answer.id } }),
       // top-level 답변 삭제 시 cache 갱신
       ...(!answer.parentId
         ? [
@@ -1298,7 +1551,17 @@ export class StudyGroupsService {
           ]
         : []),
     ]);
-    return { success: true };
+    // 답글 삭제 후 tombstone 부모에 남은 답글이 없으면 빈 껍데기 정리
+    if (answer.parentId) {
+      const parent = await this.prisma.studyGroupQuestionAnswer.findUnique({
+        where: { id: answer.parentId },
+        select: { id: true, body: true, _count: { select: { replies: true } } },
+      });
+      if (parent && parent.body === '' && parent._count.replies === 0) {
+        await this.prisma.studyGroupQuestionAnswer.delete({ where: { id: parent.id } });
+      }
+    }
+    return { success: true, tombstoned: false };
   }
 
   /** 답변 추천(좋아요) — 토글, 사용자당 1회. 본인 답변 추천 불가. */
@@ -1310,6 +1573,9 @@ export class StudyGroupsService {
     });
     if (!answer) throw new NotFoundException('답변을 찾을 수 없습니다');
     await this.assertMemberOrPublic(answer.question.groupId, userId);
+    if (answer.body === '') {
+      throw new BadRequestException('삭제된 답변은 추천할 수 없습니다');
+    }
     if (answer.userId === userId) {
       throw new BadRequestException('본인 답변은 추천할 수 없습니다');
     }
