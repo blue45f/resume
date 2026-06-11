@@ -1,98 +1,57 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="이력서공방">
   <defs>
-    <!-- Modern warm & clean background gradient -->
     <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#fafbfd" />
-      <stop offset="0.6" stop-color="#f0f7ff" />
-      <stop offset="1" stop-color="#ecfdf5" /> <!-- hint of green/mint for growth -->
+      <stop stop-color="#0f172a"/>
+      <stop offset=".58" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#06b6d4"/>
     </linearGradient>
-    <linearGradient id="signal" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#3b82f6" />
-      <stop offset="1" stop-color="#06b6d4" />
-    </linearGradient>
+    <radialGradient id="halo" cx="78%" cy="19%" r="62%">
+      <stop stop-color="#10b981" stop-opacity=".82"/>
+      <stop offset=".56" stop-color="#06b6d4" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#0f172a" stop-opacity="0"/>
+    </radialGradient>
     <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#0f172a" flood-opacity="0.08" />
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#0f172a" flood-opacity=".26"/>
     </filter>
   </defs>
-  <rect width="1200" height="630" fill="url(#bg)" />
-  <path d="M0 510C170 464 322 492 458 532c176 52 336 36 480-46 78-44 152-69 222-70v214H0Z" fill="#dbeafe" opacity="0.4" />
-
-  <!-- Brand logo mark (from updated favicon.svg) -->
-  <g transform="translate(88 92)">
-    <rect width="54" height="54" rx="15" fill="#0f172a" stroke="#1e293b" stroke-width="1.5" />
-    <!-- Stylized Resume Paper Sheet -->
-    <path d="M16 11h13l7 7v24a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2V13a2 2 0 0 1 2-2Z" fill="#ffffff" />
-    <!-- Folded corner -->
-    <path d="M29 11v6a2 2 0 0 0 2 2h5" fill="none" stroke="#cbd5e1" stroke-width="1.8" />
-    <!-- Resume text lines -->
-    <path d="M19 23h12M19 27h10M19 31h8" stroke="#334155" stroke-width="2" stroke-linecap="round" />
-    <!-- AI Status Check Badge -->
-    <circle cx="37" cy="37" r="8" fill="#0ea5e9" />
-    <path d="M34 37 l2 2 l4 -4" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#halo)"/>
+  <path d="M0 498C166 430 340 458 512 512c176 54 336 44 504-54 72-42 126-57 184-54v226H0Z" fill="#f8fafc" opacity=".12"/>
+  <path d="M74 96h216M74 542h412" stroke="#f8fafc" stroke-opacity=".16" stroke-width="16" stroke-linecap="round"/>
+  <g transform="translate(84 86)" filter="url(#soft)">
+    <svg width="104" height="104" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="116" fill="url(#glow)"/>
+  <path d="M46 342C154 278 238 414 466 292" fill="none" stroke="#f8fafc" stroke-opacity=".1" stroke-width="26" stroke-linecap="round"/>
+  <g filter="url(#shadow)">
+        <g transform="translate(0 0) scale(1)">
+          <path d="M158 92h132l76 76v244a28 28 0 0 1-28 28H158a28 28 0 0 1-28-28V120a28 28 0 0 1 28-28z" fill="#f8fafc"/>
+          <path d="M290 92v58a24 24 0 0 0 24 24h52" fill="none" stroke="#06b6d4" stroke-width="20" stroke-linecap="round"/>
+          <path d="M178 226h150M178 274h116M178 322h90" stroke="#0f172a" stroke-width="22" stroke-linecap="round"/>
+          <circle cx="356" cy="356" r="54" fill="#10b981"/>
+          <path d="M332 357l18 18 37-44" fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+        </g></g>
+</svg>
   </g>
-
-  <text x="166" y="129" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="34" font-weight="800" fill="#0f172a">이력서공방</text>
-  <text x="88" y="238" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="70" font-weight="800" fill="#0f172a">서류 합격률을,</text>
-  <text x="88" y="318" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="70" font-weight="800" fill="#2563eb">데이터로 올립니다.</text>
-  
-  <text x="92" y="392" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="25" font-weight="600" fill="#334155">AI 분석, 직무 템플릿, 실시간 미리보기까지.</text>
-  <text x="92" y="430" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="25" font-weight="600" fill="#475569">한국어 이력서 워크플로를 한 화면에 정리합니다.</text>
-
-  <!-- Action buttons mock -->
-  <g transform="translate(92 500)">
-    <rect width="172" height="42" rx="21" fill="#0f172a" />
-    <text x="86" y="26" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15" font-weight="700" fill="#f8fafc">무료로 시작하기</text>
-    
-    <rect x="188" width="154" height="42" rx="21" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5" />
-    <text x="265" y="26" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15" font-weight="700" fill="#0c4a6e">템플릿 탐색</text>
-  </g>
-
-  <!-- Mock resume dashboard frame -->
-  <g transform="translate(702 92)" filter="url(#soft)">
-    <rect width="386" height="444" rx="30" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-    
-    <!-- Header title -->
-    <rect x="36" y="34" width="220" height="18" rx="9" fill="#0f172a" />
-    
-    <!-- Writing lines -->
-    <rect x="36" y="70" width="306" height="10" rx="5" fill="#e2e8f0" />
-    <rect x="36" y="94" width="276" height="10" rx="5" fill="#f1f5f9" />
-    
-    <!-- Category tag -->
-    <rect x="36" y="132" width="136" height="14" rx="7" fill="url(#signal)" />
-    
-    <!-- Mini chart box -->
-    <rect x="36" y="166" width="306" height="72" rx="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2" />
-    <path d="M64 214h74l24-34 28 44 30-30 42 42" fill="none" stroke="url(#signal)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
-    
-    <!-- Career signal badges -->
-    <g transform="translate(36 262)">
-      <!-- Badge 1: blue -->
-      <rect width="93" height="74" rx="18" fill="#ffffff" stroke="#dbeafe" stroke-width="1.2" />
-      <circle cx="28" cy="28" r="9" fill="#2563eb" />
-      <circle cx="28" cy="28" r="4" fill="#ffffff" />
-      <rect x="44" y="22" width="30" height="9" rx="4.5" fill="#94a3b8" />
-      <rect x="22" y="48" width="52" height="8" rx="4" fill="#bfdbfe" />
-    </g>
-    <g transform="translate(143 262)">
-      <!-- Badge 2: cyan -->
-      <rect width="93" height="74" rx="18" fill="#ffffff" stroke="#dbeafe" stroke-width="1.2" />
-      <circle cx="28" cy="28" r="9" fill="#06b6d4" />
-      <circle cx="28" cy="28" r="4" fill="#ffffff" />
-      <rect x="44" y="22" width="30" height="9" rx="4.5" fill="#94a3b8" />
-      <rect x="22" y="48" width="52" height="8" rx="4" fill="#bae6fd" />
-    </g>
-    <g transform="translate(250 262)">
-      <!-- Badge 3: green -->
-      <rect width="93" height="74" rx="18" fill="#ffffff" stroke="#dbeafe" stroke-width="1.2" />
-      <circle cx="28" cy="28" r="9" fill="#10b981" />
-      <circle cx="28" cy="28" r="4" fill="#ffffff" />
-      <rect x="44" y="22" width="30" height="9" rx="4.5" fill="#94a3b8" />
-      <rect x="22" y="48" width="52" height="8" rx="4" fill="#bbf7d0" />
-    </g>
-    
-    <!-- Footer CTA -->
-    <rect x="36" y="366" width="306" height="36" rx="18" fill="#0f172a" />
-    <text x="188" y="389" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" font-weight="800" fill="#f8fafc">JD 맞춤 분석 완료</text>
-  </g>
+  <text x="214" y="148" font-family="Inter, Pretendard, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="34" font-weight="900" fill="#f8fafc">이력서공방</text>
+  <text x="92" y="270" font-family="Inter, Pretendard, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="62" font-weight="900" fill="#f8fafc">이력서공방</text>
+  <text x="94" y="335" font-family="Pretendard, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="27" font-weight="700" fill="#f8fafc" opacity=".86">AI 분석, 직무 템플릿, ATS 체크로 이력서 워크플로를 정리하는 플랫폼</text>
+  <g transform="translate(92 485)"><rect width="166" height="44" rx="22" fill="#f8fafc" opacity=".13" stroke="#f8fafc" stroke-opacity=".26"/><text x="83" y="28" text-anchor="middle" font-size="15" font-weight="800" fill="#f8fafc">AI 분석</text></g><g transform="translate(282 485)"><rect width="166" height="44" rx="22" fill="#f8fafc" opacity=".13" stroke="#f8fafc" stroke-opacity=".26"/><text x="83" y="28" text-anchor="middle" font-size="15" font-weight="800" fill="#f8fafc">ATS 체크</text></g><g transform="translate(472 485)"><rect width="166" height="44" rx="22" fill="#f8fafc" opacity=".13" stroke="#f8fafc" stroke-opacity=".26"/><text x="83" y="28" text-anchor="middle" font-size="15" font-weight="800" fill="#f8fafc">직무 템플릿</text></g>
+  <g filter="url(#soft)">
+    <g transform="translate(722 116)">
+      <rect width="342" height="330" rx="46" fill="#f8fafc" opacity=".94"/>
+      <rect x="34" y="36" width="176" height="22" rx="11" fill="#0f172a" opacity=".84"/>
+      <rect x="34" y="82" width="252" height="14" rx="7" fill="#0f172a" opacity=".22"/>
+      <rect x="34" y="112" width="206" height="14" rx="7" fill="#0f172a" opacity=".14"/>
+      <g transform="translate(34 156) scale(.56)">
+        <g transform="translate(0 0) scale(1)">
+          <path d="M158 92h132l76 76v244a28 28 0 0 1-28 28H158a28 28 0 0 1-28-28V120a28 28 0 0 1 28-28z" fill="#f8fafc"/>
+          <path d="M290 92v58a24 24 0 0 0 24 24h52" fill="none" stroke="#06b6d4" stroke-width="20" stroke-linecap="round"/>
+          <path d="M178 226h150M178 274h116M178 322h90" stroke="#0f172a" stroke-width="22" stroke-linecap="round"/>
+          <circle cx="356" cy="356" r="54" fill="#10b981"/>
+          <path d="M332 357l18 18 37-44" fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+        </g></g>
+      <rect x="216" y="177" width="72" height="118" rx="24" fill="#06b6d4" opacity=".88"/>
+      <rect x="104" y="252" width="184" height="22" rx="11" fill="#10b981" opacity=".82"/>
+    </g></g>
 </svg>
