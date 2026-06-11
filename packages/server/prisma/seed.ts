@@ -1,6 +1,14 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: databaseUrl }),
+});
 
 async function main() {
   // Seed default templates
