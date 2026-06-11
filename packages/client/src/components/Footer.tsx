@@ -41,22 +41,12 @@ export default function Footer() {
             <Link to={ROUTES.sitemap} className="link-underline-reveal transition-colors">
               사이트맵
             </Link>
-            <a
-              href={TERMSDESK_URLS.terms}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="link-underline-reveal transition-colors"
-            >
+            <Link to={ROUTES.terms} className="link-underline-reveal transition-colors">
               {tx('footer.terms')}
-            </a>
-            <a
-              href={TERMSDESK_URLS.privacy}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="link-underline-reveal transition-colors"
-            >
+            </Link>
+            <Link to={ROUTES.privacy} className="link-underline-reveal transition-colors">
               {tx('footer.privacy')}
-            </a>
+            </Link>
             <a
               href={`${TERMSDESK_URLS.support}?category=site-inquiry`}
               target="_blank"

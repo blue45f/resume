@@ -1112,7 +1112,7 @@ export default function TutorialPage() {
               to={ROUTES.terms}
               className="rounded-lg border border-slate-200 px-3 py-2 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300"
             >
-              약관 체크 보기
+              약관 보기
             </Link>
           </div>
         </section>

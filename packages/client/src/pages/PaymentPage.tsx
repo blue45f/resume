@@ -3,7 +3,7 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
-import { ROUTES, TERMSDESK_URLS } from '@/lib/routes';
+import { ROUTES } from '@/lib/routes';
 import { PLANS, formatPrice } from '@/lib/plans';
 import { PAYMENT_METHODS, requestPayment } from '@/lib/payment';
 import { tx } from '@/lib/i18n';
@@ -154,14 +154,9 @@ export default function PaymentPage() {
               />
               <span className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 결제 진행 시{' '}
-                <a
-                  href={TERMSDESK_URLS.terms}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline"
-                >
+                <Link to={ROUTES.terms} className="text-blue-600 underline">
                   이용약관
-                </a>{' '}
+                </Link>{' '}
                 및 자동 갱신에 동의합니다. 구독은 언제든 설정에서 취소할 수 있습니다.
               </span>
             </label>

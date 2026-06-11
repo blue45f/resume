@@ -29,7 +29,6 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
 import AuthGuard from '@/components/AuthGuard';
 import { fetchMe } from '@/lib/auth';
-import { TERMSDESK_URLS } from '@/lib/routes';
 
 // Lazy import with auto-retry on chunk load failure (배포 후 해시 변경 대응)
 function lazyRetry(fn: () => Promise<any>) {
@@ -56,6 +55,8 @@ const AutoGeneratePage = lazyRetry(() => import('@/pages/AutoGeneratePage'));
 const ExplorePage = lazyRetry(() => import('@/pages/ExplorePage'));
 const AboutPage = lazyRetry(() => import('@/pages/AboutPage'));
 const TutorialPage = lazyRetry(() => import('@/pages/TutorialPage'));
+const TermsPage = lazyRetry(() => import('@/pages/TermsPage'));
+const PrivacyPage = lazyRetry(() => import('@/pages/PrivacyPage'));
 const ProfileResumePage = lazyRetry(() => import('@/pages/ProfileResumePage'));
 const ApplicationsPage = lazyRetry(() => import('@/pages/ApplicationsPage'));
 const CoverLetterPage = lazyRetry(() => import('@/pages/CoverLetterPage'));
@@ -115,14 +116,6 @@ function PageLoader() {
       </div>
     </div>
   );
-}
-
-function ExternalRedirect({ to }: { to: string }) {
-  useEffect(() => {
-    window.location.replace(to);
-  }, [to]);
-
-  return <PageLoader />;
 }
 
 export default function App() {
@@ -254,10 +247,21 @@ export default function App() {
                         </Suspense>
                       }
                     />
-                    <Route path="/terms" element={<ExternalRedirect to={TERMSDESK_URLS.terms} />} />
+                    <Route
+                      path="/terms"
+                      element={
+                        <Suspense fallback={<PageLoader />}>
+                          <TermsPage />
+                        </Suspense>
+                      }
+                    />
                     <Route
                       path="/privacy"
-                      element={<ExternalRedirect to={TERMSDESK_URLS.privacy} />}
+                      element={
+                        <Suspense fallback={<PageLoader />}>
+                          <PrivacyPage />
+                        </Suspense>
+                      }
                     />
                     <Route
                       path="/cover-letter"

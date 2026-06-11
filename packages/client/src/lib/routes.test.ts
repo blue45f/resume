@@ -8,15 +8,15 @@ describe('ROUTES', () => {
     expect(ROUTES.about).toBe('/about');
   });
 
-  it('points legal and support destinations to TermsDesk public URLs', () => {
+  it('keeps legal routes internal while TermsDesk URLs stay for source docs and support', () => {
+    expect(ROUTES.terms).toBe('/terms');
+    expect(ROUTES.privacy).toBe('/privacy');
     expect(TERMSDESK_URLS).toEqual({
       terms: 'https://termsdesk.vercel.app/p/resume/terms-of-service',
       privacy: 'https://termsdesk.vercel.app/p/resume/privacy-policy',
       refund: 'https://termsdesk.vercel.app/p/resume/refund-policy',
       support: 'https://termsdesk.vercel.app/support/resume',
     });
-    expect(ROUTES.terms).toBe(TERMSDESK_URLS.terms);
-    expect(ROUTES.privacy).toBe(TERMSDESK_URLS.privacy);
   });
 
   it('builds dynamic resume paths', () => {

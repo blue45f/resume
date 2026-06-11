@@ -174,8 +174,8 @@ const SITEMAP = [
         desc: '구직자/채용/코칭/스터디/커피챗/면접 단계별 가이드',
       },
       { to: '/help', label: '도움말 / FAQ', desc: '자주 묻는 질문 + 검색' },
-      { to: TERMSDESK_URLS.terms, label: '이용약관', desc: '서비스 이용 약관' },
-      { to: TERMSDESK_URLS.privacy, label: '개인정보처리방침', desc: 'PIPA 준수 데이터 처리 정책' },
+      { to: '/terms', label: '이용약관', desc: '서비스 이용 약관' },
+      { to: '/privacy', label: '개인정보처리방침', desc: 'PIPA 준수 데이터 처리 정책' },
       {
         to: `${TERMSDESK_URLS.support}?category=bug`,
         label: '버그 제보',

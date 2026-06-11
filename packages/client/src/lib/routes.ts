@@ -12,8 +12,13 @@
  */
 
 // ─── 공통 ────────────────────────────────────────
-const TERMSDESK_BASE = 'https://termsdesk.vercel.app';
+export const TERMSDESK_BASE = 'https://termsdesk.vercel.app';
 
+/**
+ * TermsDesk 외부 URL — 약관/방침 원문(정본) 페이지와 지원 보드.
+ * 법적 문서 열람 자체는 내부 라우트(ROUTES.terms/privacy)가 담당하고,
+ * 이 URL들은 원문 확인 링크와 문의/제휴/버그 접수에만 쓴다.
+ */
 export const TERMSDESK_URLS = {
   terms: `${TERMSDESK_BASE}/p/resume/terms-of-service`,
   privacy: `${TERMSDESK_BASE}/p/resume/privacy-policy`,
@@ -25,8 +30,8 @@ export const ROUTES = {
   home: '/',
   about: '/about',
   tutorial: '/tutorial',
-  terms: TERMSDESK_URLS.terms,
-  privacy: TERMSDESK_URLS.privacy,
+  terms: '/terms',
+  privacy: '/privacy',
   sitemap: '/sitemap',
   pricing: '/pricing',
   help: '/help',
