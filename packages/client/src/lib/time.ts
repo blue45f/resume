@@ -2,19 +2,23 @@
 // - `timeAgo` (한글 상대시간) 는 server 테스트도 공유하는 `@/shared/lib/time` 에서 re-export.
 // - `formatDate` (로케일 연동 날짜 포맷) 는 date-fns + `@/lib/i18n` 의존이라 client 전용으로 여기 둔다.
 import { format, parseISO } from 'date-fns';
-import { enUS, ko } from 'date-fns/locale';
+import { enUS, ja, ko, zhCN } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
 
 import { getLocale } from '@/lib/i18n';
 
 export * from '@/shared/lib/time';
 
-/**
- * 활성 앱 로케일(ko/en/…)을 date-fns 로케일로 매핑한다.
- * 한국어 외 로케일은 영어(en-US)로 폴백한다.
- */
+/** 활성 앱 로케일(ko/en/ja/zh-CN)을 date-fns 로케일로 매핑한다. */
+const DATE_FNS_LOCALES: Record<ReturnType<typeof getLocale>, Locale> = {
+  ko,
+  en: enUS,
+  ja,
+  'zh-CN': zhCN,
+};
+
 function dateFnsLocale(): Locale {
-  return getLocale() === 'ko' ? ko : enUS;
+  return DATE_FNS_LOCALES[getLocale()];
 }
 
 /** 다양한 입력을 Date 로 정규화한다. ISO 문자열은 parseISO 로 처리. */

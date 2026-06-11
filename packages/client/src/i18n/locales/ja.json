@@ -89,6 +89,17 @@
     "retry": "再試行",
     "anonymous": "匿名"
   },
+  "auth": {
+    "login": "ログイン",
+    "signup": "新規登録",
+    "logout": "ログアウト",
+    "loginWithGoogle": "Googleでログイン",
+    "loginWithKakao": "カカオでログイン",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "name": "名前",
+    "forgotPassword": "パスワードをお忘れですか？"
+  },
   "study": {
     "title": "スタディグループ",
     "create": "新規スタディ",
@@ -166,6 +177,15 @@
       "advanced": "上級"
     }
   },
+  "notice": {
+    "types": {
+      "GENERAL": "お知らせ",
+      "MAINTENANCE": "メンテナンス",
+      "EVENT": "イベント"
+    },
+    "dismissToday": "今日は表示しない",
+    "close": "閉じる"
+  },
   "toast": {
     "saved": "保存しました",
     "deleted": "削除しました",
@@ -205,7 +225,77 @@
     "enterprise": "エンタープライズ",
     "comingSoon": "近日公開",
     "currentPlan": "現在のプラン",
-    "upgrade": "アップグレード"
+    "upgrade": "アップグレード",
+    "monthly": "月額",
+    "annually": "年額",
+    "perMonth": "/ 月",
+    "perYear": "/ 年",
+    "saveAnnual": "年間払いで2ヶ月分無料"
+  },
+  "dashboard": {
+    "overview": "概要",
+    "recentResumes": "最近の履歴書",
+    "recentApplications": "最近の応募",
+    "totalResumes": "履歴書総数",
+    "totalViews": "総閲覧数",
+    "totalApplications": "総応募件数",
+    "totalInterviews": "面接進行中",
+    "conversionRate": "コンバージョン率"
+  },
+  "coach": {
+    "title": "キャリアコーチ",
+    "bookSession": "コーチング予約",
+    "specialty": "専門分野",
+    "yearsExp": "経験年数",
+    "hourlyRate": "時間単価",
+    "rating": "評価",
+    "sessions": "コーチングセッション",
+    "available": "予約可能",
+    "unavailable": "予約不可"
+  },
+  "messages": {
+    "title": "メッセージ",
+    "compose": "メッセージ作成",
+    "inbox": "受信箱",
+    "sent": "送信済み",
+    "noMessages": "メッセージがありません",
+    "typeMessage": "メッセージを入力してください"
+  },
+  "explore": {
+    "title": "履歴書探索",
+    "subtitle": "他のユーザーの公開履歴書を閲覧",
+    "filter": "フィルター",
+    "sortBy": "並び替え",
+    "sortByLatest": "新着順",
+    "sortByPopular": "人気順",
+    "sortByViews": "閲覧数順",
+    "empty": "公開された履歴書がありません"
+  },
+  "form": {
+    "required": "必須項目",
+    "optional": "任意",
+    "charCount": "{current}/{max}文字",
+    "uploadFile": "ファイルアップロード",
+    "dragDrop": "ファイルをここにドラッグ＆ドロップしてください",
+    "remove": "削除",
+    "placeholder": {
+      "email": "メールアドレスを入力",
+      "search": "検索ワードを入力...",
+      "title": "タイトルを入力してください",
+      "content": "内容を入力してください"
+    }
+  },
+  "profile": {
+    "edit": "プロフィール編集",
+    "avatar": "プロフィール写真",
+    "bio": "自己紹介",
+    "following": "フォロー中",
+    "followers": "フォロワー",
+    "posts": "投稿",
+    "resumes": "履歴書",
+    "memberSince": "登録日",
+    "lastLogin": "最終ログイン",
+    "editDetails": "詳細情報編集"
   },
   "footer": {
     "brandName": "履歴書工房",
@@ -216,6 +306,16 @@
     "pipaCompliance": "PIPA準拠",
     "copyright": "© 2025 履歴書工房",
     "madeWith": "AI · React · TypeScript"
+  },
+  "a11y": {
+    "closeDialog": "ダイアログを閉じる",
+    "openMenu": "メニューを開く",
+    "closeMenu": "メニューを閉じる",
+    "loading": "読み込み中",
+    "previous": "前へ",
+    "next": "次へ",
+    "expand": "展開",
+    "collapse": "折りたたみ"
   },
   "help": {
     "title": "ヘルプ",

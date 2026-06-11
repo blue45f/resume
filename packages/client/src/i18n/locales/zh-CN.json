@@ -82,6 +82,12 @@
     "empty": "没有数据",
     "search": "搜索",
     "filter": "筛选",
+    "all": "全部",
+    "today": "今天",
+    "yesterday": "昨天",
+    "viewAll": "查看全部",
+    "more": "更多",
+    "retry": "重试",
     "sort": "排序",
     "anonymous": "匿名"
   },
@@ -89,6 +95,8 @@
     "login": "登录",
     "logout": "退出",
     "signup": "注册",
+    "loginWithGoogle": "使用 Google 登录",
+    "loginWithKakao": "使用 Kakao 登录",
     "email": "邮箱",
     "password": "密码",
     "name": "姓名",
@@ -197,8 +205,76 @@
     "perYear": "/ 年",
     "saveAnnual": "年付可省 2 个月"
   },
+  "admin": {
+    "dashboard": "仪表盘",
+    "users": "用户管理",
+    "posts": "帖子管理",
+    "studyGroups": "学习小组管理",
+    "interviewQuestions": "面试题管理",
+    "notices": "公告管理",
+    "banners": "横幅管理",
+    "systemConfig": "系统设置",
+    "forbiddenWords": "违禁词管理",
+    "coaches": "教练管理"
+  },
+  "dashboard": {
+    "overview": "概览",
+    "recentResumes": "最近简历",
+    "recentApplications": "最近申请",
+    "totalResumes": "简历总数",
+    "totalViews": "总浏览量",
+    "totalApplications": "申请总数",
+    "totalInterviews": "面试进行中",
+    "conversionRate": "转化率"
+  },
+  "coach": {
+    "title": "职业教练",
+    "bookSession": "预约辅导",
+    "specialty": "专业领域",
+    "yearsExp": "从业年限",
+    "hourlyRate": "小时费率",
+    "rating": "评分",
+    "sessions": "辅导场次",
+    "available": "可预约",
+    "unavailable": "暂不可约"
+  },
+  "messages": {
+    "title": "私信",
+    "compose": "发私信",
+    "inbox": "收件箱",
+    "sent": "已发送",
+    "noMessages": "暂无私信",
+    "typeMessage": "请输入消息"
+  },
+  "explore": {
+    "title": "探索简历",
+    "subtitle": "浏览其他用户的公开简历",
+    "filter": "筛选",
+    "sortBy": "排序",
+    "sortByLatest": "最新",
+    "sortByPopular": "最热",
+    "sortByViews": "浏览最多",
+    "empty": "暂无公开简历"
+  },
+  "form": {
+    "required": "必填项",
+    "optional": "选填",
+    "charCount": "{current}/{max} 字",
+    "uploadFile": "上传文件",
+    "dragDrop": "将文件拖放到此处",
+    "remove": "移除",
+    "placeholder": {
+      "email": "请输入邮箱地址",
+      "search": "输入搜索关键词...",
+      "title": "请输入标题",
+      "content": "请输入内容"
+    }
+  },
   "payment": {
-    "title": "结账"
+    "title": "结账",
+    "cancelled": "支付已取消",
+    "failed": "支付失败",
+    "completed": "支付完成"
   },
   "toast": {
     "saved": "已保存",
@@ -212,6 +288,259 @@
     "networkError": "网络错误",
     "unauthorized": "请先登录",
     "notFound": "未找到"
+  },
+  "confirm": {
+    "delete": "确定要删除吗？",
+    "deleteIrreversible": "此操作无法撤销，确定继续吗？",
+    "leaveStudy": "确定要退出该学习小组吗？",
+    "deleteStudy": "确定要删除该小组吗？删除后无法恢复。",
+    "deletePost": "确定要删除该帖子吗？",
+    "cancelEdit": "编辑内容尚未保存，确定要离开吗？"
+  },
+  "profile": {
+    "edit": "编辑个人资料",
+    "avatar": "头像",
+    "bio": "个人简介",
+    "following": "关注中",
+    "followers": "粉丝",
+    "posts": "帖子",
+    "resumes": "简历",
+    "memberSince": "注册时间",
+    "lastLogin": "最近登录",
+    "editDetails": "编辑详细信息"
+  },
+  "footer": {
+    "brandName": "简历工坊",
+    "terms": "服务条款",
+    "privacy": "隐私政策",
+    "feedback": "意见反馈",
+    "github": "GitHub",
+    "pipaCompliance": "符合 PIPA",
+    "copyright": "© 2025 简历工坊",
+    "madeWith": "AI · React · TypeScript"
+  },
+  "a11y": {
+    "closeDialog": "关闭对话框",
+    "openMenu": "打开菜单",
+    "closeMenu": "关闭菜单",
+    "loading": "加载中",
+    "previous": "上一个",
+    "next": "下一个",
+    "expand": "展开",
+    "collapse": "收起"
+  },
+  "help": {
+    "title": "帮助",
+    "faq": "常见问题",
+    "contact": "联系我们",
+    "shortcuts": "快捷键",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "about": "关于我们"
+  },
+  "tutorial": {
+    "title": "使用指南",
+    "getStarted": "开始使用",
+    "createFirstResume": "创建第一份简历",
+    "useAiFeatures": "使用 AI 功能",
+    "exportResume": "导出简历",
+    "shareResume": "分享简历",
+    "nextStep": "下一步",
+    "skip": "跳过",
+    "finish": "完成"
+  },
+  "validation": {
+    "minLength": "请至少输入 {min} 个字符",
+    "maxLength": "最多输入 {max} 个字符",
+    "required": "此项为必填项",
+    "invalidFormat": "格式不正确",
+    "invalidEmail": "邮箱格式不正确",
+    "invalidUrl": "URL 格式不正确",
+    "passwordTooShort": "密码至少需要 8 个字符",
+    "passwordMismatch": "两次输入的密码不一致",
+    "fileTooLarge": "文件大小超过 {max}",
+    "invalidFileType": "不支持的文件格式"
+  },
+  "resumeEdit": {
+    "title": "简历标题",
+    "addExperience": "+ 添加工作经历",
+    "addProject": "+ 添加项目",
+    "addEducation": "+ 添加教育背景",
+    "addSkill": "+ 添加技能",
+    "addCertification": "+ 添加证书",
+    "addLanguage": "+ 添加语言",
+    "addAward": "+ 添加获奖",
+    "addActivity": "+ 添加活动",
+    "company": "公司名称",
+    "position": "职位",
+    "department": "部门",
+    "startDate": "开始日期",
+    "endDate": "结束日期",
+    "current": "在职",
+    "description": "描述",
+    "achievements": "主要成果",
+    "techStack": "技术栈",
+    "school": "学校名称",
+    "degree": "学位",
+    "field": "专业",
+    "gpa": "绩点"
+  },
+  "seo": {
+    "defaultTitle": "简历工坊 — AI 简历制作平台",
+    "defaultDescription": "AI 助力的韩语简历制作，ATS 兼容性检查、模板、社区，一站搞定。",
+    "ogImageAlt": "简历工坊首页",
+    "keywords": "简历, 求职信, AI, 求职, ATS, 学习小组, 面试准备"
+  },
+  "breadcrumb": {
+    "home": "首页",
+    "resumes": "简历",
+    "preview": "预览",
+    "edit": "编辑",
+    "new": "新建",
+    "settings": "设置",
+    "admin": "管理"
+  },
+  "datetime": {
+    "justNow": "刚刚",
+    "minutesAgo": "{n} 分钟前",
+    "hoursAgo": "{n} 小时前",
+    "daysAgo": "{n} 天前",
+    "weeksAgo": "{n} 周前",
+    "monthsAgo": "{n} 个月前",
+    "yearsAgo": "{n} 年前",
+    "days": {
+      "sun": "日",
+      "mon": "一",
+      "tue": "二",
+      "wed": "三",
+      "thu": "四",
+      "fri": "五",
+      "sat": "六"
+    },
+    "months": {
+      "1": "1月",
+      "2": "2月",
+      "3": "3月",
+      "4": "4月",
+      "5": "5月",
+      "6": "6月",
+      "7": "7月",
+      "8": "8月",
+      "9": "9月",
+      "10": "10月",
+      "11": "11月",
+      "12": "12月"
+    }
+  },
+  "empty": {
+    "resumes": "还没有简历",
+    "resumesHint": "创建你的第一份简历，让 AI 来帮你",
+    "jobs": "暂无招聘信息",
+    "applications": "暂无申请记录",
+    "notifications": "暂无通知",
+    "followers": "暂无粉丝",
+    "bookmarks": "暂无收藏"
+  },
+  "notification": {
+    "title": "通知",
+    "markAllRead": "全部标为已读",
+    "clear": "清除",
+    "settings": "通知设置",
+    "types": {
+      "comment": "新评论",
+      "like": "点赞",
+      "follow": "关注",
+      "message": "私信",
+      "scout": "招聘邀约",
+      "applicationUpdate": "申请状态更新",
+      "systemAlert": "系统通知",
+      "resumeShared": "简历分享",
+      "resumeViewed": "简历被查看"
+    }
+  },
+  "email": {
+    "verify": "邮箱验证",
+    "verifyHint": "请点击邮件中的验证链接",
+    "resend": "重新发送",
+    "changePassword": "修改密码",
+    "resetPassword": "重置密码",
+    "preferences": "邮件接收设置",
+    "marketingOptIn": "同意接收营销邮件"
+  },
+  "onboarding": {
+    "welcome": "欢迎！",
+    "step1": "完善个人资料",
+    "step2": "创建第一份简历",
+    "step3": "运行 AI 分析",
+    "step4": "设置公开",
+    "skip": "以后再说",
+    "finish": "开始使用"
+  },
+  "companyTier": {
+    "public": "国企 · 事业单位",
+    "large": "大型企业",
+    "mid": "中型企业",
+    "startup": "初创公司",
+    "foreign": "外企",
+    "sme": "中小企业",
+    "freelance": "自由职业/个体经营",
+    "etc": "其他"
+  },
+  "cafeCategory": {
+    "interview": "面试",
+    "resume": "简历修改",
+    "codingTest": "编程笔试",
+    "study": "学习",
+    "networking": "人脉交流"
+  },
+  "experienceLevel": {
+    "any": "不限",
+    "new": "应届",
+    "junior": "初级",
+    "mid": "中级",
+    "senior": "资深"
+  },
+  "priority": {
+    "high": "重要",
+    "medium": "普通",
+    "low": "较低"
+  },
+  "sitemap": {
+    "title": "网站地图",
+    "subtitle": "一览简历工坊的所有页面"
+  },
+  "notFound": {
+    "title": "页面未找到",
+    "description": "您访问的页面不存在或已被移动。",
+    "descriptionHint": "请检查网址，或使用下方链接。",
+    "goHome": "返回首页",
+    "recentlyViewed": "最近查看的简历"
+  },
+  "plans": {
+    "free": {
+      "name": "免费",
+      "description": "只需基础功能的用户",
+      "cta": "免费开始"
+    },
+    "pro": {
+      "name": "专业版",
+      "description": "想充分使用全部 AI 工具的用户",
+      "cta": "升级专业版"
+    },
+    "enterprise": {
+      "name": "企业版",
+      "description": "团队/组织",
+      "cta": "联系我们"
+    },
+    "features": {
+      "unlimitedResumes": "无限简历",
+      "aiTransforms": "AI 转换每月 {n} 次",
+      "themes": "{n} 款主题",
+      "prioritySupport": "优先支持",
+      "customDomain": "自定义域名",
+      "teamManagement": "团队管理",
+      "analytics": "高级分析"
+    }
   },
   "resumeAnalysis": {
     "health": {
@@ -305,5 +634,61 @@
         "weak": "不足"
       }
     }
+  },
+  "sharing": {
+    "allowedViewers": "管理允许查看的用户",
+    "addUser": "添加用户 (用户名或邮箱)",
+    "addBtn": "添加",
+    "adding": "添加中...",
+    "message": "留言",
+    "messagePlaceholder": "留言 (选填，例如：'分享用于教练匹配')",
+    "expires": "有效期",
+    "expiresNever": "永久",
+    "expires7d": "7 天",
+    "expires30d": "30 天",
+    "expires90d": "90 天",
+    "expiresCustom": "自定义",
+    "currentViewers": "当前允许的用户",
+    "noViewers": "还没有添加用户",
+    "noViewersHint": "在上方通过用户名或邮箱添加",
+    "addedSuccess": "已添加用户",
+    "addedNote": "ⓘ 仅限简历工坊注册用户。添加后对方将立即收到通知并可查看简历。",
+    "removed": "已移除",
+    "removeConfirm": "要将 {name} 从允许列表中移除吗？",
+    "sharedWithMe": "与我分享的简历",
+    "sharedBy": "来自 {name} 的分享",
+    "shareToCoach": "向该教练分享简历",
+    "shareToRecruiter": "向该招聘者分享简历",
+    "shareGeneral": "向该用户分享简历",
+    "shareDesc": "分享后简历将自动转为指定用户可见，仅该用户可以查看。",
+    "pickResume": "要分享的简历",
+    "shareBtn": "分享",
+    "sharing": "分享中...",
+    "sharedSuccess": "已向 {name} 分享简历",
+    "currentVisibility": "当前: {label}",
+    "willConvertToSelective": "→ 转为指定用户可见",
+    "shareNote": "ⓘ 分享后 {name} 将立即收到通知并可查看简历。可随时在 EditResume → 可见性设置中撤回权限。",
+    "defaultMessageCoach": "分享简历以供教练匹配评估。",
+    "defaultMessageRecruiter": "分享简历以供招聘评估。",
+    "defaultMessageGeneral": "",
+    "loadResumeError": "无法加载简历列表",
+    "shareError": "分享失败"
+  },
+  "jobUrl": {
+    "title": "🔗 通过招聘公告 URL 快速开始",
+    "placeholder": "https://www.linkedin.com/jobs/... 或任意韩国招聘网站 URL",
+    "parse": "自动填充",
+    "parsing": "解析中",
+    "sourceJsonLd": "结构化数据",
+    "sourceLlm": "AI 提取",
+    "sourcePartial": "部分提取 — 空缺项需手动补充",
+    "sourceOg": "元数据",
+    "success": "已获取公告信息 ({source})",
+    "error": "无法获取公告",
+    "hint": "支持 Wanted / JobKorea / Saramin / Jumpit / Programmers 等韩国招聘网站",
+    "hintCoverLetter": "粘贴公告 URL 即可自动填充公司、职位和要求",
+    "hintApplications": "粘贴公告 URL 即可自动填充公司、职位、地点、薪资和备注",
+    "hintJobPost": "如果已在其他招聘网站发布过该公告，粘贴 URL 即可自动填充",
+    "hintAutoGenerate": "粘贴公告 URL，AI 将根据该公告突出重点撰写简历"
   }
 }
