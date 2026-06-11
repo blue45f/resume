@@ -358,7 +358,7 @@ export default function CommunityPage() {
                 차단 {communityDemoSummary.blockedCount}
               </span>
               <Link
-                to="/terms"
+                to={ROUTES.terms}
                 className="rounded-lg bg-sky-700 px-2 py-1.5 font-semibold text-white"
               >
                 약관

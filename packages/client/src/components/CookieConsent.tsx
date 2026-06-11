@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { TERMSDESK_URLS } from '@/lib/routes';
 
 export default function CookieConsent() {
   const [accepted, setAccepted] = useState(() => localStorage.getItem('cookie-consent') === 'true');
@@ -23,7 +24,12 @@ export default function CookieConsent() {
       <div className="max-w-4xl mx-auto flex items-center gap-3">
         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 flex-1 leading-snug">
           서비스 개선을 위해 쿠키를 사용합니다. 계속 사용하면{' '}
-          <a href="/terms" className="text-blue-600 dark:text-blue-400 underline">
+          <a
+            href={TERMSDESK_URLS.terms}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 dark:text-blue-400 underline"
+          >
             이용약관
           </a>
           에 동의하는 것으로 간주합니다.

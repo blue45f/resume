@@ -1,11 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { ROUTES, withQuery, isActive } from './routes';
+import { ROUTES, TERMSDESK_URLS, withQuery, isActive } from './routes';
 
 describe('ROUTES', () => {
   it('exposes core static paths', () => {
     expect(ROUTES.home).toBe('/');
     expect(ROUTES.login).toBe('/login');
     expect(ROUTES.about).toBe('/about');
+  });
+
+  it('points legal and support destinations to TermsDesk public URLs', () => {
+    expect(TERMSDESK_URLS).toEqual({
+      terms: 'https://termsdesk.vercel.app/p/resume/terms-of-service',
+      privacy: 'https://termsdesk.vercel.app/p/resume/privacy-policy',
+      refund: 'https://termsdesk.vercel.app/p/resume/refund-policy',
+      support: 'https://termsdesk.vercel.app/support/resume',
+    });
+    expect(ROUTES.terms).toBe(TERMSDESK_URLS.terms);
+    expect(ROUTES.privacy).toBe(TERMSDESK_URLS.privacy);
   });
 
   it('builds dynamic resume paths', () => {

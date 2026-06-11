@@ -12,12 +12,21 @@
  */
 
 // ─── 공통 ────────────────────────────────────────
+const TERMSDESK_BASE = 'https://termsdesk.vercel.app';
+
+export const TERMSDESK_URLS = {
+  terms: `${TERMSDESK_BASE}/p/resume/terms-of-service`,
+  privacy: `${TERMSDESK_BASE}/p/resume/privacy-policy`,
+  refund: `${TERMSDESK_BASE}/p/resume/refund-policy`,
+  support: `${TERMSDESK_BASE}/support/resume`,
+} as const;
+
 export const ROUTES = {
   home: '/',
   about: '/about',
   tutorial: '/tutorial',
-  terms: '/terms',
-  privacy: '/terms#privacy',
+  terms: TERMSDESK_URLS.terms,
+  privacy: TERMSDESK_URLS.privacy,
   sitemap: '/sitemap',
   pricing: '/pricing',
   help: '/help',

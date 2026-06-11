@@ -1109,7 +1109,7 @@ export default function TutorialPage() {
               커뮤니티에서 로그 만들기
             </Link>
             <Link
-              to="/terms"
+              to={ROUTES.terms}
               className="rounded-lg border border-slate-200 px-3 py-2 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300"
             >
               약관 체크 보기

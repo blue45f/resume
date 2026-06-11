@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { tx } from '@/lib/i18n';
+import { TERMSDESK_URLS } from '@/lib/routes';
 
 const SITEMAP = [
   {
@@ -173,8 +174,13 @@ const SITEMAP = [
         desc: '구직자/채용/코칭/스터디/커피챗/면접 단계별 가이드',
       },
       { to: '/help', label: '도움말 / FAQ', desc: '자주 묻는 질문 + 검색' },
-      { to: '/terms', label: '이용약관', desc: '서비스 이용 약관' },
-      { to: '/privacy', label: '개인정보처리방침', desc: 'PIPA 준수 데이터 처리 정책' },
+      { to: TERMSDESK_URLS.terms, label: '이용약관', desc: '서비스 이용 약관' },
+      { to: TERMSDESK_URLS.privacy, label: '개인정보처리방침', desc: 'PIPA 준수 데이터 처리 정책' },
+      {
+        to: `${TERMSDESK_URLS.support}?category=bug`,
+        label: '버그 제보',
+        desc: 'TermsDesk 공식 지원 보드',
+      },
     ],
   },
 ];
@@ -223,42 +229,58 @@ export default function SitemapPage() {
 
               {/* Links */}
               <div className="divide-y divide-slate-100 dark:divide-slate-700">
-                {section.links.map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                          {link.label}
-                        </span>
-                        {'auth' in link && link.auth && (
-                          <span className="px-1.5 py-0.5 text-[9px] font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded">
-                            로그인
+                {section.links.map((link) => {
+                  const isExternal = link.to.startsWith('http');
+                  const className =
+                    'flex items-center gap-3 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group';
+                  const content = (
+                    <>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            {link.label}
                           </span>
-                        )}
+                          {'auth' in link && link.auth && (
+                            <span className="px-1.5 py-0.5 text-[9px] font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded">
+                              로그인
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          {link.desc}
+                        </p>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {link.desc}
-                      </p>
-                    </div>
-                    <svg
-                      className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-blue-400 transition-colors shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                      <svg
+                        className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-blue-400 transition-colors shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </>
+                  );
+                  return isExternal ? (
+                    <a
+                      key={link.to}
+                      href={link.to}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={className}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </Link>
-                ))}
+                      {content}
+                    </a>
+                  ) : (
+                    <Link key={link.to} to={link.to} className={className}>
+                      {content}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}

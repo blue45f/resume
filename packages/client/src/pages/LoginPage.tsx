@@ -3,7 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getSocialLoginUrl } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
+import { ROUTES, TERMSDESK_URLS } from '@/lib/routes';
 import { API_URL } from '@/lib/config';
 import {
   loginSchema,
@@ -845,14 +845,14 @@ export default function LoginPage() {
                     />
                     <span className="text-xs text-[var(--color-text)] leading-snug">
                       <span className="text-[var(--color-error)] font-medium">[필수]</span>{' '}
-                      <Link
-                        to={ROUTES.terms}
+                      <a
+                        href={TERMSDESK_URLS.terms}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[var(--color-accent)] underline underline-offset-2"
                       >
                         이용약관
-                      </Link>
+                      </a>
                       에 동의합니다
                     </span>
                   </label>
@@ -870,14 +870,14 @@ export default function LoginPage() {
                     />
                     <span className="text-xs text-[var(--color-text)] leading-snug">
                       <span className="text-[var(--color-error)] font-medium">[필수]</span>{' '}
-                      <Link
-                        to={ROUTES.privacy}
+                      <a
+                        href={TERMSDESK_URLS.privacy}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[var(--color-accent)] underline underline-offset-2"
                       >
                         개인정보 수집·이용
-                      </Link>
+                      </a>
                       에 동의합니다
                     </span>
                   </label>
@@ -953,19 +953,23 @@ export default function LoginPage() {
             <div className="mt-8 pt-6 border-t border-[var(--color-border-subtle)]">
               <p className="text-xs text-[var(--color-text-muted)] text-center leading-relaxed">
                 {isRegister ? '가입' : '로그인'}하면{' '}
-                <Link
-                  to={ROUTES.terms}
+                <a
+                  href={TERMSDESK_URLS.terms}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-[var(--color-text-secondary)] underline underline-offset-2 hover:text-[var(--color-text)] transition-colors duration-200"
                 >
                   이용약관
-                </Link>{' '}
+                </a>{' '}
                 및{' '}
-                <Link
-                  to={ROUTES.privacy}
+                <a
+                  href={TERMSDESK_URLS.privacy}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-[var(--color-text-secondary)] underline underline-offset-2 hover:text-[var(--color-text)] transition-colors duration-200"
                 >
                   개인정보처리방침
-                </Link>
+                </a>
                 에 동의하는 것으로 간주합니다.
               </p>
             </div>
