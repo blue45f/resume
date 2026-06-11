@@ -134,7 +134,14 @@ function readingTime(text: string): string {
 
 /** Markdown → HTML renderer */
 function inlineFmt(s: string): string {
-  const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // 따옴표까지 이스케이프 — 오토링크된 URL 이 href 속성을 깨고 이벤트 핸들러를 주입하는 XSS 차단
+  const esc = (t: string) =>
+    t
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   s = esc(s);
   s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
   s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
@@ -691,42 +698,50 @@ export default function CommunityPostPage() {
                   첨부파일 {post.attachments.length}개
                 </p>
                 <div className="space-y-1.5">
-                  {post.attachments.map((att, idx) => (
-                    <a
-                      key={idx}
-                      href={att.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 px-3 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-sky-300 dark:hover:border-sky-700 hover:bg-sky-50/40 dark:hover:bg-sky-900/10 transition-colors group"
-                    >
-                      <span className="text-base flex-shrink-0">
-                        {att.type?.startsWith('image/')
-                          ? '🖼️'
-                          : att.type === 'application/pdf'
-                            ? '📄'
-                            : '📎'}
-                      </span>
-                      <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 group-hover:text-sky-700 dark:group-hover:text-sky-400 truncate">
-                        {att.name}
-                      </span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
-                        {(att.size / 1024).toFixed(0)}KB
-                      </span>
-                      <svg
-                        className="w-3.5 h-3.5 text-slate-400 group-hover:text-sky-500 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                  {post.attachments
+                    .filter(
+                      (att) =>
+                        /^https?:\/\//i.test(att.url) ||
+                        /^data:(image\/(png|jpe?g|webp|gif)|application\/pdf);base64,/.test(
+                          att.url,
+                        ),
+                    )
+                    .map((att, idx) => (
+                      <a
+                        key={idx}
+                        href={att.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2.5 px-3 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-sky-300 dark:hover:border-sky-700 hover:bg-sky-50/40 dark:hover:bg-sky-900/10 transition-colors group"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                        />
-                      </svg>
-                    </a>
-                  ))}
+                        <span className="text-base flex-shrink-0">
+                          {att.type?.startsWith('image/')
+                            ? '🖼️'
+                            : att.type === 'application/pdf'
+                              ? '📄'
+                              : '📎'}
+                        </span>
+                        <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 group-hover:text-sky-700 dark:group-hover:text-sky-400 truncate">
+                          {att.name}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
+                          {(att.size / 1024).toFixed(0)}KB
+                        </span>
+                        <svg
+                          className="w-3.5 h-3.5 text-slate-400 group-hover:text-sky-500 flex-shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                          />
+                        </svg>
+                      </a>
+                    ))}
                 </div>
               </div>
             )}

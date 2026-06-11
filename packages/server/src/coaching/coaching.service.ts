@@ -232,11 +232,16 @@ export class CoachingService {
       );
     }
 
+    // 미팅 링크는 상대 사용자 브라우저에서 href 로 렌더되므로 http(s) 외 스킴은 저장 거부 (stored XSS 차단)
+    if (data.meetingUrl != null && !/^https?:\/\//i.test(data.meetingUrl.trim())) {
+      throw new BadRequestException('미팅 링크는 http(s) URL만 허용됩니다');
+    }
+
     const updated = await this.session.update({
       where: { id: sessionId },
       data: {
         status: data.status,
-        ...(data.meetingUrl != null ? { meetingUrl: data.meetingUrl } : {}),
+        ...(data.meetingUrl != null ? { meetingUrl: data.meetingUrl.trim() } : {}),
       },
     });
 

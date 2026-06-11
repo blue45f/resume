@@ -218,7 +218,7 @@ export class CommunityService {
         content: body.content,
         category: body.category || 'free',
         userId,
-        attachments: body.attachments || [],
+        attachments: this.normalizeAttachments(body.attachments),
       },
       include: {
         user: { select: { id: true, name: true, username: true, avatar: true } },
@@ -253,7 +253,8 @@ export class CommunityService {
     if (body.title !== undefined) data.title = body.title;
     if (body.content !== undefined) data.content = body.content;
     if (body.category !== undefined) data.category = body.category;
-    if (body.attachments !== undefined) data.attachments = body.attachments;
+    if (body.attachments !== undefined)
+      data.attachments = this.normalizeAttachments(body.attachments);
     if ((role === 'admin' || role === 'superadmin') && body.isPinned !== undefined) {
       data.isPinned = body.isPinned;
     }
@@ -262,6 +263,72 @@ export class CommunityService {
     }
 
     return this.prisma.communityPost.update({ where: { id }, data });
+  }
+
+  /** 첨부 허용 host — study-groups 의 normalizeAttachments 와 동일 정책. */
+  private static readonly ALLOWED_ATTACHMENT_HOSTS = [
+    'res.cloudinary.com',
+    'storage.googleapis.com',
+    'firebasestorage.googleapis.com',
+    'lh3.googleusercontent.com',
+    'images.unsplash.com',
+  ];
+
+  /** data: URL 허용 prefix — 렌더링이 안전한 이미지/PDF base64 만 (data:text/html·javascript: XSS 차단). */
+  private static readonly ALLOWED_DATA_URL_PREFIXES = [
+    'data:image/jpeg;base64,',
+    'data:image/png;base64,',
+    'data:image/webp;base64,',
+    'data:image/gif;base64,',
+    'data:application/pdf;base64,',
+  ];
+
+  private static readonly MAX_DATA_URL_LENGTH = 2_900_000;
+
+  /**
+   * 첨부 정규화 — 클라 /upload 화이트리스트를 우회한 직접 JSON 제출(javascript: href 등 stored XSS)을
+   * 서버에서 차단한다. 허용: https 화이트리스트 host 또는 안전한 data: prefix.
+   */
+  private normalizeAttachments(
+    raw: unknown,
+  ): Array<{ url: string; name: string; size: number; type: string }> {
+    if (!Array.isArray(raw)) return [];
+    const out: Array<{ url: string; name: string; size: number; type: string }> = [];
+    for (const item of raw) {
+      if (out.length >= 10) break;
+      if (!item || typeof item !== 'object') continue;
+      const obj = item as Record<string, unknown>;
+      const url = typeof obj.url === 'string' ? obj.url.trim() : '';
+      const name = typeof obj.name === 'string' ? obj.name.trim().slice(0, 200) : '';
+      const size = typeof obj.size === 'number' && Number.isFinite(obj.size) ? obj.size : 0;
+      const type = typeof obj.type === 'string' ? obj.type.trim().slice(0, 100) : '';
+
+      if (!url) continue;
+      if (size < 0 || size > 50 * 1024 * 1024) continue;
+
+      if (url.startsWith('data:')) {
+        const prefixOk = CommunityService.ALLOWED_DATA_URL_PREFIXES.some((p) => url.startsWith(p));
+        if (!prefixOk || url.length > CommunityService.MAX_DATA_URL_LENGTH) continue;
+        out.push({ url, name, size, type });
+        continue;
+      }
+
+      if (url.length > 2048) continue;
+      let parsed: URL;
+      try {
+        parsed = new URL(url);
+      } catch {
+        continue;
+      }
+      if (parsed.protocol !== 'https:') continue;
+      const hostOk = CommunityService.ALLOWED_ATTACHMENT_HOSTS.some(
+        (h) => parsed.hostname === h || parsed.hostname.endsWith(`.${h}`),
+      );
+      if (!hostOk) continue;
+
+      out.push({ url, name, size, type });
+    }
+    return out;
   }
 
   async deletePost(id: string, userId: string, role: string) {
