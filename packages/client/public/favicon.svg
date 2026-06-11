@@ -1,28 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="이력서공방">
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="이력서공방">
   <defs>
-    <linearGradient id="bg" x1="70" y1="40" x2="442" y2="476" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2563eb"/>
-      <stop offset=".56" stop-color="#0f172a"/>
-      <stop offset="1" stop-color="#2563eb"/>
+    <!-- Paper warm gradient -->
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f8fafc" />
     </linearGradient>
-    <radialGradient id="glow" cx="72%" cy="23%" r="68%">
-      <stop stop-color="#06b6d4" stop-opacity=".72"/>
-      <stop offset=".58" stop-color="#10b981" stop-opacity=".24"/>
-      <stop offset="1" stop-color="#0f172a" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#0f172a" flood-opacity=".34"/>
+    <!-- Glow filter -->
+    <filter id="softGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#2563eb" flood-opacity="0.12" />
     </filter>
   </defs>
-  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
-  <rect width="512" height="512" rx="116" fill="url(#glow)"/>
-  <path d="M46 342C154 278 238 414 466 292" fill="none" stroke="#f8fafc" stroke-opacity=".1" stroke-width="26" stroke-linecap="round"/>
-  <g filter="url(#shadow)">
-        <g transform="translate(0 0) scale(1)">
-          <path d="M158 92h132l76 76v244a28 28 0 0 1-28 28H158a28 28 0 0 1-28-28V120a28 28 0 0 1 28-28z" fill="#f8fafc"/>
-          <path d="M290 92v58a24 24 0 0 0 24 24h52" fill="none" stroke="#06b6d4" stroke-width="20" stroke-linecap="round"/>
-          <path d="M178 226h150M178 274h116M178 322h90" stroke="#0f172a" stroke-width="22" stroke-linecap="round"/>
-          <circle cx="356" cy="356" r="54" fill="#10b981"/>
-          <path d="M332 357l18 18 37-44" fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
-        </g></g>
+  <!-- Background plate -->
+  <rect x="3" y="3" width="42" height="42" rx="13" fill="#0f172a" stroke="#1e293b" stroke-width="1.5" />
+  
+  <!-- Stylized Resume Paper Sheet -->
+  <path d="M14 8h14l8 8v24a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2Z" fill="url(#paper)" filter="url(#softGlow)" />
+  <!-- Folded corner -->
+  <path d="M28 8v6a2 2 0 0 0 2 2h6" fill="none" stroke="#cbd5e1" stroke-width="1.8" />
+  
+  <!-- Resume text lines -->
+  <path d="M17 21h14M17 25h12M17 29h8" stroke="#334155" stroke-width="2" stroke-linecap="round" />
+  
+  <!-- AI Status Check Badge -->
+  <circle cx="34" cy="34" r="7" fill="#0ea5e9" />
+  <path d="M31 34 l2 2 l4 -4" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 </svg>
