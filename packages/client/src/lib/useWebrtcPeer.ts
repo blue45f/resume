@@ -283,11 +283,9 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
     cleanup();
   }, [roomId, peerId, cleanup]);
 
-  // unmount 시 자동 정리
   useEffect(() => {
     return () => cleanup();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [cleanup]);
 
   return { state, localStream, remoteStream, error, start, hangup };
 }

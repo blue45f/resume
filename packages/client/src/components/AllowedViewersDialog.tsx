@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Dialog from '@/shared/ui/Dialog';
 import { useConfirm } from '@/shared/ui/ConfirmProvider';
 import { toast } from '@/components/Toast';
@@ -44,7 +44,7 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
   );
   const [expiresCustom, setExpiresCustom] = useState('');
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const data = await listAllowedViewers(resumeId);
@@ -54,12 +54,11 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [resumeId]);
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resumeId]);
+  }, [load]);
 
   useEffect(() => {
     if (!open) onClose();

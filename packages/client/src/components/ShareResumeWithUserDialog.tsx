@@ -94,13 +94,12 @@ export default function ShareResumeWithUserDialog({
     fetchResumes()
       .then((list) => {
         setResumes(list);
-        if (list.length > 0 && !selectedId) setSelectedId(list[0].id);
+        setSelectedId((prev) => prev || (list[0]?.id ?? ''));
       })
       .catch((err) =>
         toast(err instanceof Error ? err.message : tx('sharing.loadResumeError'), 'error'),
       )
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const handleShare = async () => {

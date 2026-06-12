@@ -110,8 +110,7 @@ export default function CoachDashboardPage() {
       navigate(ROUTES.coaching.profileEdit);
       return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user, navigate]);
 
   const coachSessions: CoachingSession[] = data?.asCoach || [];
 

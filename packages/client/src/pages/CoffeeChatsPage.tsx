@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -51,13 +51,13 @@ export default function CoffeeChatsPage() {
   const [loading, setLoading] = useState(true);
   const confirm = useConfirm();
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     fetchCoffeeChats(tab)
       .then(setChats)
       .catch((e) => toast(e instanceof Error ? e.message : '불러오기 실패', 'error'))
       .finally(() => setLoading(false));
-  };
+  }, [tab]);
 
   useEffect(() => {
     document.title = '커피챗 — 이력서공방';
@@ -65,8 +65,7 @@ export default function CoffeeChatsPage() {
     return () => {
       document.title = '이력서공방';
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
+  }, [load]);
 
   const handleRespond = async (id: string, decision: 'accepted' | 'rejected') => {
     try {
