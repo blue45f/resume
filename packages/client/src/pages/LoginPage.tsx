@@ -66,6 +66,10 @@ const PROVIDERS = [
   { id: 'kakao', name: 'Kakao', icon: KakaoIcon },
 ];
 
+// 데모 계정 — prisma/seed.ts 가 시드하는 공개 체험용 계정 (회원가입 없이 둘러보기)
+const DEMO_EMAIL = 'demo@example.com';
+const DEMO_PASSWORD = 'Demo1234!';
+
 export default function LoginPage() {
   const [params] = useSearchParams();
   const error = params.get('error');
@@ -190,6 +194,14 @@ export default function LoginPage() {
     } catch (err) {
       setAuthError(err instanceof Error ? err.message : '인증에 실패했습니다');
     }
+  };
+
+  // 데모 계정 자동 입력 + 제출 — 폼 값을 채워 사용자가 무엇으로 로그인되는지 보이게 한다.
+  const onDemoLogin = async () => {
+    setAuthError('');
+    loginForm.setValue('email', DEMO_EMAIL, { shouldValidate: true });
+    loginForm.setValue('password', DEMO_PASSWORD, { shouldValidate: true });
+    await loginForm.handleSubmit(onLogin)();
   };
 
   const onRegister = async (data: RegisterFormValues) => {
@@ -949,6 +961,37 @@ export default function LoginPage() {
                 {loading ? '처리 중...' : isRegister ? '회원가입' : '로그인'}
               </button>
             </form>
+
+            {!isRegister && (
+              <button
+                type="button"
+                onClick={onDemoLogin}
+                disabled={loading}
+                className={`auth-social mt-3 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed ${SOCIAL_BTN_CLASS}`}
+              >
+                <svg
+                  className="w-4.5 h-4.5 text-[var(--color-accent)]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                데모 계정으로 둘러보기
+              </button>
+            )}
 
             <div className="mt-8 pt-6 border-t border-[var(--color-border-subtle)]">
               <p className="text-xs text-[var(--color-text-muted)] text-center leading-relaxed">

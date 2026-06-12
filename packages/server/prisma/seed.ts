@@ -245,6 +245,34 @@ async function main() {
   }
   console.log(`  ✓ 샘플 사용자 ${sampleUsers.length}명 확인/생성`);
 
+  // Seed demo account — LoginPage "데모 계정으로 둘러보기" 버튼이 사용하는 공개 체험용 계정.
+  // 해시 방식은 auth.service.register 와 동일 (bcryptjs, cost 12).
+  const demoEmail = 'demo@example.com';
+  const existingDemo = await prisma.user.findUnique({
+    where: { email: demoEmail },
+    select: { id: true, passwordHash: true },
+  });
+  if (!existingDemo || !existingDemo.passwordHash) {
+    const bcrypt = await import('bcryptjs');
+    const passwordHash = await bcrypt.hash('Demo1234!', 12);
+    if (!existingDemo) {
+      await prisma.user.create({
+        data: {
+          email: demoEmail,
+          name: '데모 사용자',
+          provider: 'local',
+          providerId: demoEmail,
+          passwordHash,
+          userType: 'personal',
+        },
+      });
+      console.log('  ✓ 데모 계정 생성 (demo@example.com)');
+    } else {
+      await prisma.user.update({ where: { id: existingDemo.id }, data: { passwordHash } });
+      console.log('  ✓ 데모 계정 비밀번호 설정 (demo@example.com)');
+    }
+  }
+
   // Seed sample resumes
   const resumeCount = await prisma.resume.count();
   if (resumeCount === 0) {
