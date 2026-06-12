@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, type ComponentType } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
@@ -30,19 +30,28 @@ import AnnouncementBanner from '@/components/AnnouncementBanner';
 import AuthGuard from '@/components/AuthGuard';
 import { fetchMe } from '@/lib/auth';
 
-// Lazy import with auto-retry on chunk load failure (배포 후 해시 변경 대응)
-function lazyRetry(fn: () => Promise<any>) {
-  return lazy(() =>
-    fn().catch(() => {
-      // 청크 로드 실패 시 새로고침 (배포로 인한 해시 변경)
-      if (!sessionStorage.getItem('chunk-retry')) {
-        sessionStorage.setItem('chunk-retry', '1');
+// Lazy import with auto-retry on chunk load failure (배포 후 해시 변경 대응).
+// 가드 키는 reload 너머까지 유지하고 '성공 로드 시'에만 해제한다 — reload 직전에
+// 해제하면 새로고침 후 가드가 없어 무한 reload 루프가 될 수 있다.
+// 두 번째 실패는 throw 해서 ErrorBoundary 로 노출한다.
+function lazyRetry<T extends ComponentType<any>>(factory: () => Promise<{ default: T }>) {
+  return lazy(async (): Promise<{ default: T }> => {
+    const KEY = 'resume-gongbang-chunk-retry';
+    try {
+      const mod = await factory();
+      sessionStorage.removeItem(KEY);
+      return mod;
+    } catch (err) {
+      if (!sessionStorage.getItem(KEY)) {
+        sessionStorage.setItem(KEY, '1');
+        // 배포로 해시가 바뀐 경우 새 index.html 을 받도록 1회 새로고침
         window.location.reload();
+        // reload 가 완료될 때까지 Suspense fallback 유지 (settle 되지 않는 Promise)
+        return new Promise<never>(() => {});
       }
-      sessionStorage.removeItem('chunk-retry');
-      return fn();
-    }),
-  );
+      throw err;
+    }
+  });
 }
 
 // Lazy-loaded pages (non-critical path)
