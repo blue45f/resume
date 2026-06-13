@@ -1,36 +1,37 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsBoolean, IsIn } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class CreateTemplateDto {
-  @ApiProperty() @IsString() name!: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() category?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() prompt?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() layout?: string; // JSON layout config
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() isDefault?: boolean;
-}
+const PRESETS = ['standard', 'developer', 'career-focused', 'academic', 'minimal'] as const;
 
-export class UpdateTemplateDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() category?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() prompt?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() layout?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() visibility?: string;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() isDefault?: boolean;
-}
-
-export class LocalTransformDto {
-  @ApiPropertyOptional({
-    description: '프리셋 이름 (standard, developer, career-focused, academic, minimal)',
+export const createTemplateSchema = z
+  .object({
+    name: z.string(),
+    description: z.string().optional(),
+    category: z.string().optional(),
+    prompt: z.string().optional(),
+    layout: z.string().optional(),
+    isDefault: z.boolean().optional(),
   })
-  @IsOptional()
-  @IsString()
-  @IsIn(['standard', 'developer', 'career-focused', 'academic', 'minimal'])
-  preset?: string;
+  .strict();
+export class CreateTemplateDto extends createZodDto(createTemplateSchema) {}
 
-  @ApiPropertyOptional({ description: '템플릿 ID (layout 설정 사용)' })
-  @IsOptional()
-  @IsString()
-  templateId?: string;
-}
+export const updateTemplateSchema = z
+  .object({
+    name: z.string().optional(),
+    description: z.string().optional(),
+    category: z.string().optional(),
+    prompt: z.string().optional(),
+    layout: z.string().optional(),
+    visibility: z.string().optional(),
+    isDefault: z.boolean().optional(),
+  })
+  .strict();
+export class UpdateTemplateDto extends createZodDto(updateTemplateSchema) {}
+
+export const localTransformSchema = z
+  .object({
+    preset: z.enum(PRESETS).optional(),
+    templateId: z.string().optional(),
+  })
+  .strict();
+export class LocalTransformDto extends createZodDto(localTransformSchema) {}

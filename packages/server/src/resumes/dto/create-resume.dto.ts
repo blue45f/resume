@@ -1,231 +1,139 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsString,
-  IsOptional,
-  IsBoolean,
-  IsArray,
-  ValidateNested,
-  IsInt,
-  Min,
-  IsIn,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class PersonalInfoDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() email?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() phone?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() address?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() website?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() github?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() summary?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() photo?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() birthYear?: string;
-  @ApiPropertyOptional() @IsOptional() @IsArray() links?: { label: string; url: string }[];
-  @ApiPropertyOptional() @IsOptional() @IsString() military?: string;
-}
+// 중첩 섹션 스키마. 미지정 키는 기본 동작(strip)으로 제거한다(과거 forbidNonWhitelisted 보다
+// 관대 — 알 수 없는 중첩 키로 인한 저장 실패를 막기 위함. service 는 선언된 필드만 읽는다).
+const personalInfoSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  website: z.string().optional(),
+  github: z.string().optional(),
+  summary: z.string().optional(),
+  photo: z.string().optional(),
+  birthYear: z.string().optional(),
+  links: z.array(z.object({ label: z.string(), url: z.string() })).optional(),
+  military: z.string().optional(),
+});
 
-export class ExperienceDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() id?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() company?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() position?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() department?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() startDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() endDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() current?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() achievements?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() techStack?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) sortOrder?: number;
-}
+const experienceSchema = z.object({
+  id: z.string().optional(),
+  company: z.string().optional(),
+  position: z.string().optional(),
+  department: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  current: z.boolean().optional(),
+  description: z.string().optional(),
+  achievements: z.string().optional(),
+  techStack: z.string().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
 
-export class EducationDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() id?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() school?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() degree?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() field?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() gpa?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() startDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() endDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) sortOrder?: number;
-}
+const educationSchema = z.object({
+  id: z.string().optional(),
+  school: z.string().optional(),
+  degree: z.string().optional(),
+  field: z.string().optional(),
+  gpa: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  description: z.string().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
 
-export class SkillDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() id?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() category?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() items?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) sortOrder?: number;
-}
+const skillSchema = z.object({
+  id: z.string().optional(),
+  category: z.string().optional(),
+  items: z.string().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
 
-export class ProjectDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() id?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() company?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() role?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() startDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() endDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() techStack?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() link?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) sortOrder?: number;
-}
+const projectSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  company: z.string().optional(),
+  role: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  description: z.string().optional(),
+  techStack: z.string().optional(),
+  link: z.string().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
 
-export class CertificationDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() id?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() issuer?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() issueDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() expiryDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() credentialId?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) sortOrder?: number;
-}
+const certificationSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  issuer: z.string().optional(),
+  issueDate: z.string().optional(),
+  expiryDate: z.string().optional(),
+  credentialId: z.string().optional(),
+  description: z.string().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
 
-export class LanguageDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() id?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() testName?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() score?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() testDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) sortOrder?: number;
-}
+const languageSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  testName: z.string().optional(),
+  score: z.string().optional(),
+  testDate: z.string().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
 
-export class AwardDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() id?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() issuer?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() awardDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) sortOrder?: number;
-}
+const awardSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  issuer: z.string().optional(),
+  awardDate: z.string().optional(),
+  description: z.string().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
 
-export class ActivityDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() id?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() organization?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() role?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() startDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() endDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) sortOrder?: number;
-}
+const activitySchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  organization: z.string().optional(),
+  role: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  description: z.string().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
 
-export class CreateResumeDto {
-  @ApiProperty({ description: '이력서 제목' })
-  @IsOptional()
-  @IsString()
-  title?: string;
+const RESUME_VISIBILITY = ['public', 'private', 'link-only'] as const;
 
-  @ApiPropertyOptional({ type: PersonalInfoDto })
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => PersonalInfoDto)
-  personalInfo?: PersonalInfoDto;
-
-  @ApiPropertyOptional({ type: [ExperienceDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => ExperienceDto)
-  experiences?: ExperienceDto[];
-
-  @ApiPropertyOptional({ type: [EducationDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => EducationDto)
-  educations?: EducationDto[];
-
-  @ApiPropertyOptional({ type: [SkillDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => SkillDto)
-  skills?: SkillDto[];
-
-  @ApiPropertyOptional({ type: [ProjectDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => ProjectDto)
-  projects?: ProjectDto[];
-
-  @ApiPropertyOptional({ type: [CertificationDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CertificationDto)
-  certifications?: CertificationDto[];
-
-  @ApiPropertyOptional({ type: [LanguageDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => LanguageDto)
-  languages?: LanguageDto[];
-
-  @ApiPropertyOptional({ type: [AwardDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => AwardDto)
-  awards?: AwardDto[];
-
-  @ApiPropertyOptional({ type: [ActivityDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => ActivityDto)
-  activities?: ActivityDto[];
-
-  // ── 메타 필드 (클라이언트가 Resume 객체 전체를 보내므로 화이트리스트로 받아야 함) ──
-  // ValidationPipe forbidNonWhitelisted=true 라 누락 시 400 발생.
-
-  @ApiPropertyOptional({ description: '공개 설정', enum: ['public', 'private', 'link-only'] })
-  @IsOptional()
-  @IsString()
-  @IsIn(['public', 'private', 'link-only'])
-  visibility?: string;
-
-  @ApiPropertyOptional({ description: '공개 URL slug' })
-  @IsOptional()
-  @IsString()
-  slug?: string;
-
-  @ApiPropertyOptional({ description: '구직 활성화 여부' })
-  @IsOptional()
-  @IsBoolean()
-  isOpenToWork?: boolean;
-
-  @ApiPropertyOptional({ description: '구직 희망 직무 (자유 텍스트)' })
-  @IsOptional()
-  @IsString()
-  openToWorkRoles?: string;
-
-  @ApiPropertyOptional({ description: '섹션 표시 순서', type: [String] })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  sectionOrder?: string[];
-
-  @ApiPropertyOptional({ description: '숨긴 섹션', type: [String] })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  hiddenSections?: string[];
-
-  @ApiPropertyOptional({ description: '태그 (id 만 사용, 응답 보존용)' })
-  @IsOptional()
-  @IsArray()
-  tags?: unknown[];
-
-  // 응답에 함께 오지만 update 시 무시되는 필드들 — 화이트리스트로 받기만 하고 service 에서 사용 X.
-  @ApiPropertyOptional() @IsOptional() viewCount?: number;
-  @ApiPropertyOptional() @IsOptional() userId?: string | null;
-  @ApiPropertyOptional() @IsOptional() id?: string;
-  @ApiPropertyOptional() @IsOptional() createdAt?: string;
-  @ApiPropertyOptional() @IsOptional() updatedAt?: string;
-  @ApiPropertyOptional() @IsOptional() reportCount?: number;
-  @ApiPropertyOptional() @IsOptional() autoHidden?: boolean;
-}
+// 최상위는 strict — 과거 ValidationPipe forbidNonWhitelisted=true 와 동일하게,
+// 클라이언트가 보내는 Resume 객체 전체를 받기 위해 메타 필드까지 모두 화이트리스트로 선언한다.
+export const createResumeSchema = z
+  .object({
+    title: z.string().optional(),
+    personalInfo: personalInfoSchema.optional(),
+    experiences: z.array(experienceSchema).optional(),
+    educations: z.array(educationSchema).optional(),
+    skills: z.array(skillSchema).optional(),
+    projects: z.array(projectSchema).optional(),
+    certifications: z.array(certificationSchema).optional(),
+    languages: z.array(languageSchema).optional(),
+    awards: z.array(awardSchema).optional(),
+    activities: z.array(activitySchema).optional(),
+    visibility: z.enum(RESUME_VISIBILITY).optional(),
+    slug: z.string().optional(),
+    isOpenToWork: z.boolean().optional(),
+    openToWorkRoles: z.string().optional(),
+    sectionOrder: z.array(z.string()).optional(),
+    hiddenSections: z.array(z.string()).optional(),
+    tags: z.array(z.unknown()).optional(),
+    // 응답에 함께 와서 화이트리스트로 받기만 하고 service 에서 사용하지 않는 필드들.
+    viewCount: z.unknown().optional(),
+    userId: z.unknown().optional(),
+    id: z.unknown().optional(),
+    createdAt: z.unknown().optional(),
+    updatedAt: z.unknown().optional(),
+    reportCount: z.unknown().optional(),
+    autoHidden: z.unknown().optional(),
+  })
+  .strict();
+export class CreateResumeDto extends createZodDto(createResumeSchema) {}

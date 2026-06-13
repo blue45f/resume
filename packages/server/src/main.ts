@@ -3,10 +3,12 @@
 import './instrument';
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
+import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { CacheHeaderInterceptor } from './common/interceptors/cache.interceptor';
 import { ETagInterceptor } from './common/interceptors/etag.interceptor';
+import { ZodValidationPipe } from './common/zod-validation.pipe';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Reflector } from '@nestjs/core';
 import compression from 'compression';
@@ -106,13 +108,9 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   app.useGlobalInterceptors(new CacheHeaderInterceptor(reflector));
   app.useGlobalInterceptors(new ETagInterceptor());
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
+  // 표준 Zod 검증 파이프. createZodDto DTO 스키마(.strict())로 검증하며,
+  // 과거 ValidationPipe(whitelist+forbidNonWhitelisted)와 동일하게 미선언 키를 거부한다.
+  app.useGlobalPipes(new ZodValidationPipe());
 
   if (!isProd) {
     const config = new DocumentBuilder()
@@ -121,7 +119,8 @@ async function bootstrap() {
       .setVersion('2.0')
       .addBearerAuth()
       .build();
-    const document = SwaggerModule.createDocument(app, config);
+    // cleanupOpenApiDoc: createZodDto 가 붙인 zod 메타데이터를 OpenAPI 스키마로 정리.
+    const document = cleanupOpenApiDoc(SwaggerModule.createDocument(app, config));
     SwaggerModule.setup('api/docs', app, document);
   }
 
