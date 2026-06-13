@@ -81,6 +81,7 @@
     "@tiptap/react": "^3.26.0",
     "@tiptap/starter-kit": "^3.24.0",
     "@types/sanitize-html": "^2.16.1",
+    "argon2": "^0.44.0",
     "bcryptjs": "^3.0.3",
     "browser-image-compression": "2.0.2",
     "class-transformer": "^0.5.1",
