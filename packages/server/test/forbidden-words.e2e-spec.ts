@@ -102,7 +102,9 @@ describe('ForbiddenWords (금칙어)', () => {
 
     it('GET /forbidden-words?search=e2e-bad — 검색', async () => {
       const res = await ctx.authGet('admin', '/api/forbidden-words?search=e2e-bad').expect(200);
-      expect(res.body.items.some((w: any) => w.word === 'e2e-bad-word')).toBe(true);
+      expect(
+        (res.body.items as Array<{ word: string }>).some((word) => word.word === 'e2e-bad-word'),
+      ).toBe(true);
     });
 
     it('GET /forbidden-words/stats — 통계 조회', async () => {

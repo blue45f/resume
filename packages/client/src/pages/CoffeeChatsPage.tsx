@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { fetchCoffeeChats, respondCoffeeChat, cancelCoffeeChat, type CoffeeChat } from '@/lib/api';
@@ -45,27 +46,27 @@ const MODALITY_ICON = { video: '📹', voice: '🎙️', chat: '💬' };
 
 export default function CoffeeChatsPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const me = getUser();
   const [tab, setTab] = useState<Tab>('received');
-  const [chats, setChats] = useState<CoffeeChat[]>([]);
-  const [loading, setLoading] = useState(true);
   const confirm = useConfirm();
 
-  const load = useCallback(() => {
-    setLoading(true);
-    fetchCoffeeChats(tab)
-      .then(setChats)
-      .catch((e) => toast(e instanceof Error ? e.message : '불러오기 실패', 'error'))
-      .finally(() => setLoading(false));
-  }, [tab]);
+  const chatsQuery = useQuery({
+    queryKey: ['coffee-chats', tab],
+    queryFn: () => fetchCoffeeChats(tab),
+  });
+  const chats = chatsQuery.data ?? [];
+  const loading = chatsQuery.isLoading;
+  const load = () => {
+    queryClient.invalidateQueries({ queryKey: ['coffee-chats'] });
+  };
 
   useEffect(() => {
     document.title = '커피챗 — 이력서공방';
-    load();
     return () => {
       document.title = '이력서공방';
     };
-  }, [load]);
+  }, []);
 
   const handleRespond = async (id: string, decision: 'accepted' | 'rejected') => {
     try {

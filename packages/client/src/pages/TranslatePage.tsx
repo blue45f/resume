@@ -7,6 +7,7 @@ import type { ResumeSummary, Resume } from '@/types/resume';
 import { API_URL } from '@/lib/config';
 import { useResumes, useResume } from '@/hooks/useResources';
 import { t } from '@/lib/i18n';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 const LANGUAGE_PAIRS = [
   {
@@ -63,7 +64,25 @@ const TRANSLATABLE_SECTIONS = [
   { key: 'languages', label: '어학' },
   { key: 'awards', label: '수상' },
   { key: 'activities', label: '활동' },
-];
+] as const;
+
+type TranslatableSectionKey = (typeof TRANSLATABLE_SECTIONS)[number]['key'];
+
+interface TranslationResponse {
+  text?: string;
+  data?: { text?: string };
+}
+
+interface SavedResumeResponse {
+  id?: string;
+  resume?: { id?: string };
+  message?: string;
+}
+
+const hasSectionContent = (resume: Resume, key: TranslatableSectionKey): boolean => {
+  if (key === 'personalInfo') return Boolean(resume.personalInfo?.name);
+  return Array.isArray(resume[key]) && resume[key].length > 0;
+};
 
 const TARGET_LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -134,7 +153,7 @@ export default function TranslatePage() {
 
   // Partial translation
   const [partialMode, setPartialMode] = useState(false);
-  const [selectedSections, setSelectedSections] = useState<string[]>(
+  const [selectedSections, setSelectedSections] = useState<TranslatableSectionKey[]>(
     TRANSLATABLE_SECTIONS.map((s) => s.key),
   );
 
@@ -145,7 +164,7 @@ export default function TranslatePage() {
     };
   }, []);
 
-  const toggleSection = (key: string) => {
+  const toggleSection = (key: TranslatableSectionKey) => {
     setSelectedSections((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
     );
@@ -187,7 +206,7 @@ export default function TranslatePage() {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || '번역에 실패했습니다');
       }
-      const data = await res.json();
+      const data = (await res.json()) as TranslationResponse;
       const translatedText = data.text || data.data?.text || JSON.stringify(data);
       setResult(translatedText);
 
@@ -198,8 +217,8 @@ export default function TranslatePage() {
       setConfidenceScore(Math.min(98, baseScore + langBonus + Math.floor(Math.random() * 6)));
 
       toast('번역이 완료되었습니다', 'success');
-    } catch (e: any) {
-      toast(e.message || '번역에 실패했습니다', 'error');
+    } catch (e: unknown) {
+      toast(getErrorMessage(e, '번역에 실패했습니다'), 'error');
     } finally {
       setLoading(false);
     }
@@ -325,9 +344,7 @@ export default function TranslatePage() {
                 {TRANSLATABLE_SECTIONS.map((section) => {
                   const isSelected = selectedSections.includes(section.key);
                   const hasContent = originalResume
-                    ? section.key === 'personalInfo'
-                      ? !!originalResume.personalInfo?.name
-                      : !!(originalResume as any)[section.key]?.length
+                    ? hasSectionContent(originalResume, section.key)
                     : true;
                   return (
                     <button
@@ -472,15 +489,15 @@ export default function TranslatePage() {
                             }),
                           });
                           if (res.ok) {
-                            const data = await res.json();
+                            const data = (await res.json()) as SavedResumeResponse;
                             toast('번역된 이력서가 저장되었습니다', 'success');
                             window.location.href = `/resumes/${data.resume?.id || data.id}/edit`;
                           } else {
-                            const err = await res.json().catch(() => ({}));
+                            const err = (await res.json().catch(() => ({}))) as SavedResumeResponse;
                             toast(err.message || '저장에 실패했습니다', 'error');
                           }
-                        } catch (e: any) {
-                          toast(e.message || '저장에 실패했습니다', 'error');
+                        } catch (e: unknown) {
+                          toast(getErrorMessage(e, '저장에 실패했습니다'), 'error');
                         }
                       }}
                       className="text-xs text-green-600 dark:text-green-400 hover:underline font-medium"

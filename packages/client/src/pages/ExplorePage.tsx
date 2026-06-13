@@ -73,6 +73,23 @@ interface UserProfile {
   openToWorkRoles?: string;
 }
 
+interface CommunityPostSummary {
+  id: string;
+  title: string;
+  category: string;
+  createdAt: string;
+  likeCount?: number;
+  _count?: {
+    comments?: number;
+  };
+}
+
+interface CommunityListResponse {
+  items?: CommunityPostSummary[];
+}
+
+const EMPTY_RESUME_SUMMARIES: ResumeSummary[] = [];
+
 function aggregateUsers(resumes: ResumeSummary[]): UserProfile[] {
   const map = new Map<string, UserProfile>();
   for (const r of resumes) {
@@ -123,7 +140,7 @@ function getAvatarColor(name: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-import { useRecentViews } from '@/features/recent-views/model/useRecentViews';
+import { useRecentViews } from '@/features/recent-views';
 
 export default function ExplorePage() {
   const [params, setParams] = useSearchParams();
@@ -165,168 +182,174 @@ export default function ExplorePage() {
   const [industryFilter, setIndustryFilter] = useState('all');
   const searchWrapperRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [currentTimeMs] = useState(() => Date.now());
 
   // 직종 감지 키워드맵
-  const INDUSTRY_KEYWORDS: Record<string, { label: string; emoji: string; keywords: string[] }> = {
-    dev: {
-      label: '개발',
-      emoji: '💻',
-      keywords: [
-        'react',
-        'python',
-        'java',
-        'javascript',
-        'typescript',
-        'node',
-        'spring',
-        'vue',
-        'angular',
-        'kotlin',
-        'swift',
-        'go',
-        'rust',
-        'c++',
-        'aws',
-        'docker',
-        'kubernetes',
-        'sql',
-        'backend',
-        'frontend',
-        '프론트',
-        '백엔드',
-        '풀스택',
-      ],
-    },
-    design: {
-      label: '디자인',
-      emoji: '🎨',
-      keywords: [
-        'figma',
-        'photoshop',
-        'illustrator',
-        'ui',
-        'ux',
-        'sketch',
-        'zeplin',
-        'adobe',
-        'graphic',
-        '디자이너',
-        'ux/ui',
-        'product design',
-        'branding',
-      ],
-    },
-    marketing: {
-      label: '마케팅',
-      emoji: '📣',
-      keywords: [
-        '마케팅',
-        'marketing',
-        'sns',
-        'seo',
-        'growth',
-        'ads',
-        'google ads',
-        'meta',
-        '콘텐츠',
-        'content',
-        'crm',
-        'copywriting',
-        'brand',
-      ],
-    },
-    finance: {
-      label: '금융/회계',
-      emoji: '💰',
-      keywords: [
-        '회계',
-        '재무',
-        '세무',
-        'erp',
-        '경리',
-        '재무제표',
-        '원가',
-        '예산',
-        '투자',
-        'cfa',
-        '금융',
-        'finance',
-        'accounting',
-      ],
-    },
-    sales: {
-      label: '영업',
-      emoji: '🤝',
-      keywords: [
-        '영업',
-        'b2b',
-        'b2c',
-        '세일즈',
-        'sales',
-        '고객관리',
-        '계약',
-        '협상',
-        'crm',
-        '파트너십',
-      ],
-    },
-    hr: {
-      label: 'HR',
-      emoji: '👥',
-      keywords: [
-        '인사',
-        'hr',
-        '채용',
-        '노무',
-        '조직문화',
-        '교육훈련',
-        '인재개발',
-        'hrd',
-        'hrm',
-        '복리후생',
-        '급여',
-      ],
-    },
-    pm: {
-      label: '기획/PM',
-      emoji: '📋',
-      keywords: [
-        '기획',
-        'pm',
-        'po',
-        'product',
-        '프로젝트',
-        '서비스기획',
-        '전략',
-        '비즈니스',
-        'it기획',
-        '데이터분석',
-        'agile',
-        'scrum',
-      ],
-    },
-    data: {
-      label: '데이터',
-      emoji: '📊',
-      keywords: [
-        '데이터',
-        'data',
-        'analytics',
-        'ml',
-        'ai',
-        '머신러닝',
-        '딥러닝',
-        'tensorflow',
-        'pytorch',
-        'tableau',
-        'power bi',
-        'statistics',
-        'r ',
-        'bigquery',
-        'spark',
-      ],
-    },
-  };
+  const industryKeywords = useMemo<
+    Record<string, { label: string; emoji: string; keywords: string[] }>
+  >(
+    () => ({
+      dev: {
+        label: '개발',
+        emoji: '💻',
+        keywords: [
+          'react',
+          'python',
+          'java',
+          'javascript',
+          'typescript',
+          'node',
+          'spring',
+          'vue',
+          'angular',
+          'kotlin',
+          'swift',
+          'go',
+          'rust',
+          'c++',
+          'aws',
+          'docker',
+          'kubernetes',
+          'sql',
+          'backend',
+          'frontend',
+          '프론트',
+          '백엔드',
+          '풀스택',
+        ],
+      },
+      design: {
+        label: '디자인',
+        emoji: '🎨',
+        keywords: [
+          'figma',
+          'photoshop',
+          'illustrator',
+          'ui',
+          'ux',
+          'sketch',
+          'zeplin',
+          'adobe',
+          'graphic',
+          '디자이너',
+          'ux/ui',
+          'product design',
+          'branding',
+        ],
+      },
+      marketing: {
+        label: '마케팅',
+        emoji: '📣',
+        keywords: [
+          '마케팅',
+          'marketing',
+          'sns',
+          'seo',
+          'growth',
+          'ads',
+          'google ads',
+          'meta',
+          '콘텐츠',
+          'content',
+          'crm',
+          'copywriting',
+          'brand',
+        ],
+      },
+      finance: {
+        label: '금융/회계',
+        emoji: '💰',
+        keywords: [
+          '회계',
+          '재무',
+          '세무',
+          'erp',
+          '경리',
+          '재무제표',
+          '원가',
+          '예산',
+          '투자',
+          'cfa',
+          '금융',
+          'finance',
+          'accounting',
+        ],
+      },
+      sales: {
+        label: '영업',
+        emoji: '🤝',
+        keywords: [
+          '영업',
+          'b2b',
+          'b2c',
+          '세일즈',
+          'sales',
+          '고객관리',
+          '계약',
+          '협상',
+          'crm',
+          '파트너십',
+        ],
+      },
+      hr: {
+        label: 'HR',
+        emoji: '👥',
+        keywords: [
+          '인사',
+          'hr',
+          '채용',
+          '노무',
+          '조직문화',
+          '교육훈련',
+          '인재개발',
+          'hrd',
+          'hrm',
+          '복리후생',
+          '급여',
+        ],
+      },
+      pm: {
+        label: '기획/PM',
+        emoji: '📋',
+        keywords: [
+          '기획',
+          'pm',
+          'po',
+          'product',
+          '프로젝트',
+          '서비스기획',
+          '전략',
+          '비즈니스',
+          'it기획',
+          '데이터분석',
+          'agile',
+          'scrum',
+        ],
+      },
+      data: {
+        label: '데이터',
+        emoji: '📊',
+        keywords: [
+          '데이터',
+          'data',
+          'analytics',
+          'ml',
+          'ai',
+          '머신러닝',
+          '딥러닝',
+          'tensorflow',
+          'pytorch',
+          'tableau',
+          'power bi',
+          'statistics',
+          'r ',
+          'bigquery',
+          'spark',
+        ],
+      },
+    }),
+    [],
+  );
 
   const debouncedSearch = useCallback(
     (value: string) => {
@@ -403,12 +426,13 @@ export default function ExplorePage() {
     setParams(next);
   };
 
-  const users = useMemo(() => (result ? aggregateUsers(result.data) : []), [result]);
+  const resultData = result?.data ?? EMPTY_RESUME_SUMMARIES;
+  const users = useMemo(() => aggregateUsers(resultData), [resultData]);
 
   // Recommended connections: compare current user's skills against public users
   const { data: myResumesData } = useResumes();
   const mySkills: string[] = useMemo(() => {
-    const myResumes = (myResumesData as any[] | undefined) ?? [];
+    const myResumes = (myResumesData as ResumeSummary[] | undefined) ?? [];
     const skills: string[] = [];
     for (const r of myResumes) {
       const names = extractSkillNames(r.skills);
@@ -419,12 +443,12 @@ export default function ExplorePage() {
     return skills;
   }, [myResumesData]);
 
-  const { data: communityData, isLoading: communityLoading } = usePublicGet<any>(
+  const { data: communityData, isLoading: communityLoading } = usePublicGet<CommunityListResponse>(
     ['explore-community'],
     '/api/community?limit=20&page=1',
     { enabled: activeTab === 'community', staleTime: 30_000 },
   );
-  const communityPosts: any[] = communityData?.items ?? [];
+  const communityPosts: CommunityPostSummary[] = communityData?.items ?? [];
 
   const currentUserId = useMemo(() => {
     try {
@@ -451,12 +475,12 @@ export default function ExplorePage() {
 
   // 직종 필터링 (client-side — result.data에서 스킬 텍스트 분석)
   const industryFilteredResumes = useMemo(() => {
-    if (!result?.data || industryFilter === 'all') return result?.data || [];
-    const industry = INDUSTRY_KEYWORDS[industryFilter];
-    if (!industry) return result.data;
-    return result.data.filter((r) => {
+    if (industryFilter === 'all') return resultData;
+    const industry = industryKeywords[industryFilter];
+    if (!industry) return resultData;
+    return resultData.filter((r) => {
       const skillText = (r.skills || [])
-        .map((s: any) => `${s.category || ''} ${s.items || ''}`)
+        .map((s) => `${s.category || ''} ${s.items || ''}`)
         .join(' ')
         .toLowerCase();
       const titleText = (r.title || '').toLowerCase();
@@ -464,7 +488,7 @@ export default function ExplorePage() {
       const combined = `${skillText} ${titleText} ${positionText}`;
       return industry.keywords.some((kw) => combined.includes(kw.toLowerCase()));
     });
-  }, [result?.data, industryFilter, INDUSTRY_KEYWORDS]);
+  }, [resultData, industryFilter, industryKeywords]);
 
   const toggleFollow = (userId: string) => {
     setFollowedUsers((prev) => {
@@ -723,7 +747,7 @@ export default function ExplorePage() {
           >
             전체
           </button>
-          {Object.entries(INDUSTRY_KEYWORDS).map(([key, { label, emoji }]) => (
+          {Object.entries(industryKeywords).map(([key, { label, emoji }]) => (
             <button
               key={key}
               onClick={() => setIndustryFilter(industryFilter === key ? 'all' : key)}
@@ -1301,7 +1325,7 @@ export default function ExplorePage() {
                     'cover-letter': '자소서',
                     question: '질문',
                   };
-                  const diff = Date.now() - new Date(post.createdAt).getTime();
+                  const diff = currentTimeMs - new Date(post.createdAt).getTime();
                   const mins = Math.floor(diff / 60000);
                   const timeStr =
                     mins < 60
@@ -1338,7 +1362,7 @@ export default function ExplorePage() {
                               d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                             />
                           </svg>
-                          {post.likeCount}
+                          {post.likeCount ?? 0}
                         </span>
                         <span className="flex items-center gap-1">
                           <svg

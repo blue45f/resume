@@ -34,7 +34,7 @@ import { useApplications, useResumes } from '@/hooks/useResources';
 import type { JobApplication } from '@/lib/api';
 import MyPlatformApplications from '@/components/MyPlatformApplications';
 import type { ResumeSummary } from '@/types/resume';
-import { applicationSchema, type ApplicationFormValues } from '@/shared/lib/schemas/application';
+import { applicationSchema, type ApplicationFormValues } from '@/shared/lib/schemas';
 import { tx } from '@/lib/i18n';
 import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
@@ -43,6 +43,8 @@ interface StatusDef {
   key: string;
   color: string;
 }
+
+type CalendarApplication = JobApplication & { _isInterview?: boolean };
 const STATUS_DEFS: StatusDef[] = [
   {
     value: 'applied',
@@ -162,17 +164,23 @@ const DEFAULT_FORM: ApplicationFormValues = {
 export default function ApplicationsPage() {
   const queryClient = useQueryClient();
   const [params] = useSearchParams();
+  const initialCompany = params.get('company') ?? '';
+  const initialPosition = params.get('position') ?? '';
   const { data: appsData, isLoading: loading, error: queryError } = useApplications();
-  const apps: JobApplication[] = (appsData as JobApplication[] | undefined) ?? [];
+  const apps = useMemo(() => appsData ?? [], [appsData]);
   const error = !!queryError;
   const setApps = (updater: JobApplication[] | ((prev: JobApplication[]) => JobApplication[])) => {
     const next = typeof updater === 'function' ? updater(apps) : updater;
     queryClient.setQueryData(['applications'], next);
   };
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(() => Boolean(initialCompany || initialPosition));
   const appForm = useForm<ApplicationFormValues>({
     resolver: zodResolver(applicationSchema),
-    defaultValues: DEFAULT_FORM,
+    defaultValues: {
+      ...DEFAULT_FORM,
+      company: initialCompany,
+      position: initialPosition,
+    },
   });
   const [filter, setFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -196,16 +204,6 @@ export default function ApplicationsPage() {
   const load = () => {
     queryClient.invalidateQueries({ queryKey: ['applications'] });
   };
-
-  useEffect(() => {
-    const company = params.get('company');
-    const position = params.get('position');
-    if (company || position) {
-      if (company) appForm.setValue('company', company);
-      if (position) appForm.setValue('position', position);
-      setShowForm(true);
-    }
-  }, []);
 
   useEffect(() => {
     document.title = '지원 관리 — 이력서공방';
@@ -258,7 +256,7 @@ export default function ApplicationsPage() {
   const handlePriorityChange = async (id: string, priority: string) => {
     setApps((prev) => prev.map((a) => (a.id === id ? { ...a, priority } : a)));
     try {
-      await updateApplication(id, { priority } as any);
+      await updateApplication(id, { priority });
     } catch {
       load();
     }
@@ -292,7 +290,7 @@ export default function ApplicationsPage() {
   const filtered = apps
     .filter((a) => !filter || a.status === filter)
     .filter((a) => !yearFilter || (a.appliedDate || a.createdAt)?.startsWith(yearFilter))
-    .filter((a) => !priorityFilter || (a as any).priority === priorityFilter)
+    .filter((a) => !priorityFilter || a.priority === priorityFilter)
     .filter(
       (a) =>
         !searchQuery ||
@@ -302,8 +300,8 @@ export default function ApplicationsPage() {
     .sort((a, b) => {
       if (sortBy === 'company') return a.company.localeCompare(b.company, 'ko');
       if (sortBy === 'deadline') {
-        const da = (a as any).deadline || '9999-12-31';
-        const db = (b as any).deadline || '9999-12-31';
+        const da = a.deadline || '9999-12-31';
+        const db = b.deadline || '9999-12-31';
         return da.localeCompare(db);
       }
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
@@ -385,17 +383,17 @@ export default function ApplicationsPage() {
     const { year, month } = calMonth;
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const appsByDate: Record<string, JobApplication[]> = {};
+    const appsByDate: Record<string, CalendarApplication[]> = {};
     filtered.forEach((app) => {
       const date = (app.appliedDate || app.createdAt)?.slice(0, 10);
       if (date) {
         if (!appsByDate[date]) appsByDate[date] = [];
         appsByDate[date].push(app);
       }
-      const interviewDate = (app as any).interviewDate;
+      const interviewDate = app.interviewDate;
       if (interviewDate && interviewDate !== date) {
         if (!appsByDate[interviewDate]) appsByDate[interviewDate] = [];
-        appsByDate[interviewDate].push({ ...app, _isInterview: true } as any);
+        appsByDate[interviewDate].push({ ...app, _isInterview: true });
       }
     });
     return { year, month, firstDay, daysInMonth, appsByDate };
@@ -413,12 +411,12 @@ export default function ApplicationsPage() {
       apps
         .filter(
           (a) =>
-            (a as any).deadline &&
-            daysUntil((a as any).deadline) !== null &&
-            daysUntil((a as any).deadline)! <= 7 &&
-            daysUntil((a as any).deadline)! >= 0,
+            a.deadline &&
+            daysUntil(a.deadline) !== null &&
+            daysUntil(a.deadline)! <= 7 &&
+            daysUntil(a.deadline)! >= 0,
         )
-        .sort((a, b) => ((a as any).deadline || '').localeCompare((b as any).deadline || '')),
+        .sort((a, b) => (a.deadline || '').localeCompare(b.deadline || '')),
     [apps],
   );
 
@@ -455,7 +453,7 @@ export default function ApplicationsPage() {
               </div>
             ))}
             {upcomingDeadlines.slice(0, 2).map((app) => {
-              const d = daysUntil((app as any).deadline);
+              const d = daysUntil(app.deadline);
               return (
                 <div
                   key={`dl-${app.id}`}
@@ -464,7 +462,7 @@ export default function ApplicationsPage() {
                   <span className="text-base">⏰</span>
                   <span className="flex-1 font-medium">
                     {app.company} — {app.position} 마감 {d === 0 ? '오늘' : `${d}일 후`} (
-                    {(app as any).deadline})
+                    {app.deadline})
                   </span>
                 </div>
               );
@@ -1091,7 +1089,7 @@ export default function ApplicationsPage() {
                     {colApps.map((app) => {
                       const days = daysSince(app.appliedDate || app.createdAt);
                       const colDef = getKANBAN_COLUMNS().find((c) => c.value === col.value);
-                      const priority = (app as any).priority as string | undefined;
+                      const priority = app.priority;
                       const pCfg = priority ? getPRIORITY_CONFIG()[priority] : null;
                       return (
                         <div
@@ -1260,7 +1258,7 @@ export default function ApplicationsPage() {
                     </div>
                     <div className="space-y-0.5">
                       {dayApps.slice(0, 3).map((app, i) => {
-                        const isInterview = (app as any)._isInterview;
+                        const isInterview = app._isInterview;
                         return (
                           <div
                             key={`${app.id}-${i}`}
@@ -1604,9 +1602,9 @@ export default function ApplicationsPage() {
             {filtered.map((app) => {
               const all = getSTATUSES();
               const statusInfo = all.find((s) => s.value === app.status) || all[0];
-              const priority = (app as any).priority as string | undefined;
+              const priority = app.priority;
               const pCfg = priority ? getPRIORITY_CONFIG()[priority] : null;
-              const deadline = (app as any).deadline as string | undefined;
+              const deadline = app.deadline;
               const deadlineDays = deadline ? daysUntil(deadline) : null;
               const isExpanded = expandedId === app.id;
               const communicationTemplates = buildStageCommunicationTemplates(app);

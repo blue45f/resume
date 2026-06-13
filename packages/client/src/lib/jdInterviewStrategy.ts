@@ -167,7 +167,7 @@ export function buildInterviewStrategyReport(jdText: string): InterviewStrategyR
       priority: 'high',
       reason: '시니어·리드 직군에서 분산 시스템·확장성 설계를 직접 물어보는 경우가 많습니다.',
       resources: [
-        '\"System Design Interview\" 1·2권 핵심 챕터',
+        '"System Design Interview" 1·2권 핵심 챕터',
         'URL 단축기·피드 시스템·채팅 설계 연습',
         'CAP 이론·eventual consistency·sharding 개념 정리',
       ],

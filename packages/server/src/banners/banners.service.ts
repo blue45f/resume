@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -21,11 +22,11 @@ export class BannersService {
     return this.prisma.banner.findMany({ orderBy: { order: 'asc' } });
   }
 
-  async create(data: any) {
+  async create(data: Prisma.BannerCreateInput) {
     return this.prisma.banner.create({ data });
   }
 
-  async update(id: string, data: any) {
+  async update(id: string, data: Prisma.BannerUpdateInput) {
     return this.prisma.banner.update({ where: { id }, data });
   }
 

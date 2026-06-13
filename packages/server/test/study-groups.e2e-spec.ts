@@ -6,7 +6,6 @@ import { E2EContext, setupE2EApp, cleanupTestData } from './e2e-helper';
 describe('Study Groups (스터디 그룹)', () => {
   let ctx: E2EContext;
   let groupId: string;
-  let questionId: string;
 
   beforeAll(async () => {
     ctx = await setupE2EApp({ prefix: 'group-e2e', normal: true, recruiter: true });
@@ -60,7 +59,6 @@ describe('Study Groups (스터디 그룹)', () => {
       .authPost('normal', `/api/study-groups/${groupId}/questions`)
       .send({ content: '테스트 질문' });
     expect([200, 201, 400]).toContain(res.status);
-    questionId = res.body?.id;
   });
 
   it('GET /study-groups/:id/questions — 질문 목록', async () => {

@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 import { getUser, getToken } from '@/lib/auth';
 import { fetchResumes } from '@/lib/api';
 
+interface ProfileResumeSummary {
+  id?: string;
+  visibility?: string;
+}
+
 interface CheckItem {
   key: string;
   label: string;
@@ -22,12 +27,10 @@ export default function ProfileCompleteness() {
     if (!user || !getToken() || dismissed) return;
 
     fetchResumes()
-      .then((resumes: unknown) => {
-        const resumeList: any[] = Array.isArray(resumes)
-          ? resumes
-          : ((resumes as { data?: unknown[] })?.data as any[]) || [];
+      .then((resumes) => {
+        const resumeList: ProfileResumeSummary[] = Array.isArray(resumes) ? resumes : [];
         const hasResume = resumeList.length > 0;
-        const hasPublicResume = resumeList.some((r: any) => r.visibility === 'public');
+        const hasPublicResume = resumeList.some((r) => r.visibility === 'public');
 
         const checks: CheckItem[] = [
           {
@@ -70,7 +73,7 @@ export default function ProfileCompleteness() {
         setItems(checks);
       })
       .catch(() => {});
-  }, [user?.id, dismissed]);
+  }, [user, dismissed]);
 
   if (dismissed || !user || items.length === 0) return null;
 

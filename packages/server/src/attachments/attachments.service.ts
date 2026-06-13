@@ -4,6 +4,7 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import type { Attachment } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
@@ -13,6 +14,22 @@ import { v2 as cloudinary } from 'cloudinary';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_TOTAL_SIZE_PER_RESUME = 100 * 1024 * 1024; // 100MB
 const MAX_FILES_PER_RESUME = 20;
+type CloudinaryUploadResult = {
+  secure_url?: string;
+};
+
+export type AttachmentFileData =
+  | {
+      redirectUrl: string;
+      originalName: string;
+      mimeType: string;
+    }
+  | {
+      data: Buffer | null;
+      originalName: string;
+      mimeType: string;
+    };
+
 const ALLOWED_TYPES = [
   'application/pdf',
   'image/jpeg',
@@ -118,7 +135,7 @@ export class AttachmentsService {
 
     if (this.useCloudinary) {
       // Cloudinary에 업로드 (raw 타입으로 문서도 지원)
-      const result = await new Promise<any>((resolve, reject) => {
+      const result = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
             resource_type: 'raw',
@@ -127,12 +144,13 @@ export class AttachmentsService {
           },
           (error, result) => {
             if (error) reject(error);
-            else resolve(result);
+            else if (result) resolve(result);
+            else reject(new Error('Cloudinary upload failed'));
           },
         );
         stream.end(file.buffer);
       });
-      cloudinaryUrl = result.secure_url;
+      cloudinaryUrl = result.secure_url ?? null;
     } else {
       // Cloudinary 미설정: DB base64 저장 (폴백)
       data = file.buffer.toString('base64');
@@ -205,7 +223,7 @@ export class AttachmentsService {
     return attachments.map((a) => this.format(a));
   }
 
-  async getFileData(id: string, userId?: string) {
+  async getFileData(id: string, userId?: string): Promise<AttachmentFileData> {
     const attachment = await this.prisma.attachment.findUnique({
       where: { id },
       include: { resume: { select: { userId: true, visibility: true } } },
@@ -295,7 +313,20 @@ export class AttachmentsService {
     }
   }
 
-  private format(a: any) {
+  private format(
+    a: Pick<
+      Attachment,
+      | 'id'
+      | 'resumeId'
+      | 'filename'
+      | 'originalName'
+      | 'mimeType'
+      | 'size'
+      | 'category'
+      | 'description'
+      | 'createdAt'
+    >,
+  ) {
     const isCloudinary = a.filename?.startsWith('http');
     return {
       id: a.id,

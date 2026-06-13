@@ -92,7 +92,7 @@ describe('Templates (템플릿)', () => {
     it('GET /api/templates/presets/list — 5개 프리셋', async () => {
       const res = await ctx.authGet('normal', '/api/templates/presets/list').expect(200);
       expect(res.body.length).toBe(5);
-      const ids = res.body.map((p: any) => p.id);
+      const ids = (res.body as Array<{ id: string }>).map((preset) => preset.id);
       expect(ids).toEqual(
         expect.arrayContaining(['standard', 'developer', 'career-focused', 'academic', 'minimal']),
       );

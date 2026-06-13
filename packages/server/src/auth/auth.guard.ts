@@ -2,6 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../prisma/prisma.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 import { SetMetadata } from '@nestjs/common';
@@ -83,8 +84,8 @@ export class AuthGuard implements CanActivate {
     }
   }
 
-  private extractToken(request: any): string | null {
-    const auth = request.headers.authorization;
+  private extractToken(request: AuthenticatedRequest): string | null {
+    const auth = request.headers?.authorization;
     if (auth && typeof auth === 'string') {
       const parts = auth.split(/\s+/);
       if (parts.length === 2 && parts[0] === 'Bearer' && parts[1]) return parts[1];

@@ -49,6 +49,61 @@ interface Candidate {
   updatedAt: string;
 }
 
+interface RecruiterJob {
+  id: string;
+  position?: string;
+  company?: string;
+  status?: string;
+  createdAt?: string;
+}
+
+interface RecruiterScout {
+  id: string;
+  status?: string;
+}
+
+interface RecruiterApplicant {
+  id: string;
+  userId?: string;
+  name?: string;
+  email?: string | null;
+  avatar?: string;
+  resumeId?: string | null;
+  coverLetter?: string;
+  stage?: string;
+  position?: string;
+  createdAt?: string;
+}
+
+type SelectedApplicant = RecruiterApplicant & {
+  userId: string;
+  name: string;
+};
+
+interface RecommendedCandidate {
+  id: string;
+  userId?: string;
+  resumeId?: string;
+  name?: string;
+  title?: string;
+  matchScore?: number;
+  skills?: string[];
+}
+
+interface PipelineStats {
+  total: number;
+  byStage: Record<string, number>;
+  conversionRates: { contactRate?: number; interviewRate?: number; hireRate?: number };
+  avgResponseHours: number | null;
+}
+
+const EMPTY_PIPELINE_STATS: PipelineStats = {
+  total: 0,
+  byStage: {},
+  conversionRates: {},
+  avgResponseHours: null,
+};
+
 const authedFetch = async <T,>(url: string, fallback: T): Promise<T> => {
   const token = localStorage.getItem('token');
   const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
@@ -57,6 +112,12 @@ const authedFetch = async <T,>(url: string, fallback: T): Promise<T> => {
   const data = await res.json();
   return (data ?? fallback) as T;
 };
+
+const toSelectedApplicant = (applicant: RecruiterApplicant): SelectedApplicant => ({
+  ...applicant,
+  userId: applicant.userId ?? applicant.id,
+  name: applicant.name ?? '지원자',
+});
 
 export default function RecruiterDashboardPage() {
   const navigate = useNavigate();
@@ -72,25 +133,25 @@ export default function RecruiterDashboardPage() {
     return () => {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
     };
-  }, []);
+  }, [navigate, user]);
 
   const results = useQueries({
     queries: [
       {
         queryKey: ['recruiter', 'jobs', 'my'],
-        queryFn: () => authedFetch<any[]>('/api/jobs/my', []),
+        queryFn: () => authedFetch<RecruiterJob[]>('/api/jobs/my', []),
         enabled: isRecruiterUser,
         staleTime: 30_000,
       },
       {
         queryKey: ['recruiter', 'scouts'],
-        queryFn: () => authedFetch<any[]>('/api/social/scouts', []),
+        queryFn: () => authedFetch<RecruiterScout[]>('/api/social/scouts', []),
         enabled: isRecruiterUser,
         staleTime: 30_000,
       },
       {
         queryKey: ['recruiter', 'applicants'],
-        queryFn: () => authedFetch<any[]>('/api/jobs/applicants', []),
+        queryFn: () => authedFetch<RecruiterApplicant[]>('/api/jobs/applicants', []),
         enabled: isRecruiterUser,
         staleTime: 30_000,
       },
@@ -102,46 +163,28 @@ export default function RecruiterDashboardPage() {
       },
       {
         queryKey: ['recruiter', 'recommended'],
-        queryFn: () => authedFetch<any[]>('/api/jobs/recommended-candidates', []),
+        queryFn: () => authedFetch<RecommendedCandidate[]>('/api/jobs/recommended-candidates', []),
         enabled: isRecruiterUser,
         staleTime: 30_000,
       },
       {
         queryKey: ['recruiter', 'pipelineStats'],
-        queryFn: () =>
-          authedFetch<{
-            total: number;
-            byStage: Record<string, number>;
-            conversionRates: { contactRate?: number; interviewRate?: number; hireRate?: number };
-            avgResponseHours: number | null;
-          }>('/api/jobs/pipeline-stats', {
-            total: 0,
-            byStage: {},
-            conversionRates: {},
-            avgResponseHours: null,
-          }),
+        queryFn: () => authedFetch<PipelineStats>('/api/jobs/pipeline-stats', EMPTY_PIPELINE_STATS),
         enabled: isRecruiterUser,
         staleTime: 30_000,
       },
     ],
   });
   const [jobsQ, scoutsQ, applicantsQ, pipelineQ, recommendedQ, pipelineStatsQ] = results;
-  const pipelineStats = (pipelineStatsQ.data as any) ?? {
-    total: 0,
-    byStage: {},
-    conversionRates: {},
-    avgResponseHours: null,
-  };
-  const jobs: any[] = (jobsQ.data as any[] | undefined) ?? [];
-  const scouts: any[] = (scoutsQ.data as any[] | undefined) ?? [];
-  const applicants: any[] = Array.isArray(applicantsQ.data) ? (applicantsQ.data as any[]) : [];
-  const candidates: Candidate[] = Array.isArray(pipelineQ.data)
-    ? (pipelineQ.data as Candidate[])
-    : [];
-  const recommended: any[] = Array.isArray(recommendedQ.data) ? (recommendedQ.data as any[]) : [];
+  const pipelineStats = pipelineStatsQ.data ?? EMPTY_PIPELINE_STATS;
+  const jobs = jobsQ.data ?? [];
+  const scouts = scoutsQ.data ?? [];
+  const applicants = applicantsQ.data ?? [];
+  const candidates = pipelineQ.data ?? [];
+  const recommended = recommendedQ.data ?? [];
   const loading = results.some((r) => r.isLoading);
 
-  const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
+  const [selectedApplicant, setSelectedApplicant] = useState<SelectedApplicant | null>(null);
   const [filterQuery, setFilterQuery] = useState('');
   const [filterStage, setFilterStage] = useState<string>('all');
   const [coffeeChatTarget, setCoffeeChatTarget] = useState<{ id: string; name: string } | null>(
@@ -166,8 +209,9 @@ export default function RecruiterDashboardPage() {
 
   if (!user || user.userType === 'personal') return null;
 
-  const activeJobCount = jobs.filter((j: any) => j.status === 'active').length;
-  const thisMonthApplicants = applicants.filter((a: any) => {
+  const activeJobCount = jobs.filter((j) => j.status === 'active').length;
+  const thisMonthApplicants = applicants.filter((a) => {
+    if (!a.createdAt) return false;
     const d = new Date(a.createdAt);
     const now = new Date();
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
@@ -175,7 +219,7 @@ export default function RecruiterDashboardPage() {
   const scoutResponseRate =
     scouts.length > 0
       ? Math.round(
-          (scouts.filter((s: any) => s.status === 'accepted' || s.status === 'rejected').length /
+          (scouts.filter((s) => s.status === 'accepted' || s.status === 'rejected').length /
             scouts.length) *
             100,
         )
@@ -473,7 +517,7 @@ export default function RecruiterDashboardPage() {
               </div>
               {(() => {
                 const q = filterQuery.trim().toLowerCase();
-                const filtered = applicants.filter((a: any) => {
+                const filtered = applicants.filter((a) => {
                   if (filterStage !== 'all' && a.stage !== filterStage) return false;
                   if (!q) return true;
                   return (
@@ -509,7 +553,7 @@ export default function RecruiterDashboardPage() {
                 }
                 return (
                   <div className="imp-card divide-y divide-slate-100 dark:divide-slate-700">
-                    {filtered.slice(0, 12).map((a: any) => {
+                    {filtered.slice(0, 12).map((a) => {
                       const stageMeta: Record<string, { label: string; color: string }> = {
                         interested: {
                           label: '👀 검토',
@@ -534,18 +578,19 @@ export default function RecruiterDashboardPage() {
                           color: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
                         },
                       };
-                      const meta = stageMeta[a.stage] || stageMeta.interested;
+                      const stage = a.stage ?? 'interested';
+                      const meta = stageMeta[stage] || stageMeta.interested;
                       return (
                         <div
                           key={a.id}
                           className="flex items-center justify-between p-3 min-h-[56px] hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors cursor-pointer"
-                          onClick={() => setSelectedApplicant(a)}
+                          onClick={() => setSelectedApplicant(toSelectedApplicant(a))}
                           role="button"
                           tabIndex={0}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                               e.preventDefault();
-                              setSelectedApplicant(a);
+                              setSelectedApplicant(toSelectedApplicant(a));
                             }
                           }}
                         >
@@ -565,13 +610,13 @@ export default function RecruiterDashboardPage() {
                                 />
                                 <span
                                   className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${meta.color}`}
-                                  title={`현재 stage: ${a.stage}`}
+                                  title={`현재 stage: ${stage}`}
                                 >
                                   {meta.label}
                                 </span>
                               </div>
                               <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                {a.position || '미지정'} · {timeAgo(a.createdAt)}
+                                {a.position || '미지정'} · {timeAgo(a.createdAt ?? '')}
                               </p>
                             </div>
                           </div>
@@ -626,7 +671,7 @@ export default function RecruiterDashboardPage() {
                 </div>
               ) : (
                 <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {recommended.slice(0, 6).map((r: any) => (
+                  {recommended.slice(0, 6).map((r) => (
                     <div key={r.id} className="imp-card p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div className="min-w-0">
@@ -714,7 +759,7 @@ export default function RecruiterDashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {jobs.slice(0, 5).map((j: any) => (
+                  {jobs.slice(0, 5).map((j) => (
                     <div
                       key={j.id}
                       className="flex items-center justify-between p-3 min-h-[56px] imp-card"
@@ -727,7 +772,7 @@ export default function RecruiterDashboardPage() {
                           {j.position}
                         </Link>
                         <span className="text-xs text-slate-500 dark:text-slate-400">
-                          {j.company} · {timeAgo(j.createdAt)}
+                          {j.company} · {timeAgo(j.createdAt ?? '')}
                         </span>
                       </div>
                       <span

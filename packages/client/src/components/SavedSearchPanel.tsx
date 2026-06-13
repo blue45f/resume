@@ -9,6 +9,7 @@ import {
 } from '@/lib/api';
 import { toast } from '@/components/Toast';
 import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 interface Props {
   /** 현재 검색 컨텍스트 — '이 검색 저장' 버튼 prefill 용 */
@@ -66,8 +67,8 @@ export default function SavedSearchPanel({ currentSearch }: Props) {
       setShowSaveDialog(false);
       setName('');
       refresh();
-    } catch (err: any) {
-      toast(err?.message || '저장 실패', 'error');
+    } catch (err) {
+      toast(getErrorMessage(err, '저장 실패'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -77,8 +78,8 @@ export default function SavedSearchPanel({ currentSearch }: Props) {
     try {
       await toggleSavedJobSearchNotify(s.id, !s.notifyOn);
       refresh();
-    } catch (err: any) {
-      toast(err?.message || '변경 실패', 'error');
+    } catch (err) {
+      toast(getErrorMessage(err, '변경 실패'), 'error');
     }
   };
 
@@ -97,8 +98,8 @@ export default function SavedSearchPanel({ currentSearch }: Props) {
       await deleteSavedJobSearch(s.id);
       toast('삭제됨', 'success');
       refresh();
-    } catch (err: any) {
-      toast(err?.message || '삭제 실패', 'error');
+    } catch (err) {
+      toast(getErrorMessage(err, '삭제 실패'), 'error');
     }
   };
 

@@ -215,10 +215,7 @@ export default function CommandPalette() {
     return Array.from(sections.entries());
   }, [filtered]);
 
-  // activeIndex 경계 유지
-  useEffect(() => {
-    if (activeIndex >= filtered.length) setActiveIndex(Math.max(0, filtered.length - 1));
-  }, [filtered.length, activeIndex]);
+  const boundedActiveIndex = Math.min(activeIndex, Math.max(0, filtered.length - 1));
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
@@ -229,7 +226,7 @@ export default function CommandPalette() {
       setActiveIndex((i) => Math.max(0, i - 1));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      filtered[activeIndex]?.run();
+      filtered[boundedActiveIndex]?.run();
     }
   };
 
@@ -304,7 +301,7 @@ export default function CommandPalette() {
                   </div>
                   {items.map((cmd) => {
                     const idx = filtered.indexOf(cmd);
-                    const active = idx === activeIndex;
+                    const active = idx === boundedActiveIndex;
                     return (
                       <button
                         key={cmd.id}

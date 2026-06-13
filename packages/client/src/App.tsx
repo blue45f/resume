@@ -34,13 +34,13 @@ import { fetchMe } from '@/lib/auth';
 // 가드 키는 reload 너머까지 유지하고 '성공 로드 시'에만 해제한다 — reload 직전에
 // 해제하면 새로고침 후 가드가 없어 무한 reload 루프가 될 수 있다.
 // 두 번째 실패는 throw 해서 ErrorBoundary 로 노출한다.
-function lazyRetry<T extends ComponentType<any>>(factory: () => Promise<{ default: T }>) {
-  return lazy(async (): Promise<{ default: T }> => {
+function lazyRetry<T extends ComponentType<never>>(factory: () => Promise<{ default: T }>): T {
+  return lazy(async (): Promise<{ default: ComponentType }> => {
     const KEY = 'resume-gongbang-chunk-retry';
     try {
       const mod = await factory();
       sessionStorage.removeItem(KEY);
-      return mod;
+      return mod as unknown as { default: ComponentType };
     } catch (err) {
       if (!sessionStorage.getItem(KEY)) {
         sessionStorage.setItem(KEY, '1');
@@ -51,7 +51,7 @@ function lazyRetry<T extends ComponentType<any>>(factory: () => Promise<{ defaul
       }
       throw err;
     }
-  });
+  }) as unknown as T;
 }
 
 // Lazy-loaded pages (non-critical path)

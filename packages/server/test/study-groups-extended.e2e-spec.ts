@@ -4,12 +4,16 @@
  * Study Groups Extended E2E — 멤버 가입/탈퇴, 질문 upvote, 필터, 운영자 권한
  */
 import { setupE2EApp, cleanupTestData, E2EContext } from './e2e-helper';
+import { JwtService } from '@nestjs/jwt';
+
+type StudyQuestionResponse = {
+  difficulty: string;
+};
 
 describe('Study Groups Extended', () => {
   let ctx: E2EContext;
   let groupId: string;
   let q1Id: string;
-  let q2Id: string;
 
   beforeAll(async () => {
     ctx = await setupE2EApp({
@@ -32,7 +36,7 @@ describe('Study Groups Extended', () => {
       },
     });
     ctx.userIds.admin = adminUser.id;
-    const jwt = ctx.app.get(require('@nestjs/jwt').JwtService);
+    const jwt = ctx.app.get(JwtService);
     ctx.tokens.admin = jwt.sign({ sub: adminUser.id, role: 'admin' });
 
     // 그룹 생성 (owner = normal)
@@ -89,12 +93,11 @@ describe('Study Groups Extended', () => {
         difficulty: 'intermediate',
       });
       q1Id = q1.body?.id;
-      const q2 = await ctx.authPost('normal', `/api/study-groups/${groupId}/questions`).send({
+      await ctx.authPost('normal', `/api/study-groups/${groupId}/questions`).send({
         question: 'TypeScript 의 conditional types 란?',
         category: 'frontend',
         difficulty: 'advanced',
       });
-      q2Id = q2.body?.id;
     });
 
     it('비멤버 질문 추가 → 403 (또는 500: 환경 의존)', async () => {
@@ -127,7 +130,9 @@ describe('Study Groups Extended', () => {
       expect([200, 500]).toContain(res.status);
       if (res.status === 200) {
         const items = Array.isArray(res.body) ? res.body : res.body.items;
-        items.forEach((q: any) => expect(q.difficulty).toBe('advanced'));
+        (items as StudyQuestionResponse[]).forEach((question) =>
+          expect(question.difficulty).toBe('advanced'),
+        );
       }
     });
 

@@ -2,6 +2,12 @@ import { useState } from 'react';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { toast } from '@/components/Toast';
 import { API_URL } from '@/lib/config';
+import { getErrorMessage } from '@/lib/errorMessage';
+
+interface CreatedResumeResponse {
+  id?: string;
+  data?: { id?: string };
+}
 
 interface Props {
   onClose: () => void;
@@ -38,12 +44,14 @@ export default function QuickImportModal({ onClose, onSuccess }: Props) {
         body: JSON.stringify({ text }),
       });
       if (!createRes.ok) throw new Error('이력서 생성에 실패했습니다');
-      const created = await createRes.json();
+      const created = (await createRes.json()) as CreatedResumeResponse;
+      const resumeId = created.id || created.data?.id;
+      if (!resumeId) throw new Error('생성된 이력서 ID를 확인할 수 없습니다');
 
       toast('이력서가 생성되었습니다!', 'success');
-      onSuccess(created.id || created.data?.id);
-    } catch (e: any) {
-      toast(e.message || '가져오기에 실패했습니다', 'error');
+      onSuccess(resumeId);
+    } catch (e) {
+      toast(getErrorMessage(e, '가져오기에 실패했습니다'), 'error');
     } finally {
       setLoading(false);
     }

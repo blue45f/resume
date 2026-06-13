@@ -412,7 +412,7 @@ export function useUsage() {
 }
 
 // ── System Content (public content blocks: about, pricing_faq, etc.) ──
-export function useSystemContent<T = any>(key: string, enabled = true) {
+export function useSystemContent<T = unknown>(key: string, enabled = true) {
   return useQuery<T | null>({
     queryKey: ['system-content', key],
     queryFn: async () => {
@@ -479,8 +479,17 @@ export function useFeatureToggle(name: string): boolean {
 }
 
 // ── Site Stats (public) ──────────────────────
+interface PublicSiteStats {
+  users: { total: number; today?: number; thisWeek?: number };
+  resumes: { total: number; public?: number; today?: number };
+  activity: { totalViews: number; transforms?: number; applications?: number };
+  community: { posts?: number; comments?: number };
+  content: { templates: number; comments?: number };
+  jobs: { active?: number };
+}
+
 export function useSiteStatsPublic() {
-  return useQuery<any>({
+  return useQuery<PublicSiteStats | null>({
     queryKey: ['site-stats-public'],
     queryFn: async () => {
       const { API_URL } = await import('@/lib/config');
@@ -493,7 +502,7 @@ export function useSiteStatsPublic() {
 }
 
 // ── Generic public GET ──────────────────────
-export function usePublicGet<T = any>(
+export function usePublicGet<T = unknown>(
   key: readonly unknown[],
   url: string,
   options?: { enabled?: boolean; staleTime?: number },
@@ -514,7 +523,7 @@ export function usePublicGet<T = any>(
 }
 
 // ── Generic authed GET ─────────────────────
-export function useAuthedGet<T = any>(
+export function useAuthedGet<T = unknown>(
   key: readonly unknown[],
   url: string,
   options?: { enabled?: boolean; staleTime?: number; requireAuth?: boolean },

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { aiInlineAssist } from '@/lib/api';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 interface Props {
   resumeId?: string;
@@ -50,8 +51,8 @@ export default function AiWritingAssist({ resumeId, value, onAccept }: Props) {
     try {
       const res = await aiInlineAssist(resumeId, plainText, type);
       setResult(res);
-    } catch (err: any) {
-      setError(err?.message || 'AI 요청에 실패했습니다.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'AI 요청에 실패했습니다.'));
     } finally {
       setLoading(false);
     }

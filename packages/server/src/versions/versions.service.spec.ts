@@ -3,7 +3,7 @@ import { VersionsService } from './versions.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 
-const mockPrisma: Record<string, any> = {
+const mockPrisma = {
   resumeVersion: {
     findMany: jest.fn(),
     findFirst: jest.fn(),
@@ -14,8 +14,12 @@ const mockPrisma: Record<string, any> = {
   education: { deleteMany: jest.fn(), createMany: jest.fn() },
   skill: { deleteMany: jest.fn(), createMany: jest.fn() },
   project: { deleteMany: jest.fn(), createMany: jest.fn() },
-  $transaction: jest.fn((fn: any) => fn(mockPrisma)),
+  $transaction: jest.fn(),
 };
+
+mockPrisma.$transaction.mockImplementation((fn: unknown): unknown => {
+  return (fn as (tx: typeof mockPrisma) => unknown)(mockPrisma);
+});
 
 // assertOwnership 기본 통과용 헬퍼 (소유자 없음 = 누구나 접근 가능)
 function mockOwnershipPass(userId: string | null = null) {

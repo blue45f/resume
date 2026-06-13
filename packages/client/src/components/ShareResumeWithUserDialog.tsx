@@ -70,10 +70,7 @@ export default function ShareResumeWithUserDialog({
     if (targetUserId) return; // 외부에서 target 받았으면 검색 안 함
     const q = userQuery.trim();
     if (pickedUser) return;
-    if (q.length < 2) {
-      setUserSuggestions([]);
-      return;
-    }
+    if (q.length < 2) return;
     const t = setTimeout(() => {
       searchUsers(q)
         .then((rows) => {
@@ -90,7 +87,6 @@ export default function ShareResumeWithUserDialog({
 
   useEffect(() => {
     if (!open) return;
-    setLoading(true);
     fetchResumes()
       .then((list) => {
         setResumes(list);
@@ -175,7 +171,14 @@ export default function ShareResumeWithUserDialog({
                 <input
                   type="text"
                   value={userQuery}
-                  onChange={(e) => setUserQuery(e.target.value)}
+                  onChange={(e) => {
+                    const nextQuery = e.target.value;
+                    setUserQuery(nextQuery);
+                    if (nextQuery.trim().length < 2) {
+                      setUserSuggestions([]);
+                      setShowUserSuggestions(false);
+                    }
+                  }}
                   onFocus={() => userSuggestions.length > 0 && setShowUserSuggestions(true)}
                   onBlur={() => setTimeout(() => setShowUserSuggestions(false), 150)}
                   placeholder="이름 / @username / email (최소 2자)"

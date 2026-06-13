@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { getTheme, setTheme } from '@/lib/theme';
-import { t, tx, getLocale, setLocale, LOCALES, getLocaleName } from '@/lib/i18n';
+import { t, tx, getLocale, setLocale, LOCALES, getLocaleName, type Locale } from '@/lib/i18n';
 import NotificationBell from '@/components/NotificationBell';
 import GlobalSearch from '@/components/GlobalSearch';
 import { fetchFollowers, fetchFollowing } from '@/lib/api';
@@ -24,9 +24,17 @@ export default function Header() {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(getUser());
   const user = currentUser;
+  const userId = user?.id;
   const location = useLocation();
   const isHome = location.pathname === '/';
   const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company';
+
+  const handleLocaleChange = (value: string) => {
+    if (!LOCALES.includes(value as Locale)) return;
+    const nextLocale = value as Locale;
+    setLocale(nextLocale);
+    setLocaleState(nextLocale);
+  };
 
   const toggleUserType = async () => {
     if (!user || switching) return;
@@ -138,22 +146,16 @@ export default function Header() {
     };
   }, [profileMenuOpen]);
 
-  // 페이지 이동 시 메뉴 닫기
-  useEffect(() => {
-    setMenuOpen(false);
-    setProfileMenuOpen(false);
-  }, [location.pathname]);
-
   // 팔로워/팔로잉 수 로드
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
     fetchFollowers()
       .then((f) => setFollowerCount(Array.isArray(f) ? f.length : 0))
       .catch(() => {});
     fetchFollowing()
       .then((f) => setFollowingCount(Array.isArray(f) ? f.length : 0))
       .catch(() => {});
-  }, [user?.id]);
+  }, [userId]);
 
   // 스크롤 시 header glassmorphism 전환
   useEffect(() => {
@@ -626,8 +628,7 @@ export default function Header() {
               <select
                 value={locale}
                 onChange={(e) => {
-                  setLocale(e.target.value as any);
-                  setLocaleState(e.target.value as any);
+                  handleLocaleChange(e.target.value);
                 }}
                 className="text-xs px-1 py-0.5 border border-slate-200 dark:border-slate-600 rounded bg-transparent text-slate-500 dark:text-slate-400 cursor-pointer hidden xl:inline-block"
                 aria-label="언어"
@@ -1154,8 +1155,7 @@ export default function Header() {
                 <select
                   value={locale}
                   onChange={(e) => {
-                    setLocale(e.target.value as any);
-                    setLocaleState(e.target.value as any);
+                    handleLocaleChange(e.target.value);
                   }}
                   className="flex-1 text-sm px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-transparent dark:bg-slate-800 text-slate-700 dark:text-slate-300"
                 >

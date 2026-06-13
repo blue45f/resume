@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -13,11 +13,7 @@ import { useCoach, useResumes } from '@/hooks/useResources';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
-import {
-  bookingSchema,
-  type BookingFormInput,
-  type BookingFormOutput,
-} from '@/shared/lib/schemas/coach';
+import { bookingSchema, type BookingFormInput, type BookingFormOutput } from '@/shared/lib/schemas';
 
 const DURATION_OPTIONS = [30, 45, 60, 90, 120];
 
@@ -39,7 +35,9 @@ export default function CoachDetailPage() {
   const coach: CoachProfile | null = (coachQuery.data as CoachProfile | undefined) ?? null;
   const loading = coachQuery.isLoading;
   const error: string | null = coachQuery.error
-    ? ((coachQuery.error as any)?.message ?? '코치 정보를 불러오지 못했습니다')
+    ? coachQuery.error instanceof Error
+      ? coachQuery.error.message
+      : '코치 정보를 불러오지 못했습니다'
     : null;
   const user = getUser();
   const [shareOpen, setShareOpen] = useState(false);
@@ -48,7 +46,7 @@ export default function CoachDetailPage() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<BookingFormInput, unknown, BookingFormOutput>({
     resolver: zodResolver(bookingSchema),
@@ -66,7 +64,7 @@ export default function CoachDetailPage() {
     ? resumesData
     : ((resumesData as { data?: Array<{ id: string; title?: string }> } | undefined)?.data ?? []);
 
-  const durationValue = watch('duration');
+  const durationValue = useWatch({ control, name: 'duration' });
 
   useEffect(() => {
     document.title = coach?.user?.name

@@ -11,6 +11,7 @@ import {
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { InterviewService, CreateInterviewAnswerDto } from './interview.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('interview')
 @Controller('interview')
@@ -19,21 +20,21 @@ export class InterviewController {
 
   @Get('answers')
   @ApiOperation({ summary: '내 면접 답변 목록' })
-  findAll(@Req() req: any) {
+  findAll(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.findAll(req.user.id);
   }
 
   @Post('answers')
   @ApiOperation({ summary: '면접 답변 저장' })
-  create(@Body() body: CreateInterviewAnswerDto, @Req() req: any) {
+  create(@Body() body: CreateInterviewAnswerDto, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.create(req.user.id, body);
   }
 
   @Delete('answers/:id')
   @ApiOperation({ summary: '면접 답변 삭제' })
-  remove(@Param('id') id: string, @Req() req: any) {
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.remove(id, req.user.id);
   }
@@ -45,7 +46,7 @@ export class InterviewController {
   })
   analyzeAnswer(
     @Body() body: { question: string; answer: string; jobRole?: string; save?: boolean },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.analyzeAnswer(req.user.id, body);
@@ -53,14 +54,14 @@ export class InterviewController {
 
   @Get('answers/history/scores')
   @ApiOperation({ summary: '시간별 면접 답변 점수 추세 (최근 90일)' })
-  scoreHistory(@Req() req: any) {
+  scoreHistory(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.scoreHistory(req.user.id);
   }
 
   @Get('answers/:id')
   @ApiOperation({ summary: '단건 답변 + 분석 결과 조회' })
-  findOne(@Param('id') id: string, @Req() req: any) {
+  findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.findOne(id, req.user.id);
   }

@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { UnauthorizedException } from '@nestjs/common';
 import { CoverLettersController } from './cover-letters.controller';
 import { CoverLettersService } from './cover-letters.service';
+import type { CreateCoverLetterInput, UpdateCoverLetterInput } from './cover-letters.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   findAll: jest.fn(),
@@ -11,7 +14,17 @@ const mockService = {
   getByResume: jest.fn(),
 };
 
-const reqWith = (userId?: string): any => ({ user: userId ? { id: userId } : undefined });
+const reqWith = (userId?: string): AuthenticatedRequest => ({
+  user: userId ? { id: userId } : undefined,
+});
+
+const createBody: CreateCoverLetterInput = {
+  company: 'T',
+  position: 'P',
+  tone: 'formal',
+  jobDescription: 'JD',
+  content: 'content',
+};
 
 describe('CoverLettersController', () => {
   let controller: CoverLettersController;
@@ -37,29 +50,32 @@ describe('CoverLettersController', () => {
     });
   });
 
-  it('findOne: userId 선택적 전달', () => {
+  it('findOne: 로그인 시 userId 전달', () => {
     controller.findOne('cl1', reqWith('u1'));
     expect(mockService.findOne).toHaveBeenCalledWith('cl1', 'u1');
+  });
 
-    controller.findOne('cl1', reqWith());
-    expect(mockService.findOne).toHaveBeenCalledWith('cl1', undefined);
+  it('findOne: 비로그인이면 UnauthorizedException', () => {
+    expect(() => controller.findOne('cl1', reqWith())).toThrow(UnauthorizedException);
+    expect(mockService.findOne).not.toHaveBeenCalled();
   });
 
   describe('create', () => {
     it('비로그인 → error 객체', () => {
-      expect(controller.create({ title: 'T' }, reqWith())).toEqual({ error: '로그인 필요' });
+      expect(controller.create(createBody, reqWith())).toEqual({ error: '로그인 필요' });
       expect(mockService.create).not.toHaveBeenCalled();
     });
 
     it('로그인 시 userId + body 위임', () => {
-      controller.create({ title: 'T' }, reqWith('u1'));
-      expect(mockService.create).toHaveBeenCalledWith('u1', { title: 'T' });
+      controller.create(createBody, reqWith('u1'));
+      expect(mockService.create).toHaveBeenCalledWith('u1', createBody);
     });
   });
 
   it('update: id + userId + body 전달', () => {
-    controller.update('cl1', { title: 'T2' }, reqWith('u1'));
-    expect(mockService.update).toHaveBeenCalledWith('cl1', 'u1', { title: 'T2' });
+    const updateBody: UpdateCoverLetterInput = { content: 'T2' };
+    controller.update('cl1', updateBody, reqWith('u1'));
+    expect(mockService.update).toHaveBeenCalledWith('cl1', 'u1', updateBody);
   });
 
   it('remove: id + userId 전달', () => {

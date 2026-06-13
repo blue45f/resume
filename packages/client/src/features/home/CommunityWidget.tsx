@@ -2,17 +2,27 @@ import { Link } from 'react-router-dom';
 import { ROUTES } from '@/lib/routes';
 import { usePublicGet } from '@/hooks/useResources';
 
+interface CommunityWidgetPost {
+  id: string;
+  title: string;
+  category: string;
+  likeCount: number;
+  createdAt: string;
+}
+
+interface CommunityWidgetResponse {
+  items?: CommunityWidgetPost[];
+}
+
 export default function CommunityWidget() {
-  const { data } = usePublicGet<any>(['home-community'], '/api/community?limit=5&page=1', {
-    staleTime: 60_000,
-  });
-  const posts: {
-    id: string;
-    title: string;
-    category: string;
-    likeCount: number;
-    createdAt: string;
-  }[] = data?.items ? data.items.slice(0, 5) : [];
+  const { data } = usePublicGet<CommunityWidgetResponse>(
+    ['home-community'],
+    '/api/community?limit=5&page=1',
+    {
+      staleTime: 60_000,
+    },
+  );
+  const posts = data?.items ? data.items.slice(0, 5) : [];
 
   if (!posts.length) return null;
 

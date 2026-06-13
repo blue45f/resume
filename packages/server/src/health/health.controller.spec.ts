@@ -5,6 +5,7 @@ import { HealthController } from './health.controller';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminStatsService } from './admin-stats.service';
 import { UsageService } from './usage.service';
+import type { Response } from 'express';
 
 const mockPrisma = {
   $queryRaw: jest.fn(),
@@ -104,8 +105,8 @@ describe('HealthController', () => {
   // ──────────────────────────────────────────────────
   describe('ready (GET /health/ready)', () => {
     const makeRes = () => {
-      const res: any = { status: jest.fn().mockReturnThis() };
-      return res;
+      const res = { status: jest.fn().mockReturnThis() };
+      return res as unknown as Response & { status: jest.Mock };
     };
 
     it('DB 정상 + LLM 키 있음 → ok / 200', async () => {

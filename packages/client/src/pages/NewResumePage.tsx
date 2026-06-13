@@ -19,11 +19,18 @@ import { getUser } from '@/lib/auth';
 import { getPlan } from '@/lib/plans';
 import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes';
 import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 // Zod schema for resume meta (title) validation before save
 const newResumeSchema = z.object({
   title: z.string().min(1, '제목을 입력하세요').max(100, '제목은 100자 이내로 입력하세요'),
 });
+
+type ResumeDraft = Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>;
+
+interface AutoGeneratePreviewResponse {
+  resume?: ResumeDraft;
+}
 
 const SECTION_LABELS: Record<string, string> = {
   personalInfo: '인적사항',
@@ -242,7 +249,11 @@ function WizardMode({
     }));
   };
 
-  const updateExperience = (id: string, field: string, value: any) => {
+  const updateExperience = <K extends keyof Resume['experiences'][number]>(
+    id: string,
+    field: K,
+    value: Resume['experiences'][number][K],
+  ) => {
     setWizardData((prev) => ({
       ...prev,
       experiences: prev.experiences.map((e) => (e.id === id ? { ...e, [field]: value } : e)),
@@ -1061,7 +1072,7 @@ export default function NewResumePage() {
   const [wizardData, setWizardData] = useState(createEmptyResumeData());
   const [wizardJobTitle, setWizardJobTitle] = useState('');
   const [copySourceId, setCopySourceId] = useState('');
-  const [initialData, setInitialData] = useState<any>(null);
+  const [initialData, setInitialData] = useState<ResumeDraft | null>(null);
   const [loadingCopy, setLoadingCopy] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadText, setUploadText] = useState('');
@@ -1144,7 +1155,7 @@ export default function NewResumePage() {
         body: JSON.stringify({ rawText: bodyText }),
       });
       if (!res.ok) throw new Error('AI 분석에 실패했습니다');
-      const data = await res.json();
+      const data = (await res.json()) as AutoGeneratePreviewResponse;
 
       setAiProgress('이력서를 구성하고 있습니다...');
       if (data.resume) {
@@ -1154,8 +1165,8 @@ export default function NewResumePage() {
       } else {
         throw new Error('이력서 데이터를 생성할 수 없습니다');
       }
-    } catch (err: any) {
-      toast(err.message || 'AI 분석에 실패했습니다', 'error');
+    } catch (err: unknown) {
+      toast(getErrorMessage(err, 'AI 분석에 실패했습니다'), 'error');
     } finally {
       setAiLoading(false);
       setAiProgress('');
@@ -1180,7 +1191,7 @@ export default function NewResumePage() {
       setLoadingCopy(true);
       try {
         const source = await fetchResume(copySourceId);
-        const { id, createdAt, updatedAt, ...rest } = source;
+        const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...rest } = source;
         setInitialData({ ...rest, title: `${rest.title} (복사본)` });
       } catch {
         toast('이력서를 불러오는데 실패했습니다', 'error');

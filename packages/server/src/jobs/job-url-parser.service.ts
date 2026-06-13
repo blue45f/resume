@@ -3,6 +3,7 @@ import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { LlmService } from '../llm/llm.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { getErrorMessage } from '../common/error.utils';
 
 export interface ParsedJob {
   url: string;
@@ -30,6 +31,12 @@ const PRIVATE_HOST_RE = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-
 const PRIVATE_IPV6_RE =
   /^(::1|::|fc[0-9a-f]{2}:|fd[0-9a-f]{2}:|fe80:|ff[0-9a-f]{2}:|::ffff:(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.))/i;
 const MAX_REDIRECTS = 5;
+
+type JsonObject = Record<string, unknown>;
+
+function isJsonObject(value: unknown): value is JsonObject {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 /** IP 리터럴(IPv4/IPv6)이 로컬/사설/예약 범위인지. SSRF 차단용. */
 function isPrivateIp(ip: string): boolean {
@@ -252,15 +259,15 @@ export class JobUrlParserService {
         offset += c.length;
       }
       return new TextDecoder('utf-8', { fatal: false }).decode(merged);
-    } catch (err: any) {
-      if (err?.name === 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
         throw new BadRequestException(
           `채용공고 페이지 응답이 너무 느립니다 (${TIMEOUT_MS}ms 초과)`,
         );
       }
       if (err instanceof BadRequestException) throw err;
       throw new BadRequestException(
-        `채용공고 페이지를 불러오지 못했습니다: ${err?.message || err}`,
+        `채용공고 페이지를 불러오지 못했습니다: ${getErrorMessage(err, String(err))}`,
       );
     } finally {
       clearTimeout(timer);
@@ -285,18 +292,18 @@ export class JobUrlParserService {
   }
 
   /** JSON-LD JobPosting 객체 (있으면). */
-  private extractJsonLdJobPosting(html: string): any | null {
+  private extractJsonLdJobPosting(html: string): JsonObject | null {
     const re = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
     let m: RegExpExecArray | null;
     while ((m = re.exec(html))) {
       try {
         const raw = m[1].trim();
-        const parsed = JSON.parse(raw);
+        const parsed = JSON.parse(raw) as unknown;
         const arr = Array.isArray(parsed) ? parsed : [parsed];
         for (const obj of arr) {
           if (this.isJobPosting(obj)) return obj;
           // @graph 형식
-          if (Array.isArray(obj?.['@graph'])) {
+          if (isJsonObject(obj) && Array.isArray(obj['@graph'])) {
             for (const g of obj['@graph']) if (this.isJobPosting(g)) return g;
           }
         }
@@ -307,28 +314,31 @@ export class JobUrlParserService {
     return null;
   }
 
-  private isJobPosting(obj: any): boolean {
-    const t = obj?.['@type'];
+  private isJobPosting(obj: unknown): obj is JsonObject {
+    if (!isJsonObject(obj)) return false;
+    const t = obj['@type'];
     if (!t) return false;
     if (typeof t === 'string') return t === 'JobPosting';
     if (Array.isArray(t)) return t.includes('JobPosting');
     return false;
   }
 
-  private fromJsonLd(jp: any, url: string, rawText: string): ParsedJob {
-    const arrify = (v: any): string => {
+  private fromJsonLd(jp: JsonObject, url: string, rawText: string): ParsedJob {
+    const arrify = (v: unknown): string => {
       if (!v) return '';
       if (typeof v === 'string') return v;
       if (Array.isArray(v)) return v.map(arrify).filter(Boolean).join(', ');
-      if (v?.name) return String(v.name);
-      if (v?.['@value']) return String(v['@value']);
+      if (isJsonObject(v) && v.name) return String(v.name);
+      if (isJsonObject(v) && v['@value']) return String(v['@value']);
       return '';
     };
     const company = arrify(jp.hiringOrganization);
-    const location = arrify(jp.jobLocation?.address) || arrify(jp.jobLocation);
+    const jobLocation = jp.jobLocation;
+    const location =
+      arrify(isJsonObject(jobLocation) ? jobLocation.address : undefined) || arrify(jobLocation);
     const baseSalary =
       typeof jp.baseSalary === 'object'
-        ? `${arrify(jp.baseSalary.value?.minValue)}${jp.baseSalary.value?.maxValue ? ` ~ ${arrify(jp.baseSalary.value.maxValue)}` : ''} ${arrify(jp.baseSalary.currency) || ''}`.trim()
+        ? `${arrify(isJsonObject(jp.baseSalary) && isJsonObject(jp.baseSalary.value) ? jp.baseSalary.value.minValue : undefined)}${isJsonObject(jp.baseSalary) && isJsonObject(jp.baseSalary.value) && jp.baseSalary.value.maxValue ? ` ~ ${arrify(jp.baseSalary.value.maxValue)}` : ''} ${arrify(isJsonObject(jp.baseSalary) ? jp.baseSalary.currency : undefined) || ''}`.trim()
         : arrify(jp.baseSalary);
     const skills = Array.isArray(jp.skills)
       ? jp.skills.map(arrify).filter(Boolean)
@@ -421,7 +431,7 @@ ${trimmed}`;
       .replace(/^```(?:json)?\s*/i, '')
       .replace(/```\s*$/i, '')
       .trim();
-    let obj: any;
+    let obj: unknown;
     try {
       obj = JSON.parse(cleaned);
     } catch {
@@ -433,17 +443,18 @@ ${trimmed}`;
       }
       obj = JSON.parse(cleaned.slice(start, end + 1));
     }
-    const str = (v: any) => (typeof v === 'string' ? v : v == null ? '' : String(v));
+    const parsed = isJsonObject(obj) ? obj : {};
+    const str = (v: unknown) => (typeof v === 'string' ? v : v == null ? '' : String(v));
     return {
-      title: str(obj.title),
-      company: str(obj.company),
-      position: str(obj.position),
-      location: str(obj.location),
-      employmentType: str(obj.employmentType),
-      experienceLevel: str(obj.experienceLevel),
-      salary: str(obj.salary),
-      skills: Array.isArray(obj.skills) ? obj.skills.map(str).filter(Boolean) : [],
-      description: str(obj.description).slice(0, MAX_TEXT_LEN),
+      title: str(parsed.title),
+      company: str(parsed.company),
+      position: str(parsed.position),
+      location: str(parsed.location),
+      employmentType: str(parsed.employmentType),
+      experienceLevel: str(parsed.experienceLevel),
+      salary: str(parsed.salary),
+      skills: Array.isArray(parsed.skills) ? parsed.skills.map(str).filter(Boolean) : [],
+      description: str(parsed.description).slice(0, MAX_TEXT_LEN),
     };
   }
 }

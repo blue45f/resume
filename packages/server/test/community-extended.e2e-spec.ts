@@ -5,6 +5,11 @@
  * (community 에 'isAnonymous' 옵션은 미구현 — 향후 도입 시 보강)
  */
 import { setupE2EApp, cleanupTestData, E2EContext } from './e2e-helper';
+import { JwtService } from '@nestjs/jwt';
+
+type CommunityPostResponse = {
+  category: string;
+};
 
 describe('Community Extended', () => {
   let ctx: E2EContext;
@@ -30,7 +35,7 @@ describe('Community Extended', () => {
       },
     });
     ctx.userIds.admin = adminUser.id;
-    const jwt = ctx.app.get(require('@nestjs/jwt').JwtService);
+    const jwt = ctx.app.get(JwtService);
     ctx.tokens.admin = jwt.sign({ sub: adminUser.id, role: 'admin' });
   }, 60000);
 
@@ -66,7 +71,9 @@ describe('Community Extended', () => {
     it('GET ?category=resume — 카테고리 필터', async () => {
       const res = await ctx.api().get('/api/community?category=resume&limit=10').expect(200);
       expect(res.body.items).toBeDefined();
-      res.body.items.forEach((p: any) => expect(p.category).toBe('resume'));
+      (res.body.items as CommunityPostResponse[]).forEach((post) =>
+        expect(post.category).toBe('resume'),
+      );
     });
 
     it('GET ?category=invalid_cat — 빈 목록', async () => {

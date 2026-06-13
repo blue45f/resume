@@ -79,11 +79,7 @@ export default function ResumeHealthRing({ resumes }: Props) {
     const prefersReduce =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReduce) {
-      setAnimatedPct(targetPct);
-      return;
-    }
-    const timer = setTimeout(() => setAnimatedPct(targetPct), 80);
+    const timer = setTimeout(() => setAnimatedPct(targetPct), prefersReduce ? 0 : 80);
     return () => clearTimeout(timer);
   }, [targetPct]);
 

@@ -243,7 +243,7 @@ function runAudit(resume: Resume): AuditItem[] {
     id: 'has_title',
     category: 'ATS 호환',
     label: '이력서 제목 설정됨',
-    pass: !!(resume as any).title?.trim(),
+    pass: !!resume.title?.trim(),
     impact: 'low',
     tip: '이력서에 명확한 제목을 설정하세요.',
   });

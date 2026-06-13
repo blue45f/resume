@@ -63,13 +63,13 @@ const QUANT_PATTERNS: RegExp[] = [
 // ---------------------------------------------------------------------------
 
 // Header-like line heuristics: short + ends with colon or is ALL-CAPS.
-const HEADER_RE = /^[A-Z가-힣\s\-:·|]{1,25}[:\s]*$/;
+const HEADER_RE = /^[A-Z가-힣\s:·|-]{1,25}[:\s]*$/;
 
 // Minimum chars for a line to be treated as a bullet/sentence.
 const MIN_BULLET_LEN = 18;
 
 // Characters that mark explicit bullet points.
-const EXPLICIT_BULLET = /^[\-•*▪■◦▸►→✓✔]\s+/;
+const EXPLICIT_BULLET = /^[-•*▪■◦▸►→✓✔]\s+/;
 
 // Korean verb endings that indicate a sentence (not a bare header).
 const KO_VERB_RE = /(?:했|하여|했으|한\s*결과|했음|하고|하는|한\s*후|해서|하였|하며)/;

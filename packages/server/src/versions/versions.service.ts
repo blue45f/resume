@@ -4,7 +4,28 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+
+type SnapshotRecord = Record<string, unknown>;
+
+type ResumeSnapshot = {
+  title?: unknown;
+  personalInfo?: unknown;
+  experiences?: unknown;
+  educations?: unknown;
+  skills?: unknown;
+  projects?: unknown;
+};
+
+const isSnapshotRecord = (value: unknown): value is SnapshotRecord =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const snapshotItems = (value: unknown): SnapshotRecord[] =>
+  Array.isArray(value) ? value.filter(isSnapshotRecord) : [];
+
+const snapshotString = (value: unknown): string => (typeof value === 'string' ? value : '');
+const snapshotBoolean = (value: unknown): boolean => (typeof value === 'boolean' ? value : false);
 
 @Injectable()
 export class VersionsService {
@@ -70,9 +91,9 @@ export class VersionsService {
       throw new ForbiddenException('이 이력서의 버전을 복원할 권한이 없습니다');
     }
 
-    let snapshot: any;
+    let snapshot: ResumeSnapshot;
     try {
-      snapshot = JSON.parse(version.snapshot);
+      snapshot = JSON.parse(version.snapshot) as ResumeSnapshot;
     } catch {
       throw new BadRequestException('버전 데이터가 손상되었습니다');
     }
@@ -81,84 +102,93 @@ export class VersionsService {
     await this.prisma.$transaction(async (tx) => {
       await tx.resume.update({
         where: { id: resumeId },
-        data: { title: snapshot.title },
+        data: { title: snapshotString(snapshot.title) },
       });
 
-      if (snapshot.personalInfo) {
+      if (isSnapshotRecord(snapshot.personalInfo)) {
         const piData = { ...snapshot.personalInfo };
         // links가 배열이면 JSON으로 변환
         if (Array.isArray(piData.links)) piData.links = JSON.stringify(piData.links);
         // id 필드 제거 (Prisma가 자동 생성)
         delete piData.id;
+        delete piData.resumeId;
+        const personalInfoData = piData as Omit<
+          Prisma.PersonalInfoUncheckedCreateInput,
+          'resumeId'
+        >;
         await tx.personalInfo.upsert({
           where: { resumeId },
-          create: { resumeId, ...piData },
-          update: piData,
+          create: { ...personalInfoData, resumeId },
+          update: personalInfoData,
         });
       }
 
       // Replace collections
       await tx.experience.deleteMany({ where: { resumeId } });
-      if (snapshot.experiences?.length) {
+      const experiences = snapshotItems(snapshot.experiences);
+      if (experiences.length) {
         await tx.experience.createMany({
-          data: snapshot.experiences.map((e: any, i: number) => ({
+          data: experiences.map((e, i) => ({
             resumeId,
-            company: e.company || '',
-            position: e.position || '',
-            department: e.department || '',
-            startDate: e.startDate || '',
-            endDate: e.endDate || '',
-            current: e.current || false,
-            description: e.description || '',
-            achievements: e.achievements || '',
-            techStack: e.techStack || '',
+            company: snapshotString(e.company),
+            position: snapshotString(e.position),
+            department: snapshotString(e.department),
+            startDate: snapshotString(e.startDate),
+            endDate: snapshotString(e.endDate),
+            current: snapshotBoolean(e.current),
+            description: snapshotString(e.description),
+            achievements: snapshotString(e.achievements),
+            techStack: snapshotString(e.techStack),
             sortOrder: i,
           })),
         });
       }
 
       await tx.education.deleteMany({ where: { resumeId } });
-      if (snapshot.educations?.length) {
+      const educations = snapshotItems(snapshot.educations);
+      if (educations.length) {
         await tx.education.createMany({
-          data: snapshot.educations.map((e: any, i: number) => ({
+          data: educations.map((e, i) => ({
             resumeId,
-            school: e.school || '',
-            degree: e.degree || '',
-            field: e.field || '',
-            gpa: e.gpa || '',
-            startDate: e.startDate || '',
-            endDate: e.endDate || '',
-            description: e.description || '',
+            school: snapshotString(e.school),
+            degree: snapshotString(e.degree),
+            field: snapshotString(e.field),
+            gpa: snapshotString(e.gpa),
+            startDate: snapshotString(e.startDate),
+            endDate: snapshotString(e.endDate),
+            description: snapshotString(e.description),
             sortOrder: i,
           })),
         });
       }
 
       await tx.skill.deleteMany({ where: { resumeId } });
-      if (snapshot.skills?.length) {
+      const skills = snapshotItems(snapshot.skills);
+      if (skills.length) {
         await tx.skill.createMany({
-          data: snapshot.skills.map((s: any, i: number) => ({
+          data: skills.map((s, i) => ({
             resumeId,
-            category: s.category || '',
-            items: s.items || '',
+            category: snapshotString(s.category),
+            items: snapshotString(s.items),
             sortOrder: i,
           })),
         });
       }
 
       await tx.project.deleteMany({ where: { resumeId } });
-      if (snapshot.projects?.length) {
+      const projects = snapshotItems(snapshot.projects);
+      if (projects.length) {
         await tx.project.createMany({
-          data: snapshot.projects.map((p: any, i: number) => ({
+          data: projects.map((p, i) => ({
             resumeId,
-            name: p.name || '',
-            company: p.company || '',
-            role: p.role || '',
-            startDate: p.startDate || '',
-            endDate: p.endDate || '',
-            description: p.description || '',
-            techStack: p.techStack || '',
-            link: p.link || '',
+            name: snapshotString(p.name),
+            company: snapshotString(p.company),
+            role: snapshotString(p.role),
+            startDate: snapshotString(p.startDate),
+            endDate: snapshotString(p.endDate),
+            description: snapshotString(p.description),
+            techStack: snapshotString(p.techStack),
+            link: snapshotString(p.link),
             sortOrder: i,
           })),
         });

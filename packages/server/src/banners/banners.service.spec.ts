@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BannersService } from './banners.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-const mockPrisma: any = {
+const mockPrisma = {
   banner: {
     findMany: jest.fn(),
     create: jest.fn(),
@@ -41,9 +41,9 @@ describe('BannersService', () => {
 
   it('create: 입력 데이터 그대로 전달', async () => {
     mockPrisma.banner.create.mockResolvedValueOnce({ id: 'b1' });
-    await service.create({ title: '공지', image: 'x.png' });
+    await service.create({ title: '공지', imageUrl: 'x.png' });
     expect(mockPrisma.banner.create).toHaveBeenCalledWith({
-      data: { title: '공지', image: 'x.png' },
+      data: { title: '공지', imageUrl: 'x.png' },
     });
   });
 

@@ -4,6 +4,7 @@ import { Throttle } from '@nestjs/throttler';
 import { Public } from '../auth/auth.guard';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/comment.dto';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('comments')
 @Controller('resumes/:resumeId/comments')
@@ -20,13 +21,17 @@ export class CommentsController {
   @Post()
   @Throttle({ short: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: '의견 작성' })
-  create(@Param('resumeId') resumeId: string, @Body() dto: CreateCommentDto, @Req() req: any) {
+  create(
+    @Param('resumeId') resumeId: string,
+    @Body() dto: CreateCommentDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.service.create(resumeId, dto.content, req.user?.id, dto.authorName, dto.parentId);
   }
 
   @Delete(':commentId')
   @ApiOperation({ summary: '의견 삭제' })
-  remove(@Param('commentId') commentId: string, @Req() req: any) {
+  remove(@Param('commentId') commentId: string, @Req() req: AuthenticatedRequest) {
     return this.service.remove(commentId, req.user?.id, req.user?.role);
   }
 }

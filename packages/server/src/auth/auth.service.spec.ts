@@ -1,5 +1,29 @@
 import { AuthService } from './auth.service';
 import { UnauthorizedException } from '@nestjs/common';
+import { createHmac } from 'crypto';
+import * as bcrypt from 'bcryptjs';
+
+type MockDelegate = Record<string, jest.Mock>;
+type MockPrisma = Record<string, MockDelegate>;
+type MockJwt = {
+  sign: jest.Mock;
+};
+type MockLogger = {
+  warn: jest.Mock;
+};
+type AuthServiceHarness = {
+  stateSecret: string;
+  STATE_TTL_MS: number;
+  logger: MockLogger;
+  prisma: MockPrisma;
+  jwt: MockJwt;
+};
+
+const assignAuthServiceMocks = (service: AuthService, mocks: Partial<AuthServiceHarness>) => {
+  Object.assign(service as unknown as AuthServiceHarness, mocks);
+};
+
+const mockLogger = (): MockLogger => ({ warn: jest.fn() });
 
 // ──────────────────────────────────────────────────
 // OAuth State (HMAC)
@@ -9,9 +33,11 @@ describe('AuthService - OAuth State (HMAC)', () => {
 
   beforeEach(async () => {
     service = Object.create(AuthService.prototype);
-    (service as any).stateSecret = 'test-secret-key';
-    (service as any).STATE_TTL_MS = 10 * 60 * 1000;
-    (service as any).logger = { warn: jest.fn() };
+    assignAuthServiceMocks(service, {
+      stateSecret: 'test-secret-key',
+      STATE_TTL_MS: 10 * 60 * 1000,
+      logger: mockLogger(),
+    });
   });
 
   describe('generateOAuthState', () => {
@@ -54,7 +80,6 @@ describe('AuthService - OAuth State (HMAC)', () => {
 
     it('만료된 state → false', () => {
       const oldTimestamp = (Date.now() - 11 * 60 * 1000).toString(36);
-      const { createHmac } = require('crypto');
       const nonce = 'deadbeef01234567';
       const payload = `${oldTimestamp}.${nonce}`;
       const hmac = createHmac('sha256', 'test-secret-key')
@@ -95,7 +120,7 @@ describe('AuthService - OAuth State (HMAC)', () => {
 // ──────────────────────────────────────────────────
 describe('AuthService - Admin (setUserRole / getAllUsers)', () => {
   let service: AuthService;
-  let mockPrisma: any;
+  let mockPrisma: MockPrisma;
 
   beforeEach(() => {
     mockPrisma = {
@@ -112,8 +137,7 @@ describe('AuthService - Admin (setUserRole / getAllUsers)', () => {
     };
 
     service = Object.create(AuthService.prototype);
-    (service as any).prisma = mockPrisma;
-    (service as any).logger = { warn: jest.fn() };
+    assignAuthServiceMocks(service, { prisma: mockPrisma, logger: mockLogger() });
   });
 
   describe('setUserRole', () => {
@@ -280,8 +304,8 @@ describe('AuthService - Admin (setUserRole / getAllUsers)', () => {
 // ──────────────────────────────────────────────────
 describe('AuthService - register', () => {
   let service: AuthService;
-  let mockPrisma: any;
-  let mockJwt: any;
+  let mockPrisma: MockPrisma;
+  let mockJwt: MockJwt;
 
   beforeEach(() => {
     mockPrisma = {
@@ -297,9 +321,7 @@ describe('AuthService - register', () => {
     };
 
     service = Object.create(AuthService.prototype);
-    (service as any).prisma = mockPrisma;
-    (service as any).jwt = mockJwt;
-    (service as any).logger = { warn: jest.fn() };
+    assignAuthServiceMocks(service, { prisma: mockPrisma, jwt: mockJwt, logger: mockLogger() });
   });
 
   it('유효한 자격증명으로 회원가입 성공 → JWT 토큰 반환', async () => {
@@ -403,8 +425,8 @@ describe('AuthService - register', () => {
 // ──────────────────────────────────────────────────
 describe('AuthService - login', () => {
   let service: AuthService;
-  let mockPrisma: any;
-  let mockJwt: any;
+  let mockPrisma: MockPrisma;
+  let mockJwt: MockJwt;
 
   beforeEach(() => {
     mockPrisma = {
@@ -417,13 +439,10 @@ describe('AuthService - login', () => {
     };
 
     service = Object.create(AuthService.prototype);
-    (service as any).prisma = mockPrisma;
-    (service as any).jwt = mockJwt;
-    (service as any).logger = { warn: jest.fn() };
+    assignAuthServiceMocks(service, { prisma: mockPrisma, jwt: mockJwt, logger: mockLogger() });
   });
 
   it('올바른 이메일/비밀번호 → JWT 토큰 반환', async () => {
-    const bcrypt = require('bcryptjs');
     const hash = await bcrypt.hash('correctpassword', 10);
     mockPrisma.user.findUnique.mockResolvedValue({
       id: 'user-1',
@@ -438,7 +457,6 @@ describe('AuthService - login', () => {
   });
 
   it('잘못된 비밀번호 → UnauthorizedException', async () => {
-    const bcrypt = require('bcryptjs');
     const hash = await bcrypt.hash('correctpassword', 10);
     mockPrisma.user.findUnique.mockResolvedValue({
       id: 'user-1',
@@ -489,7 +507,7 @@ describe('AuthService - login', () => {
 // ──────────────────────────────────────────────────
 describe('AuthService - getProfile', () => {
   let service: AuthService;
-  let mockPrisma: any;
+  let mockPrisma: MockPrisma;
 
   beforeEach(() => {
     mockPrisma = {
@@ -499,8 +517,7 @@ describe('AuthService - getProfile', () => {
     };
 
     service = Object.create(AuthService.prototype);
-    (service as any).prisma = mockPrisma;
-    (service as any).logger = { warn: jest.fn() };
+    assignAuthServiceMocks(service, { prisma: mockPrisma, logger: mockLogger() });
   });
 
   it('유효한 사용자 → passwordHash 제외한 프로필 반환', async () => {
@@ -530,7 +547,7 @@ describe('AuthService - getProfile', () => {
     expect(result.followerCount).toBe(10);
     expect(result.followingCount).toBe(3);
     // passwordHash가 반환값에 포함되지 않아야 함
-    expect((result as any).passwordHash).toBeUndefined();
+    expect(Object.prototype.hasOwnProperty.call(result, 'passwordHash')).toBe(false);
   });
 
   it('존재하지 않는 사용자 → UnauthorizedException', async () => {
@@ -567,7 +584,7 @@ describe('AuthService - getProfile', () => {
 // ──────────────────────────────────────────────────
 describe('AuthService - updateProfile', () => {
   let service: AuthService;
-  let mockPrisma: any;
+  let mockPrisma: MockPrisma;
 
   beforeEach(() => {
     mockPrisma = {
@@ -578,8 +595,7 @@ describe('AuthService - updateProfile', () => {
     };
 
     service = Object.create(AuthService.prototype);
-    (service as any).prisma = mockPrisma;
-    (service as any).logger = { warn: jest.fn() };
+    assignAuthServiceMocks(service, { prisma: mockPrisma, logger: mockLogger() });
   });
 
   it('userType을 recruiter로 변경', async () => {
@@ -789,7 +805,7 @@ describe('AuthService - updateProfile', () => {
 // ──────────────────────────────────────────────────
 describe('AuthService - getPublicPortfolio', () => {
   let service: AuthService;
-  let mockPrisma: any;
+  let mockPrisma: MockPrisma;
 
   const makeResume = (overrides = {}) => ({
     id: 'r1',
@@ -835,8 +851,7 @@ describe('AuthService - getPublicPortfolio', () => {
       follow: { count: jest.fn().mockResolvedValue(0) },
     };
     service = Object.create(AuthService.prototype);
-    (service as any).prisma = mockPrisma;
-    (service as any).logger = { warn: jest.fn() };
+    assignAuthServiceMocks(service, { prisma: mockPrisma, logger: mockLogger() });
   });
 
   it('존재하지 않는 username → null 반환', async () => {
@@ -851,11 +866,11 @@ describe('AuthService - getPublicPortfolio', () => {
     mockPrisma.user.findFirst.mockResolvedValue(makeUser());
     mockPrisma.resume.findMany.mockResolvedValue([resume]);
 
-    const result: any = await service.getPublicPortfolio('honggildong');
-    expect(result.user.username).toBe('honggildong');
-    expect(result.stats.publicResumeCount).toBe(1);
-    expect(result.resumes).toHaveLength(1);
-    expect(result.resumes[0].title).toBe('프론트엔드 이력서');
+    const result = await service.getPublicPortfolio('honggildong');
+    expect(result?.user.username).toBe('honggildong');
+    expect(result?.stats.publicResumeCount).toBe(1);
+    expect(result?.resumes).toHaveLength(1);
+    expect(result?.resumes[0].title).toBe('프론트엔드 이력서');
   });
 
   it('topSkills 집계 — 스킬 아이템 중복 제거', async () => {
@@ -864,11 +879,11 @@ describe('AuthService - getPublicPortfolio', () => {
     mockPrisma.user.findFirst.mockResolvedValue(makeUser());
     mockPrisma.resume.findMany.mockResolvedValue([resume1, resume2]);
 
-    const result: any = await service.getPublicPortfolio('honggildong');
-    expect(result.topSkills).toContain('React');
-    expect(result.topSkills).toContain('TypeScript');
+    const result = await service.getPublicPortfolio('honggildong');
+    expect(result?.topSkills).toContain('React');
+    expect(result?.topSkills).toContain('TypeScript');
     // React 중복이어도 한 번만 등장 (Set-based dedup)
-    expect(result.topSkills.filter((s: string) => s === 'React')).toHaveLength(1);
+    expect(result?.topSkills.filter((s: string) => s === 'React')).toHaveLength(1);
   });
 
   it('totalViews 합산', async () => {
@@ -877,8 +892,8 @@ describe('AuthService - getPublicPortfolio', () => {
     mockPrisma.user.findFirst.mockResolvedValue(makeUser());
     mockPrisma.resume.findMany.mockResolvedValue([r1, r2]);
 
-    const result: any = await service.getPublicPortfolio('honggildong');
-    expect(result.stats.totalViews).toBe(80);
+    const result = await service.getPublicPortfolio('honggildong');
+    expect(result?.stats.totalViews).toBe(80);
   });
 
   it('tags 정규화 — TagsOnResumes join 구조 처리', async () => {
@@ -891,8 +906,8 @@ describe('AuthService - getPublicPortfolio', () => {
     mockPrisma.user.findFirst.mockResolvedValue(makeUser());
     mockPrisma.resume.findMany.mockResolvedValue([resume]);
 
-    const result: any = await service.getPublicPortfolio('honggildong');
-    expect(result.resumes[0].tags[0].name).toBe('React');
-    expect(result.resumes[0].tags[1].name).toBe('NestJS');
+    const result = await service.getPublicPortfolio('honggildong');
+    expect(result?.resumes[0].tags[0].name).toBe('React');
+    expect(result?.resumes[0].tags[1].name).toBe('NestJS');
   });
 });

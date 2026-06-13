@@ -6,6 +6,12 @@
  */
 import { E2EContext, setupE2EApp, cleanupTestData } from './e2e-helper';
 
+type BannerResponse = {
+  id: string;
+  isActive?: boolean;
+  order: number;
+};
+
 describe('Banners (홈 배너)', () => {
   let ctx: E2EContext;
   const createdIds: string[] = [];
@@ -66,7 +72,9 @@ describe('Banners (홈 배너)', () => {
     // admin 에겐 방금 만든 inactive 배너 포함
     expect(asAdmin.body.length).toBeGreaterThanOrEqual(asUser.body.length);
     // 일반 유저에겐 isActive=false 배너 숨김
-    expect(asUser.body.every((b: any) => b.isActive !== false)).toBe(true);
+    expect((asUser.body as BannerResponse[]).every((banner) => banner.isActive !== false)).toBe(
+      true,
+    );
   });
 
   it('PATCH /banners/reorder — 관리자 순서 변경', async () => {
@@ -77,8 +85,10 @@ describe('Banners (홈 배너)', () => {
 
     // 순서가 0, 1 로 반영
     const all = await ctx.authGet('admin', '/api/banners').expect(200);
-    const updated = all.body.filter((b: any) => createdIds.includes(b.id));
-    const byId = Object.fromEntries(updated.map((b: any) => [b.id, b.order]));
+    const updated = (all.body as BannerResponse[]).filter((banner) =>
+      createdIds.includes(banner.id),
+    );
+    const byId = Object.fromEntries(updated.map((banner) => [banner.id, banner.order]));
     expect(byId[reversed[0]]).toBe(0);
     expect(byId[reversed[1]]).toBe(1);
   });

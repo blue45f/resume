@@ -12,6 +12,7 @@
 import { Test } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
+import { JwtService } from '@nestjs/jwt';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 
@@ -163,7 +164,7 @@ export async function setupE2EApp(options: SetupOptions): Promise<E2EContext> {
       data: { role: 'admin' },
     });
     // JwtService로 새 토큰 발급 (role=admin)
-    const jwtService = app.get(require('@nestjs/jwt').JwtService);
+    const jwtService = app.get(JwtService);
     tokens.admin = jwtService.sign({ sub: userIds.admin, role: 'admin' });
   }
   if (wantCoach && userIds.coach) {

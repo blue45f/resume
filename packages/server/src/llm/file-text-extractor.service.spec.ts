@@ -3,6 +3,10 @@ import { BadRequestException } from '@nestjs/common';
 import { FileTextExtractorService } from './file-text-extractor.service';
 import { GeminiProvider } from './providers/gemini.provider';
 
+type FileTextExtractorInternals = {
+  extractPdf(file: Express.Multer.File): Promise<string>;
+};
+
 const makeFile = (name: string, content: string | Buffer, mime?: string): Express.Multer.File =>
   ({
     originalname: name,
@@ -73,7 +77,9 @@ describe('FileTextExtractorService', () => {
 
   describe('파일 누락', () => {
     it('null/undefined 파일 → BadRequestException', async () => {
-      await expect(service.extract(undefined as any)).rejects.toThrow(BadRequestException);
+      await expect(service.extract(undefined as unknown as Express.Multer.File)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -84,7 +90,7 @@ describe('FileTextExtractorService', () => {
 
     it('pdf-parse 결과 < 50자 + Gemini available → Vision 폴백', async () => {
       extractPdfSpy = jest
-        .spyOn<any, any>(service as any, 'extractPdf')
+        .spyOn(service as unknown as FileTextExtractorInternals, 'extractPdf')
         .mockResolvedValue('짧은\n');
       mockGemini.extractImageText.mockResolvedValueOnce('Vision OCR 결과 — 풍부한 텍스트');
 
@@ -99,7 +105,7 @@ describe('FileTextExtractorService', () => {
 
     it('pdf-parse 결과 충분 (>50자) → Vision 폴백 안 함', async () => {
       extractPdfSpy = jest
-        .spyOn<any, any>(service as any, 'extractPdf')
+        .spyOn(service as unknown as FileTextExtractorInternals, 'extractPdf')
         .mockResolvedValue('이력서 본문이 충분히 길어서 OCR 폴백이 불필요한 경우입니다.'.repeat(2));
 
       const file = makeFile('text.pdf', Buffer.from([0x25, 0x50, 0x44, 0x46]), 'application/pdf');
@@ -110,7 +116,7 @@ describe('FileTextExtractorService', () => {
     it('Gemini 비활성 시 폴백 시도 안 함 (짧은 텍스트라도 그대로)', async () => {
       mockGemini.isAvailable = false;
       extractPdfSpy = jest
-        .spyOn<any, any>(service as any, 'extractPdf')
+        .spyOn(service as unknown as FileTextExtractorInternals, 'extractPdf')
         .mockResolvedValue('짧은 텍스트만 있음');
 
       const file = makeFile('scan.pdf', Buffer.from([0x25, 0x50, 0x44, 0x46]), 'application/pdf');

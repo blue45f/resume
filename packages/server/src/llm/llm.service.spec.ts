@@ -205,7 +205,7 @@ describe('LlmService', () => {
     });
 
     it('알 수 없는 templateType → standard 폴백', async () => {
-      const dto = { templateType: 'unknown-type' as any };
+      const dto = { templateType: 'unknown-type' as unknown as 'standard' };
       await service.transform('resume-1', dto);
 
       const systemPrompt = geminiProvider.generate.mock.calls[0][0] as string;

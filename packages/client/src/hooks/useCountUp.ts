@@ -33,7 +33,21 @@ export function useCountUp(target: number, { durationMs = 900, from = 0 }: Count
 
   useEffect(() => {
     if (prefersReducedMotion()) {
-      setValue(target);
+      frameRef.current = requestAnimationFrame(() => {
+        setValue(target);
+        startValueRef.current = target;
+      });
+      return () => {
+        if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+      };
+    }
+
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+
+    if (target === startValueRef.current) {
       return;
     }
 
@@ -42,7 +56,7 @@ export function useCountUp(target: number, { durationMs = 900, from = 0 }: Count
     const delta = target - startValue;
 
     if (delta === 0) {
-      setValue(target);
+      startValueRef.current = target;
       return;
     }
 

@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TagsController } from './tags.controller';
 import { TagsService } from './tags.service';
 import { ResumesService } from '../resumes/resumes.service';
+import type { CreateTagDto } from './dto/tag.dto';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockTagsService = {
   findAll: jest.fn(),
@@ -15,7 +17,7 @@ const mockResumesService = {
   findOne: jest.fn(),
 };
 
-const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
+const reqWith = (user?: { id?: string; role?: string }): AuthenticatedRequest => ({ user });
 
 describe('TagsController', () => {
   let controller: TagsController;
@@ -38,7 +40,7 @@ describe('TagsController', () => {
   });
 
   it('create: dto + userId 전달', () => {
-    controller.create({ name: 'react' } as any, reqWith({ id: 'u1' }));
+    controller.create({ name: 'react' } as CreateTagDto, reqWith({ id: 'u1' }));
     expect(mockTagsService.create).toHaveBeenCalledWith({ name: 'react' }, 'u1');
   });
 

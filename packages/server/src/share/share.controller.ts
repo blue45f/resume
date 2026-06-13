@@ -3,7 +3,8 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Public } from '../auth/auth.guard';
 import { ResumesService } from '../resumes/resumes.service';
 import { ShareService } from './share.service';
-import { CreateShareLinkDto, AccessShareDto } from './dto/share.dto';
+import { CreateShareLinkDto } from './dto/share.dto';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('share')
 @Controller()
@@ -18,7 +19,7 @@ export class ShareController {
   async createLink(
     @Param('resumeId') resumeId: string,
     @Body() dto: CreateShareLinkDto,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     // 소유권 검증: 이력서 소유자만 공유 링크 생성 가능
     await this.resumesService.findOne(resumeId, req.user?.id);
@@ -27,14 +28,14 @@ export class ShareController {
 
   @Get('resumes/:resumeId/share')
   @ApiOperation({ summary: '이력서의 공유 링크 목록' })
-  async getLinks(@Param('resumeId') resumeId: string, @Req() req: any) {
+  async getLinks(@Param('resumeId') resumeId: string, @Req() req: AuthenticatedRequest) {
     await this.resumesService.findOne(resumeId, req.user?.id);
     return this.shareService.getLinksForResume(resumeId);
   }
 
   @Delete('share/:id')
   @ApiOperation({ summary: '공유 링크 삭제 (이력서 소유자 전용)' })
-  removeLink(@Param('id') id: string, @Req() req: any) {
+  removeLink(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.shareService.removeLink(id, req.user?.id, req.user?.role);
   }
 

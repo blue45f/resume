@@ -8,6 +8,14 @@ import { PLANS, formatPrice } from '@/lib/plans';
 import { PAYMENT_METHODS, requestPayment } from '@/lib/payment';
 import { tx } from '@/lib/i18n';
 
+type PaymentError = {
+  code?: string;
+  message?: string;
+};
+
+const getPaymentError = (error: unknown): PaymentError =>
+  typeof error === 'object' && error !== null ? (error as PaymentError) : {};
+
 export default function PaymentPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -26,7 +34,7 @@ export default function PaymentPage() {
     return () => {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
     };
-  }, []);
+  }, [navigate, user]);
 
   const handlePayment = async () => {
     if (!user || !agreed) return;
@@ -40,11 +48,12 @@ export default function PaymentPage() {
         customerEmail: user.email,
         customerName: user.name,
       });
-    } catch (e: any) {
-      if (e.code === 'USER_CANCEL') {
+    } catch (e: unknown) {
+      const paymentError = getPaymentError(e);
+      if (paymentError.code === 'USER_CANCEL') {
         toast('결제가 취소되었습니다', 'info');
       } else {
-        toast(e.message || '결제에 실패했습니다', 'error');
+        toast(paymentError.message || '결제에 실패했습니다', 'error');
       }
     } finally {
       setProcessing(false);

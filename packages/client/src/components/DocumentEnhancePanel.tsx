@@ -67,14 +67,14 @@ export default function DocumentEnhancePanel({ resumeId, resume, onApplied }: Pr
     try {
       const merged: Resume = {
         ...resume,
-        ...(preview.enhanced as any),
+        ...preview.enhanced,
       };
       // updateResume 은 id/createdAt/updatedAt 을 제외함 — 기존 payload 구조 유지
       const { id: _a, createdAt: _b, updatedAt: _c, ...payload } = merged;
       void _a;
       void _b;
       void _c;
-      await updateResume(resumeId, payload as any);
+      await updateResume(resumeId, payload);
       toast(`이력서 고도화 완료 (${preview.changes.length}건 변경)`, 'success');
       onApplied?.(merged);
       setPreview(null);

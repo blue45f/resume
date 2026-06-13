@@ -14,9 +14,12 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import type { Prisma } from '@prisma/client';
 import { Public } from '../auth/auth.guard';
-import { JobsService } from './jobs.service';
+import { JobsService, type CuratedJobBody, type JobPostBody } from './jobs.service';
 import { JobUrlParserService } from './job-url-parser.service';
+import { requestUserRole, requestUserType, requireRequestUserId } from '../common/request.types';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('jobs')
 @Controller('jobs')
@@ -32,7 +35,7 @@ export class JobsController {
   @ApiOperation({
     summary: '채용공고 URL → 구조화 JSON. 원티드/잡코리아/사람인 등 한국 사이트 우선 지원',
   })
-  parseUrl(@Body('url') url: string, @Req() req: any) {
+  parseUrl(@Body('url') url: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     if (!url || typeof url !== 'string') {
       throw new BadRequestException('url 이 필요합니다');
@@ -62,7 +65,7 @@ export class JobsController {
 
   @Get('my')
   @ApiOperation({ summary: '내 채용 공고' })
-  findMy(@Req() req: any) {
+  findMy(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.findByUser(req.user.id);
   }
@@ -94,12 +97,15 @@ export class JobsController {
 
   @Post('external-links')
   @ApiOperation({ summary: '외부 채용 링크 등록' })
-  createExternalLink(@Body() body: any, @Req() req: any) {
+  createExternalLink(
+    @Body() body: Prisma.ExternalJobLinkCreateInput,
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.createExternalLink(body, {
       id: req.user.id,
-      role: req.user.role,
-      userType: req.user.userType,
+      role: requestUserRole(req),
+      userType: requestUserType(req),
     });
   }
 
@@ -112,23 +118,27 @@ export class JobsController {
 
   @Put('external-links/:id')
   @ApiOperation({ summary: '외부 채용 링크 수정' })
-  updateExternalLink(@Param('id') id: string, @Body() body: any, @Req() req: any) {
+  updateExternalLink(
+    @Param('id') id: string,
+    @Body() body: Prisma.ExternalJobLinkUpdateInput,
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.updateExternalLink(id, body, {
       id: req.user.id,
-      role: req.user.role,
-      userType: req.user.userType,
+      role: requestUserRole(req),
+      userType: requestUserType(req),
     });
   }
 
   @Delete('external-links/:id')
   @ApiOperation({ summary: '외부 채용 링크 삭제' })
-  deleteExternalLink(@Param('id') id: string, @Req() req: any) {
+  deleteExternalLink(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.deleteExternalLink(id, {
       id: req.user.id,
-      role: req.user.role,
-      userType: req.user.userType,
+      role: requestUserRole(req),
+      userType: requestUserType(req),
     });
   }
 
@@ -178,26 +188,40 @@ export class JobsController {
 
   @Post('curated')
   @ApiOperation({ summary: '큐레이션 채용 정보 등록 (관리자/채용담당자)' })
-  createCuratedJob(@Body() body: any, @Req() req: any) {
-    return this.service.createCuratedJob(body, req.user?.id, req.user?.role, req.user?.userType);
+  createCuratedJob(@Body() body: CuratedJobBody, @Req() req: AuthenticatedRequest) {
+    return this.service.createCuratedJob(
+      body,
+      requireRequestUserId(req),
+      requestUserRole(req),
+      requestUserType(req),
+    );
   }
 
   @Put('curated/:id')
   @ApiOperation({ summary: '큐레이션 채용 정보 수정' })
-  updateCuratedJob(@Param('id') id: string, @Body() body: any, @Req() req: any) {
+  updateCuratedJob(
+    @Param('id') id: string,
+    @Body() body: CuratedJobBody,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.service.updateCuratedJob(
       id,
       body,
-      req.user?.id,
-      req.user?.role,
-      req.user?.userType,
+      requireRequestUserId(req),
+      requestUserRole(req),
+      requestUserType(req),
     );
   }
 
   @Delete('curated/:id')
   @ApiOperation({ summary: '큐레이션 채용 정보 삭제' })
-  deleteCuratedJob(@Param('id') id: string, @Req() req: any) {
-    return this.service.deleteCuratedJob(id, req.user?.id, req.user?.role, req.user?.userType);
+  deleteCuratedJob(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.service.deleteCuratedJob(
+      id,
+      requireRequestUserId(req),
+      requestUserRole(req),
+      requestUserType(req),
+    );
   }
 
   @Post('curated/:id/click')
@@ -211,28 +235,28 @@ export class JobsController {
 
   @Get('applicants')
   @ApiOperation({ summary: '내가 등록한 공고에 들어온 application 목록 (recruiter)' })
-  listApplicants(@Req() req: any) {
+  listApplicants(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.listApplicantsForRecruiter(req.user.id);
   }
 
   @Get('pipeline')
   @ApiOperation({ summary: 'recruiter pipeline view — stage 별 applicants' })
-  listPipeline(@Req() req: any) {
+  listPipeline(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.listPipelineForRecruiter(req.user.id);
   }
 
   @Get('recommended-candidates')
   @ApiOperation({ summary: '내 활성 공고 skills 와 매칭되는 공개 이력서 user 추천' })
-  listRecommendedCandidates(@Req() req: any) {
+  listRecommendedCandidates(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.listRecommendedCandidates(req.user.id);
   }
 
   @Get('my-applications')
   @ApiOperation({ summary: '내가 지원한 내부 공고 목록 (구직자)' })
-  listMyApplications(@Req() req: any) {
+  listMyApplications(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.listMyApplications(req.user.id);
   }
@@ -241,7 +265,7 @@ export class JobsController {
 
   @Get('saved-searches')
   @ApiOperation({ summary: '내 저장된 채용 검색 (Wanted/잡코리아 패턴)' })
-  listSavedSearches(@Req() req: any) {
+  listSavedSearches(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.listSavedSearches(req.user.id);
   }
@@ -259,7 +283,7 @@ export class JobsController {
       jobTypes?: string;
       notifyOn?: boolean;
     },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException();
     return this.service.createSavedSearch(req.user.id, body);
@@ -270,7 +294,7 @@ export class JobsController {
   toggleSavedSearchNotify(
     @Param('id') id: string,
     @Body('notifyOn') notifyOn: boolean,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException();
     return this.service.toggleSavedSearchNotify(id, req.user.id, !!notifyOn);
@@ -278,7 +302,7 @@ export class JobsController {
 
   @Delete('saved-searches/:id')
   @ApiOperation({ summary: '저장된 검색 삭제' })
-  deleteSavedSearch(@Param('id') id: string, @Req() req: any) {
+  deleteSavedSearch(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException();
     return this.service.deleteSavedSearch(id, req.user.id);
   }
@@ -287,7 +311,7 @@ export class JobsController {
   @ApiOperation({
     summary: 'recruiter pipeline 통계 — stage 별 count + funnel 전환율 + 평균 응답 시간',
   })
-  pipelineStats(@Req() req: any) {
+  pipelineStats(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id)
       return { total: 0, byStage: {}, conversionRates: {}, avgResponseHours: null };
     return this.service.getPipelineStats(req.user.id);
@@ -300,7 +324,7 @@ export class JobsController {
   updatePipelineStage(
     @Param('applicationId') applicationId: string,
     @Body('stage') stage: string,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.updatePipelineStage(applicationId, req.user.id, stage);
@@ -311,7 +335,7 @@ export class JobsController {
   withdrawApplication(
     @Param('applicationId') applicationId: string,
     @Body('reason') reason: string | undefined,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.withdrawMyApplication(applicationId, req.user.id, reason);
@@ -323,7 +347,7 @@ export class JobsController {
   apply(
     @Param('id') id: string,
     @Body() body: { resumeId?: string; coverLetter?: string },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.applyToJob(id, req.user.id, body);
@@ -338,20 +362,24 @@ export class JobsController {
 
   @Post()
   @ApiOperation({ summary: '채용 공고 등록' })
-  create(@Body() body: any, @Req() req: any) {
+  create(@Body() body: JobPostBody, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { error: '로그인 필요' };
     return this.service.create(req.user.id, body);
   }
 
   @Put(':id')
   @ApiOperation({ summary: '채용 공고 수정' })
-  update(@Param('id') id: string, @Body() body: any, @Req() req: any) {
-    return this.service.update(id, req.user?.id, body);
+  update(
+    @Param('id') id: string,
+    @Body() body: Prisma.JobPostUpdateInput,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.service.update(id, requireRequestUserId(req), body);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '채용 공고 삭제' })
-  remove(@Param('id') id: string, @Req() req: any) {
-    return this.service.remove(id, req.user?.id, req.user?.role);
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.service.remove(id, requireRequestUserId(req), requestUserRole(req));
   }
 }

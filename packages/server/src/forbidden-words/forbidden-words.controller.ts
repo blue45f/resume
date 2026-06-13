@@ -1,14 +1,15 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ForbiddenWordsService } from './forbidden-words.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('forbidden-words')
 @Controller('forbidden-words')
 export class ForbiddenWordsController {
   constructor(private readonly service: ForbiddenWordsService) {}
 
-  private isAdmin(req: any): boolean {
-    return req.user?.role === 'admin' || req.user?.role === 'superadmin';
+  private isAdmin(req?: AuthenticatedRequest): boolean {
+    return req?.user?.role === 'admin' || req?.user?.role === 'superadmin';
   }
 
   @Get()
@@ -18,7 +19,7 @@ export class ForbiddenWordsController {
     @Query('search') search?: string,
     @Query('page') page = '1',
     @Query('limit') limit = '50',
-    @Req() req?: any,
+    @Req() req?: AuthenticatedRequest,
   ) {
     if (!this.isAdmin(req)) return { items: [], total: 0 };
     return this.service.findAll(category, search, parseInt(page), parseInt(limit));
@@ -26,14 +27,14 @@ export class ForbiddenWordsController {
 
   @Get('stats')
   @ApiOperation({ summary: '금칙어 통계' })
-  getStats(@Req() req: any) {
+  getStats(@Req() req: AuthenticatedRequest) {
     if (!this.isAdmin(req)) return {};
     return this.service.getStats();
   }
 
   @Get('categories')
   @ApiOperation({ summary: '금칙어 카테고리 목록' })
-  getCategories(@Req() req: any) {
+  getCategories(@Req() req: AuthenticatedRequest) {
     if (!this.isAdmin(req)) return [];
     return this.service.getCategories();
   }
@@ -46,7 +47,10 @@ export class ForbiddenWordsController {
 
   @Post()
   @ApiOperation({ summary: '금칙어 등록' })
-  create(@Body() body: { word: string; category?: string; severity?: string }, @Req() req: any) {
+  create(
+    @Body() body: { word: string; category?: string; severity?: string },
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!this.isAdmin(req)) return { error: '권한이 없습니다' };
     return this.service.create(
       body.word,
@@ -60,7 +64,7 @@ export class ForbiddenWordsController {
   @ApiOperation({ summary: '금칙어 일괄 등록' })
   createBulk(
     @Body() body: { words: string[]; category?: string; severity?: string },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!this.isAdmin(req)) return { error: '권한이 없습니다' };
     return this.service.createBulk(
@@ -76,7 +80,7 @@ export class ForbiddenWordsController {
   update(
     @Param('id') id: string,
     @Body() body: { word?: string; category?: string; severity?: string; isActive?: boolean },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!this.isAdmin(req)) return { error: '권한이 없습니다' };
     return this.service.update(id, body);
@@ -84,14 +88,14 @@ export class ForbiddenWordsController {
 
   @Delete('bulk')
   @ApiOperation({ summary: '금칙어 일괄 삭제' })
-  removeBulk(@Body() body: { ids: string[] }, @Req() req: any) {
+  removeBulk(@Body() body: { ids: string[] }, @Req() req: AuthenticatedRequest) {
     if (!this.isAdmin(req)) return { error: '권한이 없습니다' };
     return this.service.removeBulk(body.ids);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '금칙어 삭제' })
-  remove(@Param('id') id: string, @Req() req: any) {
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!this.isAdmin(req)) return { error: '권한이 없습니다' };
     return this.service.remove(id);
   }

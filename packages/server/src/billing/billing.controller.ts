@@ -12,6 +12,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Public } from '../auth/auth.guard';
 import { Throttle } from '@nestjs/throttler';
 import { BillingService, PLANS, PlanId } from './billing.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('billing')
 @Controller('billing')
@@ -27,14 +28,14 @@ export class BillingController {
 
   @Get('me')
   @ApiOperation({ summary: '내 현재 plan + active subscription' })
-  getMine(@Req() req: any) {
+  getMine(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.getMyBilling(req.user.id);
   }
 
   @Get('me/payments')
   @ApiOperation({ summary: '내 결제 내역' })
-  listMyPayments(@Req() req: any) {
+  listMyPayments(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.listMyPayments(req.user.id);
   }
@@ -46,7 +47,7 @@ export class BillingController {
   @Get('me/verify-recent')
   @Throttle({ default: { limit: 30, ttl: 60000 } })
   @ApiOperation({ summary: '최근 결제 검증 (PaymentResultPage 용)' })
-  verifyRecent(@Req() req: any) {
+  verifyRecent(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.verifyRecentPayment(req.user.id);
   }
@@ -57,7 +58,7 @@ export class BillingController {
   @Post('me/cancel')
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: '내 구독 해지 예약' })
-  cancelMine(@Req() req: any) {
+  cancelMine(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.cancelMyPlan(req.user.id);
   }
@@ -72,7 +73,10 @@ export class BillingController {
   @Post('me/checkout')
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '[mock] 결제 — Pro 7일 trial (사용자당 1회)' })
-  async mockCheckout(@Body() body: { plan: PlanId; days?: number }, @Req() req: any) {
+  async mockCheckout(
+    @Body() body: { plan: PlanId; days?: number },
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     if (!PLANS[body.plan]) {
       throw new ForbiddenException('유효하지 않은 plan');
@@ -98,7 +102,7 @@ export class BillingController {
   async adminGrant(
     @Param('userId') userId: string,
     @Body() body: { plan: PlanId; days: number; reason?: string },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
       throw new ForbiddenException('admin 만 가능합니다');

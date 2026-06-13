@@ -380,7 +380,10 @@ interface ContentSuggestionsProps {
   onInsert: (text: string) => void;
 }
 
-export default function ContentSuggestions({ jobTitle, onInsert }: ContentSuggestionsProps) {
+const contentSuggestions = function ContentSuggestions({
+  jobTitle,
+  onInsert,
+}: ContentSuggestionsProps) {
   const [expanded, setExpanded] = useState(true);
   const [selectedJob, setSelectedJob] = useState(jobTitle || '');
 
@@ -491,7 +494,9 @@ export default function ContentSuggestions({ jobTitle, onInsert }: ContentSugges
       )}
     </div>
   );
-}
+};
+
+export default contentSuggestions;
 
 /** Exported job titles list for use in wizard */
 export const JOB_TITLE_LIST = JOB_SUGGESTIONS.map((j) => j.title);

@@ -24,6 +24,12 @@ interface Props {
   onMessage?: (userId: string, name: string) => void;
 }
 
+interface ResumeLoadState {
+  resumeId: string | null;
+  resume: Resume | null;
+  error: string | null;
+}
+
 const STAGE_LABEL: Record<string, string> = {
   interested: '👀 검토',
   contacted: '📞 연락',
@@ -38,33 +44,41 @@ const STAGE_LABEL: Record<string, string> = {
  * 이력서 lazy fetch + 자소서 + 채팅/스카우트 CTA.
  */
 export default function ApplicantDetailDrawer({ applicant, onClose }: Props) {
-  const [resume, setResume] = useState<Resume | null>(null);
-  const [resumeLoading, setResumeLoading] = useState(false);
-  const [resumeError, setResumeError] = useState<string | null>(null);
+  const resumeId = applicant?.resumeId ?? null;
+  const [resumeState, setResumeState] = useState<ResumeLoadState>({
+    resumeId: null,
+    resume: null,
+    error: null,
+  });
 
   useEffect(() => {
-    const id = applicant?.resumeId;
+    const id = resumeId;
     if (!id) return;
     let cancelled = false;
-    setResumeLoading(true);
-    setResumeError(null);
     fetchResume(id)
       .then((r) => {
-        if (!cancelled) setResume(r);
+        if (!cancelled) setResumeState({ resumeId: id, resume: r, error: null });
       })
       .catch((e) => {
-        if (!cancelled) setResumeError(e?.message || '이력서를 불러올 수 없습니다');
-      })
-      .finally(() => {
-        if (!cancelled) setResumeLoading(false);
+        if (!cancelled) {
+          setResumeState({
+            resumeId: id,
+            resume: null,
+            error: e instanceof Error ? e.message : '이력서를 불러올 수 없습니다',
+          });
+        }
       });
     return () => {
       cancelled = true;
     };
-  }, [applicant?.resumeId]);
+  }, [resumeId]);
+
+  const resume = resumeState.resumeId === resumeId ? resumeState.resume : null;
+  const resumeError = resumeState.resumeId === resumeId ? resumeState.error : null;
+  const resumeLoading = Boolean(resumeId && resumeState.resumeId !== resumeId);
 
   // applicant 가 다른 사람으로 바뀌면 이전 resume render 차단 (mismatch 방지)
-  const showResume = resume && applicant?.resumeId === resume.id ? resume : null;
+  const showResume = resume && resumeId === resume.id ? resume : null;
 
   if (!applicant) return null;
   const stage = STAGE_LABEL[applicant.stage || 'interested'] || applicant.stage;

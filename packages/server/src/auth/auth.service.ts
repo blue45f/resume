@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomBytes, createHmac, timingSafeEqual } from 'crypto';
 
@@ -11,6 +12,11 @@ interface OAuthProfile {
   name: string;
   avatar: string;
 }
+
+type GitHubEmail = {
+  email?: string;
+  primary?: boolean;
+};
 
 /** 이메일 부분 마스킹 — 'user@example.com' → 'u***@example.com' (정보 노출 최소화) */
 function maskEmail(email: string): string {
@@ -199,8 +205,8 @@ export class AuthService {
       const emailsRes = await fetch('https://api.github.com/user/emails', {
         headers: { Authorization: `Bearer ${tokenData.access_token}` },
       });
-      const emails = await emailsRes.json();
-      const primary = emails.find((e: any) => e.primary);
+      const emails = (await emailsRes.json()) as GitHubEmail[];
+      const primary = emails.find((e) => e.primary);
       email = primary?.email || emails[0]?.email || '';
     }
 
@@ -409,7 +415,7 @@ export class AuthService {
     const totalExp = publicResumes.reduce((s, r) => s + r.experiences.length, 0);
     const allSkills: string[] = [];
     publicResumes.forEach((r) =>
-      r.skills.forEach((sk: any) => {
+      r.skills.forEach((sk) => {
         (sk.items as string)
           .split(',')
           .map((s: string) => s.trim())
@@ -439,7 +445,7 @@ export class AuthService {
         totalExperiences: totalExp,
       },
       topSkills: uniqueSkills,
-      resumes: publicResumes.map((r: any) => ({
+      resumes: publicResumes.map((r) => ({
         id: r.id,
         title: r.title,
         viewCount: r.viewCount,
@@ -450,7 +456,7 @@ export class AuthService {
         website: r.personalInfo?.website || '',
         photo: r.personalInfo?.photo || '',
         experiences: r.experiences,
-        tags: r.tags.map((t: any) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })),
+        tags: r.tags.map((t) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })),
         topSkills: (r.skills[0]?.items || '')
           .split(',')
           .map((s: string) => s.trim())
@@ -525,8 +531,8 @@ export class AuthService {
       const emailsRes = await fetch('https://api.github.com/user/emails', {
         headers: { Authorization: `Bearer ${tokenData.access_token}` },
       });
-      const emails = await emailsRes.json();
-      const primary = emails.find((e: any) => e.primary);
+      const emails = (await emailsRes.json()) as GitHubEmail[];
+      const primary = emails.find((e) => e.primary);
       email = primary?.email || emails[0]?.email || '';
     }
 
@@ -737,7 +743,7 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
 
-    const updateData: any = {};
+    const updateData: Prisma.UserUpdateInput = {};
     if (data.userType) {
       const validTypes = ['personal', 'recruiter', 'company'];
       if (!validTypes.includes(data.userType)) {

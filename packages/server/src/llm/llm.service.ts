@@ -9,6 +9,7 @@ import { GroqProvider } from './providers/groq.provider';
 import { N8nWebhookProvider } from './providers/n8n-webhook.provider';
 import { OpenAiCompatibleProvider } from './providers/openai-compatible.provider';
 import { TransformResumeDto } from './dto/transform-resume.dto';
+import { getErrorMessage } from '../common/error.utils';
 
 const TEMPLATE_PROMPTS: Record<string, string> = {
   standard: `당신은 전문 이력서 작성 전문가입니다. 주어진 이력서 데이터를 깔끔하고 전문적인 한국어 표준 이력서 양식으로 변환해주세요.
@@ -44,6 +45,18 @@ const TEMPLATE_PROMPTS: Record<string, string> = {
 - 포트폴리오 중심 구성
 - 디자인 프로세스와 방법론 강조
 - 사용자 리서치, A/B 테스트 등 데이터 기반 결과 포함`,
+};
+
+type EnhancedResumePayload = Record<string, unknown> & {
+  changes?: unknown;
+};
+
+type SpellCheckIssue = {
+  section: string;
+  wrong: string;
+  suggestion: string;
+  reason?: string;
+  severity?: string;
 };
 
 // Max JD length to prevent prompt injection and cost explosion
@@ -341,12 +354,12 @@ export class LlmService {
 
     const result = await this.generateWithFallback(systemPrompt, userMessage);
 
-    let parsed: any;
+    let parsed: EnhancedResumePayload;
     try {
       let json = result.text;
       const m = json.match(/\{[\s\S]*\}/);
       if (m) json = m[0];
-      parsed = JSON.parse(json);
+      parsed = JSON.parse(json) as EnhancedResumePayload;
     } catch {
       throw new BadRequestException(
         'AI 응답 파싱에 실패했습니다. 문서가 너무 길거나 형식이 복잡할 수 있습니다.',
@@ -421,12 +434,13 @@ export class LlmService {
 
     const result = await this.generateWithFallback(systemPrompt, input, provider);
 
-    let issues: any[];
+    let issues: SpellCheckIssue[];
     try {
       let text = result.text;
       const m = text.match(/\[[\s\S]*\]/);
       if (m) text = m[0];
-      issues = JSON.parse(text);
+      const parsedIssues = JSON.parse(text) as unknown;
+      issues = Array.isArray(parsedIssues) ? parsedIssues : [];
       if (!Array.isArray(issues)) issues = [];
       issues = issues
         .slice(0, 20)
@@ -508,8 +522,8 @@ export class LlmService {
       try {
         this.logger.log(`LLM: trying ${name} (${tried.size}/${this.providers.size})`);
         return await provider.generate(systemPrompt, userMessage);
-      } catch (err: any) {
-        const msg = err?.message || String(err);
+      } catch (err: unknown) {
+        const msg = getErrorMessage(err, String(err));
         errors.push(`${name}: ${msg.substring(0, 150)}`);
         this.logger.warn(`LLM ${name} failed: ${msg.substring(0, 200)}`);
         // 모든 에러에서 다음 프로바이더로 fallback (rate limit 뿐 아니라 일시적 장애도 대응)
@@ -552,7 +566,7 @@ export class LlmService {
     return prompt;
   }
 
-  private buildUserMessage(resume: any): string {
+  private buildUserMessage(resume: unknown): string {
     const sanitized = JSON.stringify(resume, null, 2);
     return `다음은 변환할 이력서 원본 데이터입니다:\n\n${sanitized}`;
   }

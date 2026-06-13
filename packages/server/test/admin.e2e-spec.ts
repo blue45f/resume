@@ -73,7 +73,9 @@ describe('Admin (관리자)', () => {
         .authGet('admin', '/api/auth/admin/users')
         .query({ search: 'admin-e2e' })
         .expect(200);
-      expect(res.body.some((u: any) => u.email.includes('admin-e2e'))).toBe(true);
+      expect(
+        (res.body as Array<{ email: string }>).some((user) => user.email.includes('admin-e2e')),
+      ).toBe(true);
     });
 
     it('POST /api/auth/admin/users/:id/role (superadmin 아님) → 403', async () => {

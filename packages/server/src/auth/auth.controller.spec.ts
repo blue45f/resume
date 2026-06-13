@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { Response } from 'express';
+import type { Response } from 'express';
 
 const mockAuthService = {
   generateOAuthState: jest.fn(),
@@ -25,15 +25,23 @@ const mockAuthService = {
   getKakaoProfile: jest.fn(),
 };
 
+type MockResponse = {
+  redirect: jest.Mock;
+  status: jest.Mock;
+  json: jest.Mock;
+  cookie: jest.Mock;
+  clearCookie: jest.Mock;
+};
+
 function mockResponse(): Response {
-  const res = {
+  const res: MockResponse = {
     redirect: jest.fn(),
     status: jest.fn().mockReturnThis(),
     json: jest.fn(),
     cookie: jest.fn(),
     clearCookie: jest.fn(),
-  } as any;
-  return res;
+  };
+  return res as unknown as Response;
 }
 
 describe('AuthController', () => {

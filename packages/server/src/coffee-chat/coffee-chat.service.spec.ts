@@ -7,28 +7,31 @@ import { SystemConfigService } from '../system-config/system-config.service';
 
 describe('CoffeeChatService', () => {
   let service: CoffeeChatService;
-  let mockPrisma: any;
-  let mockNotif: any;
+  let mockPrisma: ReturnType<typeof createMockPrisma>;
+  let mockNotif: { create: jest.Mock };
   let mockSystemConfig: { getCoffeeChatRateLimit: jest.Mock };
 
+  const createMockPrisma = () => ({
+    user: { findUnique: jest.fn() },
+    coffeeChat: {
+      create: jest.fn(),
+      findFirst: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn().mockResolvedValue({ count: 0 }),
+      count: jest.fn().mockResolvedValue(0),
+    },
+    webrtcSignal: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+    },
+    notification: { findMany: jest.fn().mockResolvedValue([]) },
+  });
+
   beforeEach(async () => {
-    mockPrisma = {
-      user: { findUnique: jest.fn() },
-      coffeeChat: {
-        create: jest.fn(),
-        findFirst: jest.fn(),
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
-        update: jest.fn(),
-        updateMany: jest.fn().mockResolvedValue({ count: 0 }),
-        count: jest.fn().mockResolvedValue(0),
-      },
-      webrtcSignal: {
-        create: jest.fn(),
-        findMany: jest.fn(),
-        deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
-      },
-    };
+    mockPrisma = createMockPrisma();
     mockNotif = { create: jest.fn().mockResolvedValue({}) };
     mockSystemConfig = {
       getCoffeeChatRateLimit: jest.fn().mockResolvedValue({ days: 30, max: 3 }),
@@ -287,7 +290,7 @@ describe('CoffeeChatService', () => {
 
   describe('sendReminders (cron)', () => {
     beforeEach(() => {
-      mockPrisma.notification = { findMany: jest.fn().mockResolvedValue([]) };
+      mockPrisma.notification.findMany.mockResolvedValue([]);
     });
 
     it('해당 시간대 chats 가 없으면 알림 X', async () => {
@@ -365,7 +368,7 @@ describe('CoffeeChatService', () => {
         ])
         .mockResolvedValueOnce([]);
       // host 가 이미 받은 상태
-      (mockPrisma.notification as any).findMany.mockResolvedValue([
+      mockPrisma.notification.findMany.mockResolvedValue([
         { userId: 'h1', link: '/coffee-chats/cc1/room?reminder=24h' },
       ]);
 

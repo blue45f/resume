@@ -3,7 +3,7 @@ import { ForbiddenException } from '@nestjs/common';
 import { UsageService } from './usage.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-const mockPrisma: any = {
+const mockPrisma = {
   user: { findUnique: jest.fn() },
   usageLog: {
     create: jest.fn(),

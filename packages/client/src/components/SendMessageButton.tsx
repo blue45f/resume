@@ -5,7 +5,7 @@ import { getUser } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
 import { toast } from '@/components/Toast';
 import Dialog from '@/shared/ui/Dialog';
-import { messageSchema, type MessageFormValues } from '@/shared/lib/schemas/message';
+import { messageSchema, type MessageFormValues } from '@/shared/lib/schemas';
 
 interface Props {
   targetUserId?: string;

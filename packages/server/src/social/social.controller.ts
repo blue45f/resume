@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Delete, Param, Body, Req, Query } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { SocialService } from './social.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('social')
 @Controller('social')
@@ -11,7 +12,7 @@ export class SocialController {
   @Post('follow/:userId')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '팔로우' })
-  follow(@Param('userId') userId: string, @Req() req: any) {
+  follow(@Param('userId') userId: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { error: '로그인 필요' };
     return this.service.follow(req.user.id, userId);
   }
@@ -19,7 +20,7 @@ export class SocialController {
   @Delete('follow/:userId')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '언팔로우' })
-  unfollow(@Param('userId') userId: string, @Req() req: any) {
+  unfollow(@Param('userId') userId: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { error: '로그인 필요' };
     return this.service.unfollow(req.user.id, userId);
   }
@@ -27,7 +28,7 @@ export class SocialController {
   @Get('followers')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '내 팔로워 목록' })
-  getFollowers(@Req() req: any) {
+  getFollowers(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.getFollowers(req.user.id);
   }
@@ -35,7 +36,7 @@ export class SocialController {
   @Get('following')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '내 팔로잉 목록' })
-  getFollowing(@Req() req: any) {
+  getFollowing(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.getFollowing(req.user.id);
   }
@@ -52,7 +53,7 @@ export class SocialController {
       position: string;
       message: string;
     },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) return { error: '로그인 필요' };
     return this.service.sendScout(req.user.id, body);
@@ -62,7 +63,7 @@ export class SocialController {
   @Get('scouts')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '받은 스카우트 목록' })
-  getScouts(@Req() req: any) {
+  getScouts(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.getReceivedScouts(req.user.id);
   }
@@ -70,7 +71,7 @@ export class SocialController {
   @Get('scouts/sent')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '보낸 스카우트 목록' })
-  getSentScouts(@Req() req: any) {
+  getSentScouts(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.getSentScouts(req.user.id);
   }
@@ -80,7 +81,7 @@ export class SocialController {
   @ApiOperation({ summary: '일괄 스카우트 전송' })
   sendBulkScout(
     @Body() body: { targetIds: string[]; message: string; company: string },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) return { error: '로그인 필요' };
     return this.service.sendBulkScout(req.user.id, body);
@@ -90,7 +91,7 @@ export class SocialController {
   @Post('scouts/:id/read')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '스카우트 읽음 처리' })
-  markRead(@Param('id') id: string, @Req() req: any) {
+  markRead(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { success: false };
     return this.service.markScoutRead(id, req.user.id);
   }
@@ -98,7 +99,11 @@ export class SocialController {
   @Post('scouts/:id/respond')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '스카우트 수락/거절' })
-  respondToScout(@Param('id') id: string, @Body() body: { status: string }, @Req() req: any) {
+  respondToScout(
+    @Param('id') id: string,
+    @Body() body: { status: string },
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!req.user?.id) return { success: false };
     return this.service.respondToScout(id, req.user.id, body.status);
   }
@@ -106,7 +111,7 @@ export class SocialController {
   @Get('messages')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '대화 목록' })
-  getConversations(@Req() req: any) {
+  getConversations(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.getConversations(req.user.id);
   }
@@ -114,7 +119,7 @@ export class SocialController {
   @Get('messages/unread/count')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '읽지 않은 쪽지 수' })
-  async getUnreadCount(@Req() req: any) {
+  async getUnreadCount(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { count: 0 };
     const count = await this.service.getUnreadMessageCount(req.user.id);
     return { count };
@@ -123,7 +128,7 @@ export class SocialController {
   @Get('messages/:partnerId')
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '대화 내용' })
-  getMessages(@Param('partnerId') partnerId: string, @Req() req: any) {
+  getMessages(@Param('partnerId') partnerId: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.getMessages(req.user.id, partnerId);
   }
@@ -134,7 +139,7 @@ export class SocialController {
   sendMessage(
     @Param('receiverId') receiverId: string,
     @Body('content') content: string,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) return { error: '로그인 필요' };
     return this.service.sendMessage(req.user.id, receiverId, content);

@@ -3,6 +3,8 @@ import { TemplatesController } from './templates.controller';
 import { TemplatesService } from './templates.service';
 import { LocalTransformService } from './local-transform.service';
 import { ResumesService } from '../resumes/resumes.service';
+import type { CreateTemplateDto, LocalTransformDto, UpdateTemplateDto } from './dto/template.dto';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockTemplates = {
   findAll: jest.fn(),
@@ -21,7 +23,7 @@ const mockLocalTransform = {
 
 const mockResumes = { findOne: jest.fn() };
 
-const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
+const reqWith = (user?: { id?: string; role?: string }): AuthenticatedRequest => ({ user });
 
 describe('TemplatesController', () => {
   let controller: TemplatesController;
@@ -51,10 +53,14 @@ describe('TemplatesController', () => {
   });
 
   it('create/update/remove: user meta 전달', () => {
-    controller.create({ name: 'T' } as any, reqWith({ id: 'u1' }));
+    controller.create({ name: 'T' } as CreateTemplateDto, reqWith({ id: 'u1' }));
     expect(mockTemplates.create).toHaveBeenCalledWith({ name: 'T' }, 'u1', undefined);
 
-    controller.update('t1', { name: 'T2' } as any, reqWith({ id: 'u1', role: 'admin' }));
+    controller.update(
+      't1',
+      { name: 'T2' } as UpdateTemplateDto,
+      reqWith({ id: 'u1', role: 'admin' }),
+    );
     expect(mockTemplates.update).toHaveBeenCalledWith('t1', { name: 'T2' }, 'u1', 'admin');
 
     controller.remove('t1', reqWith({ id: 'u1', role: 'admin' }));
@@ -71,7 +77,7 @@ describe('TemplatesController', () => {
       mockLocalTransform.transform.mockReturnValueOnce('변환된 텍스트');
       const res = await controller.localTransform(
         'r1',
-        { templateId: 't1' } as any,
+        { templateId: 't1' } as LocalTransformDto,
         reqWith({ id: 'u1' }),
       );
       expect(res).toEqual({ text: '변환된 텍스트', method: 'template', templateName: '개발자' });
@@ -84,7 +90,11 @@ describe('TemplatesController', () => {
     it('templateId 없으면 preset 기본 "standard"', async () => {
       mockResumes.findOne.mockResolvedValueOnce({ id: 'r1' });
       mockLocalTransform.transformByPreset.mockReturnValueOnce('기본');
-      const res = await controller.localTransform('r1', {} as any, reqWith({ id: 'u1' }));
+      const res = await controller.localTransform(
+        'r1',
+        {} as LocalTransformDto,
+        reqWith({ id: 'u1' }),
+      );
       expect(res).toEqual({ text: '기본', method: 'preset', preset: 'standard' });
       expect(mockLocalTransform.transformByPreset).toHaveBeenCalledWith({ id: 'r1' }, 'standard');
     });
@@ -94,7 +104,7 @@ describe('TemplatesController', () => {
       mockLocalTransform.transformByPreset.mockReturnValueOnce('dev');
       const res = await controller.localTransform(
         'r1',
-        { preset: 'developer' } as any,
+        { preset: 'developer' } as LocalTransformDto,
         reqWith({ id: 'u1' }),
       );
       expect(res.preset).toBe('developer');
@@ -104,7 +114,11 @@ describe('TemplatesController', () => {
     it('이력서 소유권 체크 실패 시 변환 호출 안 함 (IDOR 방지)', async () => {
       mockResumes.findOne.mockRejectedValueOnce(new Error('forbidden'));
       await expect(
-        controller.localTransform('r1', { preset: 'standard' } as any, reqWith({ id: 'u1' })),
+        controller.localTransform(
+          'r1',
+          { preset: 'standard' } as LocalTransformDto,
+          reqWith({ id: 'u1' }),
+        ),
       ).rejects.toThrow();
       expect(mockLocalTransform.transform).not.toHaveBeenCalled();
       expect(mockLocalTransform.transformByPreset).not.toHaveBeenCalled();

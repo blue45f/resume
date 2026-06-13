@@ -28,44 +28,18 @@ const DEFAULT_FAQ = [
   },
 ];
 
-export default function PricingPage() {
-  const [yearly, setYearly] = useState(false);
-  const _user = getUser();
-  const currentPlan = _user?.plan || 'free';
-  const [planType, setPlanType] = useState<'personal' | 'recruiter'>(
-    _user?.userType === 'recruiter' || _user?.userType === 'company' ? 'recruiter' : 'personal',
-  );
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const displayPlans = planType === 'recruiter' ? RECRUITER_PLANS : PLANS;
-
-  useEffect(() => {
-    document.title = '요금제 — 이력서공방';
-    return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
-
-  const { data: dynamicFaq } = useQuery<typeof DEFAULT_FAQ | null>({
-    queryKey: ['pricing-faq'],
-    queryFn: () =>
-      fetch(`${API_URL}/api/system-config/content/pricing_faq`).then((r) =>
-        r.ok ? r.json() : null,
-      ),
-    staleTime: 5 * 60_000,
-  });
-  const faqItems = dynamicFaq?.length ? dynamicFaq : DEFAULT_FAQ;
-
-  const FeatureRow = ({
-    label,
-    free,
-    pro,
-    ent,
-  }: {
-    label: string;
-    free: string | boolean;
-    pro: string | boolean;
-    ent: string | boolean;
-  }) => (
+function FeatureRow({
+  label,
+  free,
+  pro,
+  ent,
+}: {
+  label: string;
+  free: string | boolean;
+  pro: string | boolean;
+  ent: string | boolean;
+}) {
+  return (
     <tr className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
       <td className="py-3.5 text-sm text-slate-600 dark:text-slate-400 font-medium">{label}</td>
       {[free, pro, ent].map((val: string | boolean, i: number) => (
@@ -97,6 +71,34 @@ export default function PricingPage() {
       ))}
     </tr>
   );
+}
+
+export default function PricingPage() {
+  const [yearly, setYearly] = useState(false);
+  const _user = getUser();
+  const currentPlan = _user?.plan || 'free';
+  const [planType, setPlanType] = useState<'personal' | 'recruiter'>(
+    _user?.userType === 'recruiter' || _user?.userType === 'company' ? 'recruiter' : 'personal',
+  );
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const displayPlans = planType === 'recruiter' ? RECRUITER_PLANS : PLANS;
+
+  useEffect(() => {
+    document.title = '요금제 — 이력서공방';
+    return () => {
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
+    };
+  }, []);
+
+  const { data: dynamicFaq } = useQuery<typeof DEFAULT_FAQ | null>({
+    queryKey: ['pricing-faq'],
+    queryFn: () =>
+      fetch(`${API_URL}/api/system-config/content/pricing_faq`).then((r) =>
+        r.ok ? r.json() : null,
+      ),
+    staleTime: 5 * 60_000,
+  });
+  const faqItems = dynamicFaq?.length ? dynamicFaq : DEFAULT_FAQ;
 
   return (
     <>

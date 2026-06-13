@@ -50,6 +50,7 @@ export default function HomePage() {
       | undefined) ?? [];
   const applicationsQuery = useApplications();
   const applications = applicationsQuery.data ?? [];
+  const userId = user?.id;
   const loading = !!user && (resumesQuery.isLoading || tagsQuery.isLoading);
   const serverError = !!resumesQuery.error;
   const [filterTag, setFilterTag] = useState<string | null>(null);
@@ -74,16 +75,19 @@ export default function HomePage() {
 
   // Load first resume for ProfileWizard
   const firstResumeId = resumes[0]?.id;
-  const [wizardResume, setWizardResume] = useState<Resume | null>(null);
+  const [wizardResumeState, setWizardResumeState] = useState<{
+    resumeId: string | null;
+    resume: Resume | null;
+  }>({ resumeId: null, resume: null });
   useEffect(() => {
-    if (firstResumeId && user) {
+    if (firstResumeId && userId) {
       fetchResume(firstResumeId)
-        .then(setWizardResume)
+        .then((resume) => setWizardResumeState({ resumeId: firstResumeId, resume }))
         .catch(() => {});
-    } else {
-      setWizardResume(null);
     }
-  }, [firstResumeId]);
+  }, [firstResumeId, userId]);
+  const wizardResume =
+    wizardResumeState.resumeId === firstResumeId ? wizardResumeState.resume : null;
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

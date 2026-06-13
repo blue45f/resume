@@ -1,8 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { JobsController } from './jobs.controller';
-import { JobsService } from './jobs.service';
+import { JobsService, type CuratedJobBody, type JobPostBody } from './jobs.service';
 import { JobUrlParserService } from './job-url-parser.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   findAll: jest.fn(),
@@ -26,7 +28,18 @@ const mockService = {
   recordCuratedJobClick: jest.fn(),
 };
 
-const reqWith = (user?: { id?: string; role?: string; userType?: string }): any => ({ user });
+const reqWith = (user?: {
+  id?: string;
+  role?: string;
+  userType?: string;
+}): AuthenticatedRequest => ({ user });
+
+const externalLinkBody: Prisma.ExternalJobLinkCreateInput = {
+  name: 'X',
+  url: 'https://x.com',
+};
+const curatedJobBody: CuratedJobBody = { position: 'T' };
+const jobPostBody: JobPostBody = { position: 'T' };
 
 describe('JobsController', () => {
   let controller: JobsController;
@@ -92,18 +105,21 @@ describe('JobsController', () => {
     });
 
     it('createExternalLink: 비로그인 → Unauthorized', () => {
-      expect(() => controller.createExternalLink({}, reqWith())).toThrow(UnauthorizedException);
+      expect(() => controller.createExternalLink(externalLinkBody, reqWith())).toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('createExternalLink: 로그인 시 user meta 전달', () => {
       controller.createExternalLink(
-        { url: 'https://x.com' },
+        externalLinkBody,
         reqWith({ id: 'u1', role: 'admin', userType: 'recruiter' }),
       );
-      expect(mockService.createExternalLink).toHaveBeenCalledWith(
-        { url: 'https://x.com' },
-        { id: 'u1', role: 'admin', userType: 'recruiter' },
-      );
+      expect(mockService.createExternalLink).toHaveBeenCalledWith(externalLinkBody, {
+        id: 'u1',
+        role: 'admin',
+        userType: 'recruiter',
+      });
     });
 
     it('updateExternalLink: 비로그인 → Unauthorized', () => {
@@ -137,11 +153,11 @@ describe('JobsController', () => {
 
     it('createCuratedJob: user meta 4개 인자 분해 전달', () => {
       controller.createCuratedJob(
-        { title: 'T' },
+        curatedJobBody,
         reqWith({ id: 'u1', role: 'user', userType: 'personal' }),
       );
       expect(mockService.createCuratedJob).toHaveBeenCalledWith(
-        { title: 'T' },
+        curatedJobBody,
         'u1',
         'user',
         'personal',
@@ -156,18 +172,18 @@ describe('JobsController', () => {
 
   describe('job post CRUD', () => {
     it('create: 비로그인 → error 객체', () => {
-      expect(controller.create({}, reqWith())).toEqual({ error: '로그인 필요' });
+      expect(controller.create(jobPostBody, reqWith())).toEqual({ error: '로그인 필요' });
       expect(mockService.create).not.toHaveBeenCalled();
     });
 
     it('create: 로그인 시 userId + body 전달', () => {
-      controller.create({ title: 'T' }, reqWith({ id: 'u1' }));
-      expect(mockService.create).toHaveBeenCalledWith('u1', { title: 'T' });
+      controller.create(jobPostBody, reqWith({ id: 'u1' }));
+      expect(mockService.create).toHaveBeenCalledWith('u1', jobPostBody);
     });
 
     it('update: userId 전달 (service 에서 권한 판정)', () => {
-      controller.update('j1', { title: 'T' }, reqWith({ id: 'u1' }));
-      expect(mockService.update).toHaveBeenCalledWith('j1', 'u1', { title: 'T' });
+      controller.update('j1', jobPostBody, reqWith({ id: 'u1' }));
+      expect(mockService.update).toHaveBeenCalledWith('j1', 'u1', jobPostBody);
     });
 
     it('remove: userId + role 전달', () => {

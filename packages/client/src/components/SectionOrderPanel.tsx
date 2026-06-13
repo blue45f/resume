@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import type { SectionId } from '@/types/resume';
 import { DEFAULT_SECTION_ORDER } from '@/types/resume';
 
@@ -30,7 +30,10 @@ export default function SectionOrderPanel({
   const [dragOver, setDragOver] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const order = sectionOrder.length > 0 ? sectionOrder : [...DEFAULT_SECTION_ORDER];
+  const order = useMemo(
+    () => (sectionOrder.length > 0 ? sectionOrder : [...DEFAULT_SECTION_ORDER]),
+    [sectionOrder],
+  );
 
   const handleDragStart = useCallback((idx: number) => {
     setDragging(idx);

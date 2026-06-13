@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ShareController } from './share.controller';
 import { ShareService } from './share.service';
 import { ResumesService } from '../resumes/resumes.service';
+import type { CreateShareLinkDto } from './dto/share.dto';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockShareService = {
   createLink: jest.fn(),
@@ -14,7 +16,7 @@ const mockResumesService = {
   findOne: jest.fn(),
 };
 
-const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
+const reqWith = (user?: { id?: string; role?: string }): AuthenticatedRequest => ({ user });
 
 describe('ShareController', () => {
   let controller: ShareController;
@@ -35,7 +37,7 @@ describe('ShareController', () => {
     it('소유권 확인 실패 시 공유 링크 생성 호출 안 함 (IDOR 방지)', async () => {
       mockResumesService.findOne.mockRejectedValueOnce(new Error('forbidden'));
       await expect(
-        controller.createLink('r1', { password: 'x' } as any, reqWith({ id: 'u1' })),
+        controller.createLink('r1', { password: 'x' } as CreateShareLinkDto, reqWith({ id: 'u1' })),
       ).rejects.toThrow();
       expect(mockShareService.createLink).not.toHaveBeenCalled();
     });
@@ -45,7 +47,7 @@ describe('ShareController', () => {
       mockShareService.createLink.mockResolvedValueOnce({ token: 't1' });
       const res = await controller.createLink(
         'r1',
-        { password: 'x' } as any,
+        { password: 'x' } as CreateShareLinkDto,
         reqWith({ id: 'u1' }),
       );
       expect(res).toEqual({ token: 't1' });

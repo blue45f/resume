@@ -11,6 +11,7 @@ import { API_URL } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
 import { t, tx } from '@/lib/i18n';
 import { formatDate } from '@/lib/time';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 const EXAMPLES = [
   '경력 메모, 자기소개 텍스트',
@@ -27,6 +28,87 @@ const STEPS = [
 ];
 
 const ACCEPTED_FILE_TYPES = '.pdf,.docx,.txt,.rtf,.jpg,.jpeg,.png,.webp';
+const ANALYSIS_PHRASES = [
+  '텍스트를 파싱하고 있습니다...',
+  '경력 정보를 추출하고 있습니다...',
+  '학력 및 기술 스택을 분석 중...',
+  '이력서 구조를 생성하고 있습니다...',
+  '최종 검토 중...',
+];
+
+type PreviewListKey =
+  | 'experiences'
+  | 'educations'
+  | 'skills'
+  | 'certifications'
+  | 'languages'
+  | 'projects'
+  | 'awards'
+  | 'activities';
+
+type PreviewListItem = Record<string, unknown>;
+
+interface GeneratedResumePreview extends Partial<Record<PreviewListKey, PreviewListItem[]>> {
+  personalInfo?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    summary?: string;
+  };
+}
+
+interface AutoGeneratePreviewResponse {
+  resume: GeneratedResumePreview;
+  tokensUsed?: number;
+  provider?: string;
+}
+
+interface AutoGenerateCreateResponse {
+  resume: {
+    id: string;
+  };
+}
+
+const previewText = (value: unknown): string => {
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) return value.map(previewText).filter(Boolean).join(', ');
+  return '';
+};
+
+const PREVIEW_SECTIONS: {
+  key: PreviewListKey;
+  label: string;
+  render: (item: PreviewListItem) => string;
+}[] = [
+  {
+    key: 'experiences',
+    label: '경력',
+    render: (e) => `${previewText(e.company)} - ${previewText(e.position)}`,
+  },
+  {
+    key: 'educations',
+    label: '학력',
+    render: (e) => `${previewText(e.school)} ${previewText(e.degree)} ${previewText(e.field)}`,
+  },
+  {
+    key: 'skills',
+    label: '기술',
+    render: (s) => `${previewText(s.category)}: ${previewText(s.items)}`,
+  },
+  {
+    key: 'certifications',
+    label: '자격증',
+    render: (c) => `${previewText(c.name)} (${previewText(c.issuer)})`,
+  },
+  {
+    key: 'languages',
+    label: '어학',
+    render: (l) => `${previewText(l.name)} ${previewText(l.testName)} ${previewText(l.score)}`,
+  },
+  { key: 'projects', label: '프로젝트', render: (p) => previewText(p.name) },
+  { key: 'awards', label: '수상', render: (a) => previewText(a.name) },
+  { key: 'activities', label: '활동', render: (a) => previewText(a.name) },
+];
 
 function parseLayout(layout: string) {
   try {
@@ -43,11 +125,7 @@ export default function AutoGeneratePage() {
   const [instruction, setInstruction] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [preview, setPreview] = useState<{
-    resume: Record<string, any>;
-    tokensUsed?: number;
-    provider?: string;
-  } | null>(null);
+  const [preview, setPreview] = useState<AutoGeneratePreviewResponse | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [inputMode, setInputMode] = useState<'text' | 'file'>('text');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -64,14 +142,6 @@ export default function AutoGeneratePage() {
   const previousResumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? [];
   const [showHistory, setShowHistory] = useState(false);
 
-  const ANALYSIS_PHRASES = [
-    '텍스트를 파싱하고 있습니다...',
-    '경력 정보를 추출하고 있습니다...',
-    '학력 및 기술 스택을 분석 중...',
-    '이력서 구조를 생성하고 있습니다...',
-    '최종 검토 중...',
-  ];
-
   useEffect(() => {
     document.title = 'AI 자동 생성 — 이력서공방';
     return () => {
@@ -81,11 +151,7 @@ export default function AutoGeneratePage() {
 
   // Timer during analysis
   useEffect(() => {
-    if (!loading) {
-      setElapsedTime(0);
-      setAnalysisPhrase(0);
-      return;
-    }
+    if (!loading) return;
     const timer = setInterval(() => setElapsedTime((t) => t + 1), 1000);
     const phraseTimer = setInterval(
       () => setAnalysisPhrase((p) => (p + 1) % ANALYSIS_PHRASES.length),
@@ -132,6 +198,8 @@ export default function AutoGeneratePage() {
 
   const handlePreview = async () => {
     if (!hasInput) return;
+    setElapsedTime(0);
+    setAnalysisPhrase(0);
     setLoading(true);
     setError('');
     setPreview(null);
@@ -152,11 +220,11 @@ export default function AutoGeneratePage() {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || '생성에 실패했습니다');
       }
-      const data = await res.json();
+      const data = (await res.json()) as AutoGeneratePreviewResponse;
       setPreview(data);
       setCurrentStep(3);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, '생성에 실패했습니다'));
       setCurrentStep(1);
     } finally {
       setLoading(false);
@@ -165,6 +233,8 @@ export default function AutoGeneratePage() {
 
   const handleSave = async () => {
     if (!hasInput) return;
+    setElapsedTime(0);
+    setAnalysisPhrase(0);
     setLoading(true);
     setError('');
     try {
@@ -183,11 +253,11 @@ export default function AutoGeneratePage() {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || '저장에 실패했습니다');
       }
-      const data = await res.json();
+      const data = (await res.json()) as AutoGenerateCreateResponse;
       setCurrentStep(4);
       navigate(ROUTES.resume.edit(data.resume.id));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, '저장에 실패했습니다'));
     } finally {
       setLoading(false);
     }
@@ -549,36 +619,7 @@ export default function AutoGeneratePage() {
                     </div>
                   )}
 
-                  {[
-                    {
-                      key: 'experiences',
-                      label: '경력',
-                      render: (e: any) => `${e.company} - ${e.position}`,
-                    },
-                    {
-                      key: 'educations',
-                      label: '학력',
-                      render: (e: any) => `${e.school} ${e.degree} ${e.field}`,
-                    },
-                    {
-                      key: 'skills',
-                      label: '기술',
-                      render: (s: any) => `${s.category}: ${s.items}`,
-                    },
-                    {
-                      key: 'certifications',
-                      label: '자격증',
-                      render: (c: any) => `${c.name} (${c.issuer})`,
-                    },
-                    {
-                      key: 'languages',
-                      label: '어학',
-                      render: (l: any) => `${l.name} ${l.testName} ${l.score}`,
-                    },
-                    { key: 'projects', label: '프로젝트', render: (p: any) => p.name },
-                    { key: 'awards', label: '수상', render: (a: any) => a.name },
-                    { key: 'activities', label: '활동', render: (a: any) => a.name },
-                  ].map(({ key, label, render }) => {
+                  {PREVIEW_SECTIONS.map(({ key, label, render }) => {
                     const items = preview.resume?.[key];
                     if (!items?.length) return null;
                     return (
@@ -587,7 +628,7 @@ export default function AutoGeneratePage() {
                           {label} ({items.length})
                         </h3>
                         <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-0.5">
-                          {items.map((item: any, i: number) => (
+                          {items.map((item, i) => (
                             <li key={i} className="truncate">
                               - {render(item)}
                             </li>

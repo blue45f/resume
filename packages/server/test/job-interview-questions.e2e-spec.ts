@@ -90,7 +90,11 @@ describe('JobInterviewQuestions (예상 면접 질문)', () => {
       .get('/api/job-interview-questions?company=테스트회사-jiq')
       .expect(200);
     expect(res.body.length).toBeGreaterThan(0);
-    expect(res.body.every((q: any) => q.companyName.includes('테스트회사'))).toBe(true);
+    expect(
+      (res.body as Array<{ companyName: string }>).every((question) =>
+        question.companyName.includes('테스트회사'),
+      ),
+    ).toBe(true);
   });
 
   it('PATCH /admin/:id/approve — 관리자 채택', async () => {

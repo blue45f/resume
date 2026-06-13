@@ -23,6 +23,9 @@ import { AuthService } from './auth.service';
 import { Public } from './auth.guard';
 import { AdminGuard } from '../common/guards/admin.guard';
 import { RegisterDto, LoginDto, ChangePasswordDto, UpdateProfileDto } from './dto/auth.dto';
+import { getErrorMessage } from '../common/error.utils';
+import { requireRequestUserId } from '../common/request.types';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -212,8 +215,8 @@ export class AuthController {
         path: '/',
       });
       res.json({ token });
-    } catch (e: any) {
-      res.status(401).json({ message: e.message || '회원가입에 실패했습니다' });
+    } catch (e: unknown) {
+      res.status(401).json({ message: getErrorMessage(e, '회원가입에 실패했습니다') });
     }
   }
 
@@ -234,8 +237,8 @@ export class AuthController {
         path: '/',
       });
       res.json({ token });
-    } catch (e: any) {
-      res.status(401).json({ message: e.message || '로그인에 실패했습니다' });
+    } catch (e: unknown) {
+      res.status(401).json({ message: getErrorMessage(e, '로그인에 실패했습니다') });
     }
   }
 
@@ -253,7 +256,11 @@ export class AuthController {
   @ApiOperation({ summary: '비밀번호 변경' })
   @ApiResponse({ status: 200, description: '비밀번호 변경 성공' })
   @ApiResponse({ status: 401, description: '현재 비밀번호 불일치 또는 인증 필요' })
-  async changePassword(@Body() dto: ChangePasswordDto, @Req() req: any, @Res() res: Response) {
+  async changePassword(
+    @Body() dto: ChangePasswordDto,
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+  ) {
     try {
       if (!req.user?.id) {
         res.status(401).json({ message: '로그인이 필요합니다' });
@@ -261,8 +268,8 @@ export class AuthController {
       }
       await this.authService.changePassword(req.user.id, dto.currentPassword, dto.newPassword);
       res.json({ success: true, message: '비밀번호가 변경되었습니다' });
-    } catch (e: any) {
-      res.status(401).json({ message: e.message || '비밀번호 변경에 실패했습니다' });
+    } catch (e: unknown) {
+      res.status(401).json({ message: getErrorMessage(e, '비밀번호 변경에 실패했습니다') });
     }
   }
 
@@ -271,7 +278,7 @@ export class AuthController {
   @ApiOperation({ summary: '계정 삭제 (모든 데이터 영구 삭제)' })
   @ApiResponse({ status: 200, description: '계정 삭제 완료' })
   @ApiResponse({ status: 401, description: '인증 필요' })
-  async deleteAccount(@Req() req: any, @Res() res: Response) {
+  async deleteAccount(@Req() req: AuthenticatedRequest, @Res() res: Response) {
     try {
       if (!req.user?.id) {
         res.status(401).json({ message: '로그인이 필요합니다' });
@@ -280,22 +287,26 @@ export class AuthController {
       await this.authService.deleteAccount(req.user.id);
       res.clearCookie('token', { path: '/' });
       res.json({ success: true, message: '계정이 삭제되었습니다' });
-    } catch (e: any) {
-      res.status(400).json({ message: e.message || '계정 삭제에 실패했습니다' });
+    } catch (e: unknown) {
+      res.status(400).json({ message: getErrorMessage(e, '계정 삭제에 실패했습니다') });
     }
   }
 
   // ---- 소셜 계정 연동 ----
   @Get('linked-accounts')
   @ApiOperation({ summary: '연결된 소셜 계정 정보' })
-  getLinkedAccounts(@Req() req: any) {
+  getLinkedAccounts(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return null;
     return this.authService.getLinkedAccounts(req.user.id);
   }
 
   @Get('link/:provider')
   @ApiOperation({ summary: '소셜 계정 연동 시작' })
-  linkSocial(@Param('provider') provider: string, @Req() req: any, @Res() res: Response) {
+  linkSocial(
+    @Param('provider') provider: string,
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+  ) {
     if (!req.user?.id) {
       res.redirect(`${this.authService.getFrontendUrl()}/login`);
       return;
@@ -328,7 +339,7 @@ export class AuthController {
   @Get('users/search')
   @Throttle({ short: { limit: 30, ttl: 60000 } })
   @ApiOperation({ summary: '사용자 검색 (이력서 공유 등 ≤10건, name/username/email prefix)' })
-  searchUsers(@Req() req: any, @Query('q') q?: string) {
+  searchUsers(@Req() req: AuthenticatedRequest, @Query('q') q?: string) {
     if (!req.user?.id) return [];
     return this.authService.searchUsers(req.user.id, q || '');
   }
@@ -338,15 +349,15 @@ export class AuthController {
   @ApiOperation({ summary: '내 정보 조회' })
   @ApiResponse({ status: 200, description: '프로필 정보 반환 (passwordHash 미포함)' })
   @ApiResponse({ status: 401, description: '인증 필요' })
-  getProfile(@Req() req: any) {
-    if (!req.user) return null;
+  getProfile(@Req() req: AuthenticatedRequest) {
+    if (!req.user?.id) return null;
     return this.authService.getProfile(req.user.id);
   }
 
   @Post('avatar')
   @ApiOperation({ summary: '프로필 이미지 업로드 (Cloudinary, 최대 5MB)' })
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
-  async uploadAvatar(@UploadedFile() file: Express.Multer.File, @Req() req: any) {
+  async uploadAvatar(@UploadedFile() file: Express.Multer.File, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     if (!file) throw new BadRequestException('파일이 필요합니다');
     return this.authService.uploadAvatar(req.user.id, file);
@@ -354,14 +365,14 @@ export class AuthController {
 
   @Patch('avatar/preset')
   @ApiOperation({ summary: '프로필 preset 아바타 선택 (URL 직접 지정)' })
-  async setPresetAvatar(@Body('avatar') avatar: string, @Req() req: any) {
+  async setPresetAvatar(@Body('avatar') avatar: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.authService.setPresetAvatar(req.user.id, avatar);
   }
 
   @Delete('avatar')
   @ApiOperation({ summary: '프로필 이미지 삭제 (이니셜 fallback 으로 복귀)' })
-  async deleteAvatar(@Req() req: any) {
+  async deleteAvatar(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.authService.deleteAvatar(req.user.id);
   }
@@ -371,7 +382,11 @@ export class AuthController {
   @ApiResponse({ status: 200, description: '수정된 프로필 반환' })
   @ApiResponse({ status: 400, description: '유효하지 않은 사용자 유형 등' })
   @ApiResponse({ status: 401, description: '인증 필요' })
-  async updateProfile(@Body() body: UpdateProfileDto, @Req() req: any, @Res() res: Response) {
+  async updateProfile(
+    @Body() body: UpdateProfileDto,
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+  ) {
     try {
       if (!req.user?.id) {
         res.status(401).json({ message: '로그인이 필요합니다' });
@@ -379,8 +394,8 @@ export class AuthController {
       }
       const updated = await this.authService.updateProfile(req.user.id, body);
       res.json(updated);
-    } catch (e: any) {
-      res.status(400).json({ message: e.message || '프로필 수정에 실패했습니다' });
+    } catch (e: unknown) {
+      res.status(400).json({ message: getErrorMessage(e, '프로필 수정에 실패했습니다') });
     }
   }
 
@@ -388,7 +403,7 @@ export class AuthController {
 
   @Get('admin/users')
   @ApiOperation({ summary: '전체 사용자 목록 (관리자)' })
-  async getAllUsers(@Req() req: any, @Query('search') search?: string) {
+  async getAllUsers(@Req() req: AuthenticatedRequest, @Query('search') search?: string) {
     if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') return [];
     return this.authService.getAllUsers(search);
   }
@@ -398,14 +413,14 @@ export class AuthController {
   async setUserRole(
     @Param('userId') userId: string,
     @Body('role') role: string,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Res() res: Response,
   ) {
     try {
-      const result = await this.authService.setUserRole(req.user?.id, userId, role);
+      const result = await this.authService.setUserRole(requireRequestUserId(req), userId, role);
       res.json(result);
-    } catch (e: any) {
-      res.status(403).json({ message: e.message || '권한이 없습니다' });
+    } catch (e: unknown) {
+      res.status(403).json({ message: getErrorMessage(e, '권한이 없습니다') });
     }
   }
 
@@ -415,14 +430,14 @@ export class AuthController {
   async patchUserRole(
     @Param('userId') userId: string,
     @Body('role') role: string,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Res() res: Response,
   ) {
     try {
-      const result = await this.authService.setUserRole(req.user?.id, userId, role);
+      const result = await this.authService.setUserRole(requireRequestUserId(req), userId, role);
       res.json(result);
-    } catch (e: any) {
-      res.status(403).json({ message: e.message || '권한이 없습니다' });
+    } catch (e: unknown) {
+      res.status(403).json({ message: getErrorMessage(e, '권한이 없습니다') });
     }
   }
 

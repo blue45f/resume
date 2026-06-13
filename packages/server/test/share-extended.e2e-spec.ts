@@ -59,7 +59,9 @@ describe('Share Extended', () => {
 
     it('만료된 링크는 목록에서 isExpired=true 로 표시', async () => {
       const res = await ctx.authGet('normal', `/api/resumes/${resumeId}/share`).expect(200);
-      const found = res.body.find((l: any) => l.id === linkId);
+      const found = (res.body as Array<{ id: string; isExpired?: boolean }>).find(
+        (link) => link.id === linkId,
+      );
       expect(found?.isExpired).toBe(true);
     });
 

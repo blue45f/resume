@@ -38,14 +38,8 @@ export default function RelatedJobsWidget({
   const hasContext = trimmedCompany.length > 0 || trimmedPosition.length > 0;
 
   useEffect(() => {
-    if (!hasContext) {
-      setJobs([]);
-      setLoading(false);
-      return;
-    }
+    if (!hasContext) return;
     let cancelled = false;
-    setLoading(true);
-    setError(null);
     fetchJobs()
       .then((data) => {
         if (cancelled) return;
@@ -82,7 +76,7 @@ export default function RelatedJobsWidget({
           if (jobPosition === positionLower) score += 60;
           else {
             // Token overlap
-            const tokens = positionLower.split(/[\s\/,\.\(\)·]+/).filter((t) => t.length >= 2);
+            const tokens = positionLower.split(/[\s/,.()·]+/).filter((t) => t.length >= 2);
             const matched = tokens.filter((t) => jobPosition.includes(t)).length;
             if (matched > 0) score += Math.min(35, matched * 15);
           }

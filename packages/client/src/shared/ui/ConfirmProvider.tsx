@@ -20,7 +20,7 @@ const ConfirmContext = createContext<ConfirmFn | null>(null);
  * One instance lives at the app root; call sites do
  * `if (!(await confirm({ title, danger: true }))) return;`.
  */
-export function ConfirmProvider({ children }: { children: ReactNode }) {
+const confirmProvider = function ConfirmProvider({ children }: { children: ReactNode }) {
   const [options, setOptions] = useState<ConfirmOptions | null>(null);
   const resolverRef = useRef<((value: boolean) => void) | null>(null);
 
@@ -58,7 +58,9 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       )}
     </ConfirmContext.Provider>
   );
-}
+};
+
+export const ConfirmProvider = confirmProvider;
 
 export function useConfirm(): ConfirmFn {
   const ctx = useContext(ConfirmContext);

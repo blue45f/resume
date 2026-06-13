@@ -1,2 +1,2 @@
-/** @deprecated import from '@/entities/resume/ui/BookmarkButton' */
-export { default } from '@/entities/resume/ui/BookmarkButton';
+/** @deprecated import from '@/entities/resume' */
+export { BookmarkButton as default } from '@/entities/resume';

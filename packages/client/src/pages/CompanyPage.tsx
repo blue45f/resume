@@ -154,15 +154,15 @@ const DEFAULT_REVIEW_FORM = {
 };
 
 function CompanyReviewSection({ companyName }: { companyName: string }) {
-  const [reviews, setReviews] = useState<CompanyReview[]>([]);
+  const [reviewVersion, setReviewVersion] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(DEFAULT_REVIEW_FORM);
   const [submitting, setSubmitting] = useState(false);
   const user = getUser();
-
-  useEffect(() => {
-    setReviews(getReviews(companyName));
-  }, [companyName]);
+  const reviews = useMemo(
+    () => (reviewVersion >= 0 ? getReviews(companyName) : []),
+    [companyName, reviewVersion],
+  );
 
   const avgRatings = useMemo(() => {
     if (!reviews.length) return null;
@@ -213,7 +213,7 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
       reviewerName: form.anonymous ? undefined : user?.name || '익명',
     };
     saveReview(review);
-    setReviews((prev) => [review, ...prev]);
+    setReviewVersion((version) => version + 1);
     setForm(DEFAULT_REVIEW_FORM);
     setShowForm(false);
     setSubmitting(false);
@@ -444,7 +444,7 @@ export default function CompanyPage() {
   const { name } = useParams<{ name: string }>();
   const companyName = decodeURIComponent(name || '');
   const { data, isLoading: loading, error: queryError, refetch } = useJobs();
-  const allJobs: JobPost[] = (data as JobPost[] | undefined) ?? [];
+  const allJobs: JobPost[] = useMemo(() => (data as JobPost[] | undefined) ?? [], [data]);
   const error = !!queryError;
   const loadJobs = () => {
     refetch();

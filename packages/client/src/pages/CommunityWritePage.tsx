@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
@@ -266,16 +266,17 @@ export default function CommunityWritePage() {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<PostForm>({
     resolver: zodResolver(postSchema),
     defaultValues: { title: initialTitle, content: initialBody, category: initialCategory },
   });
 
-  const title = watch('title');
-  const content = watch('content');
-  const category = watch('category');
+  const title = useWatch({ control, name: 'title' });
+  const content = useWatch({ control, name: 'content' });
+  const category = useWatch({ control, name: 'category' });
+  const userId = user?.id;
 
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(false);
@@ -289,7 +290,7 @@ export default function CommunityWritePage() {
 
   // 서버 Draft 로드
   useEffect(() => {
-    if (isEdit || !user) return;
+    if (isEdit || !userId) return;
     const token = localStorage.getItem('token');
     if (!token) return;
     fetch(`${API_URL}/api/health/drafts/community_post`, {
@@ -302,11 +303,11 @@ export default function CommunityWritePage() {
         if (d?.category) setValue('category', d.category);
       })
       .catch(() => {});
-  }, [isEdit, user?.id, setValue]);
+  }, [isEdit, userId, setValue]);
 
   // 서버 Draft 자동 저장 (3초 디바운스)
   useEffect(() => {
-    if (isEdit || !user) return;
+    if (isEdit || !userId) return;
     const timer = setTimeout(() => {
       if (title?.trim() || content?.trim()) {
         const token = localStorage.getItem('token');
@@ -327,7 +328,7 @@ export default function CommunityWritePage() {
     return () => {
       clearTimeout(timer);
     };
-  }, [title, content, category, isEdit, user?.id]);
+  }, [title, content, category, isEdit, userId]);
 
   const clearDraft = () => {
     const token = localStorage.getItem('token');
@@ -359,12 +360,16 @@ export default function CommunityWritePage() {
       setValue('content', editData.content || '');
       const cat = editData.category || 'free';
       setValue('category', cat);
-      if (!CATEGORY_DEFS.some((c) => c.id === cat)) {
-        setCustomCatMode(true);
-        setCustomCat(cat);
-      }
-      setAttachments(Array.isArray(editData.attachments) ? editData.attachments : []);
+      const timer = window.setTimeout(() => {
+        if (!CATEGORY_DEFS.some((c) => c.id === cat)) {
+          setCustomCatMode(true);
+          setCustomCat(cat);
+        }
+        setAttachments(Array.isArray(editData.attachments) ? editData.attachments : []);
+      }, 0);
+      return () => window.clearTimeout(timer);
     }
+    return undefined;
   }, [editData, setValue]);
 
   const handleFileUpload = async (files: FileList | null) => {

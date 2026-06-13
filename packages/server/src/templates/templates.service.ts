@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -107,7 +108,7 @@ export class TemplatesService {
   }
 
   async findPublic(category?: string) {
-    const where: any = { visibility: 'public' };
+    const where: Prisma.TemplateWhereInput = { visibility: 'public' };
     if (category) where.category = category;
     return this.prisma.template.findMany({
       where,

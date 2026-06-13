@@ -80,13 +80,32 @@ export default function JobQuestionsPanel({
   }, [jobPostId, curatedJobId]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (!jobPostId && !curatedJobId) return;
+    let cancelled = false;
+    fetchJobInterviewQuestions({ jobPostId, curatedJobId, limit: 50 })
+      .then((data) => {
+        if (!cancelled) setItems(data);
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : '질문을 불러오지 못했습니다');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [jobPostId, curatedJobId]);
 
   const randomQuestion = useMemo(() => {
     if (items.length === 0) return null;
-    return items[Math.floor(Math.random() * items.length)];
-  }, [items]);
+    const seed = `${companyName}:${position}:${items.length}`;
+    const index =
+      Array.from(seed).reduce((sum, char) => sum + char.charCodeAt(0), 0) % items.length;
+    return items[index];
+  }, [items, companyName, position]);
 
   const handleUpvote = async (q: JobInterviewQuestion) => {
     if (!user) {

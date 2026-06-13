@@ -22,7 +22,7 @@ const PromptContext = createContext<PromptFn | null>(null);
  * `window.prompt`. One instance lives at the app root (beside ConfirmProvider);
  * call sites do `const v = await prompt({ title }); if (v === null) return;`.
  */
-export function PromptProvider({ children }: { children: ReactNode }) {
+const promptProvider = function PromptProvider({ children }: { children: ReactNode }) {
   const [options, setOptions] = useState<PromptOptions | null>(null);
   const [value, setValue] = useState('');
   const resolverRef = useRef<((value: string | null) => void) | null>(null);
@@ -92,7 +92,9 @@ export function PromptProvider({ children }: { children: ReactNode }) {
       </Dialog>
     </PromptContext.Provider>
   );
-}
+};
+
+export const PromptProvider = promptProvider;
 
 export function usePrompt(): PromptFn {
   const ctx = useContext(PromptContext);

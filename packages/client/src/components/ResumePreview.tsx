@@ -1,9 +1,12 @@
 import { forwardRef, memo } from 'react';
+import type { CSSProperties } from 'react';
 import type { Resume, Skill as SkillType, SectionId } from '@/types/resume';
 import { DEFAULT_SECTION_ORDER } from '@/types/resume';
 import SafeHtml from '@/components/SafeHtml';
 import { resumeThemes, type ResumeTheme } from '@/lib/resumeThemes';
 import { t } from '@/lib/i18n';
+
+type AccentStyle = CSSProperties & { '--resume-accent'?: string };
 
 interface Props {
   resume: Resume;
@@ -406,22 +409,22 @@ function ContactInfo({ pi, theme }: { pi: Resume['personalInfo']; theme: ResumeT
       <div
         className={`flex flex-wrap items-center gap-x-1 gap-y-0.5 ${isDarkHeader ? 'text-white/80' : 'text-slate-600'}`}
       >
-        {[
-          pi.email && { icon: '✉', text: pi.email },
-          pi.phone && { icon: '☎', text: pi.phone },
-          pi.address && { icon: '📍', text: pi.address },
-          pi.birthYear && { icon: '📅', text: `${pi.birthYear}년생` },
-        ]
-          .filter(Boolean)
-          .map((item, i) => (
-            <span key={i} className="flex items-center gap-1">
-              {i > 0 && <span className="text-slate-300 mx-1">|</span>}
-              <span className="text-xs print:hidden" aria-hidden="true">
-                {(item as any).icon}
-              </span>
-              <span>{(item as any).text}</span>
+        {(
+          [
+            pi.email && { icon: '✉', text: pi.email },
+            pi.phone && { icon: '☎', text: pi.phone },
+            pi.address && { icon: '📍', text: pi.address },
+            pi.birthYear && { icon: '📅', text: `${pi.birthYear}년생` },
+          ].filter(Boolean) as { icon: string; text: string }[]
+        ).map((item, i) => (
+          <span key={i} className="flex items-center gap-1">
+            {i > 0 && <span className="text-slate-300 mx-1">|</span>}
+            <span className="text-xs print:hidden" aria-hidden="true">
+              {item.icon}
             </span>
-          ))}
+            <span>{item.text}</span>
+          </span>
+        ))}
       </div>
       {(pi.website || pi.github || (pi.links && pi.links.length > 0)) && (
         <div
@@ -1865,9 +1868,9 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
     }
 
     /* ---- DEFAULT: Classic / Professional / all other themes ---- */
-    const wrapperStyle: React.CSSProperties = {
+    const wrapperStyle: AccentStyle = {
       fontFamily: customFont || theme.fontFamily,
-      ...(customAccentHex ? ({ '--resume-accent': customAccentHex } as any) : {}),
+      ...(customAccentHex ? { '--resume-accent': customAccentHex } : {}),
     };
 
     return (

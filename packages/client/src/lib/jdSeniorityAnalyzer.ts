@@ -146,7 +146,7 @@ export function extractYearsRequirement(text: string): JdSeniorityYears {
     if (n > 0 && n <= 40) candidates.push({ min: null, max: n });
   }
 
-  const englishRanges = text.matchAll(/(\d{1,2})\s*(?:to|[\-–])\s*(\d{1,2})\s*(?:\+?\s*)?years?/gi);
+  const englishRanges = text.matchAll(/(\d{1,2})\s*(?:to|[-–])\s*(\d{1,2})\s*(?:\+?\s*)?years?/gi);
   for (const m of englishRanges) {
     const a = Number(m[1]);
     const b = Number(m[2]);

@@ -51,7 +51,7 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
     },
     staleTime: 30_000,
   });
-  const users = query.data ?? [];
+  const users = useMemo(() => query.data ?? [], [query.data]);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['admin-users'] });
 
@@ -69,7 +69,7 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
       toast(`역할이 ${v.role}로 변경되었습니다`, 'success');
       invalidate();
     },
-    onError: (e: any) => toast(e?.message || '변경에 실패했습니다', 'error'),
+    onError: (e: unknown) => toast(e instanceof Error ? e.message : '변경에 실패했습니다', 'error'),
   });
 
   const mSuspend = useMutation({

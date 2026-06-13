@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { LlmService } from '../llm/llm.service';
 
@@ -39,6 +40,20 @@ export interface AiGenerateDto {
   persist?: boolean;
 }
 
+type GeneratedInterviewQuestion = {
+  question?: unknown;
+  sampleAnswer?: unknown;
+  category?: unknown;
+  difficulty?: unknown;
+};
+
+type GeneratedInterviewQuestionWithText = GeneratedInterviewQuestion & { question: string };
+
+const hasQuestionText = (
+  value: GeneratedInterviewQuestion,
+): value is GeneratedInterviewQuestionWithText =>
+  typeof value.question === 'string' && value.question.trim().length > 0;
+
 @Injectable()
 export class JobInterviewQuestionsService {
   constructor(
@@ -47,7 +62,7 @@ export class JobInterviewQuestionsService {
   ) {}
 
   async list(query: ListJobInterviewQuestionsQuery, userId?: string | null) {
-    const where: any = {};
+    const where: Prisma.JobInterviewQuestionWhereInput = {};
     if (query.jobPostId) where.jobPostId = query.jobPostId;
     if (query.curatedJobId) where.curatedJobId = query.curatedJobId;
     if (query.company) where.companyName = { contains: query.company, mode: 'insensitive' };
@@ -169,7 +184,7 @@ export class JobInterviewQuestionsService {
 
   async adminList(params: { status?: string; q?: string; page: number; limit: number }) {
     const { status, q, page, limit } = params;
-    const where: any = {};
+    const where: Prisma.JobInterviewQuestionWhereInput = {};
     if (status === 'approved') where.isApproved = true;
     else if (status === 'rejected') where.isRejected = true;
     else if (status === 'pending') {
@@ -263,7 +278,7 @@ export class JobInterviewQuestionsService {
 
     const result = await this.llm.generateWithFallback(systemPrompt, userMessage);
 
-    let parsed: any[];
+    let parsed: GeneratedInterviewQuestion[];
     try {
       const text = (result.text || '').trim();
       const jsonStart = text.indexOf('[');
@@ -277,16 +292,22 @@ export class JobInterviewQuestionsService {
     }
 
     const sanitized = parsed
-      .filter((q) => q && typeof q.question === 'string' && q.question.trim())
+      .filter(hasQuestionText)
       .slice(0, count)
-      .map((q) => ({
-        question: String(q.question).trim(),
-        sampleAnswer: String(q.sampleAnswer ?? '').trim(),
-        category: String(q.category ?? '').trim(),
-        difficulty: ['easy', 'intermediate', 'hard'].includes(q.difficulty)
-          ? q.difficulty
-          : 'intermediate',
-      }));
+      .map((q) => {
+        const difficulty =
+          typeof q.difficulty === 'string' &&
+          ['easy', 'intermediate', 'hard'].includes(q.difficulty)
+            ? q.difficulty
+            : 'intermediate';
+
+        return {
+          question: q.question.trim(),
+          sampleAnswer: String(q.sampleAnswer ?? '').trim(),
+          category: String(q.category ?? '').trim(),
+          difficulty,
+        };
+      });
 
     if (dto.persist && userId) {
       const created = await this.prisma.$transaction(

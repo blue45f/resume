@@ -237,7 +237,7 @@ export default function CameraInterview({
           stopRecording();
         }
       }, 250);
-    } catch (e) {
+    } catch {
       setError('녹화를 시작하지 못했습니다.');
     }
   }, [stream, mimeType, onRecordingComplete, maxDurationSec, stopRecording]);

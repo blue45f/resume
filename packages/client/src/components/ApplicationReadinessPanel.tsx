@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { buildFollowUpCalendarEvent, getFollowUpReminderFileName } from '@/lib/applicationPacket';
 import {
@@ -19,6 +19,10 @@ import type { ResumeSummary } from '@/types/resume';
 type ReadinessStyle = CSSProperties & Record<`--${string}`, string>;
 type PacketTaskId = 'resume' | 'coverLetter' | 'interview' | 'followUp';
 type PacketProgress = Record<PacketTaskId, boolean>;
+interface PacketProgressState {
+  applicationId: string;
+  progress: PacketProgress;
+}
 type KeywordMatchSnapshot = {
   score: number;
   matched: string[];
@@ -347,7 +351,13 @@ function ApplicationPacket({
   coverLetterPath,
   interviewPath,
 }: ApplicationPacketProps) {
-  const [progress, setProgress] = useState<PacketProgress>(() => loadPacketProgress(application));
+  const initialProgress = useMemo(() => loadPacketProgress(application), [application]);
+  const [progressState, setProgressState] = useState<PacketProgressState>(() => ({
+    applicationId: application.id,
+    progress: initialProgress,
+  }));
+  const progress =
+    progressState.applicationId === application.id ? progressState.progress : initialProgress;
   const keywordSnapshot = useMemo(
     () => getKeywordMatchSnapshot(resume, application),
     [resume, application],
@@ -358,29 +368,26 @@ function ApplicationPacket({
   );
   const networkingSearchUrl = useMemo(() => buildNetworkingSearchUrl(application), [application]);
 
-  useEffect(() => {
-    setProgress(loadPacketProgress(application));
-  }, [application]);
-
   const completedCount = useMemo(
     () => PACKET_TASKS.filter((task) => progress[task.id]).length,
     [progress],
   );
 
-  const toggleTask = (taskId: PacketTaskId) => {
-    setProgress((prev) => {
-      const next = { ...prev, [taskId]: !prev[taskId] };
+  const updateProgress = (updater: (current: PacketProgress) => PacketProgress) => {
+    setProgressState((prev) => {
+      const current = prev.applicationId === application.id ? prev.progress : initialProgress;
+      const next = updater(current);
       savePacketProgress(application.id, next);
-      return next;
+      return { applicationId: application.id, progress: next };
     });
   };
 
+  const toggleTask = (taskId: PacketTaskId) => {
+    updateProgress((current) => ({ ...current, [taskId]: !current[taskId] }));
+  };
+
   const markTask = (taskId: PacketTaskId) => {
-    setProgress((prev) => {
-      const next = { ...prev, [taskId]: true };
-      savePacketProgress(application.id, next);
-      return next;
-    });
+    updateProgress((current) => ({ ...current, [taskId]: true }));
   };
 
   const copyFollowUpEmail = async () => {

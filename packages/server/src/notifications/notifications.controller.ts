@@ -15,6 +15,7 @@ import { AdminGuard } from '../common/guards/admin.guard';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from './notifications.service';
 import { isNotificationType } from '@resume/shared';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('notifications')
 @Controller('notifications')
@@ -26,21 +27,21 @@ export class NotificationsController {
 
   @Get()
   @ApiOperation({ summary: '알림 목록' })
-  getAll(@Req() req: any) {
+  getAll(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.getAll(req.user.id);
   }
 
   @Get('unread')
   @ApiOperation({ summary: '읽지 않은 알림' })
-  getUnread(@Req() req: any) {
+  getUnread(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return [];
     return this.service.getUnread(req.user.id);
   }
 
   @Get('count')
   @ApiOperation({ summary: '읽지 않은 알림 수' })
-  async getCount(@Req() req: any) {
+  async getCount(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { count: 0 };
     const count = await this.service.getUnreadCount(req.user.id);
     return { count };
@@ -48,35 +49,35 @@ export class NotificationsController {
 
   @Post('read-all')
   @ApiOperation({ summary: '모든 알림 읽음 처리' })
-  markAllRead(@Req() req: any) {
+  markAllRead(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { success: false };
     return this.service.markAsRead(req.user.id);
   }
 
   @Post(':id/read')
   @ApiOperation({ summary: '알림 읽음 처리' })
-  markRead(@Param('id') id: string, @Req() req: any) {
+  markRead(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { success: false };
     return this.service.markAsRead(req.user.id, id);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '알림 삭제' })
-  deleteOne(@Param('id') id: string, @Req() req: any) {
+  deleteOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { success: false };
     return this.service.deleteOne(req.user.id, id);
   }
 
   @Post('delete-bulk')
   @ApiOperation({ summary: '알림 일괄 삭제' })
-  deleteBulk(@Body() body: { ids: string[] }, @Req() req: any) {
+  deleteBulk(@Body() body: { ids: string[] }, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { success: false };
     return this.service.deleteBulk(req.user.id, body.ids);
   }
 
   @Delete('cleanup')
   @ApiOperation({ summary: '오래된 읽은 알림 정리 (관리자 전용)' })
-  cleanup(@Req() req: any) {
+  cleanup(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { success: false };
     if (req.user.role !== 'superadmin') {
       throw new ForbiddenException('관리자만 사용할 수 있습니다');
@@ -105,7 +106,7 @@ export class NotificationsController {
       link?: string;
       activeWithinDays?: number;
     },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
       throw new ForbiddenException('관리자만 가능');

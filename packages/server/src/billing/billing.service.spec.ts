@@ -1,12 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { BillingService, PLANS } from './billing.service';
+import { BillingService, PLANS, type PlanId } from './billing.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
 const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
 
-const mockPrisma: any = {
+const mockPrisma = {
+  $transaction: jest.fn(),
   user: {
     findUnique: jest.fn(),
     update: jest.fn(),
@@ -74,9 +75,9 @@ describe('BillingService', () => {
     });
 
     it('유효하지 않은 plan → BadRequest', async () => {
-      await expect(service.grantPlan('u1', { plan: 'unknown' as any, days: 30 })).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.grantPlan('u1', { plan: 'unknown' as unknown as PlanId, days: 30 }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('days 범위 밖 → BadRequest', async () => {
@@ -272,7 +273,7 @@ describe('BillingService', () => {
   // ─────────────────────────────────────────────
   describe('startTrial', () => {
     it('plan=free 거부', async () => {
-      await expect(service.startTrial('u1', 'free' as any, 7)).rejects.toThrow(BadRequestException);
+      await expect(service.startTrial('u1', 'free', 7)).rejects.toThrow(BadRequestException);
     });
 
     it('이미 활성 구독 있으면 BadRequest', async () => {

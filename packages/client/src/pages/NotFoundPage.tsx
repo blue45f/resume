@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { useRecentViews } from '@/features/recent-views/model/useRecentViews';
+import { useRecentViews } from '@/features/recent-views';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
 

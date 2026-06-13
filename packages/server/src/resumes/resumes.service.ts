@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { SystemConfigService } from '../system-config/system-config.service';
@@ -23,13 +24,67 @@ const FULL_INCLUDE = {
   tags: { include: { tag: true } },
 };
 
+type ResumeChildDelegate = {
+  deleteMany(args: { where: { resumeId: string } }): Promise<unknown>;
+  createMany(args: {
+    data: Array<{ resumeId: string } & Record<string, unknown>>;
+  }): Promise<unknown>;
+};
+
+type ResumeForFormatting = Prisma.ResumeGetPayload<{ include: typeof FULL_INCLUDE }> & {
+  user?: { isOpenToWork?: boolean | null; openToWorkRoles?: string | null } | null;
+};
+
+type ResumeSummaryPersonalInfo = {
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  website?: string | null;
+  github?: string | null;
+  summary?: string | null;
+  photo?: string | null;
+  birthYear?: string | null;
+  links?: string | null;
+  military?: string | null;
+};
+
+type ResumeSummaryTag = {
+  tag: {
+    id: string;
+    name: string;
+    color: string;
+  };
+};
+
+type ResumeSummarySkill = {
+  id: string;
+  category: string;
+  items: string;
+};
+
+type ResumeSummaryForFormatting = {
+  id: string;
+  title: string;
+  slug?: string | null;
+  userId?: string | null;
+  viewCount?: number | null;
+  visibility?: string | null;
+  personalInfo?: ResumeSummaryPersonalInfo | null;
+  tags?: ResumeSummaryTag[];
+  skills?: ResumeSummarySkill[];
+  createdAt: Date;
+  updatedAt: Date;
+  user?: { isOpenToWork?: boolean | null; openToWorkRoles?: string | null } | null;
+};
+
 // Helper to replace a child collection in a transaction
-async function replaceCollection(
-  tx: any,
-  model: any,
+async function replaceCollection<TItem>(
+  _tx: unknown,
+  model: ResumeChildDelegate,
   resumeId: string,
-  items: any[] | undefined,
-  mapper: (item: any, index: number) => any,
+  items: TItem[] | undefined,
+  mapper: (item: TItem, index: number) => Record<string, unknown>,
 ) {
   if (items === undefined) return;
   await model.deleteMany({ where: { resumeId } });
@@ -159,11 +214,11 @@ export class ResumesService {
    */
   private async isCoachOfResumeSession(resumeId: string, viewerId: string): Promise<boolean> {
     try {
-      const coachProfile = await (this.prisma as any).coachProfile.findUnique({
+      const coachProfile = await this.prisma.coachProfile.findUnique({
         where: { userId: viewerId },
       });
       if (!coachProfile) return false;
-      const session = await (this.prisma as any).coachingSession.findFirst({
+      const session = await this.prisma.coachingSession.findFirst({
         where: {
           resumeId,
           coachId: coachProfile.id,
@@ -335,7 +390,7 @@ export class ResumesService {
     opts.page = Math.max(1, opts.page);
     opts.limit = Math.min(Math.max(1, opts.limit), 100);
     // autoHidden (신고 누적) 자동 제외 — 공개 탐색 목록에서 영구 감춤
-    const where: any = { visibility: 'public', autoHidden: false };
+    const where: Prisma.ResumeWhereInput = { visibility: 'public', autoHidden: false };
 
     // 텍스트 검색 (이름, 제목, 요약)
     if (opts.query) {
@@ -353,7 +408,7 @@ export class ResumesService {
     }
 
     // 정렬 — recent(updatedAt) | views | oldest | name(personalInfo.name)
-    const orderBy: any = (() => {
+    const orderBy: Prisma.ResumeOrderByWithRelationInput = (() => {
       switch (opts.sort) {
         case 'views':
           return { viewCount: 'desc' };
@@ -1084,7 +1139,7 @@ export class ResumesService {
       id: b.id,
       resumeId: b.resume.id,
       title: b.resume.title,
-      name: (b.resume as any).personalInfo?.name || '',
+      name: b.resume.personalInfo?.name || '',
       createdAt: b.createdAt.toISOString(),
     }));
   }
@@ -1145,7 +1200,7 @@ export class ResumesService {
     return { endorsed: !existing, count };
   }
 
-  private formatSummary(resume: any) {
+  private formatSummary(resume: ResumeSummaryForFormatting) {
     const pi = resume.personalInfo;
     return {
       id: resume.id,
@@ -1158,13 +1213,13 @@ export class ResumesService {
       openToWorkRoles: resume.user?.openToWorkRoles || '',
       personalInfo: pi
         ? {
-            name: pi.name,
-            email: pi.email,
-            phone: pi.phone,
-            address: pi.address,
-            website: pi.website,
+            name: pi.name ?? '',
+            email: pi.email ?? '',
+            phone: pi.phone ?? '',
+            address: pi.address ?? '',
+            website: pi.website ?? '',
             github: pi.github || '',
-            summary: pi.summary,
+            summary: pi.summary ?? '',
             photo: pi.photo || '',
             birthYear: pi.birthYear || '',
             links: pi.links
@@ -1187,19 +1242,19 @@ export class ResumesService {
             links: [],
             military: '',
           },
-      tags:
-        resume.tags?.map((t: any) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })) ??
-        [],
-      skills:
-        resume.skills?.map((s: any) => ({ id: s.id, category: s.category, items: s.items })) ?? [],
+      tags: resume.tags?.map((t) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })) ?? [],
+      skills: resume.skills?.map((s) => ({ id: s.id, category: s.category, items: s.items })) ?? [],
       createdAt: resume.createdAt.toISOString(),
       updatedAt: resume.updatedAt.toISOString(),
     };
   }
 
-  private formatFull(resume: any) {
-    const pick = (arr: any[], fields: string[]) =>
-      arr?.map((item: any) => Object.fromEntries(fields.map((f) => [f, item[f]]))) ?? [];
+  private formatFull(resume: ResumeForFormatting) {
+    const pick = <TItem>(arr: TItem[] | undefined, fields: string[]) =>
+      arr?.map((item) => {
+        const record = item as Record<string, unknown>;
+        return Object.fromEntries(fields.map((field) => [field, record[field]]));
+      }) ?? [];
 
     return {
       ...this.formatSummary(resume),

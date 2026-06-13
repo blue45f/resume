@@ -261,7 +261,7 @@ export default function AboutPage() {
             주요 기능
           </h2>
           <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {features.map((f: any, i: number) => (
+            {features.map((f, i) => (
               <div
                 key={f.title}
                 className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md hover:-translate-y-1 duration-200 transition-all animate-fade-in-up"

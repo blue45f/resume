@@ -4,6 +4,7 @@ import { fetchMyJobApplications, withdrawJobApplication } from '@/lib/api';
 import { formatDate } from '@/lib/time';
 import { toast } from '@/components/Toast';
 import { usePrompt } from '@/shared/ui/PromptProvider';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 interface PlatformApp {
   id: string;
@@ -82,8 +83,8 @@ export default function MyPlatformApplications() {
       await withdrawJobApplication(a.id, reason || undefined);
       toast('지원이 철회되었습니다', 'success');
       refresh();
-    } catch (err: any) {
-      toast(err?.message || '철회에 실패했습니다', 'error');
+    } catch (err) {
+      toast(getErrorMessage(err, '철회에 실패했습니다'), 'error');
     }
   };
 

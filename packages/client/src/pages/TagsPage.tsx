@@ -8,6 +8,7 @@ import { createTag, deleteTag } from '@/lib/api';
 import { useTags } from '@/hooks/useResources';
 import { t } from '@/lib/i18n';
 import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 const COLOR_PRESETS = [
   '#3b82f6',
@@ -45,8 +46,8 @@ export default function TagsPage() {
       setNewName('');
       toast('태그가 생성되었습니다', 'success');
     },
-    onError: (err: any) => {
-      setError(err.message || '태그 생성에 실패했습니다');
+    onError: (err: unknown) => {
+      setError(getErrorMessage(err, '태그 생성에 실패했습니다'));
     },
   });
 
@@ -56,8 +57,8 @@ export default function TagsPage() {
       queryClient.invalidateQueries({ queryKey: ['tags'] });
       toast('태그가 삭제되었습니다', 'success');
     },
-    onError: (err: any) => {
-      toast(err.message || '삭제에 실패했습니다', 'error');
+    onError: (err: unknown) => {
+      toast(getErrorMessage(err, '삭제에 실패했습니다'), 'error');
     },
   });
 

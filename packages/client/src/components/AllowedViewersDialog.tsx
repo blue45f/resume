@@ -30,7 +30,7 @@ interface Props {
 export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
   const [open, setOpen] = useState(true);
   const [viewers, setViewers] = useState<ResumeAllowedViewer[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<UserSearchResult[]>([]);
@@ -57,8 +57,23 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
   }, [resumeId]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+    listAllowedViewers(resumeId)
+      .then((data) => {
+        if (!cancelled) setViewers(data);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          toast(err instanceof Error ? err.message : '목록을 불러오지 못했습니다', 'error');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [resumeId]);
 
   useEffect(() => {
     if (!open) onClose();
@@ -68,10 +83,7 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
   useEffect(() => {
     const q = query.trim();
     if (pickedUserId) return; // 선택 후엔 더 이상 fetch 안 함
-    if (q.length < 2) {
-      setSuggestions([]);
-      return;
-    }
+    if (q.length < 2) return;
     const t = setTimeout(() => {
       searchUsers(q)
         .then((rows) => {
@@ -170,8 +182,13 @@ export default function AllowedViewersDialog({ resumeId, onClose }: Props) {
                 type="text"
                 value={query}
                 onChange={(e) => {
-                  setQuery(e.target.value);
+                  const nextQuery = e.target.value;
+                  setQuery(nextQuery);
                   setPickedUserId(null);
+                  if (nextQuery.trim().length < 2) {
+                    setSuggestions([]);
+                    setShowSuggestions(false);
+                  }
                 }}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}

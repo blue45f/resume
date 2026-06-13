@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useEffect, useCallback } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/components/Toast';
 import { timeAgo } from '@/lib/time';
 import { API_URL } from '@/lib/config';
-import { commentSchema, type CommentFormValues } from '@/shared/lib/schemas/comment';
+import { commentSchema, type CommentFormValues } from '@/shared/lib/schemas';
 
 interface AppComment {
   id: string;
@@ -27,29 +27,29 @@ export default function AppCommentSection({ applicationId, isPublic }: Props) {
     handleSubmit,
     reset,
     setValue,
-    watch,
+    control,
     formState: { isSubmitting, errors },
   } = useForm<CommentFormValues>({
     resolver: zodResolver(commentSchema),
     defaultValues: { content: '' },
   });
 
-  const content = watch('content') ?? '';
+  const content = useWatch({ control, name: 'content' }) ?? '';
 
-  const load = () => {
+  const load = useCallback(() => {
     fetch(`${API_URL}/api/applications/${applicationId}/comments`)
       .then((r) => (r.ok ? r.json() : []))
       .then(setComments)
       .catch(() => {});
-  };
+  }, [applicationId]);
 
   useEffect(() => {
     if (isPublic && expanded) load();
-  }, [applicationId, isPublic, expanded]);
+  }, [isPublic, expanded, load]);
 
   const onSubmit = async (data: CommentFormValues) => {
     // Optimistic update: show comment immediately
-    const optimisticId = `optimistic-${Date.now()}`;
+    const optimisticId = `optimistic-${applicationId}-${comments.length}-${data.content.trim().length}`;
     const userName = (() => {
       try {
         return JSON.parse(localStorage.getItem('user') || '{}').name || '나';

@@ -5,7 +5,7 @@ import {
   Logger,
   BeforeApplicationShutdown,
 } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, type Prisma } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 @Injectable()
@@ -33,7 +33,7 @@ export class PrismaService
     });
 
     if (process.env.NODE_ENV !== 'production') {
-      this.$on('query' as never, (e: any) => {
+      this.$on('query' as never, (e: Prisma.QueryEvent) => {
         if (e.duration > 100) {
           this.logger.warn(`Slow query (${e.duration}ms): ${e.query}`);
         }
@@ -41,11 +41,11 @@ export class PrismaService
     }
 
     // Log connection pool warnings in production
-    this.$on('warn' as never, (e: any) => {
+    this.$on('warn' as never, (e: Prisma.LogEvent) => {
       this.logger.warn(`Prisma warning: ${e.message}`);
     });
 
-    this.$on('error' as never, (e: any) => {
+    this.$on('error' as never, (e: Prisma.LogEvent) => {
       this.logger.error(`Prisma error: ${e.message}`);
     });
   }

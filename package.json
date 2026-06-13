@@ -19,9 +19,13 @@
     "build:server": "cd packages/server && nest build",
     "start:server": "node packages/server/dist/main.js",
     "start": "node packages/server/dist/main.js",
-    "ci": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run test:client && pnpm run build && pnpm run format:check",
+    "ci": "pnpm run lint:ci && pnpm run typecheck && pnpm run test && pnpm run test:client && pnpm run build && pnpm run format:check",
     "verify": "pnpm run validate:architecture && pnpm run ci",
     "verify:push": "pnpm run verify",
+    "sonar": "sonar-scanner",
+    "lint:strict": "eslint . --max-warnings=0",
+    "lint:ci": "pnpm run lint:strict",
+    "sonar:ci": "sonar-scanner -Dsonar.qualitygate.wait=true",
     "deploy:gcp": "bash scripts/deploy-gcp.sh",
     "deploy:gcp:dry": "DRY_RUN=1 bash scripts/deploy-gcp.sh",
     "lint": "eslint .",
@@ -169,7 +173,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix",
+      "eslint --max-warnings=0 --fix",
       "prettier --write"
     ],
     "*.{json,md,css}": [

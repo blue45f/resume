@@ -12,8 +12,6 @@ const mockService = {
   setMany: jest.fn(),
 };
 
-const reqWithKey = (key: string): any => ({ params: { key } });
-
 describe('SystemConfigController', () => {
   let controller: SystemConfigController;
 
@@ -34,29 +32,29 @@ describe('SystemConfigController', () => {
   describe('getContent', () => {
     it('값 없으면 null', async () => {
       mockService.get.mockResolvedValueOnce(null);
-      await expect(controller.getContent(reqWithKey('home'), {})).resolves.toBeNull();
+      await expect(controller.getContent('home')).resolves.toBeNull();
       expect(mockService.get).toHaveBeenCalledWith('content_home');
     });
 
     it('JSON 파싱 성공 시 객체 반환', async () => {
       mockService.get.mockResolvedValueOnce('{"title":"T"}');
-      await expect(controller.getContent(reqWithKey('home'), {})).resolves.toEqual({ title: 'T' });
+      await expect(controller.getContent('home')).resolves.toEqual({ title: 'T' });
     });
 
     it('JSON 파싱 실패 시 원본 문자열 반환', async () => {
       mockService.get.mockResolvedValueOnce('plain text');
-      await expect(controller.getContent(reqWithKey('home'), {})).resolves.toBe('plain text');
+      await expect(controller.getContent('home')).resolves.toBe('plain text');
     });
   });
 
   describe('setContent', () => {
     it('문자열 body 는 그대로 저장', async () => {
-      await controller.setContent(reqWithKey('home'), 'raw');
+      await controller.setContent('home', 'raw');
       expect(mockService.set).toHaveBeenCalledWith('content_home', 'raw');
     });
 
     it('객체 body 는 JSON.stringify 로 직렬화', async () => {
-      await controller.setContent(reqWithKey('home'), { a: 1 });
+      await controller.setContent('home', { a: 1 });
       expect(mockService.set).toHaveBeenCalledWith('content_home', '{"a":1}');
     });
   });

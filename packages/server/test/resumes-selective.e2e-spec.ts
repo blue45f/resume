@@ -72,7 +72,9 @@ describe('Resumes Selective Visibility (선택 공개)', () => {
     it('GET /resumes/shared/list — viewer 자신의 공유받은 목록', async () => {
       const res = await ctx.authGet('recruiter', '/api/resumes/shared/list').expect(200);
       expect(Array.isArray(res.body)).toBe(true);
-      const ids = res.body.map((v: any) => v.resumeId || v.resume?.id);
+      const ids = (res.body as Array<{ resumeId?: string; resume?: { id?: string } }>).map(
+        (viewer) => viewer.resumeId || viewer.resume?.id,
+      );
       expect(ids).toContain(resumeId);
     });
 

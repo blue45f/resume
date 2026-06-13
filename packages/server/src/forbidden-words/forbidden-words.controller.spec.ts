@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenWordsController } from './forbidden-words.controller';
 import { ForbiddenWordsService } from './forbidden-words.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   findAll: jest.fn(),
@@ -14,7 +15,7 @@ const mockService = {
   removeBulk: jest.fn(),
 };
 
-const reqWith = (role?: string, id?: string): any => ({
+const reqWith = (role?: string, id?: string): AuthenticatedRequest => ({
   user: role || id ? { id: id ?? 'u1', role } : undefined,
 });
 

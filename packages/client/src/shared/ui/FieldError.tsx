@@ -24,7 +24,7 @@ export function fieldAria(
 }
 
 /** 에러 메시지 영역. id 는 입력의 aria-describedby 와 짝을 이룬다(`${id}-error`). */
-export function FieldError({
+function renderFieldError({
   id,
   message,
   className = 'text-xs text-red-500 mt-1',
@@ -40,3 +40,5 @@ export function FieldError({
     </p>
   );
 }
+
+export const FieldError = renderFieldError;

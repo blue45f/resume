@@ -37,11 +37,11 @@ interface JobPost {
 }
 
 /** Count how many jobs match the user's alerts */
-export function countAlertMatches(jobs: JobPost[]): number {
-  const alerts = loadAlerts().filter((a) => a.enabled);
-  if (alerts.length === 0) return 0;
+function countAlertMatches(jobs: JobPost[], alertConfigs: JobAlertConfig[]): number {
+  const enabledAlerts = alertConfigs.filter((a) => a.enabled);
+  if (enabledAlerts.length === 0) return 0;
   const matched = new Set<string>();
-  for (const alert of alerts) {
+  for (const alert of enabledAlerts) {
     const keywords = alert.keywords
       .toLowerCase()
       .split(',')
@@ -81,7 +81,7 @@ export default function JobAlert({ jobs }: Props) {
     saveAlerts(alerts);
   }, [alerts]);
 
-  const matchCount = useMemo(() => countAlertMatches(jobs), [jobs, alerts]);
+  const matchCount = useMemo(() => countAlertMatches(jobs, alerts), [jobs, alerts]);
 
   const handleSave = () => {
     if (editingId) {

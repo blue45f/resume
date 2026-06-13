@@ -40,7 +40,7 @@ export default function CoachesPage() {
     minRate: minRate ? Number(minRate) : undefined,
     maxRate: maxRate ? Number(maxRate) : undefined,
   });
-  const coaches: CoachProfile[] = Array.isArray(data) ? data : [];
+  const coaches: CoachProfile[] = useMemo(() => (Array.isArray(data) ? data : []), [data]);
   const error = queryError
     ? (queryError as Error)?.message || '코치 목록을 불러오지 못했습니다'
     : null;

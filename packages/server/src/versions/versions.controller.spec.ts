@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { VersionsController } from './versions.controller';
 import { VersionsService } from './versions.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   findAll: jest.fn(),
@@ -9,7 +10,7 @@ const mockService = {
   restore: jest.fn(),
 };
 
-const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
+const reqWith = (user?: { id?: string; role?: string }): AuthenticatedRequest => ({ user });
 
 describe('VersionsController', () => {
   let controller: VersionsController;

@@ -4,7 +4,7 @@
  * src/lib/time.ts의 timeAgo 함수를 테스트합니다.
  */
 
-const { timeAgo } = require('../../../client/src/shared/lib/time');
+import { timeAgo } from '../../../client/src/shared/lib/time';
 
 describe('timeAgo', () => {
   // Date.now()를 고정하여 안정적인 테스트

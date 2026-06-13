@@ -14,7 +14,7 @@ import {
   studyGroupSchema,
   type StudyGroupFormInput,
   type StudyGroupFormOutput,
-} from '@/shared/lib/schemas/studyGroup';
+} from '@/shared/lib/schemas';
 
 const TIER_KEYS = [
   'public',

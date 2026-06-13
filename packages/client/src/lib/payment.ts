@@ -12,6 +12,26 @@ export interface PaymentRequest {
   customerName: string;
 }
 
+interface TossPaymentOptions {
+  amount: number;
+  orderId: string;
+  orderName: string;
+  customerEmail: string;
+  customerName: string;
+  successUrl: string;
+  failUrl: string;
+}
+
+interface TossPaymentsSdk {
+  requestPayment(method: string, options: TossPaymentOptions): Promise<void>;
+}
+
+declare global {
+  interface Window {
+    TossPayments?: (clientKey: string) => TossPaymentsSdk;
+  }
+}
+
 export function generateOrderId(): string {
   // Toss orderId: 6~64자 영숫자/-/_. crypto.randomUUID()(36자, 하이픈 포함)로
   // 충돌 없이 생성하고 디버깅용 `order_` 프리픽스를 유지한다.
@@ -28,7 +48,10 @@ export async function requestPayment(params: PaymentRequest): Promise<void> {
     await new Promise((resolve) => (s.onload = resolve));
   }
 
-  const tossPayments = (window as any).TossPayments(TOSS_CLIENT_KEY);
+  if (!window.TossPayments) {
+    throw new Error('Toss Payments SDK를 불러오지 못했습니다');
+  }
+  const tossPayments = window.TossPayments(TOSS_CLIENT_KEY);
   const orderId = generateOrderId();
 
   await tossPayments.requestPayment('카드', {

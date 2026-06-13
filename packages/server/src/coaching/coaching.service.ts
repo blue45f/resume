@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -52,16 +53,16 @@ export class CoachingService {
   ) {}
 
   private get coach() {
-    return (this.prisma as any).coachProfile;
+    return this.prisma.coachProfile;
   }
 
   private get session() {
-    return (this.prisma as any).coachingSession;
+    return this.prisma.coachingSession;
   }
 
   // ── Coach listing ─────────────────────────────────────────
   async listCoaches(query: ListCoachesQuery) {
-    const where: any = { isActive: true };
+    const where: Prisma.CoachProfileWhereInput = { isActive: true };
     if (query.specialty) where.specialty = query.specialty;
     if (query.minRate != null || query.maxRate != null) {
       where.hourlyRate = {};
@@ -99,7 +100,7 @@ export class CoachingService {
       data: { userType: 'coach' },
     });
 
-    const payload: any = {
+    const payload = {
       specialty: data.specialty,
       bio: data.bio ?? '',
       hourlyRate: data.hourlyRate ?? 50000,
@@ -107,7 +108,7 @@ export class CoachingService {
       languages: data.languages ?? 'ko',
       availableHours: data.availableHours ?? '',
       isActive: data.isActive ?? true,
-    };
+    } satisfies Prisma.CoachProfileUncheckedUpdateInput;
 
     return this.coach.upsert({
       where: { userId },
@@ -174,16 +175,15 @@ export class CoachingService {
 
     // 내가 코치인 세션
     const coachProfile = await this.coach.findUnique({ where: { userId } });
-    let asCoach: any[] = [];
-    if (coachProfile) {
-      asCoach = await this.session.findMany({
-        where: { coachId: coachProfile.id },
-        orderBy: { scheduledAt: 'desc' },
-        include: {
-          client: { select: { id: true, name: true, username: true, avatar: true } },
-        },
-      });
-    }
+    const asCoach = coachProfile
+      ? await this.session.findMany({
+          where: { coachId: coachProfile.id },
+          orderBy: { scheduledAt: 'desc' },
+          include: {
+            client: { select: { id: true, name: true, username: true, avatar: true } },
+          },
+        })
+      : [];
 
     return { asClient, asCoach };
   }

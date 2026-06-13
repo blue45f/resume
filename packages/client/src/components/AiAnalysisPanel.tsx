@@ -1,7 +1,16 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as RadixDialog from '@radix-ui/react-dialog';
-import { API_URL } from '@/lib/config';
+import {
+  analyzeJobMatch,
+  analyzeResumeFeedback,
+  generateInterviewQuestions,
+  type InterviewQuestionItem,
+  type InterviewQuestionSet,
+  type JobMatchAnalysis,
+  type ResumeFeedback,
+} from '@/lib/api';
+import { getErrorMessage } from '@/lib/errorMessage';
 import { ROUTES, withQuery } from '@/lib/routes';
 
 interface Props {
@@ -11,43 +20,30 @@ interface Props {
 
 type Tab = 'feedback' | 'jobmatch' | 'interview';
 
-function getHeaders() {
-  const token = localStorage.getItem('token');
-  const h: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (token) h['Authorization'] = `Bearer ${token}`;
-  return h;
-}
-
 export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
   const [tab, setTab] = useState<Tab>('feedback');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   // Feedback state
-  const [feedback, setFeedback] = useState<any>(null);
+  const [feedback, setFeedback] = useState<ResumeFeedback | null>(null);
 
   // Job match state
   const [jd, setJd] = useState('');
-  const [jobMatch, setJobMatch] = useState<any>(null);
+  const [jobMatch, setJobMatch] = useState<JobMatchAnalysis | null>(null);
 
   // Interview state
   const [jobRole, setJobRole] = useState('');
-  const [interview, setInterview] = useState<any>(null);
+  const [interview, setInterview] = useState<InterviewQuestionSet | null>(null);
 
   const runFeedback = async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform/feedback`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: '{}',
-      });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || '분석 실패');
-      const data = await res.json();
+      const data = await analyzeResumeFeedback(resumeId);
       setFeedback(data.feedback);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(getErrorMessage(e, '분석 실패'));
     } finally {
       setLoading(false);
     }
@@ -58,16 +54,10 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform/job-match`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ jobDescription: jd }),
-      });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || '분석 실패');
-      const data = await res.json();
+      const data = await analyzeJobMatch(resumeId, jd);
       setJobMatch(data.analysis);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(getErrorMessage(e, '분석 실패'));
     } finally {
       setLoading(false);
     }
@@ -77,16 +67,10 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform/interview`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ jobRole: jobRole || undefined }),
-      });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || '생성 실패');
-      const data = await res.json();
+      const data = await generateInterviewQuestions(resumeId, jobRole || undefined);
       setInterview(data.interview);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(getErrorMessage(e, '생성 실패'));
     } finally {
       setLoading(false);
     }
@@ -232,24 +216,22 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
                           📋 섹션별 점수
                         </h3>
                         <div className="space-y-2">
-                          {Object.entries(feedback.sectionScores).map(
-                            ([key, val]: [string, any]) => (
-                              <div key={key} className="flex items-center gap-3">
-                                <span className="text-xs text-slate-500 dark:text-slate-400 w-20">
-                                  {key}
-                                </span>
-                                <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-2">
-                                  <div
-                                    className="bg-blue-500 rounded-full h-2 transition-all"
-                                    style={{ width: `${val.score}%` }}
-                                  />
-                                </div>
-                                <span className="text-xs font-medium text-slate-700 dark:text-slate-300 w-8">
-                                  {val.score}
-                                </span>
+                          {Object.entries(feedback.sectionScores).map(([key, val]) => (
+                            <div key={key} className="flex items-center gap-3">
+                              <span className="text-xs text-slate-500 dark:text-slate-400 w-20">
+                                {key}
+                              </span>
+                              <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+                                <div
+                                  className="bg-blue-500 rounded-full h-2 transition-all"
+                                  style={{ width: `${val.score}%` }}
+                                />
                               </div>
-                            ),
-                          )}
+                              <span className="text-xs font-medium text-slate-700 dark:text-slate-300 w-8">
+                                {val.score}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -447,7 +429,7 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
                     <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">
                       총 {interview.questions?.length || 0}개 예상 질문
                     </div>
-                    {interview.questions?.map((q: any, i: number) => (
+                    {interview.questions?.map((q: InterviewQuestionItem, i: number) => (
                       <details
                         key={i}
                         className="group border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden"

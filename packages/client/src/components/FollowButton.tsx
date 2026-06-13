@@ -33,7 +33,7 @@ export default function FollowButton({
     },
     onSuccess: (result, next) => {
       if (next) {
-        if ((result as any)?.mutual) setMutual(true);
+        if ('mutual' in result && result.mutual) setMutual(true);
         toast('팔로우했습니다', 'success');
       }
     },

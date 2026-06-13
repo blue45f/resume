@@ -27,9 +27,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
       } else if (typeof exceptionResponse === 'object') {
-        const resp = exceptionResponse as Record<string, any>;
-        message = resp.message || message;
-        error = resp.error || error;
+        const resp = exceptionResponse as Record<string, unknown>;
+        if (typeof resp.message === 'string') {
+          message = resp.message;
+        } else if (Array.isArray(resp.message)) {
+          message = resp.message
+            .filter((item): item is string => typeof item === 'string')
+            .join(', ');
+        }
+        if (typeof resp.error === 'string') {
+          error = resp.error;
+        }
       }
     } else if (exception instanceof Error) {
       this.logger.error(`Unhandled exception: ${exception.message}`, exception.stack);
@@ -37,7 +45,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     const isProd = process.env.NODE_ENV === 'production';
 
-    const body: Record<string, any> = {
+    const body: Record<string, unknown> = {
       statusCode: status,
       error,
       message,

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -9,7 +9,7 @@ import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
-import { createJob } from '@/lib/api';
+import { createJob, type JobPostApi } from '@/lib/api';
 import { useJob } from '@/hooks/useResources';
 import { FieldError, fieldAria } from '@/shared/ui/FieldError';
 import {
@@ -19,7 +19,8 @@ import {
   SALARY_MIN,
   SALARY_MAX,
   SALARY_STEP,
-} from '@/shared/lib/schemas/jobPost';
+} from '@/shared/lib/schemas';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 const JOB_TYPES: { value: (typeof JOB_TYPE_VALUES)[number]; label: string }[] = [
   { value: 'fulltime', label: '정규직' },
@@ -35,11 +36,45 @@ const FORMAT_HINTS = [
   { label: '> 인용', desc: '인용문' },
 ];
 
+type CopyableJobPost = Partial<
+  Pick<
+    JobPostFormValues,
+    | 'company'
+    | 'position'
+    | 'location'
+    | 'description'
+    | 'requirements'
+    | 'benefits'
+    | 'type'
+    | 'skills'
+  >
+> & {
+  salary?: string;
+};
+
+interface CreatedJobResponse {
+  id?: string;
+}
+
+type JobPostCreatePayload = Partial<JobPostApi> & {
+  type: JobPostFormValues['type'];
+  salaryMin: number;
+  salaryMax: number;
+  salaryText?: string;
+  benefits?: string;
+};
+
+const parseSkillTags = (skills?: string): string[] =>
+  (skills || '')
+    .split(',')
+    .map((skill) => skill.trim())
+    .filter(Boolean);
+
 export default function JobPostPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const copyFromId = searchParams.get('copyFrom');
-  const user = getUser();
+  const user = useMemo(() => getUser(), []);
   const [preview, setPreview] = useState(false);
   const [skillInput, setSkillInput] = useState('');
   const skillInputRef = useRef<HTMLInputElement>(null);
@@ -47,7 +82,7 @@ export default function JobPostPage() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     reset,
     formState: { errors, isSubmitting },
@@ -68,7 +103,7 @@ export default function JobPostPage() {
     },
   });
 
-  const form = watch();
+  const form = useWatch({ control }) as JobPostFormValues;
 
   const skillTags = useMemo(
     () =>
@@ -91,14 +126,14 @@ export default function JobPostPage() {
     return () => {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
     };
-  }, []);
+  }, [copyFromId, navigate, user]);
 
   useEffect(() => {
     if (copyJob) {
-      const job: any = copyJob;
+      const job = copyJob as CopyableJobPost;
       let salaryMin = 4000,
         salaryMax = 7000;
-      const salaryMatch = (job.salary || '').match(/(\d[\d,]*).*?[~\-].*?(\d[\d,]*)/);
+      const salaryMatch = (job.salary || '').match(/(\d[\d,]*).*?[~-].*?(\d[\d,]*)/);
       if (salaryMatch) {
         salaryMin = parseInt(salaryMatch[1].replace(/,/g, ''));
         salaryMax = parseInt(salaryMatch[2].replace(/,/g, ''));
@@ -118,23 +153,28 @@ export default function JobPostPage() {
       });
     }
     if (copyError) toast('원본 공고를 불러올 수 없습니다', 'error');
-  }, [copyJob, copyError]);
+  }, [copyJob, copyError, reset, user?.companyName]);
 
   const onSubmit = async (values: JobPostFormValues) => {
     try {
       const salary =
         values.salaryText ||
         `${values.salaryMin.toLocaleString()}~${values.salaryMax.toLocaleString()}만원`;
-      const created = await createJob({ ...values, salary });
+      const payload: JobPostCreatePayload = {
+        ...values,
+        salary,
+        skills: parseSkillTags(values.skills),
+      };
+      const created = await createJob(payload);
       toast('채용 공고가 등록되었습니다', 'success');
-      const newId = (created as any)?.id;
+      const newId = (created as CreatedJobResponse).id;
       if (newId) {
         navigate(ROUTES.jobs.detail(newId));
       } else {
         navigate(ROUTES.recruiter.dashboard);
       }
-    } catch (e: any) {
-      toast(e.message || '등록에 실패했습니다', 'error');
+    } catch (e: unknown) {
+      toast(getErrorMessage(e, '등록에 실패했습니다'), 'error');
     }
   };
 

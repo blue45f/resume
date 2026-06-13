@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { CoachingController } from './coaching.controller';
 import { CoachingService } from './coaching.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   listCoaches: jest.fn(),
@@ -13,7 +14,9 @@ const mockService = {
   reviewSession: jest.fn(),
 };
 
-const reqWith = (userId?: string): any => ({ user: userId ? { id: userId } : undefined });
+const reqWith = (userId?: string): AuthenticatedRequest => ({
+  user: userId ? { id: userId } : undefined,
+});
 
 describe('CoachingController', () => {
   let controller: CoachingController;

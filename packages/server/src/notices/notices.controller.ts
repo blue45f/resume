@@ -10,9 +10,11 @@ import {
   Req,
   ForbiddenException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import type { Prisma } from '@prisma/client';
+import { ApiTags } from '@nestjs/swagger';
 import { Public } from '../auth/auth.guard';
-import { NoticesService } from './notices.service';
+import { NoticesService, type NoticeCreateBody } from './notices.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('notices')
 @Controller('notices')
@@ -38,14 +40,18 @@ export class NoticesController {
   }
 
   @Post()
-  create(@Req() req: any, @Body() body: any) {
+  create(@Req() req: AuthenticatedRequest, @Body() body: NoticeCreateBody) {
     if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin')
       throw new ForbiddenException();
     return this.service.create(body, req.user.id);
   }
 
   @Patch(':id')
-  update(@Req() req: any, @Param('id') id: string, @Body() body: any) {
+  update(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() body: Prisma.NoticeUpdateInput & { reason?: string },
+  ) {
     if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin')
       throw new ForbiddenException();
     const { reason, ...data } = body;
@@ -53,7 +59,7 @@ export class NoticesController {
   }
 
   @Delete(':id')
-  remove(@Req() req: any, @Param('id') id: string) {
+  remove(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
     if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin')
       throw new ForbiddenException();
     return this.service.remove(id);
@@ -62,14 +68,18 @@ export class NoticesController {
   // ── Comments ─────────────────────────────────────────────────
 
   @Post(':id/comments')
-  addComment(@Req() req: any, @Param('id') noticeId: string, @Body() body: { content: string }) {
+  addComment(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') noticeId: string,
+    @Body() body: { content: string },
+  ) {
     if (!req.user?.id) throw new ForbiddenException('로그인 필요');
     return this.service.addComment(noticeId, req.user.id, body.content);
   }
 
   @Delete(':noticeId/comments/:commentId')
   deleteComment(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Param('noticeId') _noticeId: string,
     @Param('commentId') commentId: string,
   ) {
@@ -78,7 +88,11 @@ export class NoticesController {
   }
 
   @Patch(':id/toggle-comments')
-  toggleComments(@Req() req: any, @Param('id') id: string, @Body() body: { allow: boolean }) {
+  toggleComments(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() body: { allow: boolean },
+  ) {
     if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin')
       throw new ForbiddenException();
     return this.service.toggleComments(id, body.allow);
@@ -87,7 +101,7 @@ export class NoticesController {
   // ── History ───────────────────────────────────────────────────
 
   @Get(':id/history')
-  getHistory(@Req() req: any, @Param('id') id: string) {
+  getHistory(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
     if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin')
       throw new ForbiddenException();
     return this.service.getHistory(id);

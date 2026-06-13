@@ -53,13 +53,6 @@ export default function InterviewRoulette({ compact = false }: Props) {
   const [tickText, setTickText] = useState('');
   const intervalRef = useRef<number | null>(null);
 
-  // Initialize on data load
-  useEffect(() => {
-    if (!current && questions.length > 0) {
-      setCurrent(pickRandom(questions));
-    }
-  }, [questions, current]);
-
   useEffect(() => {
     return () => {
       if (intervalRef.current !== null) window.clearInterval(intervalRef.current);
@@ -74,33 +67,29 @@ export default function InterviewRoulette({ compact = false }: Props) {
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
     if (prefersReduce) {
-      setCurrent(pickRandom(questions, current ?? undefined));
+      setCurrent(pickRandom(questions, question ?? undefined));
       return;
     }
 
     setSpinning(true);
     const SPIN_MS = 900; // well over 200ms, feels punchy
-    const start = performance.now();
     // Rapid flicker of question previews during spin
     intervalRef.current = window.setInterval(() => {
       const sneak = pickRandom(questions);
       if (sneak) setTickText(sneak.question);
     }, 70);
 
-    const final = pickRandom(questions, current ?? undefined);
+    const final = pickRandom(questions, question ?? undefined);
 
-    window.setTimeout(
-      () => {
-        if (intervalRef.current !== null) {
-          window.clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
-        setCurrent(final);
-        setTickText('');
-        setSpinning(false);
-      },
-      SPIN_MS + Math.max(0, 0 - (performance.now() - start)),
-    );
+    window.setTimeout(() => {
+      if (intervalRef.current !== null) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      setCurrent(final);
+      setTickText('');
+      setSpinning(false);
+    }, SPIN_MS);
   };
 
   if (isLoading) {
@@ -114,7 +103,7 @@ export default function InterviewRoulette({ compact = false }: Props) {
 
   if (!questions.length) return null;
 
-  const question = current;
+  const question = current ?? questions[0] ?? null;
   const difficulty = question?.difficulty ?? '보통';
   const difficultyClass = DIFFICULTY_COLORS[difficulty] ?? DIFFICULTY_COLORS['보통'];
 

@@ -5,11 +5,15 @@
  * 동일한 로직을 직접 임포트하여 테스트합니다.
  */
 
-// ts-jest의 tsconfig가 server/**만 포함하므로 직접 require로 로드
-
-const plans = require('../../../client/src/lib/plans');
-
-const { PLANS, RECRUITER_PLANS, getPlansForUserType, getPlan, canAccess, formatPrice } = plans;
+import {
+  PLANS,
+  RECRUITER_PLANS,
+  getPlansForUserType,
+  getPlan,
+  canAccess,
+  formatPrice,
+  type PlanConfig,
+} from '../../../client/src/lib/plans';
 
 describe('plans utility', () => {
   describe('PLANS 상수', () => {
@@ -18,18 +22,20 @@ describe('plans utility', () => {
     });
 
     it('플랜 ID가 free, pro, enterprise', () => {
-      const ids = PLANS.map((p: any) => p.id);
+      const ids = PLANS.map((plan: PlanConfig) => plan.id);
       expect(ids).toEqual(['free', 'pro', 'enterprise']);
     });
 
     it('free 플랜 가격은 0', () => {
-      const free = PLANS.find((p: any) => p.id === 'free');
+      const free = PLANS.find((plan: PlanConfig) => plan.id === 'free');
+      if (!free) throw new Error('free 플랜이 없습니다');
       expect(free.price).toBe(0);
       expect(free.yearlyPrice).toBe(0);
     });
 
     it('pro 플랜이 popular로 표시됨', () => {
-      const standard = PLANS.find((p: any) => p.id === 'pro');
+      const standard = PLANS.find((plan: PlanConfig) => plan.id === 'pro');
+      if (!standard) throw new Error('pro 플랜이 없습니다');
       expect(standard.popular).toBe(true);
     });
   });

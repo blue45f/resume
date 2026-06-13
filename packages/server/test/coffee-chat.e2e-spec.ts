@@ -6,6 +6,14 @@
  */
 import { E2EContext, setupE2EApp, cleanupTestData, createCoffeeChat } from './e2e-helper';
 
+type CoffeeChatTopic = {
+  key: string;
+};
+
+type CoffeeChatResponse = {
+  status: string;
+};
+
 describe('CoffeeChat (커피챗)', () => {
   let ctx: E2EContext;
 
@@ -36,7 +44,7 @@ describe('CoffeeChat (커피챗)', () => {
       const res = await ctx.api().get('/api/coffee-chats/topics').expect(200);
       expect(Array.isArray(res.body)).toBe(true);
       expect(res.body.length).toBeGreaterThanOrEqual(7);
-      const keys = res.body.map((t: any) => t.key);
+      const keys = (res.body as CoffeeChatTopic[]).map((topic) => topic.key);
       expect(keys).toContain('resume_review');
       expect(keys).toContain('general');
     });
@@ -183,7 +191,7 @@ describe('CoffeeChat (커피챗)', () => {
     it('GET /coffee-chats?status=pending — 상태 필터', async () => {
       const res = await ctx.authGet('normal', '/api/coffee-chats?status=pending').expect(200);
       expect(Array.isArray(res.body)).toBe(true);
-      res.body.forEach((c: any) => expect(c.status).toBe('pending'));
+      (res.body as CoffeeChatResponse[]).forEach((chat) => expect(chat.status).toBe('pending'));
     });
 
     it('비로그인 → 401', async () => {

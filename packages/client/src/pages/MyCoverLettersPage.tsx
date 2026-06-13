@@ -29,7 +29,7 @@ type SortMode = 'recent' | 'name';
 export default function MyCoverLettersPage() {
   const queryClient = useQueryClient();
   const { data, isLoading: loading } = useCoverLetters();
-  const letters: CoverLetter[] = (data as CoverLetter[] | undefined) ?? [];
+  const letters: CoverLetter[] = useMemo(() => (data as CoverLetter[] | undefined) ?? [], [data]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');

@@ -1,7 +1,7 @@
 import { Controller, Get, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { AdminGuard } from '../common/guards/admin.guard';
-import { StudyGroupsService } from './study-groups.service';
+import { StudyGroupsService, type AdminStudyGroupUpdateInput } from './study-groups.service';
 
 @ApiTags('study-groups-admin')
 @Controller('study-groups/admin')
@@ -100,7 +100,7 @@ export class StudyGroupsAdminController {
 
   @Patch(':id')
   @ApiOperation({ summary: '[관리자] 그룹 수정' })
-  update(@Param('id') id: string, @Body() body: any) {
+  update(@Param('id') id: string, @Body() body: AdminStudyGroupUpdateInput) {
     return this.service.adminUpdate(id, body);
   }
 

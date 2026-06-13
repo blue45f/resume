@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,6 +24,7 @@ import {
   updateProfile as apiUpdateProfile,
 } from '@/lib/api';
 import { useDashboard, useUsage } from '@/hooks/useResources';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 /* ── Zod 스키마 ───────────────────────────────── */
 const nameSchema = z.object({
@@ -57,28 +58,81 @@ const passwordSchema = z
   });
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
+interface DashboardRecentVersion {
+  versionNumber?: number;
+  createdAt: string;
+}
+
+interface DashboardResumeActivity {
+  title?: string;
+  viewCount?: number;
+  updatedAt: string;
+}
+
+interface DashboardActivityData {
+  recentVersions?: DashboardRecentVersion[];
+  resumes?: DashboardResumeActivity[];
+}
+
+interface RecentActivity {
+  type: 'edit' | 'resume';
+  desc: string;
+  date: string;
+}
+
+type NotificationPreferenceKey = 'email' | 'scout' | 'comment';
+
+type NotificationPreferences = Record<NotificationPreferenceKey, boolean>;
+
+const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  email: true,
+  scout: true,
+  comment: true,
+};
+
+function readNotificationPreferences(): NotificationPreferences {
+  try {
+    const parsed = JSON.parse(localStorage.getItem('notification-prefs') || 'null') as unknown;
+    if (!parsed || typeof parsed !== 'object') return DEFAULT_NOTIFICATION_PREFERENCES;
+    const saved = parsed as Partial<Record<NotificationPreferenceKey, unknown>>;
+    return {
+      email:
+        typeof saved.email === 'boolean' ? saved.email : DEFAULT_NOTIFICATION_PREFERENCES.email,
+      scout:
+        typeof saved.scout === 'boolean' ? saved.scout : DEFAULT_NOTIFICATION_PREFERENCES.scout,
+      comment:
+        typeof saved.comment === 'boolean'
+          ? saved.comment
+          : DEFAULT_NOTIFICATION_PREFERENCES.comment,
+    };
+  } catch {
+    return DEFAULT_NOTIFICATION_PREFERENCES;
+  }
+}
+
 /* ── 최근 활동 ───────────────────────────────────── */
 function RecentActivityList() {
   const { data: dashData } = useDashboard();
 
-  const activities: any[] = (() => {
-    if (!dashData) return [];
-    const acts: any[] = [];
-    for (const v of dashData.recentVersions || []) {
+  const activities: RecentActivity[] = (() => {
+    const dashboard = dashData as DashboardActivityData | undefined;
+    if (!dashboard) return [];
+    const acts: RecentActivity[] = [];
+    for (const v of dashboard.recentVersions || []) {
       acts.push({
         type: 'edit',
         desc: `이력서 버전 ${v.versionNumber} 저장`,
         date: v.createdAt,
       });
     }
-    for (const r of dashData.resumes?.slice(0, 3) || []) {
+    for (const r of dashboard.resumes?.slice(0, 3) || []) {
       acts.push({
         type: 'resume',
         desc: `"${r.title}" 조회 ${r.viewCount}회`,
         date: r.updatedAt,
       });
     }
-    acts.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    acts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return acts.slice(0, 8);
   })();
 
@@ -128,8 +182,6 @@ function CollapsibleSection({
   danger,
   hidden,
 }: SectionProps & { hidden?: boolean }) {
-  const contentRef = useRef<HTMLDivElement>(null);
-
   if (hidden) return null;
 
   return (
@@ -167,13 +219,8 @@ function CollapsibleSection({
       </button>
 
       <div
-        ref={contentRef}
         className={`transition-all duration-300 ease-out ${open ? 'opacity-100' : 'opacity-0 max-h-0 overflow-hidden'}`}
-        style={
-          open
-            ? { maxHeight: contentRef.current ? contentRef.current.scrollHeight + 200 : 9999 }
-            : { maxHeight: 0 }
-        }
+        style={open ? { maxHeight: 9999 } : { maxHeight: 0 }}
       >
         <div className="px-6 pb-6 pt-0 border-t border-slate-100 dark:border-slate-700/50">
           <div className="pt-4">{children}</div>
@@ -243,10 +290,9 @@ export default function SettingsPage() {
   const [openToWorkRoles, setOpenToWorkRoles] = useState(user?.openToWorkRoles || '');
   const [savingOpenToWork, setSavingOpenToWork] = useState(false);
 
-  const [notifications, setNotifications] = useState(() => {
-    const saved = localStorage.getItem('notification-prefs');
-    return saved ? JSON.parse(saved) : { email: true, scout: true, comment: true };
-  });
+  const [notifications, setNotifications] = useState<NotificationPreferences>(
+    readNotificationPreferences,
+  );
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [settingsSearch, setSettingsSearch] = useState('');
@@ -254,7 +300,7 @@ export default function SettingsPage() {
   /* ── 초기화 ── */
   useEffect(() => {
     if (!user) navigate(ROUTES.login);
-  }, [user]);
+  }, [user, navigate]);
 
   useEffect(() => {
     document.title = '설정 — 이력서공방';
@@ -334,8 +380,10 @@ export default function SettingsPage() {
       usernameForm.reset({ username: cleaned });
       setEditingUsername(false);
       toast('포트폴리오 URL이 설정되었습니다', 'success');
-    } catch (err: any) {
-      usernameForm.setError('username', { message: err.message || '사용자명 변경에 실패했습니다' });
+    } catch (err: unknown) {
+      usernameForm.setError('username', {
+        message: getErrorMessage(err, '사용자명 변경에 실패했습니다'),
+      });
     }
   });
 
@@ -344,8 +392,8 @@ export default function SettingsPage() {
       await apiChangePassword(values.currentPassword, values.newPassword);
       toast('비밀번호가 변경되었습니다', 'success');
       passwordForm.reset();
-    } catch (err: any) {
-      toast(err.message || '비밀번호 변경에 실패했습니다', 'error');
+    } catch (err: unknown) {
+      toast(getErrorMessage(err, '비밀번호 변경에 실패했습니다'), 'error');
     }
   });
 
@@ -356,16 +404,20 @@ export default function SettingsPage() {
       toast('계정이 삭제되었습니다', 'info');
       navigate(ROUTES.home);
       window.location.reload();
-    } catch (err: any) {
-      toast(err.message || '계정 삭제에 실패했습니다', 'error');
+    } catch (err: unknown) {
+      toast(getErrorMessage(err, '계정 삭제에 실패했습니다'), 'error');
     }
   };
 
-  const handleNotificationToggle = (key: 'email' | 'scout' | 'comment') => {
+  const handleNotificationToggle = (key: NotificationPreferenceKey) => {
     const updated = { ...notifications, [key]: !notifications[key] };
     setNotifications(updated);
     localStorage.setItem('notification-prefs', JSON.stringify(updated));
-    if (getToken()) apiUpdateProfile({ ...updated } as any).catch(() => {});
+    if (getToken()) {
+      const profilePatch: Parameters<typeof apiUpdateProfile>[0] &
+        Partial<NotificationPreferences> = updated;
+      apiUpdateProfile(profilePatch).catch(() => {});
+    }
     toast('알림 설정이 저장되었습니다', 'success');
   };
 

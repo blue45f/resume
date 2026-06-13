@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CommunityController } from './community.controller';
-import { CommunityService } from './community.service';
+import {
+  CommunityService,
+  type CreateCommunityPostBody,
+  type UpdateCommunityPostBody,
+} from './community.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   getPosts: jest.fn(),
@@ -21,7 +26,7 @@ const mockConfig = {
   get: jest.fn().mockReturnValue(undefined),
 };
 
-const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
+const reqWith = (user?: { id?: string; role?: string }): AuthenticatedRequest => ({ user });
 
 describe('CommunityController', () => {
   let controller: CommunityController;
@@ -99,14 +104,16 @@ describe('CommunityController', () => {
 
   describe('create', () => {
     it('비로그인 → error 객체', () => {
-      expect(controller.create({ title: 'T', content: 'C', category: 'free' }, reqWith())).toEqual({
+      const body: CreateCommunityPostBody = { title: 'T', content: 'C', category: 'free' };
+      expect(controller.create(body, reqWith())).toEqual({
         error: '로그인이 필요합니다',
       });
       expect(mockService.createPost).not.toHaveBeenCalled();
     });
 
     it('로그인 시 userId + body 위임', () => {
-      controller.create({ title: 'T', content: 'C', category: 'free' }, reqWith({ id: 'u1' }));
+      const body: CreateCommunityPostBody = { title: 'T', content: 'C', category: 'free' };
+      controller.create(body, reqWith({ id: 'u1' }));
       expect(mockService.createPost).toHaveBeenCalledWith('u1', {
         title: 'T',
         content: 'C',
@@ -120,7 +127,8 @@ describe('CommunityController', () => {
       expect(controller.update('p1', {}, reqWith())).toEqual({
         error: '로그인이 필요합니다',
       });
-      controller.update('p1', { title: 'new' }, reqWith({ id: 'u1' }));
+      const updateBody: UpdateCommunityPostBody = { title: 'new' };
+      controller.update('p1', updateBody, reqWith({ id: 'u1' }));
       expect(mockService.updatePost).toHaveBeenCalledWith('p1', 'u1', 'user', { title: 'new' });
     });
 
@@ -178,7 +186,7 @@ describe('CommunityController', () => {
             mimetype: 'image/png',
             originalname: 'a.png',
             size: 10,
-          } as any,
+          } as unknown as Express.Multer.File,
           reqWith(),
         ),
       ).rejects.toThrow(BadRequestException);
@@ -186,7 +194,10 @@ describe('CommunityController', () => {
 
     it('파일 누락 → BadRequest', async () => {
       await expect(
-        controller.uploadAttachment(undefined as any, reqWith({ id: 'u1' })),
+        controller.uploadAttachment(
+          undefined as unknown as Express.Multer.File,
+          reqWith({ id: 'u1' }),
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -198,7 +209,7 @@ describe('CommunityController', () => {
             mimetype: 'application/x-evil',
             originalname: 'x.bin',
             size: 10,
-          } as any,
+          } as unknown as Express.Multer.File,
           reqWith({ id: 'u1' }),
         ),
       ).rejects.toThrow(/허용되지 않는 파일 형식/);
@@ -210,7 +221,7 @@ describe('CommunityController', () => {
         mimetype: 'image/png',
         originalname: 'a.png',
         size: 5,
-      } as any;
+      } as unknown as Express.Multer.File;
       const res = await controller.uploadAttachment(file, reqWith({ id: 'u1' }));
       expect(res.url.startsWith('data:image/png;base64,')).toBe(true);
       expect(res.name).toBe('a.png');

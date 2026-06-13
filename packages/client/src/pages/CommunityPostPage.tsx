@@ -2,7 +2,7 @@ import { API_URL } from '@/lib/config';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -12,10 +12,7 @@ import { toast } from '@/components/Toast';
 import ReportButton from '@/components/ReportButton';
 import SendMessageButton from '@/components/SendMessageButton';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
-import {
-  communityCommentSchema,
-  type CommunityCommentFormValues,
-} from '@/shared/lib/schemas/comment';
+import { communityCommentSchema, type CommunityCommentFormValues } from '@/shared/lib/schemas';
 import { formatDate } from '@/lib/time';
 import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
@@ -304,8 +301,7 @@ export default function CommunityPostPage() {
     queryKey: ['community-post', id],
     queryFn: async () => {
       const token = localStorage.getItem('token');
-      const headers: HeadersInit = {};
-      if (token) (headers as any).Authorization = `Bearer ${token}`;
+      const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
       const r = await fetch(`${API_URL}/api/community/${id}`, { headers });
       return r.ok ? await r.json() : null;
     },
@@ -333,8 +329,8 @@ export default function CommunityPostPage() {
     resolver: zodResolver(communityCommentSchema),
     defaultValues: { content: '', authorName: localStorage.getItem('anon-name') || '' },
   });
-  const commentText = commentForm.watch('content') ?? '';
-  const replyText = replyForm.watch('content') ?? '';
+  const commentText = useWatch({ control: commentForm.control, name: 'content' }) ?? '';
+  const replyText = useWatch({ control: replyForm.control, name: 'content' }) ?? '';
   const commentSectionRef = useRef<HTMLElement>(null);
   const [scrapped, setScrapped] = useState(() => {
     try {
@@ -387,7 +383,7 @@ export default function CommunityPostPage() {
     const token = localStorage.getItem('token');
     const r = await fetch(`${API_URL}/api/community/${post.id}/like`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` } as any,
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
 
     if (!r.ok) {
@@ -427,7 +423,7 @@ export default function CommunityPostPage() {
     const token = localStorage.getItem('token');
     const r = await fetch(`${API_URL}/api/community/${id}/comments/${commentId}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` } as any,
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
     if (r.ok) fetchPost();
     else toast('삭제에 실패했습니다', 'error');
@@ -463,7 +459,7 @@ export default function CommunityPostPage() {
     const token = localStorage.getItem('token');
     const r = await fetch(`${API_URL}/api/community/${id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` } as any,
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
     if (r.ok) navigate(ROUTES.community.list);
     else {

@@ -1,2 +1,2 @@
-/** @deprecated import from '@/entities/user/ui/ProfileBadges' */
-export { default } from '@/entities/user/ui/ProfileBadges';
+/** @deprecated import from '@/entities/user' */
+export { ProfileBadges as default } from '@/entities/user';

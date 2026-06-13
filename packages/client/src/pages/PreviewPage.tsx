@@ -62,11 +62,13 @@ import BookmarkButton from '@/components/BookmarkButton';
 import FollowButton from '@/components/FollowButton';
 import SendMessageButton from '@/components/SendMessageButton';
 import QrCodeModal from '@/components/QrCodeModal';
-import { addRecentView } from '@/features/recent-views/model/useRecentViews';
+import { addRecentView } from '@/features/recent-views';
 import PublicLinkSettings from '@/components/PublicLinkSettings';
 import ShareStats from '@/components/ShareStats';
 import ResumeAuditPanel from '@/components/ResumeAuditPanel';
 import ResumeScoreCard from '@/components/ResumeScoreCard';
+
+const ZOOM_LEVELS = [75, 100, 125, 150] as const;
 
 /** Map theme accentColor to Tailwind classes */
 const accentColorMap: Record<
@@ -214,7 +216,6 @@ export default function PreviewPage() {
   const [showScoreCard, setShowScoreCard] = useState(false);
   const [printPreparing, setPrintPreparing] = useState(false);
   // Zoom controls
-  const ZOOM_LEVELS = [75, 100, 125, 150] as const;
   const [zoomLevel, setZoomLevel] = useState(100);
   // 모바일에서는 기본값이 fit-to-width — 210mm 이력서가 375px 뷰포트 넘어 가로 스크롤 유발하던 문제 해결
   const [fitToWidth, setFitToWidth] = useState(() =>
@@ -346,7 +347,7 @@ export default function PreviewPage() {
 
   useEffect(() => {
     if (resume) addRecentView(resume.id, resume.title || '이력서', resume.personalInfo?.name);
-  }, [resume?.id]);
+  }, [resume]);
 
   useEffect(() => {
     if (resume) {
@@ -1205,7 +1206,7 @@ export default function PreviewPage() {
                   void _omit;
                   void _c;
                   void _u;
-                  await updateResume(id, payload as any);
+                  await updateResume(id, payload);
                   setResume(fixed);
                 }}
               />

@@ -29,7 +29,7 @@ const mockJob = {
   updatedAt: new Date(),
 };
 
-const mockPrisma: any = {
+const mockPrisma = {
   jobPost: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
@@ -572,7 +572,7 @@ describe('JobsService', () => {
       const now = Date.now();
       mockPrisma.jobPostApplication.findMany.mockResolvedValueOnce([
         // 5 interested (응답 X)
-        ...Array.from({ length: 5 }, (_, i) => ({
+        ...Array.from({ length: 5 }, () => ({
           stage: 'interested',
           createdAt: new Date(now - 10 * 3600 * 1000),
           updatedAt: new Date(now - 10 * 3600 * 1000),

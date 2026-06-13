@@ -13,6 +13,7 @@ import {
 import { getUser } from '@/lib/auth';
 import { useWebrtcPeer } from '@/lib/useWebrtcPeer';
 import { toast } from '@/components/Toast';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 /**
  * 1:1 WebRTC 통화 방 — host/requester 양쪽이 같은 페이지에 들어오면 P2P 연결.
@@ -66,8 +67,8 @@ export default function CoffeeChatRoomPage() {
     try {
       await leaveCoffeeChatFeedback(id, feedback.trim());
       toast('후기 저장됨', 'success');
-    } catch (e: any) {
-      toast(e?.message || '후기 저장 실패', 'error');
+    } catch (e: unknown) {
+      toast(getErrorMessage(e, '후기 저장 실패'), 'error');
     } finally {
       setSavingFeedback(false);
     }
@@ -78,8 +79,8 @@ export default function CoffeeChatRoomPage() {
     try {
       await downloadCoffeeChatIcs(id);
       toast('캘린더 파일이 다운로드됐어요 (Google Cal / Outlook 에서 열기)', 'success');
-    } catch (e: any) {
-      toast(e?.message || 'ICS export 실패', 'error');
+    } catch (e: unknown) {
+      toast(getErrorMessage(e, 'ICS export 실패'), 'error');
     }
   };
 

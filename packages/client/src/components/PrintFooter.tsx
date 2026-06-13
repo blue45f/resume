@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Resume } from '@/types/resume';
 
 interface Props {
@@ -17,6 +17,7 @@ interface Props {
  */
 export default function PrintFooter({ resume }: Props) {
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const [printedTimestamp] = useState(() => Date.now());
 
   const qrImageUrl = shareUrl
     ? `https://api.qrserver.com/v1/create-qr-code/?size=96x96&data=${encodeURIComponent(
@@ -32,7 +33,9 @@ export default function PrintFooter({ resume }: Props) {
     if (!e.startDate) return sum;
     const start = new Date(e.startDate + '-01').getTime();
     if (!Number.isFinite(start)) return sum;
-    const end = e.current ? Date.now() : new Date((e.endDate || e.startDate) + '-01').getTime();
+    const end = e.current
+      ? printedTimestamp
+      : new Date((e.endDate || e.startDate) + '-01').getTime();
     if (!Number.isFinite(end)) return sum;
     const years = (end - start) / (1000 * 60 * 60 * 24 * 365);
     return Number.isFinite(years) && years > 0 ? sum + years : sum;
@@ -43,7 +46,7 @@ export default function PrintFooter({ resume }: Props) {
     0,
   );
 
-  const printedAt = new Date().toLocaleDateString('ko-KR', {
+  const printedAt = new Date(printedTimestamp).toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

@@ -19,7 +19,7 @@ const mockForbiddenWords = {
   validateOrThrow: jest.fn().mockResolvedValue({ blocked: false, matched: [], warnings: [] }),
 };
 
-const mockPrisma: any = {
+const mockPrisma = {
   studyGroup: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
@@ -78,12 +78,14 @@ const mockPrisma: any = {
     create: jest.fn(),
     delete: jest.fn(),
   },
-  $transaction: jest.fn(async (arg: any) => {
-    // 두 가지 호출 형태 지원: $transaction(fn) 또는 $transaction([promise, ...])
-    if (typeof arg === 'function') return arg(mockPrisma);
-    return Promise.all(arg);
-  }),
+  $transaction: jest.fn(),
 };
+
+mockPrisma.$transaction.mockImplementation(async (arg: unknown): Promise<unknown> => {
+  // 두 가지 호출 형태 지원: $transaction(fn) 또는 $transaction([promise, ...])
+  if (typeof arg === 'function') return (arg as (tx: typeof mockPrisma) => unknown)(mockPrisma);
+  return Promise.all(arg as Array<Promise<unknown>>);
+});
 
 describe('StudyGroupsService', () => {
   let service: StudyGroupsService;

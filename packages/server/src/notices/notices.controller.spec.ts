@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { NoticesController } from './notices.controller';
 import { NoticesService } from './notices.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   getPopup: jest.fn(),
@@ -16,7 +17,8 @@ const mockService = {
   getHistory: jest.fn(),
 };
 
-const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
+const reqWith = (user?: { id?: string; role?: string }): AuthenticatedRequest => ({ user });
+const noticeBody = { title: 'T', content: 'C' };
 
 describe('NoticesController', () => {
   let controller: NoticesController;
@@ -52,18 +54,18 @@ describe('NoticesController', () => {
 
   describe('create (admin-only)', () => {
     it('일반 유저 → Forbidden', () => {
-      expect(() => controller.create(reqWith({ id: 'u1', role: 'user' }), {})).toThrow(
+      expect(() => controller.create(reqWith({ id: 'u1', role: 'user' }), noticeBody)).toThrow(
         ForbiddenException,
       );
     });
 
     it('admin 허용', () => {
-      controller.create(reqWith({ id: 'admin-u', role: 'admin' }), { title: 'T' });
-      expect(mockService.create).toHaveBeenCalledWith({ title: 'T' }, 'admin-u');
+      controller.create(reqWith({ id: 'admin-u', role: 'admin' }), noticeBody);
+      expect(mockService.create).toHaveBeenCalledWith(noticeBody, 'admin-u');
     });
 
     it('superadmin 허용', () => {
-      controller.create(reqWith({ id: 'su', role: 'superadmin' }), { title: 'T' });
+      controller.create(reqWith({ id: 'su', role: 'superadmin' }), noticeBody);
       expect(mockService.create).toHaveBeenCalled();
     });
   });

@@ -22,7 +22,7 @@ export function makeQueryClient(): QueryClient {
   });
 }
 
-function AllProviders({
+function allProviders({
   children,
   initialEntries = ['/'],
   queryClient,
@@ -44,13 +44,9 @@ export function renderWithProviders(
 ): RenderResult {
   const { initialEntries, queryClient, ...rest } = options;
   return render(ui, {
-    wrapper: ({ children }) => (
-      <AllProviders initialEntries={initialEntries} queryClient={queryClient}>
-        {children}
-      </AllProviders>
-    ),
+    wrapper: ({ children }) => allProviders({ children, initialEntries, queryClient }),
     ...rest,
   });
 }
 
-export * from '@testing-library/react';
+export { fireEvent, screen, waitFor } from '@testing-library/react';

@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from '@/components/Toast';
 import { updateResumeSlug } from '@/lib/api';
 import { getUser } from '@/lib/auth';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 interface Props {
   resumeId: string;
@@ -10,22 +11,33 @@ interface Props {
   onSlugUpdated?: (newSlug: string) => void;
 }
 
+interface SlugDraft {
+  sourceSlug: string;
+  value: string;
+}
+
 export default function PublicLinkSettings({
   resumeId,
   currentSlug,
   ownerName,
   onSlugUpdated,
 }: Props) {
-  const [slug, setSlug] = useState(currentSlug || '');
+  const normalizedCurrentSlug = currentSlug || '';
+  const [slugDraft, setSlugDraft] = useState<SlugDraft>(() => ({
+    sourceSlug: normalizedCurrentSlug,
+    value: normalizedCurrentSlug,
+  }));
+  const slug =
+    slugDraft.sourceSlug === normalizedCurrentSlug ? slugDraft.value : normalizedCurrentSlug;
+  const setSlug = useCallback(
+    (value: string) => setSlugDraft({ sourceSlug: normalizedCurrentSlug, value }),
+    [normalizedCurrentSlug],
+  );
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [embedCopied, setEmbedCopied] = useState(false);
   const [showEmbed, setShowEmbed] = useState(false);
-
-  useEffect(() => {
-    if (currentSlug) setSlug(currentSlug);
-  }, [currentSlug]);
 
   const user = getUser();
   const username = ownerName || user?.name || 'user';
@@ -48,7 +60,7 @@ export default function PublicLinkSettings({
     const suffix = Array.from(bytes, (b) => (b % 36).toString(36)).join('');
     setSlug(`${base}-${suffix}`);
     setEditing(true);
-  }, [ownerName]);
+  }, [ownerName, setSlug]);
 
   const handleSave = async () => {
     if (!slug.trim()) {
@@ -71,8 +83,8 @@ export default function PublicLinkSettings({
       setEditing(false);
       onSlugUpdated?.(sanitized);
       toast('공개 링크가 업데이트되었습니다', 'success');
-    } catch (err: any) {
-      toast(err?.message || '슬러그 저장 실패', 'error');
+    } catch (err) {
+      toast(getErrorMessage(err, '슬러그 저장 실패'), 'error');
     } finally {
       setSaving(false);
     }

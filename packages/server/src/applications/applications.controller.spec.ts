@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { UnauthorizedException } from '@nestjs/common';
 import { ApplicationsController } from './applications.controller';
 import { ApplicationsService } from './applications.service';
+import type { CreateApplicationDto, UpdateApplicationDto } from './dto/application.dto';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   findAll: jest.fn(),
@@ -13,7 +16,9 @@ const mockService = {
   addComment: jest.fn(),
 };
 
-const reqWith = (userId?: string): any => ({ user: userId ? { id: userId } : undefined });
+const reqWith = (userId?: string): AuthenticatedRequest => ({
+  user: userId ? { id: userId } : undefined,
+});
 
 describe('ApplicationsController', () => {
   let controller: ApplicationsController;
@@ -36,13 +41,9 @@ describe('ApplicationsController', () => {
     });
   });
 
-  it('findAll: 비로그인이면 undefined 전달 (service가 처리)', () => {
-    controller.findAll(reqWith());
-    expect(mockService.findAll).toHaveBeenCalledWith(undefined, {
-      sort: undefined,
-      status: undefined,
-      q: undefined,
-    });
+  it('findAll: 비로그인이면 UnauthorizedException', () => {
+    expect(() => controller.findAll(reqWith())).toThrow(UnauthorizedException);
+    expect(mockService.findAll).not.toHaveBeenCalled();
   });
 
   it('getStats: userId 전달', () => {
@@ -51,12 +52,14 @@ describe('ApplicationsController', () => {
   });
 
   it('create: dto + userId', () => {
-    controller.create({ company: 'A', position: 'B' } as any, reqWith('u1'));
+    const dto: CreateApplicationDto = { company: 'A', position: 'B' };
+    controller.create(dto, reqWith('u1'));
     expect(mockService.create).toHaveBeenCalledWith({ company: 'A', position: 'B' }, 'u1');
   });
 
   it('update: id + dto + userId', () => {
-    controller.update('a1', { status: 'offer' } as any, reqWith('u1'));
+    const dto: UpdateApplicationDto = { status: 'offer' };
+    controller.update('a1', dto, reqWith('u1'));
     expect(mockService.update).toHaveBeenCalledWith('a1', { status: 'offer' }, 'u1');
   });
 

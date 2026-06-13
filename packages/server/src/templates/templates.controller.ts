@@ -16,6 +16,7 @@ import { LocalTransformService } from './local-transform.service';
 import { ResumesService } from '../resumes/resumes.service';
 import { CreateTemplateDto, UpdateTemplateDto, LocalTransformDto } from './dto/template.dto';
 import { Public } from '../auth/auth.guard';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('templates')
 @Controller('templates')
@@ -28,7 +29,7 @@ export class TemplatesController {
 
   @Get()
   @ApiOperation({ summary: '템플릿 목록 조회 (공개/기본 + 본인 비공개)' })
-  findAll(@Req() req: any) {
+  findAll(@Req() req: AuthenticatedRequest) {
     // viewer 별 응답(본인 비공개 포함)이라 공개 캐시 미적용 (클라가 5분 캐시). 비공개 템플릿 노출 방지.
     return this.templatesService.findAll(req.user?.id, req.user?.role);
   }
@@ -42,26 +43,30 @@ export class TemplatesController {
 
   @Get(':id')
   @ApiOperation({ summary: '템플릿 상세 조회' })
-  findOne(@Param('id') id: string, @Req() req: any) {
+  findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.templatesService.findOne(id, req.user?.id, req.user?.role);
   }
 
   @Post()
   @ApiOperation({ summary: '템플릿 생성' })
-  create(@Body() dto: CreateTemplateDto, @Req() req: any) {
+  create(@Body() dto: CreateTemplateDto, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.templatesService.create(dto, req.user.id, req.user.role);
   }
 
   @Put(':id')
   @ApiOperation({ summary: '템플릿 수정' })
-  update(@Param('id') id: string, @Body() dto: UpdateTemplateDto, @Req() req: any) {
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateTemplateDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.templatesService.update(id, dto, req.user?.id, req.user?.role);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '템플릿 삭제' })
-  remove(@Param('id') id: string, @Req() req: any) {
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.templatesService.remove(id, req.user?.id, req.user?.role);
   }
 
@@ -76,7 +81,7 @@ export class TemplatesController {
   async localTransform(
     @Param('resumeId') resumeId: string,
     @Body() dto: LocalTransformDto,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     const resume = await this.resumesService.findOne(resumeId, req.user?.id);
 

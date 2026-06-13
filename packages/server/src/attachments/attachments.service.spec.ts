@@ -1,8 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
+import { Readable } from 'node:stream';
+import { v2 as cloudinary } from 'cloudinary';
 import { AttachmentsService } from './attachments.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+
+type CloudinaryUploadCallback = (error: Error | null, result?: { secure_url: string }) => void;
+
+const mockCloudinaryUploader = cloudinary.uploader as unknown as {
+  upload_stream: jest.Mock;
+  destroy: jest.Mock;
+};
 
 // Mock cloudinary
 jest.mock('cloudinary', () => ({
@@ -52,7 +61,7 @@ const createMockFile = (overrides: Partial<Express.Multer.File> = {}): Express.M
   destination: '',
   filename: '',
   path: '',
-  stream: null as any,
+  stream: Readable.from([]),
   ...overrides,
 });
 
@@ -148,7 +157,7 @@ describe('AttachmentsService', () => {
     it('이력서당 파일 개수 초과 → BadRequestException', async () => {
       const resumeWithMany = {
         ...mockResume,
-        attachments: Array.from({ length: 20 }, (_, i) => ({ size: 100 })),
+        attachments: Array.from({ length: 20 }, () => ({ size: 100 })),
       };
       mockPrisma.resume.findUnique.mockResolvedValue(resumeWithMany);
 
@@ -304,17 +313,18 @@ describe('AttachmentsService', () => {
     let cloudinaryService: AttachmentsService;
 
     beforeEach(async () => {
-      const { v2: cloudinary } = require('cloudinary');
-      cloudinary.uploader.upload_stream.mockImplementation((_opts: any, callback: Function) => {
-        const stream = {
-          end: () =>
-            callback(null, {
-              secure_url:
-                'https://res.cloudinary.com/test/upload/v1/resume-attachments/resume-1/uuid.pdf',
-            }),
-        };
-        return stream;
-      });
+      mockCloudinaryUploader.upload_stream.mockImplementation(
+        (_opts: unknown, callback: CloudinaryUploadCallback) => {
+          const stream = {
+            end: () =>
+              callback(null, {
+                secure_url:
+                  'https://res.cloudinary.com/test/upload/v1/resume-attachments/resume-1/uuid.pdf',
+              }),
+          };
+          return stream;
+        },
+      );
 
       const module: TestingModule = await Test.createTestingModule({
         providers: [
@@ -333,10 +343,11 @@ describe('AttachmentsService', () => {
     });
 
     it('Cloudinary 사용 가능 시 URL 저장', async () => {
-      const { v2: cloudinary } = require('cloudinary');
-      cloudinary.uploader.upload_stream.mockImplementation((_opts: any, callback: Function) => ({
-        end: () => callback(null, { secure_url: 'https://res.cloudinary.com/test/file.pdf' }),
-      }));
+      mockCloudinaryUploader.upload_stream.mockImplementation(
+        (_opts: unknown, callback: CloudinaryUploadCallback) => ({
+          end: () => callback(null, { secure_url: 'https://res.cloudinary.com/test/file.pdf' }),
+        }),
+      );
       mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
       mockPrisma.attachment.create.mockResolvedValue({
         ...mockAttachment,
@@ -373,7 +384,7 @@ describe('AttachmentsService', () => {
 
       const result = await service.getFileData('att-1', 'user-1');
       expect(result.mimeType).toBe('application/pdf');
-      expect(result.data).toBeInstanceOf(Buffer);
+      expect('data' in result ? result.data : null).toBeInstanceOf(Buffer);
     });
 
     it('Cloudinary URL → redirectUrl 반환', async () => {
@@ -384,7 +395,9 @@ describe('AttachmentsService', () => {
       });
 
       const result = await service.getFileData('att-1', 'user-1');
-      expect(result.redirectUrl).toBe('https://res.cloudinary.com/test/file.pdf');
+      expect('redirectUrl' in result ? result.redirectUrl : null).toBe(
+        'https://res.cloudinary.com/test/file.pdf',
+      );
     });
 
     it('공개 이력서 첨부파일은 누구나 접근 가능', async () => {
@@ -401,10 +414,12 @@ describe('AttachmentsService', () => {
   describe('한글 파일명 인코딩', () => {
     it('Latin1 인코딩된 한글 파일명을 UTF-8로 복원', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.attachment.create.mockImplementation(({ data }: any) => ({
-        ...mockAttachment,
-        originalName: data.originalName,
-      }));
+      mockPrisma.attachment.create.mockImplementation(
+        ({ data }: { data: { originalName: string } }) => ({
+          ...mockAttachment,
+          originalName: data.originalName,
+        }),
+      );
 
       const koreanName = '이력서_최종.pdf';
       const latin1Encoded = Buffer.from(koreanName, 'utf8').toString('latin1');

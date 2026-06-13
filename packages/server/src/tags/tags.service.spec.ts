@@ -64,7 +64,7 @@ describe('TagsService', () => {
       const result = await service.findAll();
       expect(result[0].resumeCount).toBe(42);
       // _count 프로퍼티는 변환 후 없어야 함
-      expect((result[0] as any)._count).toBeUndefined();
+      expect((result[0] as { _count?: unknown })._count).toBeUndefined();
     });
   });
 

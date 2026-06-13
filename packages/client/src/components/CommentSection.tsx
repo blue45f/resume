@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/components/Toast';
 import { timeAgo } from '@/lib/time';
 import { getUser } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
 import SendMessageButton from '@/components/SendMessageButton';
-import { commentSchema, type CommentFormValues } from '@/shared/lib/schemas/comment';
+import { commentSchema, type CommentFormValues } from '@/shared/lib/schemas';
 
 interface FlatComment {
   id: string;
@@ -64,8 +64,8 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
     resolver: zodResolver(commentSchema),
     defaultValues: { content: '' },
   });
-  const content = commentForm.watch('content') ?? '';
-  const replyText = replyForm.watch('content') ?? '';
+  const content = useWatch({ control: commentForm.control, name: 'content' }) ?? '';
+  const replyText = useWatch({ control: replyForm.control, name: 'content' }) ?? '';
 
   const load = useCallback(() => {
     fetch(`${API_URL}/api/resumes/${resumeId}/comments`)

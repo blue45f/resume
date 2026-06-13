@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { API_URL } from '@/lib/config';
 import { useConfirm } from '@/shared/ui/ConfirmProvider';
@@ -50,7 +50,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/resumes/${resumeId}/attachments`);
@@ -58,10 +58,21 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [resumeId]);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    fetch(`${API_URL}/api/resumes/${resumeId}/attachments`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (!cancelled) setAttachments(data);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [resumeId]);
 
   const handleUpload = async (files: FileList | null) => {

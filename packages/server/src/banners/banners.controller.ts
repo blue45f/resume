@@ -1,7 +1,9 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { BannersService } from './banners.service';
 import { AdminGuard } from '../common/guards/admin.guard';
 import { isAdmin } from '../common/roles';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @Controller('banners')
 export class BannersController {
@@ -13,14 +15,14 @@ export class BannersController {
   }
 
   @Get()
-  getAll(@Req() req: any) {
+  getAll(@Req() req: AuthenticatedRequest) {
     if (!isAdmin(req.user?.role)) return this.service.getActive();
     return this.service.getAll();
   }
 
   @Post()
   @UseGuards(AdminGuard)
-  create(@Body() body: any) {
+  create(@Body() body: Prisma.BannerCreateInput) {
     return this.service.create(body);
   }
 
@@ -32,7 +34,7 @@ export class BannersController {
 
   @Patch(':id')
   @UseGuards(AdminGuard)
-  update(@Param('id') id: string, @Body() body: any) {
+  update(@Param('id') id: string, @Body() body: Prisma.BannerUpdateInput) {
     return this.service.update(id, body);
   }
 

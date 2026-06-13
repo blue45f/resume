@@ -63,8 +63,37 @@ export default function RelatedGroupsWidget({
   }, [hasContext, jobPostId, trimmedCompany, trimmedPosition]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (!hasContext) return;
+    let cancelled = false;
+    const params: Parameters<typeof fetchStudyGroups>[0] = { limit: 10 };
+    if (jobPostId) params.jobPostId = jobPostId;
+    else params.companyName = trimmedCompany;
+    fetchStudyGroups(params)
+      .then((res) => {
+        if (cancelled) return;
+        const positionLower = trimmedPosition.toLowerCase();
+        const items = [...res.items].sort((a, b) => {
+          if (positionLower) {
+            const aMatch = a.position?.toLowerCase().includes(positionLower) ? 1 : 0;
+            const bMatch = b.position?.toLowerCase().includes(positionLower) ? 1 : 0;
+            if (aMatch !== bMatch) return bMatch - aMatch;
+          }
+          return b.memberCount - a.memberCount;
+        });
+        setGroups(items.slice(0, 3));
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : '스터디 그룹을 불러오지 못했습니다');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [hasContext, jobPostId, trimmedCompany, trimmedPosition]);
 
   const handleJoin = async (group: StudyGroup) => {
     if (!user) {

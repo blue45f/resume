@@ -1,12 +1,24 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+
+export type NoticeCreateBody = {
+  title: string;
+  content: string;
+  type?: string;
+  isPopup?: boolean;
+  isPinned?: boolean;
+  allowComments?: boolean;
+  startAt?: Date | string | null;
+  endAt?: Date | string | null;
+};
 
 @Injectable()
 export class NoticesService {
   constructor(private prisma: PrismaService) {}
 
   async getAll(type?: string, page = 1, limit = 10) {
-    const where: any = {};
+    const where: Prisma.NoticeWhereInput = {};
     if (type) where.type = type;
     const [items, total] = await Promise.all([
       this.prisma.notice.findMany({
@@ -55,14 +67,14 @@ export class NoticesService {
     return notice;
   }
 
-  async create(data: any, authorId?: string) {
+  async create(data: NoticeCreateBody, authorId?: string) {
     return this.prisma.notice.create({
       data: { ...data, authorId: authorId || null },
       include: { author: { select: { id: true, name: true } } },
     });
   }
 
-  async update(id: string, data: any, editorId?: string, reason?: string) {
+  async update(id: string, data: Prisma.NoticeUpdateInput, editorId?: string, reason?: string) {
     const existing = await this.prisma.notice.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException();
 
@@ -103,7 +115,7 @@ export class NoticesService {
     });
   }
 
-  async deleteComment(commentId: string, userId: string, role: string) {
+  async deleteComment(commentId: string, userId: string, role?: string) {
     const comment = await this.prisma.noticeComment.findUnique({ where: { id: commentId } });
     if (!comment) throw new NotFoundException();
     if (comment.userId !== userId && role !== 'admin' && role !== 'superadmin')

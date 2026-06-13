@@ -20,7 +20,7 @@ describe('JobUrlParserService', () => {
       },
     };
     mockFetch = jest.fn();
-    global.fetch = mockFetch as any;
+    global.fetch = mockFetch as unknown as typeof fetch;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

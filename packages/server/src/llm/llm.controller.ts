@@ -18,6 +18,8 @@ import { FeedbackDto, JobMatchDto, InterviewDto, InlineAssistDto } from './dto/a
 import { EnhanceWithDocumentDto } from './dto/auto-generate.dto';
 import { UsageService } from '../health/usage.service';
 import { SystemConfigService } from '../system-config/system-config.service';
+import type { AuthenticatedRequest } from '../common/request.types';
+import type { LlmStreamChunk } from './llm-provider.interface';
 
 @ApiTags('llm')
 @Controller('resumes/:resumeId/transform')
@@ -40,7 +42,7 @@ export class LlmController {
   async transform(
     @Param('resumeId') resumeId: string,
     @Body() dto: TransformResumeDto,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     await this.assertAiEnabled('ai.resume');
     if (req.user?.id) {
@@ -56,11 +58,11 @@ export class LlmController {
   transformStream(
     @Param('resumeId') resumeId: string,
     @Body() dto: TransformResumeDto,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ): Observable<MessageEvent> {
     return new Observable((subscriber) => {
       let isAlive = true;
-      let generator: AsyncGenerator<any> | null = null;
+      let generator: AsyncGenerator<LlmStreamChunk> | null = null;
 
       const cleanup = () => {
         isAlive = false;
@@ -91,7 +93,7 @@ export class LlmController {
             if (!isAlive) break;
             subscriber.next({ data: JSON.stringify(chunk) } as MessageEvent);
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           if (isAlive) {
             const safeMsg = this.sanitizeError(error);
             subscriber.next({
@@ -114,8 +116,8 @@ export class LlmController {
   }
 
   /** 스택/민감정보 누출 방지 — 알려진 메시지만 통과 */
-  private sanitizeError(err: any): string {
-    const raw = typeof err?.message === 'string' ? err.message : '';
+  private sanitizeError(err: unknown): string {
+    const raw = err instanceof Error && typeof err.message === 'string' ? err.message : '';
     if (!raw) return 'AI 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
     // 플랜 한도·검증·타임아웃 등 서비스가 던진 사용자 친화적 메시지는 통과
     if (/한도|이내|유효|타임아웃|지원|사용/.test(raw) && raw.length < 200) return raw;
@@ -124,7 +126,7 @@ export class LlmController {
 
   @Get('history')
   @ApiOperation({ summary: 'LLM 변환 이력 조회' })
-  getHistory(@Param('resumeId') resumeId: string, @Req() req: any) {
+  getHistory(@Param('resumeId') resumeId: string, @Req() req: AuthenticatedRequest) {
     return this.llmService.getTransformationHistory(resumeId, req.user?.id);
   }
 
@@ -148,7 +150,7 @@ export class LlmController {
   async analyzeFeedback(
     @Param('resumeId') resumeId: string,
     @Body() dto: FeedbackDto,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (req.user?.id) {
       await this.usageService.checkAndLog(req.user.id, 'ai_feedback');
@@ -162,7 +164,7 @@ export class LlmController {
   async analyzeJobMatch(
     @Param('resumeId') resumeId: string,
     @Body() dto: JobMatchDto,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (req.user?.id) {
       await this.usageService.checkAndLog(req.user.id, 'ai_job_match');
@@ -181,7 +183,7 @@ export class LlmController {
   async generateInterview(
     @Param('resumeId') resumeId: string,
     @Body() dto: InterviewDto,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (req.user?.id) {
       await this.usageService.checkAndLog(req.user.id, 'ai_interview');
@@ -199,7 +201,7 @@ export class LlmController {
   @Post('inline-assist')
   @ApiOperation({ summary: 'AI 인라인 문장 개선' })
   @Throttle({ default: { limit: 10, ttl: 60000 } })
-  async inlineAssist(@Body() dto: InlineAssistDto, @Req() req: any) {
+  async inlineAssist(@Body() dto: InlineAssistDto, @Req() req: AuthenticatedRequest) {
     if (req.user?.id) {
       await this.usageService.checkAndLog(req.user.id, 'ai_inline_assist');
     }
@@ -212,7 +214,7 @@ export class LlmController {
   async aiSpellCheck(
     @Param('resumeId') resumeId: string,
     @Body() dto: FeedbackDto,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (req.user?.id) {
       await this.usageService.checkAndLog(req.user.id, 'ai_spell_check');
@@ -226,7 +228,7 @@ export class LlmController {
   async enhanceWithDocument(
     @Param('resumeId') resumeId: string,
     @Body() dto: EnhanceWithDocumentDto,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (req.user?.id) {
       await this.usageService.checkAndLog(req.user.id, 'ai_enhance_document');

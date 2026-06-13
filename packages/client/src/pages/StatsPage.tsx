@@ -28,6 +28,12 @@ interface PopularSkill {
   count: number;
 }
 
+interface SkillStat {
+  skill?: string;
+  name?: string;
+  count: number;
+}
+
 function CountUp({ target, duration = 1500 }: { target: number; duration?: number }) {
   const [count, setCount] = useState(0);
   useEffect(() => {
@@ -228,7 +234,7 @@ function JobStatsSection() {
             채용 요구 기술 TOP 20
           </h3>
           <div className="flex flex-wrap gap-2">
-            {data.bySkill.map((s: any) => {
+            {data.bySkill.map((s: SkillStat) => {
               const maxCount = data.bySkill[0]?.count || 1;
               const opacity = 0.4 + (s.count / maxCount) * 0.6;
               return (
@@ -270,7 +276,10 @@ export default function StatsPage() {
   ).slice(0, 10);
   const skills: PopularSkill[] = (
     Array.isArray(skillsQuery.data)
-      ? (skillsQuery.data as any[]).map((s: any) => ({ skill: s.skill || s.name, count: s.count }))
+      ? (skillsQuery.data as SkillStat[]).map((s) => ({
+          skill: s.skill || s.name || '',
+          count: s.count,
+        }))
       : []
   ).slice(0, 15);
   const loading = statsQuery.isLoading || popularQuery.isLoading || skillsQuery.isLoading;

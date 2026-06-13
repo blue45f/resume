@@ -1,5 +1,8 @@
 import { SanitizeMiddleware } from './sanitize.middleware';
 import { BadRequestException } from '@nestjs/common';
+import type { NextFunction, Request, Response } from 'express';
+
+type BodyRequest<TBody = unknown> = Request & { body?: TBody };
 
 describe('SanitizeMiddleware', () => {
   let middleware: SanitizeMiddleware;
@@ -8,10 +11,10 @@ describe('SanitizeMiddleware', () => {
     middleware = new SanitizeMiddleware();
   });
 
-  const run = (body: unknown) => {
-    const req = { body } as any;
-    const res = {} as any;
-    const next = jest.fn();
+  const run = <TBody>(body: TBody) => {
+    const req = { body } as BodyRequest<TBody>;
+    const res = {} as Response;
+    const next: NextFunction = jest.fn();
     middleware.use(req, res, next);
     return { req, next };
   };
@@ -220,25 +223,25 @@ describe('SanitizeMiddleware', () => {
   });
 
   it('body가 없으면 next를 호출한다', () => {
-    const req = {} as any;
-    const res = {} as any;
-    const next = jest.fn();
+    const req = {} as BodyRequest;
+    const res = {} as Response;
+    const next: NextFunction = jest.fn();
     middleware.use(req, res, next);
     expect(next).toHaveBeenCalled();
   });
 
   it('body가 null이면 next를 호출한다', () => {
-    const req = { body: null } as any;
-    const res = {} as any;
-    const next = jest.fn();
+    const req = { body: null } as BodyRequest<null>;
+    const res = {} as Response;
+    const next: NextFunction = jest.fn();
     middleware.use(req, res, next);
     expect(next).toHaveBeenCalled();
   });
 
   it('body가 문자열이면 sanitize하지 않고 next를 호출한다', () => {
-    const req = { body: 'plain string' } as any;
-    const res = {} as any;
-    const next = jest.fn();
+    const req = { body: 'plain string' } as BodyRequest<string>;
+    const res = {} as Response;
+    const next: NextFunction = jest.fn();
     middleware.use(req, res, next);
     expect(next).toHaveBeenCalled();
     expect(req.body).toBe('plain string');

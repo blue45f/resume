@@ -17,9 +17,17 @@ type VerifyState =
  */
 export default function PaymentResultPage() {
   const [params] = useSearchParams();
-  const [state, setState] = useState<VerifyState>(() =>
-    params.has('fail') ? { phase: 'failed', reason: 'pg_cancelled' } : { phase: 'verifying' },
-  );
+  const [initial] = useState(() => {
+    const token = localStorage.getItem('token');
+    const state: VerifyState = params.has('fail')
+      ? { phase: 'failed', reason: 'pg_cancelled' }
+      : token
+        ? { phase: 'verifying' }
+        : { phase: 'failed', reason: 'unauthenticated' };
+    return { token, state };
+  });
+  const token = initial.token;
+  const [state, setState] = useState<VerifyState>(initial.state);
 
   useEffect(() => {
     document.title =
@@ -36,11 +44,7 @@ export default function PaymentResultPage() {
   useEffect(() => {
     if (state.phase !== 'verifying') return;
     const ctrl = new AbortController();
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setState({ phase: 'failed', reason: 'unauthenticated' });
-      return;
-    }
+    if (!token) return;
     (async () => {
       try {
         const res = await fetch(`${API_URL}/api/billing/me/verify-recent`, {
@@ -67,7 +71,7 @@ export default function PaymentResultPage() {
       }
     })();
     return () => ctrl.abort();
-  }, [state.phase]);
+  }, [state.phase, token]);
 
   const planLabel = state.phase === 'success' ? state.planName || '프로' : '';
   const expiresLabel =

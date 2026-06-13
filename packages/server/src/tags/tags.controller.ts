@@ -5,6 +5,7 @@ import { Public } from '../auth/auth.guard';
 import { ResumesService } from '../resumes/resumes.service';
 import { TagsService } from './tags.service';
 import { CreateTagDto } from './dto/tag.dto';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('tags')
 @Controller('tags')
@@ -24,13 +25,13 @@ export class TagsController {
 
   @Post()
   @ApiOperation({ summary: '태그 생성' })
-  create(@Body() dto: CreateTagDto, @Req() req: any) {
+  create(@Body() dto: CreateTagDto, @Req() req: AuthenticatedRequest) {
     return this.tagsService.create(dto, req.user?.id);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '태그 삭제' })
-  remove(@Param('id') id: string, @Req() req: any) {
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.tagsService.remove(id, req.user?.id, req.user?.role);
   }
 
@@ -39,7 +40,7 @@ export class TagsController {
   async addToResume(
     @Param('tagId') tagId: string,
     @Param('resumeId') resumeId: string,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     await this.resumesService.findOne(resumeId, req.user?.id);
     return this.tagsService.addTagToResume(resumeId, tagId);
@@ -50,7 +51,7 @@ export class TagsController {
   async removeFromResume(
     @Param('tagId') tagId: string,
     @Param('resumeId') resumeId: string,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     await this.resumesService.findOne(resumeId, req.user?.id);
     return this.tagsService.removeTagFromResume(resumeId, tagId);

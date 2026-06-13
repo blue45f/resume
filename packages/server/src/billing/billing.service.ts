@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -86,7 +80,7 @@ export class BillingService {
     const planId = (user.plan as PlanId) || 'free';
     const plan = PLANS[planId] || PLANS.free;
 
-    const activeSub = await (this.prisma as any).subscription.findFirst({
+    const activeSub = await this.prisma.subscription.findFirst({
       where: { userId, status: 'active' },
       orderBy: { currentPeriodEnd: 'desc' },
     });
@@ -117,12 +111,12 @@ export class BillingService {
     if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다');
 
     // 기존 active subscription cancel
-    await (this.prisma as any).subscription.updateMany({
+    await this.prisma.subscription.updateMany({
       where: { userId, status: 'active' },
       data: { status: 'cancelled', cancelledAt: new Date() },
     });
 
-    const sub = await (this.prisma as any).subscription.create({
+    const sub = await this.prisma.subscription.create({
       data: {
         userId,
         plan: body.plan,
@@ -170,7 +164,7 @@ export class BillingService {
     }
 
     // 이미 활성 sub 가 있으면 차단 — 이중 결제 방지
-    const active = await (this.prisma as any).subscription.findFirst({
+    const active = await this.prisma.subscription.findFirst({
       where: { userId, status: 'active' },
       select: { id: true, plan: true, provider: true },
     });
@@ -181,7 +175,7 @@ export class BillingService {
     }
 
     // 과거 manual/trial 이력 확인 — 1회만 허용
-    const pastTrial = await (this.prisma as any).subscription.findFirst({
+    const pastTrial = await this.prisma.subscription.findFirst({
       where: { userId, provider: 'manual' },
       select: { id: true },
     });
@@ -201,7 +195,7 @@ export class BillingService {
 
   /** 사용자 본인 cancel — currentPeriodEnd 까지는 유효. */
   async cancelMyPlan(userId: string) {
-    const sub = await (this.prisma as any).subscription.findFirst({
+    const sub = await this.prisma.subscription.findFirst({
       where: { userId, status: 'active' },
       orderBy: { currentPeriodEnd: 'desc' },
     });
@@ -209,7 +203,7 @@ export class BillingService {
     if (sub.cancelAtPeriodEnd) {
       throw new BadRequestException('이미 해지 예약 상태입니다');
     }
-    return (this.prisma as any).subscription.update({
+    return this.prisma.subscription.update({
       where: { id: sub.id },
       data: { cancelAtPeriodEnd: true, cancelledAt: new Date() },
     });
@@ -218,18 +212,18 @@ export class BillingService {
   /** 만료된 plan downgrade — cron job 또는 수동 호출. */
   async expireOverdueSubscriptions() {
     const now = new Date();
-    const overdue = await (this.prisma as any).subscription.findMany({
+    const overdue = await this.prisma.subscription.findMany({
       where: { status: 'active', currentPeriodEnd: { lt: now } },
       select: { id: true, userId: true, plan: true },
     });
     if (overdue.length === 0) return { expired: 0 };
 
-    await (this.prisma as any).subscription.updateMany({
-      where: { id: { in: overdue.map((s: any) => s.id) } },
+    await this.prisma.subscription.updateMany({
+      where: { id: { in: overdue.map((s) => s.id) } },
       data: { status: 'expired' },
     });
     await this.prisma.user.updateMany({
-      where: { id: { in: overdue.map((s: any) => s.userId) } },
+      where: { id: { in: overdue.map((s) => s.userId) } },
       data: { plan: 'free', planExpiresAt: null },
     });
 
@@ -260,7 +254,7 @@ export class BillingService {
       status?: 'pending' | 'succeeded' | 'failed' | 'refunded';
     },
   ) {
-    return (this.prisma as any).payment.create({
+    return this.prisma.payment.create({
       data: {
         userId,
         subscriptionId: body.subscriptionId,
@@ -277,7 +271,7 @@ export class BillingService {
 
   /** 사용자 결제 내역 (최근 50건). */
   async listMyPayments(userId: string) {
-    return (this.prisma as any).payment.findMany({
+    return this.prisma.payment.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: 50,
@@ -296,7 +290,7 @@ export class BillingService {
    */
   async verifyRecentPayment(userId: string) {
     const cutoff = new Date(Date.now() - 10 * 60 * 1000);
-    const payment = await (this.prisma as any).payment.findFirst({
+    const payment = await this.prisma.payment.findFirst({
       where: { userId, status: 'succeeded', paidAt: { gte: cutoff } },
       orderBy: { paidAt: 'desc' },
       include: { subscription: true },

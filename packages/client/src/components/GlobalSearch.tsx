@@ -12,6 +12,8 @@ interface SearchResult {
   link: string;
 }
 
+type PopularSkill = string | { skill?: string; name?: string };
+
 const TYPE_META: Record<string, { icon: string; label: string; color: string }> = {
   resume: {
     icon: '📄',
@@ -63,9 +65,12 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     fetch(`${API_URL}/api/resumes/popular-skills`)
       .then((r) => (r.ok ? r.json() : []))
-      .then((skills: any[]) =>
-        setTrendingSkills(skills.slice(0, 8).map((s: any) => s.skill || s.name || s)),
-      )
+      .then((skills: unknown) => {
+        const items = Array.isArray(skills) ? (skills as PopularSkill[]) : [];
+        setTrendingSkills(
+          items.slice(0, 8).map((s) => (typeof s === 'string' ? s : s.skill || s.name || '')),
+        );
+      })
       .catch(() => {});
   }, []);
 

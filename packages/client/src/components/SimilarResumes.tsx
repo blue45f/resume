@@ -8,8 +8,17 @@ interface Props {
   resume: Resume;
 }
 
+interface SimilarResume {
+  id: string;
+  title?: string;
+  viewCount?: number;
+  personalInfo?: {
+    name?: string;
+  };
+}
+
 export default function SimilarResumes({ resume }: Props) {
-  const [similar, setSimilar] = useState<any[]>([]);
+  const [similar, setSimilar] = useState<SimilarResume[]>([]);
 
   useEffect(() => {
     const topSkills = resume.skills
@@ -20,8 +29,10 @@ export default function SimilarResumes({ resume }: Props) {
     const query = topSkills[0];
     fetch(`${API_URL}/api/resumes/public?q=${encodeURIComponent(query)}&limit=5`)
       .then((r) => (r.ok ? r.json() : { data: [] }))
-      .then((d) => {
-        const others = (d.data || []).filter((r: any) => r.id !== resume.id);
+      .then((d: unknown) => {
+        const data = typeof d === 'object' && d !== null && 'data' in d ? d.data : [];
+        const rows = Array.isArray(data) ? (data as SimilarResume[]) : [];
+        const others = rows.filter((r) => r.id !== resume.id);
         setSimilar(others.slice(0, 3));
       })
       .catch(() => {});
@@ -52,9 +63,9 @@ export default function SimilarResumes({ resume }: Props) {
                 {r.personalInfo?.name}
               </p>
             </div>
-            {r.viewCount > 0 && (
+            {(r.viewCount ?? 0) > 0 && (
               <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
-                {r.viewCount} 조회
+                {r.viewCount ?? 0} 조회
               </span>
             )}
           </Link>

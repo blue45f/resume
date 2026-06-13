@@ -19,9 +19,14 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '../auth/auth.guard';
-import { CommunityService } from './community.service';
+import {
+  CommunityService,
+  type CreateCommunityPostBody,
+  type UpdateCommunityPostBody,
+} from './community.service';
 import { v2 as cloudinary } from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const MAX_ATTACH_SIZE = 20 * 1024 * 1024; // 20MB
 const ALLOWED_ATTACH_TYPES = [
@@ -34,6 +39,10 @@ const ALLOWED_ATTACH_TYPES = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'text/plain',
 ];
+
+type CloudinaryUploadResult = {
+  secure_url?: string;
+};
 
 @ApiTags('community')
 @Controller('community')
@@ -68,7 +77,7 @@ export class CommunityController {
     @Query('limit') limit = '20',
     @Query('showHidden') showHidden?: string,
     @Query('sort') sort = 'recent',
-    @Req() req?: any,
+    @Req() req?: AuthenticatedRequest,
   ) {
     const isAdmin = req?.user?.role === 'admin' || req?.user?.role === 'superadmin';
     const includeHidden = isAdmin && showHidden === 'true';
@@ -85,31 +94,32 @@ export class CommunityController {
   @Get(':id')
   @Public()
   @ApiOperation({ summary: '게시글 상세' })
-  getPost(@Param('id') id: string, @Req() req: any) {
+  getPost(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.service.getPost(id, req.user?.id);
   }
 
   @Post()
   @Throttle({ short: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: '게시글 작성' })
-  create(
-    @Body() body: { title: string; content: string; category: string; attachments?: any[] },
-    @Req() req: any,
-  ) {
+  create(@Body() body: CreateCommunityPostBody, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { error: '로그인이 필요합니다' };
     return this.service.createPost(req.user.id, body);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: '게시글 수정' })
-  update(@Param('id') id: string, @Body() body: any, @Req() req: any) {
+  update(
+    @Param('id') id: string,
+    @Body() body: UpdateCommunityPostBody,
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!req.user?.id) return { error: '로그인이 필요합니다' };
     return this.service.updatePost(id, req.user.id, req.user.role || 'user', body);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '게시글 삭제' })
-  delete(@Param('id') id: string, @Req() req: any) {
+  delete(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { error: '로그인이 필요합니다' };
     return this.service.deletePost(id, req.user.id, req.user.role || 'user');
   }
@@ -117,7 +127,7 @@ export class CommunityController {
   @Post(':id/like')
   @Throttle({ short: { limit: 20, ttl: 60000 } })
   @ApiOperation({ summary: '좋아요 토글' })
-  toggleLike(@Param('id') id: string, @Req() req: any) {
+  toggleLike(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { error: '로그인이 필요합니다' };
     return this.service.toggleLike(id, req.user.id);
   }
@@ -135,14 +145,18 @@ export class CommunityController {
   addComment(
     @Param('id') id: string,
     @Body() body: { content: string; authorName?: string; parentId?: string },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     return this.service.addComment(id, req.user?.id, body.content, body.authorName, body.parentId);
   }
 
   @Delete(':id/comments/:commentId')
   @ApiOperation({ summary: '댓글 삭제' })
-  deleteComment(@Param('id') id: string, @Param('commentId') commentId: string, @Req() req: any) {
+  deleteComment(
+    @Param('id') id: string,
+    @Param('commentId') commentId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!req.user?.id) return { error: '로그인이 필요합니다' };
     return this.service.deleteComment(commentId, req.user.id, req.user.role || 'user');
   }
@@ -152,7 +166,10 @@ export class CommunityController {
   @Throttle({ short: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '커뮤니티 첨부파일 업로드' })
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: MAX_ATTACH_SIZE } }))
-  async uploadAttachment(@UploadedFile() file: Express.Multer.File, @Req() req: any) {
+  async uploadAttachment(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!req.user?.id) throw new BadRequestException('로그인이 필요합니다');
     if (!file) throw new BadRequestException('파일이 없습니다');
     if (!ALLOWED_ATTACH_TYPES.includes(file.mimetype)) {
@@ -160,18 +177,19 @@ export class CommunityController {
     }
 
     if (this.useCloudinary) {
-      const result = await new Promise<any>((resolve, reject) => {
+      const result = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           { folder: 'community_attachments', resource_type: 'auto' },
           (err, result) => {
             if (err) reject(err);
-            else resolve(result);
+            else if (result) resolve(result);
+            else reject(new Error('Cloudinary upload failed'));
           },
         );
         stream.end(file.buffer);
       });
       return {
-        url: result.secure_url,
+        url: result.secure_url ?? '',
         name: file.originalname,
         size: file.size,
         type: file.mimetype,
@@ -194,7 +212,7 @@ export class CommunityController {
   reportPost(
     @Param('id') id: string,
     @Body() body: { reason?: string; detail?: string },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.reportPost(id, req.user.id, body.reason ?? 'other', body.detail ?? '');

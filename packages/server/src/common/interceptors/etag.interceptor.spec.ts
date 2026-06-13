@@ -5,14 +5,14 @@ import { ETagInterceptor } from './etag.interceptor';
 function makeContext(method: string, headers: Record<string, string> = {}) {
   const setHeader = jest.fn();
   const status = jest.fn();
-  const response: any = { setHeader, status, headersSent: false };
-  const request: any = { method, headers };
+  const response = { setHeader, status, headersSent: false };
+  const request = { method, headers };
   const ctx: ExecutionContext = {
     switchToHttp: () => ({
       getRequest: () => request,
       getResponse: () => response,
     }),
-  } as any;
+  } as unknown as ExecutionContext;
   return { ctx, response, request };
 }
 

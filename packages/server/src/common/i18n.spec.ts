@@ -181,7 +181,7 @@ describe('i18n translations', () => {
   it('no missing translations (no empty strings)', () => {
     for (const locale of LOCALES) {
       const dict = translations[locale];
-      for (const [key, value] of Object.entries(dict)) {
+      for (const value of Object.values(dict)) {
         expect(value).toBeTruthy();
         expect(typeof value).toBe('string');
         // Value must not be empty or whitespace-only

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { CoachingService } from './coaching.service';
+import { CoachingService, type UpdateSessionStatusDto } from './coaching.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -8,13 +8,14 @@ const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
 
 // Mock CoachProfile / CoachingSession / Resume accessors.
 // Prisma delegates are exposed via `coachProfile`, `coachingSession`, `resume` keys on PrismaService.
-const mockPrisma: any = {
+const mockPrisma = {
   user: { update: jest.fn() },
   resume: { findUnique: jest.fn() },
   coachProfile: {
     findUnique: jest.fn(),
     findMany: jest.fn(),
     upsert: jest.fn(),
+    update: jest.fn(),
   },
   coachingSession: {
     create: jest.fn(),
@@ -50,10 +51,12 @@ describe('CoachingService', () => {
 
     beforeEach(() => {
       mockPrisma.coachProfile.findUnique.mockResolvedValue(activeCoach);
-      mockPrisma.coachingSession.create.mockImplementation(({ data }: any) => ({
-        id: 's-1',
-        ...data,
-      }));
+      mockPrisma.coachingSession.create.mockImplementation(
+        ({ data }: { data: Record<string, unknown> }) => ({
+          id: 's-1',
+          ...data,
+        }),
+      );
     });
 
     it('coachId 누락 시 BadRequest', async () => {
@@ -190,9 +193,11 @@ describe('CoachingService', () => {
 
   describe('updateStatus', () => {
     it('유효하지 않은 상태값 거부', async () => {
-      await expect(service.updateStatus('s1', 'u1', { status: 'invalid' as any })).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.updateStatus('s1', 'u1', {
+          status: 'invalid',
+        } as unknown as UpdateSessionStatusDto),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('권한 없는 유저는 상태 변경 차단', async () => {
@@ -216,7 +221,7 @@ describe('CoachingService', () => {
         coach: { userId: 'coach-user' },
       });
       mockPrisma.coachingSession.update.mockResolvedValue({ id: 's1', status: 'completed' });
-      (mockPrisma.coachProfile as any).update = jest.fn().mockResolvedValue({});
+      mockPrisma.coachProfile.update.mockResolvedValue({});
       mockNotifications.create.mockClear();
       await service.updateStatus('s1', 'coach-user', { status: 'completed' });
       expect(mockNotifications.create).toHaveBeenCalledWith(
@@ -237,7 +242,7 @@ describe('CoachingService', () => {
         coach: { userId: 'coach-user' },
       });
       mockPrisma.coachingSession.update.mockResolvedValue({ id: 's2', status: 'refunded' });
-      (mockPrisma.coachProfile as any).update = jest.fn().mockResolvedValue({});
+      mockPrisma.coachProfile.update.mockResolvedValue({});
       mockNotifications.create.mockClear();
       await service.updateStatus('s2', 'coach-user', { status: 'refunded' });
       expect(mockNotifications.create).not.toHaveBeenCalled();

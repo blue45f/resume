@@ -18,7 +18,7 @@ export function toast(text: string, type: ToastType = 'info') {
   }
 }
 
-export function ToastContainer() {
+function renderToastContainer() {
   return (
     <Toaster
       position="bottom-right"
@@ -32,3 +32,5 @@ export function ToastContainer() {
     />
   );
 }
+
+export const ToastContainer = renderToastContainer;

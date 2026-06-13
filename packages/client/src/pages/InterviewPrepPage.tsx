@@ -6,7 +6,7 @@ import { toast } from '@/components/Toast';
 import type { Resume, ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
 import { useResume, useResumes, usePublicGet } from '@/hooks/useResources';
-import RelatedGroupsWidget from '@/features/study-groups/ui/RelatedGroupsWidget';
+import { RelatedGroupsWidget } from '@/features/study-groups';
 import InterviewScoreHistory from '@/components/InterviewScoreHistory';
 import JdSignalDashboard from '@/components/JdSignalDashboard';
 import JdCompetitiveLandscapePanel from '@/components/JdCompetitiveLandscapePanel';

@@ -27,6 +27,7 @@ import { ExportService } from './export.service';
 import { AnalyticsService } from './analytics.service';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('resumes')
 @Controller('resumes')
@@ -40,7 +41,7 @@ export class ResumesController {
   @Get()
   @ApiOperation({ summary: '내 이력서 목록 (로그인 시) 또는 공개 이력서 목록' })
   findAll(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Query('public') isPublic?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -55,18 +56,21 @@ export class ResumesController {
 
   @Get('dashboard/analytics')
   @ApiOperation({ summary: '사용자 대시보드 분석' })
-  analytics(@Req() req: any) {
+  analytics(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.analyticsService.getUserDashboard(req.user.id);
   }
 
   @Get('dashboard/viewers')
   @ApiOperation({ summary: '프로필 조회자 통계' })
-  async getViewers(@Req() req: any) {
+  async getViewers(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     const data = await this.resumesService.findAll(req.user.id, 1, 100);
     const resumes = data.data || [];
-    const totalViews = resumes.reduce((sum: number, r: any) => sum + (r.viewCount || 0), 0);
+    const totalViews = resumes.reduce(
+      (sum: number, r: { viewCount?: number | null }) => sum + (r.viewCount || 0),
+      0,
+    );
     return {
       viewers: [],
       thisWeek: Math.min(totalViews, Math.floor(totalViews * 0.3)),
@@ -95,7 +99,7 @@ export class ResumesController {
 
   @Get('bookmarks/list')
   @ApiOperation({ summary: '내 북마크 목록' })
-  getBookmarks(@Req() req: any) {
+  getBookmarks(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.getBookmarks(req.user.id);
   }
@@ -103,7 +107,11 @@ export class ResumesController {
   @Get('@:username/:slug')
   @Public()
   @ApiOperation({ summary: '슬러그로 이력서 조회 (/@username/slug)' })
-  findBySlug(@Param('username') username: string, @Param('slug') slug: string, @Req() req: any) {
+  findBySlug(
+    @Param('username') username: string,
+    @Param('slug') slug: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     // selective 가시성은 viewer 별로 응답이 달라지므로 @CacheTTL(public 캐시) 미적용 (CDN 교차유출 방지)
     return this.resumesService.findBySlug(username, slug, req.user?.id);
   }
@@ -111,7 +119,11 @@ export class ResumesController {
   @Get('short/:code')
   @Public()
   @ApiOperation({ summary: '숏코드로 이력서 조회 (/r/xxxxxxxx)' })
-  async findByShortCode(@Param('code') code: string, @Req() req: any, @Res() res: Response) {
+  async findByShortCode(
+    @Param('code') code: string,
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+  ) {
     const resume = await this.resumesService.findByShortCode(code, req.user?.id);
     if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
     // 이력서 미리보기 페이지로 리다이렉트
@@ -140,7 +152,7 @@ export class ResumesController {
 
   @Get(':id/bookmark/status')
   @ApiOperation({ summary: '북마크 여부 확인' })
-  async isBookmarked(@Param('id') id: string, @Req() req: any) {
+  async isBookmarked(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) return { bookmarked: false };
     const bookmarked = await this.resumesService.isBookmarked(id, req.user.id);
     return { bookmarked };
@@ -148,27 +160,31 @@ export class ResumesController {
 
   @Get(':id')
   @ApiOperation({ summary: '이력서 상세 조회' })
-  findOne(@Param('id') id: string, @Req() req: any) {
+  findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.resumesService.findOne(id, req.user?.id);
   }
 
   @Post()
   @ApiOperation({ summary: '이력서 생성' })
-  create(@Body() dto: CreateResumeDto, @Req() req: any) {
+  create(@Body() dto: CreateResumeDto, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.create(dto, req.user.id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: '이력서 수정' })
-  update(@Param('id') id: string, @Body() dto: UpdateResumeDto, @Req() req: any) {
+  update(@Param('id') id: string, @Body() dto: UpdateResumeDto, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.update(id, dto, req.user.id);
   }
 
   @Patch(':id/visibility')
   @ApiOperation({ summary: '이력서 공개/비공개 설정' })
-  setVisibility(@Param('id') id: string, @Body('visibility') visibility: string, @Req() req: any) {
+  setVisibility(
+    @Param('id') id: string,
+    @Body('visibility') visibility: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.setVisibility(id, visibility, req.user.id, req.user.role);
   }
@@ -177,14 +193,14 @@ export class ResumesController {
 
   @Get('shared/list')
   @ApiOperation({ summary: '내가 공유받은 이력서 목록 (selective viewer)' })
-  listMyShared(@Req() req: any) {
+  listMyShared(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.listMySharedResumes(req.user.id);
   }
 
   @Get(':id/viewers')
   @ApiOperation({ summary: '이력서 허용 viewer 목록 (소유자만)' })
-  listAllowedViewers(@Param('id') id: string, @Req() req: any) {
+  listAllowedViewers(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.listAllowedViewers(id, req.user.id, req.user.role);
   }
@@ -201,7 +217,7 @@ export class ResumesController {
       message?: string;
       expiresAt?: string | null;
     },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.addAllowedViewer(id, body, req.user.id, req.user.role);
@@ -212,7 +228,7 @@ export class ResumesController {
   removeAllowedViewer(
     @Param('id') id: string,
     @Param('userId') viewerUserId: string,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.removeAllowedViewer(id, viewerUserId, req.user.id, req.user.role);
@@ -220,7 +236,11 @@ export class ResumesController {
 
   @Patch(':id/slug')
   @ApiOperation({ summary: '이력서 공개 URL 슬러그 변경' })
-  updateSlug(@Param('id') id: string, @Body('slug') slug: string, @Req() req: any) {
+  updateSlug(
+    @Param('id') id: string,
+    @Body('slug') slug: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.updateSlug(id, slug, req.user.id, req.user.role);
   }
@@ -230,7 +250,7 @@ export class ResumesController {
   transferOwnership(
     @Param('id') id: string,
     @Body('newUserId') newUserId: string,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
@@ -241,21 +261,21 @@ export class ResumesController {
 
   @Delete(':id')
   @ApiOperation({ summary: '이력서 삭제' })
-  remove(@Param('id') id: string, @Req() req: any) {
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.remove(id, req.user.id, req.user.role);
   }
 
   @Post(':id/bookmark')
   @ApiOperation({ summary: '이력서 북마크 추가' })
-  addBookmark(@Param('id') id: string, @Req() req: any) {
+  addBookmark(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.addBookmark(id, req.user.id);
   }
 
   @Delete(':id/bookmark')
   @ApiOperation({ summary: '이력서 북마크 해제' })
-  removeBookmark(@Param('id') id: string, @Req() req: any) {
+  removeBookmark(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.removeBookmark(id, req.user.id);
   }
@@ -265,7 +285,7 @@ export class ResumesController {
   reportResume(
     @Param('id') id: string,
     @Body() body: { reason?: string; detail?: string },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.reportResume(
@@ -278,14 +298,18 @@ export class ResumesController {
 
   @Post(':id/duplicate')
   @ApiOperation({ summary: '이력서 복제' })
-  duplicate(@Param('id') id: string, @Req() req: any) {
+  duplicate(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.resumesService.duplicate(id, req.user.id);
   }
 
   @Get(':id/export/text')
   @ApiOperation({ summary: '이력서 텍스트 내보내기' })
-  async exportText(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
+  async exportText(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+  ) {
     try {
       await this.resumesService.assertCanAccess(id, req.user?.id);
       const text = await this.exportService.exportAsText(id);
@@ -301,7 +325,11 @@ export class ResumesController {
 
   @Get(':id/export/markdown')
   @ApiOperation({ summary: '이력서 마크다운 내보내기' })
-  async exportMarkdown(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
+  async exportMarkdown(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+  ) {
     try {
       await this.resumesService.assertCanAccess(id, req.user?.id);
       const text = await this.exportService.exportAsMarkdown(id);
@@ -317,7 +345,11 @@ export class ResumesController {
 
   @Get(':id/export/json')
   @ApiOperation({ summary: '이력서 JSON 내보내기' })
-  async exportJson(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
+  async exportJson(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+  ) {
     try {
       await this.resumesService.assertCanAccess(id, req.user?.id);
       const json = await this.exportService.exportAsJson(id);
@@ -333,7 +365,11 @@ export class ResumesController {
 
   @Get(':id/export/docx')
   @ApiOperation({ summary: '이력서 Word(.docx) 내보내기' })
-  async exportDocx(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
+  async exportDocx(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+  ) {
     try {
       await this.resumesService.assertCanAccess(id, req.user?.id);
       const buffer = await this.exportService.exportAsDocx(id);
@@ -352,7 +388,11 @@ export class ResumesController {
 
   @Get(':id/export/html')
   @ApiOperation({ summary: '이력서 HTML 내보내기 (독립형 파일)' })
-  async exportHtml(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
+  async exportHtml(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+  ) {
     try {
       await this.resumesService.assertCanAccess(id, req.user?.id);
       const html = await this.exportService.exportAsHtml(id);
@@ -369,13 +409,17 @@ export class ResumesController {
   @Get(':id/endorsements')
   @Public()
   @ApiOperation({ summary: '이력서 스킬 추천 목록 조회' })
-  async getEndorsements(@Param('id') id: string, @Req() req: any) {
+  async getEndorsements(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.resumesService.getEndorsements(id, req.user?.id);
   }
 
   @Post(':id/endorse')
   @ApiOperation({ summary: '이력서 스킬 추천 토글' })
-  async toggleEndorse(@Param('id') id: string, @Body('skill') skill: string, @Req() req: any) {
+  async toggleEndorse(
+    @Param('id') id: string,
+    @Body('skill') skill: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     if (!skill?.trim()) throw new BadRequestException('기술명이 필요합니다');
     return this.resumesService.toggleEndorse(id, req.user.id, skill.trim());

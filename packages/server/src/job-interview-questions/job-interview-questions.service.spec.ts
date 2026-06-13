@@ -4,7 +4,7 @@ import { JobInterviewQuestionsService } from './job-interview-questions.service'
 import { PrismaService } from '../prisma/prisma.service';
 import { LlmService } from '../llm/llm.service';
 
-const mockPrisma: any = {
+const mockPrisma = {
   jobInterviewQuestion: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
@@ -21,11 +21,14 @@ const mockPrisma: any = {
   },
   jobPost: { findUnique: jest.fn() },
   curatedJob: { findUnique: jest.fn() },
-  $transaction: jest.fn(async (ops: any) => {
-    if (Array.isArray(ops)) return Promise.all(ops);
-    return ops(mockPrisma);
-  }),
+  $transaction: jest.fn(),
 };
+
+mockPrisma.$transaction.mockImplementation(async (ops: unknown): Promise<unknown> => {
+  if (Array.isArray(ops)) return Promise.all(ops);
+  if (typeof ops === 'function') return (ops as (tx: typeof mockPrisma) => unknown)(mockPrisma);
+  return ops;
+});
 
 const mockLlm: Partial<LlmService> = {
   generateWithFallback: jest.fn(),
@@ -221,7 +224,7 @@ describe('JobInterviewQuestionsService', () => {
     });
 
     it('adminSetUpvotes 소수점 → 내림 정수', async () => {
-      await service.adminSetUpvotes('q1', 7.9 as any);
+      await service.adminSetUpvotes('q1', 7.9);
       expect(mockPrisma.jobInterviewQuestion.update).toHaveBeenCalledWith({
         where: { id: 'q1' },
         data: { upvotes: 7 },
@@ -262,10 +265,12 @@ describe('JobInterviewQuestionsService', () => {
         provider: 'groq',
         model: 'llama',
       });
-      mockPrisma.jobInterviewQuestion.create.mockImplementation((args: any) => ({
-        id: 'q1',
-        ...args.data,
-      }));
+      mockPrisma.jobInterviewQuestion.create.mockImplementation(
+        (args: { data: Record<string, unknown> }) => ({
+          id: 'q1',
+          ...args.data,
+        }),
+      );
       const res = await service.aiGenerate('u1', {
         companyName: '네이버',
         position: 'FE',

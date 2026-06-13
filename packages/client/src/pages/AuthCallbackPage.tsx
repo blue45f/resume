@@ -54,17 +54,14 @@ const USER_TYPES: {
 export default function AuthCallbackPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const [error, setError] = useState('');
+  const token = params.get('token');
+  const [error, setError] = useState(token ? '' : '인증 토큰이 없습니다');
   const [showTypeSelect, setShowTypeSelect] = useState(false);
   const [selectedType, setSelectedType] = useState<UserType>('personal');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const token = params.get('token');
-    if (!token) {
-      setError('인증 토큰이 없습니다');
-      return;
-    }
+    if (!token) return;
 
     handleAuthCallback(token)
       .then((user) => {
@@ -80,7 +77,7 @@ export default function AuthCallbackPage() {
         setError('인증에 실패했습니다');
         setTimeout(() => navigate(ROUTES.login), 2000);
       });
-  }, [params, navigate]);
+  }, [token, navigate]);
 
   const handleSelectType = async () => {
     setSaving(true);

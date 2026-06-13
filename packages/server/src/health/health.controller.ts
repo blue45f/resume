@@ -19,6 +19,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AdminStatsService } from './admin-stats.service';
 import { UsageService } from './usage.service';
 import { evaluateReadiness } from '../gcp/readiness';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 // LLM provider env keys — readiness considers AI "available" if any is set.
 const LLM_PROVIDER_KEYS = [
@@ -158,7 +159,7 @@ export class HealthController {
 
   @Get('usage')
   @ApiOperation({ summary: '내 사용량 조회' })
-  async getUsage(@Req() req: any) {
+  async getUsage(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.usageService.getUsage(req.user.id);
   }
@@ -206,7 +207,7 @@ export class HealthController {
   @Get('admin/stats')
   @CacheTTL(30)
   @ApiOperation({ summary: '관리자 통계 (사이트 전체)' })
-  async adminStats(@Req() req: any) {
+  async adminStats(@Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
       throw new ForbiddenException('관리자 권한이 필요합니다');
@@ -214,7 +215,10 @@ export class HealthController {
     return this.statsService.getStats();
   }
 
-  private newsCache: { items: any[]; time: number } | null = null;
+  private newsCache: {
+    items: Array<{ title: string; url: string; source: string; pubDate: string }>;
+    time: number;
+  } | null = null;
 
   @Get('news-rss')
   @Public()
@@ -265,7 +269,7 @@ export class HealthController {
 
   @Get('drafts/:type')
   @ApiOperation({ summary: '임시저장 조회' })
-  async getDraft(@Param('type') type: string, @Req() req: any) {
+  async getDraft(@Param('type') type: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException();
     const draft = await this.prisma.draft.findUnique({
       where: { userId_type: { userId: req.user.id, type } },
@@ -280,7 +284,11 @@ export class HealthController {
 
   @Put('drafts/:type')
   @ApiOperation({ summary: '임시저장 저장/갱신' })
-  async saveDraft(@Param('type') type: string, @Body() body: any, @Req() req: any) {
+  async saveDraft(
+    @Param('type') type: string,
+    @Body() body: unknown,
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!req.user?.id) throw new UnauthorizedException();
     const content = JSON.stringify(body);
     await this.prisma.draft.upsert({
@@ -293,7 +301,7 @@ export class HealthController {
 
   @Delete('drafts/:type')
   @ApiOperation({ summary: '임시저장 삭제' })
-  async deleteDraft(@Param('type') type: string, @Req() req: any) {
+  async deleteDraft(@Param('type') type: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException();
     await this.prisma.draft.deleteMany({ where: { userId: req.user.id, type } });
     return { success: true };

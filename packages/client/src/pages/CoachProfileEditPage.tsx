@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -15,7 +15,7 @@ import {
   coachProfileSchema,
   type CoachProfileFormInput,
   type CoachProfileFormOutput,
-} from '@/shared/lib/schemas/coach';
+} from '@/shared/lib/schemas';
 
 const SPECIALTIES = [
   '이력서 첨삭',
@@ -32,15 +32,16 @@ export default function CoachProfileEditPage() {
   const navigate = useNavigate();
   const sessionsQuery = useMyCoachingSessions();
   const loading = sessionsQuery.isLoading;
-  const [hasProfile, setHasProfile] = useState(false);
   const user = getUser();
+  const coachProfile = sessionsQuery.data?.asCoach?.[0]?.coach;
+  const hasProfile = Boolean(coachProfile || user?.userType === 'coach');
 
   const {
     register,
     handleSubmit,
     reset,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<CoachProfileFormInput, unknown, CoachProfileFormOutput>({
     resolver: zodResolver(coachProfileSchema),
@@ -55,13 +56,13 @@ export default function CoachProfileEditPage() {
     },
   });
 
-  const specialtyValue = watch('specialty');
-  const isActive = watch('isActive');
-  const bioValue = watch('bio');
-  const hourlyRateValue = watch('hourlyRate');
-  const yearsExpValue = watch('yearsExp');
-  const languagesValue = watch('languages');
-  const availableHoursValue = watch('availableHours');
+  const specialtyValue = useWatch({ control, name: 'specialty' });
+  const isActive = useWatch({ control, name: 'isActive' });
+  const bioValue = useWatch({ control, name: 'bio' });
+  const hourlyRateValue = useWatch({ control, name: 'hourlyRate' });
+  const yearsExpValue = useWatch({ control, name: 'yearsExp' });
+  const languagesValue = useWatch({ control, name: 'languages' });
+  const availableHoursValue = useWatch({ control, name: 'availableHours' });
 
   // 프로필 완성도 점수 — 각 필드가 채워졌는지에 따라 0~100%
   const completeness = (() => {
@@ -89,17 +90,7 @@ export default function CoachProfileEditPage() {
   }, []);
 
   useEffect(() => {
-    const res = sessionsQuery.data;
-    if (!res) {
-      if (sessionsQuery.isError) {
-        // fallback: userType === 'coach' but no session yet means profile may still exist
-        setHasProfile(user?.userType === 'coach');
-      }
-      return;
-    }
-    const coachProfile = res.asCoach?.[0]?.coach;
     if (coachProfile) {
-      setHasProfile(true);
       reset({
         specialty: coachProfile.specialty || '',
         bio: coachProfile.bio || '',
@@ -109,10 +100,8 @@ export default function CoachProfileEditPage() {
         availableHours: coachProfile.availableHours || '',
         isActive: coachProfile.isActive ?? true,
       });
-    } else {
-      setHasProfile(user?.userType === 'coach');
     }
-  }, [sessionsQuery.data, sessionsQuery.isError, reset, user?.userType]);
+  }, [coachProfile, reset]);
 
   const onSubmit = async (data: CoachProfileFormOutput) => {
     try {

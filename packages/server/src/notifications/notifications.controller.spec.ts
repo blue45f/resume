@@ -3,6 +3,7 @@ import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   getAll: jest.fn(),
@@ -19,7 +20,7 @@ const mockPrisma = {
   user: { findMany: jest.fn() },
 };
 
-const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
+const reqWith = (user?: { id?: string; role?: string }): AuthenticatedRequest => ({ user });
 
 describe('NotificationsController', () => {
   let controller: NotificationsController;

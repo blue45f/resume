@@ -1,4 +1,13 @@
 import { RequestIdMiddleware } from './request-id.middleware';
+import type { NextFunction, Request, Response } from 'express';
+
+type HeaderRequest = Request & {
+  headers: Record<string, string | undefined>;
+};
+
+type HeaderResponse = Response & {
+  setHeader: jest.Mock;
+};
 
 describe('RequestIdMiddleware', () => {
   let middleware: RequestIdMiddleware;
@@ -8,9 +17,9 @@ describe('RequestIdMiddleware', () => {
   });
 
   it('기존 request ID가 없으면 새로 생성', () => {
-    const req = { headers: {} } as any;
-    const res = { setHeader: jest.fn() } as any;
-    const next = jest.fn();
+    const req = { headers: {} } as HeaderRequest;
+    const res = { setHeader: jest.fn() } as unknown as HeaderResponse;
+    const next: NextFunction = jest.fn();
 
     middleware.use(req, res, next);
 
@@ -21,9 +30,9 @@ describe('RequestIdMiddleware', () => {
   });
 
   it('기존 request ID가 있으면 유지', () => {
-    const req = { headers: { 'x-request-id': 'existing-id' } } as any;
-    const res = { setHeader: jest.fn() } as any;
-    const next = jest.fn();
+    const req = { headers: { 'x-request-id': 'existing-id' } } as unknown as HeaderRequest;
+    const res = { setHeader: jest.fn() } as unknown as HeaderResponse;
+    const next: NextFunction = jest.fn();
 
     middleware.use(req, res, next);
 

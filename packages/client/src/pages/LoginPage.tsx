@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getSocialLoginUrl } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
@@ -10,7 +10,7 @@ import {
   registerSchema,
   type LoginFormValues,
   type RegisterFormValues,
-} from '@/shared/lib/schemas/auth';
+} from '@/shared/lib/schemas';
 
 function GoogleIcon() {
   return (
@@ -104,10 +104,10 @@ export default function LoginPage() {
     },
   });
 
-  const password = isRegister
-    ? (registerForm.watch('password') ?? '')
-    : (loginForm.watch('password') ?? '');
-  const userType = registerForm.watch('userType');
+  const loginPassword = useWatch({ control: loginForm.control, name: 'password' });
+  const registerPassword = useWatch({ control: registerForm.control, name: 'password' });
+  const password = isRegister ? (registerPassword ?? '') : (loginPassword ?? '');
+  const userType = useWatch({ control: registerForm.control, name: 'userType' });
 
   const getPasswordStrength = (v: string): { level: number; label: string; color: string } => {
     if (!v) return { level: 0, label: '', color: '' };
@@ -133,7 +133,7 @@ export default function LoginPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
-    const data = await res.json();
+    const data = (await res.json()) as { token?: string; message?: string };
     if (!res.ok) {
       // 서버가 한국어 메시지를 주면(예: 중복 이메일) 그대로 쓰고,
       // "Unauthorized" 같은 영문/기술 메시지는 상태코드별 한국어로 대체한다.
@@ -147,13 +147,14 @@ export default function LoginPage() {
             : '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.';
       throw new Error(serverMsg || fallback);
     }
+    if (!data.token) throw new Error('인증 토큰을 받지 못했습니다');
     localStorage.setItem('token', data.token);
-    let me: any = null;
+    let me: { userType?: string } | null = null;
     const meRes = await fetch(`${API_URL}/api/auth/me`, {
       headers: { Authorization: `Bearer ${data.token}` },
     });
     if (meRes.ok) {
-      me = await meRes.json();
+      me = (await meRes.json()) as { userType?: string };
       localStorage.setItem('user', JSON.stringify(me));
     }
     const params = new URLSearchParams(window.location.search);

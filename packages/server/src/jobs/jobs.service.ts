@@ -7,11 +7,56 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
 const VALID_STAGES = ['interested', 'contacted', 'interview', 'hired', 'rejected', 'withdrawn'];
+
+export type JobPostBody = {
+  company?: string;
+  position?: string;
+  location?: string;
+  salary?: string;
+  description?: string;
+  requirements?: string;
+  benefits?: string;
+  type?: string;
+  skills?: string;
+  status?: string;
+};
+
+export type CuratedJobBody = {
+  company?: string;
+  companyLogo?: string;
+  position?: string;
+  department?: string;
+  summary?: string;
+  requirements?: string;
+  benefits?: string;
+  skills?: string;
+  jobType?: string;
+  experienceLevel?: string;
+  education?: string;
+  salary?: string;
+  location?: string;
+  companySize?: string;
+  industry?: string;
+  sourceUrl?: string;
+  sourceSite?: string;
+  deadline?: string | Date | null;
+  isRolling?: boolean;
+};
+
+function hasPrismaCode(error: unknown, code: string): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === code
+  );
+}
 
 @Injectable()
 export class JobsService {
@@ -23,7 +68,7 @@ export class JobsService {
   ) {}
 
   async findAll(status = 'active', query?: string) {
-    const where: any = { status };
+    const where: Prisma.JobPostWhereInput = { status };
     if (query) {
       where.OR = [
         { position: { contains: query, mode: 'insensitive' } },
@@ -58,7 +103,7 @@ export class JobsService {
     });
   }
 
-  async create(userId: string, data: any) {
+  async create(userId: string, data: JobPostBody) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user || user.userType === 'personal') {
       throw new ForbiddenException('채용 공고는 리크루터 또는 기업 회원만 등록할 수 있습니다');
@@ -80,7 +125,7 @@ export class JobsService {
     });
   }
 
-  async update(id: string, userId: string, data: any) {
+  async update(id: string, userId: string, data: Prisma.JobPostUpdateInput) {
     const job = await this.prisma.jobPost.findUnique({ where: { id } });
     if (!job) throw new NotFoundException();
     if (job.userId !== userId) throw new ForbiddenException();
@@ -107,7 +152,7 @@ export class JobsService {
     jobCategory?: string;
     q?: string;
   }) {
-    const andClauses: any[] = [{ isActive: true }];
+    const andClauses: Prisma.ExternalJobLinkWhereInput[] = [{ isActive: true }];
 
     if (filters.category && filters.category !== 'all') {
       andClauses.push({ category: filters.category });
@@ -164,7 +209,10 @@ export class JobsService {
     return { url: link.url };
   }
 
-  async createExternalLink(data: any, user: { id?: string; role?: string; userType?: string }) {
+  async createExternalLink(
+    data: Prisma.ExternalJobLinkCreateInput,
+    user: { id?: string; role?: string; userType?: string },
+  ) {
     const allowed = await this.config.checkPermission('perm.externalLinks.create', user);
     if (!allowed) throw new ForbiddenException('채용 링크 등록 권한이 없습니다');
     return this.prisma.externalJobLink.create({ data });
@@ -172,7 +220,7 @@ export class JobsService {
 
   async updateExternalLink(
     id: string,
-    data: any,
+    data: Prisma.ExternalJobLinkUpdateInput,
     user: { id?: string; role?: string; userType?: string },
   ) {
     const allowed = await this.config.checkPermission('perm.externalLinks.edit', user);
@@ -209,7 +257,7 @@ export class JobsService {
     page?: number;
     limit?: number;
   }) {
-    const where: any = { status: 'active' };
+    const where: Prisma.CuratedJobWhereInput = { status: 'active' };
 
     if (filters.jobType && filters.jobType !== 'all') {
       where.jobType = filters.jobType;
@@ -235,7 +283,8 @@ export class JobsService {
       ];
     }
     if (filters.hasSalary) {
-      where.NOT = [...(where.NOT ?? []), { salary: '' }];
+      const notFilters = Array.isArray(where.NOT) ? where.NOT : where.NOT ? [where.NOT] : [];
+      where.NOT = [...notFilters, { salary: '' }];
     }
 
     const now = new Date();
@@ -255,7 +304,7 @@ export class JobsService {
       where.deadline = { gte: now, lte: cutoff };
     }
 
-    const orderBy: any = (() => {
+    const orderBy: Prisma.CuratedJobOrderByWithRelationInput[] = (() => {
       switch (filters.sort) {
         case 'recent':
           return [{ createdAt: 'desc' }];
@@ -298,7 +347,12 @@ export class JobsService {
     return job;
   }
 
-  async createCuratedJob(data: any, userId: string, userRole: string, userType: string) {
+  async createCuratedJob(
+    data: CuratedJobBody,
+    userId: string,
+    userRole?: string,
+    userType?: string,
+  ) {
     const allowed = await this.config.checkPermission('perm.curatedJobs.create', {
       id: userId,
       role: userRole,
@@ -333,9 +387,9 @@ export class JobsService {
 
   async updateCuratedJob(
     id: string,
-    data: any,
+    data: CuratedJobBody,
     userId: string,
-    userRole: string,
+    userRole?: string,
     userType?: string,
   ) {
     const job = await this.prisma.curatedJob.findUnique({ where: { id } });
@@ -346,16 +400,12 @@ export class JobsService {
       job.authorId,
     );
     if (!allowed) throw new ForbiddenException();
-    const updateData: any = { ...data };
+    const updateData: Prisma.CuratedJobUncheckedUpdateInput = { ...data };
     if (data.deadline) updateData.deadline = new Date(data.deadline);
-    delete updateData.id;
-    delete updateData.authorId;
-    delete updateData.createdAt;
-    delete updateData.updatedAt;
     return this.prisma.curatedJob.update({ where: { id }, data: updateData });
   }
 
-  async deleteCuratedJob(id: string, userId: string, userRole: string, userType?: string) {
+  async deleteCuratedJob(id: string, userId: string, userRole?: string, userType?: string) {
     const job = await this.prisma.curatedJob.findUnique({ where: { id } });
     if (!job) throw new NotFoundException();
     const allowed = await this.config.checkPermission(
@@ -369,7 +419,7 @@ export class JobsService {
   }
 
   async getJobStats(location?: string, type?: string, skill?: string) {
-    const where: any = { status: 'active' };
+    const where: Prisma.JobPostWhereInput = { status: 'active' };
     if (location) where.location = { contains: location, mode: 'insensitive' };
     if (type) where.type = type;
 
@@ -464,7 +514,7 @@ export class JobsService {
     }
 
     try {
-      const created = await (this.prisma as any).jobPostApplication.create({
+      const created = await this.prisma.jobPostApplication.create({
         data: {
           jobId,
           applicantId,
@@ -484,9 +534,9 @@ export class JobsService {
         )
         .catch(() => {});
       return created;
-    } catch (err: any) {
+    } catch (err: unknown) {
       // unique 충돌 — 이미 지원함
-      if (err?.code === 'P2002') {
+      if (hasPrismaCode(err, 'P2002')) {
         throw new ConflictException('이미 지원한 공고입니다');
       }
       throw err;
@@ -504,7 +554,7 @@ export class JobsService {
     const positionByJobId: Record<string, string> = {};
     myJobs.forEach((j) => (positionByJobId[j.id] = j.position));
 
-    const apps = await (this.prisma as any).jobPostApplication.findMany({
+    const apps = await this.prisma.jobPostApplication.findMany({
       where: { jobId: { in: jobIds } },
       include: {
         applicant: {
@@ -514,7 +564,7 @@ export class JobsService {
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
-    return apps.map((a: any) => ({
+    return apps.map((a) => ({
       id: a.id,
       jobId: a.jobId,
       position: positionByJobId[a.jobId] || '',
@@ -533,7 +583,7 @@ export class JobsService {
   /** Recruiter — pipeline view: stage 별 applicant 조회. */
   async listPipelineForRecruiter(recruiterUserId: string) {
     const all = await this.listApplicantsForRecruiter(recruiterUserId);
-    return all.map((a: any) => ({
+    return all.map((a) => ({
       id: a.id,
       name: a.name,
       email: a.email,
@@ -549,7 +599,7 @@ export class JobsService {
     if (!VALID_STAGES.includes(newStage)) {
       throw new BadRequestException(`유효하지 않은 stage: ${newStage}`);
     }
-    const app = await (this.prisma as any).jobPostApplication.findUnique({
+    const app = await this.prisma.jobPostApplication.findUnique({
       where: { id: applicationId },
       include: { job: true },
     });
@@ -558,7 +608,7 @@ export class JobsService {
       throw new ForbiddenException('본인 공고의 지원만 관리할 수 있습니다');
     if (app.stage === newStage) return app;
 
-    const updated = await (this.prisma as any).jobPostApplication.update({
+    const updated = await this.prisma.jobPostApplication.update({
       where: { id: applicationId },
       data: { stage: newStage },
     });
@@ -662,7 +712,7 @@ export class JobsService {
       };
     }
     const jobIds = myJobs.map((j) => j.id);
-    const apps = await (this.prisma as any).jobPostApplication.findMany({
+    const apps = await this.prisma.jobPostApplication.findMany({
       where: { jobId: { in: jobIds } },
       select: { stage: true, createdAt: true, updatedAt: true },
     });
@@ -710,7 +760,7 @@ export class JobsService {
 
   /** 구직자 — 본인 application 철회 (이유 옵션). 회사에 알림 발송 + 분석용 reason 저장. */
   async withdrawMyApplication(applicationId: string, applicantId: string, reason?: string) {
-    const app = await (this.prisma as any).jobPostApplication.findUnique({
+    const app = await this.prisma.jobPostApplication.findUnique({
       where: { id: applicationId },
       include: { job: true },
     });
@@ -722,7 +772,7 @@ export class JobsService {
     }
     // recruiterNote 에 철회 이유 prepend (회사 측만 보임, 50자 cap)
     const reasonNote = reason ? `[철회 이유] ${reason.slice(0, 200)}\n` : '';
-    const updated = await (this.prisma as any).jobPostApplication.update({
+    const updated = await this.prisma.jobPostApplication.update({
       where: { id: applicationId },
       data: {
         stage: 'withdrawn',
@@ -745,7 +795,7 @@ export class JobsService {
 
   /** 내 저장된 검색 목록. */
   async listSavedSearches(userId: string) {
-    return (this.prisma as any).savedJobSearch.findMany({
+    return this.prisma.savedJobSearch.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
@@ -772,11 +822,11 @@ export class JobsService {
       throw new BadRequestException('최소 하나의 필터를 지정해주세요');
     }
     // 사용자당 최대 10개 제한 (스팸 방지)
-    const count = await (this.prisma as any).savedJobSearch.count({ where: { userId } });
+    const count = await this.prisma.savedJobSearch.count({ where: { userId } });
     if (count >= 10) {
       throw new BadRequestException('저장된 검색은 최대 10개까지 가능합니다');
     }
-    return (this.prisma as any).savedJobSearch.create({
+    return this.prisma.savedJobSearch.create({
       data: {
         userId,
         name: (body.name || '').slice(0, 100),
@@ -791,10 +841,10 @@ export class JobsService {
 
   /** 저장된 검색 알림 toggle. */
   async toggleSavedSearchNotify(id: string, userId: string, notifyOn: boolean) {
-    const s = await (this.prisma as any).savedJobSearch.findUnique({ where: { id } });
+    const s = await this.prisma.savedJobSearch.findUnique({ where: { id } });
     if (!s) throw new NotFoundException();
     if (s.userId !== userId) throw new ForbiddenException();
-    return (this.prisma as any).savedJobSearch.update({
+    return this.prisma.savedJobSearch.update({
       where: { id },
       data: { notifyOn },
     });
@@ -802,10 +852,10 @@ export class JobsService {
 
   /** 저장된 검색 삭제. */
   async deleteSavedSearch(id: string, userId: string) {
-    const s = await (this.prisma as any).savedJobSearch.findUnique({ where: { id } });
+    const s = await this.prisma.savedJobSearch.findUnique({ where: { id } });
     if (!s) throw new NotFoundException();
     if (s.userId !== userId) throw new ForbiddenException();
-    await (this.prisma as any).savedJobSearch.delete({ where: { id } });
+    await this.prisma.savedJobSearch.delete({ where: { id } });
     return { success: true };
   }
 
@@ -815,7 +865,7 @@ export class JobsService {
    */
   @Cron(CronExpression.EVERY_DAY_AT_8AM)
   async notifyNewJobsForSavedSearches() {
-    const searches = await (this.prisma as any).savedJobSearch.findMany({
+    const searches = await this.prisma.savedJobSearch.findMany({
       where: { notifyOn: true },
       take: 1000, // 안전 cap
     });
@@ -824,11 +874,11 @@ export class JobsService {
     for (const s of searches) {
       try {
         const since = s.lastMatchedAt || new Date(Date.now() - 24 * 60 * 60 * 1000);
-        const where: any = {
+        const where: Prisma.JobPostWhereInput = {
           status: 'active',
           createdAt: { gt: since },
         };
-        const orClauses: any[] = [];
+        const orClauses: Prisma.JobPostWhereInput[] = [];
         if (s.query) {
           const q = s.query.trim();
           orClauses.push(
@@ -883,7 +933,7 @@ export class JobsService {
             .catch(() => {});
           totalMatched++;
         }
-        await (this.prisma as any).savedJobSearch.update({
+        await this.prisma.savedJobSearch.update({
           where: { id: s.id },
           data: { lastMatchedAt: new Date() },
         });
@@ -898,7 +948,7 @@ export class JobsService {
 
   /** 구직자 — 내가 지원한 공고 목록. */
   async listMyApplications(applicantId: string) {
-    const apps = await (this.prisma as any).jobPostApplication.findMany({
+    const apps = await this.prisma.jobPostApplication.findMany({
       where: { applicantId },
       include: {
         job: {
@@ -908,7 +958,7 @@ export class JobsService {
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
-    return apps.map((a: any) => ({
+    return apps.map((a) => ({
       id: a.id,
       jobId: a.jobId,
       job: a.job,

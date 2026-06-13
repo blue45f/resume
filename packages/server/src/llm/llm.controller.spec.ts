@@ -3,6 +3,9 @@ import { LlmController } from './llm.controller';
 import { LlmService } from './llm.service';
 import { UsageService } from '../health/usage.service';
 import { SystemConfigService } from '../system-config/system-config.service';
+import type { TransformResumeDto } from './dto/transform-resume.dto';
+import type { FeedbackDto, JobMatchDto, InterviewDto, InlineAssistDto } from './dto/analysis.dto';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockConfig = {
   isFeatureEnabled: jest.fn().mockResolvedValue(true),
@@ -22,7 +25,11 @@ const mockLlm = {
 
 const mockUsage = { checkAndLog: jest.fn() };
 
-const reqWith = (userId?: string): any => ({ user: userId ? { id: userId } : undefined });
+const reqWith = (userId?: string): AuthenticatedRequest => ({
+  user: userId ? { id: userId } : undefined,
+});
+
+const transformDto = { format: 'standard' } as unknown as TransformResumeDto;
 
 describe('LlmController', () => {
   let controller: LlmController;
@@ -44,7 +51,7 @@ describe('LlmController', () => {
     it('로그인 시 usage checkAndLog 후 transform 호출', async () => {
       mockUsage.checkAndLog.mockResolvedValueOnce(undefined);
       mockLlm.transform.mockResolvedValueOnce({ ok: true });
-      const res = await controller.transform('r1', { format: 'standard' } as any, reqWith('u1'));
+      const res = await controller.transform('r1', transformDto, reqWith('u1'));
       expect(mockUsage.checkAndLog).toHaveBeenCalledWith('u1', 'ai_transform');
       expect(mockLlm.transform).toHaveBeenCalledWith('r1', { format: 'standard' }, 'u1');
       expect(res).toEqual({ ok: true });
@@ -52,16 +59,16 @@ describe('LlmController', () => {
 
     it('비로그인 시 usage check 건너뜀', async () => {
       mockLlm.transform.mockResolvedValueOnce({ ok: true });
-      await controller.transform('r1', { format: 'standard' } as any, reqWith());
+      await controller.transform('r1', transformDto, reqWith());
       expect(mockUsage.checkAndLog).not.toHaveBeenCalled();
       expect(mockLlm.transform).toHaveBeenCalledWith('r1', { format: 'standard' }, undefined);
     });
 
     it('usage check 실패 시 transform 호출 안 함 (쿼터 초과 방어)', async () => {
       mockUsage.checkAndLog.mockRejectedValueOnce(new Error('quota exceeded'));
-      await expect(
-        controller.transform('r1', { format: 'standard' } as any, reqWith('u1')),
-      ).rejects.toThrow('quota exceeded');
+      await expect(controller.transform('r1', transformDto, reqWith('u1'))).rejects.toThrow(
+        'quota exceeded',
+      );
       expect(mockLlm.transform).not.toHaveBeenCalled();
     });
   });
@@ -79,17 +86,17 @@ describe('LlmController', () => {
   });
 
   describe('AI 분석', () => {
-    const reqStub = { user: undefined } as any;
+    const reqStub: AuthenticatedRequest = { user: undefined };
 
     it('analyzeFeedback: provider 전달', async () => {
-      await controller.analyzeFeedback('r1', { provider: 'openai' } as any, reqStub);
+      await controller.analyzeFeedback('r1', { provider: 'openai' } as FeedbackDto, reqStub);
       expect(mockLlm.analyzeFeedback).toHaveBeenCalledWith('r1', 'openai', undefined);
     });
 
     it('analyzeJobMatch: JD + provider 전달', async () => {
       await controller.analyzeJobMatch(
         'r1',
-        { jobDescription: 'Senior React', provider: 'groq' } as any,
+        { jobDescription: 'Senior React', provider: 'groq' } as JobMatchDto,
         reqStub,
       );
       expect(mockLlm.analyzeJobMatch).toHaveBeenCalledWith('r1', 'Senior React', 'groq', undefined);
@@ -103,7 +110,7 @@ describe('LlmController', () => {
           provider: 'openai',
           jobDescription: 'JD',
           difficulty: 'advanced',
-        } as any,
+        } as InterviewDto,
         reqStub,
       );
       expect(mockLlm.generateInterviewQuestions).toHaveBeenCalledWith(
@@ -118,7 +125,7 @@ describe('LlmController', () => {
 
     it('inlineAssist: text + type + provider 전달', async () => {
       await controller.inlineAssist(
-        { text: '원문', type: 'improve', provider: 'openai' } as any,
+        { text: '원문', type: 'improve', provider: 'openai' } as InlineAssistDto,
         reqStub,
       );
       expect(mockLlm.inlineAssist).toHaveBeenCalledWith('원문', 'improve', 'openai');

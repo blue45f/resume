@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { StudyGroupsController } from './study-groups.controller';
-import { StudyGroupsService } from './study-groups.service';
+import {
+  StudyGroupsService,
+  type CreateStudyGroupDto,
+  type CreateStudyGroupQuestionDto,
+} from './study-groups.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   findAll: jest.fn(),
@@ -19,7 +24,7 @@ const mockService = {
 // Cloudinary 미설정 환경 시뮬레이션 → 업로드는 data: URL 폴백 경로
 const mockConfig = { get: jest.fn().mockReturnValue(undefined) };
 
-const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
+const reqWith = (user?: { id?: string; role?: string }): AuthenticatedRequest => ({ user });
 
 describe('StudyGroupsController', () => {
   let controller: StudyGroupsController;
@@ -113,8 +118,9 @@ describe('StudyGroupsController', () => {
   });
 
   it('create: 비로그인 Unauthorized / 로그인 userId + body', () => {
-    expect(() => controller.create({ name: 'g' } as any, reqWith())).toThrow(UnauthorizedException);
-    controller.create({ name: 'g' } as any, reqWith({ id: 'u1' }));
+    const body = { name: 'g' } as CreateStudyGroupDto;
+    expect(() => controller.create(body, reqWith())).toThrow(UnauthorizedException);
+    controller.create(body, reqWith({ id: 'u1' }));
     expect(mockService.create).toHaveBeenCalledWith('u1', { name: 'g' });
   });
 
@@ -142,10 +148,9 @@ describe('StudyGroupsController', () => {
   });
 
   it('addQuestion: 비로그인 Unauthorized', () => {
-    expect(() => controller.addQuestion('g1', { question: 'Q' } as any, reqWith())).toThrow(
-      UnauthorizedException,
-    );
-    controller.addQuestion('g1', { question: 'Q' } as any, reqWith({ id: 'u1' }));
+    const body = { question: 'Q' } as CreateStudyGroupQuestionDto;
+    expect(() => controller.addQuestion('g1', body, reqWith())).toThrow(UnauthorizedException);
+    controller.addQuestion('g1', body, reqWith({ id: 'u1' }));
     expect(mockService.addQuestion).toHaveBeenCalledWith('g1', 'u1', { question: 'Q' });
   });
 
@@ -167,7 +172,11 @@ describe('StudyGroupsController', () => {
 
     it('파일 없음 → BadRequest', async () => {
       await expect(
-        controller.uploadPostAttachment('g1', undefined as any, reqWith({ id: 'u1' })),
+        controller.uploadPostAttachment(
+          'g1',
+          undefined as unknown as Express.Multer.File,
+          reqWith({ id: 'u1' }),
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 

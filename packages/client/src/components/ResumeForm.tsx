@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense, useMemo } from 'react';
-import { useForm, useFieldArray, Controller, type UseFormReturn } from 'react-hook-form';
+import { useForm, useFieldArray, Controller, useWatch, type UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type {
   Experience,
@@ -17,7 +17,7 @@ import { DEFAULT_SECTION_ORDER } from '@/types/resume';
 import { toast } from '@/components/Toast';
 import { t } from '@/lib/i18n';
 import { sectionTips, powerVerbs } from '@/lib/writingTips';
-import { resumeFormSchema, type ResumeFormInput } from '@/shared/lib/schemas/resume';
+import { resumeFormSchema, type ResumeFormInput } from '@/shared/lib/schemas';
 
 const RichEditor = lazy(() => import('@/components/RichEditor'));
 import VoiceInput from '@/components/VoiceInput';
@@ -33,6 +33,11 @@ import SectionOrderPanel from '@/components/SectionOrderPanel';
 import ContentSuggestions from '@/components/ContentSuggestions';
 
 type SaveStatus = 'saved' | 'saving' | 'dirty' | 'error' | 'idle';
+type ExperienceEditableField = Extract<
+  keyof Experience,
+  'position' | 'description' | 'achievements'
+>;
+type SkillEditableField = Extract<keyof Skill, 'items'>;
 
 function SaveStatusPill({ status, lastSaved }: { status: SaveStatus; lastSaved: Date | null }) {
   const config: Record<SaveStatus, { label: string; color: string; icon: string }> = {
@@ -326,7 +331,7 @@ export default function ResumeForm({
     mode: 'onSubmit',
   });
 
-  const { control, register, handleSubmit, watch, setValue, getValues, reset, formState } = form;
+  const { control, register, handleSubmit, setValue, getValues, reset, formState } = form;
   const { errors, isDirty } = formState;
 
   // Re-sync when initial data changes (e.g. AI auto-fill)
@@ -346,25 +351,20 @@ export default function ResumeForm({
   const awardsArr = useFieldArray({ control, name: 'awards', keyName: '_rhfId' });
   const activitiesArr = useFieldArray({ control, name: 'activities', keyName: '_rhfId' });
 
-  const watchedData = watch();
+  const watchedData = useWatch({ control, defaultValue: defaultValues }) as ResumeFormInput;
   const sectionOrder: SectionId[] = watchedData.sectionOrder?.length
     ? (watchedData.sectionOrder as SectionId[])
     : [...DEFAULT_SECTION_ORDER];
   const hiddenSections: SectionId[] = (watchedData.hiddenSections || []) as SectionId[];
 
   // Notify parent of data changes for live completeness tracking.
-  // watch()는 매 렌더 새 객체를 반환하므로 deps에 직접 넣으면
-  // onDataChange→setLiveData(부모)→재렌더→effect 재실행의 무한 루프가 된다.
-  // onDataChange는 ref로 읽고 RHF 구독으로 실제 필드 변경 시에만 통지하여,
-  // 콜백 메모이즈 여부와 무관하게 루프를 차단한다.
   const onDataChangeRef = useRef(onDataChange);
-  onDataChangeRef.current = onDataChange;
   useEffect(() => {
-    const notify = () => onDataChangeRef.current?.(toResumeData(getValues()));
-    notify();
-    const subscription = watch(notify);
-    return () => subscription.unsubscribe();
-  }, [watch, getValues]);
+    onDataChangeRef.current = onDataChange;
+  }, [onDataChange]);
+  useEffect(() => {
+    onDataChangeRef.current?.(toResumeData(watchedData));
+  }, [watchedData]);
 
   const doAutoSave = useCallback(async () => {
     const handler = onAutoSave || onSave;
@@ -427,7 +427,6 @@ export default function ResumeForm({
   // Auto-save after 5 seconds of inactivity (watch on dirty subtree)
   useEffect(() => {
     if (!isDirty) return;
-    setSaveStatus('dirty');
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => {
       if (!saving) doAutoSave();
@@ -447,6 +446,8 @@ export default function ResumeForm({
     awards: { id: 'awards', label: t('resume.awards') },
     activities: { id: 'activities', label: t('resume.activities') },
   };
+
+  const visibleSaveStatus: SaveStatus = isDirty && saveStatus === 'idle' ? 'dirty' : saveStatus;
 
   const tabs = [
     { id: 'personal', label: t('resume.personal') },
@@ -479,11 +480,14 @@ export default function ResumeForm({
   const getSummary = () => getValues('personalInfo.summary') || '';
 
   // Helpers to update experience description/achievements programmatically
-  const setExpField = (index: number, field: keyof Experience, value: unknown) => {
-    setValue(`experiences.${index}.${field}` as any, value as any, { shouldDirty: true });
+  const setExpField = (index: number, field: ExperienceEditableField, value: string) => {
+    const path =
+      `experiences.${index}.${field}` as `experiences.${number}.${ExperienceEditableField}`;
+    setValue(path, value, { shouldDirty: true });
   };
-  const setSkillField = (index: number, field: keyof Skill, value: unknown) => {
-    setValue(`skills.${index}.${field}` as any, value as any, { shouldDirty: true });
+  const setSkillField = (index: number, field: SkillEditableField, value: string) => {
+    const path = `skills.${index}.${field}` as `skills.${number}.${SkillEditableField}`;
+    setValue(path, value, { shouldDirty: true });
   };
 
   return (
@@ -495,7 +499,7 @@ export default function ResumeForm({
       }}
       aria-label="이력서 편집 폼"
     >
-      <SaveStatusPill status={saveStatus} lastSaved={lastSaved} />
+      <SaveStatusPill status={visibleSaveStatus} lastSaved={lastSaved} />
 
       {/* Section Order Panel */}
       <SectionOrderPanel

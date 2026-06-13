@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
-import { InterviewService } from './interview.service';
+import { InterviewService, type CreateInterviewAnswerDto } from './interview.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { LlmService } from '../llm/llm.service';
 import { BillingService } from '../billing/billing.service';
 
-const mockPrisma: any = {
+const mockPrisma = {
   interviewAnswer: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
@@ -51,9 +51,12 @@ describe('InterviewService', () => {
     });
 
     it('question 비문자열 → BadRequest', async () => {
-      await expect(service.create('u1', { question: 123 as any, answer: 'A' })).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.create('u1', {
+          question: 123 as unknown as string,
+          answer: 'A',
+        } as CreateInterviewAnswerDto),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('정상 입력 + 선택 필드 null 기본값', async () => {

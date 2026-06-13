@@ -215,7 +215,7 @@ ${body.answer}`;
     const item = await this.prisma.interviewAnswer.findUnique({ where: { id } });
     if (!item) throw new NotFoundException('답변을 찾을 수 없습니다');
     if (item.userId !== userId) throw new ForbiddenException('권한이 없습니다');
-    let analysis: any = null;
+    let analysis: unknown = null;
     if (item.analysisJson) {
       try {
         analysis = JSON.parse(item.analysisJson);

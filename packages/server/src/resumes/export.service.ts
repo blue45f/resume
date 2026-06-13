@@ -5,16 +5,9 @@ import {
   Packer,
   Paragraph,
   TextRun,
-  HeadingLevel,
   AlignmentType,
   BorderStyle,
-  Table,
-  TableRow,
-  TableCell,
-  WidthType,
-  ShadingType,
   convertInchesToTwip,
-  UnderlineType,
 } from 'docx';
 
 @Injectable()
@@ -325,9 +318,9 @@ export class ExportService {
     }
 
     // ── Awards ──
-    if ((resume as any).awards?.length) {
+    if (resume.awards?.length) {
       sections.push(sectionHeading('수상'));
-      for (const a of (resume as any).awards) {
+      for (const a of resume.awards) {
         sections.push(subHeading(`${a.name}  —  ${a.issuer}`), metaLine(a.awardDate || ''));
         if (a.description && strip(a.description))
           sections.push(bodyParagraph(strip(a.description)));
@@ -335,9 +328,9 @@ export class ExportService {
     }
 
     // ── Activities ──
-    if ((resume as any).activities?.length) {
+    if (resume.activities?.length) {
       sections.push(sectionHeading('활동'));
-      for (const a of (resume as any).activities) {
+      for (const a of resume.activities) {
         sections.push(
           subHeading(`${a.name}  —  ${a.organization}${a.role ? ` · ${a.role}` : ''}`),
           metaLine(`${a.startDate} ~ ${a.endDate}`),
@@ -478,9 +471,9 @@ export class ExportService {
       body += section('어학', items);
     }
 
-    if ((resume as any).awards?.length) {
-      const items = (resume as any).awards
-        .map((a: any) =>
+    if (resume.awards?.length) {
+      const items = resume.awards
+        .map((a) =>
           entry(
             `<strong>${esc(a.name)}</strong> · ${esc(a.issuer)}`,
             a.awardDate || '',
@@ -491,9 +484,9 @@ export class ExportService {
       body += section('수상', items);
     }
 
-    if ((resume as any).activities?.length) {
-      const items = (resume as any).activities
-        .map((a: any) =>
+    if (resume.activities?.length) {
+      const items = resume.activities
+        .map((a) =>
           entry(
             `<strong>${esc(a.name)}</strong> · ${esc(a.organization)}${a.role ? ` (${esc(a.role)})` : ''}`,
             `${a.startDate} ~ ${a.endDate}`,

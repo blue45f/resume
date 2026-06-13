@@ -17,6 +17,7 @@ import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
 import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 type TabKey = 'client' | 'coach';
 
@@ -65,13 +66,14 @@ export default function CoachingSessionsPage() {
     (sessionsQuery.data as MySessionsResponse | undefined) ?? null;
   const loading = sessionsQuery.isLoading;
   const error: string | null = sessionsQuery.error
-    ? (sessionsQuery.error as any)?.message || '세션을 불러오지 못했습니다'
+    ? getErrorMessage(sessionsQuery.error, '세션을 불러오지 못했습니다')
     : null;
   const [tab, setTab] = useState<TabKey>('client');
   const [reviewOpen, setReviewOpen] = useState<string | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [nowMs] = useState(() => Date.now());
 
   const user = getUser();
 
@@ -91,15 +93,9 @@ export default function CoachingSessionsPage() {
     [data?.asCoach, user?.userType],
   );
 
-  useEffect(() => {
-    // Default: if user has no client sessions but is a coach, show coach tab
-    if (!data) return;
-    if (tab === 'client' && data.asClient.length === 0 && data.asCoach.length > 0) {
-      setTab('coach');
-    }
-  }, [data, tab]);
-
-  const sessions = tab === 'client' ? data?.asClient : data?.asCoach;
+  const effectiveTab: TabKey =
+    tab === 'client' && data?.asClient.length === 0 && data.asCoach.length > 0 ? 'coach' : tab;
+  const sessions = effectiveTab === 'client' ? data?.asClient : data?.asCoach;
 
   const changeStatus = async (session: CoachingSession, status: CoachingSessionStatus) => {
     try {
@@ -167,7 +163,7 @@ export default function CoachingSessionsPage() {
             <button
               onClick={() => setTab('client')}
               className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                tab === 'client'
+                effectiveTab === 'client'
                   ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}
@@ -178,7 +174,7 @@ export default function CoachingSessionsPage() {
               <button
                 onClick={() => setTab('coach')}
                 className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  tab === 'coach'
+                  effectiveTab === 'coach'
                     ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                 }`}
@@ -206,16 +202,16 @@ export default function CoachingSessionsPage() {
             </div>
           ) : !sessions || sessions.length === 0 ? (
             <div className="imp-card p-10 text-center">
-              <p className="text-4xl mb-3">{tab === 'client' ? '🎓' : '🧑‍🏫'}</p>
+              <p className="text-4xl mb-3">{effectiveTab === 'client' ? '🎓' : '🧑‍🏫'}</p>
               <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">
-                {tab === 'client' ? '예약한 세션이 없습니다' : '코칭 요청이 없습니다'}
+                {effectiveTab === 'client' ? '예약한 세션이 없습니다' : '코칭 요청이 없습니다'}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-                {tab === 'client'
+                {effectiveTab === 'client'
                   ? '전문 코치와 1:1 세션을 시작해보세요'
                   : '코치 프로필을 공개하면 요청이 들어옵니다'}
               </p>
-              {tab === 'client' ? (
+              {effectiveTab === 'client' ? (
                 <Link
                   to={ROUTES.coaching.coaches}
                   className="inline-block px-4 py-2 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
@@ -237,7 +233,8 @@ export default function CoachingSessionsPage() {
                 <SessionRow
                   key={session.id}
                   session={session}
-                  role={tab}
+                  role={effectiveTab}
+                  nowMs={nowMs}
                   onChangeStatus={changeStatus}
                   onOpenReview={() => {
                     setReviewOpen(session.id);
@@ -266,6 +263,7 @@ export default function CoachingSessionsPage() {
 interface SessionRowProps {
   session: CoachingSession;
   role: TabKey;
+  nowMs: number;
   onChangeStatus: (s: CoachingSession, status: CoachingSessionStatus) => void;
   onOpenReview: () => void;
   reviewOpen: boolean;
@@ -281,6 +279,7 @@ interface SessionRowProps {
 function SessionRow({
   session,
   role,
+  nowMs,
   onChangeStatus,
   onOpenReview,
   reviewOpen,
@@ -309,7 +308,7 @@ function SessionRow({
   // 24시간 이내 취소 여부: 환불 불가 정책 적용 대상
   const scheduledMs = new Date(session.scheduledAt).getTime();
   const hoursUntil = Number.isFinite(scheduledMs)
-    ? (scheduledMs - Date.now()) / (1000 * 60 * 60)
+    ? (scheduledMs - nowMs) / (1000 * 60 * 60)
     : Infinity;
   const isLateCancellation = hoursUntil >= 0 && hoursUntil < 24;
 

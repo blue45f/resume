@@ -69,8 +69,11 @@ describe('Tags (태그)', () => {
 
   it('태그 목록의 resumeCount 업데이트', async () => {
     const list = await ctx.authGet('normal', '/api/tags').expect(200);
-    const foundA = list.body.find((t: any) => t.id === tagA);
-    expect(foundA.resumeCount).toBe(1);
+    const foundA = (list.body as Array<{ id: string; resumeCount: number }>).find(
+      (tag) => tag.id === tagA,
+    );
+    expect(foundA).toBeDefined();
+    expect(foundA?.resumeCount).toBe(1);
   });
 
   it('이력서 조회 시 tags 배열 포함', async () => {

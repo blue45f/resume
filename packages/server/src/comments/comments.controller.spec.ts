@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommentsController } from './comments.controller';
 import { CommentsService } from './comments.service';
+import type { CreateCommentDto } from './dto/comment.dto';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   findByResume: jest.fn(),
@@ -8,7 +10,7 @@ const mockService = {
   remove: jest.fn(),
 };
 
-const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
+const reqWith = (user?: { id?: string; role?: string }): AuthenticatedRequest => ({ user });
 
 describe('CommentsController', () => {
   let controller: CommentsController;
@@ -31,14 +33,18 @@ describe('CommentsController', () => {
     it('로그인 유저 + 모든 dto 필드 전달', () => {
       controller.create(
         'r1',
-        { content: '좋네요', authorName: '익명', parentId: 'c0' } as any,
+        { content: '좋네요', authorName: '익명', parentId: 'c0' } as CreateCommentDto,
         reqWith({ id: 'u1' }),
       );
       expect(mockService.create).toHaveBeenCalledWith('r1', '좋네요', 'u1', '익명', 'c0');
     });
 
     it('비로그인 (익명) — userId undefined 로 위임', () => {
-      controller.create('r1', { content: 'hi', authorName: '비회원' } as any, reqWith());
+      controller.create(
+        'r1',
+        { content: 'hi', authorName: '비회원' } as CreateCommentDto,
+        reqWith(),
+      );
       expect(mockService.create).toHaveBeenCalledWith('r1', 'hi', undefined, '비회원', undefined);
     });
   });

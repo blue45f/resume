@@ -87,7 +87,7 @@ const SKILL_CATEGORIES: Array<{ category: SkillCategory; keywords: RegExp }> = [
 // ---------------------------------------------------------------------------
 
 const CATEGORY_HEADER_RE =
-  /(?:언어|프로그래밍\s*언어|Languages?|Frameworks?|프레임워크|Backend|Frontend|Database|DB|DevOps|Cloud|인프라|Infrastructure|Mobile|Testing|테스트)\s*[:：\-]/gi;
+  /(?:언어|프로그래밍\s*언어|Languages?|Frameworks?|프레임워크|Backend|Frontend|Database|DB|DevOps|Cloud|인프라|Infrastructure|Mobile|Testing|테스트)\s*[:：-]/gi;
 
 // ---------------------------------------------------------------------------
 // Main analysis

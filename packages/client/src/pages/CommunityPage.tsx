@@ -162,9 +162,9 @@ export default function CommunityPage() {
           if (scrappedIds.length === 0) return { items: [], total: 0, totalPages: 1 };
           const r = await fetch(`${API_URL}/api/community?limit=100`);
           if (!r.ok) return { items: [], total: 0, totalPages: 1 };
-          const data = await r.json();
-          const all = data.items || [];
-          const filtered = all.filter((p: any) => scrappedIds.includes(p.id));
+          const data = (await r.json()) as { items?: Post[] };
+          const all = Array.isArray(data.items) ? data.items : [];
+          const filtered = all.filter((p) => scrappedIds.includes(p.id));
           return { items: filtered, total: filtered.length, totalPages: 1 };
         } catch {
           return { items: [], total: 0, totalPages: 1 };
@@ -630,7 +630,7 @@ export default function CommunityPage() {
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                         {post.content
                           .replace(/<[^>]*>/g, '')
-                          .replace(/[#*`~>\-]/g, '')
+                          .replace(/[#*`~>-]/g, '')
                           .slice(0, 150)}
                       </p>
                     </div>

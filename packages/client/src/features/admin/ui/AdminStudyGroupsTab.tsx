@@ -26,6 +26,17 @@ type Group = {
   _count?: { members?: number; questions?: number };
 };
 
+type GroupPatch = Pick<
+  Group,
+  | 'name'
+  | 'description'
+  | 'companyTier'
+  | 'cafeCategory'
+  | 'experienceLevel'
+  | 'isPrivate'
+  | 'maxMembers'
+>;
+
 type ModAttachment = { url: string; name: string; size: number; type: string };
 
 type ModPost = {
@@ -167,7 +178,7 @@ function GroupsSection() {
   });
 
   const mUpdate = useMutation({
-    mutationFn: async (vars: { id: string; patch: any }) => {
+    mutationFn: async (vars: { id: string; patch: GroupPatch }) => {
       const res = await fetch(`${API_URL}/api/study-groups/admin/${vars.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
@@ -412,7 +423,7 @@ function EditGroupDialog({
 }: {
   group: Group;
   onClose: () => void;
-  onSave: (patch: any) => void;
+  onSave: (patch: GroupPatch) => void;
 }) {
   const [name, setName] = useState(group.name);
   const [description, setDescription] = useState(group.description);

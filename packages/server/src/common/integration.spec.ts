@@ -103,9 +103,10 @@ describe('Integration sanity', () => {
   describe('Service 클래스 메서드 존재 확인', () => {
     it.each(SERVICES)('$name에 필수 메서드가 prototype에 존재', ({ cls, methods }) => {
       expect(cls).toBeDefined();
+      const prototype = cls.prototype as unknown as Record<string, unknown>;
       for (const method of methods) {
-        expect((cls.prototype as any)[method]).toBeDefined();
-        expect(typeof (cls.prototype as any)[method]).toBe('function');
+        expect(prototype[method]).toBeDefined();
+        expect(typeof prototype[method]).toBe('function');
       }
     });
 

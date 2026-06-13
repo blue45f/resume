@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Header from '@/components/Header';
@@ -78,9 +78,18 @@ const feedbackSchema = z.object({
 
 type FeedbackFormValues = z.infer<typeof feedbackSchema>;
 
+const loadFeedbackItems = (): FeedbackItem[] => {
+  try {
+    const stored = JSON.parse(localStorage.getItem('feedback-items') || '[]');
+    return Array.isArray(stored) ? (stored as FeedbackItem[]) : [];
+  } catch {
+    return [];
+  }
+};
+
 export default function FeedbackPage() {
-  const [items, setItems] = useState<FeedbackItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<FeedbackItem[]>(loadFeedbackItems);
+  const loading = false;
   const [showForm, setShowForm] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
   const user = getUser();
@@ -90,7 +99,7 @@ export default function FeedbackPage() {
     handleSubmit,
     reset,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FeedbackFormValues>({
     resolver: zodResolver(feedbackSchema),
@@ -101,29 +110,19 @@ export default function FeedbackPage() {
     },
   });
 
-  const formType = watch('type');
+  const formType = useWatch({ control, name: 'type' });
 
   useEffect(() => {
     document.title = '피드백 — 이력서공방';
-    loadItems();
     return () => {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
     };
   }, []);
 
-  const loadItems = () => {
-    // localStorage 기반 (백엔드 API 추가 시 교체)
-    try {
-      const stored = JSON.parse(localStorage.getItem('feedback-items') || '[]');
-      setItems(stored);
-    } catch {}
-    setLoading(false);
-  };
-
   const onSubmit = async (data: FeedbackFormValues) => {
     try {
       const newItem: FeedbackItem = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         type: data.type,
         title: data.title.trim(),
         content: data.content.trim(),
@@ -189,7 +188,12 @@ export default function FeedbackPage() {
               새 피드백
             </h2>
             <div className="flex gap-2 mb-3">
-              {(Object.entries(TYPE_CONFIG) as [string, any][]).map(([key, cfg]) => (
+              {(
+                Object.entries(TYPE_CONFIG) as [
+                  FeedbackFormValues['type'],
+                  (typeof TYPE_CONFIG)[FeedbackFormValues['type']],
+                ][]
+              ).map(([key, cfg]) => (
                 <button
                   type="button"
                   key={key}
@@ -258,7 +262,12 @@ export default function FeedbackPage() {
           >
             전체 ({items.length})
           </button>
-          {(Object.entries(TYPE_CONFIG) as [string, any][]).map(([key, cfg]) => (
+          {(
+            Object.entries(TYPE_CONFIG) as [
+              FeedbackFormValues['type'],
+              (typeof TYPE_CONFIG)[FeedbackFormValues['type']],
+            ][]
+          ).map(([key, cfg]) => (
             <button
               key={key}
               onClick={() => setFilterType(key)}

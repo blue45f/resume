@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, type SetStateAction } from 'react';
 import { formatDate } from '@/lib/time';
 import { useConfirm } from '@/shared/ui/ConfirmProvider';
 
@@ -9,6 +9,19 @@ interface InterviewReviewData {
   tips: string;
   createdAt: string;
   updatedAt: string;
+}
+
+interface InterviewReviewForm {
+  difficulty: number;
+  questions: string;
+  result: 'pass' | 'fail' | 'pending';
+  tips: string;
+}
+
+interface InterviewReviewState {
+  applicationId: string;
+  review: InterviewReviewData | null;
+  form: InterviewReviewForm;
 }
 
 interface Props {
@@ -53,29 +66,48 @@ function saveReview(appId: string, data: InterviewReviewData) {
   localStorage.setItem(getStorageKey(appId), JSON.stringify(data));
 }
 
+function createEmptyReviewForm(): InterviewReviewForm {
+  return {
+    difficulty: 3,
+    questions: '',
+    result: 'pending',
+    tips: '',
+  };
+}
+
+function createReviewForm(saved: InterviewReviewData): InterviewReviewForm {
+  return {
+    difficulty: saved.difficulty,
+    questions: saved.questions,
+    result: saved.result,
+    tips: saved.tips,
+  };
+}
+
+function loadReviewState(applicationId: string): InterviewReviewState {
+  const saved = loadReview(applicationId);
+  return {
+    applicationId,
+    review: saved,
+    form: saved ? createReviewForm(saved) : createEmptyReviewForm(),
+  };
+}
+
 export default function InterviewReview({ applicationId }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [review, setReview] = useState<InterviewReviewData | null>(null);
-  const [form, setForm] = useState({
-    difficulty: 3,
-    questions: '',
-    result: 'pending' as 'pass' | 'fail' | 'pending',
-    tips: '',
-  });
+  const loadedState = useMemo(() => loadReviewState(applicationId), [applicationId]);
+  const [reviewState, setReviewState] = useState<InterviewReviewState>(() => loadedState);
+  const activeState = reviewState.applicationId === applicationId ? reviewState : loadedState;
+  const { review, form } = activeState;
 
-  useEffect(() => {
-    const saved = loadReview(applicationId);
-    if (saved) {
-      setReview(saved);
-      setForm({
-        difficulty: saved.difficulty,
-        questions: saved.questions,
-        result: saved.result,
-        tips: saved.tips,
-      });
-    }
-  }, [applicationId]);
+  const setForm = (next: SetStateAction<InterviewReviewForm>) => {
+    setReviewState((prev) => {
+      const current = prev.applicationId === applicationId ? prev : loadedState;
+      const formValue = typeof next === 'function' ? next(current.form) : next;
+      return { ...current, applicationId, form: formValue };
+    });
+  };
 
   const handleSave = () => {
     const now = new Date().toISOString();
@@ -85,7 +117,7 @@ export default function InterviewReview({ applicationId }: Props) {
       updatedAt: now,
     };
     saveReview(applicationId, data);
-    setReview(data);
+    setReviewState({ applicationId, review: data, form: createReviewForm(data) });
     setEditing(false);
   };
 
@@ -101,9 +133,8 @@ export default function InterviewReview({ applicationId }: Props) {
     )
       return;
     localStorage.removeItem(getStorageKey(applicationId));
-    setReview(null);
+    setReviewState({ applicationId, review: null, form: createEmptyReviewForm() });
     setEditing(false);
-    setForm({ difficulty: 3, questions: '', result: 'pending', tips: '' });
   };
 
   const resultInfo = RESULT_OPTIONS.find((r) => r.value === (review?.result || form.result));
@@ -240,8 +271,7 @@ export default function InterviewReview({ applicationId }: Props) {
                   type="button"
                   onClick={() => {
                     setEditing(false);
-                    if (!review)
-                      setForm({ difficulty: 3, questions: '', result: 'pending', tips: '' });
+                    if (!review) setForm(createEmptyReviewForm());
                   }}
                   className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors"
                 >

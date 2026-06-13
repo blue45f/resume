@@ -86,11 +86,7 @@ export default function CareerLevel({ user, resumes }: Props) {
     const prefersReduce =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReduce) {
-      setAnimatedPct(info.progressPct);
-      return;
-    }
-    const t = setTimeout(() => setAnimatedPct(info.progressPct), 100);
+    const t = setTimeout(() => setAnimatedPct(info.progressPct), prefersReduce ? 0 : 100);
     return () => clearTimeout(t);
   }, [info.progressPct]);
 

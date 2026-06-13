@@ -1,7 +1,7 @@
 /**
  * 커뮤니티 게시물 관리 탭 (AdminPage 내에서 사용)
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_URL } from '@/lib/config';
 import { formatDate } from '@/lib/time';
@@ -21,6 +21,10 @@ type Post = {
   user?: { id?: string; name?: string; email?: string; username?: string };
   _count?: { comments?: number; likes?: number };
 };
+
+interface BulkActionResult {
+  affected?: number;
+}
 
 const CATEGORIES = ['free', 'tips', 'resume', 'cover-letter', 'question'];
 
@@ -141,7 +145,7 @@ export default function AdminPostsTab() {
       if (!res.ok) throw new Error('failed');
       return res.json();
     },
-    onSuccess: (res: any) => {
+    onSuccess: (res: BulkActionResult | null) => {
       toast(`${res?.affected ?? 0}건 처리되었습니다`, 'success');
       setSelected(new Set());
       invalidate();
@@ -149,18 +153,21 @@ export default function AdminPostsTab() {
     onError: () => toast('처리에 실패했습니다', 'error'),
   });
 
-  const items = query.data?.items ?? [];
+  const items = useMemo(() => query.data?.items ?? [], [query.data?.items]);
 
-  const toggleSelectAll = () => {
+  const toggleSelectAll = useCallback(() => {
     if (selected.size === items.length) setSelected(new Set());
     else setSelected(new Set(items.map((p) => p.id)));
-  };
-  const toggleSelect = (id: string) => {
-    const next = new Set(selected);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setSelected(next);
-  };
+  }, [items, selected.size]);
+  const toggleSelect = useCallback(
+    (id: string) => {
+      const next = new Set(selected);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      setSelected(next);
+    },
+    [selected],
+  );
 
   const columns = useMemo<AdminTableColumn<Post>[]>(
     () => [
@@ -296,7 +303,7 @@ export default function AdminPostsTab() {
         ),
       },
     ],
-    [items, selected, mHide, mPin, mCategory],
+    [items, selected, mHide, mPin, mCategory, toggleSelect, toggleSelectAll],
   );
 
   return (

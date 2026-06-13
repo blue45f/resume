@@ -13,7 +13,6 @@ async function main() {
   const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
   const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const twoWeeksLater = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
   const notices = [
     // GENERAL - 필수 공지
@@ -182,13 +181,16 @@ async function main() {
   }
 
   console.log('\n🎉 공지사항 샘플 데이터 생성 완료!');
-  console.log(`  - GENERAL: ${notices.filter(n => n.type === 'GENERAL').length}개`);
-  console.log(`  - EVENT: ${notices.filter(n => n.type === 'EVENT').length}개`);
-  console.log(`  - MAINTENANCE: ${notices.filter(n => n.type === 'MAINTENANCE').length}개`);
-  console.log(`  - 팝업: ${notices.filter(n => n.isPopup).length}개`);
-  console.log(`  - 고정: ${notices.filter(n => n.isPinned).length}개`);
+  console.log(`  - GENERAL: ${notices.filter((n) => n.type === 'GENERAL').length}개`);
+  console.log(`  - EVENT: ${notices.filter((n) => n.type === 'EVENT').length}개`);
+  console.log(`  - MAINTENANCE: ${notices.filter((n) => n.type === 'MAINTENANCE').length}개`);
+  console.log(`  - 팝업: ${notices.filter((n) => n.isPopup).length}개`);
+  console.log(`  - 고정: ${notices.filter((n) => n.isPinned).length}개`);
 }
 
 main()
-  .catch(e => { console.error(e); process.exit(1); })
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
   .finally(() => prisma.$disconnect());

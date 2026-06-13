@@ -3,7 +3,7 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { NoticesService } from './notices.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-const mockPrisma: any = {
+const mockPrisma = {
   notice: {
     findMany: jest.fn(),
     findUnique: jest.fn(),

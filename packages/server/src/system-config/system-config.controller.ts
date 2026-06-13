@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Body, Param, UseGuards } from '@nestjs/common';
 import { SystemConfigService } from './system-config.service';
 import { Public } from '../auth/auth.guard';
 import { AdminGuard } from '../common/guards/admin.guard';
@@ -33,8 +33,7 @@ export class SystemConfigController {
 
   @Get('content/:key')
   @Public()
-  async getContent(@Req() req: any, @Body() body: any) {
-    const key = (req.params as any).key;
+  async getContent(@Param('key') key: string) {
     const val = await this.service.get(`content_${key}`);
     if (!val) return null;
     try {
@@ -46,8 +45,7 @@ export class SystemConfigController {
 
   @Patch('content/:key')
   @UseGuards(AdminGuard)
-  async setContent(@Req() req: any, @Body() body: any) {
-    const key = (req.params as any).key;
+  async setContent(@Param('key') key: string, @Body() body: unknown) {
     const value = typeof body === 'string' ? body : JSON.stringify(body);
     await this.service.set(`content_${key}`, value);
     return { success: true };

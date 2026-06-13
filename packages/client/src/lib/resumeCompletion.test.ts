@@ -3,7 +3,7 @@ import { computeResumeCompletion } from './resumeCompletion';
 import type { ResumeSummary } from '@/types/resume';
 
 function makeResume(overrides: Partial<ResumeSummary> = {}): ResumeSummary {
-  return {
+  const resume: ResumeSummary = {
     id: 'r1',
     title: '',
     visibility: 'private',
@@ -20,8 +20,8 @@ function makeResume(overrides: Partial<ResumeSummary> = {}): ResumeSummary {
     skills: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    ...overrides,
-  } as ResumeSummary;
+  };
+  return { ...resume, ...overrides };
 }
 
 describe('computeResumeCompletion', () => {
@@ -47,10 +47,14 @@ describe('computeResumeCompletion', () => {
           github: 'https://github.com/me',
           summary: 'a'.repeat(220),
           photo: 'data:...',
-          links: [{ label: 'site', url: 'x' }] as any,
-        } as any,
-        tags: [{ id: 't1', name: 'FE', color: '#000' } as any],
-        skills: Array.from({ length: 12 }, (_, i) => ({ id: `s${i}` })) as any,
+          links: [{ label: 'site', url: 'x' }],
+        },
+        tags: [{ id: 't1', name: 'FE', color: '#000' }],
+        skills: Array.from({ length: 12 }, (_, i) => ({
+          id: `s${i}`,
+          category: 'Frontend',
+          items: 'React',
+        })),
       }),
     );
     expect(r.pct).toBe(100);
@@ -73,12 +77,26 @@ describe('computeResumeCompletion', () => {
   });
 
   it('skills count is graduated', () => {
-    const one = computeResumeCompletion(makeResume({ skills: [{ id: '1' }] as any }));
+    const one = computeResumeCompletion(
+      makeResume({ skills: [{ id: '1', category: 'Frontend', items: 'React' }] }),
+    );
     const five = computeResumeCompletion(
-      makeResume({ skills: Array.from({ length: 5 }, (_, i) => ({ id: `${i}` })) as any }),
+      makeResume({
+        skills: Array.from({ length: 5 }, (_, i) => ({
+          id: `${i}`,
+          category: 'Frontend',
+          items: 'React',
+        })),
+      }),
     );
     const eleven = computeResumeCompletion(
-      makeResume({ skills: Array.from({ length: 11 }, (_, i) => ({ id: `${i}` })) as any }),
+      makeResume({
+        skills: Array.from({ length: 11 }, (_, i) => ({
+          id: `${i}`,
+          category: 'Frontend',
+          items: 'React',
+        })),
+      }),
     );
     expect(one.pct).toBeLessThan(five.pct);
     expect(five.pct).toBeLessThan(eleven.pct);
@@ -98,7 +116,7 @@ describe('computeResumeCompletion', () => {
           website: '',
           summary: 'a'.repeat(35),
         },
-        skills: [{ id: '1' }] as any,
+        skills: [{ id: '1', category: 'Frontend', items: 'React' }],
       }),
     );
     // Should be at minimum 'fair' or 'low' — boundary check

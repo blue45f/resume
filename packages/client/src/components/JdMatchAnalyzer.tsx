@@ -4,6 +4,7 @@ import { toast } from '@/components/Toast';
 import { API_URL } from '@/lib/config';
 import { formatDate } from '@/lib/time';
 import type { Resume } from '@/types/resume';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 interface Props {
   resumeId: string;
@@ -357,8 +358,8 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
       const newHistory = [entry, ...history.filter((h) => h.id !== entry.id)].slice(0, 20);
       setHistory(newHistory);
       saveHistory(newHistory);
-    } catch (e: any) {
-      setError(e.message || '분석 중 오류가 발생했습니다');
+    } catch (e) {
+      setError(getErrorMessage(e, '분석 중 오류가 발생했습니다'));
     } finally {
       setLoading(false);
     }
@@ -383,8 +384,8 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
       // Optimization done - the transform endpoint handles saving
       setError('');
       toast('JD에 맞춰 이력서가 최적화되었습니다. 변환 기록에서 확인하세요.', 'success');
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(getErrorMessage(e));
     } finally {
       setOptimizing(false);
     }
@@ -420,7 +421,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
         setCoverLetter(fallbackCl);
         setTab('coverletter');
       }
-    } catch (e: any) {
+    } catch {
       // Fallback to local generation
       const points = result?.coverLetterPoints || [];
       const fallbackCl = generateLocalCoverLetter(resume, jd, points);

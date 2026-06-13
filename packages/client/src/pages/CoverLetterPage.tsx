@@ -1,6 +1,6 @@
 import { useDeferredValue, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Header from '@/components/Header';
@@ -10,7 +10,7 @@ import JobUrlInput from '@/components/JobUrlInput';
 import { toast } from '@/components/Toast';
 import type { ResumeSummary } from '@/types/resume';
 import { API_URL } from '@/lib/config';
-import RelatedJobsWidget from '@/features/interview-prep/ui/RelatedJobsWidget';
+import { RelatedJobsWidget } from '@/features/interview-prep';
 import { tx } from '@/lib/i18n';
 import { formatDate } from '@/lib/time';
 import { useResumes } from '@/hooks/useResources';
@@ -47,6 +47,7 @@ import CoverLetterJdResonancePanel from '@/components/CoverLetterJdResonancePane
 import CoverLetterImprovementPlanPanel from '@/components/CoverLetterImprovementPlanPanel';
 import CollapsibleAnalysisSection from '@/components/CollapsibleAnalysisSection';
 import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
+import { getErrorMessage } from '@/lib/errorMessage';
 import {
   computeJDMatch,
   detectSkillMentions,
@@ -96,6 +97,12 @@ const TONES = [
   { value: 'friendly' as const, label: '친근체', desc: '따뜻·열정적' },
   { value: 'confident' as const, label: '자신감체', desc: '당당·확신' },
 ];
+
+const TONE_KOREAN: Record<(typeof TONES)[number]['value'], string> = {
+  formal: '격식체',
+  friendly: '친근체',
+  confident: '자신감체',
+};
 
 const SECTIONS = [
   {
@@ -152,7 +159,7 @@ function analyzeCoverLetter(text: string, jobDesc: string): FeedbackResult {
   // Keyword matching
   const jdWords = jobDesc
     .toLowerCase()
-    .split(/[\s,\.\(\)\[\]\/·]+/)
+    .split(/[\s,.()[\]/·]+/)
     .filter((w) => w.length >= 2)
     .filter(
       (w) =>
@@ -313,7 +320,7 @@ export default function CoverLetterPage() {
   const {
     register: registerGenerate,
     handleSubmit: handleSubmitGenerate,
-    watch: watchGenerate,
+    control: generateControl,
     setValue: setValueGenerate,
     formState: { errors: generateErrors, isSubmitting: isGenerating },
   } = useForm<GenerateFormValues>({
@@ -325,22 +332,22 @@ export default function CoverLetterPage() {
       jobDescription: '',
     },
   });
-  const companyName = watchGenerate('company');
-  const position = watchGenerate('position');
+  const companyName = useWatch({ control: generateControl, name: 'company' });
+  const position = useWatch({ control: generateControl, name: 'position' });
 
   // Feedback form
   const {
     register: registerFeedback,
     handleSubmit: handleSubmitFeedback,
-    watch: watchFeedback,
+    control: feedbackControl,
     formState: { errors: feedbackErrors, isSubmitting: isAnalyzingFeedbackForm },
   } = useForm<FeedbackFormValues>({
     resolver: zodResolver(feedbackSchema),
     mode: 'onBlur',
     defaultValues: { content: '', jobDescription: '' },
   });
-  const feedbackText = watchFeedback('content');
-  const feedbackJd = watchFeedback('jobDescription');
+  const feedbackText = useWatch({ control: feedbackControl, name: 'content' });
+  const feedbackJd = useWatch({ control: feedbackControl, name: 'jobDescription' });
   // 타이핑 레이턴시 보호 — 10+ 분석기 패널을 유휴 시간에 재렌더.
   const deferredFeedbackText = useDeferredValue(feedbackText || '');
 
@@ -350,12 +357,6 @@ export default function CoverLetterPage() {
       document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
     };
   }, []);
-
-  const toneKorean: Record<string, string> = {
-    formal: '격식체',
-    friendly: '친근체',
-    confident: '자신감체',
-  };
 
   const onGenerateSubmit = useCallback(
     async (values: GenerateFormValues) => {
@@ -387,7 +388,7 @@ export default function CoverLetterPage() {
           headers,
           body: JSON.stringify({
             templateType: 'cover-letter',
-            jobDescription: `[회사: ${values.company}] [포지션: ${values.position}] [어조: ${toneKorean[tone]}]${sectionContent ? `\n\n[작성된 항목]\n${sectionContent}` : ''}\n\n${values.jobDescription}`,
+            jobDescription: `[회사: ${values.company}] [포지션: ${values.position}] [어조: ${TONE_KOREAN[tone]}]${sectionContent ? `\n\n[작성된 항목]\n${sectionContent}` : ''}\n\n${values.jobDescription}`,
           }),
         });
 
@@ -425,8 +426,8 @@ export default function CoverLetterPage() {
             }),
           }).catch(() => {});
         }
-      } catch (e: any) {
-        const msg = e.message || '생성에 실패했습니다';
+      } catch (e: unknown) {
+        const msg = getErrorMessage(e, '생성에 실패했습니다');
         setError(msg);
         toast(msg, 'error');
       }
@@ -453,7 +454,7 @@ export default function CoverLetterPage() {
       .content { white-space: pre-wrap; }
     </style></head><body>
       <h1>${companyName ? companyName + ' — ' : ''}${position || '자기소개서'}</h1>
-      <div class="meta">${toneKorean[tone]} | ${formatDate(new Date())}</div>
+      <div class="meta">${TONE_KOREAN[tone]} | ${formatDate(new Date())}</div>
       <div class="content">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
     </body></html>`);
     printWindow.document.close();

@@ -23,6 +23,55 @@ interface Activity {
   isSocial?: boolean;
 }
 
+interface DashboardActivityItem {
+  id?: string;
+  resumeId: string;
+  resumeTitle?: string;
+  versionNumber?: number;
+  createdAt: string;
+}
+
+interface DashboardActivityResponse {
+  recentVersions?: DashboardActivityItem[];
+  recentViews?: DashboardActivityItem[];
+  recentShares?: DashboardActivityItem[];
+}
+
+interface SocialActivityItem {
+  id?: string;
+  name?: string;
+  senderName?: string;
+  companyName?: string;
+  resumeId?: string;
+  createdAt?: string;
+}
+
+interface ResumeCommentSource {
+  id: string;
+  title?: string;
+}
+
+interface ResumeCommentItem {
+  id: string;
+  userId?: string;
+  userName?: string;
+  name?: string;
+  createdAt?: string;
+}
+
+function getCurrentUserId(): string | undefined {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem('user') || '{}');
+    if (typeof parsed === 'object' && parsed !== null && 'id' in parsed) {
+      const id = (parsed as { id?: unknown }).id;
+      return typeof id === 'string' ? id : undefined;
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
 const ACTIVITY_ICONS: Record<string, ReactElement> = {
   view: (
     <svg className="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,13 +215,13 @@ export default function RecentActivity() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
+      .then((data: DashboardActivityResponse | null) => {
         if (!data) return;
         const acts: Activity[] = [];
         // Convert recent versions to activities
         for (const v of data.recentVersions || []) {
           acts.push({
-            id: v.id,
+            id: v.id ?? `version-${v.resumeId}-${v.versionNumber ?? 'latest'}`,
             type: 'version',
             resumeId: v.resumeId,
             description: `버전 ${v.versionNumber} 저장됨`,
@@ -211,12 +260,12 @@ export default function RecentActivity() {
       {
         url: `${API_URL}/api/social/followers`,
         type: 'follow' as const,
-        msgFn: (item: any) => `${item.name || '사용자'}님이 당신을 팔로우했습니다`,
+        msgFn: (item: SocialActivityItem) => `${item.name || '사용자'}님이 당신을 팔로우했습니다`,
       },
       {
         url: `${API_URL}/api/social/scouts`,
         type: 'scout' as const,
-        msgFn: (item: any) =>
+        msgFn: (item: SocialActivityItem) =>
           `${item.senderName || item.companyName || '기업'}님이 스카우트를 보냈습니다`,
       },
     ];
@@ -224,17 +273,19 @@ export default function RecentActivity() {
     for (const ep of socialEndpoints) {
       fetch(ep.url, { headers: { Authorization: `Bearer ${token}` } })
         .then((r) => (r.ok ? r.json() : []))
-        .then((items: any[]) => {
+        .then((items: unknown) => {
           if (!Array.isArray(items) || items.length === 0) return;
-          const socialActs: Activity[] = items.slice(0, 5).map((item, i) => ({
-            id: `${ep.type}-${item.id || i}`,
-            type: ep.type,
-            resumeId: item.resumeId || '',
-            description: ep.msgFn(item),
-            createdAt: item.createdAt || new Date().toISOString(),
-            actorName: item.name || item.senderName || item.companyName || '사용자',
-            isSocial: true,
-          }));
+          const socialActs: Activity[] = (items as SocialActivityItem[])
+            .slice(0, 5)
+            .map((item, i) => ({
+              id: `${ep.type}-${item.id || i}`,
+              type: ep.type,
+              resumeId: item.resumeId || '',
+              description: ep.msgFn(item),
+              createdAt: item.createdAt || new Date().toISOString(),
+              actorName: item.name || item.senderName || item.companyName || '사용자',
+              isSocial: true,
+            }));
           setActivities((prev) => {
             const merged = [...prev, ...socialActs];
             merged.sort(
@@ -247,22 +298,21 @@ export default function RecentActivity() {
     }
 
     // Fetch recent comments on user's resumes
+    const currentUserId = getCurrentUserId();
     fetch(`${API_URL}/api/resumes`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : []))
-      .then((resumes: any[]) => {
+      .then((resumes: unknown) => {
         if (!Array.isArray(resumes)) return;
-        const commentPromises = resumes.slice(0, 5).map((resume) =>
+        const commentPromises = (resumes as ResumeCommentSource[]).slice(0, 5).map((resume) =>
           fetch(`${API_URL}/api/resumes/${resume.id}/comments`, {
             headers: { Authorization: `Bearer ${token}` },
           })
             .then((r) => (r.ok ? r.json() : []))
-            .then((comments: any[]) =>
-              (Array.isArray(comments) ? comments : [])
-                .filter(
-                  (c: any) => c.userId !== JSON.parse(localStorage.getItem('user') || '{}').id,
-                )
+            .then((comments: unknown) =>
+              (Array.isArray(comments) ? (comments as ResumeCommentItem[]) : [])
+                .filter((c) => c.userId !== currentUserId)
                 .slice(0, 3)
-                .map((c: any) => ({
+                .map((c) => ({
                   id: `social_comment-${c.id}`,
                   type: 'social_comment' as const,
                   resumeId: resume.id,

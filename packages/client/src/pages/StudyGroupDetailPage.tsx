@@ -42,6 +42,16 @@ type PostAttachment = StudyGroupPost['attachments'][number];
 // 이미지는 업로드 전 1600px 리사이즈로 캡 하위 보장. UI 는 글당 5개로 제한 (서버 상한 10).
 const ATTACH_MAX_BYTES = 2 * 1024 * 1024;
 const MAX_POST_ATTACHMENTS = 5;
+const STUDY_POST_CATEGORIES: StudyGroupPost['category'][] = [
+  'notice',
+  'free',
+  'question',
+  'resource',
+  'study-log',
+];
+
+const isStudyPostCategory = (value: string): value is StudyGroupPost['category'] =>
+  STUDY_POST_CATEGORIES.includes(value as StudyGroupPost['category']);
 
 const formatBytes = (n: number) =>
   n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)}MB` : `${Math.max(1, Math.round(n / 1024))}KB`;
@@ -250,8 +260,14 @@ export default function StudyGroupDetailPage() {
 
   // 서버 데이터에 local 상태가 반영되면 (members 가 일치) local 초기화
   useEffect(() => {
-    if (localMembership === 'joined' && serverIsMember) setLocalMembership(null);
-    if (localMembership === 'left' && !serverIsMember) setLocalMembership(null);
+    if (
+      (localMembership === 'joined' && serverIsMember) ||
+      (localMembership === 'left' && !serverIsMember)
+    ) {
+      const timer = window.setTimeout(() => setLocalMembership(null), 0);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
   }, [serverIsMember, localMembership]);
 
   const handleJoin = async () => {
@@ -510,7 +526,7 @@ export default function StudyGroupDetailPage() {
               ).map((c) => (
                 <button
                   key={c.k}
-                  onClick={() => setPostCategory(c.k as any)}
+                  onClick={() => setPostCategory(c.k)}
                   className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
                     postCategory === c.k
                       ? 'bg-blue-600 text-white border-blue-600'
@@ -531,7 +547,11 @@ export default function StudyGroupDetailPage() {
                 <div className="flex gap-2">
                   <select
                     value={newPostCategory}
-                    onChange={(e) => setNewPostCategory(e.target.value as any)}
+                    onChange={(e) => {
+                      if (isStudyPostCategory(e.target.value)) {
+                        setNewPostCategory(e.target.value);
+                      }
+                    }}
                     className="text-xs px-2 py-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700"
                   >
                     {isOwner && <option value="notice">📢 {tx('study.category.notice')}</option>}

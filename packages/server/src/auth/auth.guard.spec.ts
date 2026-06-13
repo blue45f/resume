@@ -3,33 +3,55 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { ExecutionContext } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import type { AuthenticatedRequest } from '../common/request.types';
+
+type MockJwtService = {
+  verify: jest.Mock;
+};
+
+type MockReflector = {
+  getAllAndOverride: jest.Mock;
+};
+
+type MockPrismaService = {
+  user: {
+    findUnique: jest.Mock;
+  };
+};
 
 describe('AuthGuard', () => {
   let guard: AuthGuard;
-  let jwtService: JwtService;
-  let reflector: Reflector;
-  let prisma: PrismaService;
+  let jwtService: MockJwtService;
+  let reflector: MockReflector;
+  let prisma: MockPrismaService;
 
   beforeEach(() => {
-    jwtService = { verify: jest.fn() } as any;
-    reflector = { getAllAndOverride: jest.fn() } as any;
+    jwtService = { verify: jest.fn() };
+    reflector = { getAllAndOverride: jest.fn() };
     prisma = {
       user: { findUnique: jest.fn().mockResolvedValue({ isSuspended: false }) },
-    } as any;
-    guard = new AuthGuard(jwtService, reflector, prisma);
+    };
+    guard = new AuthGuard(
+      jwtService as unknown as JwtService,
+      reflector as unknown as Reflector,
+      prisma as unknown as PrismaService,
+    );
   });
 
   function createContext(
     headers: Record<string, string> = {},
     cookies: Record<string, string> = {},
   ): ExecutionContext {
-    const request = { headers, cookies, user: undefined as any };
+    const request = { headers, cookies, user: undefined } as AuthenticatedRequest;
     return {
       switchToHttp: () => ({ getRequest: () => request }),
       getHandler: () => ({}),
       getClass: () => ({}),
-    } as any;
+    } as unknown as ExecutionContext;
   }
+
+  const getRequest = (ctx: ExecutionContext) =>
+    ctx.switchToHttp().getRequest<AuthenticatedRequest>();
 
   // --- Public 데코레이터 ---
 
@@ -53,7 +75,7 @@ describe('AuthGuard', () => {
     (reflector.getAllAndOverride as jest.Mock).mockReturnValue(false);
     const ctx = createContext();
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user).toBeNull();
+    expect(getRequest(ctx).user).toBeNull();
   });
 
   // --- 유효한 JWT ---
@@ -63,7 +85,7 @@ describe('AuthGuard', () => {
     (jwtService.verify as jest.Mock).mockReturnValue({ sub: 'user-123', role: 'admin' });
     const ctx = createContext({ authorization: 'Bearer valid-token' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user).toEqual({
+    expect(getRequest(ctx).user).toEqual({
       id: 'user-123',
       role: 'admin',
     });
@@ -78,7 +100,7 @@ describe('AuthGuard', () => {
     });
     const ctx = createContext({ authorization: 'Bearer valid-token' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user.role).toBe('user');
+    expect(getRequest(ctx).user?.role).toBe('user');
   });
 
   it('role이 없는 JWT → 기본 role "user" 설정', async () => {
@@ -86,7 +108,7 @@ describe('AuthGuard', () => {
     (jwtService.verify as jest.Mock).mockReturnValue({ sub: 'user-456' });
     const ctx = createContext({ authorization: 'Bearer valid-token' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user).toEqual({ id: 'user-456', role: 'user' });
+    expect(getRequest(ctx).user).toEqual({ id: 'user-456', role: 'user' });
   });
 
   // --- 만료된/잘못된 JWT ---
@@ -98,7 +120,7 @@ describe('AuthGuard', () => {
     });
     const ctx = createContext({ authorization: 'Bearer expired-token' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user).toBeNull();
+    expect(getRequest(ctx).user).toBeNull();
   });
 
   it('잘못된 JWT → user = null, 통과 (soft auth)', async () => {
@@ -108,7 +130,7 @@ describe('AuthGuard', () => {
     });
     const ctx = createContext({ authorization: 'Bearer bad-token' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user).toBeNull();
+    expect(getRequest(ctx).user).toBeNull();
   });
 
   it('malformed JWT (jwt malformed) → user = null', async () => {
@@ -118,7 +140,7 @@ describe('AuthGuard', () => {
     });
     const ctx = createContext({ authorization: 'Bearer not.a.jwt' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user).toBeNull();
+    expect(getRequest(ctx).user).toBeNull();
   });
 
   // --- 잘못된 토큰 형식 ---
@@ -127,21 +149,21 @@ describe('AuthGuard', () => {
     (reflector.getAllAndOverride as jest.Mock).mockReturnValue(false);
     const ctx = createContext({ authorization: 'Basic abc123' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user).toBeNull();
+    expect(getRequest(ctx).user).toBeNull();
   });
 
   it('Bearer만 있고 토큰이 없는 경우 → 토큰 없음 처리', async () => {
     (reflector.getAllAndOverride as jest.Mock).mockReturnValue(false);
     const ctx = createContext({ authorization: 'Bearer ' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user).toBeNull();
+    expect(getRequest(ctx).user).toBeNull();
   });
 
   it('authorization 헤더가 빈 문자열 → 토큰 없음 처리', async () => {
     (reflector.getAllAndOverride as jest.Mock).mockReturnValue(false);
     const ctx = createContext({ authorization: '' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user).toBeNull();
+    expect(getRequest(ctx).user).toBeNull();
   });
 
   it('토큰에 공백이 여러 개 → split(/\\s+/)로 정상 파싱', async () => {
@@ -150,7 +172,7 @@ describe('AuthGuard', () => {
     const ctx = createContext({ authorization: 'Bearer   valid-token' });
     // split(/\s+/)는 연속 공백을 하나로 처리하므로 정상 추출
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user).toEqual({ id: 'user-789', role: 'user' });
+    expect(getRequest(ctx).user).toEqual({ id: 'user-789', role: 'user' });
   });
 
   // --- Cookie 기반 인증 ---
@@ -160,7 +182,7 @@ describe('AuthGuard', () => {
     (jwtService.verify as jest.Mock).mockReturnValue({ sub: 'cookie-user', role: 'user' });
     const ctx = createContext({}, { token: 'cookie-jwt-token' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect((ctx.switchToHttp().getRequest() as any).user).toEqual({
+    expect(getRequest(ctx).user).toEqual({
       id: 'cookie-user',
       role: 'user',
     });
@@ -172,7 +194,7 @@ describe('AuthGuard', () => {
     const ctx = createContext({ authorization: 'Bearer header-token' }, { token: 'cookie-token' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
     expect(jwtService.verify).toHaveBeenCalledWith('header-token');
-    expect((ctx.switchToHttp().getRequest() as any).user).toEqual({
+    expect(getRequest(ctx).user).toEqual({
       id: 'header-user',
       role: 'admin',
     });

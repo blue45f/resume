@@ -8,6 +8,7 @@ import {
   fetchLlmProviders,
 } from '@/lib/api';
 import type { Template, LlmProvider } from '@/types/resume';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 const LLM_TEMPLATES = [
   { value: 'standard', label: '표준 이력서', icon: '📄' },
@@ -74,8 +75,8 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
           : { preset: selectedPreset };
       const res = await localTransform(resumeId, data);
       setResult(res.text);
-    } catch (err: any) {
-      setError(err.message || '변환에 실패했습니다');
+    } catch (err) {
+      setError(getErrorMessage(err, '변환에 실패했습니다'));
     } finally {
       setLoading(false);
     }
@@ -99,11 +100,11 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
         } else if (chunk.type === 'done') {
           setTokensUsed(chunk.tokensUsed || 0);
         } else if (chunk.type === 'error') {
-          setError((chunk as any).message || '변환 중 오류가 발생했습니다');
+          setError(chunk.message || '변환 중 오류가 발생했습니다');
         }
       }
-    } catch (err: any) {
-      setError(err.message || '변환 요청에 실패했습니다');
+    } catch (err) {
+      setError(getErrorMessage(err, '변환 요청에 실패했습니다'));
     } finally {
       setLoading(false);
     }

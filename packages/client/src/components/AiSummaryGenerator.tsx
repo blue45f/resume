@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Resume } from '@/types/resume';
 import { aiInlineAssist } from '@/lib/api';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 interface Props {
   resumeId?: string;
@@ -88,8 +89,8 @@ export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props
       const prompt = `다음 이력서 정보를 바탕으로 전문적인 자기소개 문단을 3-5문장으로 작성해주세요. 1인칭으로, 핵심 역량과 경력 하이라이트를 포함하세요.\n\n${context}`;
       const res = await aiInlineAssist(resumeId, prompt, 'improve');
       setPreview(res.improved);
-    } catch (err: any) {
-      setError(err?.message || 'AI 요청에 실패했습니다.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'AI 요청에 실패했습니다.'));
     } finally {
       setLoading(false);
     }

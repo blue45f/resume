@@ -57,13 +57,15 @@ describe('Notifications by Type', () => {
 
     it('GET /notifications — 8개 모두 보임', async () => {
       const res = await ctx.authGet('normal', '/api/notifications').expect(200);
-      const types = res.body.map((n: any) => n.type);
+      const types = (res.body as Array<{ type: string }>).map((notification) => notification.type);
       NEW_TYPES.forEach((t) => expect(types).toContain(t));
     });
 
     it('GET /notifications/unread — 읽지 않은 8개', async () => {
       const res = await ctx.authGet('normal', '/api/notifications/unread').expect(200);
-      const unreadTypes = res.body.map((n: any) => n.type);
+      const unreadTypes = (res.body as Array<{ type: string }>).map(
+        (notification) => notification.type,
+      );
       NEW_TYPES.forEach((t) => expect(unreadTypes).toContain(t));
     });
 

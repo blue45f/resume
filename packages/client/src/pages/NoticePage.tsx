@@ -47,6 +47,11 @@ interface Notice {
   createdAt: string;
 }
 
+interface NoticeListResponse {
+  items?: Notice[];
+  total?: number;
+}
+
 function NoticeList() {
   const [type, setType] = useState('all');
   const [page, setPage] = useState(1);
@@ -54,13 +59,13 @@ function NoticeList() {
   const queryParams = new URLSearchParams({ page: String(page), limit: '20' });
   if (type !== 'all') queryParams.set('type', type);
 
-  const { data, isLoading: loading } = usePublicGet<any>(
+  const { data, isLoading: loading } = usePublicGet<NoticeListResponse | Notice[]>(
     ['notices', type, page],
     `/api/notices?${queryParams}`,
     { staleTime: 30_000 },
   );
   const notices: Notice[] = Array.isArray(data) ? data : data?.items || [];
-  const total: number = data?.total || 0;
+  const total: number = Array.isArray(data) ? data.length : data?.total || 0;
 
   const totalPages = Math.ceil(total / 20);
 

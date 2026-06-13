@@ -35,7 +35,9 @@ Object.defineProperty(global, 'localStorage', { value: localStorageMock });
 
 // import.meta.env 모킹 - require로 로드 전에 설정
 // fetch 모킹
-global.fetch = jest.fn(() => Promise.resolve({ ok: true })) as any;
+global.fetch = jest.fn(() =>
+  Promise.resolve({ ok: true } as Response),
+) as unknown as jest.MockedFunction<typeof fetch>;
 
 // src/lib/auth.ts는 import.meta.env를 최상단에서 사용
 // ts-jest / CommonJS에서는 import.meta가 없으므로 직접 함수를 재구현하여 테스트

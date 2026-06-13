@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SystemConfigService } from './system-config.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-const mockPrisma: any = {
+const mockPrisma = {
   systemConfig: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
@@ -125,7 +125,7 @@ describe('SystemConfigService', () => {
       await service.setPermissions({
         'perm.community.create': 'admin',
         'evil.injection': 'admin',
-      } as any);
+      } as Record<string, string>);
       // 허용 키 1건만 upsert
       expect(mockPrisma.systemConfig.upsert).toHaveBeenCalledTimes(1);
       expect(mockPrisma.systemConfig.upsert).toHaveBeenCalledWith(

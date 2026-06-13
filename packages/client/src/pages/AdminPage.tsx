@@ -7,15 +7,17 @@ import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
 import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
-import { PLANS } from '@/lib/plans';
+import { PLANS, type PlanConfig } from '@/lib/plans';
 import { API_URL } from '@/lib/config';
 import { tx } from '@/lib/i18n';
 import { formatDate } from '@/lib/time';
 import { useConfirm } from '@/shared/ui/ConfirmProvider';
-import AdminPostsTab from '@/features/admin/ui/AdminPostsTab';
-import AdminStudyGroupsTab from '@/features/admin/ui/AdminStudyGroupsTab';
-import AdminInterviewQuestionsTab from '@/features/admin/ui/AdminInterviewQuestionsTab';
-import AdminUsersTab from '@/features/admin/ui/AdminUsersTab';
+import {
+  AdminInterviewQuestionsTab,
+  AdminPostsTab,
+  AdminStudyGroupsTab,
+  AdminUsersTab,
+} from '@/features/admin';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -96,6 +98,31 @@ type TabId =
   | 'permissions'
   | 'forbidden-words';
 
+type NumberPlanFeatureKey = 'maxResumes' | 'aiTransformsPerMonth' | 'themes';
+type BooleanPlanFeatureKey =
+  | 'atsCheck'
+  | 'aiCoaching'
+  | 'coverLetter'
+  | 'translation'
+  | 'jobTracker'
+  | 'prioritySupport';
+type EditablePlanFeatureKey = NumberPlanFeatureKey | BooleanPlanFeatureKey;
+type PlanFeatureEditor =
+  | { key: NumberPlanFeatureKey; label: string; type: 'number' }
+  | { key: BooleanPlanFeatureKey; label: string; type: 'boolean' };
+
+const PLAN_FEATURE_EDITORS: readonly PlanFeatureEditor[] = [
+  { key: 'maxResumes', label: '이력서 수', type: 'number' },
+  { key: 'aiTransformsPerMonth', label: 'AI 변환/월', type: 'number' },
+  { key: 'themes', label: '테마 수', type: 'number' },
+  { key: 'atsCheck', label: 'ATS 검사', type: 'boolean' },
+  { key: 'aiCoaching', label: 'AI 코칭', type: 'boolean' },
+  { key: 'coverLetter', label: '자소서', type: 'boolean' },
+  { key: 'translation', label: '번역', type: 'boolean' },
+  { key: 'jobTracker', label: '지원관리', type: 'boolean' },
+  { key: 'prioritySupport', label: '우선지원', type: 'boolean' },
+];
+
 export default function AdminPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabId>('stats');
@@ -129,7 +156,7 @@ export default function AdminPage() {
     if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
       navigate(ROUTES.home);
     }
-  }, [user]);
+  }, [navigate, user]);
 
   const statsQuery = useQuery<Stats | null>({
     queryKey: ['admin-stats'],
@@ -161,7 +188,7 @@ export default function AdminPage() {
             { name: '템플릿 사용', count: data.content.templates * 10 },
             { name: '댓글', count: data.content.comments },
             { name: '공개 공유', count: data.resumes.public },
-          ].sort((a: any, b: any) => b.count - a.count);
+          ].sort((a, b) => b.count - a.count);
         }
         if (!data.revenue) {
           data.revenue = { thisMonth: 0, lastMonth: 0 };
@@ -1102,7 +1129,7 @@ function CoachingStatsWidget({ coaching }: { coaching?: Stats['coaching'] }) {
   const activeCoaches = coaching?.activeCoaches ?? 0;
   const totalSessions = coaching?.totalSessions ?? 0;
   const totalCommission = coaching?.totalCommission ?? 0;
-  const by = coaching?.byStatus || {};
+  const by: NonNullable<Stats['coaching']>['byStatus'] = coaching?.byStatus || {};
 
   return (
     <div className="imp-card p-4 sm:p-5 space-y-4">
@@ -1162,7 +1189,7 @@ function CoachingStatsWidget({ coaching }: { coaching?: Stats['coaching'] }) {
                 cls: 'bg-blue-100 dark:bg-blue-900/30 text-rose-700 dark:text-rose-300',
               },
             ].map((item) => {
-              const n = Number((by as any)[item.key] ?? 0);
+              const n = Number(by[item.key as keyof typeof by] ?? 0);
               return (
                 <span
                   key={item.key}
@@ -1194,9 +1221,8 @@ interface ReportedItem {
 }
 
 function ReportedContentQueue() {
-  const [items, setItems] = useState<ReportedItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [rejectReason, setRejectReason] = useState<Record<string, string>>({});
+  const reportsQueryClient = useQueryClient();
 
   const REJECT_REASONS = [
     '부적절한 콘텐츠',
@@ -1207,7 +1233,7 @@ function ReportedContentQueue() {
     '기타',
   ];
 
-  const reportsQuery = useQuery<any[]>({
+  const reportsQuery = useQuery<ReportedItem[]>({
     queryKey: ['admin-reports'],
     queryFn: async () => {
       const token = localStorage.getItem('token');
@@ -1220,10 +1246,8 @@ function ReportedContentQueue() {
     },
     staleTime: 30_000,
   });
-  useEffect(() => {
-    if (reportsQuery.data) setItems(reportsQuery.data);
-    if (!reportsQuery.isLoading) setLoading(false);
-  }, [reportsQuery.data, reportsQuery.isLoading]);
+  const items = reportsQuery.data ?? [];
+  const loading = reportsQuery.isLoading;
 
   const handleAction = async (itemId: string, action: 'approve' | 'reject') => {
     const reason = action === 'reject' ? rejectReason[itemId] || REJECT_REASONS[0] : undefined;
@@ -1235,7 +1259,7 @@ function ReportedContentQueue() {
         body: JSON.stringify({ action, reason }),
       });
       if (res.ok) {
-        setItems((prev) =>
+        reportsQueryClient.setQueryData<ReportedItem[]>(['admin-reports'], (prev = []) =>
           prev.map((i) =>
             i.id === itemId ? { ...i, status: action === 'approve' ? 'approved' : 'rejected' } : i,
           ),
@@ -1428,8 +1452,6 @@ const BANNER_COLORS = [
 
 function AdminBannersTab() {
   const confirm = useConfirm();
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Banner | null>(null);
   const [creating, setCreating] = useState(false);
   const token = localStorage.getItem('token');
@@ -1457,10 +1479,8 @@ function AdminBannersTab() {
     },
     staleTime: 60_000,
   });
-  useEffect(() => {
-    if (bannersQuery.data) setBanners(bannersQuery.data);
-    if (!bannersQuery.isLoading) setLoading(false);
-  }, [bannersQuery.data, bannersQuery.isLoading]);
+  const banners = bannersQuery.data ?? [];
+  const loading = bannersQuery.isLoading;
   const load = () => bannersQueryClient.invalidateQueries({ queryKey: ['admin-banners'] });
 
   const handleSave = async () => {
@@ -1778,6 +1798,15 @@ interface Notice {
   _count?: { comments: number };
 }
 
+interface NoticeHistoryEntry {
+  id: string;
+  reason?: string;
+  createdAt?: string;
+  prevTitle?: string;
+  prevContent?: string;
+  editor?: { name?: string };
+}
+
 const NOTICE_TYPE_LABELS: Record<string, string> = {
   GENERAL: '일반',
   MAINTENANCE: '점검',
@@ -1795,12 +1824,10 @@ const NOTICE_TYPE_COLORS: Record<string, string> = {
 
 function AdminNoticesTab() {
   const confirm = useConfirm();
-  const [notices, setNotices] = useState<Notice[]>([]);
-  const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Notice | null>(null);
   const [historyNotice, setHistoryNotice] = useState<Notice | null>(null);
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<NoticeHistoryEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [editReason, setEditReason] = useState('');
   const token = localStorage.getItem('token');
@@ -1817,21 +1844,19 @@ function AdminNoticesTab() {
   const [form, setForm] = useState({ ...emptyForm });
 
   const noticesQueryClient = useQueryClient();
-  const noticesQuery = useQuery<{ items: any[] }>({
+  const noticesQuery = useQuery<{ items: Notice[] }>({
     queryKey: ['admin-notices'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/api/notices?limit=100`, {
-        headers: { Authorization: `Bearer ${token}` } as any,
+        headers: { Authorization: `Bearer ${token ?? ''}` },
       });
       if (!res.ok) return { items: [] };
       return res.json();
     },
     staleTime: 30_000,
   });
-  useEffect(() => {
-    if (noticesQuery.data) setNotices(noticesQuery.data.items || []);
-    if (!noticesQuery.isLoading) setLoading(false);
-  }, [noticesQuery.data, noticesQuery.isLoading]);
+  const notices = noticesQuery.data?.items ?? [];
+  const loading = noticesQuery.isLoading;
   const load = () => noticesQueryClient.invalidateQueries({ queryKey: ['admin-notices'] });
 
   const handleSave = async () => {
@@ -1840,7 +1865,7 @@ function AdminNoticesTab() {
     const body = editing ? { ...form, reason: editReason } : form;
     const res = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } as any,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` },
       body: JSON.stringify(body),
     });
     if (res.ok) {
@@ -1862,7 +1887,7 @@ function AdminNoticesTab() {
       return;
     const res = await fetch(`${API_URL}/api/notices/${id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` } as any,
+      headers: { Authorization: `Bearer ${token ?? ''}` },
     });
     if (res.ok) {
       toast('삭제되었습니다', 'success');
@@ -1873,7 +1898,7 @@ function AdminNoticesTab() {
   const handleToggleComments = async (n: Notice) => {
     const res = await fetch(`${API_URL}/api/notices/${n.id}/toggle-comments`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } as any,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` },
       body: JSON.stringify({ allow: !n.allowComments }),
     });
     if (res.ok) {
@@ -1886,7 +1911,7 @@ function AdminNoticesTab() {
     setHistoryNotice(n);
     setHistoryLoading(true);
     const res = await fetch(`${API_URL}/api/notices/${n.id}/history`, {
-      headers: { Authorization: `Bearer ${token}` } as any,
+      headers: { Authorization: `Bearer ${token ?? ''}` },
     });
     if (res.ok) setHistory(await res.json());
     else setHistory([]);
@@ -1953,7 +1978,7 @@ function AdminNoticesTab() {
                         {h.editor?.name || '관리자'}
                       </span>
                       <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                        {new Date(h.createdAt).toLocaleString('ko')}
+                        {h.createdAt ? new Date(h.createdAt).toLocaleString('ko') : '-'}
                       </span>
                     </div>
                     {h.reason && (
@@ -2184,7 +2209,19 @@ function AdminCommunityTab() {
   const [actionId, setActionId] = useState<string | null>(null);
   const token = localStorage.getItem('token');
 
-  const communityQuery = useQuery<{ items: any[]; total: number }>({
+  interface AdminCommunityPost {
+    id: string;
+    title: string;
+    category: string;
+    isHidden?: boolean;
+    isPinned?: boolean;
+    user?: { name?: string };
+    viewCount?: number;
+    likeCount?: number;
+    _count?: { comments?: number };
+  }
+
+  const communityQuery = useQuery<{ items: AdminCommunityPost[]; total: number }>({
     queryKey: ['admin-community', { category, page, showHidden, search }],
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), limit: '20' });
@@ -2192,14 +2229,14 @@ function AdminCommunityTab() {
       if (search) params.set('search', search);
       if (showHidden) params.set('showHidden', 'true');
       const r = await fetch(`${API_URL}/api/community?${params}`, {
-        headers: { Authorization: `Bearer ${token}` } as any,
+        headers: { Authorization: `Bearer ${token ?? ''}` },
       });
       if (!r.ok) return { items: [], total: 0 };
       return r.json();
     },
     staleTime: 30_000,
   });
-  const posts: any[] = communityQuery.data?.items ?? [];
+  const posts = communityQuery.data?.items ?? [];
   const total: number = communityQuery.data?.total ?? 0;
   const loading = communityQuery.isLoading;
   const fetchPosts = () => communityQuery.refetch();
@@ -2217,7 +2254,7 @@ function AdminCommunityTab() {
     setActionId(id);
     const r = await fetch(`${API_URL}/api/community/${id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` } as any,
+      headers: { Authorization: `Bearer ${token ?? ''}` },
     });
     if (r.ok) {
       fetchPosts();
@@ -2225,11 +2262,11 @@ function AdminCommunityTab() {
     setActionId(null);
   };
 
-  const patchPost = async (id: string, data: Record<string, any>) => {
+  const patchPost = async (id: string, data: Record<string, unknown>) => {
     setActionId(id);
     const r = await fetch(`${API_URL}/api/community/${id}`, {
       method: 'PATCH',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } as any,
+      headers: { Authorization: `Bearer ${token ?? ''}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
     if (r.ok) {
@@ -2515,13 +2552,15 @@ function FeatureTogglesSection() {
     },
     staleTime: 60_000,
   });
-  const [toggles, setToggles] = useState<Record<string, boolean>>({});
+  const [toggleDraft, setToggleDraft] = useState<Record<string, boolean> | null>(null);
+  const toggles = toggleDraft ?? data ?? {};
   const [saving, setSaving] = useState(false);
-  useEffect(() => {
-    if (data) setToggles(data);
-  }, [data]);
 
-  const flip = (key: string) => setToggles((t) => ({ ...t, [key]: !t[key] }));
+  const flip = (key: string) =>
+    setToggleDraft((current) => {
+      const base = current ?? data ?? {};
+      return { ...base, [key]: !base[key] };
+    });
 
   const save = async () => {
     setSaving(true);
@@ -2533,6 +2572,7 @@ function FeatureTogglesSection() {
       });
       if (!res.ok) throw new Error();
       toast('기능 토글 설정이 저장되었습니다', 'success');
+      setToggleDraft(null);
       queryClient.invalidateQueries({ queryKey: ['admin-feature-toggles'] });
       queryClient.invalidateQueries({ queryKey: ['feature-toggles'] });
     } catch {
@@ -2627,11 +2667,17 @@ function FeatureTogglesSection() {
 function UploadSettingsSection() {
   const queryClient = useQueryClient();
   const token = localStorage.getItem('token');
-  const { data, isLoading } = useQuery<{
+  type UploadSettings = {
     enabled: boolean;
     maxSizeMb: number;
     allowedMime: string;
-  }>({
+  };
+  const defaultUploadSettings: UploadSettings = {
+    enabled: true,
+    maxSizeMb: 10,
+    allowedMime: 'image/*,application/pdf,application/zip',
+  };
+  const { data, isLoading } = useQuery<UploadSettings>({
     queryKey: ['admin-upload-settings'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/api/system-config/upload-settings`);
@@ -2640,17 +2686,12 @@ function UploadSettingsSection() {
     },
     staleTime: 60_000,
   });
-  const [enabled, setEnabled] = useState(true);
-  const [maxSizeMb, setMaxSizeMb] = useState(10);
-  const [mime, setMime] = useState('image/*,application/pdf,application/zip');
+  const uploadSettings = data ?? defaultUploadSettings;
+  const [uploadDraft, setUploadDraft] = useState<Partial<UploadSettings>>({});
+  const enabled = uploadDraft.enabled ?? uploadSettings.enabled;
+  const maxSizeMb = uploadDraft.maxSizeMb ?? uploadSettings.maxSizeMb;
+  const mime = uploadDraft.allowedMime ?? uploadSettings.allowedMime;
   const [saving, setSaving] = useState(false);
-  useEffect(() => {
-    if (data) {
-      setEnabled(data.enabled);
-      setMaxSizeMb(data.maxSizeMb);
-      setMime(data.allowedMime);
-    }
-  }, [data]);
 
   const save = async () => {
     setSaving(true);
@@ -2667,6 +2708,7 @@ function UploadSettingsSection() {
       });
       if (!res.ok) throw new Error();
       toast('파일 업로드 설정이 저장되었습니다', 'success');
+      setUploadDraft({});
       queryClient.invalidateQueries({ queryKey: ['admin-upload-settings'] });
       queryClient.invalidateQueries({ queryKey: ['upload-settings'] });
     } catch {
@@ -2694,7 +2736,7 @@ function UploadSettingsSection() {
           </div>
           <button
             type="button"
-            onClick={() => setEnabled((v) => !v)}
+            onClick={() => setUploadDraft((draft) => ({ ...draft, enabled: !enabled }))}
             disabled={isLoading}
             className={`shrink-0 w-12 h-7 rounded-full transition-colors disabled:opacity-50 ${
               enabled ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'
@@ -2716,7 +2758,12 @@ function UploadSettingsSection() {
               min={1}
               max={500}
               value={maxSizeMb}
-              onChange={(e) => setMaxSizeMb(Math.max(1, Math.min(500, Number(e.target.value))))}
+              onChange={(e) =>
+                setUploadDraft((draft) => ({
+                  ...draft,
+                  maxSizeMb: Math.max(1, Math.min(500, Number(e.target.value))),
+                }))
+              }
               disabled={!enabled}
               className="mt-1 w-full h-9 px-3 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 disabled:opacity-50"
             />
@@ -2728,7 +2775,9 @@ function UploadSettingsSection() {
             <input
               type="text"
               value={mime}
-              onChange={(e) => setMime(e.target.value)}
+              onChange={(e) =>
+                setUploadDraft((draft) => ({ ...draft, allowedMime: e.target.value }))
+              }
               disabled={!enabled}
               placeholder="image/*,application/pdf"
               className="mt-1 w-full h-9 px-3 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono disabled:opacity-50"
@@ -2754,14 +2803,13 @@ function UploadSettingsSection() {
 // 4. System Settings (superadmin only)
 // ═══════════════════════════════════════════════════════════
 function SystemSettings() {
-  const [maintenance, setMaintenance] = useState(
-    () => localStorage.getItem('admin-maintenance') === 'true',
-  );
-  const [monetization, setMonetization] = useState(false);
-  const [sysConfigLoaded, setSysConfigLoaded] = useState(false);
+  const [localMaintenance] = useState(() => localStorage.getItem('admin-maintenance') === 'true');
+  const [maintenanceOverride, setMaintenanceOverride] = useState<boolean | null>(null);
+  const [monetizationOverride, setMonetizationOverride] = useState<boolean | null>(null);
   const token = localStorage.getItem('token');
 
-  const sysConfigQuery = useQuery<any>({
+  type SystemConfigPublic = Record<string, string | boolean | number | null | undefined>;
+  const sysConfigQuery = useQuery<SystemConfigPublic | null>({
     queryKey: ['admin-system-config-public'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/api/system-config/public`);
@@ -2770,14 +2818,15 @@ function SystemSettings() {
     },
     staleTime: 60_000,
   });
-  useEffect(() => {
-    const d = sysConfigQuery.data;
-    if (d) {
-      setMonetization(d.monetization_enabled === 'true' || d.monetization_enabled === true);
-      if (d.maintenance_mode === 'true' || d.maintenance_mode === true) setMaintenance(true);
-    }
-    if (!sysConfigQuery.isLoading) setSysConfigLoaded(true);
-  }, [sysConfigQuery.data, sysConfigQuery.isLoading]);
+  const remoteMaintenance =
+    sysConfigQuery.data?.maintenance_mode === 'true' ||
+    sysConfigQuery.data?.maintenance_mode === true;
+  const remoteMonetization =
+    sysConfigQuery.data?.monetization_enabled === 'true' ||
+    sysConfigQuery.data?.monetization_enabled === true;
+  const maintenance = maintenanceOverride ?? (remoteMaintenance || localMaintenance);
+  const monetization = monetizationOverride ?? remoteMonetization;
+  const sysConfigLoaded = !sysConfigQuery.isLoading;
 
   const toggleSysConfig = async (key: string, value: boolean) => {
     try {
@@ -2880,7 +2929,7 @@ function SystemSettings() {
             <button
               onClick={() => {
                 const next = !maintenance;
-                setMaintenance(next);
+                setMaintenanceOverride(next);
                 setSaved(false);
                 toggleSysConfig('maintenance_mode', next);
               }}
@@ -2925,7 +2974,7 @@ function SystemSettings() {
             <button
               onClick={() => {
                 const next = !monetization;
-                setMonetization(next);
+                setMonetizationOverride(next);
                 toggleSysConfig('monetization_enabled', next);
               }}
               disabled={!sysConfigLoaded}
@@ -3101,7 +3150,14 @@ function SystemSettings() {
 // ═══════════════════════════════════════════════════════════
 function RecentResumes() {
   const confirm = useConfirm();
-  const recentResumesQuery = useQuery<{ data: any[] }>({
+  const recentResumesQueryClient = useQueryClient();
+  interface AdminRecentResume {
+    id: string;
+    title?: string;
+    personalInfo?: { name?: string };
+  }
+
+  const recentResumesQuery = useQuery<{ data: AdminRecentResume[] }>({
     queryKey: ['admin-recent-resumes'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/api/resumes/public?limit=50`);
@@ -3110,15 +3166,17 @@ function RecentResumes() {
     },
     staleTime: 60_000,
   });
-  const [resumes, setResumes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const perPage = 10;
+  const resumes = recentResumesQuery.data?.data ?? [];
+  const loading = recentResumesQuery.isLoading;
 
-  useEffect(() => {
-    if (recentResumesQuery.data) setResumes(recentResumesQuery.data.data || []);
-    if (!recentResumesQuery.isLoading) setLoading(false);
-  }, [recentResumesQuery.data, recentResumesQuery.isLoading]);
+  const removeResumeFromCache = (id: string) => {
+    recentResumesQueryClient.setQueryData<{ data: AdminRecentResume[] }>(
+      ['admin-recent-resumes'],
+      (prev) => ({ data: (prev?.data ?? []).filter((r) => r.id !== id) }),
+    );
+  };
 
   const handleHide = async (id: string) => {
     if (
@@ -3137,7 +3195,7 @@ function RecentResumes() {
     });
     if (res.ok) {
       toast('비공개로 변경되었습니다', 'success');
-      setResumes((prev) => prev.filter((r) => r.id !== id));
+      removeResumeFromCache(id);
     }
   };
 
@@ -3158,7 +3216,7 @@ function RecentResumes() {
     });
     if (res.ok) {
       toast('이력서가 삭제되었습니다', 'success');
-      setResumes((prev) => prev.filter((r) => r.id !== id));
+      removeResumeFromCache(id);
     }
   };
 
@@ -3240,7 +3298,11 @@ function PlanConfig() {
   const [saved, setSaved] = useState(false);
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
 
-  const updateFeature = (planIdx: number, feature: string, value: any) => {
+  const updateFeature = <T extends EditablePlanFeatureKey>(
+    planIdx: number,
+    feature: T,
+    value: PlanConfig['features'][T],
+  ) => {
     setPlans((prev) => {
       const updated = [...prev];
       updated[planIdx] = {
@@ -3318,17 +3380,7 @@ function PlanConfig() {
                 </div>
               )}
               <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                {[
-                  { key: 'maxResumes', label: '이력서 수', type: 'number' },
-                  { key: 'aiTransformsPerMonth', label: 'AI 변환/월', type: 'number' },
-                  { key: 'themes', label: '테마 수', type: 'number' },
-                  { key: 'atsCheck', label: 'ATS 검사', type: 'boolean' },
-                  { key: 'aiCoaching', label: 'AI 코칭', type: 'boolean' },
-                  { key: 'coverLetter', label: '자소서', type: 'boolean' },
-                  { key: 'translation', label: '번역', type: 'boolean' },
-                  { key: 'jobTracker', label: '지원관리', type: 'boolean' },
-                  { key: 'prioritySupport', label: '우선지원', type: 'boolean' },
-                ].map((feat) => (
+                {PLAN_FEATURE_EDITORS.map((feat) => (
                   <div
                     key={feat.key}
                     className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-900 rounded-lg"
@@ -3336,19 +3388,17 @@ function PlanConfig() {
                     <span className="text-xs text-slate-600 dark:text-slate-400">{feat.label}</span>
                     {feat.type === 'boolean' ? (
                       <button
-                        onClick={() =>
-                          updateFeature(planIdx, feat.key, !(plan.features as any)[feat.key])
-                        }
-                        className={`w-10 h-6 min-w-[44px] rounded-full transition-colors ${(plan.features as any)[feat.key] ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+                        onClick={() => updateFeature(planIdx, feat.key, !plan.features[feat.key])}
+                        className={`w-10 h-6 min-w-[44px] rounded-full transition-colors ${plan.features[feat.key] ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'}`}
                       >
                         <span
-                          className={`block w-4 h-4 bg-white rounded-full transition-transform ${(plan.features as any)[feat.key] ? 'translate-x-5' : 'translate-x-1'}`}
+                          className={`block w-4 h-4 bg-white rounded-full transition-transform ${plan.features[feat.key] ? 'translate-x-5' : 'translate-x-1'}`}
                         />
                       </button>
                     ) : (
                       <input
                         type="number"
-                        value={(plan.features as any)[feat.key]}
+                        value={plan.features[feat.key]}
                         onChange={(e) =>
                           updateFeature(planIdx, feat.key, parseInt(e.target.value) || 0)
                         }
@@ -3801,8 +3851,6 @@ const EXT_LOCATIONS = [
 ];
 function AdminExtLinksTab() {
   const confirm = useConfirm();
-  const [links, setLinks] = useState<ExtLink[]>([]);
-  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<ExtLink> | null>(null);
   const [saving, setSaving] = useState(false);
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
@@ -3821,10 +3869,8 @@ function AdminExtLinksTab() {
     },
     staleTime: 30_000,
   });
-  useEffect(() => {
-    if (extLinksQuery.data) setLinks(extLinksQuery.data);
-    if (!extLinksQuery.isLoading) setLoading(false);
-  }, [extLinksQuery.data, extLinksQuery.isLoading]);
+  const links = extLinksQuery.data ?? [];
+  const loading = extLinksQuery.isLoading;
   const load = () => extLinksQueryClient.invalidateQueries({ queryKey: ['admin-ext-links'] });
 
   const handleSave = async () => {
@@ -3919,7 +3965,7 @@ function AdminExtLinksTab() {
         ].map((o) => (
           <button
             key={o.key}
-            onClick={() => setFilterActive(o.key as any)}
+            onClick={() => setFilterActive(o.key as 'all' | 'active' | 'inactive')}
             className={`px-3 py-1 text-xs rounded-full font-medium transition-colors ${filterActive === o.key ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
           >
             {o.label}
@@ -4265,8 +4311,7 @@ const PERM_ROLES = [
 ];
 
 function AdminPermissionsTab() {
-  const [perms, setPerms] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
+  const [permissionOverrides, setPermissionOverrides] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [changed, setChanged] = useState(false);
 
@@ -4279,10 +4324,8 @@ function AdminPermissionsTab() {
     },
     staleTime: 60_000,
   });
-  useEffect(() => {
-    if (permsQuery.data) setPerms(permsQuery.data);
-    if (!permsQuery.isLoading) setLoading(false);
-  }, [permsQuery.data, permsQuery.isLoading]);
+  const perms = { ...(permsQuery.data ?? {}), ...permissionOverrides };
+  const loading = permsQuery.isLoading;
 
   const getRoles = (contentType: string, action: string): string[] => {
     const key = `perm.${contentType}.${action}`;
@@ -4306,7 +4349,7 @@ function AdminPermissionsTab() {
       }
     }
 
-    setPerms((prev) => ({ ...prev, [key]: next.join(',') }));
+    setPermissionOverrides((prev) => ({ ...prev, [key]: next.join(',') }));
     setChanged(true);
   };
 
@@ -4323,8 +4366,8 @@ function AdminPermissionsTab() {
         body: JSON.stringify(perms),
       });
       if (res.ok) {
-        const updated = await res.json();
-        setPerms(updated);
+        const updated = (await res.json()) as Record<string, string>;
+        setPermissionOverrides(updated);
         setChanged(false);
         toast('권한 설정이 저장되었습니다', 'success');
       }
@@ -4464,6 +4507,18 @@ interface ForbiddenWord {
   createdAt: string;
 }
 
+type ForbiddenWordsResponse = {
+  items: ForbiddenWord[];
+  total: number;
+};
+
+type ForbiddenWordsStats = {
+  total: number;
+  active: number;
+  blocked: number;
+  warned: number;
+};
+
 const FORBIDDEN_CATEGORIES = [
   { value: 'general', label: '일반' },
   { value: 'profanity', label: '욕설' },
@@ -4475,18 +4530,9 @@ const FORBIDDEN_CATEGORIES = [
 
 function AdminForbiddenWordsTab() {
   const confirm = useConfirm();
-  const [words, setWords] = useState<ForbiddenWord[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('all');
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<{
-    total: number;
-    active: number;
-    blocked: number;
-    warned: number;
-  } | null>(null);
 
   // Form
   const [formMode, setFormMode] = useState<'single' | 'bulk'>('single');
@@ -4518,7 +4564,7 @@ function AdminForbiddenWordsTab() {
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const forbiddenWordsQueryClient = useQueryClient();
-  const wordsQuery = useQuery<{ items: any[]; total: number }>({
+  const wordsQuery = useQuery<ForbiddenWordsResponse>({
     queryKey: ['forbidden-words', { page, filterCat, search }],
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), limit: '30' });
@@ -4530,7 +4576,7 @@ function AdminForbiddenWordsTab() {
     },
     staleTime: 30_000,
   });
-  const statsQueryFW = useQuery<any>({
+  const statsQueryFW = useQuery<ForbiddenWordsStats | null>({
     queryKey: ['forbidden-words-stats'],
     queryFn: async () => {
       const r = await fetch(`${API_URL}/api/forbidden-words/stats`, { headers });
@@ -4539,16 +4585,10 @@ function AdminForbiddenWordsTab() {
     },
     staleTime: 60_000,
   });
-  useEffect(() => {
-    if (wordsQuery.data) {
-      setWords(wordsQuery.data.items || []);
-      setTotal(wordsQuery.data.total || 0);
-    }
-    if (!wordsQuery.isLoading) setLoading(false);
-  }, [wordsQuery.data, wordsQuery.isLoading]);
-  useEffect(() => {
-    if (statsQueryFW.data) setStats(statsQueryFW.data);
-  }, [statsQueryFW.data]);
+  const words = wordsQuery.data?.items ?? [];
+  const total = wordsQuery.data?.total ?? 0;
+  const loading = wordsQuery.isLoading;
+  const stats = statsQueryFW.data ?? null;
   const load = () => forbiddenWordsQueryClient.invalidateQueries({ queryKey: ['forbidden-words'] });
   const loadStats = () =>
     forbiddenWordsQueryClient.invalidateQueries({ queryKey: ['forbidden-words-stats'] });
@@ -4668,7 +4708,11 @@ function AdminForbiddenWordsTab() {
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -4728,7 +4772,7 @@ function AdminForbiddenWordsTab() {
               setTestText(e.target.value);
               setTestResult(null);
             }}
-            placeholder="텍스트를 입력하여 금칙어 포함 여부를 검사합니��..."
+            placeholder="텍스트를 입력하여 금칙어 포함 여부를 검사합니다..."
             className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
@@ -4784,7 +4828,7 @@ function AdminForbiddenWordsTab() {
             <input
               value={newWord}
               onChange={(e) => setNewWord(e.target.value)}
-              placeholder="금칙어 입���..."
+              placeholder="금칙어 입력..."
               className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
@@ -4846,7 +4890,7 @@ function AdminForbiddenWordsTab() {
               }}
               className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
             >
-              <option value="all">전체 카테��리</option>
+              <option value="all">전체 카테고리</option>
               {FORBIDDEN_CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}

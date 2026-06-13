@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BannersController } from './banners.controller';
 import { BannersService } from './banners.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   getActive: jest.fn(),
@@ -11,7 +12,9 @@ const mockService = {
   reorder: jest.fn(),
 };
 
-const reqWithRole = (role?: string): any => ({ user: role ? { role } : undefined });
+const reqWithRole = (role?: string): AuthenticatedRequest => ({
+  user: role ? { role } : undefined,
+});
 
 describe('BannersController', () => {
   let controller: BannersController;

@@ -65,11 +65,11 @@ export default function WeeklyRecapCard() {
             )
           : null;
       const thisWeekChats = c.filter(
-        (ch: any) =>
+        (ch) =>
           new Date(ch.createdAt) >= monday &&
           ['pending', 'accepted', 'completed'].includes(ch.status),
       );
-      const unread = (n as any[]).filter((nt) => !nt.read).length;
+      const unread = n.filter((nt) => !nt.read).length;
 
       setRecap({
         applications: thisWeekApps.length,

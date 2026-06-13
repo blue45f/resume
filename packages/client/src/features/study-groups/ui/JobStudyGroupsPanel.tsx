@@ -17,6 +17,18 @@ interface JobStudyGroupsPanelProps {
   position: string;
 }
 
+interface StudyGroupForm {
+  name: string;
+  description: string;
+  isPrivate: boolean;
+  maxMembers: number;
+}
+
+interface StudyGroupFormState {
+  defaultName: string;
+  value: StudyGroupForm;
+}
+
 function memberTag(group: StudyGroup, myId: string | null): 'owner' | 'member' | null {
   if (!myId) return null;
   if (group.ownerId === myId) return 'owner';
@@ -39,12 +51,27 @@ export default function JobStudyGroupsPanel({
   const [error, setError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    name: `${companyName} ${position} 스터디`,
-    description: '',
-    isPrivate: false,
-    maxMembers: 8,
-  });
+  const defaultName = `${companyName} ${position} 스터디`;
+  const [formState, setFormState] = useState<StudyGroupFormState>(() => ({
+    defaultName,
+    value: {
+      name: defaultName,
+      description: '',
+      isPrivate: false,
+      maxMembers: 8,
+    },
+  }));
+  const form =
+    formState.defaultName === defaultName
+      ? formState.value
+      : { ...formState.value, name: defaultName };
+  const setForm = (updater: (current: StudyGroupForm) => StudyGroupForm) => {
+    setFormState((prev) => {
+      const current =
+        prev.defaultName === defaultName ? prev.value : { ...prev.value, name: defaultName };
+      return { defaultName, value: updater(current) };
+    });
+  };
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const user = getUser();
   const myId = user?.id ?? null;
@@ -66,13 +93,26 @@ export default function JobStudyGroupsPanel({
   }, [jobPostId, companyName]);
 
   useEffect(() => {
-    load();
-  }, [load]);
-
-  // Reset form defaults when company/position changes
-  useEffect(() => {
-    setForm((prev) => ({ ...prev, name: `${companyName} ${position} 스터디` }));
-  }, [companyName, position]);
+    let cancelled = false;
+    const params: Parameters<typeof fetchStudyGroups>[0] = { limit: 20 };
+    if (jobPostId) params.jobPostId = jobPostId;
+    else params.companyName = companyName;
+    fetchStudyGroups(params)
+      .then((res) => {
+        if (!cancelled) setGroups(res.items);
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : '스터디 그룹을 불러오지 못했습니다');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [jobPostId, companyName]);
 
   const handleCreate = async () => {
     if (!user) {

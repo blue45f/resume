@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -26,7 +27,7 @@ export class ApplicationsService {
       q?: string;
     } = {},
   ) {
-    const where: any = { userId };
+    const where: Prisma.JobApplicationWhereInput = { userId };
     if (opts.status && opts.status !== 'all') where.status = opts.status;
     if (opts.q) {
       where.OR = [
@@ -35,7 +36,7 @@ export class ApplicationsService {
         { notes: { contains: opts.q, mode: 'insensitive' } },
       ];
     }
-    const orderBy: any = (() => {
+    const orderBy: Prisma.JobApplicationOrderByWithRelationInput[] = (() => {
       switch (opts.sort) {
         case 'oldest':
           return [{ updatedAt: 'asc' }];
@@ -91,13 +92,15 @@ export class ApplicationsService {
     };
     // 외부 채용공고 자동 등록 중복 방지 — 동일 URL 또는 동일 회사·포지션 조합이 최근 7일 내 있으면 갱신만.
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const duplicateCandidates: Prisma.JobApplicationWhereInput[] = [
+      ...(safe.url ? [{ url: safe.url }] : []),
+      { company: safe.company, position: safe.position },
+    ];
+
     const existing = await this.prisma.jobApplication.findFirst({
       where: {
         userId,
-        OR: [
-          safe.url ? { url: safe.url } : undefined,
-          { company: safe.company, position: safe.position },
-        ].filter(Boolean) as any[],
+        OR: duplicateCandidates,
         createdAt: { gte: sevenDaysAgo },
       },
       orderBy: { updatedAt: 'desc' },

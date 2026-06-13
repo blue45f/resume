@@ -16,16 +16,18 @@ import SavedSearchPanel from '@/components/SavedSearchPanel';
 import { toast } from '@/components/Toast';
 import type { ResumeSummary } from '@/types/resume';
 import Tabs from '@/shared/ui/Tabs';
-import JobQuestionsPanel from '@/features/interview-prep/ui/JobQuestionsPanel';
-import JobStudyGroupsPanel from '@/features/study-groups/ui/JobStudyGroupsPanel';
+import { JobQuestionsPanel } from '@/features/interview-prep';
+import { JobStudyGroupsPanel } from '@/features/study-groups';
 import { tx } from '@/lib/i18n';
 import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 /* ------------------------------------------------------------------ */
 /*  One-Click Apply: localStorage tracking for applied jobs            */
 /* ------------------------------------------------------------------ */
 const APPLIED_STORAGE_KEY = 'applied-jobs';
 const SAVED_JOBS_KEY = 'saved-jobs';
+const EMPTY_RESUME_SUMMARIES: ResumeSummary[] = [];
 
 function getAppliedJobs(): Set<string> {
   try {
@@ -291,6 +293,20 @@ interface ExternalLink {
   matchKeywords: string;
 }
 
+interface ExternalLinkFormData {
+  name: string;
+  url: string;
+  logoEmoji: string;
+  description: string;
+  badgeText: string;
+  gradientFrom: string;
+  gradientTo: string;
+  companySize: string;
+  careerLevel: string;
+  jobCategory: string;
+  location: string;
+}
+
 /** 외부 링크의 matchKeywords와 내부 공고 company가 매칭되면 해당 공고 목록 반환 */
 function findMatchedJobs(link: ExternalLink, internalJobs: JobPost[]): JobPost[] {
   if (!link.matchKeywords) return [];
@@ -363,7 +379,7 @@ function ExtLinkForm({
   onSave,
 }: {
   initial: ExternalLink | null;
-  onSave: (data: any) => void;
+  onSave: (data: ExternalLinkFormData) => void;
 }) {
   const [form, setForm] = useState({
     name: initial?.name || '',
@@ -535,7 +551,7 @@ function ExternalJobLinks({
     }
   };
 
-  const handleSaveLink = async (data: any) => {
+  const handleSaveLink = async (data: ExternalLinkFormData) => {
     const token = localStorage.getItem('token');
     const isEdit = !!editingLink;
     const url = isEdit
@@ -1038,6 +1054,8 @@ interface JobPost {
   user: { id: string; name: string; companyName?: string };
 }
 
+const EMPTY_JOB_POSTS: JobPost[] = [];
+
 /* ------------------------------------------------------------------ */
 /*  Curated Jobs (잡코리아 스타일 채용 정보 카드)                        */
 /* ------------------------------------------------------------------ */
@@ -1066,6 +1084,28 @@ interface CuratedJob {
   viewCount: number;
   clickCount: number;
   createdAt: string;
+}
+
+interface CuratedJobFormData {
+  company: string;
+  companyLogo: string;
+  position: string;
+  department: string;
+  summary: string;
+  requirements: string;
+  benefits: string;
+  skills: string;
+  jobType: string;
+  experienceLevel: string;
+  education: string;
+  salary: string;
+  location: string;
+  companySize: string;
+  industry: string;
+  sourceUrl: string;
+  sourceSite: string;
+  deadline: string;
+  isRolling: boolean;
 }
 
 const EXP_LABELS: Record<string, string> = {
@@ -1171,10 +1211,10 @@ function CuratedJobForm({
   onClose,
 }: {
   initial: CuratedJob | null;
-  onSave: (data: any) => void;
+  onSave: (data: CuratedJobFormData) => void;
   onClose: () => void;
 }) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<CuratedJobFormData>({
     company: initial?.company || '',
     companyLogo: initial?.companyLogo || '',
     position: initial?.position || '',
@@ -1195,7 +1235,8 @@ function CuratedJobForm({
     deadline: initial?.deadline ? initial.deadline.slice(0, 10) : '',
     isRolling: initial?.isRolling || false,
   });
-  const set = (k: string, v: any) => setForm((f) => ({ ...f, [k]: v }));
+  const set = <K extends keyof CuratedJobFormData>(k: K, v: CuratedJobFormData[K]) =>
+    setForm((f) => ({ ...f, [k]: v }));
 
   return (
     <RadixDialog.Root
@@ -1596,7 +1637,7 @@ function CuratedJobsTab() {
     }
   };
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: CuratedJobFormData) => {
     const token = localStorage.getItem('token');
     const isEdit = !!editingJob;
     const url = isEdit
@@ -2287,7 +2328,7 @@ export default function JobsPage() {
     queryFn: fetchResumes,
     enabled: !!user,
   });
-  const userResumes: ResumeSummary[] = userResumesQuery.data ?? [];
+  const userResumes = userResumesQuery.data ?? EMPTY_RESUME_SUMMARIES;
 
   const userSkills = useMemo((): Set<string> => {
     const skills = new Set<string>();
@@ -2319,7 +2360,7 @@ export default function JobsPage() {
     },
     staleTime: 30_000,
   });
-  const jobs: JobPost[] = internalJobsQuery.data ?? [];
+  const jobs = internalJobsQuery.data ?? EMPTY_JOB_POSTS;
   const loading = internalJobsQuery.isLoading;
   const error = !!internalJobsQuery.error;
   const loadJobs = (query?: string) => {
@@ -2380,7 +2421,16 @@ export default function JobsPage() {
       });
     }
     return result;
-  }, [jobs, typeFilter, showSavedOnly, savedJobs, salaryFilterEnabled, salaryMin, salaryMax]);
+  }, [
+    jobs,
+    typeFilter,
+    showSavedOnly,
+    savedJobs,
+    levelFilter,
+    salaryFilterEnabled,
+    salaryMin,
+    salaryMax,
+  ]);
   const selected = filteredJobs.find((j) => j.id === selectedId);
 
   return (
@@ -3074,16 +3124,17 @@ function QuickApplyModal({
           resumeId: selectedResumeId,
           coverLetter: coverLetter || undefined,
         });
-      } catch (e: any) {
+      } catch (e: unknown) {
         // 409 conflict (중복 지원) 등은 silent — 로컬 기록은 이미 됨
-        if (e?.message && !/이미 지원/.test(e.message)) {
-          console.warn('[apply] pipeline push 실패:', e.message);
+        const message = getErrorMessage(e, '');
+        if (message && !/이미 지원/.test(message)) {
+          console.warn('[apply] pipeline push 실패:', message);
         }
       }
       toast('지원이 완료되었습니다!', 'success');
       onSuccess(job.id);
-    } catch (err: any) {
-      toast(err?.message || '지원 중 오류가 발생했습니다.', 'error');
+    } catch (err: unknown) {
+      toast(getErrorMessage(err, '지원 중 오류가 발생했습니다.'), 'error');
     } finally {
       setSubmitting(false);
     }

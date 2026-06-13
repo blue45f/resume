@@ -5,6 +5,8 @@
  * (refresh token rotation 미존재 — JWT 만 사용)
  */
 import { setupE2EApp, cleanupTestData, E2EContext } from './e2e-helper';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcryptjs';
 
 describe('Auth Advanced (인증 고도화)', () => {
   let ctx: E2EContext;
@@ -43,7 +45,6 @@ describe('Auth Advanced (인증 고도화)', () => {
     it('DB에 이미 있는 이메일로 register → 401', async () => {
       // throttle 회피: DB에 직접 insert 후 register 시도
       const email = 'authadv-dup@test.local';
-      const bcrypt = require('bcryptjs');
       const hash = await bcrypt.hash('GoodPass123!', 10);
       await ctx.prisma.user
         .upsert({
@@ -118,7 +119,6 @@ describe('Auth Advanced (인증 고도화)', () => {
     it('DELETE /auth/account → 본인 데이터 제거 후 같은 이메일 재가입 가능', async () => {
       const email = 'authadv-del@test.local';
       // 직접 DB 삽입으로 throttle 우회 (register endpoint 3/min)
-      const bcrypt = require('bcryptjs');
       const hash = await bcrypt.hash('DelPass123!', 10);
       const created = await ctx.prisma.user.create({
         data: {
@@ -130,7 +130,7 @@ describe('Auth Advanced (인증 고도화)', () => {
         },
       });
       // JWT 직접 발급
-      const jwtService = ctx.app.get(require('@nestjs/jwt').JwtService);
+      const jwtService = ctx.app.get(JwtService);
       const token = jwtService.sign({ sub: created.id });
 
       const del = await ctx

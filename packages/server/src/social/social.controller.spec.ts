@@ -19,6 +19,14 @@ const mockSocialService = {
 describe('SocialController', () => {
   let controller: SocialController;
 
+  type ScoutBody = {
+    receiverId: string;
+    resumeId?: string;
+    company: string;
+    position: string;
+    message: string;
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SocialController],
@@ -138,10 +146,10 @@ describe('SocialController', () => {
     });
 
     it('resumeId 없이도 스카우트 전송 가능', async () => {
-      const bodyNoResume = { ...scoutBody, resumeId: undefined };
+      const bodyNoResume: ScoutBody = { ...scoutBody, resumeId: undefined };
       mockSocialService.sendScout.mockResolvedValue({ id: 's2' });
 
-      const result = await controller.sendScout(bodyNoResume as any, { user: { id: 'u1' } });
+      const result = await controller.sendScout(bodyNoResume, { user: { id: 'u1' } });
       expect(result).toEqual({ id: 's2' });
     });
   });

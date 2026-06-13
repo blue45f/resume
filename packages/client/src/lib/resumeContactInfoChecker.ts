@@ -57,13 +57,13 @@ const CONTACT_PATTERNS: ContactPattern[] = [
   // email
   {
     field: 'email',
-    re: /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/,
+    re: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/,
   },
 
   // linkedin
   {
     field: 'linkedin',
-    re: /linkedin\.com\/in\/[a-zA-Z0-9_\-]+/i,
+    re: /linkedin\.com\/in\/[a-zA-Z0-9_-]+/i,
   },
   {
     field: 'linkedin',
@@ -73,11 +73,11 @@ const CONTACT_PATTERNS: ContactPattern[] = [
   // github
   {
     field: 'github',
-    re: /github\.com\/[a-zA-Z0-9_\-]+/i,
+    re: /github\.com\/[a-zA-Z0-9_-]+/i,
   },
   {
     field: 'github',
-    re: /GitHub\s*:\s*[a-zA-Z0-9_\-]+/,
+    re: /GitHub\s*:\s*[a-zA-Z0-9_-]+/,
   },
 
   // location
@@ -93,7 +93,7 @@ const CONTACT_PATTERNS: ContactPattern[] = [
   // portfolio
   {
     field: 'portfolio',
-    re: /(?:https?:\/\/)?(?:www\.)?(?!github|linkedin)[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?/,
+    re: /(?:https?:\/\/)?(?:www\.)?(?!github|linkedin)[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?/,
   },
   {
     field: 'portfolio',

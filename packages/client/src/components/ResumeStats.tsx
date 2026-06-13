@@ -5,7 +5,7 @@ interface Props {
 }
 
 export default function ResumeStats({ resume }: Props) {
-  const getText = (obj: any): string => {
+  const getText = (obj: unknown): string => {
     if (typeof obj === 'string') return obj.replace(/<[^>]*>/g, '');
     if (Array.isArray(obj)) return obj.map(getText).join(' ');
     if (obj && typeof obj === 'object') return Object.values(obj).map(getText).join(' ');

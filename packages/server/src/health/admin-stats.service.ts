@@ -11,7 +11,6 @@ export class AdminStatsService {
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const prismaAny = this.prisma as any;
     const [
       totalUsers,
       totalResumes,
@@ -48,16 +47,16 @@ export class AdminStatsService {
       this.prisma.resume.count({ where: { createdAt: { gte: weekAgo } } }),
       this.prisma.resume.aggregate({ _sum: { viewCount: true } }),
       this.prisma.resume.count({ where: { visibility: 'public' } }),
-      prismaAny.coachProfile?.count?.() ?? Promise.resolve(0),
-      prismaAny.coachProfile?.count?.({ where: { isActive: true } }) ?? Promise.resolve(0),
-      prismaAny.coachingSession?.groupBy?.({
+      this.prisma.coachProfile.count(),
+      this.prisma.coachProfile.count({ where: { isActive: true } }),
+      this.prisma.coachingSession.groupBy({
         by: ['status'],
         _count: { _all: true },
-      }) ?? Promise.resolve([] as Array<{ status: string; _count: { _all: number } }>),
-      prismaAny.coachingSession?.aggregate?.({
+      }),
+      this.prisma.coachingSession.aggregate({
         where: { status: { in: ['completed', 'confirmed'] } },
         _sum: { commission: true },
-      }) ?? Promise.resolve({ _sum: { commission: 0 } }),
+      }),
     ]);
 
     const recentUsers = await this.prisma.user.findMany({
@@ -78,7 +77,6 @@ export class AdminStatsService {
     }
 
     // 신규 기능 사용량 — 2026-04 사이클 추가 기능들
-    const prismaAny2 = this.prisma as any;
     const [
       coffeeChatTotal,
       coffeeChatPending,
@@ -92,18 +90,16 @@ export class AdminStatsService {
       interviewAnswersWeek,
       avatarUploads,
     ] = await Promise.all([
-      prismaAny2.coffeeChat?.count?.() ?? Promise.resolve(0),
-      prismaAny2.coffeeChat?.count?.({ where: { status: 'pending' } }) ?? Promise.resolve(0),
-      prismaAny2.coffeeChat?.count?.({ where: { status: 'accepted' } }) ?? Promise.resolve(0),
-      prismaAny2.coffeeChat?.count?.({ where: { status: 'completed' } }) ?? Promise.resolve(0),
-      prismaAny2.resumeViewer?.count?.() ?? Promise.resolve(0),
+      this.prisma.coffeeChat.count(),
+      this.prisma.coffeeChat.count({ where: { status: 'pending' } }),
+      this.prisma.coffeeChat.count({ where: { status: 'accepted' } }),
+      this.prisma.coffeeChat.count({ where: { status: 'completed' } }),
+      this.prisma.resumeViewer.count(),
       this.prisma.resume.count({ where: { visibility: 'selective' } }),
-      prismaAny2.jobUrlCache?.count?.() ?? Promise.resolve(0),
-      prismaAny2.jobUrlCache?.count?.({ where: { createdAt: { gte: weekAgo } } }) ??
-        Promise.resolve(0),
-      prismaAny2.interviewAnswer?.count?.() ?? Promise.resolve(0),
-      prismaAny2.interviewAnswer?.count?.({ where: { createdAt: { gte: weekAgo } } }) ??
-        Promise.resolve(0),
+      this.prisma.jobUrlCache.count(),
+      this.prisma.jobUrlCache.count({ where: { createdAt: { gte: weekAgo } } }),
+      this.prisma.interviewAnswer.count(),
+      this.prisma.interviewAnswer.count({ where: { createdAt: { gte: weekAgo } } }),
       // 아바타 업로드: User.avatar 가 cloudinary URL 인 사용자 수 (대략적 추정)
       this.prisma.user.count({ where: { avatar: { contains: 'cloudinary' } } }),
     ]);
@@ -124,7 +120,7 @@ export class AdminStatsService {
       statusCounts[key] = (statusCounts[key] || 0) + n;
       totalSessions += n;
     }
-    const totalCommission = Number((commissionAgg as any)?._sum?.commission ?? 0);
+    const totalCommission = Number(commissionAgg._sum.commission ?? 0);
 
     return {
       users: { total: totalUsers, today: newUsersToday, week: newUsersWeek, month: newUsersMonth },

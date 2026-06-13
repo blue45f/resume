@@ -319,8 +319,21 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
   }, [resumeId]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+    fetchVersions(resumeId)
+      .then((data) => {
+        if (!cancelled) setVersions(data);
+      })
+      .catch(() => {
+        if (!cancelled) setError('버전 목록을 불러올 수 없습니다');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [resumeId]);
 
   const fetchSnapshot = async (versionId: string): Promise<Record<string, unknown> | null> => {
     try {

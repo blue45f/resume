@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_URL } from '@/lib/config';
 import { toast } from '@/components/Toast';
+import type { ResumeSummary } from '@/types/resume';
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem('token');
@@ -40,7 +41,7 @@ export interface OptimisticUpdate<TCache, V> {
   errorMessage?: string;
 }
 
-export function useApiMutation<T, V = any, TCache = unknown>(
+export function useApiMutation<T, V = unknown, TCache = unknown>(
   url: string,
   method = 'POST',
   invalidateKeys?: string[][],
@@ -88,12 +89,41 @@ export function useApiMutation<T, V = any, TCache = unknown>(
 export { useNotifications } from '@/features/notifications/api/useNotifications';
 export { useCommunityPosts } from '@/features/community/api/useCommunityPosts';
 
-export function useSiteStats() {
-  return useApiQuery<any>(['site-stats'], '/api/health/stats', { staleTime: 60_000 });
+interface SiteStats {
+  users: { total: number; today?: number; thisWeek?: number };
+  resumes: { total: number; public?: number; today?: number };
+  activity: { totalViews: number; transforms?: number; applications?: number };
+  community: { posts?: number; comments?: number };
+  content: { templates: number; comments?: number };
+  jobs: { active?: number };
 }
 
-export function useResumes() {
-  return useApiQuery<any>(['resumes'], '/api/resumes', { staleTime: 30_000 });
+interface JobStatsBucket {
+  name: string;
+  count: number;
+}
+
+interface JobSkillStatsBucket extends JobStatsBucket {
+  skill?: string;
+}
+
+interface JobStats {
+  total: number;
+  byLocation: JobStatsBucket[];
+  byType: JobStatsBucket[];
+  byCompany: JobStatsBucket[];
+  bySkill: JobSkillStatsBucket[];
+}
+
+export function useSiteStats() {
+  return useApiQuery<SiteStats>(['site-stats'], '/api/health/stats', { staleTime: 60_000 });
+}
+
+export function useResumes(enabled = true) {
+  return useApiQuery<ResumeSummary[]>(['resumes'], '/api/resumes', {
+    enabled,
+    staleTime: 30_000,
+  });
 }
 
 export function useJobStats(location?: string, type?: string, skill?: string) {
@@ -101,7 +131,7 @@ export function useJobStats(location?: string, type?: string, skill?: string) {
   if (location) params.set('location', location);
   if (type) params.set('type', type);
   if (skill) params.set('skill', skill);
-  return useApiQuery<any>(['job-stats', location, type, skill], `/api/jobs/stats?${params}`, {
+  return useApiQuery<JobStats>(['job-stats', location, type, skill], `/api/jobs/stats?${params}`, {
     staleTime: 60_000,
   });
 }

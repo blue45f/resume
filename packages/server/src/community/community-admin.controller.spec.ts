@@ -54,7 +54,7 @@ describe('CommunityAdminController', () => {
     });
 
     it('body 미지정 시 undefined 전달', () => {
-      controller.hide('p1', {} as any);
+      controller.hide('p1', {});
       expect(mockService.adminToggleHide).toHaveBeenCalledWith('p1', undefined);
     });
   });
@@ -81,7 +81,7 @@ describe('CommunityAdminController', () => {
     });
 
     it('ids 미지정 시 빈 배열로 fallback', () => {
-      controller.bulk({ action: 'delete' } as any);
+      controller.bulk({ action: 'delete' } as unknown as { action: 'delete'; ids: string[] });
       expect(mockService.adminBulk).toHaveBeenCalledWith('delete', []);
     });
   });

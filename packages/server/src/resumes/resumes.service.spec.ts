@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ResumesService } from './resumes.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 
 const mockResume = {
@@ -37,7 +38,7 @@ const mockResume = {
   tags: [],
 };
 
-const mockPrisma: Record<string, any> = {
+const mockPrisma = {
   resume: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
@@ -70,6 +71,13 @@ const mockPrisma: Record<string, any> = {
   experience: { deleteMany: jest.fn(), createMany: jest.fn() },
   education: { deleteMany: jest.fn(), createMany: jest.fn() },
   skill: { deleteMany: jest.fn(), createMany: jest.fn() },
+  skillEndorsement: {
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    create: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+  },
   project: { deleteMany: jest.fn(), createMany: jest.fn() },
   certification: { deleteMany: jest.fn(), createMany: jest.fn() },
   language: { deleteMany: jest.fn(), createMany: jest.fn() },
@@ -80,8 +88,12 @@ const mockPrisma: Record<string, any> = {
     create: jest.fn(),
   },
   follow: { count: jest.fn().mockResolvedValue(0) },
-  $transaction: jest.fn((fn: any) => fn(mockPrisma)),
+  $transaction: jest.fn(),
 };
+
+mockPrisma.$transaction.mockImplementation((fn: unknown): unknown => {
+  return (fn as (tx: typeof mockPrisma) => unknown)(mockPrisma);
+});
 
 describe('ResumesService', () => {
   let service: ResumesService;
@@ -102,7 +114,7 @@ describe('ResumesService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationsService, useValue: mockNotifications },
         {
-          provide: require('../system-config/system-config.service').SystemConfigService,
+          provide: SystemConfigService,
           useValue: mockSystemConfig,
         },
       ],
@@ -706,9 +718,7 @@ describe('ResumesService', () => {
     it('소유권 이전 성공', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
       mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-2', name: '김철수' });
-      (mockPrisma.user as any).findUnique = jest
-        .fn()
-        .mockResolvedValue({ id: 'user-2', name: '김철수' });
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-2', name: '김철수' });
       mockPrisma.resume.update.mockResolvedValue({ ...mockResume, userId: 'user-2' });
 
       const result = await service.transferOwnership('resume-1', 'user-2');
@@ -732,7 +742,7 @@ describe('ResumesService', () => {
 
     it('존재하지 않는 대상 사용자 → NotFoundException', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      (mockPrisma.user as any).findUnique = jest.fn().mockResolvedValue(null);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
 
       await expect(service.transferOwnership('resume-1', 'fake-user')).rejects.toThrow(
         NotFoundException,

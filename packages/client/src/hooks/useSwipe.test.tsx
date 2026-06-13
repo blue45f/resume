@@ -1,15 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
+import type { TouchEvent } from 'react';
 import { useSwipe } from './useSwipe';
 
 function makeTouchEvent(
   touches: Array<{ x: number; y: number }>,
   changed?: Array<{ x: number; y: number }>,
-): any {
+): TouchEvent {
   return {
     touches: touches.map((t) => ({ clientX: t.x, clientY: t.y })),
     changedTouches: (changed ?? touches).map((t) => ({ clientX: t.x, clientY: t.y })),
-  };
+  } as unknown as TouchEvent;
 }
 
 describe('useSwipe', () => {

@@ -8,7 +8,9 @@ import { ResumesController } from './resumes.controller';
 import { ResumesService } from './resumes.service';
 import { ExportService } from './export.service';
 import { AnalyticsService } from './analytics.service';
-import { Response } from 'express';
+import type { Response } from 'express';
+import type { CreateResumeDto } from './dto/create-resume.dto';
+import type { UpdateResumeDto } from './dto/update-resume.dto';
 
 const mockResumesService = {
   findAll: jest.fn(),
@@ -45,14 +47,20 @@ const mockAnalyticsService = {
   getResumeAnalytics: jest.fn(),
 };
 
-function mockResponse(): Response {
-  const res = {
+type MockResponse = {
+  setHeader: jest.Mock;
+  send: jest.Mock;
+  status: jest.Mock;
+  json: jest.Mock;
+};
+
+function mockResponse(): MockResponse {
+  return {
     setHeader: jest.fn(),
     send: jest.fn(),
     status: jest.fn().mockReturnThis(),
     json: jest.fn(),
-  } as any;
-  return res;
+  };
 }
 
 describe('ResumesController', () => {
@@ -166,7 +174,7 @@ describe('ResumesController', () => {
   // ──────────────────────────────────────────────────
   describe('create (POST /resumes)', () => {
     it('로그인 사용자 → 이력서 생성 성공', async () => {
-      const dto = { title: '새 이력서' } as any;
+      const dto: CreateResumeDto = { title: '새 이력서' };
       const created = { id: 'r1', title: '새 이력서', userId: 'u1' };
       mockResumesService.create.mockResolvedValue(created);
 
@@ -176,11 +184,15 @@ describe('ResumesController', () => {
     });
 
     it('비로그인 → UnauthorizedException', () => {
-      expect(() => controller.create({} as any, { user: null })).toThrow(UnauthorizedException);
+      expect(() => controller.create({} as CreateResumeDto, { user: null })).toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('user.id 없음 → UnauthorizedException', () => {
-      expect(() => controller.create({} as any, { user: {} })).toThrow(UnauthorizedException);
+      expect(() => controller.create({} as CreateResumeDto, { user: {} })).toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -212,7 +224,7 @@ describe('ResumesController', () => {
   // ──────────────────────────────────────────────────
   describe('update (PUT /resumes/:id)', () => {
     it('소유자 → 이력서 수정 성공', async () => {
-      const dto = { title: '수정된 이력서' } as any;
+      const dto: UpdateResumeDto = { title: '수정된 이력서' };
       const updated = { id: 'r1', title: '수정된 이력서' };
       mockResumesService.update.mockResolvedValue(updated);
 
@@ -222,7 +234,7 @@ describe('ResumesController', () => {
     });
 
     it('비로그인 → UnauthorizedException', () => {
-      expect(() => controller.update('r1', {} as any, { user: null })).toThrow(
+      expect(() => controller.update('r1', {} as UpdateResumeDto, { user: null })).toThrow(
         UnauthorizedException,
       );
     });
@@ -371,7 +383,7 @@ describe('ResumesController', () => {
       mockExportService.exportAsText.mockResolvedValue(textContent);
       const res = mockResponse();
 
-      await controller.exportText('r1', { user: { id: 'u1' } }, res);
+      await controller.exportText('r1', { user: { id: 'u1' } }, res as unknown as Response);
 
       expect(mockResumesService.assertCanAccess).toHaveBeenCalledWith('r1', 'u1');
       expect(mockExportService.exportAsText).toHaveBeenCalledWith('r1');
@@ -391,7 +403,7 @@ describe('ResumesController', () => {
       const res = mockResponse();
 
       await expect(
-        controller.exportText('nonexistent', { user: { id: 'u1' } }, res),
+        controller.exportText('nonexistent', { user: { id: 'u1' } }, res as unknown as Response),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -399,9 +411,9 @@ describe('ResumesController', () => {
       mockExportService.exportAsText.mockRejectedValue(new Error('DB error'));
       const res = mockResponse();
 
-      await expect(controller.exportText('r1', { user: { id: 'u1' } }, res)).rejects.toThrow(
-        InternalServerErrorException,
-      );
+      await expect(
+        controller.exportText('r1', { user: { id: 'u1' } }, res as unknown as Response),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 

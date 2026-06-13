@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AdminStatsService } from './admin-stats.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-const mockPrisma: any = {
+const mockPrisma = {
   user: { count: jest.fn(), findMany: jest.fn(), groupBy: jest.fn() },
   resume: { count: jest.fn(), aggregate: jest.fn() },
   template: { count: jest.fn() },
@@ -15,6 +15,8 @@ const mockPrisma: any = {
   resumeViewer: { count: jest.fn().mockResolvedValue(0) },
   jobUrlCache: { count: jest.fn().mockResolvedValue(0) },
   interviewAnswer: { count: jest.fn().mockResolvedValue(0) },
+  coachProfile: { count: jest.fn() },
+  coachingSession: { groupBy: jest.fn(), aggregate: jest.fn() },
 };
 
 describe('AdminStatsService', () => {
@@ -40,6 +42,11 @@ describe('AdminStatsService', () => {
     mockPrisma.jobApplication.count.mockResolvedValue(30);
     mockPrisma.resumeVersion.count.mockResolvedValue(50);
     mockPrisma.llmTransformation.count.mockResolvedValue(12);
+    mockPrisma.coachProfile.count.mockResolvedValue(2);
+    mockPrisma.coachingSession.groupBy.mockResolvedValue([
+      { status: 'completed', _count: { _all: 3 } },
+    ]);
+    mockPrisma.coachingSession.aggregate.mockResolvedValue({ _sum: { commission: 120000 } });
   });
 
   it('사이트 전체 통계 반환', async () => {

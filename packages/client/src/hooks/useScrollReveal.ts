@@ -19,7 +19,7 @@ export function useScrollReveal(options?: IntersectionObserverInit) {
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [options]);
 
   return ref;
 }
@@ -40,5 +40,5 @@ export function useScrollRevealAll(selector = '.reveal') {
 
     document.querySelectorAll(selector).forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [selector]);
 }

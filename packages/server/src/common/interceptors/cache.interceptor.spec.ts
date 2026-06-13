@@ -1,4 +1,5 @@
 import { CacheHeaderInterceptor, CACHE_TTL_KEY } from './cache.interceptor';
+import type { CallHandler, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { of } from 'rxjs';
 
@@ -7,21 +8,21 @@ describe('CacheHeaderInterceptor', () => {
   let reflector: Reflector;
 
   beforeEach(() => {
-    reflector = { get: jest.fn() } as any;
+    reflector = { get: jest.fn() } as unknown as Reflector;
     interceptor = new CacheHeaderInterceptor(reflector);
   });
 
-  function createContext(setHeaderFn = jest.fn()) {
+  function createContext(setHeaderFn = jest.fn()): ExecutionContext {
     return {
       switchToHttp: () => ({
         getResponse: () => ({ setHeader: setHeaderFn }),
       }),
       getHandler: () => ({}),
-    } as any;
+    } as unknown as ExecutionContext;
   }
 
-  function createHandler(data: any = { id: 1 }) {
-    return { handle: () => of(data) } as any;
+  function createHandler<T = { id: number }>(data: T = { id: 1 } as T): CallHandler<T> {
+    return { handle: () => of(data) };
   }
 
   it('CacheTTL 데코레이터가 있으면 Cache-Control 헤더 설정', (done) => {
@@ -89,7 +90,7 @@ describe('CacheHeaderInterceptor', () => {
         getResponse: () => ({ setHeader: jest.fn() }),
       }),
       getHandler: () => handler,
-    } as any;
+    } as unknown as ExecutionContext;
     (reflector.get as jest.Mock).mockReturnValue(60);
 
     interceptor.intercept(ctx, createHandler()).subscribe(() => {

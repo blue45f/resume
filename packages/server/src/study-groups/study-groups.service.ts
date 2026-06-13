@@ -5,6 +5,7 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemConfigService } from '../system-config/system-config.service';
 import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
@@ -50,6 +51,18 @@ export interface CreateStudyGroupQuestionDto {
   difficulty?: string;
 }
 
+type StudyGroupAttachment = { url: string; name: string; size: number; type: string };
+
+export type AdminStudyGroupUpdateInput = {
+  name?: string;
+  description?: string;
+  companyTier?: string;
+  cafeCategory?: string;
+  experienceLevel?: string;
+  isPrivate?: boolean;
+  maxMembers?: number;
+};
+
 @Injectable()
 export class StudyGroupsService {
   constructor(
@@ -62,7 +75,7 @@ export class StudyGroupsService {
     const page = filters.page && filters.page > 0 ? filters.page : 1;
     const limit = Math.min(filters.limit || 20, 50);
 
-    const where: any = {};
+    const where: Prisma.StudyGroupWhereInput = {};
 
     if (filters.companyName) {
       where.companyName = { contains: filters.companyName, mode: 'insensitive' };
@@ -95,13 +108,17 @@ export class StudyGroupsService {
     // P2-3 — openOnly 를 DB 레벨에서 처리 (member_count < max_members).
     // Prisma 의 컬럼-컬럼 비교 (fields 참조) 사용 → pagination 정확성 확보.
     if (filters.openOnly) {
+      const existingMemberCount =
+        typeof where.memberCount === 'object' && where.memberCount !== null
+          ? where.memberCount
+          : {};
       where.memberCount = {
-        ...(where.memberCount || {}),
+        ...existingMemberCount,
         lt: this.prisma.studyGroup.fields.maxMembers,
       };
     }
 
-    const orderBy: any = (() => {
+    const orderBy: Prisma.StudyGroupOrderByWithRelationInput[] = (() => {
       switch (filters.sort) {
         case 'oldest':
           return [{ createdAt: 'asc' }];
@@ -329,7 +346,7 @@ export class StudyGroupsService {
     limit: number;
   }) {
     const { q, tier, cafe, experienceLevel, page, limit } = params;
-    const where: any = {};
+    const where: Prisma.StudyGroupWhereInput = {};
     if (tier && tier !== 'all') where.companyTier = tier;
     if (cafe && cafe !== 'all') where.cafeCategory = cafe;
     if (experienceLevel && experienceLevel !== 'all') where.experienceLevel = experienceLevel;
@@ -404,19 +421,8 @@ export class StudyGroupsService {
     return this.prisma.studyGroup.update({ where: { id }, data: patch });
   }
 
-  async adminUpdate(
-    id: string,
-    data: {
-      name?: string;
-      description?: string;
-      companyTier?: string;
-      cafeCategory?: string;
-      experienceLevel?: string;
-      isPrivate?: boolean;
-      maxMembers?: number;
-    },
-  ) {
-    const patch: any = {};
+  async adminUpdate(id: string, data: AdminStudyGroupUpdateInput) {
+    const patch: Prisma.StudyGroupUpdateInput = {};
     if (typeof data.name === 'string' && data.name.trim()) patch.name = data.name.trim();
     if (typeof data.description === 'string') patch.description = data.description;
     if (typeof data.companyTier === 'string') patch.companyTier = data.companyTier;
@@ -437,7 +443,7 @@ export class StudyGroupsService {
   /** [관리자] 전체 그룹 게시글 모더레이션 목록 — 그룹/작성자/첨부 포함, 최신순. */
   async adminListPosts(params: { q?: string; groupId?: string; page: number; limit: number }) {
     const { q, groupId, page, limit } = params;
-    const where: any = {};
+    const where: Prisma.StudyGroupPostWhereInput = {};
     if (groupId) where.groupId = groupId;
     if (q) {
       where.OR = [
@@ -491,7 +497,7 @@ export class StudyGroupsService {
     }
     return this.prisma.studyGroupPost.update({
       where: { id: postId },
-      data: { attachments: next as any },
+      data: { attachments: next as Prisma.InputJsonValue },
       select: { id: true, attachments: true },
     });
   }
@@ -533,7 +539,7 @@ export class StudyGroupsService {
   /** [관리자] 전체 그룹 문제 답변 모더레이션 목록 — 질문/그룹/작성자 포함, 최신순. */
   async adminListAnswers(params: { q?: string; groupId?: string; page: number; limit: number }) {
     const { q, groupId, page, limit } = params;
-    const where: any = {};
+    const where: Prisma.StudyGroupQuestionAnswerWhereInput = {};
     if (q) where.body = { contains: q, mode: 'insensitive' };
     if (groupId) where.question = { groupId };
     const [items, total] = await Promise.all([
@@ -595,7 +601,7 @@ export class StudyGroupsService {
     await this.assertMemberOrPublic(groupId, userId);
     const page = opts.page && opts.page > 0 ? opts.page : 1;
     const limit = Math.min(opts.limit ?? 20, 50);
-    const where: any = { groupId };
+    const where: Prisma.StudyGroupPostWhereInput = { groupId };
     if (opts.category && opts.category !== 'all') where.category = opts.category;
     if (opts.authorId) where.userId = opts.authorId;
     if (opts.q) {
@@ -608,7 +614,7 @@ export class StudyGroupsService {
       // PostgreSQL JSON contains 검사
       where.tags = { array_contains: [opts.tag.toLowerCase()] };
     }
-    const orderBy: any = (() => {
+    const orderBy: Prisma.StudyGroupPostOrderByWithRelationInput[] = (() => {
       switch (opts.sort) {
         case 'oldest':
           return [{ isPinned: 'desc' }, { createdAt: 'asc' }];
@@ -636,7 +642,7 @@ export class StudyGroupsService {
     ]);
     const shaped = items.map((p) => ({
       ...p,
-      reactionCount: (p as any)._count?.reactions ?? 0,
+      reactionCount: p._count?.reactions ?? 0,
       _count: undefined,
     }));
     return { items: shaped, total, page, limit };
@@ -830,7 +836,7 @@ export class StudyGroupsService {
       category: string;
       isPinned: boolean;
       tags: string[];
-      attachments: Array<{ url: string; name: string; size: number; type: string }>;
+      attachments: StudyGroupAttachment[];
     }>,
   ) {
     const post = await this.prisma.studyGroupPost.findUnique({ where: { id: postId } });
@@ -841,7 +847,7 @@ export class StudyGroupsService {
     });
     if (post.userId !== userId && group?.ownerId !== userId)
       throw new ForbiddenException('수정 권한이 없습니다');
-    const patch: any = {};
+    const patch: Prisma.StudyGroupPostUpdateInput = {};
     if (data.title !== undefined) patch.title = data.title.trim().slice(0, 100);
     if (data.content !== undefined) patch.content = data.content.trim().slice(0, 20000);
     if (data.category !== undefined) patch.category = data.category;
@@ -1212,8 +1218,8 @@ export class StudyGroupsService {
     });
     return events.map((e) => ({
       ...e,
-      myRsvp: (e as any).rsvps?.[0]?.status ?? null,
-      rsvpCount: (e as any)._count?.rsvps ?? 0,
+      myRsvp: Array.isArray(e.rsvps) ? (e.rsvps[0]?.status ?? null) : null,
+      rsvpCount: e._count?.rsvps ?? 0,
       rsvps: undefined,
       _count: undefined,
     }));

@@ -4,6 +4,8 @@ import { Throttle } from '@nestjs/throttler';
 import { ApplicationsService } from './applications.service';
 import { Public } from '../auth/auth.guard';
 import { CreateApplicationDto, UpdateApplicationDto } from './dto/application.dto';
+import { requireRequestUserId } from '../common/request.types';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('applications')
 @Controller('applications')
@@ -13,36 +15,40 @@ export class ApplicationsController {
   @Get()
   @ApiOperation({ summary: '지원 내역 목록' })
   findAll(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Query('sort') sort?: string,
     @Query('status') status?: string,
     @Query('q') q?: string,
   ) {
-    return this.service.findAll(req.user?.id, { sort, status, q });
+    return this.service.findAll(requireRequestUserId(req), { sort, status, q });
   }
 
   @Get('stats')
   @ApiOperation({ summary: '지원 통계' })
-  getStats(@Req() req: any) {
-    return this.service.getStats(req.user?.id);
+  getStats(@Req() req: AuthenticatedRequest) {
+    return this.service.getStats(requireRequestUserId(req));
   }
 
   @Post()
   @ApiOperation({ summary: '지원 내역 추가' })
-  create(@Body() dto: CreateApplicationDto, @Req() req: any) {
-    return this.service.create(dto, req.user?.id);
+  create(@Body() dto: CreateApplicationDto, @Req() req: AuthenticatedRequest) {
+    return this.service.create(dto, requireRequestUserId(req));
   }
 
   @Put(':id')
   @ApiOperation({ summary: '지원 내역 수정' })
-  update(@Param('id') id: string, @Body() dto: UpdateApplicationDto, @Req() req: any) {
-    return this.service.update(id, dto, req.user?.id);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateApplicationDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.service.update(id, dto, requireRequestUserId(req));
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '지원 내역 삭제' })
-  remove(@Param('id') id: string, @Req() req: any) {
-    return this.service.remove(id, req.user?.id);
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.service.remove(id, requireRequestUserId(req));
   }
 
   @Get(':id/comments')
@@ -57,7 +63,11 @@ export class ApplicationsController {
   @Post(':id/comments')
   @Throttle({ short: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: '지원 내역에 댓글 작성' })
-  async addComment(@Param('id') id: string, @Body() body: { content: string }, @Req() req: any) {
+  async addComment(
+    @Param('id') id: string,
+    @Body() body: { content: string },
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.service.addComment(id, body.content, req.user?.id);
   }
 }

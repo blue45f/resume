@@ -8,8 +8,7 @@ import fsd from '@feature-sliced/steiger-plugin';
 // 정책:
 // - 개발가이드 §1.6은 "기계적 FSD 분할보다 기능 중심 co-location"을 기본값으로 두므로,
 //   슬라이스 크기/세그먼트를 강제하는 의견성 규칙은 **끈다**.
-// - 캡슐화(Public API) 계열 규칙은 **켜두되**, 현재 부분 채택 상태라 위반이 남아 있어
-//   당장 CI를 막지 않도록 `warn`으로 둔다(가시적 baseline). 점진적으로 0을 향해 줄인다.
+// - 캡슐화(Public API) 계열 규칙은 CI에서 실패하는 hard gate로 둔다.
 export default defineConfig([
   ...fsd.configs.recommended,
   {
@@ -17,10 +16,10 @@ export default defineConfig([
       // co-location 선호와 충돌 → 비활성화
       'fsd/insignificant-slice': 'off',
       'fsd/no-segmentless-slices': 'off',
-      // 캡슐화 규칙 — 점진 개선 대상이라 advisory(warn). 신규 코드는 이 경고를 보고 교정.
-      'fsd/public-api': 'warn',
-      'fsd/no-public-api-sidestep': 'warn',
-      'fsd/no-layer-public-api': 'warn',
+      // 캡슐화 규칙 — 신규/기존 코드 모두 위반 시 실패.
+      'fsd/public-api': 'error',
+      'fsd/no-public-api-sidestep': 'error',
+      'fsd/no-layer-public-api': 'error',
     },
   },
   {

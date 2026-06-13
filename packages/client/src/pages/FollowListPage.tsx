@@ -23,8 +23,14 @@ export default function FollowListPage() {
   const [tab, setTab] = useState<'followers' | 'following'>('followers');
   const followersQuery = useFollowers();
   const followingQuery = useFollowing();
-  const followers: FollowUser[] = (followersQuery.data as FollowUser[] | undefined) ?? [];
-  const following: FollowUser[] = (followingQuery.data as FollowUser[] | undefined) ?? [];
+  const followers: FollowUser[] = useMemo(
+    () => (followersQuery.data as FollowUser[] | undefined) ?? [],
+    [followersQuery.data],
+  );
+  const following: FollowUser[] = useMemo(
+    () => (followingQuery.data as FollowUser[] | undefined) ?? [],
+    [followingQuery.data],
+  );
   const loading = followersQuery.isLoading || followingQuery.isLoading;
   const [search, setSearch] = useState('');
 

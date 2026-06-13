@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 const DRAFT_PREFIX = 'draft_';
 
-export function useDraft<T extends Record<string, any>>(key: string, initial: T) {
+export function useDraft<T extends Record<string, unknown>>(key: string, initial: T) {
   const storageKey = DRAFT_PREFIX + key;
 
   const [data, setData] = useState<T>(() => {

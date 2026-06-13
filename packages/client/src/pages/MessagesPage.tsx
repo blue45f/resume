@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -100,8 +100,10 @@ export default function MessagesPage() {
   const [searchParams] = useSearchParams();
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(searchParams.get('to'));
   const conversationsQuery = useConversations();
-  const conversations: Conversation[] =
-    (conversationsQuery.data as Conversation[] | undefined) ?? [];
+  const conversations: Conversation[] = useMemo(
+    () => (conversationsQuery.data as Conversation[] | undefined) ?? [],
+    [conversationsQuery.data],
+  );
   const messagesQuery = useMessages(selectedPartnerId ?? undefined);
   const messages: Message[] = ((messagesQuery.data as Message[] | undefined) ?? []).map((m) => ({
     ...m,
@@ -111,7 +113,7 @@ export default function MessagesPage() {
     resolver: zodResolver(replyComposeSchema),
     defaultValues: { content: '' },
   });
-  const newMessage = replyForm.watch('content') ?? '';
+  const newMessage = useWatch({ control: replyForm.control, name: 'content' }) ?? '';
   const loading = conversationsQuery.isLoading;
   const [search, setSearch] = useState('');
   const [messageSearch, setMessageSearch] = useState('');

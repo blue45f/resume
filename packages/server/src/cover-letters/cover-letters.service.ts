@@ -1,6 +1,22 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+export type CreateCoverLetterInput = {
+  resumeId?: string;
+  applicationId?: string;
+  company: string;
+  position: string;
+  tone: string;
+  jobDescription: string;
+  content: string;
+};
+
+export type UpdateCoverLetterInput = {
+  content?: string;
+  company?: string;
+  position?: string;
+};
+
 @Injectable()
 export class CoverLettersService {
   constructor(private prisma: PrismaService) {}
@@ -30,28 +46,13 @@ export class CoverLettersService {
     return cl;
   }
 
-  async create(
-    userId: string,
-    data: {
-      resumeId?: string;
-      applicationId?: string;
-      company: string;
-      position: string;
-      tone: string;
-      jobDescription: string;
-      content: string;
-    },
-  ) {
+  async create(userId: string, data: CreateCoverLetterInput) {
     return this.prisma.coverLetter.create({
       data: { userId, ...data },
     });
   }
 
-  async update(
-    id: string,
-    userId: string,
-    data: { content?: string; company?: string; position?: string },
-  ) {
+  async update(id: string, userId: string, data: UpdateCoverLetterInput) {
     const cl = await this.prisma.coverLetter.findUnique({ where: { id } });
     if (!cl) throw new NotFoundException();
     if (cl.userId !== userId) throw new ForbiddenException();

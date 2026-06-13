@@ -4,10 +4,30 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
 import { SystemConfigService } from '../system-config/system-config.service';
+
+export type CommunityAttachment = {
+  url: string;
+  name: string;
+  size: number;
+  type: string;
+};
+
+export type CreateCommunityPostBody = {
+  title: string;
+  content: string;
+  category: string;
+  attachments?: CommunityAttachment[];
+};
+
+export type UpdateCommunityPostBody = Partial<CreateCommunityPostBody> & {
+  isPinned?: boolean;
+  isHidden?: boolean;
+};
 
 @Injectable()
 export class CommunityService {
@@ -116,7 +136,7 @@ export class CommunityService {
     showHidden = false,
     sort = 'recent',
   ) {
-    const where: any = {};
+    const where: Prisma.CommunityPostWhereInput = {};
     if (!showHidden) {
       where.isHidden = false;
       where.autoHidden = false; // 신고 누적 자동숨김 제외
@@ -134,7 +154,7 @@ export class CommunityService {
     const trendingCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     if (sort === 'trending') where.createdAt = { gte: trendingCutoff };
 
-    const orderBy: any = (() => {
+    const orderBy: Prisma.CommunityPostOrderByWithRelationInput[] = (() => {
       const pinFirst = { isPinned: 'desc' as const };
       switch (sort) {
         case 'popular':
@@ -207,10 +227,7 @@ export class CommunityService {
     return { ...post, liked };
   }
 
-  async createPost(
-    userId: string,
-    body: { title: string; content: string; category: string; attachments?: any[] },
-  ) {
+  async createPost(userId: string, body: CreateCommunityPostBody) {
     await this.forbiddenWords.validateOrThrow(body.title, body.content);
     return this.prisma.communityPost.create({
       data: {
@@ -226,19 +243,7 @@ export class CommunityService {
     });
   }
 
-  async updatePost(
-    id: string,
-    userId: string,
-    role: string,
-    body: {
-      title?: string;
-      content?: string;
-      category?: string;
-      isPinned?: boolean;
-      isHidden?: boolean;
-      attachments?: any[];
-    },
-  ) {
+  async updatePost(id: string, userId: string, role: string, body: UpdateCommunityPostBody) {
     const post = await this.prisma.communityPost.findUnique({ where: { id } });
     if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다');
     if (post.userId !== userId && role !== 'admin' && role !== 'superadmin')
@@ -249,7 +254,7 @@ export class CommunityService {
       await this.forbiddenWords.validateOrThrow(body.title, body.content);
     }
 
-    const data: any = {};
+    const data: Prisma.CommunityPostUpdateInput = {};
     if (body.title !== undefined) data.title = body.title;
     if (body.content !== undefined) data.content = body.content;
     if (body.category !== undefined) data.category = body.category;
@@ -373,7 +378,7 @@ export class CommunityService {
       const threshold = updated.likeCount <= 5 || updated.likeCount % 10 === 0;
       if (threshold) {
         // P2-7: 24h 내 같은 postId 좋아요 알림이 이미 있으면 dedup
-        const recentNotif = await (this.prisma as any).notification.findFirst({
+        const recentNotif = await this.prisma.notification.findFirst({
           where: {
             userId: updated.userId,
             type: 'community_like',
@@ -480,7 +485,7 @@ export class CommunityService {
     limit: number;
   }) {
     const { q, category, hidden, page, limit } = params;
-    const where: any = {};
+    const where: Prisma.CommunityPostWhereInput = {};
     if (category && category !== 'all') where.category = category;
     if (hidden === 'true') where.isHidden = true;
     else if (hidden === 'false') where.isHidden = false;

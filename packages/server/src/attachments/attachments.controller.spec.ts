@@ -3,6 +3,8 @@ import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { AttachmentsController } from './attachments.controller';
 import { AttachmentsService } from './attachments.service';
 import { SystemConfigService } from '../system-config/system-config.service';
+import type { Response } from 'express';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   upload: jest.fn(),
@@ -15,9 +17,17 @@ const mockConfig = {
   assertUploadAllowed: jest.fn().mockResolvedValue(undefined),
 };
 
-const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
+const reqWith = (user?: { id?: string; role?: string }): AuthenticatedRequest => ({ user });
 
-function mockRes(): any {
+type MockResponse = {
+  redirect: jest.Mock;
+  setHeader: jest.Mock;
+  status: jest.Mock;
+  json: jest.Mock;
+  send: jest.Mock;
+};
+
+function mockRes(): MockResponse {
   return {
     redirect: jest.fn(),
     setHeader: jest.fn(),
@@ -45,18 +55,34 @@ describe('AttachmentsController', () => {
   describe('upload', () => {
     it('비로그인 → Unauthorized', async () => {
       await expect(
-        controller.upload('r1', { buffer: Buffer.from('x') } as any, 'doc', 'desc', reqWith()),
+        controller.upload(
+          'r1',
+          { buffer: Buffer.from('x') } as unknown as Express.Multer.File,
+          'doc',
+          'desc',
+          reqWith(),
+        ),
       ).rejects.toThrow(UnauthorizedException);
     });
 
     it('파일 누락 → BadRequest', async () => {
       await expect(
-        controller.upload('r1', undefined as any, 'doc', 'desc', reqWith({ id: 'u1' })),
+        controller.upload(
+          'r1',
+          undefined as unknown as Express.Multer.File,
+          'doc',
+          'desc',
+          reqWith({ id: 'u1' }),
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('정상 업로드 — service 위임', async () => {
-      const file = { size: 10, mimetype: 'image/png', buffer: Buffer.from('x') } as any;
+      const file = {
+        size: 10,
+        mimetype: 'image/png',
+        buffer: Buffer.from('x'),
+      } as unknown as Express.Multer.File;
       await controller.upload('r1', file, 'doc', 'desc', reqWith({ id: 'u1', role: 'user' }));
       expect(mockConfig.assertUploadAllowed).toHaveBeenCalledWith(file);
       expect(mockService.upload).toHaveBeenCalledWith('r1', file, 'doc', 'desc', 'u1', 'user');
@@ -72,14 +98,14 @@ describe('AttachmentsController', () => {
     it('redirectUrl 있으면 res.redirect', async () => {
       mockService.getFileData.mockResolvedValueOnce({ redirectUrl: 'https://cdn.x.com/f.pdf' });
       const res = mockRes();
-      await controller.download('a1', reqWith({ id: 'u1' }), res);
+      await controller.download('a1', reqWith({ id: 'u1' }), res as unknown as Response);
       expect(res.redirect).toHaveBeenCalledWith('https://cdn.x.com/f.pdf');
     });
 
     it('data 없으면 404', async () => {
       mockService.getFileData.mockResolvedValueOnce({ data: null });
       const res = mockRes();
-      await controller.download('a1', reqWith({ id: 'u1' }), res);
+      await controller.download('a1', reqWith({ id: 'u1' }), res as unknown as Response);
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ message: '파일을 찾을 수 없습니다' });
     });
@@ -92,13 +118,13 @@ describe('AttachmentsController', () => {
         mimeType: 'application/pdf',
       });
       const res = mockRes();
-      await controller.download('a1', reqWith({ id: 'u1' }), res);
+      await controller.download('a1', reqWith({ id: 'u1' }), res as unknown as Response);
       expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/pdf');
       // 한글 파일명 encodeURIComponent 포함
-      const disposition = res.setHeader.mock.calls.find(
-        (c: any[]) => c[0] === 'Content-Disposition',
+      const disposition = (res.setHeader.mock.calls as Array<[string, string]>).find(
+        (call) => call[0] === 'Content-Disposition',
       );
-      expect(disposition[1]).toContain("filename*=UTF-8''");
+      expect(disposition?.[1]).toContain("filename*=UTF-8''");
       expect(res.send).toHaveBeenCalledWith(buf);
     });
   });

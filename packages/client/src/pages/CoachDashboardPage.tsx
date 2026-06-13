@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import {
@@ -13,6 +14,12 @@ import { getUser } from '@/lib/auth';
 import { ROUTES } from '@/lib/routes';
 import { tx } from '@/lib/i18n';
 import SendMessageButton from '@/components/SendMessageButton';
+import { getErrorMessage } from '@/lib/errorMessage';
+
+interface NotificationRow {
+  type?: string;
+  read?: boolean;
+}
 
 function formatDate(iso: string) {
   try {
@@ -55,11 +62,16 @@ export default function CoachDashboardPage() {
     (sessionsQuery.data as MySessionsResponse | undefined) ?? null;
   const loading = isCoach && sessionsQuery.isLoading;
   const error: string | null = sessionsQuery.error
-    ? (sessionsQuery.error as any)?.message || '데이터를 불러오지 못했습니다'
+    ? getErrorMessage(sessionsQuery.error, '데이터를 불러오지 못했습니다')
     : null;
-  const [coffeeChats, setCoffeeChats] = useState<CoffeeChat[]>([]);
-  const [coffeeChatsLoading, setCoffeeChatsLoading] = useState(false);
+  const { data: coffeeChats = [], isLoading: coffeeChatsLoading } = useQuery<CoffeeChat[]>({
+    queryKey: ['coach-dashboard-coffee-chats'],
+    queryFn: () => fetchCoffeeChats('received', 'pending').then((rows) => rows ?? []),
+    enabled: isCoach,
+    staleTime: 30_000,
+  });
   const [unreadReviewNotifs, setUnreadReviewNotifs] = useState<number>(0);
+  const [nowMs] = useState(() => Date.now());
 
   useEffect(() => {
     if (!isCoach) return;
@@ -67,31 +79,12 @@ export default function CoachDashboardPage() {
     fetch('/api/notifications', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` },
     })
-      .then((r) => (r.ok ? r.json() : []))
-      .then((rows: any[]) => {
+      .then((r): Promise<NotificationRow[]> => (r.ok ? r.json() : Promise.resolve([])))
+      .then((rows) => {
         const cnt = rows.filter((n) => n?.type === 'coaching_review_received' && !n.read).length;
         setUnreadReviewNotifs(cnt);
       })
       .catch(() => setUnreadReviewNotifs(0));
-  }, [isCoach]);
-
-  useEffect(() => {
-    if (!isCoach) return;
-    let cancelled = false;
-    setCoffeeChatsLoading(true);
-    fetchCoffeeChats('received', 'pending')
-      .then((rows) => {
-        if (!cancelled) setCoffeeChats(rows || []);
-      })
-      .catch(() => {
-        if (!cancelled) setCoffeeChats([]);
-      })
-      .finally(() => {
-        if (!cancelled) setCoffeeChatsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
   }, [isCoach]);
 
   useEffect(() => {
@@ -112,7 +105,7 @@ export default function CoachDashboardPage() {
     }
   }, [user, navigate]);
 
-  const coachSessions: CoachingSession[] = data?.asCoach || [];
+  const coachSessions = useMemo<CoachingSession[]>(() => data?.asCoach ?? [], [data?.asCoach]);
 
   const stats = useMemo(() => {
     const total = coachSessions.length;
@@ -131,16 +124,15 @@ export default function CoachDashboardPage() {
   }, [coachSessions]);
 
   const upcoming = useMemo(() => {
-    const now = Date.now();
     return coachSessions
       .filter(
         (s) =>
           (s.status === 'confirmed' || s.status === 'requested') &&
-          new Date(s.scheduledAt).getTime() >= now - 60 * 60 * 1000,
+          new Date(s.scheduledAt).getTime() >= nowMs - 60 * 60 * 1000,
       )
       .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
       .slice(0, 8);
-  }, [coachSessions]);
+  }, [coachSessions, nowMs]);
 
   const recentReviews = useMemo(() => {
     return coachSessions

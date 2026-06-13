@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/Toast';
-import CameraInterview from '@/features/interview-prep/ui/CameraInterview';
+import { CameraInterview } from '@/features/interview-prep';
 import { useJobInterviewQuestions } from '@/hooks/useResources';
 import { t } from '@/lib/i18n';
 
@@ -103,7 +103,6 @@ export default function MockInterviewPage() {
   const company = searchParams.get('company') || '';
   const position = searchParams.get('position') || '';
 
-  const [jobQuestions, setJobQuestions] = useState<string[] | null>(null);
   const [question, setQuestion] = useState<string>(() => presetQuestion || pickRandomQuestion());
   const [maxSec, setMaxSec] = useState<number | undefined>(60);
   const [pendingBlob, setPendingBlob] = useState<Blob | null>(null);
@@ -123,18 +122,14 @@ export default function MockInterviewPage() {
   const jobQuestionsQuery = useJobInterviewQuestions(
     jobPostId || curatedJobId ? { jobPostId, curatedJobId, limit: 50 } : {},
   );
-  useEffect(() => {
-    if (!jobPostId && !curatedJobId) return;
-    if (jobQuestionsQuery.data) {
-      const pool = jobQuestionsQuery.data.map((q) => q.question).filter(Boolean);
-      setJobQuestions(pool);
-      if (!presetQuestion && pool.length > 0) {
-        setQuestion(pickFromPool(pool));
-      }
-    } else if (jobQuestionsQuery.isError) {
-      setJobQuestions([]);
-    }
-  }, [jobPostId, curatedJobId, presetQuestion, jobQuestionsQuery.data, jobQuestionsQuery.isError]);
+  const jobQuestions = useMemo<string[] | null>(() => {
+    if (!jobPostId && !curatedJobId) return null;
+    if (jobQuestionsQuery.isError) return [];
+    if (!jobQuestionsQuery.data) return null;
+    return jobQuestionsQuery.data
+      .map((q) => q.question)
+      .filter((q): q is string => typeof q === 'string' && q.length > 0);
+  }, [jobPostId, curatedJobId, jobQuestionsQuery.data, jobQuestionsQuery.isError]);
 
   const handleRecordingComplete = useCallback((blob: Blob, duration: number) => {
     setPendingBlob(blob);

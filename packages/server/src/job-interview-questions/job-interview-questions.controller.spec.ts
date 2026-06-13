@@ -1,7 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { JobInterviewQuestionsController } from './job-interview-questions.controller';
-import { JobInterviewQuestionsService } from './job-interview-questions.service';
+import {
+  JobInterviewQuestionsService,
+  type AiGenerateDto,
+  type CreateJobInterviewQuestionDto,
+} from './job-interview-questions.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 const mockService = {
   list: jest.fn(),
@@ -11,7 +16,7 @@ const mockService = {
   aiGenerate: jest.fn(),
 };
 
-const reqWith = (user?: { id?: string; role?: string }): any => ({ user });
+const reqWith = (user?: { id?: string; role?: string }): AuthenticatedRequest => ({ user });
 
 describe('JobInterviewQuestionsController', () => {
   let controller: JobInterviewQuestionsController;
@@ -53,13 +58,16 @@ describe('JobInterviewQuestionsController', () => {
 
   it('create: 비로그인 Unauthorized', () => {
     expect(() =>
-      controller.create({ companyName: 'N', position: 'FE', question: 'Q' } as any, reqWith()),
+      controller.create(
+        { companyName: 'N', position: 'FE', question: 'Q' } as CreateJobInterviewQuestionDto,
+        reqWith(),
+      ),
     ).toThrow(UnauthorizedException);
   });
 
   it('create: 로그인 시 위임', () => {
-    const dto = { companyName: 'N', position: 'FE', question: 'Q' };
-    controller.create(dto as any, reqWith({ id: 'u1' }));
+    const dto: CreateJobInterviewQuestionDto = { companyName: 'N', position: 'FE', question: 'Q' };
+    controller.create(dto, reqWith({ id: 'u1' }));
     expect(mockService.create).toHaveBeenCalledWith('u1', dto);
   });
 
@@ -77,13 +85,13 @@ describe('JobInterviewQuestionsController', () => {
 
   it('aiGenerate: 비로그인 Unauthorized', () => {
     expect(() =>
-      controller.aiGenerate({ companyName: 'N', position: 'FE' } as any, reqWith()),
+      controller.aiGenerate({ companyName: 'N', position: 'FE' } as AiGenerateDto, reqWith()),
     ).toThrow(UnauthorizedException);
   });
 
   it('aiGenerate: 로그인 시 userId + dto 위임', () => {
-    const dto = { companyName: 'N', position: 'FE', count: 5 };
-    controller.aiGenerate(dto as any, reqWith({ id: 'u1' }));
+    const dto: AiGenerateDto = { companyName: 'N', position: 'FE', count: 5 };
+    controller.aiGenerate(dto, reqWith({ id: 'u1' }));
     expect(mockService.aiGenerate).toHaveBeenCalledWith('u1', dto);
   });
 });

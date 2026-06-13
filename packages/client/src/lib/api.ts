@@ -15,6 +15,17 @@ import { API_URL } from './config';
 // 프로덕션: VITE_API_URL 환경변수로 백엔드 URL 지정
 const BASE = `${API_URL}/api`;
 
+export type ApiRecord = Record<string, unknown>;
+
+function isApiRecord(value: unknown): value is ApiRecord {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function getApiMessage(value: unknown): string | undefined {
+  if (!isApiRecord(value)) return undefined;
+  return typeof value.message === 'string' ? value.message : undefined;
+}
+
 // ── Global loading progress bar ──────────────────────────────────
 let activeRequests = 0;
 let progressBarEl: HTMLDivElement | null = null;
@@ -120,7 +131,7 @@ async function request<T>(url: string, options?: RequestInit, retries = 2): Prom
     }
     if (!res.ok) {
       const error = await res.json().catch(() => ({ message: res.statusText }));
-      throw new Error(error.message || `Request failed: ${res.status}`);
+      throw new Error(getApiMessage(error) || `Request failed: ${res.status}`);
     }
     return res.json();
   };
@@ -436,7 +447,12 @@ export const fetchBookmarks = () =>
   );
 
 // Analytics
-export const fetchDashboard = () => request<any>(`${BASE}/resumes/dashboard/analytics`);
+export type DashboardAnalytics = ApiRecord;
+
+export type ResumeAnalytics = ApiRecord;
+
+export const fetchDashboard = () =>
+  request<DashboardAnalytics>(`${BASE}/resumes/dashboard/analytics`);
 export const fetchResumeTrend = (resumeId: string) =>
   request<{ version: number; sections: number; createdAt: string }[]>(
     `${BASE}/resumes/trend/${resumeId}`,
@@ -444,7 +460,7 @@ export const fetchResumeTrend = (resumeId: string) =>
 export const fetchPopularSkills = () =>
   request<{ name: string; count: number }[]>(`${BASE}/resumes/popular-skills`);
 export const fetchResumeAnalytics = (resumeId: string) =>
-  request<any>(`${BASE}/resumes/analytics/${resumeId}`);
+  request<ResumeAnalytics>(`${BASE}/resumes/analytics/${resumeId}`);
 
 // Tags
 export const fetchTags = async (): Promise<(Tag & { resumeCount: number })[]> => {
@@ -527,7 +543,13 @@ export async function* transformResumeStream(
     jobDescription?: string;
     provider?: string;
   },
-): AsyncGenerator<{ type: string; text?: string; id?: string; tokensUsed?: number }> {
+): AsyncGenerator<{
+  type: string;
+  text?: string;
+  id?: string;
+  tokensUsed?: number;
+  message?: string;
+}> {
   const token = localStorage.getItem('token');
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -612,18 +634,57 @@ export const deleteApplication = (id: string) =>
   request<{ success: boolean }>(`${BASE}/applications/${id}`, { method: 'DELETE' });
 
 // AI Analysis
+export interface ResumeFeedbackSectionScore extends ApiRecord {
+  score: number;
+  feedback?: string;
+}
+
+export interface ResumeFeedback extends ApiRecord {
+  score?: number;
+  grade?: string;
+  summary?: string;
+  strengths: string[];
+  improvements: string[];
+  weaknesses: string[];
+  sectionScores: Record<string, ResumeFeedbackSectionScore>;
+  tips: string[];
+}
+
+export interface JobMatchAnalysis extends ApiRecord {
+  matchScore?: number;
+  matchGrade?: string;
+  summary?: string;
+  matchedSkills: string[];
+  missingSkills: string[];
+  recommendations: string[];
+  coverLetterPoints: string[];
+}
+
+export interface InterviewQuestionItem extends ApiRecord {
+  category?: string;
+  question?: string;
+  intent?: string;
+  answerTip?: string;
+  sampleAnswer?: string;
+  tips?: string;
+}
+
+export interface InterviewQuestionSet extends ApiRecord {
+  questions?: InterviewQuestionItem[];
+}
+
 export const analyzeResumeFeedback = (resumeId: string, provider?: string) =>
-  request<any>(`${BASE}/resumes/${resumeId}/transform/feedback`, {
+  request<{ feedback: ResumeFeedback }>(`${BASE}/resumes/${resumeId}/transform/feedback`, {
     method: 'POST',
     body: JSON.stringify({ provider }),
   });
 export const analyzeJobMatch = (resumeId: string, jobDescription: string, provider?: string) =>
-  request<any>(`${BASE}/resumes/${resumeId}/transform/job-match`, {
+  request<{ analysis: JobMatchAnalysis }>(`${BASE}/resumes/${resumeId}/transform/job-match`, {
     method: 'POST',
     body: JSON.stringify({ jobDescription, provider }),
   });
 export const generateInterviewQuestions = (resumeId: string, jobRole?: string, provider?: string) =>
-  request<any>(`${BASE}/resumes/${resumeId}/transform/interview`, {
+  request<{ interview: InterviewQuestionSet }>(`${BASE}/resumes/${resumeId}/transform/interview`, {
     method: 'POST',
     body: JSON.stringify({ jobRole, provider }),
   });
@@ -700,6 +761,19 @@ export const deleteShareLink = (id: string) =>
   request<{ success: boolean }>(`${BASE}/share/${id}`, { method: 'DELETE' });
 
 // Attachments
+export interface ResumeAttachment extends ApiRecord {
+  id: string;
+  name?: string;
+  filename?: string;
+  url?: string;
+  downloadUrl?: string;
+  category?: string;
+  description?: string;
+  mimeType?: string;
+  size?: number;
+  createdAt?: string;
+}
+
 export const uploadAttachment = async (
   resumeId: string,
   file: File,
@@ -722,61 +796,141 @@ export const uploadAttachment = async (
   return res.json();
 };
 export const fetchAttachments = (resumeId: string) =>
-  request<any[]>(`${BASE}/resumes/${resumeId}/attachments`);
+  request<ResumeAttachment[]>(`${BASE}/resumes/${resumeId}/attachments`);
 export const deleteAttachment = (id: string) =>
   request<{ success: boolean }>(`${BASE}/attachments/${id}`, { method: 'DELETE' });
 
 // Social
+export interface SocialUser extends ApiRecord {
+  id: string;
+  name: string;
+  email?: string;
+  username?: string;
+  avatar?: string;
+  userType?: string;
+}
+
+export interface ScoutMessage extends ApiRecord {
+  id: string;
+  sender?: SocialUser;
+  receiver?: SocialUser;
+  company?: string;
+  position?: string;
+  message?: string;
+  resumeId?: string;
+  read?: boolean;
+  status?: 'pending' | 'accepted' | 'rejected' | 'expired';
+  createdAt?: string;
+}
+
+export interface DirectMessage extends ApiRecord {
+  id: string;
+  senderId?: string;
+  receiverId?: string;
+  content?: string;
+  read?: boolean;
+  createdAt?: string;
+}
+
+export interface Conversation extends ApiRecord {
+  id: string;
+  partner?: SocialUser;
+  lastMessage?: DirectMessage | string;
+  unreadCount?: number;
+  updatedAt?: string;
+}
+
 export const followUser = (userId: string) =>
-  request<{ followed: boolean }>(`${BASE}/social/follow/${userId}`, { method: 'POST' });
+  request<{ followed: boolean; mutual?: boolean }>(`${BASE}/social/follow/${userId}`, {
+    method: 'POST',
+  });
 export const unfollowUser = (userId: string) =>
   request<{ followed: boolean }>(`${BASE}/social/follow/${userId}`, { method: 'DELETE' });
-export const fetchFollowers = () => request<any[]>(`${BASE}/social/followers`);
-export const fetchFollowing = () => request<any[]>(`${BASE}/social/following`);
+export const fetchFollowers = () => request<SocialUser[]>(`${BASE}/social/followers`);
+export const fetchFollowing = () => request<SocialUser[]>(`${BASE}/social/following`);
 export const sendScoutMessage = (data: {
   receiverId: string;
   resumeId?: string;
   company: string;
   position: string;
   message: string;
-}) => request<any>(`${BASE}/social/scout`, { method: 'POST', body: JSON.stringify(data) });
-export const fetchScouts = () => request<any[]>(`${BASE}/social/scouts`);
+}) => request<ScoutMessage>(`${BASE}/social/scout`, { method: 'POST', body: JSON.stringify(data) });
+export const fetchScouts = () => request<ScoutMessage[]>(`${BASE}/social/scouts`);
 
 // Messages
 export const sendDirectMessage = (receiverId: string, content: string) =>
-  request<any>(`${BASE}/social/messages/${receiverId}`, {
+  request<DirectMessage>(`${BASE}/social/messages/${receiverId}`, {
     method: 'POST',
     body: JSON.stringify({ content }),
   });
-export const fetchConversations = () => request<any[]>(`${BASE}/social/messages`);
+export const fetchConversations = () => request<Conversation[]>(`${BASE}/social/messages`);
 export const fetchMessages = (partnerId: string) =>
-  request<any[]>(`${BASE}/social/messages/${partnerId}`);
+  request<DirectMessage[]>(`${BASE}/social/messages/${partnerId}`);
 
 // Cover Letters
-export const fetchCoverLetters = () => request<any[]>(`${BASE}/cover-letters`);
-export const fetchCoverLetter = (id: string) => request<any>(`${BASE}/cover-letters/${id}`);
+export interface CoverLetter extends ApiRecord {
+  id: string;
+  title?: string;
+  company?: string;
+  position?: string;
+  content?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const fetchCoverLetters = () => request<CoverLetter[]>(`${BASE}/cover-letters`);
+export const fetchCoverLetter = (id: string) => request<CoverLetter>(`${BASE}/cover-letters/${id}`);
 export const deleteCoverLetter = (id: string) =>
   request<{ success: boolean }>(`${BASE}/cover-letters/${id}`, { method: 'DELETE' });
 
 // Jobs
+export interface JobPostApi extends ApiRecord {
+  id: string;
+  title?: string;
+  company?: string;
+  position?: string;
+  location?: string;
+  description?: string;
+  requirements?: string;
+  employmentType?: string;
+  experienceLevel?: string;
+  salary?: string;
+  skills?: string[];
+  status?: string;
+  sourceUrl?: string;
+  externalUrl?: string;
+  deadline?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export const fetchJobs = (query?: string) => {
   const qs = query ? `?q=${encodeURIComponent(query)}` : '';
-  return request<any[]>(`${BASE}/jobs${qs}`);
+  return request<JobPostApi[]>(`${BASE}/jobs${qs}`);
 };
-export const fetchJob = (id: string) => request<any>(`${BASE}/jobs/${id}`);
-export const createJob = (data: any) =>
-  request<any>(`${BASE}/jobs`, { method: 'POST', body: JSON.stringify(data) });
-export const updateJob = (id: string, data: any) =>
-  request<any>(`${BASE}/jobs/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+export const fetchJob = (id: string) => request<JobPostApi>(`${BASE}/jobs/${id}`);
+export const createJob = (data: Partial<JobPostApi>) =>
+  request<JobPostApi>(`${BASE}/jobs`, { method: 'POST', body: JSON.stringify(data) });
+export const updateJob = (id: string, data: Partial<JobPostApi>) =>
+  request<JobPostApi>(`${BASE}/jobs/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const deleteJob = (id: string) =>
   request<{ success: boolean }>(`${BASE}/jobs/${id}`, { method: 'DELETE' });
 
 // Notifications
-export const fetchNotifications = () => request<any[]>(`${BASE}/notifications`);
+export interface NotificationItem extends ApiRecord {
+  id: string;
+  type: string;
+  message: string;
+  link?: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export const fetchNotifications = () => request<NotificationItem[]>(`${BASE}/notifications`);
 export const markAllNotificationsRead = () =>
   request<{ success: boolean }>(`${BASE}/notifications/read-all`, { method: 'POST' });
 export const markNotificationRead = (id: string) =>
-  request<any>(`${BASE}/notifications/${id}/read`, { method: 'PATCH' });
+  request<NotificationItem>(`${BASE}/notifications/${id}/read`, { method: 'PATCH' });
 export const deleteNotification = (id: string) =>
   request<{ success: boolean }>(`${BASE}/notifications/${id}`, { method: 'DELETE' });
 export const deleteNotificationsBulk = (ids: string[]) =>
@@ -786,8 +940,8 @@ export const deleteNotificationsBulk = (ids: string[]) =>
   });
 
 // Cover Letter Create
-export const createCoverLetter = (data: any) =>
-  request<any>(`${BASE}/cover-letters`, { method: 'POST', body: JSON.stringify(data) });
+export const createCoverLetter = (data: Partial<CoverLetter>) =>
+  request<CoverLetter>(`${BASE}/cover-letters`, { method: 'POST', body: JSON.stringify(data) });
 
 // Health / Usage
 export const fetchUsage = () =>
@@ -806,9 +960,25 @@ export const updateProfile = (data: {
   name?: string;
   companyName?: string;
   companyTitle?: string;
-}) => request<any>(`${BASE}/auth/profile`, { method: 'PATCH', body: JSON.stringify(data) });
-export const fetchProfile = () => request<any>(`${BASE}/auth/me`);
-export const fetchLinkedAccounts = () => request<any>(`${BASE}/auth/linked-accounts`);
+}) => request<UserProfile>(`${BASE}/auth/profile`, { method: 'PATCH', body: JSON.stringify(data) });
+
+export interface UserProfile extends SocialUser {
+  email: string;
+  role?: string;
+  provider?: string;
+  companyName?: string;
+  companyTitle?: string;
+  marketingOptIn?: boolean;
+  llmOptIn?: boolean;
+}
+
+export interface LinkedAccountsResponse extends ApiRecord {
+  accounts?: { provider: string; connected: boolean; email?: string }[];
+}
+
+export const fetchProfile = () => request<UserProfile>(`${BASE}/auth/me`);
+export const fetchLinkedAccounts = () =>
+  request<LinkedAccountsResponse>(`${BASE}/auth/linked-accounts`);
 
 // ── 프로필 아바타 ───────────────────────────────────────
 export const uploadAvatar = async (file: File): Promise<{ avatar: string }> => {
@@ -960,19 +1130,26 @@ export const sendWebrtcSignal = (body: {
 
 export const drainWebrtcSignals = (roomId: string) =>
   request<WebrtcSignal[]>(`${BASE}/coffee-chats/signal/${roomId}/poll`);
+
+export interface AdminUser extends UserProfile {
+  createdAt?: string;
+  updatedAt?: string;
+  resumeCount?: number;
+}
+
 export const fetchAdminUsers = (search?: string) => {
   const qs = search ? `?search=${encodeURIComponent(search)}` : '';
-  return request<any[]>(`${BASE}/auth/admin/users${qs}`);
+  return request<AdminUser[]>(`${BASE}/auth/admin/users${qs}`);
 };
 export const setUserRole = (userId: string, role: string) =>
-  request<any>(`${BASE}/auth/admin/users/${userId}/role`, {
+  request<AdminUser>(`${BASE}/auth/admin/users/${userId}/role`, {
     method: 'POST',
     body: JSON.stringify({ role }),
   });
 
 // Scout
 export const markScoutRead = (id: string) =>
-  request<any>(`${BASE}/social/scouts/${id}/read`, { method: 'POST' });
+  request<ScoutMessage>(`${BASE}/social/scouts/${id}/read`, { method: 'POST' });
 
 // Unread message count
 export const fetchUnreadMessageCount = () =>
@@ -1005,14 +1182,14 @@ export const deleteInterviewAnswer = (id: string) =>
   request<{ success: boolean }>(`${BASE}/interview/answers/${id}`, { method: 'DELETE' });
 
 // Scout management
-export const fetchSentScouts = () => request<any[]>(`${BASE}/social/scouts/sent`);
+export const fetchSentScouts = () => request<ScoutMessage[]>(`${BASE}/social/scouts/sent`);
 export const respondToScout = (id: string, status: string) =>
-  request<any>(`${BASE}/social/scouts/${id}/respond`, {
+  request<ScoutMessage>(`${BASE}/social/scouts/${id}/respond`, {
     method: 'POST',
     body: JSON.stringify({ status }),
   });
 export const sendBulkScout = (data: { targetIds: string[]; message: string; company: string }) =>
-  request<any>(`${BASE}/social/scouts/bulk`, {
+  request<{ success: boolean; scouts?: ScoutMessage[] }>(`${BASE}/social/scouts/bulk`, {
     method: 'POST',
     body: JSON.stringify(data),
   });

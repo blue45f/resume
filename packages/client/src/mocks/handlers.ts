@@ -1,5 +1,54 @@
 import { http, HttpResponse, delay } from 'msw';
 import { db } from './data';
+import type {
+  Activity,
+  Award,
+  Certification,
+  Education,
+  Experience,
+  Language,
+  PersonalInfo,
+  Project,
+  ResumeSummary,
+  Skill,
+} from '@/types/resume';
+
+type MockResume = (typeof db.resumes)[number];
+type MockTag = (typeof db.tags)[number];
+type MockTemplate = (typeof db.templates)[number];
+type OptionalId<T extends { id: string }> = Omit<T, 'id'> & { id?: string };
+
+interface ResumeRequestBody {
+  title?: string;
+  personalInfo?: PersonalInfo;
+  experiences?: OptionalId<Experience>[];
+  educations?: OptionalId<Education>[];
+  skills?: OptionalId<Skill>[];
+  projects?: OptionalId<Project>[];
+  certifications?: OptionalId<Certification>[];
+  languages?: OptionalId<Language>[];
+  awards?: OptionalId<Award>[];
+  activities?: OptionalId<Activity>[];
+}
+
+interface VisibilityRequestBody {
+  visibility?: MockResume['visibility'];
+}
+
+interface TagRequestBody {
+  name?: string;
+  color?: string;
+}
+
+type TemplateRequestBody = Partial<
+  Pick<MockTemplate, 'name' | 'description' | 'category' | 'prompt' | 'layout'>
+>;
+
+interface LocalTransformRequestBody {
+  templateId?: string;
+  preset?: string;
+  provider?: string;
+}
 
 const mockSiteStats = {
   users: { total: 1240, today: 12, thisWeek: 86 },
@@ -282,12 +331,12 @@ export const handlers = [
 
   http.post('/api/resumes', async ({ request }) => {
     await delay(150);
-    const body = (await request.json()) as any;
-    const resume = {
+    const body = (await request.json()) as ResumeRequestBody;
+    const resume: MockResume = {
       id: crypto.randomUUID(),
       title: body.title || '',
       visibility: 'private',
-      userId: null,
+      userId: 'mock-user-1',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       personalInfo: body.personalInfo || {
@@ -308,7 +357,7 @@ export const handlers = [
       activities: (body.activities || []).map(withId),
       tags: [],
     };
-    db.resumes.push(resume as any);
+    db.resumes.push(resume);
     return HttpResponse.json(resume, { status: 201 });
   }),
 
@@ -317,7 +366,7 @@ export const handlers = [
     const idx = db.resumes.findIndex((r) => r.id === params.id);
     if (idx === -1)
       return HttpResponse.json({ message: '이력서를 찾을 수 없습니다' }, { status: 404 });
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as ResumeRequestBody;
     const resume = db.resumes[idx];
     if (body.title !== undefined) resume.title = body.title;
     if (body.personalInfo) resume.personalInfo = body.personalInfo;
@@ -363,8 +412,8 @@ export const handlers = [
     const resume = db.resumes.find((r) => r.id === params.id);
     if (!resume)
       return HttpResponse.json({ message: '이력서를 찾을 수 없습니다' }, { status: 404 });
-    const body = (await request.json()) as any;
-    resume.visibility = body.visibility;
+    const body = (await request.json()) as VisibilityRequestBody;
+    if (body.visibility) resume.visibility = body.visibility;
     return HttpResponse.json({ id: resume.id, visibility: resume.visibility });
   }),
 
@@ -378,13 +427,13 @@ export const handlers = [
 
   http.post('/api/tags', async ({ request }) => {
     await delay(100);
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as TagRequestBody;
     if (!body.name)
       return HttpResponse.json({ message: '태그 이름은 필수입니다' }, { status: 400 });
     if (db.tags.some((t) => t.name === body.name)) {
       return HttpResponse.json({ message: '이미 존재하는 태그입니다' }, { status: 409 });
     }
-    const tag = {
+    const tag: MockTag = {
       id: crypto.randomUUID(),
       name: body.name,
       color: body.color || '#6366f1',
@@ -453,7 +502,7 @@ export const handlers = [
 
   http.post('/api/templates', async ({ request }) => {
     await delay(100);
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as TemplateRequestBody;
     if (!body.name) return HttpResponse.json({ message: '이름은 필수입니다' }, { status: 400 });
     const tpl = {
       id: crypto.randomUUID(),
@@ -475,7 +524,7 @@ export const handlers = [
     const resume = db.resumes.find((r) => r.id === params.resumeId);
     if (!resume)
       return HttpResponse.json({ message: '이력서를 찾을 수 없습니다' }, { status: 404 });
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as LocalTransformRequestBody;
     const text = `# ${resume.personalInfo.name}의 이력서\n\n## 인적사항\n이름: ${resume.personalInfo.name}\n이메일: ${resume.personalInfo.email}\n\n## 경력\n${resume.experiences.map((e) => `- ${e.company} | ${e.position}`).join('\n')}\n\n## 학력\n${resume.educations.map((e) => `- ${e.school} ${e.degree} ${e.field}`).join('\n')}\n\n## 기술\n${resume.skills.map((s) => `- ${s.category}: ${s.items}`).join('\n')}`;
     return HttpResponse.json(
       {
@@ -514,7 +563,7 @@ export const handlers = [
     const resume = db.resumes.find((r) => r.id === params.id);
     if (!resume)
       return HttpResponse.json({ message: '이력서를 찾을 수 없습니다' }, { status: 404 });
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as LocalTransformRequestBody;
     return HttpResponse.json(
       {
         id: crypto.randomUUID(),
@@ -571,11 +620,18 @@ export const handlers = [
 ];
 
 // Helpers
-function toSummary(r: any) {
+function toSummary(r: MockResume): ResumeSummary {
   return {
     id: r.id,
     title: r.title,
-    visibility: r.visibility,
+    visibility:
+      r.visibility === 'public'
+        ? 'public'
+        : r.visibility === 'link-only'
+          ? 'link-only'
+          : r.visibility === 'selective'
+            ? 'selective'
+            : 'private',
     personalInfo: r.personalInfo,
     tags: r.tags || [],
     createdAt: r.createdAt,
@@ -583,6 +639,6 @@ function toSummary(r: any) {
   };
 }
 
-function withId(item: any) {
+function withId<T extends { id?: string }>(item: T): T & { id: string } {
   return { ...item, id: item.id || crypto.randomUUID() };
 }

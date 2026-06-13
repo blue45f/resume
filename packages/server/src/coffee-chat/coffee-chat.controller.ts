@@ -17,6 +17,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '../auth/auth.guard';
 import { CoffeeChatService } from './coffee-chat.service';
+import type { AuthenticatedRequest } from '../common/request.types';
 
 @ApiTags('coffee-chat')
 @Controller('coffee-chats')
@@ -36,7 +37,7 @@ export class CoffeeChatController {
       durationMin?: number;
       scheduledAt?: string | null;
     },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.create(req.user.id, body);
@@ -47,7 +48,7 @@ export class CoffeeChatController {
   list(
     @Query('role') role: 'sent' | 'received' | 'all' = 'all',
     @Query('status') status: string,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.listMine(req.user.id, role, status);
@@ -72,7 +73,7 @@ export class CoffeeChatController {
   @Get(':id/ics')
   @Header('Content-Type', 'text/calendar; charset=utf-8')
   @ApiOperation({ summary: 'Google/Outlook 캘린더 ICS export — accepted 만 가능' })
-  async exportIcs(@Param('id') id: string, @Req() req: any, @Res() res: Response) {
+  async exportIcs(@Param('id') id: string, @Req() req: AuthenticatedRequest, @Res() res: Response) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     const ics = await this.service.generateIcs(id, req.user.id);
     res.setHeader('Content-Disposition', `attachment; filename="coffee-chat-${id}.ics"`);
@@ -81,7 +82,7 @@ export class CoffeeChatController {
 
   @Patch(':id/join')
   @ApiOperation({ summary: 'WebRTC room 입장 — no-show 추적' })
-  recordJoin(@Param('id') id: string, @Req() req: any) {
+  recordJoin(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.recordJoin(id, req.user.id);
   }
@@ -89,14 +90,18 @@ export class CoffeeChatController {
   @Patch(':id/feedback')
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: '커피챗 후기 (host/requester 본인 측 필드만)' })
-  leaveFeedback(@Param('id') id: string, @Body('feedback') feedback: string, @Req() req: any) {
+  leaveFeedback(
+    @Param('id') id: string,
+    @Body('feedback') feedback: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.leaveFeedback(id, req.user.id, feedback || '');
   }
 
   @Get(':id')
   @ApiOperation({ summary: '커피챗 상세' })
-  findOne(@Param('id') id: string, @Req() req: any) {
+  findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.findOne(id, req.user.id);
   }
@@ -106,7 +111,7 @@ export class CoffeeChatController {
   respond(
     @Param('id') id: string,
     @Body() body: { decision: 'accepted' | 'rejected'; note?: string },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.respond(id, req.user.id, body.decision, body.note);
@@ -114,14 +119,14 @@ export class CoffeeChatController {
 
   @Delete(':id')
   @ApiOperation({ summary: '신청자가 취소' })
-  cancel(@Param('id') id: string, @Req() req: any) {
+  cancel(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.cancel(id, req.user.id);
   }
 
   @Patch(':id/complete')
   @ApiOperation({ summary: '커피챗 완료 처리 (양쪽 가능)' })
-  complete(@Param('id') id: string, @Req() req: any) {
+  complete(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.complete(id, req.user.id);
   }
@@ -133,7 +138,7 @@ export class CoffeeChatController {
   @ApiOperation({ summary: 'WebRTC offer/answer/ICE 전송' })
   sendSignal(
     @Body() body: { roomId: string; toUserId: string; type: string; payload: unknown },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.sendSignal(req.user.id, body);
@@ -142,7 +147,7 @@ export class CoffeeChatController {
   @Get('signal/:roomId/poll')
   @Throttle({ default: { limit: 120, ttl: 60000 } })
   @ApiOperation({ summary: '내가 받을 WebRTC 신호 drain (한 번 읽으면 삭제)' })
-  drainSignals(@Param('roomId') roomId: string, @Req() req: any) {
+  drainSignals(@Param('roomId') roomId: string, @Req() req: AuthenticatedRequest) {
     if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
     return this.service.drainSignals(req.user.id, roomId);
   }
@@ -162,7 +167,7 @@ export class CoffeeChatController {
       durationMs?: number;
       errorName?: string;
     },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user?.id) return { ok: false };
     return this.service.recordPeerTelemetry(req.user.id, body);

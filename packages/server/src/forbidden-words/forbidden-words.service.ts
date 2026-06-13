@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -59,7 +60,7 @@ export class ForbiddenWordsService {
   // Admin CRUD
 
   async findAll(category?: string, search?: string, page = 1, limit = 50) {
-    const where: any = {};
+    const where: Prisma.ForbiddenWordWhereInput = {};
     if (category && category !== 'all') where.category = category;
     if (search) where.word = { contains: search, mode: 'insensitive' };
 
@@ -111,7 +112,7 @@ export class ForbiddenWordsService {
     id: string,
     data: { word?: string; category?: string; severity?: string; isActive?: boolean },
   ) {
-    const update: any = {};
+    const update: Prisma.ForbiddenWordUpdateInput = {};
     if (data.word !== undefined) update.word = data.word.toLowerCase().trim();
     if (data.category !== undefined) update.category = data.category;
     if (data.severity !== undefined) update.severity = data.severity;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 /** Static skill relationship map - zero LLM cost */
 const SKILL_RELATIONS: Record<string, string[]> = {
@@ -184,17 +184,9 @@ export function CompanyRoleSuggest({
   company: string;
   onSelect: (role: string) => void;
 }) {
-  const [dismissed, setDismissed] = useState(false);
-  const [prevCompany, setPrevCompany] = useState(company);
+  const [dismissedCompany, setDismissedCompany] = useState<string | null>(null);
   const roles = findRolesForCompany(company);
-
-  // Reset dismissed when company changes
-  useEffect(() => {
-    if (company !== prevCompany) {
-      setDismissed(false);
-      setPrevCompany(company);
-    }
-  }, [company, prevCompany]);
+  const dismissed = dismissedCompany === company;
 
   if (dismissed || roles.length === 0 || company.trim().length < 2) return null;
 
@@ -205,7 +197,7 @@ export function CompanyRoleSuggest({
           {company}의 일반적인 직위:
         </p>
         <button
-          onClick={() => setDismissed(true)}
+          onClick={() => setDismissedCompany(company)}
           className="p-0.5 text-blue-400 hover:text-blue-600 transition-colors shrink-0"
           aria-label="닫기"
         >
@@ -227,7 +219,7 @@ export function CompanyRoleSuggest({
             type="button"
             onClick={() => {
               onSelect(role);
-              setDismissed(true);
+              setDismissedCompany(company);
             }}
             className="px-2 py-1 text-xs text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
           >

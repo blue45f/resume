@@ -1,18 +1,26 @@
 import { GlobalExceptionFilter } from './http-exception.filter';
 import {
   HttpException,
-  HttpStatus,
+  ArgumentsHost,
   BadRequestException,
   NotFoundException,
   ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
 
+type ErrorResponseBody = {
+  statusCode: number;
+  error?: string;
+  message?: string;
+  timestamp?: string;
+  path?: string;
+};
+
 describe('GlobalExceptionFilter', () => {
   let filter: GlobalExceptionFilter;
   let mockJson: jest.Mock;
   let mockStatus: jest.Mock;
-  let mockHost: any;
+  let mockHost: ArgumentsHost;
 
   beforeEach(() => {
     filter = new GlobalExceptionFilter();
@@ -23,12 +31,12 @@ describe('GlobalExceptionFilter', () => {
         getResponse: () => ({ status: mockStatus }),
         getRequest: () => ({ url: '/api/test' }),
       }),
-    };
+    } as unknown as ArgumentsHost;
   });
 
-  function catchAndGetBody(exception: unknown): Record<string, any> {
+  function catchAndGetBody(exception: unknown): ErrorResponseBody {
     filter.catch(exception, mockHost);
-    return mockJson.mock.calls[0][0];
+    return mockJson.mock.calls[0][0] as ErrorResponseBody;
   }
 
   // --- HttpException ---
@@ -106,7 +114,7 @@ describe('GlobalExceptionFilter', () => {
     expect(body.timestamp).toBeDefined();
     expect(typeof body.timestamp).toBe('string');
     // ISO 형식 확인
-    expect(() => new Date(body.timestamp)).not.toThrow();
+    expect(() => new Date(body.timestamp ?? '')).not.toThrow();
   });
 
   it('비 production에서 path 포함', () => {
@@ -134,16 +142,14 @@ describe('GlobalExceptionFilter', () => {
   });
 
   it('headersSent === true 면 status/json 호출 안 함 (ERR_HTTP_HEADERS_SENT 방지)', () => {
-    const headersSentMock = jest.fn();
     const sentJsonMock = jest.fn();
     const sentStatusMock = jest.fn().mockReturnValue({ json: sentJsonMock });
-    const hostWithSentHeaders: any = {
+    const hostWithSentHeaders = {
       switchToHttp: () => ({
         getResponse: () => ({ status: sentStatusMock, headersSent: true }),
         getRequest: () => ({ url: '/api/stream' }),
       }),
-    };
-    headersSentMock(); // suppress unused-warning, just shape variable name visible
+    } as unknown as ArgumentsHost;
     filter.catch(new Error('downstream stream error'), hostWithSentHeaders);
     expect(sentStatusMock).not.toHaveBeenCalled();
     expect(sentJsonMock).not.toHaveBeenCalled();
@@ -153,7 +159,7 @@ describe('GlobalExceptionFilter', () => {
   it('request.aborted === true 면 응답 skip + writableEnded 면 end 호출 안함', () => {
     const endMock = jest.fn();
     const statusMock = jest.fn();
-    const host: any = {
+    const host = {
       switchToHttp: () => ({
         getResponse: () => ({
           status: statusMock,
@@ -168,7 +174,7 @@ describe('GlobalExceptionFilter', () => {
           socket: { destroyed: false },
         }),
       }),
-    };
+    } as unknown as ArgumentsHost;
     filter.catch(new Error('client abort'), host);
     expect(statusMock).not.toHaveBeenCalled();
     expect(endMock).not.toHaveBeenCalled(); // writableEnded 면 end 호출 안함
@@ -176,7 +182,7 @@ describe('GlobalExceptionFilter', () => {
 
   it('socket.destroyed === true 면 응답 skip (abort 케이스 변형)', () => {
     const statusMock = jest.fn();
-    const host: any = {
+    const host = {
       switchToHttp: () => ({
         getResponse: () => ({ status: statusMock, headersSent: false, writableEnded: false }),
         getRequest: () => ({
@@ -186,14 +192,14 @@ describe('GlobalExceptionFilter', () => {
           socket: { destroyed: true },
         }),
       }),
-    };
+    } as unknown as ArgumentsHost;
     filter.catch(new Error('socket destroyed'), host);
     expect(statusMock).not.toHaveBeenCalled();
   });
 
   it('writableEnded === true & 헤더는 아직 → skip (drain 후 늦은 에러)', () => {
     const statusMock = jest.fn();
-    const host: any = {
+    const host = {
       switchToHttp: () => ({
         getResponse: () => ({ status: statusMock, headersSent: false, writableEnded: true }),
         getRequest: () => ({
@@ -203,7 +209,7 @@ describe('GlobalExceptionFilter', () => {
           socket: { destroyed: false },
         }),
       }),
-    };
+    } as unknown as ArgumentsHost;
     filter.catch(new Error('late error'), host);
     expect(statusMock).not.toHaveBeenCalled();
   });
@@ -211,7 +217,7 @@ describe('GlobalExceptionFilter', () => {
   it('headersSent === true & writableEnded=false → end() 호출로 소켓 finalize', () => {
     const endMock = jest.fn();
     const statusMock = jest.fn();
-    const host: any = {
+    const host = {
       switchToHttp: () => ({
         getResponse: () => ({
           status: statusMock,
@@ -226,7 +232,7 @@ describe('GlobalExceptionFilter', () => {
           socket: { destroyed: false },
         }),
       }),
-    };
+    } as unknown as ArgumentsHost;
     filter.catch(new Error('mid stream error'), host);
     expect(endMock).toHaveBeenCalled();
     expect(statusMock).not.toHaveBeenCalled();

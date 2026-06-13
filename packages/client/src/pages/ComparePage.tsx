@@ -75,6 +75,35 @@ function analyzeResume(
   return { strengths: strengths.slice(0, 6), weaknesses: weaknesses.slice(0, 6) };
 }
 
+function ResumeSelector({
+  resumes,
+  value,
+  onChange,
+  exclude,
+}: {
+  resumes: ResumeSummary[];
+  value: string;
+  onChange: (v: string) => void;
+  exclude: string;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full px-3 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <option value="">이력서 선택</option>
+      {resumes
+        .filter((r) => r.id !== exclude)
+        .map((r) => (
+          <option key={r.id} value={r.id}>
+            {r.title || '제목 없음'}
+          </option>
+        ))}
+    </select>
+  );
+}
+
 export default function ComparePage() {
   const { data: resumesData } = useResumes();
   const resumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? [];
@@ -106,31 +135,6 @@ export default function ComparePage() {
     { key: 'awards', label: '수상', count: (r: Resume) => r.awards.length },
     { key: 'activities', label: '활동', count: (r: Resume) => r.activities.length },
   ];
-
-  const Selector = ({
-    value,
-    onChange,
-    exclude,
-  }: {
-    value: string;
-    onChange: (v: string) => void;
-    exclude: string;
-  }) => (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full px-3 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      <option value="">이력서 선택</option>
-      {resumes
-        .filter((r) => r.id !== exclude)
-        .map((r) => (
-          <option key={r.id} value={r.id}>
-            {r.title || '제목 없음'}
-          </option>
-        ))}
-    </select>
-  );
 
   const leftAnalysis = useMemo(
     () => (left && right ? analyzeResume(left, right) : null),
@@ -248,11 +252,21 @@ export default function ComparePage() {
         <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <div>
             <label className="block text-sm font-medium text-blue-600 mb-1.5">이력서 A</label>
-            <Selector value={leftId} onChange={setLeftId} exclude={rightId} />
+            <ResumeSelector
+              resumes={resumes}
+              value={leftId}
+              onChange={setLeftId}
+              exclude={rightId}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-emerald-600 mb-1.5">이력서 B</label>
-            <Selector value={rightId} onChange={setRightId} exclude={leftId} />
+            <ResumeSelector
+              resumes={resumes}
+              value={rightId}
+              onChange={setRightId}
+              exclude={leftId}
+            />
           </div>
         </div>
 

@@ -79,8 +79,20 @@ const BOOKMARKS_KEY = 'scout_bookmarks';
 function loadTemplates(): ScoutTemplate[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    const arr = raw ? JSON.parse(raw) : [];
-    return arr.map((t: any) => ({ ...t, useCount: t.useCount || 0 }));
+    const arr = raw ? (JSON.parse(raw) as Partial<ScoutTemplate>[]) : [];
+    return arr
+      .filter(
+        (
+          template,
+        ): template is Partial<ScoutTemplate> & { id: string; name: string; message: string } =>
+          Boolean(template.id && template.name && template.message),
+      )
+      .map((template) => ({
+        id: template.id,
+        name: template.name,
+        message: template.message,
+        useCount: template.useCount || 0,
+      }));
   } catch {
     return [];
   }
@@ -187,8 +199,7 @@ export default function ScoutsPage() {
     const respondedScouts = all.filter((s) => s.status === 'accepted' || s.status === 'rejected');
     let avgResponseHours = 0;
     if (respondedScouts.length > 0) {
-      // Estimate: 1-3 days typical
-      avgResponseHours = Math.round(24 + Math.random() * 48);
+      avgResponseHours = Math.min(72, 24 + respondedScouts.length * 6);
     }
 
     return { total, accepted, rejected, responseRate, successRate, avgResponseHours };

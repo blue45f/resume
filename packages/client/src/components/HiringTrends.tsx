@@ -10,22 +10,30 @@ interface TrendItem {
   skills: string;
 }
 
+interface JobTrendResponseItem {
+  position?: string;
+  company?: string;
+  salary?: string;
+  skills?: string;
+}
+
 export default function HiringTrends() {
   const [jobs, setJobs] = useState<TrendItem[]>([]);
 
   useEffect(() => {
     fetch(`${API_URL}/api/jobs?limit=5`)
       .then((r) => (r.ok ? r.json() : []))
-      .then((data: any[]) =>
+      .then((data: unknown) => {
+        const items = Array.isArray(data) ? (data as JobTrendResponseItem[]) : [];
         setJobs(
-          data.slice(0, 5).map((j) => ({
-            position: j.position,
-            company: j.company,
-            salary: j.salary,
-            skills: j.skills,
+          items.slice(0, 5).map((j) => ({
+            position: j.position ?? '',
+            company: j.company ?? '',
+            salary: j.salary ?? '',
+            skills: j.skills ?? '',
           })),
-        ),
-      )
+        );
+      })
       .catch(() => {});
   }, []);
 
