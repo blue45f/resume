@@ -13,6 +13,9 @@ dist-ssr
 # dist-server는 Render 배포를 위해 Git에 포함
 *.local
 
+# MSW가 postinstall 시 루트 public/ 에 자동 생성하는 워커 (msw.workerDirectory)
+/public/
+
 # Environment variables
 .env
 .env.local
