@@ -1,17 +1,11 @@
-import { IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class CreateCommentDto {
-  @IsString()
-  @MinLength(5)
-  @MaxLength(500)
-  content: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  authorName?: string;
-
-  @IsOptional()
-  @IsString()
-  parentId?: string;
-}
+export const createCommentSchema = z
+  .object({
+    content: z.string().min(5).max(500),
+    authorName: z.string().max(50).optional(),
+    parentId: z.string().optional(),
+  })
+  .strict();
+export class CreateCommentDto extends createZodDto(createCommentSchema) {}

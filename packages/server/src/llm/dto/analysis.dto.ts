@@ -1,69 +1,40 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, MaxLength, IsIn } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class FeedbackDto {
-  @ApiPropertyOptional({ description: 'LLM 프로바이더' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  provider?: string;
-}
+const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const;
 
-export class JobMatchDto {
-  @ApiProperty({ description: 'Job Description (3000자 이내)' })
-  @IsString()
-  @MaxLength(3000, { message: 'JD는 3000자 이내여야 합니다' })
-  jobDescription!: string;
-
-  @ApiPropertyOptional({ description: 'LLM 프로바이더' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  provider?: string;
-}
-
-export class InterviewDto {
-  @ApiPropertyOptional({ description: '직무 (200자 이내)' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(200, { message: '직무명은 200자 이내여야 합니다' })
-  jobRole?: string;
-
-  @ApiPropertyOptional({ description: '채용공고/JD (3000자 이내)' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(3000, { message: 'JD는 3000자 이내여야 합니다' })
-  jobDescription?: string;
-
-  @ApiPropertyOptional({ description: '난이도 (beginner/intermediate/advanced)' })
-  @IsOptional()
-  @IsString()
-  @IsIn(['beginner', 'intermediate', 'advanced'], {
-    message: '난이도는 beginner/intermediate/advanced 중 하나여야 합니다',
+export const feedbackSchema = z
+  .object({
+    provider: z.string().max(50).optional(),
   })
-  difficulty?: string;
+  .strict();
+export class FeedbackDto extends createZodDto(feedbackSchema) {}
 
-  @ApiPropertyOptional({ description: 'LLM 프로바이더' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  provider?: string;
-}
+export const jobMatchSchema = z
+  .object({
+    jobDescription: z.string().max(3000, 'JD는 3000자 이내여야 합니다'),
+    provider: z.string().max(50).optional(),
+  })
+  .strict();
+export class JobMatchDto extends createZodDto(jobMatchSchema) {}
 
-export class InlineAssistDto {
-  @ApiProperty({ description: '개선할 텍스트 (2000자 이내)' })
-  @IsString()
-  @MaxLength(2000, { message: '텍스트는 2000자 이내여야 합니다' })
-  text!: string;
+export const interviewSchema = z
+  .object({
+    jobRole: z.string().max(200, '직무명은 200자 이내여야 합니다').optional(),
+    jobDescription: z.string().max(3000, 'JD는 3000자 이내여야 합니다').optional(),
+    difficulty: z
+      .enum(DIFFICULTIES, { error: '난이도는 beginner/intermediate/advanced 중 하나여야 합니다' })
+      .optional(),
+    provider: z.string().max(50).optional(),
+  })
+  .strict();
+export class InterviewDto extends createZodDto(interviewSchema) {}
 
-  @ApiProperty({ description: '개선 유형' })
-  @IsString()
-  @MaxLength(50)
-  type!: string;
-
-  @ApiPropertyOptional({ description: 'LLM 프로바이더' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  provider?: string;
-}
+export const inlineAssistSchema = z
+  .object({
+    text: z.string().max(2000, '텍스트는 2000자 이내여야 합니다'),
+    type: z.string().max(50),
+    provider: z.string().max(50).optional(),
+  })
+  .strict();
+export class InlineAssistDto extends createZodDto(inlineAssistSchema) {}

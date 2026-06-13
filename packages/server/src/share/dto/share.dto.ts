@@ -1,22 +1,17 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsInt, Min } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class CreateShareLinkDto {
-  @ApiPropertyOptional({ description: '만료 시간 (시간 단위)' })
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  expiresInHours?: number;
+export const createShareLinkSchema = z
+  .object({
+    expiresInHours: z.number().int().min(1).optional(),
+    password: z.string().optional(),
+  })
+  .strict();
+export class CreateShareLinkDto extends createZodDto(createShareLinkSchema) {}
 
-  @ApiPropertyOptional({ description: '비밀번호' })
-  @IsOptional()
-  @IsString()
-  password?: string;
-}
-
-export class AccessShareDto {
-  @ApiPropertyOptional({ description: '비밀번호' })
-  @IsOptional()
-  @IsString()
-  password?: string;
-}
+export const accessShareSchema = z
+  .object({
+    password: z.string().optional(),
+  })
+  .strict();
+export class AccessShareDto extends createZodDto(accessShareSchema) {}

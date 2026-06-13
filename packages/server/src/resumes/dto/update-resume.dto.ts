@@ -1,4 +1,5 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateResumeDto } from './create-resume.dto';
+import { createZodDto } from 'nestjs-zod';
+import { createResumeSchema } from './create-resume.dto';
 
-export class UpdateResumeDto extends PartialType(CreateResumeDto) {}
+export const updateResumeSchema = createResumeSchema.partial();
+export class UpdateResumeDto extends createZodDto(updateResumeSchema) {}
