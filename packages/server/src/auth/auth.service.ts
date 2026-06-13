@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { hashPassword, verifyPassword } from './password';
 import { randomBytes, createHmac, timingSafeEqual } from 'crypto';
 
 interface OAuthProfile {
@@ -682,8 +683,7 @@ export class AuthService {
       throw new UnauthorizedException('이미 가입된 이메일입니다');
     }
 
-    const bcrypt = await import('bcryptjs');
-    const passwordHash = await bcrypt.hash(password, 12);
+    const passwordHash = await hashPassword(password);
 
     const user = await this.prisma.user.create({
       data: {
@@ -715,13 +715,11 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
 
     if (user.passwordHash) {
-      const bcrypt = await import('bcryptjs');
-      const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+      const valid = await verifyPassword(user.passwordHash, currentPassword);
       if (!valid) throw new UnauthorizedException('현재 비밀번호가 올바르지 않습니다');
     }
 
-    const bcrypt = await import('bcryptjs');
-    const passwordHash = await bcrypt.hash(newPassword, 12);
+    const passwordHash = await hashPassword(newPassword);
     await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
   }
 
@@ -896,8 +894,7 @@ export class AuthService {
       throw new UnauthorizedException('정지된 계정입니다. 관리자에게 문의하세요');
     }
 
-    const bcrypt = await import('bcryptjs');
-    const valid = await bcrypt.compare(password, user.passwordHash);
+    const valid = await verifyPassword(user.passwordHash, password);
     if (!valid) {
       throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다');
     }
