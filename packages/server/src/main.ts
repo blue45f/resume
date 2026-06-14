@@ -17,11 +17,17 @@ import { CacheHeaderInterceptor } from './common/interceptors/cache.interceptor'
 import { ETagInterceptor } from './common/interceptors/etag.interceptor'
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor'
 import { ZodValidationPipe } from './common/zod-validation.pipe'
+import { reportEnv } from './config/env'
 import { validateEnv, formatValidationReport } from './gcp/env-validation'
 import { GcpLoggerService } from './gcp/gcp-logger.service'
 
 async function bootstrap() {
   const isProd = process.env.NODE_ENV === 'production'
+
+  // --- Additive, NON-FATAL Zod env sanity check ---
+  // Observes env shape and flags known unsafe default secrets in production.
+  // Never throws or exits; complements the GCP validator below.
+  reportEnv(process.env, isProd)
 
   // --- Boot-time env validation (GCP/Cloud Run) ---
   // Validate before creating the app so misconfiguration fails fast with a
