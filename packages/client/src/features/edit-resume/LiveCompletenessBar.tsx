@@ -1,21 +1,24 @@
-import { useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { calculateCompleteness } from '@/lib/completeness';
-import { buildRoadmap } from './roadmap';
+import { useState } from 'react'
+
+import { buildRoadmap } from './roadmap'
+
+import type { Resume } from '@/types/resume'
+
+import { calculateCompleteness } from '@/lib/completeness'
 
 /** Enhanced live completeness + roadmap widget */
 export default function LiveCompletenessBar({ resume }: { resume: Partial<Resume> }) {
-  const [expanded, setExpanded] = useState(false);
-  if (!resume.personalInfo) return null;
-  const result = calculateCompleteness(resume as Resume);
-  const pct = result.percentage;
-  const roadmap = buildRoadmap(resume);
-  const pendingTasks = roadmap.filter((t) => !t.done);
-  const potentialGain = pendingTasks.reduce((s, t) => s + t.gain, 0);
+  const [expanded, setExpanded] = useState(false)
+  if (!resume.personalInfo) return null
+  const result = calculateCompleteness(resume as Resume)
+  const pct = result.percentage
+  const roadmap = buildRoadmap(resume)
+  const pendingTasks = roadmap.filter((t) => !t.done)
+  const potentialGain = pendingTasks.reduce((s, t) => s + t.gain, 0)
 
-  const color = pct >= 80 ? '#3b82f6' : pct >= 60 ? '#22c55e' : pct >= 40 ? '#f97316' : '#ef4444';
-  const label = pct >= 80 ? '우수' : pct >= 60 ? '양호' : pct >= 40 ? '보통' : '부족';
-  const grade = result.grade;
+  const color = pct >= 80 ? '#3b82f6' : pct >= 60 ? '#22c55e' : pct >= 40 ? '#f97316' : '#ef4444'
+  const label = pct >= 80 ? '우수' : pct >= 60 ? '양호' : pct >= 40 ? '보통' : '부족'
+  const grade = result.grade
 
   const gradeColors: Record<string, string> = {
     S: 'text-sky-600 bg-sky-50 border-sky-200 dark:bg-sky-900/20 dark:border-sky-800 dark:text-sky-400',
@@ -23,7 +26,7 @@ export default function LiveCompletenessBar({ resume }: { resume: Partial<Resume
     B: 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400',
     C: 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400',
     D: 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400',
-  };
+  }
 
   const sectionIcons: Record<string, string> = {
     summary: '✍️',
@@ -33,7 +36,7 @@ export default function LiveCompletenessBar({ resume }: { resume: Partial<Resume
     skills: '⚡',
     projects: '🚀',
     extras: '🏆',
-  };
+  }
 
   return (
     <div className="mb-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
@@ -155,5 +158,5 @@ export default function LiveCompletenessBar({ resume }: { resume: Partial<Resume
         </div>
       )}
     </div>
-  );
+  )
 }

@@ -1,9 +1,11 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { InterviewController } from './interview.controller';
-import { InterviewService } from './interview.service';
-import { PrismaModule } from '../prisma/prisma.module';
-import { LlmModule } from '../llm/llm.module';
-import { BillingModule } from '../billing/billing.module';
+import { Module, forwardRef } from '@nestjs/common'
+
+import { BillingModule } from '../billing/billing.module'
+import { LlmModule } from '../llm/llm.module'
+import { PrismaModule } from '../prisma/prisma.module'
+
+import { InterviewController } from './interview.controller'
+import { InterviewService } from './interview.service'
 
 @Module({
   imports: [PrismaModule, forwardRef(() => LlmModule), BillingModule],

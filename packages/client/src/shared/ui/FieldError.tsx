@@ -11,16 +11,16 @@
 /** 입력에 스프레드할 aria 속성. 에러가 있을 때만 invalid/describedby 를 켠다. */
 export function fieldAria(
   id: string,
-  error: unknown,
+  error: unknown
 ): {
-  'aria-invalid': true | undefined;
-  'aria-describedby': string | undefined;
+  'aria-invalid': true | undefined
+  'aria-describedby': string | undefined
 } {
-  const hasError = Boolean(error);
+  const hasError = Boolean(error)
   return {
     'aria-invalid': hasError || undefined,
     'aria-describedby': hasError ? `${id}-error` : undefined,
-  };
+  }
 }
 
 /** 에러 메시지 영역. id 는 입력의 aria-describedby 와 짝을 이룬다(`${id}-error`). */
@@ -29,16 +29,16 @@ function renderFieldError({
   message,
   className = 'text-xs text-red-500 mt-1',
 }: {
-  id: string;
-  message?: string;
-  className?: string;
+  id: string
+  message?: string
+  className?: string
 }) {
-  if (!message) return null;
+  if (!message) return null
   return (
     <p id={`${id}-error`} role="alert" className={className}>
       {message}
     </p>
-  );
+  )
 }
 
-export const FieldError = renderFieldError;
+export const FieldError = renderFieldError

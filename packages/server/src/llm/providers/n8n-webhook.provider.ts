@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { LlmProvider, LlmResponse, LlmStreamChunk } from '../llm-provider.interface';
+import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+
+import { LlmProvider, LlmResponse, LlmStreamChunk } from '../llm-provider.interface'
 
 /**
  * n8n Webhook Provider
@@ -16,57 +17,57 @@ import { LlmProvider, LlmResponse, LlmStreamChunk } from '../llm-provider.interf
  */
 @Injectable()
 export class N8nWebhookProvider implements LlmProvider {
-  readonly name = 'n8n';
-  private readonly webhookUrl: string | undefined;
-  private readonly logger = new Logger(N8nWebhookProvider.name);
+  readonly name = 'n8n'
+  private readonly webhookUrl: string | undefined
+  private readonly logger = new Logger(N8nWebhookProvider.name)
 
   constructor(private config: ConfigService) {
-    this.webhookUrl = this.config.get<string>('N8N_WEBHOOK_URL');
+    this.webhookUrl = this.config.get<string>('N8N_WEBHOOK_URL')
     if (this.webhookUrl) {
-      this.logger.log(`n8n provider initialized: ${this.webhookUrl}`);
+      this.logger.log(`n8n provider initialized: ${this.webhookUrl}`)
     }
   }
 
   get isAvailable(): boolean {
-    return !!this.webhookUrl;
+    return !!this.webhookUrl
   }
 
   async generate(systemPrompt: string, userMessage: string): Promise<LlmResponse> {
-    if (!this.webhookUrl) throw new Error('N8N_WEBHOOK_URL not configured');
+    if (!this.webhookUrl) throw new Error('N8N_WEBHOOK_URL not configured')
 
     const response = await fetch(this.webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ systemPrompt, userMessage }),
       signal: AbortSignal.timeout(60000),
-    });
+    })
 
     if (!response.ok) {
-      throw new Error(`n8n webhook failed: ${response.status} ${response.statusText}`);
+      throw new Error(`n8n webhook failed: ${response.status} ${response.statusText}`)
     }
 
-    const data = await response.json();
+    const data = await response.json()
 
     return {
       text: data.text || data.output || '',
       tokensUsed: data.tokensUsed || 0,
       model: data.model || 'n8n-workflow',
       provider: this.name,
-    };
+    }
   }
 
   async *generateStream(systemPrompt: string, userMessage: string): AsyncGenerator<LlmStreamChunk> {
     // n8n webhook은 기본적으로 스트리밍을 지원하지 않으므로
     // 전체 응답을 받은 후 청크로 나누어 전달
-    const result = await this.generate(systemPrompt, userMessage);
+    const result = await this.generate(systemPrompt, userMessage)
 
     // Simulate streaming by splitting into chunks
-    const chunkSize = 50;
+    const chunkSize = 50
     for (let i = 0; i < result.text.length; i += chunkSize) {
       yield {
         type: 'delta',
         text: result.text.slice(i, i + chunkSize),
-      };
+      }
     }
 
     yield {
@@ -74,6 +75,6 @@ export class N8nWebhookProvider implements LlmProvider {
       tokensUsed: result.tokensUsed,
       model: result.model,
       provider: this.name,
-    };
+    }
   }
 }

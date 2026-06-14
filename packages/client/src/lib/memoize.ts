@@ -3,12 +3,12 @@
  * 텍스트가 바뀌면 즉시 교체. 과거 값 버림. 메모리 누수 위험 없음.
  */
 export function memoizeByText<T>(fn: (text: string) => T): (text: string) => T {
-  let lastInput: string | null = null;
-  let lastOutput: T;
+  let lastInput: string | null = null
+  let lastOutput: T
   return (text: string): T => {
-    if (lastInput === text) return lastOutput;
-    lastInput = text;
-    lastOutput = fn(text);
-    return lastOutput;
-  };
+    if (lastInput === text) return lastOutput
+    lastInput = text
+    lastOutput = fn(text)
+    return lastOutput
+  }
 }

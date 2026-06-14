@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { checkResumeEducationCompleteness } from '@/lib/resumeEducationCompletenessChecker';
-import type { EducationField } from '@/lib/resumeEducationCompletenessChecker';
+import { useMemo } from 'react'
+
+import type { EducationField } from '@/lib/resumeEducationCompletenessChecker'
+
+import { checkResumeEducationCompleteness } from '@/lib/resumeEducationCompletenessChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const FIELD_LABEL: Record<EducationField, string> = {
@@ -12,7 +14,7 @@ const FIELD_LABEL: Record<EducationField, string> = {
   major: '전공',
   graduation_date: '졸업시기',
   gpa: '학점',
-};
+}
 
 const COMPLETENESS_LABEL: Record<string, string> = {
   complete: '완성',
@@ -20,17 +22,17 @@ const COMPLETENESS_LABEL: Record<string, string> = {
   partial: '부분',
   minimal: '미흡',
   absent: '없음',
-};
+}
 
-const ALL_FIELDS: EducationField[] = ['school', 'degree', 'major', 'graduation_date', 'gpa'];
+const ALL_FIELDS: EducationField[] = ['school', 'degree', 'major', 'graduation_date', 'gpa']
 
 export default function ResumeEducationCompletenessPanel({ text }: Props) {
-  const report = useMemo(() => checkResumeEducationCompleteness(text), [text]);
+  const report = useMemo(() => checkResumeEducationCompleteness(text), [text])
 
-  if (report.completeness === 'complete') return null;
-  if (text.trim().length < 20) return null;
+  if (report.completeness === 'complete') return null
+  if (text.trim().length < 20) return null
 
-  const isWarn = report.completeness === 'minimal' || report.completeness === 'absent';
+  const isWarn = report.completeness === 'minimal' || report.completeness === 'absent'
 
   return (
     <aside className={`edu-card${isWarn ? ' edu-card--warn' : ''}`} aria-label="학력 완성도 분석">
@@ -43,7 +45,7 @@ export default function ResumeEducationCompletenessPanel({ text }: Props) {
 
       <div className="edu-card__fields" aria-label="학력 항목 현황">
         {ALL_FIELDS.map((field) => {
-          const found = report.fields.find((f) => f.field === field)?.present ?? false;
+          const found = report.fields.find((f) => f.field === field)?.present ?? false
           return (
             <span
               key={field}
@@ -51,7 +53,7 @@ export default function ResumeEducationCompletenessPanel({ text }: Props) {
             >
               {FIELD_LABEL[field]}
             </span>
-          );
+          )
         })}
       </div>
 
@@ -67,5 +69,5 @@ export default function ResumeEducationCompletenessPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

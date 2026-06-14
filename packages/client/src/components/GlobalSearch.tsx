@@ -1,18 +1,19 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { API_URL } from '@/lib/config';
-import { tx } from '@/lib/i18n';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { API_URL } from '@/lib/config'
+import { tx } from '@/lib/i18n'
 
 interface SearchResult {
-  type: 'resume' | 'job' | 'community' | 'user';
-  id: string;
-  title: string;
-  subtitle?: string;
-  link: string;
+  type: 'resume' | 'job' | 'community' | 'user'
+  id: string
+  title: string
+  subtitle?: string
+  link: string
 }
 
-type PopularSkill = string | { skill?: string; name?: string };
+type PopularSkill = string | { skill?: string; name?: string }
 
 const TYPE_META: Record<string, { icon: string; label: string; color: string }> = {
   resume: {
@@ -35,7 +36,7 @@ const TYPE_META: Record<string, { icon: string; label: string; color: string }> 
     label: '사용자',
     color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
   },
-};
+}
 
 const QUICK_LINKS = [
   { label: '이력서 작성', link: '/resumes/new', icon: '✍️' },
@@ -44,46 +45,46 @@ const QUICK_LINKS = [
   { label: '면접 준비', link: '/interview-prep', icon: '🎤' },
   { label: '통계', link: '/stats', icon: '📊' },
   { label: '도움말', link: '/help', icon: '?' },
-];
+]
 
 export default function GlobalSearch({ onClose }: { onClose: () => void }) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<SearchResult[]>([])
+  const [loading, setLoading] = useState(false)
+  const [selectedIndex, setSelectedIndex] = useState(0)
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
-      return JSON.parse(localStorage.getItem('recent-searches') || '[]');
+      return JSON.parse(localStorage.getItem('recent-searches') || '[]')
     } catch {
-      return [];
+      return []
     }
-  });
-  const [trendingSkills, setTrendingSkills] = useState<string[]>([]);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
+  })
+  const [trendingSkills, setTrendingSkills] = useState<string[]>([])
+  const inputRef = useRef<HTMLInputElement>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetch(`${API_URL}/api/resumes/popular-skills`)
       .then((r) => (r.ok ? r.json() : []))
       .then((skills: unknown) => {
-        const items = Array.isArray(skills) ? (skills as PopularSkill[]) : [];
+        const items = Array.isArray(skills) ? (skills as PopularSkill[]) : []
         setTrendingSkills(
-          items.slice(0, 8).map((s) => (typeof s === 'string' ? s : s.skill || s.name || '')),
-        );
+          items.slice(0, 8).map((s) => (typeof s === 'string' ? s : s.skill || s.name || ''))
+        )
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {})
+  }, [])
 
   const search = useCallback(async (q: string) => {
     if (q.trim().length < 2) {
-      setResults([]);
-      return;
+      setResults([])
+      return
     }
-    setLoading(true);
+    setLoading(true)
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const token = localStorage.getItem('token')
+      const headers: Record<string, string> = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
 
       const [resumes, jobs, posts] = await Promise.all([
         fetch(`${API_URL}/api/resumes?search=${encodeURIComponent(q)}&limit=3&visibility=public`, {
@@ -97,9 +98,9 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
         fetch(`${API_URL}/api/community?search=${encodeURIComponent(q)}&limit=3`, { headers })
           .then((r) => (r.ok ? r.json() : { items: [] }))
           .catch(() => ({ items: [] })),
-      ]);
+      ])
 
-      const items: SearchResult[] = [];
+      const items: SearchResult[] = []
       for (const r of resumes.items || []) {
         items.push({
           type: 'resume',
@@ -107,7 +108,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
           title: r.personalInfo?.name ? `${r.personalInfo.name}의 이력서` : r.title || '이력서',
           subtitle: r.personalInfo?.email,
           link: `/resumes/${r.id}/preview`,
-        });
+        })
       }
       for (const j of jobs.items || []) {
         items.push({
@@ -116,7 +117,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
           title: j.position || j.title,
           subtitle: j.company,
           link: `/jobs`,
-        });
+        })
       }
       for (const p of posts.items || []) {
         items.push({
@@ -125,61 +126,61 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
           title: p.title,
           subtitle: p.user?.name,
           link: `/community/${p.id}`,
-        });
+        })
       }
-      setResults(items);
-      setSelectedIndex(0);
+      setResults(items)
+      setSelectedIndex(0)
     } catch {
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    const timer = setTimeout(() => search(query), 300);
-    return () => clearTimeout(timer);
-  }, [query, search]);
+    const timer = setTimeout(() => search(query), 300)
+    return () => clearTimeout(timer)
+  }, [query, search])
 
   const saveRecent = (q: string) => {
-    const updated = [q, ...recentSearches.filter((s) => s !== q)].slice(0, 5);
-    setRecentSearches(updated);
-    localStorage.setItem('recent-searches', JSON.stringify(updated));
-  };
+    const updated = [q, ...recentSearches.filter((s) => s !== q)].slice(0, 5)
+    setRecentSearches(updated)
+    localStorage.setItem('recent-searches', JSON.stringify(updated))
+  }
 
   const handleSelect = (link: string) => {
-    if (query.trim()) saveRecent(query.trim());
-    onClose();
-    navigate(link);
-  };
+    if (query.trim()) saveRecent(query.trim())
+    onClose()
+    navigate(link)
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    const items = results.length > 0 ? results : query ? [] : QUICK_LINKS;
+    const items = results.length > 0 ? results : query ? [] : QUICK_LINKS
     if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedIndex((i) => Math.min(i + 1, items.length - 1));
+      e.preventDefault()
+      setSelectedIndex((i) => Math.min(i + 1, items.length - 1))
     } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedIndex((i) => Math.max(i - 1, 0));
+      e.preventDefault()
+      setSelectedIndex((i) => Math.max(i - 1, 0))
     } else if (e.key === 'Enter') {
-      e.preventDefault();
+      e.preventDefault()
       if (results.length > 0 && results[selectedIndex]) {
-        handleSelect(results[selectedIndex].link);
+        handleSelect(results[selectedIndex].link)
       } else if (!query && QUICK_LINKS[selectedIndex]) {
-        handleSelect(QUICK_LINKS[selectedIndex].link);
+        handleSelect(QUICK_LINKS[selectedIndex].link)
       }
     }
-  };
+  }
 
   const clearRecent = () => {
-    setRecentSearches([]);
-    localStorage.removeItem('recent-searches');
-  };
+    setRecentSearches([])
+    localStorage.removeItem('recent-searches')
+  }
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -187,8 +188,8 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
         <RadixDialog.Content
           aria-describedby={undefined}
           onOpenAutoFocus={(e) => {
-            e.preventDefault();
-            inputRef.current?.focus();
+            e.preventDefault()
+            inputRef.current?.focus()
           }}
           className="fixed z-[101] top-[12vh] left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fade-in focus:outline-none max-h-[80dvh] flex flex-col"
           style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
@@ -232,7 +233,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
             {query.trim().length >= 2 && results.length > 0 ? (
               <div className="p-2">
                 {results.map((r, i) => {
-                  const meta = TYPE_META[r.type];
+                  const meta = TYPE_META[r.type]
                   return (
                     <button
                       key={`${r.type}-${r.id}`}
@@ -264,7 +265,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
                         {meta.label}
                       </span>
                     </button>
-                  );
+                  )
                 })}
               </div>
             ) : query.trim().length >= 2 && !loading ? (
@@ -384,5 +385,5 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

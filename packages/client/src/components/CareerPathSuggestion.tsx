@@ -1,53 +1,54 @@
-import { useState, useMemo, useCallback } from 'react';
-import type { Resume } from '@/types/resume';
+import { useState, useMemo, useCallback } from 'react'
+
+import type { Resume } from '@/types/resume'
 
 interface CareerPath {
-  title: string;
-  match: number;
-  requiredSkills: string[];
-  currentSkills: string[];
-  missingSkills: string[];
-  salaryRange: string;
-  salaryMin: number;
-  salaryMax: number;
-  timeline: string;
-  description: string;
+  title: string
+  match: number
+  requiredSkills: string[]
+  currentSkills: string[]
+  missingSkills: string[]
+  salaryRange: string
+  salaryMin: number
+  salaryMax: number
+  timeline: string
+  description: string
 }
 
 interface CareerNode {
-  title: string;
-  paths: CareerPath[];
+  title: string
+  paths: CareerPath[]
 }
 
 function analyzeCareerPaths(resume: Resume): CareerNode {
   const currentSkills = new Set(
-    resume.skills.flatMap((s) => s.items.split(',').map((i) => i.trim().toLowerCase())),
-  );
+    resume.skills.flatMap((s) => s.items.split(',').map((i) => i.trim().toLowerCase()))
+  )
   // Detect current role from most recent experience or skills
-  const lastExp = resume.experiences[0];
-  const positionLower = lastExp?.position?.toLowerCase() || '';
-  const allSkills = [...currentSkills].join(' ');
+  const lastExp = resume.experiences[0]
+  const positionLower = lastExp?.position?.toLowerCase() || ''
+  const allSkills = [...currentSkills].join(' ')
 
-  let currentTitle = '현재 포지션';
+  let currentTitle = '현재 포지션'
   if (lastExp?.position) {
-    currentTitle = lastExp.position;
+    currentTitle = lastExp.position
   } else if (/react|프론트|frontend/.test(allSkills)) {
-    currentTitle = '프론트엔드 개발자';
+    currentTitle = '프론트엔드 개발자'
   } else if (/node|backend|백엔드|nest|spring/.test(allSkills)) {
-    currentTitle = '백엔드 개발자';
+    currentTitle = '백엔드 개발자'
   } else if (/python|data|데이터/.test(allSkills)) {
-    currentTitle = '데이터 엔지니어';
+    currentTitle = '데이터 엔지니어'
   }
 
   const allPaths: {
-    title: string;
-    skills: string[];
-    salaryRange: string;
-    salaryMin: number;
-    salaryMax: number;
-    timeline: string;
-    description: string;
-    relevance: string[];
+    title: string
+    skills: string[]
+    salaryRange: string
+    salaryMin: number
+    salaryMax: number
+    timeline: string
+    description: string
+    relevance: string[]
   }[] = [
     {
       title: '시니어 프론트엔드 개발자',
@@ -129,21 +130,21 @@ function analyzeCareerPaths(resume: Resume): CareerNode {
       description: '기술 전략 총괄, 조직 관리, 기술 비전 및 문화 수립',
       relevance: ['architecture', 'lead', 'management', 'cto', 'strategy'],
     },
-  ];
+  ]
 
   const scoredPaths = allPaths
     .map((p) => {
-      const matched = p.skills.filter((s) => currentSkills.has(s));
-      const missing = p.skills.filter((s) => !currentSkills.has(s));
+      const matched = p.skills.filter((s) => currentSkills.has(s))
+      const missing = p.skills.filter((s) => !currentSkills.has(s))
       // Base match from skills
-      let matchScore = (matched.length / p.skills.length) * 100;
+      let matchScore = (matched.length / p.skills.length) * 100
       // Bonus from relevance keywords
       const relevanceBonus = p.relevance.some(
-        (r) => currentSkills.has(r) || positionLower.includes(r) || allSkills.includes(r),
+        (r) => currentSkills.has(r) || positionLower.includes(r) || allSkills.includes(r)
       )
         ? 15
-        : 0;
-      matchScore = Math.min(100, matchScore + relevanceBonus);
+        : 0
+      matchScore = Math.min(100, matchScore + relevanceBonus)
 
       return {
         title: p.title,
@@ -156,39 +157,39 @@ function analyzeCareerPaths(resume: Resume): CareerNode {
         salaryMax: p.salaryMax,
         timeline: p.timeline,
         description: p.description,
-      };
+      }
     })
     .filter((p) => p.match >= 15)
     .sort((a, b) => b.match - a.match)
-    .slice(0, 4);
+    .slice(0, 4)
 
-  return { title: currentTitle, paths: scoredPaths };
+  return { title: currentTitle, paths: scoredPaths }
 }
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 export default function CareerPathSuggestion({ resume }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [selectedPath, setSelectedPath] = useState<number | null>(null);
-  const [savedPaths, setSavedPaths] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState(false)
+  const [selectedPath, setSelectedPath] = useState<number | null>(null)
+  const [savedPaths, setSavedPaths] = useState<Set<string>>(new Set())
 
-  const { title: currentTitle, paths } = useMemo(() => analyzeCareerPaths(resume), [resume]);
+  const { title: currentTitle, paths } = useMemo(() => analyzeCareerPaths(resume), [resume])
 
   const handleSaveRoadmap = useCallback((pathTitle: string) => {
     setSavedPaths((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev)
       if (next.has(pathTitle)) {
-        next.delete(pathTitle);
+        next.delete(pathTitle)
       } else {
-        next.add(pathTitle);
+        next.add(pathTitle)
       }
-      return next;
-    });
-  }, []);
+      return next
+    })
+  }, [])
 
-  if (paths.length === 0) return null;
+  if (paths.length === 0) return null
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -224,8 +225,8 @@ export default function CareerPathSuggestion({ resume }: Props) {
             {/* Path arrows */}
             <div className="ml-1.5 border-l-2 border-dashed border-blue-300 dark:border-blue-700 pl-4 space-y-3">
               {paths.map((p, i) => {
-                const isSelected = selectedPath === i;
-                const isSaved = savedPaths.has(p.title);
+                const isSelected = selectedPath === i
+                const isSaved = savedPaths.has(p.title)
                 return (
                   <div key={p.title}>
                     <button
@@ -369,8 +370,8 @@ export default function CareerPathSuggestion({ resume }: Props) {
                         {/* Save roadmap button */}
                         <button
                           onClick={(e) => {
-                            e.stopPropagation();
-                            handleSaveRoadmap(p.title);
+                            e.stopPropagation()
+                            handleSaveRoadmap(p.title)
                           }}
                           className={`w-full py-1.5 text-xs font-medium rounded-lg border transition-colors ${
                             isSaved
@@ -383,7 +384,7 @@ export default function CareerPathSuggestion({ resume }: Props) {
                       </div>
                     )}
                   </div>
-                );
+                )
               })}
             </div>
           </div>
@@ -394,5 +395,5 @@ export default function CareerPathSuggestion({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { analyzeAtsCompatibility } from '@/lib/ats';
+import { useMemo, useState } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { analyzeAtsCompatibility } from '@/lib/ats'
 
 interface Props {
-  resume: Partial<Resume>;
+  resume: Partial<Resume>
 }
 
 const gradeStyles: Record<string, { bar: string; chip: string; label: string }> = {
@@ -32,23 +34,23 @@ const gradeStyles: Record<string, { bar: string; chip: string; label: string }> 
     chip: 'text-red-700 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400',
     label: '부족',
   },
-};
+}
 
 /**
  * 편집 중 실시간으로 ATS 호환성 점수·등급·주요 이슈 3건을 표시.
  * Preview 페이지의 AtsScorePanel 을 경량화한 버전 — 편집 동선에 최적화.
  */
 export default function LiveAtsBadge({ resume }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false)
   const result = useMemo(() => {
-    if (!resume.personalInfo) return null;
-    return analyzeAtsCompatibility(resume as Resume);
-  }, [resume]);
+    if (!resume.personalInfo) return null
+    return analyzeAtsCompatibility(resume as Resume)
+  }, [resume])
 
-  if (!result) return null;
+  if (!result) return null
 
-  const style = gradeStyles[result.grade] ?? gradeStyles.F;
-  const topIssues = result.issues.slice(0, 3);
+  const style = gradeStyles[result.grade] ?? gradeStyles.F
+  const topIssues = result.issues.slice(0, 3)
 
   return (
     <div className="mb-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
@@ -152,5 +154,5 @@ export default function LiveAtsBadge({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

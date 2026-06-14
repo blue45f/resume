@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { fetchCoffeeChats, respondCoffeeChat, cancelCoffeeChat, type CoffeeChat } from '@/lib/api';
-import { getUser } from '@/lib/auth';
-import { toast } from '@/components/Toast';
-import { timeAgo } from '@/lib/time';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
-type Tab = 'received' | 'sent';
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { toast } from '@/components/Toast'
+import { fetchCoffeeChats, respondCoffeeChat, cancelCoffeeChat, type CoffeeChat } from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { timeAgo } from '@/lib/time'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
+
+type Tab = 'received' | 'sent'
 
 const STATUS_BADGE: Record<CoffeeChat['status'], { label: string; cls: string }> = {
   pending: {
@@ -40,55 +41,55 @@ const STATUS_BADGE: Record<CoffeeChat['status'], { label: string; cls: string }>
     label: '노쇼',
     cls: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
   },
-};
+}
 
-const MODALITY_ICON = { video: '📹', voice: '🎙️', chat: '💬' };
+const MODALITY_ICON = { video: '📹', voice: '🎙️', chat: '💬' }
 
 export default function CoffeeChatsPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const me = getUser();
-  const [tab, setTab] = useState<Tab>('received');
-  const confirm = useConfirm();
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const me = getUser()
+  const [tab, setTab] = useState<Tab>('received')
+  const confirm = useConfirm()
 
   const chatsQuery = useQuery({
     queryKey: ['coffee-chats', tab],
     queryFn: () => fetchCoffeeChats(tab),
-  });
-  const chats = chatsQuery.data ?? [];
-  const loading = chatsQuery.isLoading;
+  })
+  const chats = chatsQuery.data ?? []
+  const loading = chatsQuery.isLoading
   const load = () => {
-    queryClient.invalidateQueries({ queryKey: ['coffee-chats'] });
-  };
+    queryClient.invalidateQueries({ queryKey: ['coffee-chats'] })
+  }
 
   useEffect(() => {
-    document.title = '커피챗 — 이력서공방';
+    document.title = '커피챗 — 이력서공방'
     return () => {
-      document.title = '이력서공방';
-    };
-  }, []);
+      document.title = '이력서공방'
+    }
+  }, [])
 
   const handleRespond = async (id: string, decision: 'accepted' | 'rejected') => {
     try {
-      await respondCoffeeChat(id, decision);
-      toast(decision === 'accepted' ? '수락했습니다' : '거절했습니다', 'success');
-      load();
+      await respondCoffeeChat(id, decision)
+      toast(decision === 'accepted' ? '수락했습니다' : '거절했습니다', 'success')
+      load()
     } catch (e) {
-      toast(e instanceof Error ? e.message : '실패', 'error');
+      toast(e instanceof Error ? e.message : '실패', 'error')
     }
-  };
+  }
 
   const handleCancel = async (id: string) => {
     if (!(await confirm({ title: '이 신청을 취소할까요?', danger: true, confirmText: '취소' })))
-      return;
+      return
     try {
-      await cancelCoffeeChat(id);
-      toast('취소했습니다', 'success');
-      load();
+      await cancelCoffeeChat(id)
+      toast('취소했습니다', 'success')
+      load()
     } catch (e) {
-      toast(e instanceof Error ? e.message : '실패', 'error');
+      toast(e instanceof Error ? e.message : '실패', 'error')
     }
-  };
+  }
 
   return (
     <>
@@ -137,9 +138,9 @@ export default function CoffeeChatsPage() {
         ) : (
           <div className="space-y-3">
             {chats.map((c) => {
-              const counterpart = tab === 'received' ? c.requester : c.host;
-              const badge = STATUS_BADGE[c.status];
-              const isHost = c.hostId === me?.id;
+              const counterpart = tab === 'received' ? c.requester : c.host
+              const badge = STATUS_BADGE[c.status]
+              const isHost = c.hostId === me?.id
               return (
                 <div key={c.id} className="imp-card p-4">
                   <div className="flex items-start justify-between gap-3">
@@ -213,12 +214,12 @@ export default function CoffeeChatsPage() {
                     )}
                   </div>
                 </div>
-              );
+              )
             })}
           </div>
         )}
       </main>
       <Footer />
     </>
-  );
+  )
 }

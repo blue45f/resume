@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import type { Resume } from '@/types/resume';
+import { useState } from 'react'
+
+import type { Resume } from '@/types/resume'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 function extractKeywords(text: string): Map<string, number> {
@@ -10,7 +11,7 @@ function extractKeywords(text: string): Map<string, number> {
     .replace(/<[^>]*>/g, '')
     .toLowerCase()
     .split(/[\s,./·|()[\]{}]+/)
-    .filter((w) => w.length >= 2);
+    .filter((w) => w.length >= 2)
 
   const stopWords = new Set([
     'the',
@@ -30,39 +31,39 @@ function extractKeywords(text: string): Map<string, number> {
     '대한',
     '통해',
     '기반',
-  ]);
-  const counts = new Map<string, number>();
+  ])
+  const counts = new Map<string, number>()
 
   for (const word of words) {
-    if (stopWords.has(word) || /^\d+$/.test(word)) continue;
-    counts.set(word, (counts.get(word) || 0) + 1);
+    if (stopWords.has(word) || /^\d+$/.test(word)) continue
+    counts.set(word, (counts.get(word) || 0) + 1)
   }
 
-  return counts;
+  return counts
 }
 
 export default function KeywordAnalysis({ resume }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [jd, setJd] = useState('');
-  const [showJd, setShowJd] = useState(false);
+  const [expanded, setExpanded] = useState(false)
+  const [jd, setJd] = useState('')
+  const [showJd, setShowJd] = useState(false)
 
-  const allText = JSON.stringify(resume);
-  const keywords = extractKeywords(allText);
-  const sorted = [...keywords.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20);
+  const allText = JSON.stringify(resume)
+  const keywords = extractKeywords(allText)
+  const sorted = [...keywords.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20)
 
-  const jdKeywords = jd ? extractKeywords(jd) : null;
+  const jdKeywords = jd ? extractKeywords(jd) : null
   const matchedKeys = jdKeywords
     ? [...jdKeywords.entries()]
         .filter(([k]) => keywords.has(k))
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-    : [];
+    : []
   const missingKeys = jdKeywords
     ? [...jdKeywords.entries()]
         .filter(([k]) => !keywords.has(k) && k.length >= 3)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-    : [];
+    : []
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -159,5 +160,5 @@ export default function KeywordAnalysis({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

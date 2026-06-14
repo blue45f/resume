@@ -9,17 +9,20 @@ import {
   Res,
   UnauthorizedException,
   ForbiddenException,
-} from '@nestjs/common';
-import { Response } from 'express';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { ConfigService } from '@nestjs/config';
-import { Public } from '../auth/auth.guard';
-import { CacheTTL } from '../common/interceptors/cache.interceptor';
-import { PrismaService } from '../prisma/prisma.service';
-import { AdminStatsService } from './admin-stats.service';
-import { UsageService } from './usage.service';
-import { evaluateReadiness } from '../gcp/readiness';
-import type { AuthenticatedRequest } from '../common/request.types';
+} from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { ApiTags, ApiOperation } from '@nestjs/swagger'
+import { Response } from 'express'
+
+import { Public } from '../auth/auth.guard'
+import { CacheTTL } from '../common/interceptors/cache.interceptor'
+import { evaluateReadiness } from '../gcp/readiness'
+import { PrismaService } from '../prisma/prisma.service'
+
+import { AdminStatsService } from './admin-stats.service'
+import { UsageService } from './usage.service'
+
+import type { AuthenticatedRequest } from '../common/request.types'
 
 // LLM provider env keys — readiness considers AI "available" if any is set.
 const LLM_PROVIDER_KEYS = [
@@ -28,7 +31,7 @@ const LLM_PROVIDER_KEYS = [
   'ANTHROPIC_API_KEY',
   'OPENAI_COMPATIBLE_URL',
   'N8N_WEBHOOK_URL',
-];
+]
 
 // swc(dev)와 tsc(build)의 dist 레이아웃이 달라 package.json 상대 경로가 바뀐다.
 // 후보 경로를 순서대로 시도하고 실패 시 env로 폴백한다.
@@ -36,14 +39,14 @@ function loadPkg(): { version?: string } {
   for (const candidate of ['../../package.json', '../../../package.json']) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      return require(candidate);
+      return require(candidate)
     } catch {
       // 다음 후보 경로 시도
     }
   }
-  return { version: process.env.npm_package_version };
+  return { version: process.env.npm_package_version }
 }
-const pkg = loadPkg();
+const pkg = loadPkg()
 
 @ApiTags('health')
 @Controller('health')
@@ -52,7 +55,7 @@ export class HealthController {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
     private readonly statsService: AdminStatsService,
-    private readonly usageService: UsageService,
+    private readonly usageService: UsageService
   ) {}
 
   /** Lightweight health check for uptime monitoring / load balancers */
@@ -67,7 +70,7 @@ export class HealthController {
       version: pkg.version as string,
       uptime: Math.floor(process.uptime()),
       env: process.env.NODE_ENV || 'development',
-    };
+    }
   }
 
   /**
@@ -79,7 +82,7 @@ export class HealthController {
   @CacheTTL(10)
   @ApiOperation({ summary: 'Cloud Run liveness 별칭 (DB 미접근)' })
   live() {
-    return this.ping();
+    return this.ping()
   }
 
   /**
@@ -92,23 +95,23 @@ export class HealthController {
   @Public()
   @ApiOperation({ summary: 'Cloud Run 준비성 체크 (DB ping + LLM provider)' })
   async ready(@Res({ passthrough: true }) res: Response) {
-    let database: boolean;
+    let database: boolean
     try {
-      await this.prisma.$queryRaw`SELECT 1`;
-      database = true;
+      await this.prisma.$queryRaw`SELECT 1`
+      database = true
     } catch {
-      database = false;
+      database = false
     }
 
-    const llm = LLM_PROVIDER_KEYS.some((k) => !!this.config.get(k));
-    const verdict = evaluateReadiness({ database, llm });
+    const llm = LLM_PROVIDER_KEYS.some((k) => !!this.config.get(k))
+    const verdict = evaluateReadiness({ database, llm })
 
-    res.status(verdict.httpStatus);
+    res.status(verdict.httpStatus)
     return {
       status: verdict.status,
       timestamp: new Date().toISOString(),
       checks: verdict.checks,
-    };
+    }
   }
 
   /** Detailed health check including DB, memory, providers */
@@ -117,28 +120,28 @@ export class HealthController {
   @CacheTTL(10)
   @ApiOperation({ summary: '서버 상태 상세 확인' })
   async check() {
-    let dbStatus = 'ok';
-    let resumeCount = 0;
-    let userCount = 0;
+    let dbStatus = 'ok'
+    let resumeCount = 0
+    let userCount = 0
     try {
-      await this.prisma.$queryRaw`SELECT 1`;
-      [resumeCount, userCount] = await Promise.all([
+      await this.prisma.$queryRaw`SELECT 1`
+      ;[resumeCount, userCount] = await Promise.all([
         this.prisma.resume.count(),
         this.prisma.user.count(),
-      ]);
+      ])
     } catch {
-      dbStatus = 'error';
+      dbStatus = 'error'
     }
 
     const providers = {
       google: !!this.config.get('GOOGLE_CLIENT_ID'),
       github: !!this.config.get('GITHUB_CLIENT_ID'),
       kakao: !!this.config.get('KAKAO_CLIENT_ID'),
-    };
+    }
 
     const cloudinaryConfigured = !!(
       process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY
-    );
+    )
 
     return {
       status: dbStatus === 'ok' ? 'ok' : 'degraded',
@@ -154,14 +157,14 @@ export class HealthController {
       },
       stats: { resumes: resumeCount, users: userCount },
       providers,
-    };
+    }
   }
 
   @Get('usage')
   @ApiOperation({ summary: '내 사용량 조회' })
   async getUsage(@Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
-    return this.usageService.getUsage(req.user.id);
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다')
+    return this.usageService.getUsage(req.user.id)
   }
 
   /** Public site-wide counters for landing page / footer (no sensitive data) */
@@ -180,18 +183,18 @@ export class HealthController {
         this.prisma.communityPost.count(),
         this.prisma.communityComment.count(),
         this.prisma.curatedJob.count({ where: { status: 'active' } }).catch(() => 0),
-      ]);
+      ])
 
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const weekStart = new Date(todayStart);
-    weekStart.setDate(weekStart.getDate() - 7);
+    const todayStart = new Date()
+    todayStart.setHours(0, 0, 0, 0)
+    const weekStart = new Date(todayStart)
+    weekStart.setDate(weekStart.getDate() - 7)
 
     const [todayUsers, weekUsers, todayResumes] = await Promise.all([
       this.prisma.user.count({ where: { createdAt: { gte: todayStart } } }),
       this.prisma.user.count({ where: { createdAt: { gte: weekStart } } }),
       this.prisma.resume.count({ where: { createdAt: { gte: todayStart } } }),
-    ]);
+    ])
 
     return {
       users: { total: users, today: todayUsers, thisWeek: weekUsers },
@@ -200,7 +203,7 @@ export class HealthController {
       content: { templates },
       community: { posts: communityPosts, comments },
       jobs: { active: jobs },
-    };
+    }
   }
 
   /** Full admin stats -- requires admin role */
@@ -208,17 +211,17 @@ export class HealthController {
   @CacheTTL(30)
   @ApiOperation({ summary: '관리자 통계 (사이트 전체)' })
   async adminStats(@Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다')
     if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
-      throw new ForbiddenException('관리자 권한이 필요합니다');
+      throw new ForbiddenException('관리자 권한이 필요합니다')
     }
-    return this.statsService.getStats();
+    return this.statsService.getStats()
   }
 
   private newsCache: {
-    items: Array<{ title: string; url: string; source: string; pubDate: string }>;
-    time: number;
-  } | null = null;
+    items: Array<{ title: string; url: string; source: string; pubDate: string }>
+    time: number
+  } | null = null
 
   @Get('news-rss')
   @Public()
@@ -226,32 +229,32 @@ export class HealthController {
   @ApiOperation({ summary: '채용 뉴스 (JSON, 10분 캐시)' })
   async newsRss() {
     if (this.newsCache && Date.now() - this.newsCache.time < 10 * 60_000) {
-      return this.newsCache.items;
+      return this.newsCache.items
     }
     try {
       const rssUrl =
-        'https://news.google.com/rss/search?q=%EC%B1%84%EC%9A%A9+%EC%B7%A8%EC%97%85+%EC%9D%B4%EB%A0%A5%EC%84%9C&hl=ko&gl=KR&ceid=KR:ko';
+        'https://news.google.com/rss/search?q=%EC%B1%84%EC%9A%A9+%EC%B7%A8%EC%97%85+%EC%9D%B4%EB%A0%A5%EC%84%9C&hl=ko&gl=KR&ceid=KR:ko'
       const r = await fetch(rssUrl, {
         headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ResumeBot/1.0)' },
         signal: AbortSignal.timeout(10000),
-      });
-      const xml = await r.text();
-      const items: { title: string; url: string; source: string; pubDate: string }[] = [];
+      })
+      const xml = await r.text()
+      const items: { title: string; url: string; source: string; pubDate: string }[] = []
       const regex =
-        /<item>[\s\S]*?<title>([\s\S]*?)<\/title>[\s\S]*?<link>([\s\S]*?)<\/link>[\s\S]*?<pubDate>([\s\S]*?)<\/pubDate>[\s\S]*?<source[^>]*>([\s\S]*?)<\/source>[\s\S]*?<\/item>/g;
-      let match;
+        /<item>[\s\S]*?<title>([\s\S]*?)<\/title>[\s\S]*?<link>([\s\S]*?)<\/link>[\s\S]*?<pubDate>([\s\S]*?)<\/pubDate>[\s\S]*?<source[^>]*>([\s\S]*?)<\/source>[\s\S]*?<\/item>/g
+      let match
       while ((match = regex.exec(xml)) && items.length < 10) {
         items.push({
           title: match[1].trim(),
           url: match[2].trim(),
           source: match[4].trim(),
           pubDate: match[3].trim(),
-        });
+        })
       }
-      this.newsCache = { items, time: Date.now() };
-      return items;
+      this.newsCache = { items, time: Date.now() }
+      return items
     } catch {
-      return this.newsCache?.items || [];
+      return this.newsCache?.items || []
     }
   }
 
@@ -261,24 +264,24 @@ export class HealthController {
   @ApiOperation({ summary: '공지 배너 조회' })
   async getAnnouncement() {
     try {
-      const config = await this.prisma.systemConfig.findFirst({ where: { key: 'announcement' } });
-      if (config?.value) return JSON.parse(config.value);
+      const config = await this.prisma.systemConfig.findFirst({ where: { key: 'announcement' } })
+      if (config?.value) return JSON.parse(config.value)
     } catch {}
-    return null;
+    return null
   }
 
   @Get('drafts/:type')
   @ApiOperation({ summary: '임시저장 조회' })
   async getDraft(@Param('type') type: string, @Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) throw new UnauthorizedException();
+    if (!req.user?.id) throw new UnauthorizedException()
     const draft = await this.prisma.draft.findUnique({
       where: { userId_type: { userId: req.user.id, type } },
-    });
-    if (!draft) return null;
+    })
+    if (!draft) return null
     try {
-      return JSON.parse(draft.content);
+      return JSON.parse(draft.content)
     } catch {
-      return draft.content;
+      return draft.content
     }
   }
 
@@ -287,24 +290,24 @@ export class HealthController {
   async saveDraft(
     @Param('type') type: string,
     @Body() body: unknown,
-    @Req() req: AuthenticatedRequest,
+    @Req() req: AuthenticatedRequest
   ) {
-    if (!req.user?.id) throw new UnauthorizedException();
-    const content = JSON.stringify(body);
+    if (!req.user?.id) throw new UnauthorizedException()
+    const content = JSON.stringify(body)
     await this.prisma.draft.upsert({
       where: { userId_type: { userId: req.user.id, type } },
       update: { content },
       create: { userId: req.user.id, type, content },
-    });
-    return { success: true };
+    })
+    return { success: true }
   }
 
   @Delete('drafts/:type')
   @ApiOperation({ summary: '임시저장 삭제' })
   async deleteDraft(@Param('type') type: string, @Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) throw new UnauthorizedException();
-    await this.prisma.draft.deleteMany({ where: { userId: req.user.id, type } });
-    return { success: true };
+    if (!req.user?.id) throw new UnauthorizedException()
+    await this.prisma.draft.deleteMany({ where: { userId: req.user.id, type } })
+    return { success: true }
   }
 
   /** Dynamic XML sitemap including public resumes, community posts */
@@ -313,8 +316,8 @@ export class HealthController {
   @CacheTTL(3600)
   @ApiOperation({ summary: '동적 XML 사이트맵' })
   async sitemapXml(@Res() res: Response) {
-    const BASE = process.env.FRONTEND_URL || 'https://resume-gongbang.vercel.app';
-    const now = new Date().toISOString().split('T')[0];
+    const BASE = process.env.FRONTEND_URL || 'https://resume-gongbang.vercel.app'
+    const now = new Date().toISOString().split('T')[0]
 
     const [publicResumes, communityPosts] = await Promise.all([
       this.prisma.resume.findMany({
@@ -334,23 +337,23 @@ export class HealthController {
         orderBy: { updatedAt: 'desc' },
         take: 500,
       }),
-    ]);
+    ])
 
     // Build user lookup for slug URLs
-    const userIds = [...new Set(publicResumes.map((r) => r.userId).filter(Boolean) as string[])];
+    const userIds = [...new Set(publicResumes.map((r) => r.userId).filter(Boolean) as string[])]
     const users = userIds.length
       ? await this.prisma.user.findMany({
           where: { id: { in: userIds } },
           select: { id: true, username: true },
         })
-      : [];
-    const userMap = new Map(users.map((u) => [u.id, u.username]));
+      : []
+    const userMap = new Map(users.map((u) => [u.id, u.username]))
 
     const staticUrls: Array<{
-      loc: string;
-      priority: string;
-      changefreq: string;
-      lastmod?: string;
+      loc: string
+      priority: string
+      changefreq: string
+      lastmod?: string
     }> = [
       { loc: `${BASE}/`, priority: '1.0', changefreq: 'daily' },
       { loc: `${BASE}/explore`, priority: '0.9', changefreq: 'daily' },
@@ -370,7 +373,7 @@ export class HealthController {
       { loc: `${BASE}/help`, priority: '0.5', changefreq: 'monthly' },
       { loc: `${BASE}/feedback`, priority: '0.4', changefreq: 'monthly' },
       { loc: `${BASE}/terms`, priority: '0.3', changefreq: 'monthly' },
-    ];
+    ]
 
     const resumeUrls = publicResumes
       .filter((r) => r.slug && r.userId && userMap.get(r.userId))
@@ -379,25 +382,25 @@ export class HealthController {
         priority: '0.7',
         changefreq: 'weekly',
         lastmod: r.updatedAt.toISOString().split('T')[0],
-      }));
+      }))
 
     const communityUrls = communityPosts.map((p) => ({
       loc: `${BASE}/community/${p.id}`,
       priority: '0.5',
       changefreq: 'weekly',
       lastmod: p.updatedAt.toISOString().split('T')[0],
-    }));
+    }))
 
-    const allUrls = [...staticUrls, ...resumeUrls, ...communityUrls];
+    const allUrls = [...staticUrls, ...resumeUrls, ...communityUrls]
     const urlsXml = allUrls
       .map(
         (u) =>
-          `  <url><loc>${u.loc}</loc>${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : `<lastmod>${now}</lastmod>`}<changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`,
+          `  <url><loc>${u.loc}</loc>${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : `<lastmod>${now}</lastmod>`}<changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`
       )
-      .join('\n');
+      .join('\n')
 
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urlsXml}\n</urlset>`;
-    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    res.send(xml);
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urlsXml}\n</urlset>`
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8')
+    res.send(xml)
   }
 }

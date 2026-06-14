@@ -10,36 +10,36 @@ export type VagueCultureType =
   | 'vague_culture' // "자유로운 분위기", "좋은 문화"
   | 'ambiguous_growth' // "함께 성장", "발전 기회"
   | 'buzzword_diversity' // "다양성", "포용성" 단독 사용
-  | 'empty_values'; // "정직", "신뢰", "혁신" 단독 나열
+  | 'empty_values' // "정직", "신뢰", "혁신" 단독 나열
 
 export type ConcreteCultureType =
   | 'process_evidence' // 코드 리뷰, 스프린트, 회고 등 실제 프로세스
   | 'measurable_benefit' // 구체적 수치가 있는 복지/제도
   | 'transparency_action' // 공개 OKR, 전직원 미팅, 의사결정 참여
   | 'employee_voice' // 직원 피드백 제도, 설문, 1on1
-  | 'diversity_action'; // 다양성 프로그램 구체적 설명
+  | 'diversity_action' // 다양성 프로그램 구체적 설명
 
 export interface VagueCultureSignal {
-  type: VagueCultureType;
-  excerpt: string;
+  type: VagueCultureType
+  excerpt: string
 }
 
 export interface ConcreteCultureSignal {
-  type: ConcreteCultureType;
-  excerpt: string;
+  type: ConcreteCultureType
+  excerpt: string
 }
 
-export type CultureClarity = 'concrete' | 'mixed' | 'vague' | 'none';
+export type CultureClarity = 'concrete' | 'mixed' | 'vague' | 'none'
 
 export interface JdCultureVaguenessReport {
-  vagueSignals: VagueCultureSignal[];
-  concreteSignals: ConcreteCultureSignal[];
-  vagueCount: number;
-  concreteCount: number;
-  clarity: CultureClarity;
-  riskLevel: 'high' | 'medium' | 'low' | 'none';
-  summary: string;
-  interviewQuestions: string[];
+  vagueSignals: VagueCultureSignal[]
+  concreteSignals: ConcreteCultureSignal[]
+  vagueCount: number
+  concreteCount: number
+  clarity: CultureClarity
+  riskLevel: 'high' | 'medium' | 'low' | 'none'
+  summary: string
+  interviewQuestions: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -47,8 +47,8 @@ export interface JdCultureVaguenessReport {
 // ---------------------------------------------------------------------------
 
 interface VaguePattern {
-  re: RegExp;
-  type: VagueCultureType;
+  re: RegExp
+  type: VagueCultureType
 }
 
 const VAGUE_PATTERNS: VaguePattern[] = [
@@ -97,15 +97,15 @@ const VAGUE_PATTERNS: VaguePattern[] = [
     re: /(?:핵심\s*가치|코어\s*밸류)\s*[:：]\s*(?:[가-힣A-Za-z]+[,·]\s*){2,}(?:[가-힣A-Za-z]+)(?!\s*(?:란|은|이란|입니다))/,
     type: 'empty_values',
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Concrete culture evidence patterns
 // ---------------------------------------------------------------------------
 
 interface ConcretePattern {
-  re: RegExp;
-  type: ConcreteCultureType;
+  re: RegExp
+  type: ConcreteCultureType
 }
 
 const CONCRETE_PATTERNS: ConcretePattern[] = [
@@ -166,62 +166,62 @@ const CONCRETE_PATTERNS: ConcretePattern[] = [
     re: /(?:장애인\s*고용|다문화\s*구성원|외국인\s*팀원\s*[0-9]+%)/,
     type: 'diversity_action',
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function detectJdCultureVagueness(text: string): JdCultureVaguenessReport {
-  const t = text ?? '';
-  const vagueSignals: VagueCultureSignal[] = [];
-  const concreteSignals: ConcreteCultureSignal[] = [];
+  const t = text ?? ''
+  const vagueSignals: VagueCultureSignal[] = []
+  const concreteSignals: ConcreteCultureSignal[] = []
 
   for (const { re, type } of VAGUE_PATTERNS) {
-    const m = t.match(re);
-    if (m) vagueSignals.push({ type, excerpt: m[0].slice(0, 60) });
+    const m = t.match(re)
+    if (m) vagueSignals.push({ type, excerpt: m[0].slice(0, 60) })
   }
 
   for (const { re, type } of CONCRETE_PATTERNS) {
-    const m = t.match(re);
-    if (m) concreteSignals.push({ type, excerpt: m[0].slice(0, 60) });
+    const m = t.match(re)
+    if (m) concreteSignals.push({ type, excerpt: m[0].slice(0, 60) })
   }
 
-  const vagueCount = vagueSignals.length;
-  const concreteCount = concreteSignals.length;
+  const vagueCount = vagueSignals.length
+  const concreteCount = concreteSignals.length
 
-  let clarity: CultureClarity;
-  if (concreteCount >= 3 && vagueCount <= 1) clarity = 'concrete';
-  else if (concreteCount >= 1 && vagueCount <= 3) clarity = 'mixed';
-  else if (vagueCount >= 2) clarity = 'vague';
-  else clarity = 'none';
+  let clarity: CultureClarity
+  if (concreteCount >= 3 && vagueCount <= 1) clarity = 'concrete'
+  else if (concreteCount >= 1 && vagueCount <= 3) clarity = 'mixed'
+  else if (vagueCount >= 2) clarity = 'vague'
+  else clarity = 'none'
 
-  let riskLevel: JdCultureVaguenessReport['riskLevel'];
-  if (vagueCount >= 4 && concreteCount === 0) riskLevel = 'high';
-  else if (vagueCount >= 2 && concreteCount <= 1) riskLevel = 'medium';
-  else if (vagueCount >= 1) riskLevel = 'low';
-  else riskLevel = 'none';
+  let riskLevel: JdCultureVaguenessReport['riskLevel']
+  if (vagueCount >= 4 && concreteCount === 0) riskLevel = 'high'
+  else if (vagueCount >= 2 && concreteCount <= 1) riskLevel = 'medium'
+  else if (vagueCount >= 1) riskLevel = 'low'
+  else riskLevel = 'none'
 
-  let summary: string;
+  let summary: string
   if (clarity === 'concrete') {
-    summary = '구체적인 문화 증거가 풍부합니다. 실제 프로세스·제도가 명시되어 있습니다.';
+    summary = '구체적인 문화 증거가 풍부합니다. 실제 프로세스·제도가 명시되어 있습니다.'
   } else if (clarity === 'mixed') {
     summary =
-      '일부 구체적 내용이 있으나 추상적 표현도 섞여 있습니다. 면접에서 실제 근거를 확인하세요.';
+      '일부 구체적 내용이 있으나 추상적 표현도 섞여 있습니다. 면접에서 실제 근거를 확인하세요.'
   } else if (clarity === 'vague') {
     summary =
-      '추상적인 문화 표현이 많습니다. 실제 프로세스·제도가 거의 언급되지 않아 입사 전 확인이 필요합니다.';
+      '추상적인 문화 표현이 많습니다. 실제 프로세스·제도가 거의 언급되지 않아 입사 전 확인이 필요합니다.'
   } else {
-    summary = '문화 관련 내용이 거의 없습니다.';
+    summary = '문화 관련 내용이 거의 없습니다.'
   }
 
-  const interviewQuestions: string[] = [];
+  const interviewQuestions: string[] = []
   if (vagueCount >= 1) {
-    interviewQuestions.push('코드 리뷰나 회고 등 실제 개발 프로세스가 어떻게 운영되나요?');
-    interviewQuestions.push('팀 문화를 구체적으로 보여주는 최근 사례가 있나요?');
+    interviewQuestions.push('코드 리뷰나 회고 등 실제 개발 프로세스가 어떻게 운영되나요?')
+    interviewQuestions.push('팀 문화를 구체적으로 보여주는 최근 사례가 있나요?')
   }
   if (concreteCount === 0) {
-    interviewQuestions.push('직원 만족도나 퇴사율이 어떻게 되나요?');
+    interviewQuestions.push('직원 만족도나 퇴사율이 어떻게 되나요?')
   }
 
   return {
@@ -233,5 +233,5 @@ export function detectJdCultureVagueness(text: string): JdCultureVaguenessReport
     riskLevel,
     summary,
     interviewQuestions,
-  };
+  }
 }

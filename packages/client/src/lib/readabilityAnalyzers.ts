@@ -9,13 +9,13 @@
  */
 
 export interface ReadabilityAnalysis {
-  sentenceCount: number;
-  avgSentenceLength: number;
-  maxSentenceLength: number;
-  avgWordLength: number;
-  readabilityScore: number; // 0~100, 높을수록 읽기 편함
-  level: 'easy' | 'ok' | 'hard';
-  suggestion: string;
+  sentenceCount: number
+  avgSentenceLength: number
+  maxSentenceLength: number
+  avgWordLength: number
+  readabilityScore: number // 0~100, 높을수록 읽기 편함
+  level: 'easy' | 'ok' | 'hard'
+  suggestion: string
 }
 
 /**
@@ -23,7 +23,7 @@ export interface ReadabilityAnalysis {
  * 이력서·자소서에 적정: 평균 35~60자, 단어 3자 이내.
  */
 export function analyzeReadability(text: string): ReadabilityAnalysis {
-  const clean = (text ?? '').replace(/\s+/g, ' ').trim();
+  const clean = (text ?? '').replace(/\s+/g, ' ').trim()
   if (!clean) {
     return {
       sentenceCount: 0,
@@ -33,32 +33,32 @@ export function analyzeReadability(text: string): ReadabilityAnalysis {
       readabilityScore: 0,
       level: 'ok',
       suggestion: '분석할 본문이 없습니다.',
-    };
+    }
   }
-  const sentences = clean.split(/[.!?。]+/).filter((s) => s.trim().length > 0);
-  const sentenceLens = sentences.map((s) => s.trim().length);
-  const sentenceCount = sentenceLens.length || 1;
-  const avgSentenceLength = Math.round(sentenceLens.reduce((a, b) => a + b, 0) / sentenceCount);
-  const maxSentenceLength = sentenceLens.reduce((a, b) => (b > a ? b : a), 0);
-  const words = clean.match(/[가-힣A-Za-z0-9]+/g) ?? [];
+  const sentences = clean.split(/[.!?。]+/).filter((s) => s.trim().length > 0)
+  const sentenceLens = sentences.map((s) => s.trim().length)
+  const sentenceCount = sentenceLens.length || 1
+  const avgSentenceLength = Math.round(sentenceLens.reduce((a, b) => a + b, 0) / sentenceCount)
+  const maxSentenceLength = sentenceLens.reduce((a, b) => (b > a ? b : a), 0)
+  const words = clean.match(/[가-힣A-Za-z0-9]+/g) ?? []
   const avgWordLength = words.length
     ? Math.round((words.reduce((a, w) => a + w.length, 0) / words.length) * 10) / 10
-    : 0;
-  let score = 100;
-  if (avgSentenceLength > 80) score -= 35;
-  else if (avgSentenceLength > 60) score -= 20;
-  else if (avgSentenceLength > 45) score -= 10;
-  if (maxSentenceLength > 150) score -= 15;
-  else if (maxSentenceLength > 100) score -= 8;
-  if (avgWordLength > 4) score -= 10;
-  score = Math.max(0, score);
-  const level: ReadabilityAnalysis['level'] = score >= 75 ? 'easy' : score >= 55 ? 'ok' : 'hard';
+    : 0
+  let score = 100
+  if (avgSentenceLength > 80) score -= 35
+  else if (avgSentenceLength > 60) score -= 20
+  else if (avgSentenceLength > 45) score -= 10
+  if (maxSentenceLength > 150) score -= 15
+  else if (maxSentenceLength > 100) score -= 8
+  if (avgWordLength > 4) score -= 10
+  score = Math.max(0, score)
+  const level: ReadabilityAnalysis['level'] = score >= 75 ? 'easy' : score >= 55 ? 'ok' : 'hard'
   const suggestion =
     level === 'easy'
       ? '가독성이 좋습니다.'
       : level === 'ok'
         ? '문장 길이를 조금 더 짧게 다듬으면 더 읽기 편해집니다.'
-        : '문장이 너무 깁니다. 한 문장당 한 가지 메시지를 유지하세요.';
+        : '문장이 너무 깁니다. 한 문장당 한 가지 메시지를 유지하세요.'
   return {
     sentenceCount,
     avgSentenceLength,
@@ -67,17 +67,17 @@ export function analyzeReadability(text: string): ReadabilityAnalysis {
     readabilityScore: score,
     level,
     suggestion,
-  };
+  }
 }
 
 export interface LengthAnalysis {
-  charsWithSpaces: number;
-  charsWithoutSpaces: number;
-  words: number;
-  paragraphs: number;
-  target?: { min?: number; max?: number };
-  status: 'under' | 'ok' | 'over' | 'no-target';
-  suggestion: string;
+  charsWithSpaces: number
+  charsWithoutSpaces: number
+  words: number
+  paragraphs: number
+  target?: { min?: number; max?: number }
+  status: 'under' | 'ok' | 'over' | 'no-target'
+  suggestion: string
 }
 
 /**
@@ -86,43 +86,43 @@ export interface LengthAnalysis {
  */
 export function analyzeLength(
   text: string,
-  target?: { min?: number; max?: number },
+  target?: { min?: number; max?: number }
 ): LengthAnalysis {
-  const t = text ?? '';
-  const charsWithSpaces = t.length;
-  const charsWithoutSpaces = t.replace(/\s+/g, '').length;
-  const words = (t.match(/[가-힣A-Za-z0-9]+/g) ?? []).length;
+  const t = text ?? ''
+  const charsWithSpaces = t.length
+  const charsWithoutSpaces = t.replace(/\s+/g, '').length
+  const words = (t.match(/[가-힣A-Za-z0-9]+/g) ?? []).length
   const paragraphs = t
     .split(/\n{2,}/)
     .map((p) => p.trim())
-    .filter((p) => p.length > 0).length;
-  let status: LengthAnalysis['status'] = 'no-target';
-  let suggestion: string;
-  const effective = charsWithSpaces;
+    .filter((p) => p.length > 0).length
+  let status: LengthAnalysis['status'] = 'no-target'
+  let suggestion: string
+  const effective = charsWithSpaces
   if (target) {
     if (target.min !== undefined && effective < target.min) {
-      status = 'under';
-      suggestion = `목표 최소치 ${target.min}자 대비 ${target.min - effective}자 부족합니다.`;
+      status = 'under'
+      suggestion = `목표 최소치 ${target.min}자 대비 ${target.min - effective}자 부족합니다.`
     } else if (target.max !== undefined && effective > target.max) {
-      status = 'over';
-      suggestion = `목표 최대치 ${target.max}자를 ${effective - target.max}자 초과했습니다.`;
+      status = 'over'
+      suggestion = `목표 최대치 ${target.max}자를 ${effective - target.max}자 초과했습니다.`
     } else {
-      status = 'ok';
-      suggestion = `목표 범위 내 (${effective}자).`;
+      status = 'ok'
+      suggestion = `목표 범위 내 (${effective}자).`
     }
   } else {
-    suggestion = `현재 ${effective}자 (공백 제외 ${charsWithoutSpaces}자, ${words}단어, ${paragraphs}문단).`;
+    suggestion = `현재 ${effective}자 (공백 제외 ${charsWithoutSpaces}자, ${words}단어, ${paragraphs}문단).`
   }
-  return { charsWithSpaces, charsWithoutSpaces, words, paragraphs, target, status, suggestion };
+  return { charsWithSpaces, charsWithoutSpaces, words, paragraphs, target, status, suggestion }
 }
 
 export interface EndingTypeCount {
-  formal: number; // 합니다/했습니다/됩니다 등
-  declarative: number; // 다./했다 등 문어체
-  polite: number; // 해요/요 등
-  other: number;
-  total: number;
-  dominant: 'formal' | 'declarative' | 'polite' | 'mixed' | 'none';
+  formal: number // 합니다/했습니다/됩니다 등
+  declarative: number // 다./했다 등 문어체
+  polite: number // 해요/요 등
+  other: number
+  total: number
+  dominant: 'formal' | 'declarative' | 'polite' | 'mixed' | 'none'
 }
 
 /**
@@ -130,7 +130,7 @@ export interface EndingTypeCount {
  * 활용. toneMix 와 비슷하지만 구체적 어미 라벨로 제공.
  */
 export function countSentencesByEnding(text: string): EndingTypeCount {
-  const clean = (text ?? '').replace(/\s+/g, ' ').trim();
+  const clean = (text ?? '').replace(/\s+/g, ' ').trim()
   if (!clean) {
     return {
       formal: 0,
@@ -139,36 +139,36 @@ export function countSentencesByEnding(text: string): EndingTypeCount {
       other: 0,
       total: 0,
       dominant: 'none',
-    };
-  }
-  const sentences = clean.split(/[.!?。]+/).filter((s) => s.trim().length > 0);
-  const counts = { formal: 0, declarative: 0, polite: 0, other: 0 };
-  for (const s of sentences) {
-    const trimmed = s.trim();
-    if (/(습니다|합니다|됩니다|입니다|있습니다|없습니다|드립니다)$/.test(trimmed)) {
-      counts.formal++;
-    } else if (/(했다|했고|한다|된다|이다|이며|이었다)$/.test(trimmed)) {
-      counts.declarative++;
-    } else if (/(해요|이에요|예요|세요)$/.test(trimmed)) {
-      counts.polite++;
-    } else {
-      counts.other++;
     }
   }
-  const total = sentences.length;
+  const sentences = clean.split(/[.!?。]+/).filter((s) => s.trim().length > 0)
+  const counts = { formal: 0, declarative: 0, polite: 0, other: 0 }
+  for (const s of sentences) {
+    const trimmed = s.trim()
+    if (/(습니다|합니다|됩니다|입니다|있습니다|없습니다|드립니다)$/.test(trimmed)) {
+      counts.formal++
+    } else if (/(했다|했고|한다|된다|이다|이며|이었다)$/.test(trimmed)) {
+      counts.declarative++
+    } else if (/(해요|이에요|예요|세요)$/.test(trimmed)) {
+      counts.polite++
+    } else {
+      counts.other++
+    }
+  }
+  const total = sentences.length
   const buckets: Array<{ k: 'formal' | 'declarative' | 'polite' | 'other'; v: number }> = [
     { k: 'formal', v: counts.formal },
     { k: 'declarative', v: counts.declarative },
     { k: 'polite', v: counts.polite },
     { k: 'other', v: counts.other },
-  ];
-  buckets.sort((a, b) => b.v - a.v);
-  const top = buckets[0];
-  let dominant: EndingTypeCount['dominant'] = 'none';
+  ]
+  buckets.sort((a, b) => b.v - a.v)
+  const top = buckets[0]
+  let dominant: EndingTypeCount['dominant'] = 'none'
   if (total > 0 && top.v / total >= 0.6 && top.k !== 'other') {
-    dominant = top.k;
+    dominant = top.k
   } else if (total > 0) {
-    dominant = 'mixed';
+    dominant = 'mixed'
   }
-  return { ...counts, total, dominant };
+  return { ...counts, total, dominant }
 }

@@ -7,20 +7,20 @@
  * 관련 타입: CareerProgressionReport.
  */
 
-export type ProgressionClarity = 'clear' | 'some' | 'unclear';
+export type ProgressionClarity = 'clear' | 'some' | 'unclear'
 
 export interface ProgressionSignal {
-  text: string;
-  type: 'promotion' | 'scope' | 'team_growth' | 'role_change';
-  label: string;
+  text: string
+  type: 'promotion' | 'scope' | 'team_growth' | 'role_change'
+  label: string
 }
 
 export interface CareerProgressionReport {
-  clarity: ProgressionClarity;
-  signals: ProgressionSignal[];
-  promotionCount: number;
-  scopeCount: number;
-  suggestion: string;
+  clarity: ProgressionClarity
+  signals: ProgressionSignal[]
+  promotionCount: number
+  scopeCount: number
+  suggestion: string
 }
 
 // ---------------------------------------------------------------------------
@@ -28,9 +28,9 @@ export interface CareerProgressionReport {
 // ---------------------------------------------------------------------------
 
 interface SignalPattern {
-  re: RegExp;
-  type: ProgressionSignal['type'];
-  label: string;
+  re: RegExp
+  type: ProgressionSignal['type']
+  label: string
 }
 
 const PROGRESSION_PATTERNS: SignalPattern[] = [
@@ -89,7 +89,7 @@ const PROGRESSION_PATTERNS: SignalPattern[] = [
   },
   { re: /창업|co.founder|공동\s*창업/, type: 'role_change', label: '창업 경험' },
   { re: /인턴.*정규직|계약직.*정규직|정규직\s*전환/, type: 'role_change', label: '정규직 전환' },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
@@ -99,43 +99,43 @@ const PROGRESSION_PATTERNS: SignalPattern[] = [
  * 이력서 텍스트에서 커리어 성장 신호를 감지하고 가시성을 평가.
  */
 export function analyzeCareerProgression(text: string): CareerProgressionReport {
-  const t = text ?? '';
+  const t = text ?? ''
 
   const signals: ProgressionSignal[] = PROGRESSION_PATTERNS.filter(({ re }) => re.test(t)).map(
     ({ re, type, label }) => ({
       text: (t.match(re) ?? [''])[0].trim(),
       type,
       label,
-    }),
-  );
+    })
+  )
 
-  const promotionCount = signals.filter((s) => s.type === 'promotion').length;
-  const scopeCount = signals.filter((s) => s.type === 'scope' || s.type === 'team_growth').length;
+  const promotionCount = signals.filter((s) => s.type === 'promotion').length
+  const scopeCount = signals.filter((s) => s.type === 'scope' || s.type === 'team_growth').length
 
-  let clarity: ProgressionClarity;
+  let clarity: ProgressionClarity
   if (promotionCount >= 1 && scopeCount >= 1) {
-    clarity = 'clear';
+    clarity = 'clear'
   } else if (signals.length >= 2) {
-    clarity = 'some';
+    clarity = 'some'
   } else if (signals.length === 1) {
-    clarity = 'some';
+    clarity = 'some'
   } else {
-    clarity = 'unclear';
+    clarity = 'unclear'
   }
 
-  let suggestion: string;
+  let suggestion: string
   if (clarity === 'clear') {
-    suggestion = '커리어 성장 흐름이 잘 드러나 있습니다.';
+    suggestion = '커리어 성장 흐름이 잘 드러나 있습니다.'
   } else if (clarity === 'some') {
     suggestion =
       promotionCount === 0
         ? '직책 변화(시니어·리드·팀장 등 승진)를 명시하면 성장 흐름이 더 명확해집니다.'
-        : '담당 팀 규모, 책임 범위 확대, 매출·사용자 성장 기여를 수치로 보여주세요.';
+        : '담당 팀 규모, 책임 범위 확대, 매출·사용자 성장 기여를 수치로 보여주세요.'
   } else {
     suggestion =
       '승진·역할 확대·팀 성장 신호가 보이지 않습니다. ' +
-      '직책 변화, 담당 인원 수, 매출/사용자 성장 기여 등을 각 경력 항목에 추가하면 차별화됩니다.';
+      '직책 변화, 담당 인원 수, 매출/사용자 성장 기여 등을 각 경력 항목에 추가하면 차별화됩니다.'
   }
 
-  return { clarity, signals, promotionCount, scopeCount, suggestion };
+  return { clarity, signals, promotionCount, scopeCount, suggestion }
 }

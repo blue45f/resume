@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react'
+
+import { toast } from '@/components/Toast'
 import {
   generateQualityReport,
   exportQualityReportMarkdown,
@@ -33,17 +35,16 @@ import {
   computeSectionHealth,
   analyzeStarPattern,
   scoreInterviewability,
-} from '@/lib/koreanChecker';
-import { toast } from '@/components/Toast';
+} from '@/lib/koreanChecker'
 
 interface Props {
   /** 검사할 원문 */
-  text: string;
+  text: string
   /** 섹션 라벨 (결과 보고용, 기본 '본문') */
-  label?: string;
+  label?: string
   /** 이 길이 미만이면 뱃지 숨김 (기본 50자) */
-  minLength?: number;
-  className?: string;
+  minLength?: number
+  className?: string
 }
 
 /**
@@ -61,12 +62,12 @@ export default function KoreanQualityBadge({
   minLength = 50,
   className = '',
 }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false)
   const report = useMemo(() => {
-    if (!text || text.length < minLength) return null;
-    return generateQualityReport(text, label);
-  }, [text, label, minLength]);
-  if (!report) return null;
+    if (!text || text.length < minLength) return null
+    return generateQualityReport(text, label)
+  }, [text, label, minLength])
+  if (!report) return null
   const {
     overallScore,
     check,
@@ -81,8 +82,8 @@ export default function KoreanQualityBadge({
     passive,
     parallelism,
     informal,
-  } = report;
-  const { summary } = check;
+  } = report
+  const { summary } = check
   const tone =
     overallScore >= 90
       ? 'text-green-700 bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
@@ -90,7 +91,7 @@ export default function KoreanQualityBadge({
         ? 'text-blue-700 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800'
         : overallScore >= 50
           ? 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
-          : 'text-red-700 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800';
+          : 'text-red-700 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
   return (
     <div className={`inline-block ${className}`}>
       <button
@@ -186,11 +187,11 @@ export default function KoreanQualityBadge({
               type="button"
               onClick={async () => {
                 try {
-                  const md = exportQualityReportMarkdown(text, label);
-                  await navigator.clipboard.writeText(md);
-                  toast('리포트를 클립보드에 복사했습니다', 'success');
+                  const md = exportQualityReportMarkdown(text, label)
+                  await navigator.clipboard.writeText(md)
+                  toast('리포트를 클립보드에 복사했습니다', 'success')
                 } catch {
-                  toast('복사에 실패했습니다', 'error');
+                  toast('복사에 실패했습니다', 'error')
                 }
               }}
               className="text-[10px] px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
@@ -201,14 +202,14 @@ export default function KoreanQualityBadge({
         </div>
       )}
     </div>
-  );
+  )
 }
 
 function ExtraRows({ text }: { text: string }) {
-  const reading = estimateReadingTime(text);
-  const dates = analyzeDateConsistency(text);
-  const jargon = detectJargon(text);
-  const brackets = analyzeBracketBalance(text);
+  const reading = estimateReadingTime(text)
+  const dates = analyzeDateConsistency(text)
+  const jargon = detectJargon(text)
+  const brackets = analyzeBracketBalance(text)
   return (
     <>
       <SectionHeader>📊 메타 정보</SectionHeader>
@@ -243,16 +244,16 @@ function ExtraRows({ text }: { text: string }) {
       )}
       <WhitespaceAndNumericRows text={text} />
     </>
-  );
+  )
 }
 
 function WhitespaceAndNumericRows({ text }: { text: string }) {
-  const ws = detectWhitespaceAnomalies(text);
-  const num = analyzeNumericFormat(text);
-  const numTotal = num.comma + num.plain + num.korean;
-  const dup = detectDuplicateSentences(text);
-  const fp = analyzeFirstPersonUsage(text);
-  const overuse = suggestSynonymsForOveruse(text);
+  const ws = detectWhitespaceAnomalies(text)
+  const num = analyzeNumericFormat(text)
+  const numTotal = num.comma + num.plain + num.korean
+  const dup = detectDuplicateSentences(text)
+  const fp = analyzeFirstPersonUsage(text)
+  const overuse = suggestSynonymsForOveruse(text)
   return (
     <>
       {!ws.clean && (
@@ -288,16 +289,16 @@ function WhitespaceAndNumericRows({ text }: { text: string }) {
       )}
       <CareerAndExaggerationRows text={text} />
     </>
-  );
+  )
 }
 
 function CareerAndExaggerationRows({ text }: { text: string }) {
-  const exp = estimateExperienceYears(text);
-  const exag = detectExaggeration(text);
-  const contact = detectContactInfo(text);
-  const invalidRanges = validateDateRanges(text);
+  const exp = estimateExperienceYears(text)
+  const exag = detectExaggeration(text)
+  const contact = detectContactInfo(text)
+  const invalidRanges = validateDateRanges(text)
   const invalidContact =
-    contact.emails.filter((e) => !e.valid).length + contact.phones.filter((p) => !p.valid).length;
+    contact.emails.filter((e) => !e.valid).length + contact.phones.filter((p) => !p.valid).length
   return (
     <>
       {exp.ranges.length > 0 && (
@@ -331,12 +332,12 @@ function CareerAndExaggerationRows({ text }: { text: string }) {
       <CompletenessRow text={text} />
       <PiiAndEnglishRow text={text} />
     </>
-  );
+  )
 }
 
 function PiiAndEnglishRow({ text }: { text: string }) {
-  const pii = detectPersonalInfo(text);
-  const eng = analyzeEnglishMix(text);
+  const pii = detectPersonalInfo(text)
+  const eng = analyzeEnglishMix(text)
   return (
     <>
       {pii.severity !== 'none' && (
@@ -359,13 +360,13 @@ function PiiAndEnglishRow({ text }: { text: string }) {
       )}
       <SentimentRow text={text} />
     </>
-  );
+  )
 }
 
 function SentimentRow({ text }: { text: string }) {
-  const sent = analyzeSentiment(text);
-  const links = extractLinks(text);
-  const job = estimateJobLevel(text);
+  const sent = analyzeSentiment(text)
+  const links = extractLinks(text)
+  const job = estimateJobLevel(text)
   return (
     <>
       {sent.tone !== 'none' && (
@@ -403,14 +404,14 @@ function SentimentRow({ text }: { text: string }) {
       )}
       <SpecificityAndChronologyRows text={text} />
     </>
-  );
+  )
 }
 
 function SpecificityAndChronologyRows({ text }: { text: string }) {
-  const spec = scoreSpecificity(text);
-  const chrono = analyzeActivityChronology(text);
-  const soft = detectSoftSkills(text);
-  const bullet = analyzeBulletMarkerConsistency(text);
+  const spec = scoreSpecificity(text)
+  const chrono = analyzeActivityChronology(text)
+  const soft = detectSoftSkills(text)
+  const bullet = analyzeBulletMarkerConsistency(text)
   return (
     <>
       <Row
@@ -453,19 +454,17 @@ function SpecificityAndChronologyRows({ text }: { text: string }) {
       )}
       <PunctuationRow text={text} />
     </>
-  );
+  )
 }
 
 function PunctuationRow({ text }: { text: string }) {
-  const p = analyzePunctuationBalance(text);
+  const p = analyzePunctuationBalance(text)
   // 느낌표/물음표 과다, 쉼표 부족 케이스에서만 표시
-  const sentences = p.periods + p.questions + p.exclamations;
+  const sentences = p.periods + p.questions + p.exclamations
   const hasIssue =
     sentences > 5 &&
-    (p.exclamations > sentences * 0.3 ||
-      p.questions > sentences * 0.2 ||
-      p.commasPerSentence < 0.3);
-  if (!hasIssue) return null;
+    (p.exclamations > sentences * 0.3 || p.questions > sentences * 0.2 || p.commasPerSentence < 0.3)
+  if (!hasIssue) return null
   return (
     <Row
       title="문장부호"
@@ -478,14 +477,14 @@ function PunctuationRow({ text }: { text: string }) {
       }
       hint={`. ${p.periods} · , ${p.commas} · ? ${p.questions} · ! ${p.exclamations}`}
     />
-  );
+  )
 }
 
 function CompletenessRow({ text }: { text: string }) {
-  const completeness = scoreResumeCompleteness(text);
-  const sections = detectMissingResumeSections(text);
+  const completeness = scoreResumeCompleteness(text)
+  const sections = detectMissingResumeSections(text)
   // 이력서 본문으로 쓸 만큼 긴 텍스트(300자+) 에서만 표시
-  if (text.length < 300) return null;
+  if (text.length < 300) return null
   return (
     <>
       <Row
@@ -501,12 +500,12 @@ function CompletenessRow({ text }: { text: string }) {
         />
       )}
     </>
-  );
+  )
 }
 
 function PriorityActions({ report }: { report: ReturnType<typeof generateQualityReport> }) {
-  const actions = prioritizeImprovements(report, 3);
-  if (actions.length === 0) return null;
+  const actions = prioritizeImprovements(report, 3)
+  if (actions.length === 0) return null
   return (
     <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
       <div className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
@@ -532,11 +531,11 @@ function PriorityActions({ report }: { report: ReturnType<typeof generateQuality
         ))}
       </ol>
     </div>
-  );
+  )
 }
 
 function AchievementsRow({ text }: { text: string }) {
-  const a = countAchievements(text);
+  const a = countAchievements(text)
   return (
     <Row
       title="수상·성취"
@@ -550,12 +549,12 @@ function AchievementsRow({ text }: { text: string }) {
               .join(' · ')
       }
     />
-  );
+  )
 }
 
 export function InterviewabilityRow({ text }: { text: string }) {
-  const iv = scoreInterviewability(text);
-  if (text.length < 200) return null;
+  const iv = scoreInterviewability(text)
+  if (text.length < 200) return null
   const tierLabel =
     iv.tier === 'call-back'
       ? '콜백 기대'
@@ -563,20 +562,20 @@ export function InterviewabilityRow({ text }: { text: string }) {
         ? '유망'
         : iv.tier === 'needs-work'
           ? '보완 필요'
-          : '문턱 미달';
-  const weakest = [...iv.breakdown].sort((a, b) => a.value - b.value)[0];
+          : '문턱 미달'
+  const weakest = [...iv.breakdown].sort((a, b) => a.value - b.value)[0]
   return (
     <Row
       title="면접 적합도"
       value={`${iv.overall}점 · ${tierLabel}`}
       hint={`약한 축: ${weakest.axis} ${weakest.value}`}
     />
-  );
+  )
 }
 
 function StarPatternRow({ text }: { text: string }) {
-  const star = analyzeStarPattern(text);
-  if (star.analyzed < 2) return null;
+  const star = analyzeStarPattern(text)
+  if (star.analyzed < 2) return null
   const tierLabel =
     star.tier === 'excellent'
       ? '우수'
@@ -584,20 +583,20 @@ function StarPatternRow({ text }: { text: string }) {
         ? '양호'
         : star.tier === 'fair'
           ? '보통'
-          : '취약';
+          : '취약'
   return (
     <Row
       title="STAR 커버리지"
       value={`${star.coverage}% · ${tierLabel}`}
       hint={`완전 ${star.fullStarCount}/${star.analyzed} · 평균 ${star.avgScore}점`}
     />
-  );
+  )
 }
 
 function SectionHealthRow({ text }: { text: string }) {
-  const health = computeSectionHealth(text);
+  const health = computeSectionHealth(text)
   if (health.balanceScore === 0 && health.orderScore === 100 && health.densityScore === 0) {
-    return null;
+    return null
   }
   const tierLabel =
     health.tier === 'excellent'
@@ -606,14 +605,14 @@ function SectionHealthRow({ text }: { text: string }) {
         ? '양호'
         : health.tier === 'fair'
           ? '보통'
-          : '취약';
+          : '취약'
   return (
     <Row
       title="섹션 구성"
       value={`${health.overall}점 · ${tierLabel}`}
       hint={`균형 ${health.balanceScore} · 순서 ${health.orderScore} · 밀도 ${health.densityScore}`}
     />
-  );
+  )
 }
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
@@ -621,7 +620,7 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
     <div className="mt-1.5 mb-0.5 first:mt-0 text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-0.5">
       {children}
     </div>
-  );
+  )
 }
 
 function Row({ title, value, hint }: { title: string; value: string; hint?: string }) {
@@ -633,5 +632,5 @@ function Row({ title, value, hint }: { title: string; value: string; hint?: stri
         {hint && <span className="text-[10px] text-slate-500 dark:text-slate-400">{hint}</span>}
       </span>
     </div>
-  );
+  )
 }

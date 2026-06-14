@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { checkResumePersonalInfoDisclosure } from '@/lib/resumePersonalInfoDisclosureChecker';
-import type { DisclosureCategory } from '@/lib/resumePersonalInfoDisclosureChecker';
+import { useMemo } from 'react'
+
+import type { DisclosureCategory } from '@/lib/resumePersonalInfoDisclosureChecker'
+
+import { checkResumePersonalInfoDisclosure } from '@/lib/resumePersonalInfoDisclosureChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const CATEGORY_LABEL: Record<DisclosureCategory, string> = {
@@ -15,20 +17,20 @@ const CATEGORY_LABEL: Record<DisclosureCategory, string> = {
   origin: '본적/출신지',
   religion: '종교',
   photo: '증명사진',
-};
+}
 
 const GRADE_LABEL: Record<string, string> = {
   caution: '확인 필요',
   risky: '삭제 권장',
-};
+}
 
 export default function ResumePersonalInfoDisclosurePanel({ text }: Props) {
-  const report = useMemo(() => checkResumePersonalInfoDisclosure(text), [text]);
+  const report = useMemo(() => checkResumePersonalInfoDisclosure(text), [text])
 
-  if (text.trim().length < 20) return null;
-  if (report.grade === 'clean') return null;
+  if (text.trim().length < 20) return null
+  if (report.grade === 'clean') return null
 
-  const isRisky = report.grade === 'risky';
+  const isRisky = report.grade === 'risky'
 
   return (
     <aside
@@ -65,5 +67,5 @@ export default function ResumePersonalInfoDisclosurePanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

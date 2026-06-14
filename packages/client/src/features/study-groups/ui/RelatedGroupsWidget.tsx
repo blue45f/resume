@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from '@/components/Toast';
-import { getUser } from '@/lib/auth';
-import { fetchStudyGroups, joinStudyGroup, type StudyGroup } from '@/lib/api';
+import { useCallback, useEffect, useState } from 'react'
+
+import { toast } from '@/components/Toast'
+import { fetchStudyGroups, joinStudyGroup, type StudyGroup } from '@/lib/api'
+import { getUser } from '@/lib/auth'
 
 interface RelatedGroupsWidgetProps {
-  jobPostId?: string;
-  companyName: string;
-  position: string;
+  jobPostId?: string
+  companyName: string
+  position: string
 }
 
 /**
@@ -20,99 +21,99 @@ export default function RelatedGroupsWidget({
   companyName,
   position,
 }: RelatedGroupsWidgetProps) {
-  const [groups, setGroups] = useState<StudyGroup[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [joiningId, setJoiningId] = useState<string | null>(null);
-  const user = getUser();
-  const myId = user?.id ?? null;
+  const [groups, setGroups] = useState<StudyGroup[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [joiningId, setJoiningId] = useState<string | null>(null)
+  const user = getUser()
+  const myId = user?.id ?? null
 
-  const trimmedCompany = companyName.trim();
-  const trimmedPosition = position.trim();
-  const hasContext = trimmedCompany.length > 0 || !!jobPostId;
+  const trimmedCompany = companyName.trim()
+  const trimmedPosition = position.trim()
+  const hasContext = trimmedCompany.length > 0 || !!jobPostId
 
   const load = useCallback(async () => {
     if (!hasContext) {
-      setGroups([]);
-      setLoading(false);
-      return;
+      setGroups([])
+      setLoading(false)
+      return
     }
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
     try {
-      const params: Parameters<typeof fetchStudyGroups>[0] = { limit: 10 };
-      if (jobPostId) params.jobPostId = jobPostId;
-      else params.companyName = trimmedCompany;
-      const res = await fetchStudyGroups(params);
+      const params: Parameters<typeof fetchStudyGroups>[0] = { limit: 10 }
+      if (jobPostId) params.jobPostId = jobPostId
+      else params.companyName = trimmedCompany
+      const res = await fetchStudyGroups(params)
 
-      const positionLower = trimmedPosition.toLowerCase();
+      const positionLower = trimmedPosition.toLowerCase()
       const items = [...res.items].sort((a, b) => {
         if (positionLower) {
-          const aMatch = a.position?.toLowerCase().includes(positionLower) ? 1 : 0;
-          const bMatch = b.position?.toLowerCase().includes(positionLower) ? 1 : 0;
-          if (aMatch !== bMatch) return bMatch - aMatch;
+          const aMatch = a.position?.toLowerCase().includes(positionLower) ? 1 : 0
+          const bMatch = b.position?.toLowerCase().includes(positionLower) ? 1 : 0
+          if (aMatch !== bMatch) return bMatch - aMatch
         }
-        return b.memberCount - a.memberCount;
-      });
-      setGroups(items.slice(0, 3));
+        return b.memberCount - a.memberCount
+      })
+      setGroups(items.slice(0, 3))
     } catch (e) {
-      setError(e instanceof Error ? e.message : '스터디 그룹을 불러오지 못했습니다');
+      setError(e instanceof Error ? e.message : '스터디 그룹을 불러오지 못했습니다')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [hasContext, jobPostId, trimmedCompany, trimmedPosition]);
+  }, [hasContext, jobPostId, trimmedCompany, trimmedPosition])
 
   useEffect(() => {
-    if (!hasContext) return;
-    let cancelled = false;
-    const params: Parameters<typeof fetchStudyGroups>[0] = { limit: 10 };
-    if (jobPostId) params.jobPostId = jobPostId;
-    else params.companyName = trimmedCompany;
+    if (!hasContext) return
+    let cancelled = false
+    const params: Parameters<typeof fetchStudyGroups>[0] = { limit: 10 }
+    if (jobPostId) params.jobPostId = jobPostId
+    else params.companyName = trimmedCompany
     fetchStudyGroups(params)
       .then((res) => {
-        if (cancelled) return;
-        const positionLower = trimmedPosition.toLowerCase();
+        if (cancelled) return
+        const positionLower = trimmedPosition.toLowerCase()
         const items = [...res.items].sort((a, b) => {
           if (positionLower) {
-            const aMatch = a.position?.toLowerCase().includes(positionLower) ? 1 : 0;
-            const bMatch = b.position?.toLowerCase().includes(positionLower) ? 1 : 0;
-            if (aMatch !== bMatch) return bMatch - aMatch;
+            const aMatch = a.position?.toLowerCase().includes(positionLower) ? 1 : 0
+            const bMatch = b.position?.toLowerCase().includes(positionLower) ? 1 : 0
+            if (aMatch !== bMatch) return bMatch - aMatch
           }
-          return b.memberCount - a.memberCount;
-        });
-        setGroups(items.slice(0, 3));
+          return b.memberCount - a.memberCount
+        })
+        setGroups(items.slice(0, 3))
       })
       .catch((e) => {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : '스터디 그룹을 불러오지 못했습니다');
+          setError(e instanceof Error ? e.message : '스터디 그룹을 불러오지 못했습니다')
         }
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+        if (!cancelled) setLoading(false)
+      })
     return () => {
-      cancelled = true;
-    };
-  }, [hasContext, jobPostId, trimmedCompany, trimmedPosition]);
+      cancelled = true
+    }
+  }, [hasContext, jobPostId, trimmedCompany, trimmedPosition])
 
   const handleJoin = async (group: StudyGroup) => {
     if (!user) {
-      toast('로그인 후 이용 가능합니다.', 'error');
-      return;
+      toast('로그인 후 이용 가능합니다.', 'error')
+      return
     }
-    setJoiningId(group.id);
+    setJoiningId(group.id)
     try {
-      await joinStudyGroup(group.id);
-      toast('그룹에 참여했습니다.', 'success');
-      await load();
+      await joinStudyGroup(group.id)
+      toast('그룹에 참여했습니다.', 'success')
+      await load()
     } catch (e) {
-      toast(e instanceof Error ? e.message : '참여에 실패했습니다.', 'error');
+      toast(e instanceof Error ? e.message : '참여에 실패했습니다.', 'error')
     } finally {
-      setJoiningId(null);
+      setJoiningId(null)
     }
-  };
+  }
 
-  if (!hasContext) return null;
+  if (!hasContext) return null
 
   return (
     <div className="imp-card p-4">
@@ -150,8 +151,8 @@ export default function RelatedGroupsWidget({
                 ? 'owner'
                 : myId && group.members?.some((m) => m.userId === myId)
                   ? 'member'
-                  : null;
-            const full = group.memberCount >= group.maxMembers;
+                  : null
+            const full = group.memberCount >= group.maxMembers
             return (
               <li
                 key={group.id}
@@ -181,10 +182,10 @@ export default function RelatedGroupsWidget({
                   </button>
                 )}
               </li>
-            );
+            )
           })}
         </ul>
       )}
     </div>
-  );
+  )
 }

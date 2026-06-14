@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react'
 
 /** ease-out quint — DESIGN.md 모션 토큰과 동일한 감속 곡선 (cubic-bezier(0.22,1,0.36,1) 의 수치 등가). */
 function easeOutQuint(t: number): number {
-  return 1 - Math.pow(1 - t, 5);
+  return 1 - Math.pow(1 - t, 5)
 }
 
 function prefersReducedMotion(): boolean {
@@ -10,14 +10,14 @@ function prefersReducedMotion(): boolean {
     typeof window !== 'undefined' &&
     typeof window.matchMedia === 'function' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
+  )
 }
 
 interface CountUpOptions {
   /** 애니메이션 길이(ms). 기본 900ms — 분석 점수 reveal 용. */
-  durationMs?: number;
+  durationMs?: number
   /** 시작값. 기본 0. */
-  from?: number;
+  from?: number
 }
 
 /**
@@ -27,56 +27,56 @@ interface CountUpOptions {
  * 분석 점수 링/레이더의 "살아 있는" reveal 에 사용. 정확한 최종값은 항상 보존된다.
  */
 export function useCountUp(target: number, { durationMs = 900, from = 0 }: CountUpOptions = {}) {
-  const [value, setValue] = useState(() => (prefersReducedMotion() ? target : from));
-  const frameRef = useRef<number | null>(null);
-  const startValueRef = useRef(value);
+  const [value, setValue] = useState(() => (prefersReducedMotion() ? target : from))
+  const frameRef = useRef<number | null>(null)
+  const startValueRef = useRef(value)
 
   useEffect(() => {
     if (prefersReducedMotion()) {
       frameRef.current = requestAnimationFrame(() => {
-        setValue(target);
-        startValueRef.current = target;
-      });
+        setValue(target)
+        startValueRef.current = target
+      })
       return () => {
-        if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
-      };
+        if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
+      }
     }
 
     if (frameRef.current !== null) {
-      cancelAnimationFrame(frameRef.current);
-      frameRef.current = null;
+      cancelAnimationFrame(frameRef.current)
+      frameRef.current = null
     }
 
     if (target === startValueRef.current) {
-      return;
+      return
     }
 
-    const start = performance.now();
-    const startValue = startValueRef.current;
-    const delta = target - startValue;
+    const start = performance.now()
+    const startValue = startValueRef.current
+    const delta = target - startValue
 
     if (delta === 0) {
-      startValueRef.current = target;
-      return;
+      startValueRef.current = target
+      return
     }
 
     const tick = (now: number) => {
-      const elapsed = now - start;
-      const t = Math.min(1, elapsed / durationMs);
-      const next = Math.round(startValue + delta * easeOutQuint(t));
-      setValue(next);
+      const elapsed = now - start
+      const t = Math.min(1, elapsed / durationMs)
+      const next = Math.round(startValue + delta * easeOutQuint(t))
+      setValue(next)
       if (t < 1) {
-        frameRef.current = requestAnimationFrame(tick);
+        frameRef.current = requestAnimationFrame(tick)
       } else {
-        startValueRef.current = target;
+        startValueRef.current = target
       }
-    };
+    }
 
-    frameRef.current = requestAnimationFrame(tick);
+    frameRef.current = requestAnimationFrame(tick)
     return () => {
-      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
-    };
-  }, [target, durationMs]);
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
+    }
+  }, [target, durationMs])
 
-  return value;
+  return value
 }

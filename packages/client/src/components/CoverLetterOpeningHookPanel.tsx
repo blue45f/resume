@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { analyzeCoverLetterOpeningHook } from '@/lib/coverLetterOpeningHookAnalyzer';
+import { useMemo } from 'react'
+
+import { analyzeCoverLetterOpeningHook } from '@/lib/coverLetterOpeningHookAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const GRADE_LABEL: Record<string, string> = {
@@ -10,15 +11,15 @@ const GRADE_LABEL: Record<string, string> = {
   adequate: '무난',
   weak: '약함',
   generic: '천편일률',
-};
+}
 
 export default function CoverLetterOpeningHookPanel({ text }: Props) {
-  const report = useMemo(() => analyzeCoverLetterOpeningHook(text), [text]);
+  const report = useMemo(() => analyzeCoverLetterOpeningHook(text), [text])
 
-  if (text.trim().length < 30) return null;
-  if (report.grade === 'strong') return null;
+  if (text.trim().length < 30) return null
+  if (report.grade === 'strong') return null
 
-  const isWarning = report.grade === 'generic';
+  const isWarning = report.grade === 'generic'
 
   return (
     <aside
@@ -54,5 +55,5 @@ export default function CoverLetterOpeningHookPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

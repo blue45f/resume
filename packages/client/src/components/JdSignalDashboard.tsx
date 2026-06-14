@@ -1,17 +1,18 @@
-import { useMemo } from 'react';
-import { buildJdSignalDashboard } from '@/lib/jdSignalDashboard';
+import { useMemo } from 'react'
+
+import { buildJdSignalDashboard } from '@/lib/jdSignalDashboard'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function JdSignalDashboard({ text }: Props) {
-  const report = useMemo(() => buildJdSignalDashboard(text), [text]);
+  const report = useMemo(() => buildJdSignalDashboard(text), [text])
 
-  if (text.trim().length < 60) return null;
+  if (text.trim().length < 60) return null
 
   const overallTone =
-    report.concernCount >= 1 ? 'concern' : report.cautionCount >= 3 ? 'caution' : 'good';
+    report.concernCount >= 1 ? 'concern' : report.cautionCount >= 3 ? 'caution' : 'good'
 
   return (
     <section className={`jd-board jd-board--${overallTone}`} aria-label="채용공고 신호등 대시보드">
@@ -40,5 +41,5 @@ export default function JdSignalDashboard({ text }: Props) {
         ))}
       </div>
     </section>
-  );
+  )
 }

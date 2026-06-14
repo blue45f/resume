@@ -1,19 +1,20 @@
-import { useMemo } from 'react';
+import { useMemo } from 'react'
+
 import {
   analyzeReadability,
   analyzeLength,
   countSentencesByEnding,
-} from '@/lib/readabilityAnalyzers';
+} from '@/lib/readabilityAnalyzers'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const LEVEL_KO: Record<string, string> = {
   easy: '읽기 쉬움',
   ok: '적정',
   hard: '복잡함',
-};
+}
 
 const DOMINANT_KO: Record<string, string> = {
   formal: '합니다체',
@@ -21,19 +22,19 @@ const DOMINANT_KO: Record<string, string> = {
   polite: '해요체',
   mixed: '혼합',
   none: '-',
-};
+}
 
 export default function CoverLetterReadabilityPanel({ text }: Props) {
-  const readability = useMemo(() => analyzeReadability(text), [text]);
-  const length = useMemo(() => analyzeLength(text), [text]);
-  const endings = useMemo(() => countSentencesByEnding(text), [text]);
+  const readability = useMemo(() => analyzeReadability(text), [text])
+  const length = useMemo(() => analyzeLength(text), [text])
+  const endings = useMemo(() => countSentencesByEnding(text), [text])
 
-  if (text.trim().length < 80 || readability.sentenceCount < 3) return null;
+  if (text.trim().length < 80 || readability.sentenceCount < 3) return null
 
-  const isHard = readability.level === 'hard';
-  const hasMixedStyle = endings.dominant === 'mixed';
-  const issueCount = [isHard, hasMixedStyle].filter(Boolean).length;
-  const tone = isHard ? 'warning' : hasMixedStyle ? 'neutral' : 'good';
+  const isHard = readability.level === 'hard'
+  const hasMixedStyle = endings.dominant === 'mixed'
+  const issueCount = [isHard, hasMixedStyle].filter(Boolean).length
+  const tone = isHard ? 'warning' : hasMixedStyle ? 'neutral' : 'good'
 
   return (
     <aside
@@ -88,5 +89,5 @@ export default function CoverLetterReadabilityPanel({ text }: Props) {
         </div>
       )}
     </aside>
-  );
+  )
 }

@@ -1,24 +1,24 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
-export const USER_TYPE_VALUES = ['personal', 'recruiter', 'company'] as const;
-export type UserType = (typeof USER_TYPE_VALUES)[number];
+export const USER_TYPE_VALUES = ['personal', 'recruiter', 'company'] as const
+export type UserType = (typeof USER_TYPE_VALUES)[number]
 
 const emailField = z
   .string()
   .min(1, '이메일을 입력해주세요')
-  .email('올바른 이메일 형식을 입력해주세요');
+  .email('올바른 이메일 형식을 입력해주세요')
 
 const passwordField = z
   .string()
   .min(1, '비밀번호를 입력해주세요')
-  .min(8, '비밀번호는 8자 이상이어야 합니다');
+  .min(8, '비밀번호는 8자 이상이어야 합니다')
 
 export const loginSchema = z.object({
   email: emailField,
   password: passwordField,
-});
+})
 
-export type LoginFormValues = z.infer<typeof loginSchema>;
+export type LoginFormValues = z.infer<typeof loginSchema>
 
 export const registerSchema = z
   .object({
@@ -40,7 +40,7 @@ export const registerSchema = z
   .refine(
     (data) =>
       data.userType !== 'company' || (data.companyName && data.companyName.trim().length > 0),
-    { message: '기업 계정은 회사명을 입력해주세요', path: ['companyName'] },
-  );
+    { message: '기업 계정은 회사명을 입력해주세요', path: ['companyName'] }
+  )
 
-export type RegisterFormValues = z.infer<typeof registerSchema>;
+export type RegisterFormValues = z.infer<typeof registerSchema>

@@ -1,9 +1,11 @@
-import { Module } from '@nestjs/common';
-import { CoffeeChatController } from './coffee-chat.controller';
-import { CoffeeChatService } from './coffee-chat.service';
-import { PrismaModule } from '../prisma/prisma.module';
-import { NotificationsModule } from '../notifications/notifications.module';
-import { SystemConfigModule } from '../system-config/system-config.module';
+import { Module } from '@nestjs/common'
+
+import { NotificationsModule } from '../notifications/notifications.module'
+import { PrismaModule } from '../prisma/prisma.module'
+import { SystemConfigModule } from '../system-config/system-config.module'
+
+import { CoffeeChatController } from './coffee-chat.controller'
+import { CoffeeChatService } from './coffee-chat.service'
 
 @Module({
   imports: [PrismaModule, NotificationsModule, SystemConfigModule],

@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { analyzeResumeAwards } from '@/lib/resumeAwardsAnalyzer';
+import { useMemo } from 'react'
+
+import { analyzeResumeAwards } from '@/lib/resumeAwardsAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const QUALITY_LABEL: Record<string, string> = {
@@ -10,17 +11,17 @@ const QUALITY_LABEL: Record<string, string> = {
   present: '있음',
   bare: '보강 필요',
   none: '없음',
-};
+}
 
 export default function ResumeAwardsPanel({ text }: Props) {
-  const report = useMemo(() => analyzeResumeAwards(text), [text]);
+  const report = useMemo(() => analyzeResumeAwards(text), [text])
 
-  if (text.trim().length < 40) return null;
-  if (report.quality === 'strong') return null;
+  if (text.trim().length < 40) return null
+  if (report.quality === 'strong') return null
   // Don't nag short resumes that simply have no awards section.
-  if (report.quality === 'none' && text.trim().length < 400) return null;
+  if (report.quality === 'none' && text.trim().length < 400) return null
 
-  const isWarn = report.quality === 'bare' || report.quality === 'none';
+  const isWarn = report.quality === 'bare' || report.quality === 'none'
 
   return (
     <aside
@@ -51,5 +52,5 @@ export default function ResumeAwardsPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

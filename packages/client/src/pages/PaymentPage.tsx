@@ -1,44 +1,45 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import Header from '@/components/Header';
-import { toast } from '@/components/Toast';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { PLANS, formatPrice } from '@/lib/plans';
-import { PAYMENT_METHODS, requestPayment } from '@/lib/payment';
-import { tx } from '@/lib/i18n';
+import { useState, useEffect } from 'react'
+import { useSearchParams, Link, useNavigate } from 'react-router-dom'
+
+import Header from '@/components/Header'
+import { toast } from '@/components/Toast'
+import { getUser } from '@/lib/auth'
+import { tx } from '@/lib/i18n'
+import { PAYMENT_METHODS, requestPayment } from '@/lib/payment'
+import { PLANS, formatPrice } from '@/lib/plans'
+import { ROUTES } from '@/lib/routes'
 
 type PaymentError = {
-  code?: string;
-  message?: string;
-};
+  code?: string
+  message?: string
+}
 
 const getPaymentError = (error: unknown): PaymentError =>
-  typeof error === 'object' && error !== null ? (error as PaymentError) : {};
+  typeof error === 'object' && error !== null ? (error as PaymentError) : {}
 
 export default function PaymentPage() {
-  const [params] = useSearchParams();
-  const navigate = useNavigate();
-  const user = getUser();
-  const planId = params.get('plan') || 'pro';
-  const period = (params.get('period') as 'monthly' | 'yearly') || 'monthly';
-  const plan = PLANS.find((p) => p.id === planId) || PLANS[1];
-  const amount = period === 'yearly' ? plan.yearlyPrice : plan.price;
-  const [selectedMethod, setSelectedMethod] = useState('card');
-  const [processing, setProcessing] = useState(false);
-  const [agreed, setAgreed] = useState(false);
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const user = getUser()
+  const planId = params.get('plan') || 'pro'
+  const period = (params.get('period') as 'monthly' | 'yearly') || 'monthly'
+  const plan = PLANS.find((p) => p.id === planId) || PLANS[1]
+  const amount = period === 'yearly' ? plan.yearlyPrice : plan.price
+  const [selectedMethod, setSelectedMethod] = useState('card')
+  const [processing, setProcessing] = useState(false)
+  const [agreed, setAgreed] = useState(false)
 
   useEffect(() => {
-    document.title = '결제 — 이력서공방';
-    if (!user) navigate(ROUTES.login);
+    document.title = '결제 — 이력서공방'
+    if (!user) navigate(ROUTES.login)
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, [navigate, user]);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [navigate, user])
 
   const handlePayment = async () => {
-    if (!user || !agreed) return;
-    setProcessing(true);
+    if (!user || !agreed) return
+    setProcessing(true)
     try {
       await requestPayment({
         planId: plan.id,
@@ -47,20 +48,20 @@ export default function PaymentPage() {
         period,
         customerEmail: user.email,
         customerName: user.name,
-      });
+      })
     } catch (e: unknown) {
-      const paymentError = getPaymentError(e);
+      const paymentError = getPaymentError(e)
       if (paymentError.code === 'USER_CANCEL') {
-        toast('결제가 취소되었습니다', 'info');
+        toast('결제가 취소되었습니다', 'info')
       } else {
-        toast(paymentError.message || '결제에 실패했습니다', 'error');
+        toast(paymentError.message || '결제에 실패했습니다', 'error')
       }
     } finally {
-      setProcessing(false);
+      setProcessing(false)
     }
-  };
+  }
 
-  if (!user) return null;
+  if (!user) return null
 
   return (
     <>
@@ -214,5 +215,5 @@ export default function PaymentPage() {
         </div>
       </main>
     </>
-  );
+  )
 }

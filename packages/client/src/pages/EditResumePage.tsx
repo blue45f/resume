@@ -1,30 +1,32 @@
-import { useDeferredValue, useEffect, useMemo, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import Header from '@/components/Header';
-import Breadcrumb from '@/components/Breadcrumb';
-import ResumeForm from '@/components/ResumeForm';
-import { toast } from '@/components/Toast';
-import LiveAtsBadge from '@/components/LiveAtsBadge';
-import { buildResumePlainText } from '@/lib/resumeText';
-import type { Resume } from '@/types/resume';
-import { useQueryClient } from '@tanstack/react-query';
-import { updateResume } from '@/lib/api';
-import { useResume } from '@/hooks/useResources';
-import { ROUTES } from '@/lib/routes';
-import LiveCompletenessBar from '@/features/edit-resume/LiveCompletenessBar';
-import EditResumeToolbar from '@/features/edit-resume/EditResumeToolbar';
-import ResumeAnalysisPanels from '@/features/edit-resume/ResumeAnalysisPanels';
-import EditResumeNotFound from '@/features/edit-resume/EditResumeNotFound';
-import EditResumeLoading from '@/features/edit-resume/EditResumeLoading';
-import EditResumeDialogs from '@/features/edit-resume/EditResumeDialogs';
+import { useQueryClient } from '@tanstack/react-query'
+import { useDeferredValue, useEffect, useMemo, useState, useCallback } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+
+import type { Resume } from '@/types/resume'
+
+import Breadcrumb from '@/components/Breadcrumb'
+import Header from '@/components/Header'
+import LiveAtsBadge from '@/components/LiveAtsBadge'
+import ResumeForm from '@/components/ResumeForm'
+import { toast } from '@/components/Toast'
+import EditResumeDialogs from '@/features/edit-resume/EditResumeDialogs'
+import EditResumeLoading from '@/features/edit-resume/EditResumeLoading'
+import EditResumeNotFound from '@/features/edit-resume/EditResumeNotFound'
+import EditResumeToolbar from '@/features/edit-resume/EditResumeToolbar'
+import LiveCompletenessBar from '@/features/edit-resume/LiveCompletenessBar'
+import ResumeAnalysisPanels from '@/features/edit-resume/ResumeAnalysisPanels'
+import { useResume } from '@/hooks/useResources'
+import { updateResume } from '@/lib/api'
+import { buildResumePlainText } from '@/lib/resumeText'
+import { ROUTES } from '@/lib/routes'
 
 export default function EditResumePage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { data: resumeData, error: resumeError } = useResume(id);
-  const resume: Resume | null = (resumeData as Resume | undefined) ?? null;
-  const notFound = !!resumeError;
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { data: resumeData, error: resumeError } = useResume(id)
+  const resume: Resume | null = (resumeData as Resume | undefined) ?? null
+  const notFound = !!resumeError
 
   // ResumeForm은 initialData 참조가 바뀌면 reset()을 호출한다(계약). 인라인 객체
   // 리터럴을 넘기면 매 렌더 새 참조가 되어 reset→onDataChange→setLiveData→재렌더가
@@ -46,73 +48,73 @@ export default function EditResumePage() {
             activities: resume.activities,
           }
         : null,
-    [resume],
-  );
-  const [saving, setSaving] = useState(false);
-  const [showAttachments, setShowAttachments] = useState(false);
-  const [showVersions, setShowVersions] = useState(false);
-  const [showAllowedViewers, setShowAllowedViewers] = useState(false);
-  const [liveData, setLiveData] = useState<Partial<Resume> | null>(null);
-  const [liveSyncedId, setLiveSyncedId] = useState<string | null>(null);
+    [resume]
+  )
+  const [saving, setSaving] = useState(false)
+  const [showAttachments, setShowAttachments] = useState(false)
+  const [showVersions, setShowVersions] = useState(false)
+  const [showAllowedViewers, setShowAllowedViewers] = useState(false)
+  const [liveData, setLiveData] = useState<Partial<Resume> | null>(null)
+  const [liveSyncedId, setLiveSyncedId] = useState<string | null>(null)
 
   const loadResume = () => {
-    queryClient.invalidateQueries({ queryKey: ['resume', id] });
-  };
+    queryClient.invalidateQueries({ queryKey: ['resume', id] })
+  }
 
   // Sync liveData when the loaded resume id changes (React's recommended
   // pattern for "reset state when a prop changes" — no effect needed).
   if (resume && resume.id !== liveSyncedId) {
-    setLiveSyncedId(resume.id);
-    setLiveData(resume);
+    setLiveSyncedId(resume.id)
+    setLiveData(resume)
   }
 
   useEffect(() => {
     if (resume) {
-      document.title = `${resume.title || '이력서'} 수정 — 이력서공방`;
+      document.title = `${resume.title || '이력서'} 수정 — 이력서공방`
     }
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, [resume]);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [resume])
 
   const handleSave = async (data: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!id) return;
-    setSaving(true);
+    if (!id) return
+    setSaving(true)
     try {
-      await updateResume(id, data);
-      toast('이력서가 저장되었습니다', 'success');
-      if (id) navigate(ROUTES.resume.preview(id));
+      await updateResume(id, data)
+      toast('이력서가 저장되었습니다', 'success')
+      if (id) navigate(ROUTES.resume.preview(id))
     } catch {
-      toast('저장에 실패했습니다. 다시 시도해주세요.', 'error');
+      toast('저장에 실패했습니다. 다시 시도해주세요.', 'error')
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const handleAutoSave = async (data: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!id) return;
+    if (!id) return
     try {
-      await updateResume(id, data);
+      await updateResume(id, data)
     } catch {
       // auto-save failures are silent; the indicator in ResumeForm will show error
-      throw new Error('auto-save failed');
+      throw new Error('auto-save failed')
     }
-  };
+  }
 
   const handleDataChange = useCallback((data: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
-    setLiveData(data as Partial<Resume>);
-  }, []);
+    setLiveData(data as Partial<Resume>)
+  }, [])
 
-  const liveAnalysisText = useMemo(() => buildResumePlainText(liveData), [liveData]);
+  const liveAnalysisText = useMemo(() => buildResumePlainText(liveData), [liveData])
   // 분석기 패널은 타이핑 중에는 뒤로 미루어 입력 레이턴시 보호 — useDeferredValue 가 유휴 시간에 재렌더.
-  const deferredAnalysisText = useDeferredValue(liveAnalysisText);
+  const deferredAnalysisText = useDeferredValue(liveAnalysisText)
 
   if (notFound) {
-    return <EditResumeNotFound onBackHome={() => navigate(ROUTES.home)} />;
+    return <EditResumeNotFound onBackHome={() => navigate(ROUTES.home)} />
   }
 
   if (!resume) {
-    return <EditResumeLoading />;
+    return <EditResumeLoading />
   }
 
   return (
@@ -185,9 +187,9 @@ export default function EditResumePage() {
         onCloseVersions={() => setShowVersions(false)}
         onCloseAllowedViewers={() => setShowAllowedViewers(false)}
         onRestoreVersion={() => {
-          loadResume();
+          loadResume()
         }}
       />
     </>
-  );
+  )
 }

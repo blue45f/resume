@@ -1,53 +1,54 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { CardGridSkeleton } from '@/components/Skeleton';
-import ErrorRetry from '@/components/ErrorRetry';
-import EmptyState from '@/components/EmptyState';
+import { useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+
+import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog'
+import EmptyState from '@/components/EmptyState'
+import ErrorRetry from '@/components/ErrorRetry'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import SendMessageButton from '@/components/SendMessageButton'
+import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog'
+import { CardGridSkeleton } from '@/components/Skeleton'
+import { toast } from '@/components/Toast'
+import { useScouts, useSentScouts } from '@/hooks/useResources'
 import {
   followUser,
   markScoutRead,
   respondToScout as apiRespondToScout,
   sendBulkScout,
-} from '@/lib/api';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { t } from '@/lib/i18n';
-import { formatDate, timeAgo } from '@/lib/time';
-import { toast } from '@/components/Toast';
-import SendMessageButton from '@/components/SendMessageButton';
-import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog';
-import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog';
-import { useQueryClient } from '@tanstack/react-query';
-import { useScouts, useSentScouts } from '@/hooks/useResources';
+} from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { t } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+import { formatDate, timeAgo } from '@/lib/time'
 
 interface Scout {
-  id: string;
-  sender: { id: string; name: string; email: string };
-  receiver?: { id: string; name: string; email: string };
-  company: string;
-  position: string;
-  message: string;
-  resumeId?: string;
-  read: boolean;
-  status?: 'pending' | 'accepted' | 'rejected' | 'expired';
-  createdAt: string;
+  id: string
+  sender: { id: string; name: string; email: string }
+  receiver?: { id: string; name: string; email: string }
+  company: string
+  position: string
+  message: string
+  resumeId?: string
+  read: boolean
+  status?: 'pending' | 'accepted' | 'rejected' | 'expired'
+  createdAt: string
 }
 
 interface ScoutTemplate {
-  id: string;
-  name: string;
-  message: string;
-  useCount: number;
+  id: string
+  name: string
+  message: string
+  useCount: number
 }
 
 interface BookmarkedCandidate {
-  id: string;
-  name: string;
-  email: string;
-  note: string;
-  addedAt: string;
+  id: string
+  name: string
+  email: string
+  note: string
+  addedAt: string
 }
 
 const STATUS_BADGE: Record<string, { label: string; className: string; dot: string }> = {
@@ -71,288 +72,286 @@ const STATUS_BADGE: Record<string, { label: string; className: string; dot: stri
     className: 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400',
     dot: 'bg-slate-400',
   },
-};
+}
 
-const STORAGE_KEY = 'scout_templates';
-const BOOKMARKS_KEY = 'scout_bookmarks';
+const STORAGE_KEY = 'scout_templates'
+const BOOKMARKS_KEY = 'scout_bookmarks'
 
 function loadTemplates(): ScoutTemplate[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const arr = raw ? (JSON.parse(raw) as Partial<ScoutTemplate>[]) : [];
+    const raw = localStorage.getItem(STORAGE_KEY)
+    const arr = raw ? (JSON.parse(raw) as Partial<ScoutTemplate>[]) : []
     return arr
       .filter(
         (
-          template,
+          template
         ): template is Partial<ScoutTemplate> & { id: string; name: string; message: string } =>
-          Boolean(template.id && template.name && template.message),
+          Boolean(template.id && template.name && template.message)
       )
       .map((template) => ({
         id: template.id,
         name: template.name,
         message: template.message,
         useCount: template.useCount || 0,
-      }));
+      }))
   } catch {
-    return [];
+    return []
   }
 }
 function saveTemplates(templates: ScoutTemplate[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(templates))
 }
 
 function loadBookmarks(): BookmarkedCandidate[] {
   try {
-    const raw = localStorage.getItem(BOOKMARKS_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const raw = localStorage.getItem(BOOKMARKS_KEY)
+    return raw ? JSON.parse(raw) : []
   } catch {
-    return [];
+    return []
   }
 }
 function saveBookmarks(bookmarks: BookmarkedCandidate[]) {
-  localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks));
+  localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks))
 }
 
 function getDaysRemaining(createdAt: string): number {
-  const created = new Date(createdAt).getTime();
-  const expiryMs = created + 7 * 24 * 60 * 60 * 1000;
-  const remaining = expiryMs - Date.now();
-  return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)));
+  const created = new Date(createdAt).getTime()
+  const expiryMs = created + 7 * 24 * 60 * 60 * 1000
+  const remaining = expiryMs - Date.now()
+  return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)))
 }
 
 function getScoutWithExpiry(scout: Scout): Scout {
   if (scout.status === 'pending' && getDaysRemaining(scout.createdAt) === 0) {
-    return { ...scout, status: 'expired' };
+    return { ...scout, status: 'expired' }
   }
-  return scout;
+  return scout
 }
 
 export default function ScoutsPage() {
-  const user = getUser();
-  const isRecruiter = user?.userType !== 'personal';
+  const user = getUser()
+  const isRecruiter = user?.userType !== 'personal'
 
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
   const [tab, setTab] = useState<'sent' | 'received' | 'bookmarks'>(
-    isRecruiter ? 'sent' : 'received',
-  );
-  const receivedQuery = useScouts();
-  const sentQuery = useSentScouts(isRecruiter);
-  const loading = receivedQuery.isLoading || (isRecruiter && sentQuery.isLoading);
-  const error = !!receivedQuery.error || (isRecruiter && !!sentQuery.error);
+    isRecruiter ? 'sent' : 'received'
+  )
+  const receivedQuery = useScouts()
+  const sentQuery = useSentScouts(isRecruiter)
+  const loading = receivedQuery.isLoading || (isRecruiter && sentQuery.isLoading)
+  const error = !!receivedQuery.error || (isRecruiter && !!sentQuery.error)
   const receivedScouts: Scout[] = useMemo(
     () => ((receivedQuery.data as Scout[] | undefined) ?? []).map(getScoutWithExpiry),
-    [receivedQuery.data],
-  );
+    [receivedQuery.data]
+  )
   const sentScouts: Scout[] = useMemo(
     () => ((sentQuery.data as Scout[] | undefined) ?? []).map(getScoutWithExpiry),
-    [sentQuery.data],
-  );
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [shareScoutOpen, setShareScoutOpen] = useState(false);
-  const [coffeeScoutOpen, setCoffeeScoutOpen] = useState(false);
+    [sentQuery.data]
+  )
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [shareScoutOpen, setShareScoutOpen] = useState(false)
+  const [coffeeScoutOpen, setCoffeeScoutOpen] = useState(false)
 
   // Bulk scout
-  const [bulkMode, setBulkMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkMessage, setBulkMessage] = useState('');
-  const [sendingBulk, setSendingBulk] = useState(false);
+  const [bulkMode, setBulkMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkMessage, setBulkMessage] = useState('')
+  const [sendingBulk, setSendingBulk] = useState(false)
 
   // Templates
-  const [templates, setTemplates] = useState<ScoutTemplate[]>(loadTemplates);
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [newTemplateName, setNewTemplateName] = useState('');
-  const [newTemplateMessage, setNewTemplateMessage] = useState('');
-  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<ScoutTemplate[]>(loadTemplates)
+  const [showTemplates, setShowTemplates] = useState(false)
+  const [newTemplateName, setNewTemplateName] = useState('')
+  const [newTemplateMessage, setNewTemplateMessage] = useState('')
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null)
 
   // Preview
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(false)
 
   // Bookmarks
-  const [bookmarks, setBookmarks] = useState<BookmarkedCandidate[]>(loadBookmarks);
-  const [newBookmarkName, setNewBookmarkName] = useState('');
-  const [newBookmarkEmail, setNewBookmarkEmail] = useState('');
-  const [newBookmarkNote, setNewBookmarkNote] = useState('');
+  const [bookmarks, setBookmarks] = useState<BookmarkedCandidate[]>(loadBookmarks)
+  const [newBookmarkName, setNewBookmarkName] = useState('')
+  const [newBookmarkEmail, setNewBookmarkEmail] = useState('')
+  const [newBookmarkNote, setNewBookmarkNote] = useState('')
 
   const loadScouts = useCallback(() => {
-    receivedQuery.refetch();
-    if (isRecruiter) sentQuery.refetch();
-  }, [receivedQuery, sentQuery, isRecruiter]);
+    receivedQuery.refetch()
+    if (isRecruiter) sentQuery.refetch()
+  }, [receivedQuery, sentQuery, isRecruiter])
 
   useEffect(() => {
-    document.title = '스카우트 제안 — 이력서공방';
+    document.title = '스카우트 제안 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   // Analytics
   const analytics = useMemo(() => {
-    const all = isRecruiter ? sentScouts : receivedScouts;
-    const total = all.length;
-    const accepted = all.filter((s) => s.status === 'accepted').length;
-    const rejected = all.filter((s) => s.status === 'rejected').length;
-    const responded = accepted + rejected;
-    const responseRate = total > 0 ? Math.round((responded / total) * 100) : 0;
-    const successRate = responded > 0 ? Math.round((accepted / responded) * 100) : 0;
+    const all = isRecruiter ? sentScouts : receivedScouts
+    const total = all.length
+    const accepted = all.filter((s) => s.status === 'accepted').length
+    const rejected = all.filter((s) => s.status === 'rejected').length
+    const responded = accepted + rejected
+    const responseRate = total > 0 ? Math.round((responded / total) * 100) : 0
+    const successRate = responded > 0 ? Math.round((accepted / responded) * 100) : 0
 
     // Average response time (mock: based on createdAt variance)
-    const respondedScouts = all.filter((s) => s.status === 'accepted' || s.status === 'rejected');
-    let avgResponseHours = 0;
+    const respondedScouts = all.filter((s) => s.status === 'accepted' || s.status === 'rejected')
+    let avgResponseHours = 0
     if (respondedScouts.length > 0) {
-      avgResponseHours = Math.min(72, 24 + respondedScouts.length * 6);
+      avgResponseHours = Math.min(72, 24 + respondedScouts.length * 6)
     }
 
-    return { total, accepted, rejected, responseRate, successRate, avgResponseHours };
-  }, [sentScouts, receivedScouts, isRecruiter]);
+    return { total, accepted, rejected, responseRate, successRate, avgResponseHours }
+  }, [sentScouts, receivedScouts, isRecruiter])
 
-  const scouts = tab === 'sent' ? sentScouts : tab === 'received' ? receivedScouts : [];
-  const unreadCount = receivedScouts.filter((s) => !s.read).length;
+  const scouts = tab === 'sent' ? sentScouts : tab === 'received' ? receivedScouts : []
+  const unreadCount = receivedScouts.filter((s) => !s.read).length
 
   const handleMarkRead = async (id: string) => {
-    await markScoutRead(id);
-    queryClient.invalidateQueries({ queryKey: ['scouts'] });
-  };
+    await markScoutRead(id)
+    queryClient.invalidateQueries({ queryKey: ['scouts'] })
+  }
 
   const respondToScout = async (id: string, response: 'accepted' | 'rejected') => {
     try {
-      await apiRespondToScout(id, response);
-      queryClient.invalidateQueries({ queryKey: ['scouts'] });
+      await apiRespondToScout(id, response)
+      queryClient.invalidateQueries({ queryKey: ['scouts'] })
 
       // Auto-follow on accept
       if (response === 'accepted') {
-        const scout = receivedScouts.find((s) => s.id === id);
+        const scout = receivedScouts.find((s) => s.id === id)
         if (scout?.sender?.id) {
           try {
-            await followUser(scout.sender.id);
-            toast('스카우트를 수락하고 자동으로 팔로우했습니다', 'success');
+            await followUser(scout.sender.id)
+            toast('스카우트를 수락하고 자동으로 팔로우했습니다', 'success')
           } catch {
-            toast('스카우트를 수락했습니다', 'success');
+            toast('스카우트를 수락했습니다', 'success')
           }
         }
       }
     } catch {
       /* silent */
     }
-  };
+  }
 
   const handleSelect = (id: string) => {
     if (bulkMode) {
       setSelectedIds((prev) => {
-        const next = new Set(prev);
-        if (next.has(id)) next.delete(id);
-        else next.add(id);
-        return next;
-      });
-      return;
+        const next = new Set(prev)
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+        return next
+      })
+      return
     }
-    setSelectedId(id);
+    setSelectedId(id)
     if (tab === 'received') {
-      const scout = receivedScouts.find((s) => s.id === id);
-      if (scout && !scout.read) handleMarkRead(id);
+      const scout = receivedScouts.find((s) => s.id === id)
+      if (scout && !scout.read) handleMarkRead(id)
     }
-  };
+  }
 
-  const selected = scouts.find((s) => s.id === selectedId);
+  const selected = scouts.find((s) => s.id === selectedId)
 
   const handleBulkSend = async () => {
-    if (!bulkMessage.trim() || selectedIds.size === 0) return;
-    setSendingBulk(true);
+    if (!bulkMessage.trim() || selectedIds.size === 0) return
+    setSendingBulk(true)
     try {
       await sendBulkScout({
         targetIds: Array.from(selectedIds),
         message: bulkMessage,
         company: user?.companyName || '',
-      });
-      setBulkMode(false);
-      setSelectedIds(new Set());
-      setBulkMessage('');
+      })
+      setBulkMode(false)
+      setSelectedIds(new Set())
+      setBulkMessage('')
     } catch {
       /* silent */
     }
-    setSendingBulk(false);
-  };
+    setSendingBulk(false)
+  }
 
   const addTemplate = useCallback(() => {
-    if (!newTemplateName.trim() || !newTemplateMessage.trim()) return;
+    if (!newTemplateName.trim() || !newTemplateMessage.trim()) return
 
     if (editingTemplateId) {
       const updated = templates.map((t) =>
         t.id === editingTemplateId
           ? { ...t, name: newTemplateName, message: newTemplateMessage }
-          : t,
-      );
-      setTemplates(updated);
-      saveTemplates(updated);
-      setEditingTemplateId(null);
+          : t
+      )
+      setTemplates(updated)
+      saveTemplates(updated)
+      setEditingTemplateId(null)
     } else {
       const tpl: ScoutTemplate = {
         id: Date.now().toString(),
         name: newTemplateName,
         message: newTemplateMessage,
         useCount: 0,
-      };
-      const updated = [...templates, tpl];
-      setTemplates(updated);
-      saveTemplates(updated);
+      }
+      const updated = [...templates, tpl]
+      setTemplates(updated)
+      saveTemplates(updated)
     }
-    setNewTemplateName('');
-    setNewTemplateMessage('');
-  }, [newTemplateName, newTemplateMessage, templates, editingTemplateId]);
+    setNewTemplateName('')
+    setNewTemplateMessage('')
+  }, [newTemplateName, newTemplateMessage, templates, editingTemplateId])
 
   const editTemplate = (tpl: ScoutTemplate) => {
-    setEditingTemplateId(tpl.id);
-    setNewTemplateName(tpl.name);
-    setNewTemplateMessage(tpl.message);
-  };
+    setEditingTemplateId(tpl.id)
+    setNewTemplateName(tpl.name)
+    setNewTemplateMessage(tpl.message)
+  }
 
   const deleteTemplate = (id: string) => {
-    const updated = templates.filter((t) => t.id !== id);
-    setTemplates(updated);
-    saveTemplates(updated);
+    const updated = templates.filter((t) => t.id !== id)
+    setTemplates(updated)
+    saveTemplates(updated)
     if (editingTemplateId === id) {
-      setEditingTemplateId(null);
-      setNewTemplateName('');
-      setNewTemplateMessage('');
+      setEditingTemplateId(null)
+      setNewTemplateName('')
+      setNewTemplateMessage('')
     }
-  };
+  }
 
   const applyTemplate = (tpl: ScoutTemplate) => {
-    setBulkMessage(tpl.message);
+    setBulkMessage(tpl.message)
     // Increment use count
-    const updated = templates.map((t) =>
-      t.id === tpl.id ? { ...t, useCount: t.useCount + 1 } : t,
-    );
-    setTemplates(updated);
-    saveTemplates(updated);
-    setShowTemplates(false);
-  };
+    const updated = templates.map((t) => (t.id === tpl.id ? { ...t, useCount: t.useCount + 1 } : t))
+    setTemplates(updated)
+    saveTemplates(updated)
+    setShowTemplates(false)
+  }
 
   // Bookmarks
   const addBookmark = () => {
-    if (!newBookmarkName.trim()) return;
+    if (!newBookmarkName.trim()) return
     const bm: BookmarkedCandidate = {
       id: Date.now().toString(),
       name: newBookmarkName,
       email: newBookmarkEmail,
       note: newBookmarkNote,
       addedAt: new Date().toISOString(),
-    };
-    const updated = [...bookmarks, bm];
-    setBookmarks(updated);
-    saveBookmarks(updated);
-    setNewBookmarkName('');
-    setNewBookmarkEmail('');
-    setNewBookmarkNote('');
-  };
+    }
+    const updated = [...bookmarks, bm]
+    setBookmarks(updated)
+    saveBookmarks(updated)
+    setNewBookmarkName('')
+    setNewBookmarkEmail('')
+    setNewBookmarkNote('')
+  }
 
   const removeBookmark = (id: string) => {
-    const updated = bookmarks.filter((b) => b.id !== id);
-    setBookmarks(updated);
-    saveBookmarks(updated);
-  };
+    const updated = bookmarks.filter((b) => b.id !== id)
+    setBookmarks(updated)
+    saveBookmarks(updated)
+  }
 
   const getStatusBadge = (status?: string) => {
-    const info = STATUS_BADGE[status || 'pending'] || STATUS_BADGE.pending;
+    const info = STATUS_BADGE[status || 'pending'] || STATUS_BADGE.pending
     return (
       <span
         className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${info.className}`}
@@ -360,8 +359,8 @@ export default function ScoutsPage() {
         <span className={`w-1.5 h-1.5 rounded-full ${info.dot}`} />
         {info.label}
       </span>
-    );
-  };
+    )
+  }
 
   return (
     <>
@@ -396,8 +395,8 @@ export default function ScoutsPage() {
                 </button>
                 <button
                   onClick={() => {
-                    setBulkMode(!bulkMode);
-                    setSelectedIds(new Set());
+                    setBulkMode(!bulkMode)
+                    setSelectedIds(new Set())
                   }}
                   className={`px-3 py-2 text-xs font-medium rounded-xl transition-colors ${
                     bulkMode
@@ -454,8 +453,8 @@ export default function ScoutsPage() {
             <button
               key={t.key}
               onClick={() => {
-                setTab(t.key);
-                setSelectedId(null);
+                setTab(t.key)
+                setSelectedId(null)
               }}
               className={`px-4 py-2 text-sm rounded-lg transition-colors ${
                 tab === t.key
@@ -554,9 +553,9 @@ export default function ScoutsPage() {
                 {editingTemplateId && (
                   <button
                     onClick={() => {
-                      setEditingTemplateId(null);
-                      setNewTemplateName('');
-                      setNewTemplateMessage('');
+                      setEditingTemplateId(null)
+                      setNewTemplateName('')
+                      setNewTemplateMessage('')
                     }}
                     className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors"
                   >
@@ -580,8 +579,8 @@ export default function ScoutsPage() {
                   <select
                     onChange={(e) => {
                       if (e.target.value) {
-                        const tpl = templates.find((t) => t.id === e.target.value);
-                        if (tpl) applyTemplate(tpl);
+                        const tpl = templates.find((t) => t.id === e.target.value)
+                        if (tpl) applyTemplate(tpl)
                       }
                     }}
                     className="text-xs px-2 py-1 rounded-lg border border-emerald-200 dark:border-emerald-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300"
@@ -771,7 +770,7 @@ export default function ScoutsPage() {
             {/* List */}
             <div className="lg:col-span-1 space-y-2">
               {scouts.map((s) => {
-                const daysLeft = s.status === 'pending' ? getDaysRemaining(s.createdAt) : null;
+                const daysLeft = s.status === 'pending' ? getDaysRemaining(s.createdAt) : null
                 return (
                   <button
                     key={s.id}
@@ -853,7 +852,7 @@ export default function ScoutsPage() {
                       </span>
                     )}
                   </button>
-                );
+                )
               })}
             </div>
 
@@ -1016,5 +1015,5 @@ export default function ScoutsPage() {
         </>
       )}
     </>
-  );
+  )
 }

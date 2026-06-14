@@ -1,14 +1,15 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { type CoachProfile } from '@/lib/api';
-import { useCoaches, useSystemContent } from '@/hooks/useResources';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
-import SendMessageButton from '@/components/SendMessageButton';
+import { useState, useEffect, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 
-type SortKey = 'rating' | 'rateAsc' | 'rateDesc';
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import SendMessageButton from '@/components/SendMessageButton'
+import { useCoaches, useSystemContent } from '@/hooks/useResources'
+import { type CoachProfile } from '@/lib/api'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+
+type SortKey = 'rating' | 'rateAsc' | 'rateDesc'
 
 // 기본 전문 분야 (admin 이 /api/system-config/content/coach_specialties 에 JSON
 // 배열을 저장하지 않은 경우 fallback). admin 이 SystemConfig 편집해 실시간 갱신 가능.
@@ -21,15 +22,15 @@ const DEFAULT_SPECIALTIES = [
   '연봉 협상',
   '이직 전략',
   '기타',
-];
+]
 
 export default function CoachesPage() {
-  const { data: dynSpec } = useSystemContent<string[]>('coach_specialties');
-  const SPECIALTIES = Array.isArray(dynSpec) && dynSpec.length > 0 ? dynSpec : DEFAULT_SPECIALTIES;
-  const [specialty, setSpecialty] = useState('');
-  const [minRate, setMinRate] = useState('');
-  const [maxRate, setMaxRate] = useState('');
-  const [sortBy, setSortBy] = useState<SortKey>('rating');
+  const { data: dynSpec } = useSystemContent<string[]>('coach_specialties')
+  const SPECIALTIES = Array.isArray(dynSpec) && dynSpec.length > 0 ? dynSpec : DEFAULT_SPECIALTIES
+  const [specialty, setSpecialty] = useState('')
+  const [minRate, setMinRate] = useState('')
+  const [maxRate, setMaxRate] = useState('')
+  const [sortBy, setSortBy] = useState<SortKey>('rating')
 
   const {
     data,
@@ -39,33 +40,33 @@ export default function CoachesPage() {
     specialty: specialty || undefined,
     minRate: minRate ? Number(minRate) : undefined,
     maxRate: maxRate ? Number(maxRate) : undefined,
-  });
-  const coaches: CoachProfile[] = useMemo(() => (Array.isArray(data) ? data : []), [data]);
+  })
+  const coaches: CoachProfile[] = useMemo(() => (Array.isArray(data) ? data : []), [data])
   const error = queryError
     ? (queryError as Error)?.message || '코치 목록을 불러오지 못했습니다'
-    : null;
+    : null
 
   useEffect(() => {
-    document.title = '코치 찾기 — 이력서공방';
+    document.title = '코치 찾기 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const sortedCoaches = useMemo(() => {
-    const arr = [...coaches];
-    if (sortBy === 'rating') arr.sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0));
-    else if (sortBy === 'rateAsc') arr.sort((a, b) => (a.hourlyRate || 0) - (b.hourlyRate || 0));
-    else if (sortBy === 'rateDesc') arr.sort((a, b) => (b.hourlyRate || 0) - (a.hourlyRate || 0));
-    return arr;
-  }, [coaches, sortBy]);
+    const arr = [...coaches]
+    if (sortBy === 'rating') arr.sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0))
+    else if (sortBy === 'rateAsc') arr.sort((a, b) => (a.hourlyRate || 0) - (b.hourlyRate || 0))
+    else if (sortBy === 'rateDesc') arr.sort((a, b) => (b.hourlyRate || 0) - (a.hourlyRate || 0))
+    return arr
+  }, [coaches, sortBy])
 
   const resetFilters = () => {
-    setSpecialty('');
-    setMinRate('');
-    setMaxRate('');
-    setSortBy('rating');
-  };
+    setSpecialty('')
+    setMinRate('')
+    setMaxRate('')
+    setSortBy('rating')
+  }
 
   return (
     <>
@@ -148,10 +149,14 @@ export default function CoachesPage() {
         <div className="imp-card p-4 mb-6">
           <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="coachespage-field-1"
+                className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1"
+              >
                 {tx('coach.specialty')}
               </label>
               <select
+                id="coachespage-field-1"
                 value={specialty}
                 onChange={(e) => setSpecialty(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
@@ -165,10 +170,14 @@ export default function CoachesPage() {
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="coachespage-field-2"
+                className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1"
+              >
                 최소 시급 (원)
               </label>
               <input
+                id="coachespage-field-2"
                 type="number"
                 inputMode="numeric"
                 min={0}
@@ -180,10 +189,14 @@ export default function CoachesPage() {
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="coachespage-field-3"
+                className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1"
+              >
                 최대 시급 (원)
               </label>
               <input
+                id="coachespage-field-3"
                 type="number"
                 inputMode="numeric"
                 min={0}
@@ -195,10 +208,14 @@ export default function CoachesPage() {
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="coachespage-field-4"
+                className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1"
+              >
                 {tx('explore.sortBy')}
               </label>
               <select
+                id="coachespage-field-4"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortKey)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
@@ -245,9 +262,9 @@ export default function CoachesPage() {
             <p className="text-sm text-red-500 mb-2">{error}</p>
             <button
               onClick={() => {
-                setSpecialty('');
-                setMinRate('');
-                setMaxRate('');
+                setSpecialty('')
+                setMinRate('')
+                setMaxRate('')
               }}
               className="text-xs text-blue-600 hover:text-blue-800"
             >
@@ -280,20 +297,20 @@ export default function CoachesPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }
 
 function CoachCard({ coach }: { coach: CoachProfile }) {
-  const name = coach.user?.name || '익명 코치';
-  const avatar = coach.user?.avatar || '';
-  const initials = (name || 'C').slice(0, 1).toUpperCase();
+  const name = coach.user?.name || '익명 코치'
+  const avatar = coach.user?.avatar || ''
+  const initials = (name || 'C').slice(0, 1).toUpperCase()
   const bioExcerpt =
     (coach.bio || '').length > 90
       ? (coach.bio || '').slice(0, 90).trim() + '...'
-      : coach.bio || '소개글이 아직 없습니다';
-  const rating = coach.avgRating || 0;
-  const rate = coach.hourlyRate || 0;
-  const sessions = coach.totalSessions || 0;
+      : coach.bio || '소개글이 아직 없습니다'
+  const rating = coach.avgRating || 0
+  const rate = coach.hourlyRate || 0
+  const sessions = coach.totalSessions || 0
 
   return (
     <article className="imp-card p-5 flex flex-col card-hover">
@@ -368,5 +385,5 @@ function CoachCard({ coach }: { coach: CoachProfile }) {
         </Link>
       </div>
     </article>
-  );
+  )
 }

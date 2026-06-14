@@ -1,44 +1,46 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import type { Resume } from '@/types/resume';
-import { API_URL } from '@/lib/config';
-import { ROUTES } from '@/lib/routes';
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+import type { Resume } from '@/types/resume'
+
+import { API_URL } from '@/lib/config'
+import { ROUTES } from '@/lib/routes'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 interface SimilarResume {
-  id: string;
-  title?: string;
-  viewCount?: number;
+  id: string
+  title?: string
+  viewCount?: number
   personalInfo?: {
-    name?: string;
-  };
+    name?: string
+  }
 }
 
 export default function SimilarResumes({ resume }: Props) {
-  const [similar, setSimilar] = useState<SimilarResume[]>([]);
+  const [similar, setSimilar] = useState<SimilarResume[]>([])
 
   useEffect(() => {
     const topSkills = resume.skills
       .flatMap((s) => s.items.split(',').map((i) => i.trim()))
-      .slice(0, 3);
-    if (topSkills.length === 0) return;
+      .slice(0, 3)
+    if (topSkills.length === 0) return
 
-    const query = topSkills[0];
+    const query = topSkills[0]
     fetch(`${API_URL}/api/resumes/public?q=${encodeURIComponent(query)}&limit=5`)
       .then((r) => (r.ok ? r.json() : { data: [] }))
       .then((d: unknown) => {
-        const data = typeof d === 'object' && d !== null && 'data' in d ? d.data : [];
-        const rows = Array.isArray(data) ? (data as SimilarResume[]) : [];
-        const others = rows.filter((r) => r.id !== resume.id);
-        setSimilar(others.slice(0, 3));
+        const data = typeof d === 'object' && d !== null && 'data' in d ? d.data : []
+        const rows = Array.isArray(data) ? (data as SimilarResume[]) : []
+        const others = rows.filter((r) => r.id !== resume.id)
+        setSimilar(others.slice(0, 3))
       })
-      .catch(() => {});
-  }, [resume.id, resume.skills]);
+      .catch(() => {})
+  }, [resume.id, resume.skills])
 
-  if (similar.length === 0) return null;
+  if (similar.length === 0) return null
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -72,5 +74,5 @@ export default function SimilarResumes({ resume }: Props) {
         ))}
       </div>
     </div>
-  );
+  )
 }

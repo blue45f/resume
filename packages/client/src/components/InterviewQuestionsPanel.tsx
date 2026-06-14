@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
-import { generateInterviewQuestions, type InterviewQuestion } from '@/lib/koreanChecker';
+import { useMemo, useState } from 'react'
+
+import { generateInterviewQuestions, type InterviewQuestion } from '@/lib/koreanChecker'
 
 interface Props {
-  text: string;
-  minLength?: number;
-  maxQuestions?: number;
-  className?: string;
+  text: string
+  minLength?: number
+  maxQuestions?: number
+  className?: string
 }
 
 const CATEGORY_COLORS: Record<InterviewQuestion['category'], string> = {
@@ -17,14 +18,14 @@ const CATEGORY_COLORS: Record<InterviewQuestion['category'], string> = {
     'bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700',
   project:
     'bg-sapphire-50 dark:bg-sapphire-900/20 text-sky-700 dark:text-sky-300 border-sky-100 dark:border-sky-900/40',
-};
+}
 
 const CATEGORY_LABELS: Record<InterviewQuestion['category'], string> = {
   skill: '기술',
   experience: '경험',
   behavioral: '행동',
   project: '프로젝트',
-};
+}
 
 /**
  * 이력서·자소서 본문에서 예상 면접 질문을 룰-기반으로 생성해 카드 리스트로 렌더.
@@ -36,15 +37,15 @@ export default function InterviewQuestionsPanel({
   maxQuestions = 10,
   className = '',
 }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false)
   const questions = useMemo(() => {
-    if (!text || text.length < minLength) return [];
-    return generateInterviewQuestions(text, maxQuestions);
-  }, [text, minLength, maxQuestions]);
+    if (!text || text.length < minLength) return []
+    return generateInterviewQuestions(text, maxQuestions)
+  }, [text, minLength, maxQuestions])
 
-  if (questions.length === 0) return null;
+  if (questions.length === 0) return null
 
-  const displayed = expanded ? questions : questions.slice(0, 3);
+  const displayed = expanded ? questions : questions.slice(0, 3)
 
   return (
     <div className={`mt-3 ${className}`}>
@@ -88,5 +89,5 @@ export default function InterviewQuestionsPanel({
         ))}
       </ol>
     </div>
-  );
+  )
 }

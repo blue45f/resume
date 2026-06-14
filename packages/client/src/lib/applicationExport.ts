@@ -1,4 +1,4 @@
-import type { JobApplication } from './api';
+import type { JobApplication } from './api'
 
 const CSV_HEADERS = [
   'Company',
@@ -14,17 +14,17 @@ const CSV_HEADERS = [
   'Notes',
   'Created At',
   'Updated At',
-];
+]
 
 const csvValue = (value?: string | null) => {
-  const text = value ?? '';
+  const text = value ?? ''
   if (/[",\n\r]/.test(text)) {
-    return `"${text.replace(/"/g, '""')}"`;
+    return `"${text.replace(/"/g, '""')}"`
   }
-  return text;
-};
+  return text
+}
 
-const dateOnly = (value?: string | null) => value?.slice(0, 10) ?? '';
+const dateOnly = (value?: string | null) => value?.slice(0, 10) ?? ''
 
 export const buildApplicationCsv = (applications: JobApplication[]) => {
   const rows = applications.map((application) =>
@@ -44,18 +44,18 @@ export const buildApplicationCsv = (applications: JobApplication[]) => {
       dateOnly(application.updatedAt),
     ]
       .map(csvValue)
-      .join(','),
-  );
+      .join(',')
+  )
 
-  return [CSV_HEADERS.join(','), ...rows].join('\n');
-};
+  return [CSV_HEADERS.join(','), ...rows].join('\n')
+}
 
 export const getApplicationCsvFileName = (
   exportedCount: number,
   totalCount: number,
-  now = new Date(),
+  now = new Date()
 ) => {
-  const scope = exportedCount === totalCount ? 'all' : 'filtered';
-  const date = now.toISOString().slice(0, 10);
-  return `applications-${scope}-${date}.csv`;
-};
+  const scope = exportedCount === totalCount ? 'all' : 'filtered'
+  const date = now.toISOString().slice(0, 10)
+  return `applications-${scope}-${date}.csv`
+}

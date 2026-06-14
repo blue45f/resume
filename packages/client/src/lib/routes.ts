@@ -12,7 +12,7 @@
  */
 
 // ─── 공통 ────────────────────────────────────────
-export const TERMSDESK_BASE = 'https://termsdesk.vercel.app';
+export const TERMSDESK_BASE = 'https://termsdesk.vercel.app'
 
 /**
  * TermsDesk 외부 URL — 약관/방침 원문(정본) 페이지와 지원 보드.
@@ -24,7 +24,7 @@ export const TERMSDESK_URLS = {
   privacy: `${TERMSDESK_BASE}/p/resume/privacy-policy`,
   refund: `${TERMSDESK_BASE}/p/resume/refund-policy`,
   support: `${TERMSDESK_BASE}/support/resume`,
-} as const;
+} as const
 
 export const ROUTES = {
   home: '/',
@@ -99,12 +99,12 @@ export const ROUTES = {
   interview: {
     prep: '/interview-prep',
     mock: (params?: { jobPostId?: string; question?: string }) => {
-      if (!params) return '/mock-interview';
-      const sp = new URLSearchParams();
-      if (params.jobPostId) sp.set('jobPostId', params.jobPostId);
-      if (params.question) sp.set('question', params.question);
-      const q = sp.toString();
-      return q ? `/mock-interview?${q}` : '/mock-interview';
+      if (!params) return '/mock-interview'
+      const sp = new URLSearchParams()
+      if (params.jobPostId) sp.set('jobPostId', params.jobPostId)
+      if (params.question) sp.set('question', params.question)
+      const q = sp.toString()
+      return q ? `/mock-interview?${q}` : '/mock-interview'
     },
     studyGroups: '/study-groups',
     studyGroup: (id: string) => `/study-groups/${id}`,
@@ -172,7 +172,7 @@ export const ROUTES = {
     permissions: '/admin?tab=permissions',
     systemConfig: '/admin?tab=system-config',
   },
-} as const;
+} as const
 
 /**
  * 쿼리 파라미터 덧붙이기 헬퍼.
@@ -180,15 +180,15 @@ export const ROUTES = {
  */
 export function withQuery(
   base: string,
-  query: Record<string, string | number | boolean | undefined>,
+  query: Record<string, string | number | boolean | undefined>
 ): string {
-  const sp = new URLSearchParams();
+  const sp = new URLSearchParams()
   for (const [k, v] of Object.entries(query)) {
-    if (v !== undefined && v !== '') sp.set(k, String(v));
+    if (v !== undefined && v !== '') sp.set(k, String(v))
   }
-  const q = sp.toString();
-  if (!q) return base;
-  return base.includes('?') ? `${base}&${q}` : `${base}?${q}`;
+  const q = sp.toString()
+  if (!q) return base
+  return base.includes('?') ? `${base}&${q}` : `${base}?${q}`
 }
 
 /**
@@ -196,7 +196,7 @@ export function withQuery(
  * 네비게이션 active 상태에 사용.
  */
 export function isActive(pathname: string, route: string): boolean {
-  const clean = route.split('?')[0];
-  if (clean === '/') return pathname === '/';
-  return pathname === clean || pathname.startsWith(`${clean}/`);
+  const clean = route.split('?')[0]
+  if (clean === '/') return pathname === '/'
+  return pathname === clean || pathname.startsWith(`${clean}/`)
 }

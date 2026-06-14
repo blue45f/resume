@@ -1,93 +1,98 @@
-import { useState, useEffect, useMemo } from 'react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { calculateCompleteness } from '@/lib/completeness';
-import type { Resume, ResumeSummary } from '@/types/resume';
-import { useResumes, useResume } from '@/hooks/useResources';
-import { t } from '@/lib/i18n';
+import { useState, useEffect, useMemo } from 'react'
+
+import type { Resume, ResumeSummary } from '@/types/resume'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { useResumes, useResume } from '@/hooks/useResources'
+import { calculateCompleteness } from '@/lib/completeness'
+import { t } from '@/lib/i18n'
 
 /** Analyze strengths and weaknesses of a resume compared to another */
 function analyzeResume(
   resume: Resume,
-  other: Resume,
+  other: Resume
 ): { strengths: string[]; weaknesses: string[] } {
-  const strengths: string[] = [];
-  const weaknesses: string[] = [];
-  const comp = calculateCompleteness(resume);
-  const otherComp = calculateCompleteness(other);
+  const strengths: string[] = []
+  const weaknesses: string[] = []
+  const comp = calculateCompleteness(resume)
+  const otherComp = calculateCompleteness(other)
 
   // Personal info
-  const pi = resume.personalInfo;
+  const pi = resume.personalInfo
   if (pi.summary && pi.summary.replace(/<[^>]*>/g, '').length > 100)
-    strengths.push('상세한 자기소개');
+    strengths.push('상세한 자기소개')
   else if (!pi.summary || pi.summary.replace(/<[^>]*>/g, '').length < 30)
-    weaknesses.push('자기소개가 부족합니다');
-  if (pi.github || pi.website) strengths.push('포트폴리오/깃허브 링크 포함');
-  if (pi.photo) strengths.push('프로필 사진 포함');
+    weaknesses.push('자기소개가 부족합니다')
+  if (pi.github || pi.website) strengths.push('포트폴리오/깃허브 링크 포함')
+  if (pi.photo) strengths.push('프로필 사진 포함')
 
   // Experiences
   if (resume.experiences.length > other.experiences.length)
-    strengths.push(`경력 사항이 더 풍부 (${resume.experiences.length}개)`);
+    strengths.push(`경력 사항이 더 풍부 (${resume.experiences.length}개)`)
   else if (resume.experiences.length < other.experiences.length)
     weaknesses.push(
-      `경력 사항이 상대적으로 적음 (${resume.experiences.length}개 vs ${other.experiences.length}개)`,
-    );
-  const hasDetailedExp = resume.experiences.some((e) => e.description && e.description.length > 80);
-  if (hasDetailedExp) strengths.push('경력 업무 내용 상세 기술');
-  else if (resume.experiences.length > 0) weaknesses.push('경력 업무 내용을 더 상세히 작성하세요');
-  const hasTechInExp = resume.experiences.some((e) => e.techStack);
-  if (hasTechInExp) strengths.push('경력에 기술 스택 명시');
+      `경력 사항이 상대적으로 적음 (${resume.experiences.length}개 vs ${other.experiences.length}개)`
+    )
+  const hasDetailedExp = resume.experiences.some((e) => e.description && e.description.length > 80)
+  if (hasDetailedExp) strengths.push('경력 업무 내용 상세 기술')
+  else if (resume.experiences.length > 0) weaknesses.push('경력 업무 내용을 더 상세히 작성하세요')
+  const hasTechInExp = resume.experiences.some((e) => e.techStack)
+  if (hasTechInExp) strengths.push('경력에 기술 스택 명시')
 
   // Skills
   const mySkillCount = resume.skills.reduce(
     (s, sk) => s + sk.items.split(',').filter(Boolean).length,
-    0,
-  );
+    0
+  )
   const otherSkillCount = other.skills.reduce(
     (s, sk) => s + sk.items.split(',').filter(Boolean).length,
-    0,
-  );
-  if (mySkillCount > otherSkillCount) strengths.push(`기술 스택이 더 다양 (${mySkillCount}개)`);
+    0
+  )
+  if (mySkillCount > otherSkillCount) strengths.push(`기술 스택이 더 다양 (${mySkillCount}개)`)
   else if (mySkillCount < otherSkillCount)
-    weaknesses.push(`기술 스택이 상대적으로 적음 (${mySkillCount}개 vs ${otherSkillCount}개)`);
+    weaknesses.push(`기술 스택이 상대적으로 적음 (${mySkillCount}개 vs ${otherSkillCount}개)`)
 
   // Projects
   if (resume.projects.length > 0 && other.projects.length === 0)
-    strengths.push('프로젝트 경험 포함');
+    strengths.push('프로젝트 경험 포함')
   else if (resume.projects.length === 0 && other.projects.length > 0)
-    weaknesses.push('프로젝트 경험이 없음');
+    weaknesses.push('프로젝트 경험이 없음')
 
   // Certifications
   if (resume.certifications.length > 0)
-    strengths.push(`자격증 보유 (${resume.certifications.length}개)`);
-  else if (other.certifications.length > 0) weaknesses.push('자격증이 없음');
+    strengths.push(`자격증 보유 (${resume.certifications.length}개)`)
+  else if (other.certifications.length > 0) weaknesses.push('자격증이 없음')
 
   // Languages
-  if (resume.languages.length > other.languages.length) strengths.push('어학 능력 우수');
-  else if (resume.languages.length < other.languages.length) weaknesses.push('어학 점수 추가 권장');
+  if (resume.languages.length > other.languages.length) strengths.push('어학 능력 우수')
+  else if (resume.languages.length < other.languages.length) weaknesses.push('어학 점수 추가 권장')
 
   // Overall completeness
   if (comp.percentage > otherComp.percentage)
-    strengths.push(`전체 완성도가 더 높음 (${comp.percentage}%)`);
+    strengths.push(`전체 완성도가 더 높음 (${comp.percentage}%)`)
   else if (comp.percentage < otherComp.percentage)
-    weaknesses.push(`완성도를 높이세요 (${comp.percentage}% vs ${otherComp.percentage}%)`);
+    weaknesses.push(`완성도를 높이세요 (${comp.percentage}% vs ${otherComp.percentage}%)`)
 
-  return { strengths: strengths.slice(0, 6), weaknesses: weaknesses.slice(0, 6) };
+  return { strengths: strengths.slice(0, 6), weaknesses: weaknesses.slice(0, 6) }
 }
 
 function ResumeSelector({
+  id,
   resumes,
   value,
   onChange,
   exclude,
 }: {
-  resumes: ResumeSummary[];
-  value: string;
-  onChange: (v: string) => void;
-  exclude: string;
+  id?: string
+  resumes: ResumeSummary[]
+  value: string
+  onChange: (v: string) => void
+  exclude: string
 }) {
   return (
     <select
+      id={id}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className="w-full px-3 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -101,25 +106,25 @@ function ResumeSelector({
           </option>
         ))}
     </select>
-  );
+  )
 }
 
 export default function ComparePage() {
-  const { data: resumesData } = useResumes();
-  const resumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? [];
-  const [leftId, setLeftId] = useState('');
-  const [rightId, setRightId] = useState('');
-  const { data: leftData } = useResume(leftId || undefined);
-  const { data: rightData } = useResume(rightId || undefined);
-  const left: Resume | null = (leftData as Resume | undefined) ?? null;
-  const right: Resume | null = (rightData as Resume | undefined) ?? null;
+  const { data: resumesData } = useResumes()
+  const resumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? []
+  const [leftId, setLeftId] = useState('')
+  const [rightId, setRightId] = useState('')
+  const { data: leftData } = useResume(leftId || undefined)
+  const { data: rightData } = useResume(rightId || undefined)
+  const left: Resume | null = (leftData as Resume | undefined) ?? null
+  const right: Resume | null = (rightData as Resume | undefined) ?? null
 
   useEffect(() => {
-    document.title = '이력서 비교 — 이력서공방';
+    document.title = '이력서 비교 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const sections = [
     { key: 'experiences', label: '경력', count: (r: Resume) => r.experiences.length },
@@ -134,53 +139,53 @@ export default function ComparePage() {
     { key: 'languages', label: '어학', count: (r: Resume) => r.languages.length },
     { key: 'awards', label: '수상', count: (r: Resume) => r.awards.length },
     { key: 'activities', label: '활동', count: (r: Resume) => r.activities.length },
-  ];
+  ]
 
   const leftAnalysis = useMemo(
     () => (left && right ? analyzeResume(left, right) : null),
-    [left, right],
-  );
+    [left, right]
+  )
   const rightAnalysis = useMemo(
     () => (left && right ? analyzeResume(right, left) : null),
-    [left, right],
-  );
+    [left, right]
+  )
 
   // Compute skill diff between resumes
   const skillDiff = useMemo(() => {
     if (!left || !right)
-      return { onlyLeft: [] as string[], onlyRight: [] as string[], shared: [] as string[] };
+      return { onlyLeft: [] as string[], onlyRight: [] as string[], shared: [] as string[] }
     const leftSkills = new Set(
       left.skills.flatMap((sk) =>
         sk.items
           .split(',')
           .map((s) => s.trim().toLowerCase())
-          .filter(Boolean),
-      ),
-    );
+          .filter(Boolean)
+      )
+    )
     const rightSkills = new Set(
       right.skills.flatMap((sk) =>
         sk.items
           .split(',')
           .map((s) => s.trim().toLowerCase())
-          .filter(Boolean),
-      ),
-    );
-    const shared = [...leftSkills].filter((s) => rightSkills.has(s));
-    const onlyLeft = [...leftSkills].filter((s) => !rightSkills.has(s));
-    const onlyRight = [...rightSkills].filter((s) => !leftSkills.has(s));
-    return { shared, onlyLeft, onlyRight };
-  }, [left, right]);
+          .filter(Boolean)
+      )
+    )
+    const shared = [...leftSkills].filter((s) => rightSkills.has(s))
+    const onlyLeft = [...leftSkills].filter((s) => !rightSkills.has(s))
+    const onlyRight = [...rightSkills].filter((s) => !leftSkills.has(s))
+    return { shared, onlyLeft, onlyRight }
+  }, [left, right])
 
   const CompareBar = ({
     label,
     leftVal,
     rightVal,
   }: {
-    label: string;
-    leftVal: number;
-    rightVal: number;
+    label: string
+    leftVal: number
+    rightVal: number
   }) => {
-    const max = Math.max(leftVal, rightVal, 1);
+    const max = Math.max(leftVal, rightVal, 1)
     return (
       <div className="py-2.5 sm:py-2">
         <div className="flex items-center justify-between mb-1.5 sm:hidden">
@@ -231,8 +236,8 @@ export default function ComparePage() {
           </span>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <>
@@ -251,8 +256,14 @@ export default function ComparePage() {
 
         <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <div>
-            <label className="block text-sm font-medium text-blue-600 mb-1.5">이력서 A</label>
+            <label
+              htmlFor="compare-resume-a"
+              className="block text-sm font-medium text-blue-600 mb-1.5"
+            >
+              이력서 A
+            </label>
             <ResumeSelector
+              id="compare-resume-a"
               resumes={resumes}
               value={leftId}
               onChange={setLeftId}
@@ -260,8 +271,14 @@ export default function ComparePage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-emerald-600 mb-1.5">이력서 B</label>
+            <label
+              htmlFor="compare-resume-b"
+              className="block text-sm font-medium text-emerald-600 mb-1.5"
+            >
+              이력서 B
+            </label>
             <ResumeSelector
+              id="compare-resume-b"
               resumes={resumes}
               value={rightId}
               onChange={setRightId}
@@ -436,7 +453,7 @@ export default function ComparePage() {
                           key={exp.id}
                           className={`p-2.5 rounded-lg text-xs border-l-3 ${
                             right.experiences.some(
-                              (re) => re.company.toLowerCase() === exp.company.toLowerCase(),
+                              (re) => re.company.toLowerCase() === exp.company.toLowerCase()
                             )
                               ? 'bg-slate-50 dark:bg-slate-900 border-l-slate-300'
                               : 'bg-blue-50 dark:bg-blue-900/20 border-l-blue-400'
@@ -462,7 +479,7 @@ export default function ComparePage() {
                           key={exp.id}
                           className={`p-2.5 rounded-lg text-xs border-l-3 ${
                             left.experiences.some(
-                              (le) => le.company.toLowerCase() === exp.company.toLowerCase(),
+                              (le) => le.company.toLowerCase() === exp.company.toLowerCase()
                             )
                               ? 'bg-slate-50 dark:bg-slate-900 border-l-slate-300'
                               : 'bg-emerald-50 dark:bg-emerald-900/20 border-l-emerald-400'
@@ -741,5 +758,5 @@ export default function ComparePage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

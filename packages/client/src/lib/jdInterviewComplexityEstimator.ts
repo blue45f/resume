@@ -11,22 +11,22 @@ export type ComplexitySignalType =
   | 'competitive_selection' // 경쟁률/선발 강조
   | 'advanced_concepts' // 분산 시스템, ML, 고가용성 등 심화 개념
   | 'leadership_required' // 테크리드/매니저 역할
-  | 'coding_test_mentioned'; // 코딩 테스트 명시
+  | 'coding_test_mentioned' // 코딩 테스트 명시
 
-export type InterviewDifficulty = 'expert' | 'senior' | 'mid' | 'junior' | 'entry';
+export type InterviewDifficulty = 'expert' | 'senior' | 'mid' | 'junior' | 'entry'
 
 export interface ComplexitySignal {
-  type: ComplexitySignalType;
-  excerpt: string;
+  type: ComplexitySignalType
+  excerpt: string
 }
 
 export interface JdInterviewComplexityReport {
-  signals: ComplexitySignal[];
-  difficulty: InterviewDifficulty;
-  signalCount: number;
-  requiredExperienceYears: number | null;
-  summary: string;
-  prepTips: string[];
+  signals: ComplexitySignal[]
+  difficulty: InterviewDifficulty
+  signalCount: number
+  requiredExperienceYears: number | null
+  summary: string
+  prepTips: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -34,8 +34,8 @@ export interface JdInterviewComplexityReport {
 // ---------------------------------------------------------------------------
 
 interface SignalPattern {
-  type: ComplexitySignalType;
-  re: RegExp;
+  type: ComplexitySignalType
+  re: RegExp
 }
 
 const SIGNAL_PATTERNS: SignalPattern[] = [
@@ -126,7 +126,7 @@ const SIGNAL_PATTERNS: SignalPattern[] = [
     type: 'leadership_required',
     re: /(?:팀\s*리드|팀장|조직\s*빌딩|채용\s*주도)\s*(?:경험|역량|필수)/,
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Experience year extraction
@@ -137,15 +137,15 @@ function extractRequiredYears(text: string): number | null {
     /경력\s*([0-9]+)년?\s*이상/,
     /([0-9]+)\s*년?\s*(?:이상의?)?\s*(?:개발|경력|경험)/,
     /([0-9]+)\+\s*years?\s*of\s*experience/i,
-  ];
+  ]
   for (const re of patterns) {
-    const m = text.match(re);
+    const m = text.match(re)
     if (m) {
-      const years = parseInt(m[1], 10);
-      if (years >= 1 && years <= 30) return years;
+      const years = parseInt(m[1], 10)
+      if (years >= 1 && years <= 30) return years
     }
   }
-  return null;
+  return null
 }
 
 // ---------------------------------------------------------------------------
@@ -153,47 +153,47 @@ function extractRequiredYears(text: string): number | null {
 // ---------------------------------------------------------------------------
 
 export function estimateJdInterviewComplexity(text: string): JdInterviewComplexityReport {
-  const t = text ?? '';
-  const signals: ComplexitySignal[] = [];
-  const seenTypes = new Set<ComplexitySignalType>();
+  const t = text ?? ''
+  const signals: ComplexitySignal[] = []
+  const seenTypes = new Set<ComplexitySignalType>()
 
   for (const { type, re } of SIGNAL_PATTERNS) {
-    if (seenTypes.has(type)) continue;
-    const m = t.match(re);
+    if (seenTypes.has(type)) continue
+    const m = t.match(re)
     if (m) {
-      seenTypes.add(type);
-      signals.push({ type, excerpt: m[0].slice(0, 50) });
+      seenTypes.add(type)
+      signals.push({ type, excerpt: m[0].slice(0, 50) })
     }
   }
 
-  const requiredExperienceYears = extractRequiredYears(t);
-  const signalCount = signals.length;
+  const requiredExperienceYears = extractRequiredYears(t)
+  const signalCount = signals.length
 
-  let difficulty: InterviewDifficulty;
-  const hasAlgo = seenTypes.has('algorithm_required');
-  const hasSystem = seenTypes.has('system_design_required');
-  const hasLeadership = seenTypes.has('leadership_required');
-  const hasHigh = seenTypes.has('high_seniority_bar');
-  const hasAdvanced = seenTypes.has('advanced_concepts');
+  let difficulty: InterviewDifficulty
+  const hasAlgo = seenTypes.has('algorithm_required')
+  const hasSystem = seenTypes.has('system_design_required')
+  const hasLeadership = seenTypes.has('leadership_required')
+  const hasHigh = seenTypes.has('high_seniority_bar')
+  const hasAdvanced = seenTypes.has('advanced_concepts')
 
   if ((hasAlgo && hasSystem) || hasLeadership || hasHigh || signalCount >= 4) {
-    difficulty = 'expert';
+    difficulty = 'expert'
   } else if (
     hasSystem ||
     hasAlgo ||
     hasAdvanced ||
     (requiredExperienceYears !== null && requiredExperienceYears >= 5)
   ) {
-    difficulty = 'senior';
+    difficulty = 'senior'
   } else if (
     signalCount >= 2 ||
     (requiredExperienceYears !== null && requiredExperienceYears >= 3)
   ) {
-    difficulty = 'mid';
+    difficulty = 'mid'
   } else if (signalCount >= 1) {
-    difficulty = 'junior';
+    difficulty = 'junior'
   } else {
-    difficulty = 'entry';
+    difficulty = 'entry'
   }
 
   const DIFFICULTY_LABEL: Record<InterviewDifficulty, string> = {
@@ -202,33 +202,33 @@ export function estimateJdInterviewComplexity(text: string): JdInterviewComplexi
     mid: '미드레벨',
     junior: '주니어급',
     entry: '신입/입문',
-  };
-
-  let summary: string;
-  if (difficulty === 'expert') {
-    summary = `면접 난이도: ${DIFFICULTY_LABEL[difficulty]}. 알고리즘·시스템 설계·리더십까지 전방위 준비가 필요합니다.`;
-  } else if (difficulty === 'senior') {
-    summary = `면접 난이도: ${DIFFICULTY_LABEL[difficulty]}. 심화 기술 역량과 설계 능력을 집중 준비하세요.`;
-  } else if (difficulty === 'mid') {
-    summary = `면접 난이도: ${DIFFICULTY_LABEL[difficulty]}. 실무 경험 기반의 기술 인터뷰를 예상하세요.`;
-  } else if (difficulty === 'junior') {
-    summary = `면접 난이도: ${DIFFICULTY_LABEL[difficulty]}. 기본 CS 지식과 언어 역량 위주로 준비하세요.`;
-  } else {
-    summary = `면접 난이도: ${DIFFICULTY_LABEL[difficulty]}. 기초 역량과 학습 의지를 보여주세요.`;
   }
 
-  const prepTips: string[] = [];
+  let summary: string
+  if (difficulty === 'expert') {
+    summary = `면접 난이도: ${DIFFICULTY_LABEL[difficulty]}. 알고리즘·시스템 설계·리더십까지 전방위 준비가 필요합니다.`
+  } else if (difficulty === 'senior') {
+    summary = `면접 난이도: ${DIFFICULTY_LABEL[difficulty]}. 심화 기술 역량과 설계 능력을 집중 준비하세요.`
+  } else if (difficulty === 'mid') {
+    summary = `면접 난이도: ${DIFFICULTY_LABEL[difficulty]}. 실무 경험 기반의 기술 인터뷰를 예상하세요.`
+  } else if (difficulty === 'junior') {
+    summary = `면접 난이도: ${DIFFICULTY_LABEL[difficulty]}. 기본 CS 지식과 언어 역량 위주로 준비하세요.`
+  } else {
+    summary = `면접 난이도: ${DIFFICULTY_LABEL[difficulty]}. 기초 역량과 학습 의지를 보여주세요.`
+  }
+
+  const prepTips: string[] = []
   if (seenTypes.has('algorithm_required') || seenTypes.has('coding_test_mentioned')) {
-    prepTips.push('LeetCode/프로그래머스 Medium 수준 문제를 집중 연습하세요.');
+    prepTips.push('LeetCode/프로그래머스 Medium 수준 문제를 집중 연습하세요.')
   }
   if (seenTypes.has('system_design_required')) {
-    prepTips.push('대용량 서비스 설계 (URL 단축기, 채팅 시스템 등) 시나리오를 준비하세요.');
+    prepTips.push('대용량 서비스 설계 (URL 단축기, 채팅 시스템 등) 시나리오를 준비하세요.')
   }
   if (seenTypes.has('multiple_tech_stacks')) {
-    prepTips.push('각 기술 스택의 핵심 차이점과 선택 기준을 설명할 수 있게 준비하세요.');
+    prepTips.push('각 기술 스택의 핵심 차이점과 선택 기준을 설명할 수 있게 준비하세요.')
   }
   if (seenTypes.has('advanced_concepts')) {
-    prepTips.push('분산 시스템 기초 개념 (CAP, 일관성 모델, 데이터 파이프라인)을 복습하세요.');
+    prepTips.push('분산 시스템 기초 개념 (CAP, 일관성 모델, 데이터 파이프라인)을 복습하세요.')
   }
 
   return {
@@ -238,5 +238,5 @@ export function estimateJdInterviewComplexity(text: string): JdInterviewComplexi
     requiredExperienceYears,
     summary,
     prepTips: prepTips.slice(0, 3),
-  };
+  }
 }

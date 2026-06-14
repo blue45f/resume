@@ -1,29 +1,31 @@
-import { useMemo } from 'react';
+import { useMemo } from 'react'
+
+import type { CoverLetterBlock } from '@/lib/coverLetterCoverageChecker'
+
 import {
   checkCoverLetterCoverage,
   COVER_LETTER_BLOCK_LABEL,
-} from '@/lib/coverLetterCoverageChecker';
-import type { CoverLetterBlock } from '@/lib/coverLetterCoverageChecker';
+} from '@/lib/coverLetterCoverageChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const GRADE_LABEL: Record<string, string> = {
   good: '일부 누락',
   partial: '구성 부족',
   sparse: '구성 부실',
-};
+}
 
-const ALL_BLOCKS: CoverLetterBlock[] = ['motivation', 'competency', 'experience', 'aspiration'];
+const ALL_BLOCKS: CoverLetterBlock[] = ['motivation', 'competency', 'experience', 'aspiration']
 
 export default function CoverLetterCoveragePanel({ text }: Props) {
-  const report = useMemo(() => checkCoverLetterCoverage(text), [text]);
+  const report = useMemo(() => checkCoverLetterCoverage(text), [text])
 
-  if (text.trim().length < 80) return null;
-  if (report.grade === 'complete') return null;
+  if (text.trim().length < 80) return null
+  if (report.grade === 'complete') return null
 
-  const isWarn = report.grade === 'partial' || report.grade === 'sparse';
+  const isWarn = report.grade === 'partial' || report.grade === 'sparse'
 
   return (
     <aside
@@ -40,7 +42,7 @@ export default function CoverLetterCoveragePanel({ text }: Props) {
 
       <div className="cl-cov-card__blocks" aria-label="내용 블록 현황">
         {ALL_BLOCKS.map((block) => {
-          const present = report.presentBlocks.includes(block);
+          const present = report.presentBlocks.includes(block)
           return (
             <span
               key={block}
@@ -48,7 +50,7 @@ export default function CoverLetterCoveragePanel({ text }: Props) {
             >
               {COVER_LETTER_BLOCK_LABEL[block]}
             </span>
-          );
+          )
         })}
       </div>
 
@@ -64,5 +66,5 @@ export default function CoverLetterCoveragePanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

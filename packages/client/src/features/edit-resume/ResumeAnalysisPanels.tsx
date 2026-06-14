@@ -1,63 +1,63 @@
-import ResumeHealthRadar from '@/components/ResumeHealthRadar';
-import ResumeHighlightPreview from '@/components/ResumeHighlightPreview';
-import QuotableHighlights from '@/components/QuotableHighlights';
-import ResumeCoreMessagesPanel from '@/components/ResumeCoreMessagesPanel';
-import ResumeImprovementPlanPanel from '@/components/ResumeImprovementPlanPanel';
-import CareerGapPanel from '@/components/CareerGapPanel';
-import UnquantifiedClaimsRewritePanel from '@/components/UnquantifiedClaimsRewritePanel';
-import ResumeTitleCoherencePanel from '@/components/ResumeTitleCoherencePanel';
-import ResumeActionVerbPanel from '@/components/ResumeActionVerbPanel';
-import ResumeQuantificationPanel from '@/components/ResumeQuantificationPanel';
-import SectionInsightsPanel from '@/components/SectionInsightsPanel';
-import ResumeBulletConsistencyPanel from '@/components/ResumeBulletConsistencyPanel';
-import ResumeQualitySignalsPanel from '@/components/ResumeQualitySignalsPanel';
-import ResumeVoicePanel from '@/components/ResumeVoicePanel';
-import ResumeAchievementPanel from '@/components/ResumeAchievementPanel';
-import ResumeTechCasingPanel from '@/components/ResumeTechCasingPanel';
-import ResumeRepetitionPanel from '@/components/ResumeRepetitionPanel';
-import ResumeStarPatternPanel from '@/components/ResumeStarPatternPanel';
-import ResumePiiPanel from '@/components/ResumePiiPanel';
-import ResumeLanguageRisksPanel from '@/components/ResumeLanguageRisksPanel';
-import ResumeSoftSkillsPanel from '@/components/ResumeSoftSkillsPanel';
-import ResumeDateConsistencyPanel from '@/components/ResumeDateConsistencyPanel';
-import ResumeSectionHealthPanel from '@/components/ResumeSectionHealthPanel';
-import ResumeWeakVerbPanel from '@/components/ResumeWeakVerbPanel';
-import ResumeIntroStrengthPanel from '@/components/ResumeIntroStrengthPanel';
-import ResumeStarGuidePanel from '@/components/ResumeStarGuidePanel';
-import ResumeRoleKeywordPanel from '@/components/ResumeRoleKeywordPanel';
-import CareerProgressionPanel from '@/components/CareerProgressionPanel';
-import ResumePortfolioLinksPanel from '@/components/ResumePortfolioLinksPanel';
-import ResumeJobLevelPanel from '@/components/ResumeJobLevelPanel';
-import SkillFreshnessPanel from '@/components/SkillFreshnessPanel';
-import ResumeCertificationPanel from '@/components/ResumeCertificationPanel';
-import ResumeLeadershipPanel from '@/components/ResumeLeadershipPanel';
-import ResumeInterviewBaitPanel from '@/components/ResumeInterviewBaitPanel';
-import CareerGapExplanationPanel from '@/components/CareerGapExplanationPanel';
-import ResumeSocialProofPanel from '@/components/ResumeSocialProofPanel';
-import ResumeSoftSkillEvidencePanel from '@/components/ResumeSoftSkillEvidencePanel';
-import ResumeKpiOkrPanel from '@/components/ResumeKpiOkrPanel';
-import ResumeCareerNarrativePanel from '@/components/ResumeCareerNarrativePanel';
-import ResumeTechDepthPanel from '@/components/ResumeTechDepthPanel';
-import ResumeProjectDescriptionPanel from '@/components/ResumeProjectDescriptionPanel';
-import ResumeSkillsOrganizationPanel from '@/components/ResumeSkillsOrganizationPanel';
-import ResumeGapFillerLanguagePanel from '@/components/ResumeGapFillerLanguagePanel';
-import ResumeContactInfoPanel from '@/components/ResumeContactInfoPanel';
-import ResumeFormattingConsistencyPanel from '@/components/ResumeFormattingConsistencyPanel';
-import ResumeEducationCompletenessPanel from '@/components/ResumeEducationCompletenessPanel';
-import ResumeAwardsPanel from '@/components/ResumeAwardsPanel';
-import ResumePersonalInfoDisclosurePanel from '@/components/ResumePersonalInfoDisclosurePanel';
-import ResumeChronologyPanel from '@/components/ResumeChronologyPanel';
-import ResumeContributionClarityPanel from '@/components/ResumeContributionClarityPanel';
-import OverallHealthGauge from '@/components/OverallHealthGauge';
-import { InterviewabilityRow } from '@/components/KoreanQualityBadge';
+import CareerGapExplanationPanel from '@/components/CareerGapExplanationPanel'
+import CareerGapPanel from '@/components/CareerGapPanel'
+import CareerProgressionPanel from '@/components/CareerProgressionPanel'
+import { InterviewabilityRow } from '@/components/KoreanQualityBadge'
+import OverallHealthGauge from '@/components/OverallHealthGauge'
+import QuotableHighlights from '@/components/QuotableHighlights'
+import ResumeAchievementPanel from '@/components/ResumeAchievementPanel'
+import ResumeActionVerbPanel from '@/components/ResumeActionVerbPanel'
+import ResumeAwardsPanel from '@/components/ResumeAwardsPanel'
+import ResumeBulletConsistencyPanel from '@/components/ResumeBulletConsistencyPanel'
+import ResumeCareerNarrativePanel from '@/components/ResumeCareerNarrativePanel'
+import ResumeCertificationPanel from '@/components/ResumeCertificationPanel'
+import ResumeChronologyPanel from '@/components/ResumeChronologyPanel'
+import ResumeContactInfoPanel from '@/components/ResumeContactInfoPanel'
+import ResumeContributionClarityPanel from '@/components/ResumeContributionClarityPanel'
+import ResumeCoreMessagesPanel from '@/components/ResumeCoreMessagesPanel'
+import ResumeDateConsistencyPanel from '@/components/ResumeDateConsistencyPanel'
+import ResumeEducationCompletenessPanel from '@/components/ResumeEducationCompletenessPanel'
+import ResumeFormattingConsistencyPanel from '@/components/ResumeFormattingConsistencyPanel'
+import ResumeGapFillerLanguagePanel from '@/components/ResumeGapFillerLanguagePanel'
+import ResumeHealthRadar from '@/components/ResumeHealthRadar'
+import ResumeHighlightPreview from '@/components/ResumeHighlightPreview'
+import ResumeImprovementPlanPanel from '@/components/ResumeImprovementPlanPanel'
+import ResumeInterviewBaitPanel from '@/components/ResumeInterviewBaitPanel'
+import ResumeIntroStrengthPanel from '@/components/ResumeIntroStrengthPanel'
+import ResumeJobLevelPanel from '@/components/ResumeJobLevelPanel'
+import ResumeKpiOkrPanel from '@/components/ResumeKpiOkrPanel'
+import ResumeLanguageRisksPanel from '@/components/ResumeLanguageRisksPanel'
+import ResumeLeadershipPanel from '@/components/ResumeLeadershipPanel'
+import ResumePersonalInfoDisclosurePanel from '@/components/ResumePersonalInfoDisclosurePanel'
+import ResumePiiPanel from '@/components/ResumePiiPanel'
+import ResumePortfolioLinksPanel from '@/components/ResumePortfolioLinksPanel'
+import ResumeProjectDescriptionPanel from '@/components/ResumeProjectDescriptionPanel'
+import ResumeQualitySignalsPanel from '@/components/ResumeQualitySignalsPanel'
+import ResumeQuantificationPanel from '@/components/ResumeQuantificationPanel'
+import ResumeRepetitionPanel from '@/components/ResumeRepetitionPanel'
+import ResumeRoleKeywordPanel from '@/components/ResumeRoleKeywordPanel'
+import ResumeSectionHealthPanel from '@/components/ResumeSectionHealthPanel'
+import ResumeSkillsOrganizationPanel from '@/components/ResumeSkillsOrganizationPanel'
+import ResumeSocialProofPanel from '@/components/ResumeSocialProofPanel'
+import ResumeSoftSkillEvidencePanel from '@/components/ResumeSoftSkillEvidencePanel'
+import ResumeSoftSkillsPanel from '@/components/ResumeSoftSkillsPanel'
+import ResumeStarGuidePanel from '@/components/ResumeStarGuidePanel'
+import ResumeStarPatternPanel from '@/components/ResumeStarPatternPanel'
+import ResumeTechCasingPanel from '@/components/ResumeTechCasingPanel'
+import ResumeTechDepthPanel from '@/components/ResumeTechDepthPanel'
+import ResumeTitleCoherencePanel from '@/components/ResumeTitleCoherencePanel'
+import ResumeVoicePanel from '@/components/ResumeVoicePanel'
+import ResumeWeakVerbPanel from '@/components/ResumeWeakVerbPanel'
+import SectionInsightsPanel from '@/components/SectionInsightsPanel'
+import SkillFreshnessPanel from '@/components/SkillFreshnessPanel'
+import UnquantifiedClaimsRewritePanel from '@/components/UnquantifiedClaimsRewritePanel'
 
 interface ResumeAnalysisPanelsProps {
   /** Deferred plain-text serialization of the live resume data. */
-  text: string;
+  text: string
   /** Resume id (panels that need it are gated on its presence). */
-  id: string | undefined;
+  id: string | undefined
   /** Resolved resume title for the title-coherence panel. */
-  title: string;
+  title: string
 }
 
 /**
@@ -226,5 +226,5 @@ export default function ResumeAnalysisPanels({ text, id, title }: ResumeAnalysis
         </div>
       </div>
     </section>
-  );
+  )
 }

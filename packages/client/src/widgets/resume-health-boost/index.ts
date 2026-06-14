@@ -1,1 +1,1 @@
-export { default as ResumeHealthBoost } from './ResumeHealthBoost';
+export { default as ResumeHealthBoost } from './ResumeHealthBoost'

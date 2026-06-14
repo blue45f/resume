@@ -1,8 +1,8 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import CareerInsights from './CareerInsights';
+import CareerInsights from './CareerInsights'
 
 vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -15,11 +15,11 @@ vi.mock('recharts', () => ({
   YAxis: () => null,
   Tooltip: () => null,
   Cell: () => null,
-}));
+}))
 
 vi.mock('@/lib/auth', () => ({
   getUser: () => ({ id: 'user-1', name: '테스터' }),
-}));
+}))
 
 vi.mock('@/lib/api', () => ({
   fetchResumes: vi.fn(async () => [
@@ -33,7 +33,7 @@ vi.mock('@/lib/api', () => ({
       updatedAt: '2024-01-01T00:00:00.000Z',
     },
   ]),
-}));
+}))
 
 const jobs = [
   {
@@ -72,39 +72,39 @@ const jobs = [
     type: 'fulltime',
     createdAt: '2023-12-01T00:00:00.000Z',
   },
-];
+]
 
 describe('<CareerInsights />', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.clearAllMocks()
     vi.stubGlobal(
       'fetch',
       vi.fn(async (input: RequestInfo | URL) => {
-        const url = String(input);
+        const url = String(input)
         return {
           ok: true,
           json: async () => (url.includes('/api/jobs') ? jobs : []),
-        } as Response;
-      }),
-    );
-  });
+        } as Response
+      })
+    )
+  })
 
   it('uses the injected reference time when classifying recent skill trends', async () => {
     render(
       <MemoryRouter>
         <CareerInsights now="2024-01-08T00:00:00.000Z" />
-      </MemoryRouter>,
-    );
+      </MemoryRouter>
+    )
 
-    await screen.findByText(/AI 커리어 인사이트 대시보드/);
+    await screen.findByText(/AI 커리어 인사이트 대시보드/)
 
-    fireEvent.click(screen.getByRole('button', { name: '수요 역량' }));
+    fireEvent.click(screen.getByRole('button', { name: '수요 역량' }))
 
     await waitFor(() => {
-      const python = screen.getByText('python');
-      const row = python.closest('.flex.items-center.gap-2\\.5');
-      expect(row).not.toBeNull();
-      expect(within(row as HTMLElement).getByText('▲')).toBeInTheDocument();
-    });
-  });
-});
+      const python = screen.getByText('python')
+      const row = python.closest('.flex.items-center.gap-2\\.5')
+      expect(row).not.toBeNull()
+      expect(within(row as HTMLElement).getByText('▲')).toBeInTheDocument()
+    })
+  })
+})

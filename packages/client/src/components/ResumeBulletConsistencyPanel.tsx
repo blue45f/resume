@@ -1,36 +1,37 @@
-import { useMemo } from 'react';
+import { useMemo } from 'react'
+
 import {
   analyzeParallelism,
   analyzeBulletMarkerConsistency,
   analyzePunctuationBalance,
-} from '@/lib/bulletStructure';
+} from '@/lib/bulletStructure'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeBulletConsistencyPanel({ text }: Props) {
-  const parallelism = useMemo(() => analyzeParallelism(text), [text]);
-  const markerResult = useMemo(() => analyzeBulletMarkerConsistency(text), [text]);
-  const punctuation = useMemo(() => analyzePunctuationBalance(text), [text]);
+  const parallelism = useMemo(() => analyzeParallelism(text), [text])
+  const markerResult = useMemo(() => analyzeBulletMarkerConsistency(text), [text])
+  const punctuation = useMemo(() => analyzePunctuationBalance(text), [text])
 
-  const hasBullets = parallelism.lines >= 3 || markerResult.markers.length > 0;
+  const hasBullets = parallelism.lines >= 3 || markerResult.markers.length > 0
   const hasPunctuationIssue =
     punctuation.total > 0 &&
     punctuation.suggestion !== '문장부호가 감지되지 않았습니다.' &&
-    (punctuation.exclamations > 0 || punctuation.questions > punctuation.periods * 0.2);
-  if (!hasBullets && !hasPunctuationIssue) return null;
+    (punctuation.exclamations > 0 || punctuation.questions > punctuation.periods * 0.2)
+  if (!hasBullets && !hasPunctuationIssue) return null
 
-  const parallelScore = Math.round(parallelism.consistency * 0.5);
+  const parallelScore = Math.round(parallelism.consistency * 0.5)
   const markerScore =
     markerResult.markers.length === 0
       ? 25
       : markerResult.consistent
         ? 50
-        : Math.max(10, Math.round((1 / markerResult.distinct) * 50));
-  const score = parallelScore + markerScore;
-  const tone = score >= 80 ? 'good' : score >= 55 ? 'neutral' : 'warning';
-  const fill = Math.max(0.04, score / 100);
+        : Math.max(10, Math.round((1 / markerResult.distinct) * 50))
+  const score = parallelScore + markerScore
+  const tone = score >= 80 ? 'good' : score >= 55 ? 'neutral' : 'warning'
+  const fill = Math.max(0.04, score / 100)
 
   return (
     <aside
@@ -120,5 +121,5 @@ export default function ResumeBulletConsistencyPanel({ text }: Props) {
         </section>
       )}
     </aside>
-  );
+  )
 }

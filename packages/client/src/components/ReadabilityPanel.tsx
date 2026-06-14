@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { analyzeReadability } from '@/lib/readability';
+import { useMemo, useState } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { analyzeReadability } from '@/lib/readability'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 const GRADE_COLORS: Record<string, { chip: string; bar: string; label: string }> = {
@@ -12,7 +14,7 @@ const GRADE_COLORS: Record<string, { chip: string; bar: string; label: string }>
   B: { chip: 'text-amber-700 bg-amber-50 border-amber-200', bar: '#ca8a04', label: '양호' },
   C: { chip: 'text-orange-700 bg-orange-50 border-orange-200', bar: '#ea580c', label: '보통' },
   D: { chip: 'text-red-700 bg-red-50 border-red-200', bar: '#dc2626', label: '미흡' },
-};
+}
 
 /**
  * ReadabilityPanel — 이력서 본문 텍스트의 "글 쓰기 품질" 분석.
@@ -20,9 +22,9 @@ const GRADE_COLORS: Record<string, { chip: string; bar: string; label: string }>
  * Hemingway Editor 영어판 대신 한국 이력서 특화.
  */
 export default function ReadabilityPanel({ resume }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const m = useMemo(() => analyzeReadability(resume), [resume]);
-  const style = GRADE_COLORS[m.grade] ?? GRADE_COLORS.D;
+  const [expanded, setExpanded] = useState(false)
+  const m = useMemo(() => analyzeReadability(resume), [resume])
+  const style = GRADE_COLORS[m.grade] ?? GRADE_COLORS.D
 
   return (
     <div className="imp-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -135,7 +137,7 @@ export default function ReadabilityPanel({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 function MetricCard({
@@ -146,15 +148,15 @@ function MetricCard({
   hint,
   inverse,
 }: {
-  label: string;
-  value: string;
-  unit: string;
-  ok: boolean;
-  hint: string;
-  inverse?: boolean;
+  label: string
+  value: string
+  unit: string
+  ok: boolean
+  hint: string
+  inverse?: boolean
 }) {
   // inverse=true 일 땐 ok=true 도 같은 색상 — passive 는 낮을수록 좋음.
-  const good = inverse ? ok : ok;
+  const good = inverse ? ok : ok
   return (
     <div
       className={`rounded-lg border px-3 py-2 ${
@@ -176,5 +178,5 @@ function MetricCard({
       </div>
       <div className="text-[9px] text-slate-400 mt-0.5">{hint}</div>
     </div>
-  );
+  )
 }

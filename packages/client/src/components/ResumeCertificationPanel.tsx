@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { analyzeResumeCertifications } from '@/lib/resumeCertificationAnalyzer';
-import type { DetectedCert } from '@/lib/resumeCertificationAnalyzer';
+import { useMemo } from 'react'
+
+import type { DetectedCert } from '@/lib/resumeCertificationAnalyzer'
+
+import { analyzeResumeCertifications } from '@/lib/resumeCertificationAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const CATEGORY_LABEL: Record<DetectedCert['category'], string> = {
@@ -13,23 +15,23 @@ const CATEGORY_LABEL: Record<DetectedCert['category'], string> = {
   engineering: '공학',
   cloud: '클라우드',
   other: '기타',
-};
+}
 
 const TIER_CHIP: Record<DetectedCert['tier'], string> = {
   national: '국가자격증',
   global: '국제인증',
   vendor: '벤더인증',
-};
+}
 
 export default function ResumeCertificationPanel({ text }: Props) {
-  const report = useMemo(() => analyzeResumeCertifications(text), [text]);
+  const report = useMemo(() => analyzeResumeCertifications(text), [text])
 
-  if (text.trim().length < 40) return null;
+  if (text.trim().length < 40) return null
   // Show panel if there ARE certs (to display them) or if missing important ones (0 total)
   // Don't show if we have plenty of relevant certs already
-  if (report.totalCount >= 5 && report.hasItCert && report.hasLanguageCert) return null;
+  if (report.totalCount >= 5 && report.hasItCert && report.hasLanguageCert) return null
 
-  const isWarning = report.totalCount === 0;
+  const isWarning = report.totalCount === 0
 
   return (
     <aside
@@ -70,11 +72,11 @@ export default function ResumeCertificationPanel({ text }: Props) {
                 <span key={name} className="cert-panel-card__sugg-chip">
                   {name}
                 </span>
-              ),
+              )
             )}
           </div>
         </section>
       )}
     </aside>
-  );
+  )
 }

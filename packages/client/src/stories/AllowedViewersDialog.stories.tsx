@@ -1,15 +1,18 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useEffect } from 'react';
-import AllowedViewersDialog from '@/components/AllowedViewersDialog';
-import { installFetchMock, uninstallFetchMock } from './_mockFetch';
+import { useEffect } from 'react'
+
+import { installFetchMock, uninstallFetchMock } from './_mockFetch'
+
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import AllowedViewersDialog from '@/components/AllowedViewersDialog'
 
 const meta: Meta<typeof AllowedViewersDialog> = {
   title: 'Sharing & Job/AllowedViewersDialog',
   component: AllowedViewersDialog,
   parameters: { layout: 'centered' },
-};
-export default meta;
-type Story = StoryObj<typeof AllowedViewersDialog>;
+}
+export default meta
+type Story = StoryObj<typeof AllowedViewersDialog>
 
 const viewersMany = [
   {
@@ -39,7 +42,7 @@ const viewersMany = [
     lastViewedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     viewCount: 12,
   },
-];
+]
 
 export const WithViewers: Story = {
   decorators: [
@@ -48,14 +51,14 @@ export const WithViewers: Story = {
         installFetchMock({
           '/api/resumes/demo-id/viewers': viewersMany,
           '/api/users/search': [],
-        });
-        return () => uninstallFetchMock();
-      }, []);
-      return <Story />;
+        })
+        return () => uninstallFetchMock()
+      }, [])
+      return <Story />
     },
   ],
   args: { resumeId: 'demo-id', onClose: () => {} },
-};
+}
 
 export const Empty: Story = {
   decorators: [
@@ -64,11 +67,11 @@ export const Empty: Story = {
         installFetchMock({
           '/api/resumes/empty-id/viewers': [],
           '/api/users/search': [],
-        });
-        return () => uninstallFetchMock();
-      }, []);
-      return <Story />;
+        })
+        return () => uninstallFetchMock()
+      }, [])
+      return <Story />
     },
   ],
   args: { resumeId: 'empty-id', onClose: () => {} },
-};
+}

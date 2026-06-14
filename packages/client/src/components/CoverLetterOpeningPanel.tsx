@@ -1,17 +1,18 @@
-import { useMemo } from 'react';
-import { analyzeCoverLetterOpening } from '@/lib/coverLetterOpeningAnalyzer';
+import { useMemo } from 'react'
+
+import { analyzeCoverLetterOpening } from '@/lib/coverLetterOpeningAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function CoverLetterOpeningPanel({ text }: Props) {
-  const report = useMemo(() => analyzeCoverLetterOpening(text), [text]);
+  const report = useMemo(() => analyzeCoverLetterOpening(text), [text])
 
-  if (report.strength === 'strong') return null;
-  if (!report.firstSentence || text.trim().length < 30) return null;
+  if (report.strength === 'strong') return null
+  if (!report.firstSentence || text.trim().length < 30) return null
 
-  const isWarning = report.strength === 'weak';
+  const isWarning = report.strength === 'weak'
 
   return (
     <aside
@@ -39,5 +40,5 @@ export default function CoverLetterOpeningPanel({ text }: Props) {
 
       <p className="cl-opening-card__hint">{report.suggestion}</p>
     </aside>
-  );
+  )
 }

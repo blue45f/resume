@@ -1,83 +1,83 @@
-import { IsString, IsOptional, IsIn, MaxLength, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsIn, MaxLength, MinLength } from 'class-validator'
 
 export class CreateApplicationDto {
   @IsString()
   @MinLength(1)
   @MaxLength(100)
-  company: string;
+  company: string
 
   @IsString()
   @MinLength(1)
   @MaxLength(100)
-  position: string;
+  position: string
 
   @IsOptional()
   @IsString()
   @MaxLength(2000)
-  url?: string;
+  url?: string
 
   @IsOptional()
   @IsIn(['applied', 'screening', 'interview', 'offer', 'rejected', 'withdrawn'])
-  status?: string;
+  status?: string
 
   @IsOptional()
   @IsString()
-  appliedDate?: string;
+  appliedDate?: string
 
   @IsOptional()
   @IsString()
   @MaxLength(2000)
-  notes?: string;
+  notes?: string
 
   @IsOptional()
   @IsString()
-  salary?: string;
+  salary?: string
 
   @IsOptional()
   @IsString()
-  location?: string;
+  location?: string
 
   @IsOptional()
   @IsString()
-  resumeId?: string;
+  resumeId?: string
 
   @IsOptional()
   @IsIn(['private', 'public'])
-  visibility?: string;
+  visibility?: string
 }
 
 export class UpdateApplicationDto {
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  company?: string;
+  company?: string
 
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  position?: string;
+  position?: string
 
   @IsOptional()
   @IsString()
-  url?: string;
+  url?: string
 
   @IsOptional()
   @IsIn(['applied', 'screening', 'interview', 'offer', 'rejected', 'withdrawn'])
-  status?: string;
+  status?: string
 
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string
 
   @IsOptional()
   @IsString()
-  salary?: string;
+  salary?: string
 
   @IsOptional()
   @IsString()
-  location?: string;
+  location?: string
 
   @IsOptional()
   @IsIn(['private', 'public'])
-  visibility?: string;
+  visibility?: string
 }

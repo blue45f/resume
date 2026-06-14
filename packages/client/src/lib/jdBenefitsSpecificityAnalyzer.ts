@@ -11,34 +11,34 @@ export type SpecificBenefitType =
   | 'health_checkup' // 건강검진 항목
   | 'parental_leave' // 육아휴직 기간
   | 'vacation_days' // 연차 일수
-  | 'meal_support'; // 식대 금액
+  | 'meal_support' // 식대 금액
 
 export type VagueBenefitType =
   | 'generic_welfare' // "다양한 복지"
   | 'best_in_class' // "업계 최고 복지"
   | 'flexible_generic' // "유연한 근무 환경" (시간 불명)
-  | 'supportive_culture'; // "성장 지원" (금액 불명)
+  | 'supportive_culture' // "성장 지원" (금액 불명)
 
 export interface SpecificBenefitSignal {
-  type: SpecificBenefitType;
-  excerpt: string;
+  type: SpecificBenefitType
+  excerpt: string
 }
 
 export interface VagueBenefitSignal {
-  type: VagueBenefitType;
-  excerpt: string;
+  type: VagueBenefitType
+  excerpt: string
 }
 
-export type BenefitsClarity = 'detailed' | 'partial' | 'vague' | 'absent';
+export type BenefitsClarity = 'detailed' | 'partial' | 'vague' | 'absent'
 
 export interface JdBenefitsSpecificityReport {
-  specificSignals: SpecificBenefitSignal[];
-  vagueSignals: VagueBenefitSignal[];
-  clarity: BenefitsClarity;
-  specificCount: number;
-  vagueCount: number;
-  summary: string;
-  interviewQuestions: string[];
+  specificSignals: SpecificBenefitSignal[]
+  vagueSignals: VagueBenefitSignal[]
+  clarity: BenefitsClarity
+  specificCount: number
+  vagueCount: number
+  summary: string
+  interviewQuestions: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -46,8 +46,8 @@ export interface JdBenefitsSpecificityReport {
 // ---------------------------------------------------------------------------
 
 interface SpecificPattern {
-  re: RegExp;
-  type: SpecificBenefitType;
+  re: RegExp
+  type: SpecificBenefitType
 }
 
 const SPECIFIC_PATTERNS: SpecificPattern[] = [
@@ -126,15 +126,15 @@ const SPECIFIC_PATTERNS: SpecificPattern[] = [
     re: /사내\s*식당\s*(?:운영|제공|무료)/,
     type: 'meal_support',
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Vague patterns
 // ---------------------------------------------------------------------------
 
 interface VaguePattern {
-  re: RegExp;
-  type: VagueBenefitType;
+  re: RegExp
+  type: VagueBenefitType
 }
 
 const VAGUE_PATTERNS: VaguePattern[] = [
@@ -173,69 +173,69 @@ const VAGUE_PATTERNS: VaguePattern[] = [
     re: /(?:개인\s*성장|역량\s*개발)\s*(?:을|를)?\s*(?:응원|지원|촉진)/,
     type: 'supportive_culture',
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function analyzeJdBenefitsSpecificity(text: string): JdBenefitsSpecificityReport {
-  const t = text ?? '';
-  const specificSignals: SpecificBenefitSignal[] = [];
-  const vagueSignals: VagueBenefitSignal[] = [];
+  const t = text ?? ''
+  const specificSignals: SpecificBenefitSignal[] = []
+  const vagueSignals: VagueBenefitSignal[] = []
 
   for (const { re, type } of SPECIFIC_PATTERNS) {
-    const m = t.match(re);
-    if (m) specificSignals.push({ type, excerpt: m[0].slice(0, 50) });
+    const m = t.match(re)
+    if (m) specificSignals.push({ type, excerpt: m[0].slice(0, 50) })
   }
 
   for (const { re, type } of VAGUE_PATTERNS) {
-    const m = t.match(re);
-    if (m) vagueSignals.push({ type, excerpt: m[0].slice(0, 40) });
+    const m = t.match(re)
+    if (m) vagueSignals.push({ type, excerpt: m[0].slice(0, 40) })
   }
 
-  const hasSpecific = specificSignals.length >= 2;
-  const hasVague = vagueSignals.length > 0;
-  const hasSome = specificSignals.length === 1;
+  const hasSpecific = specificSignals.length >= 2
+  const hasVague = vagueSignals.length > 0
+  const hasSome = specificSignals.length === 1
 
-  let clarity: BenefitsClarity;
+  let clarity: BenefitsClarity
   if (specificSignals.length === 0 && vagueSignals.length === 0) {
-    clarity = 'absent';
+    clarity = 'absent'
   } else if (hasSpecific && !hasVague) {
-    clarity = 'detailed';
+    clarity = 'detailed'
   } else if (hasSpecific || hasSome) {
-    clarity = 'partial';
+    clarity = 'partial'
   } else {
-    clarity = 'vague';
+    clarity = 'vague'
   }
 
-  let summary: string;
+  let summary: string
   if (clarity === 'detailed') {
-    summary = `복리후생이 ${specificSignals.length}개 구체적으로 명시되어 있습니다. 지원 전 본인 우선순위와 비교해 보세요.`;
+    summary = `복리후생이 ${specificSignals.length}개 구체적으로 명시되어 있습니다. 지원 전 본인 우선순위와 비교해 보세요.`
   } else if (clarity === 'partial') {
-    const vagueCount = vagueSignals.length;
+    const vagueCount = vagueSignals.length
     summary =
       vagueCount > 0
         ? `일부 복지는 구체적이나 ${vagueCount}개 항목은 모호합니다. 면접에서 추가 확인이 필요합니다.`
-        : '복리후생 정보가 부분적으로만 공개되어 있습니다.';
+        : '복리후생 정보가 부분적으로만 공개되어 있습니다.'
   } else if (clarity === 'vague') {
-    summary = '"다양한 복지" 등 모호한 표현만 있습니다. 면접 전 실제 복지 항목을 질문하세요.';
+    summary = '"다양한 복지" 등 모호한 표현만 있습니다. 면접 전 실제 복지 항목을 질문하세요.'
   } else {
-    summary = '복리후생 정보가 공고에 없습니다. 면접에서 직접 확인하세요.';
+    summary = '복리후생 정보가 공고에 없습니다. 면접에서 직접 확인하세요.'
   }
 
-  const interviewQuestions: string[] = [];
+  const interviewQuestions: string[] = []
   if (!specificSignals.some((s) => s.type === 'remote_days')) {
-    interviewQuestions.push('재택/원격 근무는 주 몇 일 가능한가요?');
+    interviewQuestions.push('재택/원격 근무는 주 몇 일 가능한가요?')
   }
   if (!specificSignals.some((s) => s.type === 'flex_hours')) {
-    interviewQuestions.push('코어 타임이 있나요? 출퇴근 시간이 자유로운가요?');
+    interviewQuestions.push('코어 타임이 있나요? 출퇴근 시간이 자유로운가요?')
   }
   if (!specificSignals.some((s) => s.type === 'education_budget')) {
-    interviewQuestions.push('교육비·도서 구입비 등 자기 계발 지원 금액이 있나요?');
+    interviewQuestions.push('교육비·도서 구입비 등 자기 계발 지원 금액이 있나요?')
   }
   if (!specificSignals.some((s) => s.type === 'vacation_days')) {
-    interviewQuestions.push('연차 일수와 자유로운 사용이 보장되나요?');
+    interviewQuestions.push('연차 일수와 자유로운 사용이 보장되나요?')
   }
 
   return {
@@ -246,5 +246,5 @@ export function analyzeJdBenefitsSpecificity(text: string): JdBenefitsSpecificit
     vagueCount: vagueSignals.length,
     summary,
     interviewQuestions: interviewQuestions.slice(0, 3),
-  };
+  }
 }

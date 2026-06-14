@@ -1,16 +1,19 @@
-import { Link } from 'react-router-dom';
-import { ROUTES } from '@/lib/routes';
-import { t } from '@/lib/i18n';
-import HomeHeroVisual from '@/components/HomeHeroVisual';
-import SiteStatsBar from './SiteStatsBar';
-import type { HomeContent } from './types';
+import { Link } from 'react-router-dom'
+
+import SiteStatsBar from './SiteStatsBar'
+
+import type { HomeContent } from './types'
+
+import HomeHeroVisual from '@/components/HomeHeroVisual'
+import { t } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
 
 interface HomeLandingProps {
-  highlights: NonNullable<HomeContent['highlights']>;
-  features: NonNullable<HomeContent['features']>;
-  testimonials: NonNullable<HomeContent['testimonials']>;
-  socialProofTitle: string;
-  onImport: () => void;
+  highlights: NonNullable<HomeContent['highlights']>
+  features: NonNullable<HomeContent['features']>
+  testimonials: NonNullable<HomeContent['testimonials']>
+  socialProofTitle: string
+  onImport: () => void
 }
 
 export default function HomeLanding({
@@ -426,5 +429,5 @@ export default function HomeLanding({
         </div>
       </div>
     </div>
-  );
+  )
 }

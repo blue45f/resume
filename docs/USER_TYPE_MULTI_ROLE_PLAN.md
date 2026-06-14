@@ -85,10 +85,10 @@ model User {
 
 ```ts
 interface JwtPayload {
-  sub: string; // userId
-  role: string; // admin | user (시스템 권한)
-  activeRole: string; // personal | recruiter | company | coach (현재 세션 역할)
-  grantedRoles: string[]; // ['personal', 'coach'] — 전환 가능한 역할
+  sub: string // userId
+  role: string // admin | user (시스템 권한)
+  activeRole: string // personal | recruiter | company | coach (현재 세션 역할)
+  grantedRoles: string[] // ['personal', 'coach'] — 전환 가능한 역할
 }
 ```
 
@@ -138,7 +138,7 @@ interface JwtPayload {
 await prisma.user.update({
   where: { id },
   data: { userType: newRole, activeRole: newRole },
-});
+})
 ```
 
 ### 5.2 점진적 리팩토링 체크포인트

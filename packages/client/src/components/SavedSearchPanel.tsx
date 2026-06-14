@@ -1,24 +1,25 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+
+import { toast } from '@/components/Toast'
 import {
   fetchSavedJobSearches,
   createSavedJobSearch,
   toggleSavedJobSearchNotify,
   deleteSavedJobSearch,
   type SavedJobSearch,
-} from '@/lib/api';
-import { toast } from '@/components/Toast';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
-import { getErrorMessage } from '@/lib/errorMessage';
+} from '@/lib/api'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 interface Props {
   /** 현재 검색 컨텍스트 — '이 검색 저장' 버튼 prefill 용 */
   currentSearch?: {
-    query?: string;
-    skills?: string;
-    locations?: string;
-    jobTypes?: string;
-  };
+    query?: string
+    skills?: string
+    locations?: string
+    jobTypes?: string
+  }
 }
 
 /**
@@ -28,62 +29,62 @@ interface Props {
  * - 클릭 시 해당 필터로 검색 (query string deeplink)
  */
 export default function SavedSearchPanel({ currentSearch }: Props) {
-  const [searches, setSearches] = useState<SavedJobSearch[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [name, setName] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [searches, setSearches] = useState<SavedJobSearch[]>([])
+  const [loaded, setLoaded] = useState(false)
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [name, setName] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const refresh = () => {
     fetchSavedJobSearches()
       .then((rows) => setSearches(rows || []))
       .catch(() => setSearches([]))
-      .finally(() => setLoaded(true));
-  };
+      .finally(() => setLoaded(true))
+  }
 
   useEffect(() => {
-    refresh();
-  }, []);
+    refresh()
+  }, [])
 
   const hasFilter =
     !!currentSearch?.query ||
     !!currentSearch?.skills ||
     !!currentSearch?.locations ||
-    !!currentSearch?.jobTypes;
+    !!currentSearch?.jobTypes
 
   const handleSave = async () => {
     if (!hasFilter) {
-      toast('저장할 검색 조건이 없어요. 키워드/스킬/지역 중 하나를 선택해주세요', 'error');
-      return;
+      toast('저장할 검색 조건이 없어요. 키워드/스킬/지역 중 하나를 선택해주세요', 'error')
+      return
     }
-    setSubmitting(true);
+    setSubmitting(true)
     try {
       await createSavedJobSearch({
         name: name.trim() || currentSearch?.query || currentSearch?.skills || '내 검색',
         ...currentSearch,
         notifyOn: true,
-      });
-      toast('검색을 저장했어요. 새 공고가 올라오면 알림 발송됩니다', 'success');
-      setShowSaveDialog(false);
-      setName('');
-      refresh();
+      })
+      toast('검색을 저장했어요. 새 공고가 올라오면 알림 발송됩니다', 'success')
+      setShowSaveDialog(false)
+      setName('')
+      refresh()
     } catch (err) {
-      toast(getErrorMessage(err, '저장 실패'), 'error');
+      toast(getErrorMessage(err, '저장 실패'), 'error')
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   const handleToggle = async (s: SavedJobSearch) => {
     try {
-      await toggleSavedJobSearchNotify(s.id, !s.notifyOn);
-      refresh();
+      await toggleSavedJobSearchNotify(s.id, !s.notifyOn)
+      refresh()
     } catch (err) {
-      toast(getErrorMessage(err, '변경 실패'), 'error');
+      toast(getErrorMessage(err, '변경 실패'), 'error')
     }
-  };
+  }
 
-  const confirm = useConfirm();
+  const confirm = useConfirm()
 
   const handleDelete = async (s: SavedJobSearch) => {
     if (
@@ -93,26 +94,26 @@ export default function SavedSearchPanel({ currentSearch }: Props) {
         danger: true,
       }))
     )
-      return;
+      return
     try {
-      await deleteSavedJobSearch(s.id);
-      toast('삭제됨', 'success');
-      refresh();
+      await deleteSavedJobSearch(s.id)
+      toast('삭제됨', 'success')
+      refresh()
     } catch (err) {
-      toast(getErrorMessage(err, '삭제 실패'), 'error');
+      toast(getErrorMessage(err, '삭제 실패'), 'error')
     }
-  };
+  }
 
   const buildQueryString = (s: SavedJobSearch) => {
-    const params = new URLSearchParams();
-    if (s.query) params.set('q', s.query);
-    if (s.skills) params.set('skills', s.skills);
-    if (s.locations) params.set('locations', s.locations);
-    if (s.jobTypes) params.set('types', s.jobTypes);
-    return params.toString();
-  };
+    const params = new URLSearchParams()
+    if (s.query) params.set('q', s.query)
+    if (s.skills) params.set('skills', s.skills)
+    if (s.locations) params.set('locations', s.locations)
+    if (s.jobTypes) params.set('types', s.jobTypes)
+    return params.toString()
+  }
 
-  if (!loaded) return null;
+  if (!loaded) return null
 
   return (
     <section className="imp-card p-4 mb-4" aria-label="저장된 검색">
@@ -156,8 +157,8 @@ export default function SavedSearchPanel({ currentSearch }: Props) {
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => {
-                setShowSaveDialog(false);
-                setName('');
+                setShowSaveDialog(false)
+                setName('')
               }}
               className="text-xs px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-700"
             >
@@ -223,5 +224,5 @@ export default function SavedSearchPanel({ currentSearch }: Props) {
         </ul>
       )}
     </section>
-  );
+  )
 }

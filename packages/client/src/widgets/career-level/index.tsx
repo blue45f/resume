@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { ResumeSummary } from '@/types/resume';
-import type { User } from '@/features/auth/model/auth';
+import { useEffect, useMemo, useState } from 'react'
+
+import type { User } from '@/features/auth/model/auth'
+import type { ResumeSummary } from '@/types/resume'
 
 /**
  * CareerLevel — 커리어 경험치 미터 (Lv.1~Lv.10).
@@ -9,17 +10,17 @@ import type { User } from '@/features/auth/model/auth';
  */
 
 interface Props {
-  user: User;
-  resumes: ResumeSummary[];
+  user: User
+  resumes: ResumeSummary[]
 }
 
 interface LevelInfo {
-  level: number;
-  title: string;
-  exp: number;
-  nextExp: number;
-  progressPct: number;
-  totalExp: number;
+  level: number
+  title: string
+  exp: number
+  nextExp: number
+  progressPct: number
+  totalExp: number
 }
 
 const LEVEL_TITLES = [
@@ -33,41 +34,41 @@ const LEVEL_TITLES = [
   '리더', // Lv.8
   '마스터', // Lv.9
   '레전드', // Lv.10
-];
+]
 
 // Thresholds: cumulative EXP required to reach each level
-const LEVEL_THRESHOLDS = [0, 50, 140, 280, 480, 760, 1120, 1580, 2160, 2880, 4000];
+const LEVEL_THRESHOLDS = [0, 50, 140, 280, 480, 760, 1120, 1580, 2160, 2880, 4000]
 
 function computeExp(user: User, resumes: ResumeSummary[]): number {
   const days = user.createdAt
     ? Math.max(0, Math.floor((Date.now() - new Date(user.createdAt).getTime()) / 86400000))
-    : 0;
-  const daysExp = Math.min(days, 365); // cap at 1 year = 365 EXP
-  const resumeExp = resumes.length * 40;
-  const views = resumes.reduce((s, r) => s + (r.viewCount || 0), 0);
-  const viewsExp = Math.min(views * 2, 600);
+    : 0
+  const daysExp = Math.min(days, 365) // cap at 1 year = 365 EXP
+  const resumeExp = resumes.length * 40
+  const views = resumes.reduce((s, r) => s + (r.viewCount || 0), 0)
+  const viewsExp = Math.min(views * 2, 600)
   const publicCount = resumes.filter(
-    (r) => r.visibility === 'public' || r.visibility === 'link-only',
-  ).length;
-  const publicExp = publicCount * 30;
-  const tagsExp = resumes.reduce((s, r) => s + (r.tags?.length || 0), 0) * 5;
-  return daysExp + resumeExp + viewsExp + publicExp + tagsExp;
+    (r) => r.visibility === 'public' || r.visibility === 'link-only'
+  ).length
+  const publicExp = publicCount * 30
+  const tagsExp = resumes.reduce((s, r) => s + (r.tags?.length || 0), 0) * 5
+  return daysExp + resumeExp + viewsExp + publicExp + tagsExp
 }
 
 function levelFromExp(totalExp: number): LevelInfo {
-  let level = 1;
+  let level = 1
   for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
     if (totalExp >= LEVEL_THRESHOLDS[i]) {
-      level = i + 1;
-      break;
+      level = i + 1
+      break
     }
   }
-  const cap = Math.min(level, LEVEL_THRESHOLDS.length - 1);
-  const prev = LEVEL_THRESHOLDS[cap - 1] ?? 0;
-  const next = LEVEL_THRESHOLDS[cap] ?? LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1];
-  const exp = totalExp - prev;
-  const nextExp = Math.max(1, next - prev);
-  const progressPct = level >= 10 ? 100 : Math.round((exp / nextExp) * 100);
+  const cap = Math.min(level, LEVEL_THRESHOLDS.length - 1)
+  const prev = LEVEL_THRESHOLDS[cap - 1] ?? 0
+  const next = LEVEL_THRESHOLDS[cap] ?? LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1]
+  const exp = totalExp - prev
+  const nextExp = Math.max(1, next - prev)
+  const progressPct = level >= 10 ? 100 : Math.round((exp / nextExp) * 100)
   return {
     level,
     title: LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)],
@@ -75,22 +76,22 @@ function levelFromExp(totalExp: number): LevelInfo {
     nextExp,
     progressPct,
     totalExp,
-  };
+  }
 }
 
 export default function CareerLevel({ user, resumes }: Props) {
-  const info = useMemo(() => levelFromExp(computeExp(user, resumes)), [user, resumes]);
-  const [animatedPct, setAnimatedPct] = useState(0);
+  const info = useMemo(() => levelFromExp(computeExp(user, resumes)), [user, resumes])
+  const [animatedPct, setAnimatedPct] = useState(0)
 
   useEffect(() => {
     const prefersReduce =
       typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    const t = setTimeout(() => setAnimatedPct(info.progressPct), prefersReduce ? 0 : 100);
-    return () => clearTimeout(t);
-  }, [info.progressPct]);
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    const t = setTimeout(() => setAnimatedPct(info.progressPct), prefersReduce ? 0 : 100)
+    return () => clearTimeout(t)
+  }, [info.progressPct])
 
-  const isMaxed = info.level >= 10;
+  const isMaxed = info.level >= 10
 
   return (
     <div className="imp-card p-4 sm:p-5 overflow-hidden relative">
@@ -160,5 +161,5 @@ export default function CareerLevel({ user, resumes }: Props) {
         </div>
       </div>
     </div>
-  );
+  )
 }

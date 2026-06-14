@@ -1,53 +1,56 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import type { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
-import { randomBytes, createHmac, timingSafeEqual } from 'crypto';
+import { randomBytes, createHmac, timingSafeEqual } from 'crypto'
+
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { JwtService } from '@nestjs/jwt'
+
+import { PrismaService } from '../prisma/prisma.service'
+
+import type { Prisma } from '@prisma/client'
 
 interface OAuthProfile {
-  provider: string;
-  providerId: string;
-  email: string;
-  name: string;
-  avatar: string;
+  provider: string
+  providerId: string
+  email: string
+  name: string
+  avatar: string
 }
 
 type GitHubEmail = {
-  email?: string;
-  primary?: boolean;
-};
+  email?: string
+  primary?: boolean
+}
 
 /** 이메일 부분 마스킹 — 'user@example.com' → 'u***@example.com' (정보 노출 최소화) */
 function maskEmail(email: string): string {
-  const at = email.indexOf('@');
-  if (at <= 0) return email;
-  const local = email.slice(0, at);
-  const domain = email.slice(at);
-  if (local.length <= 1) return `${local}***${domain}`;
-  return `${local[0]}***${domain}`;
+  const at = email.indexOf('@')
+  if (at <= 0) return email
+  const local = email.slice(0, at)
+  const domain = email.slice(at)
+  if (local.length <= 1) return `${local}***${domain}`
+  return `${local[0]}***${domain}`
 }
 
 function normalizeOpenToWorkRoles(roles: string | string[]): string {
-  const values = Array.isArray(roles) ? roles : roles.split(',');
-  return Array.from(new Set(values.map((role) => String(role).trim()).filter(Boolean))).join(',');
+  const values = Array.isArray(roles) ? roles : roles.split(',')
+  return Array.from(new Set(values.map((role) => String(role).trim()).filter(Boolean))).join(',')
 }
 
 @Injectable()
 export class AuthService {
-  private readonly frontendUrl: string;
-  private readonly stateSecret: string;
-  private readonly logger = new Logger(AuthService.name);
-  private readonly STATE_TTL_MS = 10 * 60 * 1000; // 10분 (cold start 고려)
+  private readonly frontendUrl: string
+  private readonly stateSecret: string
+  private readonly logger = new Logger(AuthService.name)
+  private readonly STATE_TTL_MS = 10 * 60 * 1000 // 10분 (cold start 고려)
 
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
-    private config: ConfigService,
+    private config: ConfigService
   ) {
-    this.frontendUrl = this.config.get('FRONTEND_URL') || 'http://localhost:5173';
+    this.frontendUrl = this.config.get('FRONTEND_URL') || 'http://localhost:5173'
     // JWT secret 재사용 (state 서명용)
-    this.stateSecret = this.config.get('JWT_SECRET') || 'dev-only-state-secret';
+    this.stateSecret = this.config.get('JWT_SECRET') || 'dev-only-state-secret'
   }
 
   /**
@@ -56,11 +59,11 @@ export class AuthService {
    * 서버 재시작에도 검증 가능 (인메모리 저장 불필요)
    */
   generateOAuthState(): string {
-    const timestamp = Date.now().toString(36);
-    const nonce = randomBytes(8).toString('hex');
-    const payload = `${timestamp}.${nonce}`;
-    const hmac = createHmac('sha256', this.stateSecret).update(payload).digest('hex').slice(0, 16);
-    return `${payload}.${hmac}`;
+    const timestamp = Date.now().toString(36)
+    const nonce = randomBytes(8).toString('hex')
+    const payload = `${timestamp}.${nonce}`
+    const hmac = createHmac('sha256', this.stateSecret).update(payload).digest('hex').slice(0, 16)
+    return `${payload}.${hmac}`
   }
 
   /**
@@ -73,82 +76,82 @@ export class AuthService {
    * 가능하다. userId 를 서명에 바인딩해 이를 차단한다.
    */
   generateLinkOAuthState(userId: string): string {
-    const timestamp = Date.now().toString(36);
-    const nonce = randomBytes(8).toString('hex');
-    const payload = `${timestamp}.${nonce}.${userId}`;
-    const hmac = createHmac('sha256', this.stateSecret).update(payload).digest('hex').slice(0, 16);
-    return `${timestamp}.${nonce}.${hmac}.${userId}`;
+    const timestamp = Date.now().toString(36)
+    const nonce = randomBytes(8).toString('hex')
+    const payload = `${timestamp}.${nonce}.${userId}`
+    const hmac = createHmac('sha256', this.stateSecret).update(payload).digest('hex').slice(0, 16)
+    return `${timestamp}.${nonce}.${hmac}.${userId}`
   }
 
   validateOAuthState(state: string | undefined): boolean {
-    if (!state) return false;
-    const parts = state.split('.');
+    if (!state) return false
+    const parts = state.split('.')
     // 3 parts = normal login, 4 parts = linking mode (timestamp.nonce.hmac.userId)
-    if (parts.length !== 3 && parts.length !== 4) return false;
+    if (parts.length !== 3 && parts.length !== 4) return false
 
-    const [timestamp, nonce, hmac] = parts;
+    const [timestamp, nonce, hmac] = parts
     // 링크 모드(4-part)에서는 userId(parts[3])도 서명 payload 에 포함해 검증한다.
     // userId 가 서명되지 않으면 위조된 userId 로 임의 계정 연동(계정 탈취)이 가능하다.
     const payload =
-      parts.length === 4 ? `${timestamp}.${nonce}.${parts[3]}` : `${timestamp}.${nonce}`;
+      parts.length === 4 ? `${timestamp}.${nonce}.${parts[3]}` : `${timestamp}.${nonce}`
     const expected = createHmac('sha256', this.stateSecret)
       .update(payload)
       .digest('hex')
-      .slice(0, 16);
+      .slice(0, 16)
 
     // Timing-safe comparison to prevent timing attacks
-    const hmacBuf = Buffer.from(hmac, 'utf8');
-    const expectedBuf = Buffer.from(expected, 'utf8');
+    const hmacBuf = Buffer.from(hmac, 'utf8')
+    const expectedBuf = Buffer.from(expected, 'utf8')
     if (hmacBuf.length !== expectedBuf.length || !timingSafeEqual(hmacBuf, expectedBuf)) {
-      this.logger.warn('OAuth state HMAC 불일치');
-      return false;
+      this.logger.warn('OAuth state HMAC 불일치')
+      return false
     }
 
     // TTL 확인
-    const createdAt = parseInt(timestamp, 36);
+    const createdAt = parseInt(timestamp, 36)
     if (Date.now() - createdAt > this.STATE_TTL_MS) {
-      this.logger.warn('OAuth state 만료');
-      return false;
+      this.logger.warn('OAuth state 만료')
+      return false
     }
 
-    return true;
+    return true
   }
 
   /**
    * state에서 linking mode의 userId를 추출. 없으면 null.
    */
   extractLinkUserId(state: string): string | null {
-    const parts = state.split('.');
-    if (parts.length === 4) return parts[3];
-    return null;
+    const parts = state.split('.')
+    if (parts.length === 4) return parts[3]
+    return null
   }
 
   // ---- OAuth URL 생성 ----
 
   getGoogleAuthUrl(state: string) {
-    const clientId = this.config.get('GOOGLE_CLIENT_ID');
-    const redirectUri = this.getCallbackUrl('google');
-    return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=email+profile&prompt=select_account&state=${state}`;
+    const clientId = this.config.get('GOOGLE_CLIENT_ID')
+    const redirectUri = this.getCallbackUrl('google')
+    return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=email+profile&prompt=select_account&state=${state}`
   }
 
   getGithubAuthUrl(state: string) {
-    const clientId = this.config.get('GITHUB_CLIENT_ID');
-    const redirectUri = this.getCallbackUrl('github');
-    return `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email&state=${state}`;
+    const clientId = this.config.get('GITHUB_CLIENT_ID')
+    const redirectUri = this.getCallbackUrl('github')
+    return `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email&state=${state}`
   }
 
   getKakaoAuthUrl(state: string) {
-    const clientId = this.config.get('KAKAO_CLIENT_ID');
-    const redirectUri = this.getCallbackUrl('kakao');
-    return `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
+    const clientId = this.config.get('KAKAO_CLIENT_ID')
+    const redirectUri = this.getCallbackUrl('kakao')
+    return `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`
   }
 
   // ---- OAuth 콜백 처리 ----
 
   async handleGoogleCallback(code: string): Promise<string> {
-    const clientId = this.config.get('GOOGLE_CLIENT_ID');
-    const clientSecret = this.config.get('GOOGLE_CLIENT_SECRET');
-    const redirectUri = this.getCallbackUrl('google');
+    const clientId = this.config.get('GOOGLE_CLIENT_ID')
+    const clientSecret = this.config.get('GOOGLE_CLIENT_SECRET')
+    const redirectUri = this.getCallbackUrl('google')
 
     // 코드 → 토큰
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -161,15 +164,15 @@ export class AuthService {
         redirect_uri: redirectUri,
         grant_type: 'authorization_code',
       }),
-    });
-    const tokenData = await tokenRes.json();
-    if (!tokenData.access_token) throw new UnauthorizedException('Google 인증 실패');
+    })
+    const tokenData = await tokenRes.json()
+    if (!tokenData.access_token) throw new UnauthorizedException('Google 인증 실패')
 
     // 프로필 조회
     const profileRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-    const profile = await profileRes.json();
+    })
+    const profile = await profileRes.json()
 
     return this.findOrCreateUser({
       provider: 'google',
@@ -177,37 +180,37 @@ export class AuthService {
       email: profile.email || '',
       name: profile.name || '',
       avatar: profile.picture || '',
-    });
+    })
   }
 
   async handleGithubCallback(code: string): Promise<string> {
-    const clientId = this.config.get('GITHUB_CLIENT_ID');
-    const clientSecret = this.config.get('GITHUB_CLIENT_SECRET');
+    const clientId = this.config.get('GITHUB_CLIENT_ID')
+    const clientSecret = this.config.get('GITHUB_CLIENT_SECRET')
 
     // 코드 → 토큰
     const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, code }),
-    });
-    const tokenData = await tokenRes.json();
-    if (!tokenData.access_token) throw new UnauthorizedException('GitHub 인증 실패');
+    })
+    const tokenData = await tokenRes.json()
+    if (!tokenData.access_token) throw new UnauthorizedException('GitHub 인증 실패')
 
     // 프로필 조회
     const profileRes = await fetch('https://api.github.com/user', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-    const profile = await profileRes.json();
+    })
+    const profile = await profileRes.json()
 
     // 이메일 조회 (private일 수 있음)
-    let email = profile.email || '';
+    let email = profile.email || ''
     if (!email) {
       const emailsRes = await fetch('https://api.github.com/user/emails', {
         headers: { Authorization: `Bearer ${tokenData.access_token}` },
-      });
-      const emails = (await emailsRes.json()) as GitHubEmail[];
-      const primary = emails.find((e) => e.primary);
-      email = primary?.email || emails[0]?.email || '';
+      })
+      const emails = (await emailsRes.json()) as GitHubEmail[]
+      const primary = emails.find((e) => e.primary)
+      email = primary?.email || emails[0]?.email || ''
     }
 
     return this.findOrCreateUser({
@@ -216,28 +219,28 @@ export class AuthService {
       email,
       name: profile.name || profile.login || '',
       avatar: profile.avatar_url || '',
-    });
+    })
   }
 
   async handleKakaoCallback(code: string): Promise<string> {
-    const clientId = this.config.get('KAKAO_CLIENT_ID');
-    const redirectUri = this.getCallbackUrl('kakao');
+    const clientId = this.config.get('KAKAO_CLIENT_ID')
+    const redirectUri = this.getCallbackUrl('kakao')
 
     // 코드 → 토큰
     const tokenRes = await fetch('https://kauth.kakao.com/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `grant_type=authorization_code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${code}`,
-    });
-    const tokenData = await tokenRes.json();
-    if (!tokenData.access_token) throw new UnauthorizedException('Kakao 인증 실패');
+    })
+    const tokenData = await tokenRes.json()
+    if (!tokenData.access_token) throw new UnauthorizedException('Kakao 인증 실패')
 
     // 프로필 조회
     const profileRes = await fetch('https://kapi.kakao.com/v2/user/me', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-    const profile = await profileRes.json();
-    const kakaoAccount = profile.kakao_account || {};
+    })
+    const profile = await profileRes.json()
+    const kakaoAccount = profile.kakao_account || {}
 
     return this.findOrCreateUser({
       provider: 'kakao',
@@ -245,21 +248,21 @@ export class AuthService {
       email: kakaoAccount.email || '',
       name: kakaoAccount.profile?.nickname || '',
       avatar: kakaoAccount.profile?.thumbnail_image_url || '',
-    });
+    })
   }
 
   // ---- 관리자 기능 ----
 
   async setUserRole(adminUserId: string, targetUserId: string, role: string) {
-    const admin = await this.prisma.user.findUnique({ where: { id: adminUserId } });
+    const admin = await this.prisma.user.findUnique({ where: { id: adminUserId } })
     if (!admin || admin.role !== 'superadmin') {
-      throw new UnauthorizedException('관리자만 역할을 변경할 수 있습니다');
+      throw new UnauthorizedException('관리자만 역할을 변경할 수 있습니다')
     }
     if (!['user', 'admin', 'superadmin'].includes(role)) {
-      throw new UnauthorizedException('유효하지 않은 역할입니다');
+      throw new UnauthorizedException('유효하지 않은 역할입니다')
     }
-    await this.prisma.user.update({ where: { id: targetUserId }, data: { role } });
-    return { success: true, userId: targetUserId, role };
+    await this.prisma.user.update({ where: { id: targetUserId }, data: { role } })
+    return { success: true, userId: targetUserId, role }
   }
 
   async getAllUsers(search?: string) {
@@ -271,7 +274,7 @@ export class AuthService {
             { username: { contains: search, mode: 'insensitive' as const } },
           ],
         }
-      : {};
+      : {}
 
     return this.prisma.user.findMany({
       where,
@@ -288,41 +291,41 @@ export class AuthService {
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
-    });
+    })
   }
 
   async setSuspended(userId: string, isSuspended: boolean) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다')
     // 슈퍼관리자는 admin 채널로 정지할 수 없음 (admin 이 superadmin 을 잠가버리는 권한상승 방지).
     // adminDeleteUser 와 동일 정책.
     if (user.role === 'superadmin') {
-      throw new UnauthorizedException('슈퍼관리자는 정지할 수 없습니다');
+      throw new UnauthorizedException('슈퍼관리자는 정지할 수 없습니다')
     }
-    await this.prisma.user.update({ where: { id: userId }, data: { isSuspended } });
-    return { success: true, userId, isSuspended };
+    await this.prisma.user.update({ where: { id: userId }, data: { isSuspended } })
+    return { success: true, userId, isSuspended }
   }
 
   async adminDeleteUser(userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다')
     // Prevent deleting superadmin through admin channel
     if (user.role === 'superadmin') {
-      throw new UnauthorizedException('슈퍼관리자는 삭제할 수 없습니다');
+      throw new UnauthorizedException('슈퍼관리자는 삭제할 수 없습니다')
     }
-    await this.prisma.user.delete({ where: { id: userId } });
+    await this.prisma.user.delete({ where: { id: userId } })
   }
 
   // ---- 내 정보 ----
 
   async getProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new UnauthorizedException();
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) throw new UnauthorizedException()
     const [resumeCount, followerCount, followingCount] = await Promise.all([
       this.prisma.resume.count({ where: { userId } }),
       this.prisma.follow.count({ where: { followingId: userId } }),
       this.prisma.follow.count({ where: { followerId: userId } }),
-    ]);
+    ])
     return {
       id: user.id,
       email: user.email,
@@ -340,13 +343,13 @@ export class AuthService {
       resumeCount,
       followerCount,
       followingCount,
-    };
+    }
   }
 
   /** 사용자 자동완성 검색 — 이력서 selective 화이트리스트 등에서 사용. 최대 10건. */
   async searchUsers(currentUserId: string, q: string) {
-    const query = (q || '').trim();
-    if (query.length < 2) return [];
+    const query = (q || '').trim()
+    if (query.length < 2) return []
     // SQL injection 방지: Prisma where 사용. like 패턴은 escape 안 해도 OK (기본 contains).
     const rows = await this.prisma.user.findMany({
       where: {
@@ -371,19 +374,19 @@ export class AuthService {
       },
       take: 10,
       orderBy: [{ name: 'asc' }],
-    });
+    })
     // email 은 부분 마스킹 (정보 노출 최소화) — '@' 앞 첫 1글자 + '...'
     return rows.map((u) => ({
       ...u,
       email: u.email ? maskEmail(u.email) : null,
-    }));
+    }))
   }
 
   async getPublicPortfolio(username: string) {
     const user = await this.prisma.user.findFirst({
       where: { username: { equals: username, mode: 'insensitive' } },
-    });
-    if (!user) return null;
+    })
+    if (!user) return null
 
     const [publicResumes, followerCount, followingCount] = await Promise.all([
       this.prisma.resume.findMany({
@@ -409,21 +412,21 @@ export class AuthService {
       }),
       this.prisma.follow.count({ where: { followingId: user.id } }),
       this.prisma.follow.count({ where: { followerId: user.id } }),
-    ]);
+    ])
 
-    const totalViews = publicResumes.reduce((s, r) => s + (r.viewCount || 0), 0);
-    const totalExp = publicResumes.reduce((s, r) => s + r.experiences.length, 0);
-    const allSkills: string[] = [];
+    const totalViews = publicResumes.reduce((s, r) => s + (r.viewCount || 0), 0)
+    const totalExp = publicResumes.reduce((s, r) => s + r.experiences.length, 0)
+    const allSkills: string[] = []
     publicResumes.forEach((r) =>
       r.skills.forEach((sk) => {
-        (sk.items as string)
+        ;(sk.items as string)
           .split(',')
           .map((s: string) => s.trim())
           .filter(Boolean)
-          .forEach((s: string) => allSkills.push(s));
-      }),
-    );
-    const uniqueSkills = [...new Set(allSkills)].slice(0, 20);
+          .forEach((s: string) => allSkills.push(s))
+      })
+    )
+    const uniqueSkills = [...new Set(allSkills)].slice(0, 20)
 
     return {
       user: {
@@ -463,23 +466,23 @@ export class AuthService {
           .filter(Boolean)
           .slice(0, 5),
       })),
-    };
+    }
   }
 
   getAvailableProviders() {
-    const providers: string[] = [];
-    if (this.config.get('GOOGLE_CLIENT_ID')) providers.push('google');
-    if (this.config.get('GITHUB_CLIENT_ID')) providers.push('github');
-    if (this.config.get('KAKAO_CLIENT_ID')) providers.push('kakao');
-    return providers;
+    const providers: string[] = []
+    if (this.config.get('GOOGLE_CLIENT_ID')) providers.push('google')
+    if (this.config.get('GITHUB_CLIENT_ID')) providers.push('github')
+    if (this.config.get('KAKAO_CLIENT_ID')) providers.push('kakao')
+    return providers
   }
 
   // ---- 소셜 계정 연동 ----
 
   async getGoogleProfile(code: string): Promise<OAuthProfile> {
-    const clientId = this.config.get('GOOGLE_CLIENT_ID');
-    const clientSecret = this.config.get('GOOGLE_CLIENT_SECRET');
-    const redirectUri = this.getCallbackUrl('google');
+    const clientId = this.config.get('GOOGLE_CLIENT_ID')
+    const clientSecret = this.config.get('GOOGLE_CLIENT_SECRET')
+    const redirectUri = this.getCallbackUrl('google')
 
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -491,14 +494,14 @@ export class AuthService {
         redirect_uri: redirectUri,
         grant_type: 'authorization_code',
       }),
-    });
-    const tokenData = await tokenRes.json();
-    if (!tokenData.access_token) throw new UnauthorizedException('Google 인증 실패');
+    })
+    const tokenData = await tokenRes.json()
+    if (!tokenData.access_token) throw new UnauthorizedException('Google 인증 실패')
 
     const profileRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-    const profile = await profileRes.json();
+    })
+    const profile = await profileRes.json()
 
     return {
       provider: 'google',
@@ -506,34 +509,34 @@ export class AuthService {
       email: profile.email || '',
       name: profile.name || '',
       avatar: profile.picture || '',
-    };
+    }
   }
 
   async getGithubProfile(code: string): Promise<OAuthProfile> {
-    const clientId = this.config.get('GITHUB_CLIENT_ID');
-    const clientSecret = this.config.get('GITHUB_CLIENT_SECRET');
+    const clientId = this.config.get('GITHUB_CLIENT_ID')
+    const clientSecret = this.config.get('GITHUB_CLIENT_SECRET')
 
     const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, code }),
-    });
-    const tokenData = await tokenRes.json();
-    if (!tokenData.access_token) throw new UnauthorizedException('GitHub 인증 실패');
+    })
+    const tokenData = await tokenRes.json()
+    if (!tokenData.access_token) throw new UnauthorizedException('GitHub 인증 실패')
 
     const profileRes = await fetch('https://api.github.com/user', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-    const profile = await profileRes.json();
+    })
+    const profile = await profileRes.json()
 
-    let email = profile.email || '';
+    let email = profile.email || ''
     if (!email) {
       const emailsRes = await fetch('https://api.github.com/user/emails', {
         headers: { Authorization: `Bearer ${tokenData.access_token}` },
-      });
-      const emails = (await emailsRes.json()) as GitHubEmail[];
-      const primary = emails.find((e) => e.primary);
-      email = primary?.email || emails[0]?.email || '';
+      })
+      const emails = (await emailsRes.json()) as GitHubEmail[]
+      const primary = emails.find((e) => e.primary)
+      email = primary?.email || emails[0]?.email || ''
     }
 
     return {
@@ -542,26 +545,26 @@ export class AuthService {
       email,
       name: profile.name || profile.login || '',
       avatar: profile.avatar_url || '',
-    };
+    }
   }
 
   async getKakaoProfile(code: string): Promise<OAuthProfile> {
-    const clientId = this.config.get('KAKAO_CLIENT_ID');
-    const redirectUri = this.getCallbackUrl('kakao');
+    const clientId = this.config.get('KAKAO_CLIENT_ID')
+    const redirectUri = this.getCallbackUrl('kakao')
 
     const tokenRes = await fetch('https://kauth.kakao.com/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `grant_type=authorization_code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${code}`,
-    });
-    const tokenData = await tokenRes.json();
-    if (!tokenData.access_token) throw new UnauthorizedException('Kakao 인증 실패');
+    })
+    const tokenData = await tokenRes.json()
+    if (!tokenData.access_token) throw new UnauthorizedException('Kakao 인증 실패')
 
     const profileRes = await fetch('https://kapi.kakao.com/v2/user/me', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-    const profile = await profileRes.json();
-    const kakaoAccount = profile.kakao_account || {};
+    })
+    const profile = await profileRes.json()
+    const kakaoAccount = profile.kakao_account || {}
 
     return {
       provider: 'kakao',
@@ -569,39 +572,39 @@ export class AuthService {
       email: kakaoAccount.email || '',
       name: kakaoAccount.profile?.nickname || '',
       avatar: kakaoAccount.profile?.thumbnail_image_url || '',
-    };
+    }
   }
 
   async linkSocialAccount(
     userId: string,
     provider: string,
     providerId: string,
-    avatar?: string,
+    avatar?: string
   ): Promise<void> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다')
 
     // Check if this social account is already linked to another user
     const existing = await this.prisma.user.findFirst({
       where: { provider, providerId, id: { not: userId } },
-    });
+    })
     if (existing) {
-      throw new UnauthorizedException('이 소셜 계정은 다른 사용자에게 연결되어 있습니다');
+      throw new UnauthorizedException('이 소셜 계정은 다른 사용자에게 연결되어 있습니다')
     }
 
     await this.prisma.user.update({
       where: { id: userId },
       data: { provider, providerId, avatar: avatar || user.avatar },
-    });
+    })
   }
 
   async getLinkedAccounts(userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new UnauthorizedException();
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) throw new UnauthorizedException()
     return {
       provider: user.provider,
       hasPassword: !!user.passwordHash,
-    };
+    }
   }
 
   // ---- 내부 ----
@@ -609,12 +612,12 @@ export class AuthService {
   private async findOrCreateUser(profile: OAuthProfile): Promise<string> {
     let user = await this.prisma.user.findFirst({
       where: { provider: profile.provider, providerId: profile.providerId },
-    });
+    })
 
     if (!user) {
       // 같은 이메일로 가입된 유저 확인
       if (profile.email) {
-        user = await this.prisma.user.findUnique({ where: { email: profile.email } });
+        user = await this.prisma.user.findUnique({ where: { email: profile.email } })
         if (user) {
           // 기존 계정에 소셜 프로바이더 연결
           user = await this.prisma.user.update({
@@ -624,7 +627,7 @@ export class AuthService {
               providerId: profile.providerId,
               avatar: profile.avatar || user.avatar,
             },
-          });
+          })
         }
       }
 
@@ -637,21 +640,21 @@ export class AuthService {
             provider: profile.provider,
             providerId: profile.providerId,
           },
-        });
+        })
       }
     }
 
-    return this.jwt.sign({ sub: user.id, role: user.role || 'user' });
+    return this.jwt.sign({ sub: user.id, role: user.role || 'user' })
   }
 
   private getCallbackUrl(provider: string): string {
     const apiUrl =
-      this.config.get('API_URL') || `http://localhost:${this.config.get('PORT') || 3001}`;
-    return `${apiUrl}/api/auth/${provider}/callback`;
+      this.config.get('API_URL') || `http://localhost:${this.config.get('PORT') || 3001}`
+    return `${apiUrl}/api/auth/${provider}/callback`
   }
 
   getFrontendUrl(): string {
-    return this.frontendUrl;
+    return this.frontendUrl
   }
 
   async register(
@@ -662,28 +665,28 @@ export class AuthService {
     companyName?: string,
     companyTitle?: string,
     marketingOptIn?: boolean,
-    llmOptIn?: boolean,
+    llmOptIn?: boolean
   ): Promise<string> {
     if (!email || !password || !name) {
-      throw new UnauthorizedException('이메일, 비밀번호, 이름은 필수입니다');
+      throw new UnauthorizedException('이메일, 비밀번호, 이름은 필수입니다')
     }
     if (password.length < 8) {
-      throw new UnauthorizedException('비밀번호는 8자 이상이어야 합니다');
+      throw new UnauthorizedException('비밀번호는 8자 이상이어야 합니다')
     }
 
-    const validTypes = ['personal', 'recruiter', 'company'];
-    const type = validTypes.includes(userType || '') ? userType : 'personal';
+    const validTypes = ['personal', 'recruiter', 'company']
+    const type = validTypes.includes(userType || '') ? userType : 'personal'
     if (type === 'company' && !companyName) {
-      throw new UnauthorizedException('기업 계정은 회사명이 필수입니다');
+      throw new UnauthorizedException('기업 계정은 회사명이 필수입니다')
     }
 
-    const existing = await this.prisma.user.findUnique({ where: { email } });
+    const existing = await this.prisma.user.findUnique({ where: { email } })
     if (existing) {
-      throw new UnauthorizedException('이미 가입된 이메일입니다');
+      throw new UnauthorizedException('이미 가입된 이메일입니다')
     }
 
-    const bcrypt = await import('bcryptjs');
-    const passwordHash = await bcrypt.hash(password, 12);
+    const bcrypt = await import('bcryptjs')
+    const passwordHash = await bcrypt.hash(password, 12)
 
     const user = await this.prisma.user.create({
       data: {
@@ -698,86 +701,86 @@ export class AuthService {
         marketingOptIn: marketingOptIn ?? false,
         llmOptIn: llmOptIn ?? false,
       },
-    });
+    })
 
-    return this.jwt.sign({ sub: user.id, role: user.role || 'user' });
+    return this.jwt.sign({ sub: user.id, role: user.role || 'user' })
   }
 
   async changePassword(
     userId: string,
     currentPassword: string,
-    newPassword: string,
+    newPassword: string
   ): Promise<void> {
     if (!newPassword || newPassword.length < 8) {
-      throw new UnauthorizedException('새 비밀번호는 8자 이상이어야 합니다');
+      throw new UnauthorizedException('새 비밀번호는 8자 이상이어야 합니다')
     }
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다')
 
     if (user.passwordHash) {
-      const bcrypt = await import('bcryptjs');
-      const valid = await bcrypt.compare(currentPassword, user.passwordHash);
-      if (!valid) throw new UnauthorizedException('현재 비밀번호가 올바르지 않습니다');
+      const bcrypt = await import('bcryptjs')
+      const valid = await bcrypt.compare(currentPassword, user.passwordHash)
+      if (!valid) throw new UnauthorizedException('현재 비밀번호가 올바르지 않습니다')
     }
 
-    const bcrypt = await import('bcryptjs');
-    const passwordHash = await bcrypt.hash(newPassword, 12);
-    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+    const bcrypt = await import('bcryptjs')
+    const passwordHash = await bcrypt.hash(newPassword, 12)
+    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } })
   }
 
   async updateProfile(
     userId: string,
     data: {
-      userType?: string;
-      name?: string;
-      companyName?: string;
-      companyTitle?: string;
-      isOpenToWork?: boolean;
-      openToWorkRoles?: string | string[];
-      username?: string;
-      marketingOptIn?: boolean;
-      llmOptIn?: boolean;
-      preferredLocale?: string;
-    },
-  ) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
-
-    const updateData: Prisma.UserUpdateInput = {};
-    if (data.userType) {
-      const validTypes = ['personal', 'recruiter', 'company'];
-      if (!validTypes.includes(data.userType)) {
-        throw new UnauthorizedException('유효하지 않은 사용자 유형입니다');
-      }
-      updateData.userType = data.userType;
+      userType?: string
+      name?: string
+      companyName?: string
+      companyTitle?: string
+      isOpenToWork?: boolean
+      openToWorkRoles?: string | string[]
+      username?: string
+      marketingOptIn?: boolean
+      llmOptIn?: boolean
+      preferredLocale?: string
     }
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.companyName !== undefined) updateData.companyName = data.companyName;
-    if (data.companyTitle !== undefined) updateData.companyTitle = data.companyTitle;
-    if (data.isOpenToWork !== undefined) updateData.isOpenToWork = data.isOpenToWork;
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다')
+
+    const updateData: Prisma.UserUpdateInput = {}
+    if (data.userType) {
+      const validTypes = ['personal', 'recruiter', 'company']
+      if (!validTypes.includes(data.userType)) {
+        throw new UnauthorizedException('유효하지 않은 사용자 유형입니다')
+      }
+      updateData.userType = data.userType
+    }
+    if (data.name !== undefined) updateData.name = data.name
+    if (data.companyName !== undefined) updateData.companyName = data.companyName
+    if (data.companyTitle !== undefined) updateData.companyTitle = data.companyTitle
+    if (data.isOpenToWork !== undefined) updateData.isOpenToWork = data.isOpenToWork
     if (data.openToWorkRoles !== undefined) {
-      updateData.openToWorkRoles = normalizeOpenToWorkRoles(data.openToWorkRoles);
+      updateData.openToWorkRoles = normalizeOpenToWorkRoles(data.openToWorkRoles)
     }
     if (data.preferredLocale !== undefined) {
-      const validLocales = ['', 'ko', 'en', 'ja'];
+      const validLocales = ['', 'ko', 'en', 'ja']
       if (!validLocales.includes(data.preferredLocale)) {
-        throw new Error('유효하지 않은 언어입니다');
+        throw new Error('유효하지 않은 언어입니다')
       }
-      updateData.preferredLocale = data.preferredLocale;
+      updateData.preferredLocale = data.preferredLocale
     }
     if (data.username !== undefined) {
       // Validate username: 3-30 chars, alphanumeric + - _
-      const clean = data.username.toLowerCase().replace(/[^a-z0-9_-]/g, '');
-      if (clean.length < 3) throw new Error('사용자명은 3자 이상이어야 합니다');
+      const clean = data.username.toLowerCase().replace(/[^a-z0-9_-]/g, '')
+      if (clean.length < 3) throw new Error('사용자명은 3자 이상이어야 합니다')
       // Check uniqueness
       const existing = await this.prisma.user.findFirst({
         where: { username: clean, NOT: { id: userId } },
-      });
-      if (existing) throw new Error('이미 사용 중인 사용자명입니다');
-      updateData.username = clean;
+      })
+      if (existing) throw new Error('이미 사용 중인 사용자명입니다')
+      updateData.username = clean
     }
 
-    const updated = await this.prisma.user.update({ where: { id: userId }, data: updateData });
+    const updated = await this.prisma.user.update({ where: { id: userId }, data: updateData })
     return {
       id: updated.id,
       email: updated.email,
@@ -792,43 +795,43 @@ export class AuthService {
       isOpenToWork: updated.isOpenToWork || false,
       openToWorkRoles: updated.openToWorkRoles || '',
       username: updated.username || '',
-    };
+    }
   }
 
   async deleteAccount(userId: string): Promise<void> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다')
 
     // Delete all user data (cascade should handle related records)
-    await this.prisma.user.delete({ where: { id: userId } });
+    await this.prisma.user.delete({ where: { id: userId } })
   }
 
   // ──────── 프로필 아바타 ────────
 
   /** Cloudinary 업로드 (설정 시) 또는 base64 data URL fallback. 5MB 제한, 이미지 mime 만. */
   async uploadAvatar(userId: string, file: Express.Multer.File): Promise<{ avatar: string }> {
-    if (!file?.buffer) throw new Error('파일 데이터가 없습니다');
+    if (!file?.buffer) throw new Error('파일 데이터가 없습니다')
     if (!/^image\/(jpe?g|png|webp|gif)$/i.test(file.mimetype || '')) {
-      throw new Error('이미지 파일만 업로드할 수 있습니다 (JPG/PNG/WEBP/GIF)');
+      throw new Error('이미지 파일만 업로드할 수 있습니다 (JPG/PNG/WEBP/GIF)')
     }
     if (file.size > 5 * 1024 * 1024) {
-      throw new Error('이미지 크기는 5MB 이하여야 합니다');
+      throw new Error('이미지 크기는 5MB 이하여야 합니다')
     }
 
-    const cloudName = this.config.get<string>('CLOUDINARY_CLOUD_NAME');
-    const apiKey = this.config.get<string>('CLOUDINARY_API_KEY');
-    const apiSecret = this.config.get<string>('CLOUDINARY_API_SECRET');
+    const cloudName = this.config.get<string>('CLOUDINARY_CLOUD_NAME')
+    const apiKey = this.config.get<string>('CLOUDINARY_API_KEY')
+    const apiSecret = this.config.get<string>('CLOUDINARY_API_SECRET')
 
-    let avatarUrl: string;
+    let avatarUrl: string
     if (cloudName && apiKey && apiSecret) {
       // 동적 import — cloudinary 패키지는 attachments.service 가 이미 import 하므로 lazy 로 가져오기.
-      const { v2: cloudinary } = await import('cloudinary');
+      const { v2: cloudinary } = await import('cloudinary')
       cloudinary.config({
         cloud_name: cloudName,
         api_key: apiKey,
         api_secret: apiSecret,
         secure: true,
-      });
+      })
       const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
@@ -842,18 +845,18 @@ export class AuthService {
             overwrite: true,
             invalidate: true,
           },
-          (err, res) => (err ? reject(err) : resolve(res as { secure_url: string })),
-        );
-        stream.end(file.buffer);
-      });
-      avatarUrl = result.secure_url;
+          (err, res) => (err ? reject(err) : resolve(res as { secure_url: string }))
+        )
+        stream.end(file.buffer)
+      })
+      avatarUrl = result.secure_url
     } else {
       // Cloudinary 미설정 시: data URL 폴백 (개발/소규모 환경)
-      avatarUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+      avatarUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`
     }
 
-    await this.prisma.user.update({ where: { id: userId }, data: { avatar: avatarUrl } });
-    return { avatar: avatarUrl };
+    await this.prisma.user.update({ where: { id: userId }, data: { avatar: avatarUrl } })
+    return { avatar: avatarUrl }
   }
 
   /**
@@ -861,47 +864,47 @@ export class AuthService {
    * Whitelist 도메인 외 URL 거부.
    */
   async setPresetAvatar(userId: string, avatar: string): Promise<{ avatar: string }> {
-    if (!avatar) throw new Error('아바타 URL 이 필요합니다');
+    if (!avatar) throw new Error('아바타 URL 이 필요합니다')
     const allowed = [
       /^https:\/\/api\.dicebear\.com\//,
       /^https:\/\/res\.cloudinary\.com\//,
       /^https:\/\/lh\d\.googleusercontent\.com\//, // Google OAuth avatar
       /^https:\/\/avatars\.githubusercontent\.com\//, // GitHub OAuth avatar
-    ];
+    ]
     if (!allowed.some((re) => re.test(avatar))) {
-      throw new Error('허용되지 않는 아바타 URL 입니다');
+      throw new Error('허용되지 않는 아바타 URL 입니다')
     }
-    if (avatar.length > 500) throw new Error('아바타 URL 이 너무 깁니다');
-    await this.prisma.user.update({ where: { id: userId }, data: { avatar } });
-    return { avatar };
+    if (avatar.length > 500) throw new Error('아바타 URL 이 너무 깁니다')
+    await this.prisma.user.update({ where: { id: userId }, data: { avatar } })
+    return { avatar }
   }
 
   /** 아바타 제거 — empty string 으로 설정 (이니셜 fallback UI 으로 복귀). */
   async deleteAvatar(userId: string): Promise<{ avatar: string }> {
-    await this.prisma.user.update({ where: { id: userId }, data: { avatar: '' } });
-    return { avatar: '' };
+    await this.prisma.user.update({ where: { id: userId }, data: { avatar: '' } })
+    return { avatar: '' }
   }
 
   async login(email: string, password: string): Promise<string> {
     if (!email || !password) {
-      throw new UnauthorizedException('이메일과 비밀번호를 입력해주세요');
+      throw new UnauthorizedException('이메일과 비밀번호를 입력해주세요')
     }
 
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.prisma.user.findUnique({ where: { email } })
     if (!user || !user.passwordHash) {
-      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다');
+      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다')
     }
 
     if (user.isSuspended) {
-      throw new UnauthorizedException('정지된 계정입니다. 관리자에게 문의하세요');
+      throw new UnauthorizedException('정지된 계정입니다. 관리자에게 문의하세요')
     }
 
-    const bcrypt = await import('bcryptjs');
-    const valid = await bcrypt.compare(password, user.passwordHash);
+    const bcrypt = await import('bcryptjs')
+    const valid = await bcrypt.compare(password, user.passwordHash)
     if (!valid) {
-      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다');
+      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다')
     }
 
-    return this.jwt.sign({ sub: user.id, role: user.role || 'user' });
+    return this.jwt.sign({ sub: user.id, role: user.role || 'user' })
   }
 }

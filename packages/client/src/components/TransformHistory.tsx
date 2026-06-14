@@ -1,26 +1,28 @@
-import { useState, useEffect } from 'react';
-import { fetchTransformHistory } from '@/lib/api';
-import { timeAgo } from '@/lib/time';
-import type { TransformResult } from '@/types/resume';
+import { useState, useEffect } from 'react'
+
+import type { TransformResult } from '@/types/resume'
+
+import { fetchTransformHistory } from '@/lib/api'
+import { timeAgo } from '@/lib/time'
 
 interface Props {
-  resumeId: string;
+  resumeId: string
 }
 
 export default function TransformHistory({ resumeId }: Props) {
-  const [history, setHistory] = useState<TransformResult[]>([]);
-  const [expanded, setExpanded] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [history, setHistory] = useState<TransformResult[]>([])
+  const [expanded, setExpanded] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchTransformHistory(resumeId)
       .then(setHistory)
-      .catch(() => {});
-  }, [resumeId]);
+      .catch(() => {})
+  }, [resumeId])
 
-  if (history.length === 0) return null;
+  if (history.length === 0) return null
 
-  const selected = history.find((h) => h.id === selectedId);
+  const selected = history.find((h) => h.id === selectedId)
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -75,7 +77,7 @@ export default function TransformHistory({ resumeId }: Props) {
                 <span className="text-xs font-medium text-slate-500">변환 결과</span>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(selected.text);
+                    navigator.clipboard.writeText(selected.text)
                   }}
                   className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                 >
@@ -90,5 +92,5 @@ export default function TransformHistory({ resumeId }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

@@ -1,39 +1,40 @@
-import { useEffect, useState, useCallback } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { toast } from '@/components/Toast';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
-import { getUser } from '@/lib/auth';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useEffect, useState, useCallback } from 'react'
+
+import { toast } from '@/components/Toast'
 import {
   fetchStudyGroups,
   createStudyGroup,
   joinStudyGroup,
   leaveStudyGroup,
   type StudyGroup,
-} from '@/lib/api';
+} from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 interface JobStudyGroupsPanelProps {
-  jobPostId?: string;
-  companyName: string;
-  position: string;
+  jobPostId?: string
+  companyName: string
+  position: string
 }
 
 interface StudyGroupForm {
-  name: string;
-  description: string;
-  isPrivate: boolean;
-  maxMembers: number;
+  name: string
+  description: string
+  isPrivate: boolean
+  maxMembers: number
 }
 
 interface StudyGroupFormState {
-  defaultName: string;
-  value: StudyGroupForm;
+  defaultName: string
+  value: StudyGroupForm
 }
 
 function memberTag(group: StudyGroup, myId: string | null): 'owner' | 'member' | null {
-  if (!myId) return null;
-  if (group.ownerId === myId) return 'owner';
-  if (group.members?.some((m) => m.userId === myId)) return 'member';
-  return null;
+  if (!myId) return null
+  if (group.ownerId === myId) return 'owner'
+  if (group.members?.some((m) => m.userId === myId)) return 'member'
+  return null
 }
 
 /**
@@ -46,12 +47,12 @@ export default function JobStudyGroupsPanel({
   companyName,
   position,
 }: JobStudyGroupsPanelProps) {
-  const [groups, setGroups] = useState<StudyGroup[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showCreate, setShowCreate] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const defaultName = `${companyName} ${position} 스터디`;
+  const [groups, setGroups] = useState<StudyGroup[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showCreate, setShowCreate] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const defaultName = `${companyName} ${position} 스터디`
   const [formState, setFormState] = useState<StudyGroupFormState>(() => ({
     defaultName,
     value: {
@@ -60,71 +61,71 @@ export default function JobStudyGroupsPanel({
       isPrivate: false,
       maxMembers: 8,
     },
-  }));
+  }))
   const form =
     formState.defaultName === defaultName
       ? formState.value
-      : { ...formState.value, name: defaultName };
+      : { ...formState.value, name: defaultName }
   const setForm = (updater: (current: StudyGroupForm) => StudyGroupForm) => {
     setFormState((prev) => {
       const current =
-        prev.defaultName === defaultName ? prev.value : { ...prev.value, name: defaultName };
-      return { defaultName, value: updater(current) };
-    });
-  };
-  const [joiningId, setJoiningId] = useState<string | null>(null);
-  const user = getUser();
-  const myId = user?.id ?? null;
+        prev.defaultName === defaultName ? prev.value : { ...prev.value, name: defaultName }
+      return { defaultName, value: updater(current) }
+    })
+  }
+  const [joiningId, setJoiningId] = useState<string | null>(null)
+  const user = getUser()
+  const myId = user?.id ?? null
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
     try {
-      const params: Parameters<typeof fetchStudyGroups>[0] = { limit: 20 };
-      if (jobPostId) params.jobPostId = jobPostId;
-      else params.companyName = companyName;
-      const res = await fetchStudyGroups(params);
-      setGroups(res.items);
+      const params: Parameters<typeof fetchStudyGroups>[0] = { limit: 20 }
+      if (jobPostId) params.jobPostId = jobPostId
+      else params.companyName = companyName
+      const res = await fetchStudyGroups(params)
+      setGroups(res.items)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '스터디 그룹을 불러오지 못했습니다');
+      setError(e instanceof Error ? e.message : '스터디 그룹을 불러오지 못했습니다')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [jobPostId, companyName]);
+  }, [jobPostId, companyName])
 
   useEffect(() => {
-    let cancelled = false;
-    const params: Parameters<typeof fetchStudyGroups>[0] = { limit: 20 };
-    if (jobPostId) params.jobPostId = jobPostId;
-    else params.companyName = companyName;
+    let cancelled = false
+    const params: Parameters<typeof fetchStudyGroups>[0] = { limit: 20 }
+    if (jobPostId) params.jobPostId = jobPostId
+    else params.companyName = companyName
     fetchStudyGroups(params)
       .then((res) => {
-        if (!cancelled) setGroups(res.items);
+        if (!cancelled) setGroups(res.items)
       })
       .catch((e) => {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : '스터디 그룹을 불러오지 못했습니다');
+          setError(e instanceof Error ? e.message : '스터디 그룹을 불러오지 못했습니다')
         }
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+        if (!cancelled) setLoading(false)
+      })
     return () => {
-      cancelled = true;
-    };
-  }, [jobPostId, companyName]);
+      cancelled = true
+    }
+  }, [jobPostId, companyName])
 
   const handleCreate = async () => {
     if (!user) {
-      toast('로그인 후 이용 가능합니다.', 'error');
-      return;
+      toast('로그인 후 이용 가능합니다.', 'error')
+      return
     }
-    const name = form.name.trim();
+    const name = form.name.trim()
     if (!name) {
-      toast('그룹 이름을 입력해주세요.', 'error');
-      return;
+      toast('그룹 이름을 입력해주세요.', 'error')
+      return
     }
-    setSaving(true);
+    setSaving(true)
     try {
       await createStudyGroup({
         name,
@@ -134,38 +135,38 @@ export default function JobStudyGroupsPanel({
         position,
         isPrivate: form.isPrivate,
         maxMembers: form.maxMembers,
-      });
-      toast('스터디 그룹이 생성되었습니다.', 'success');
-      setShowCreate(false);
-      await load();
+      })
+      toast('스터디 그룹이 생성되었습니다.', 'success')
+      setShowCreate(false)
+      await load()
     } catch (e) {
-      toast(e instanceof Error ? e.message : '생성에 실패했습니다.', 'error');
+      toast(e instanceof Error ? e.message : '생성에 실패했습니다.', 'error')
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const handleJoin = async (group: StudyGroup) => {
     if (!user) {
-      toast('로그인 후 이용 가능합니다.', 'error');
-      return;
+      toast('로그인 후 이용 가능합니다.', 'error')
+      return
     }
-    setJoiningId(group.id);
+    setJoiningId(group.id)
     try {
-      await joinStudyGroup(group.id);
-      toast('그룹에 참여했습니다.', 'success');
-      await load();
+      await joinStudyGroup(group.id)
+      toast('그룹에 참여했습니다.', 'success')
+      await load()
     } catch (e) {
-      toast(e instanceof Error ? e.message : '참여에 실패했습니다.', 'error');
+      toast(e instanceof Error ? e.message : '참여에 실패했습니다.', 'error')
     } finally {
-      setJoiningId(null);
+      setJoiningId(null)
     }
-  };
+  }
 
-  const confirm = useConfirm();
+  const confirm = useConfirm()
 
   const handleLeave = async (group: StudyGroup) => {
-    if (!user) return;
+    if (!user) return
     if (
       !(await confirm({
         title: '스터디 그룹에서 나가시겠습니까?',
@@ -173,18 +174,18 @@ export default function JobStudyGroupsPanel({
         danger: true,
       }))
     )
-      return;
-    setJoiningId(group.id);
+      return
+    setJoiningId(group.id)
     try {
-      await leaveStudyGroup(group.id);
-      toast('그룹에서 나왔습니다.', 'success');
-      await load();
+      await leaveStudyGroup(group.id)
+      toast('그룹에서 나왔습니다.', 'success')
+      await load()
     } catch (e) {
-      toast(e instanceof Error ? e.message : '나가기에 실패했습니다.', 'error');
+      toast(e instanceof Error ? e.message : '나가기에 실패했습니다.', 'error')
     } finally {
-      setJoiningId(null);
+      setJoiningId(null)
     }
-  };
+  }
 
   return (
     <div className="space-y-4">
@@ -227,8 +228,8 @@ export default function JobStudyGroupsPanel({
       ) : (
         <ul className="space-y-2">
           {groups.map((g) => {
-            const role = memberTag(g, myId);
-            const full = g.memberCount >= g.maxMembers;
+            const role = memberTag(g, myId)
+            const full = g.memberCount >= g.maxMembers
             return (
               <li key={g.id} className="imp-card p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -288,7 +289,7 @@ export default function JobStudyGroupsPanel({
                   </div>
                 </div>
               </li>
-            );
+            )
           })}
         </ul>
       )}
@@ -386,5 +387,5 @@ export default function JobStudyGroupsPanel({
         </RadixDialog.Portal>
       </RadixDialog.Root>
     </div>
-  );
+  )
 }

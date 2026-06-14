@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import FeatureGate from '@/components/FeatureGate';
-import { toast } from '@/components/Toast';
-import type { ResumeSummary, Resume } from '@/types/resume';
-import { API_URL } from '@/lib/config';
-import { useResumes, useResume } from '@/hooks/useResources';
-import { t } from '@/lib/i18n';
-import { getErrorMessage } from '@/lib/errorMessage';
+import { useState, useEffect } from 'react'
+
+import type { ResumeSummary, Resume } from '@/types/resume'
+
+import FeatureGate from '@/components/FeatureGate'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { toast } from '@/components/Toast'
+import { useResumes, useResume } from '@/hooks/useResources'
+import { API_URL } from '@/lib/config'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { t } from '@/lib/i18n'
 
 const LANGUAGE_PAIRS = [
   {
@@ -52,7 +54,7 @@ const LANGUAGE_PAIRS = [
     toFlag: '\u{1F1FA}\u{1F1F8}',
     label: '日本語 \u2192 English',
   },
-];
+]
 
 const TRANSLATABLE_SECTIONS = [
   { key: 'personalInfo', label: '인적사항' },
@@ -64,133 +66,133 @@ const TRANSLATABLE_SECTIONS = [
   { key: 'languages', label: '어학' },
   { key: 'awards', label: '수상' },
   { key: 'activities', label: '활동' },
-] as const;
+] as const
 
-type TranslatableSectionKey = (typeof TRANSLATABLE_SECTIONS)[number]['key'];
+type TranslatableSectionKey = (typeof TRANSLATABLE_SECTIONS)[number]['key']
 
 interface TranslationResponse {
-  text?: string;
-  data?: { text?: string };
+  text?: string
+  data?: { text?: string }
 }
 
 interface SavedResumeResponse {
-  id?: string;
-  resume?: { id?: string };
-  message?: string;
+  id?: string
+  resume?: { id?: string }
+  message?: string
 }
 
 const hasSectionContent = (resume: Resume, key: TranslatableSectionKey): boolean => {
-  if (key === 'personalInfo') return Boolean(resume.personalInfo?.name);
-  return Array.isArray(resume[key]) && resume[key].length > 0;
-};
+  if (key === 'personalInfo') return Boolean(resume.personalInfo?.name)
+  return Array.isArray(resume[key]) && resume[key].length > 0
+}
 
 const TARGET_LANGUAGES = [
   { code: 'en', name: 'English' },
   { code: 'ja', name: '日本語' },
   { code: 'zh', name: '中文' },
   { code: 'ko', name: '한국어' },
-];
+]
 
 function getConfidenceColor(score: number) {
-  if (score >= 90) return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20';
-  if (score >= 70) return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20';
-  return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
+  if (score >= 90) return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+  if (score >= 70) return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20'
+  return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
 }
 
 function getConfidenceLabel(score: number) {
-  if (score >= 90) return '높음';
-  if (score >= 70) return '보통';
-  return '낮음';
+  if (score >= 90) return '높음'
+  if (score >= 70) return '보통'
+  return '낮음'
 }
 
 function buildOriginalTextFn(r: Resume): string {
-  const lines: string[] = [];
-  const pi = r.personalInfo;
-  if (pi.name) lines.push(pi.name);
-  if (pi.email || pi.phone) lines.push([pi.email, pi.phone].filter(Boolean).join(' | '));
-  if (pi.summary) lines.push('', pi.summary);
+  const lines: string[] = []
+  const pi = r.personalInfo
+  if (pi.name) lines.push(pi.name)
+  if (pi.email || pi.phone) lines.push([pi.email, pi.phone].filter(Boolean).join(' | '))
+  if (pi.summary) lines.push('', pi.summary)
   if (r.experiences?.length) {
-    lines.push('', '--- 경력 ---');
+    lines.push('', '--- 경력 ---')
     r.experiences.forEach((e) => {
-      lines.push(`${e.company} - ${e.position}`);
+      lines.push(`${e.company} - ${e.position}`)
       if (e.startDate || e.endDate)
-        lines.push(`  ${e.startDate} ~ ${e.current ? '현재' : e.endDate}`);
-      if (e.description) lines.push(`  ${e.description}`);
-    });
+        lines.push(`  ${e.startDate} ~ ${e.current ? '현재' : e.endDate}`)
+      if (e.description) lines.push(`  ${e.description}`)
+    })
   }
   if (r.educations?.length) {
-    lines.push('', '--- 학력 ---');
-    r.educations.forEach((e) => lines.push(`${e.school} ${e.degree} ${e.field}`));
+    lines.push('', '--- 학력 ---')
+    r.educations.forEach((e) => lines.push(`${e.school} ${e.degree} ${e.field}`))
   }
   if (r.skills?.length) {
-    lines.push('', '--- 기술 ---');
-    r.skills.forEach((s) => lines.push(`${s.category}: ${s.items}`));
+    lines.push('', '--- 기술 ---')
+    r.skills.forEach((s) => lines.push(`${s.category}: ${s.items}`))
   }
   if (r.projects?.length) {
-    lines.push('', '--- 프로젝트 ---');
-    r.projects.forEach((p) => lines.push(`${p.name} - ${p.role}`));
+    lines.push('', '--- 프로젝트 ---')
+    r.projects.forEach((p) => lines.push(`${p.name} - ${p.role}`))
   }
   if (r.certifications?.length) {
-    lines.push('', '--- 자격증 ---');
-    r.certifications.forEach((c) => lines.push(`${c.name} (${c.issuer})`));
+    lines.push('', '--- 자격증 ---')
+    r.certifications.forEach((c) => lines.push(`${c.name} (${c.issuer})`))
   }
-  return lines.join('\n');
+  return lines.join('\n')
 }
 
 export default function TranslatePage() {
-  const { data: resumesData } = useResumes();
-  const resumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? [];
-  const [selectedResumeId, setSelectedResumeId] = useState('');
-  const [selectedPairIndex, setSelectedPairIndex] = useState(0);
-  const [result, setResult] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [confidenceScore, setConfidenceScore] = useState<number | null>(null);
+  const { data: resumesData } = useResumes()
+  const resumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? []
+  const [selectedResumeId, setSelectedResumeId] = useState('')
+  const [selectedPairIndex, setSelectedPairIndex] = useState(0)
+  const [result, setResult] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [confidenceScore, setConfidenceScore] = useState<number | null>(null)
 
   // Side-by-side preview
-  const { data: resumeData } = useResume(selectedResumeId || undefined);
-  const originalResume: Resume | null = (resumeData as Resume | undefined) ?? null;
-  const originalText = originalResume ? buildOriginalTextFn(originalResume) : '';
+  const { data: resumeData } = useResume(selectedResumeId || undefined)
+  const originalResume: Resume | null = (resumeData as Resume | undefined) ?? null
+  const originalText = originalResume ? buildOriginalTextFn(originalResume) : ''
 
   // Partial translation
-  const [partialMode, setPartialMode] = useState(false);
+  const [partialMode, setPartialMode] = useState(false)
   const [selectedSections, setSelectedSections] = useState<TranslatableSectionKey[]>(
-    TRANSLATABLE_SECTIONS.map((s) => s.key),
-  );
+    TRANSLATABLE_SECTIONS.map((s) => s.key)
+  )
 
   useEffect(() => {
-    document.title = '이력서 번역 — 이력서공방';
+    document.title = '이력서 번역 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const toggleSection = (key: TranslatableSectionKey) => {
     setSelectedSections((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
-    );
-  };
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    )
+  }
 
-  const selectedPair = LANGUAGE_PAIRS[selectedPairIndex];
+  const selectedPair = LANGUAGE_PAIRS[selectedPairIndex]
 
   const handleTranslate = async () => {
     if (!selectedResumeId) {
-      toast('이력서를 선택해주세요', 'error');
-      return;
+      toast('이력서를 선택해주세요', 'error')
+      return
     }
 
-    setLoading(true);
-    setResult('');
-    setConfidenceScore(null);
+    setLoading(true)
+    setResult('')
+    setConfidenceScore(null)
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const token = localStorage.getItem('token')
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
 
       const langName =
-        TARGET_LANGUAGES.find((l) => l.code === selectedPair.to)?.name || selectedPair.to;
+        TARGET_LANGUAGES.find((l) => l.code === selectedPair.to)?.name || selectedPair.to
       const sectionsNote = partialMode
         ? ` 다음 섹션만 번역하세요: ${selectedSections.map((k) => TRANSLATABLE_SECTIONS.find((s) => s.key === k)?.label || k).join(', ')}. 나머지 섹션은 원본 그대로 유지하세요.`
-        : '';
+        : ''
 
       const res = await fetch(`${API_URL}/api/resumes/${selectedResumeId}/transform`, {
         method: 'POST',
@@ -200,44 +202,44 @@ export default function TranslatePage() {
           targetLanguage: selectedPair.to,
           jobDescription: `이 이력서를 ${langName}(으)로 완전히 번역해주세요. 현지 이력서 형식에 맞게 변환하되, 원본의 모든 정보를 유지해주세요. 날짜 형식, 학위 표기 등도 해당 언어권 관습에 맞게 변환해주세요.${sectionsNote}`,
         }),
-      });
+      })
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || '번역에 실패했습니다');
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.message || '번역에 실패했습니다')
       }
-      const data = (await res.json()) as TranslationResponse;
-      const translatedText = data.text || data.data?.text || JSON.stringify(data);
-      setResult(translatedText);
+      const data = (await res.json()) as TranslationResponse
+      const translatedText = data.text || data.data?.text || JSON.stringify(data)
+      setResult(translatedText)
 
       // Simulate confidence score based on text length ratio and target language
-      const ratio = translatedText.length / Math.max(1, originalText.length);
-      const baseScore = ratio > 0.3 && ratio < 5 ? 88 : 72;
-      const langBonus = selectedPair.to === 'en' ? 5 : selectedPair.to === 'ja' ? 2 : 0;
-      setConfidenceScore(Math.min(98, baseScore + langBonus + Math.floor(Math.random() * 6)));
+      const ratio = translatedText.length / Math.max(1, originalText.length)
+      const baseScore = ratio > 0.3 && ratio < 5 ? 88 : 72
+      const langBonus = selectedPair.to === 'en' ? 5 : selectedPair.to === 'ja' ? 2 : 0
+      setConfidenceScore(Math.min(98, baseScore + langBonus + Math.floor(Math.random() * 6)))
 
-      toast('번역이 완료되었습니다', 'success');
+      toast('번역이 완료되었습니다', 'success')
     } catch (e: unknown) {
-      toast(getErrorMessage(e, '번역에 실패했습니다'), 'error');
+      toast(getErrorMessage(e, '번역에 실패했습니다'), 'error')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(result);
-    toast('클립보드에 복사되었습니다', 'success');
-  };
+    navigator.clipboard.writeText(result)
+    toast('클립보드에 복사되었습니다', 'success')
+  }
 
   const handleDownload = () => {
-    const blob = new Blob([result], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `resume_${selectedPair.to}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+    const blob = new Blob([result], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `resume_${selectedPair.to}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <>
@@ -261,10 +263,14 @@ export default function TranslatePage() {
           {/* Resume selection */}
           <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+              <label
+                htmlFor="translatepage-field-1"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+              >
                 이력서 선택 *
               </label>
               <select
+                id="translatepage-field-1"
                 value={selectedResumeId}
                 onChange={(e) => setSelectedResumeId(e.target.value)}
                 className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -280,10 +286,17 @@ export default function TranslatePage() {
 
             {/* Language Pair Selector */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+              <span
+                id="translate-language-pair-label"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+              >
                 언어 방향
-              </label>
-              <div className="stagger-children grid grid-cols-3 gap-2">
+              </span>
+              <div
+                role="group"
+                aria-labelledby="translate-language-pair-label"
+                className="stagger-children grid grid-cols-3 gap-2"
+              >
                 {LANGUAGE_PAIRS.map((pair, i) => (
                   <button
                     key={i}
@@ -342,10 +355,10 @@ export default function TranslatePage() {
               </p>
               <div className="flex flex-wrap gap-2">
                 {TRANSLATABLE_SECTIONS.map((section) => {
-                  const isSelected = selectedSections.includes(section.key);
+                  const isSelected = selectedSections.includes(section.key)
                   const hasContent = originalResume
                     ? hasSectionContent(originalResume, section.key)
-                    : true;
+                    : true
                   return (
                     <button
                       key={section.key}
@@ -376,7 +389,7 @@ export default function TranslatePage() {
                       )}
                       {section.label}
                     </button>
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -474,12 +487,12 @@ export default function TranslatePage() {
                     <button
                       onClick={async () => {
                         try {
-                          const token = localStorage.getItem('token');
+                          const token = localStorage.getItem('token')
                           const headers: Record<string, string> = {
                             'Content-Type': 'application/json',
-                          };
-                          if (token) headers['Authorization'] = `Bearer ${token}`;
-                          const langLabel = LANGUAGE_PAIRS[selectedPairIndex]?.label || '';
+                          }
+                          if (token) headers['Authorization'] = `Bearer ${token}`
+                          const langLabel = LANGUAGE_PAIRS[selectedPairIndex]?.label || ''
                           const res = await fetch(`${API_URL}/api/auto-generate/create`, {
                             method: 'POST',
                             headers,
@@ -487,17 +500,17 @@ export default function TranslatePage() {
                               rawText: result,
                               instruction: `이 텍스트는 이미 번역된 이력서입니다 (${langLabel}). 이 내용을 그대로 구조화된 이력서 JSON으로 변환해주세요. 번역을 다시 하지 말고 원문을 유지하세요.`,
                             }),
-                          });
+                          })
                           if (res.ok) {
-                            const data = (await res.json()) as SavedResumeResponse;
-                            toast('번역된 이력서가 저장되었습니다', 'success');
-                            window.location.href = `/resumes/${data.resume?.id || data.id}/edit`;
+                            const data = (await res.json()) as SavedResumeResponse
+                            toast('번역된 이력서가 저장되었습니다', 'success')
+                            window.location.href = `/resumes/${data.resume?.id || data.id}/edit`
                           } else {
-                            const err = (await res.json().catch(() => ({}))) as SavedResumeResponse;
-                            toast(err.message || '저장에 실패했습니다', 'error');
+                            const err = (await res.json().catch(() => ({}))) as SavedResumeResponse
+                            toast(err.message || '저장에 실패했습니다', 'error')
                           }
                         } catch (e: unknown) {
-                          toast(getErrorMessage(e, '저장에 실패했습니다'), 'error');
+                          toast(getErrorMessage(e, '저장에 실패했습니다'), 'error')
                         }
                       }}
                       className="text-xs text-green-600 dark:text-green-400 hover:underline font-medium"
@@ -548,5 +561,5 @@ export default function TranslatePage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

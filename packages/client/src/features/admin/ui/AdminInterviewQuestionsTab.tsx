@@ -1,93 +1,95 @@
 /**
  * 면접 질문 관리 탭
  */
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_URL } from '@/lib/config';
-import { toast } from '@/components/Toast';
-import AlertDialog from '@/shared/ui/AlertDialog';
-import { AdminTable, type AdminTableColumn } from './AdminTable';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useMemo } from 'react'
+
+import { AdminTable, type AdminTableColumn } from './AdminTable'
+
+import { toast } from '@/components/Toast'
+import { API_URL } from '@/lib/config'
+import AlertDialog from '@/shared/ui/AlertDialog'
 
 type Question = {
-  id: string;
-  companyName: string;
-  position: string;
-  question: string;
-  sampleAnswer: string;
-  category: string;
-  difficulty: string;
-  upvotes: number;
-  source: string;
-  isApproved: boolean;
-  isRejected: boolean;
-  createdAt: string;
-  author?: { id?: string; name?: string; email?: string; username?: string };
-};
+  id: string
+  companyName: string
+  position: string
+  question: string
+  sampleAnswer: string
+  category: string
+  difficulty: string
+  upvotes: number
+  source: string
+  isApproved: boolean
+  isRejected: boolean
+  createdAt: string
+  author?: { id?: string; name?: string; email?: string; username?: string }
+}
 
 function authHeader(): Record<string, string> {
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
 export default function AdminInterviewQuestionsTab() {
-  const qc = useQueryClient();
-  const [status, setStatus] = useState<string>('all');
-  const [q, setQ] = useState('');
-  const [page, setPage] = useState(1);
-  const [confirm, setConfirm] = useState<{ id: string } | null>(null);
+  const qc = useQueryClient()
+  const [status, setStatus] = useState<string>('all')
+  const [q, setQ] = useState('')
+  const [page, setPage] = useState(1)
+  const [confirm, setConfirm] = useState<{ id: string } | null>(null)
 
   const query = useQuery<{
-    items: Question[];
-    total: number;
-    totalPages: number;
+    items: Question[]
+    total: number
+    totalPages: number
   } | null>({
     queryKey: ['admin-interview-questions', { status, q, page }],
     queryFn: async () => {
-      const params = new URLSearchParams({ page: String(page), limit: '20' });
-      if (status !== 'all') params.set('status', status);
-      if (q) params.set('q', q);
+      const params = new URLSearchParams({ page: String(page), limit: '20' })
+      if (status !== 'all') params.set('status', status)
+      if (q) params.set('q', q)
       const res = await fetch(`${API_URL}/api/job-interview-questions/admin/all?${params}`, {
         headers: authHeader(),
-      });
-      if (!res.ok) return null;
-      return res.json();
+      })
+      if (!res.ok) return null
+      return res.json()
     },
     staleTime: 10_000,
-  });
+  })
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['admin-interview-questions'] });
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['admin-interview-questions'] })
 
   const mApprove = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/api/job-interview-questions/admin/${id}/approve`, {
         method: 'PATCH',
         headers: authHeader(),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('질문이 채택되었습니다', 'success');
-      invalidate();
+      toast('질문이 채택되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('처리에 실패했습니다', 'error'),
-  });
+  })
 
   const mReject = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/api/job-interview-questions/admin/${id}/reject`, {
         method: 'PATCH',
         headers: authHeader(),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('질문이 반려되었습니다', 'success');
-      invalidate();
+      toast('질문이 반려되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('처리에 실패했습니다', 'error'),
-  });
+  })
 
   const mUpvotes = useMutation({
     mutationFn: async (vars: { id: string; upvotes: number }) => {
@@ -95,31 +97,31 @@ export default function AdminInterviewQuestionsTab() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({ upvotes: vars.upvotes }),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => invalidate(),
     onError: () => toast('upvote 변경에 실패했습니다', 'error'),
-  });
+  })
 
   const mDelete = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/api/job-interview-questions/admin/${id}`, {
         method: 'DELETE',
         headers: authHeader(),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('질문이 삭제되었습니다', 'success');
-      invalidate();
+      toast('질문이 삭제되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('삭제에 실패했습니다', 'error'),
-  });
+  })
 
-  const items = query.data?.items ?? [];
+  const items = query.data?.items ?? []
 
   const columns = useMemo<AdminTableColumn<Question>[]>(
     () => [
@@ -223,8 +225,8 @@ export default function AdminInterviewQuestionsTab() {
         ),
       },
     ],
-    [mApprove, mReject, mUpvotes],
-  );
+    [mApprove, mReject, mUpvotes]
+  )
 
   return (
     <div className="animate-fade-in-up">
@@ -244,8 +246,8 @@ export default function AdminInterviewQuestionsTab() {
               type="search"
               value={q}
               onChange={(e) => {
-                setQ(e.target.value);
-                setPage(1);
+                setQ(e.target.value)
+                setPage(1)
               }}
               placeholder="질문/회사/직무 검색"
               className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
@@ -253,8 +255,8 @@ export default function AdminInterviewQuestionsTab() {
             <select
               value={status}
               onChange={(e) => {
-                setStatus(e.target.value);
-                setPage(1);
+                setStatus(e.target.value)
+                setPage(1)
               }}
               className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
             >
@@ -274,10 +276,10 @@ export default function AdminInterviewQuestionsTab() {
         confirmText="삭제"
         danger
         onConfirm={() => {
-          if (confirm) mDelete.mutate(confirm.id);
-          setConfirm(null);
+          if (confirm) mDelete.mutate(confirm.id)
+          setConfirm(null)
         }}
       />
     </div>
-  );
+  )
 }

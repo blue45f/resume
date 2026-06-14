@@ -1,22 +1,23 @@
-import { useMemo } from 'react';
-import { buildCoverLetterStructureReport } from '@/lib/coverLetterStructure';
+import { useMemo } from 'react'
+
+import { buildCoverLetterStructureReport } from '@/lib/coverLetterStructure'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const STATUS_ICON: Record<'pass' | 'warn' | 'fail', string> = {
   pass: '✓',
   warn: '▲',
   fail: '✕',
-};
+}
 
 export default function CoverLetterStructurePanel({ text }: Props) {
-  const report = useMemo(() => buildCoverLetterStructureReport(text), [text]);
+  const report = useMemo(() => buildCoverLetterStructureReport(text), [text])
 
-  if (report.checks.length === 0) return null;
+  if (report.checks.length === 0) return null
 
-  const fill = Math.max(0.04, Math.min(1, report.score / 100));
+  const fill = Math.max(0.04, Math.min(1, report.score / 100))
 
   return (
     <aside
@@ -64,5 +65,5 @@ export default function CoverLetterStructurePanel({ text }: Props) {
 
       <p className="cl-struct-card__summary">{report.summary}</p>
     </aside>
-  );
+  )
 }

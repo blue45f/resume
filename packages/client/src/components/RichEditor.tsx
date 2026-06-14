@@ -1,19 +1,20 @@
-import { useEditor, EditorContent } from '@tiptap/react';
-import { BubbleMenu } from '@tiptap/react/menus';
-import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
-import Placeholder from '@tiptap/extension-placeholder';
-import CharacterCount from '@tiptap/extension-character-count';
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { usePrompt } from '@/shared/ui/PromptProvider';
+import CharacterCount from '@tiptap/extension-character-count'
+import Link from '@tiptap/extension-link'
+import Placeholder from '@tiptap/extension-placeholder'
+import { useEditor, EditorContent } from '@tiptap/react'
+import { BubbleMenu } from '@tiptap/react/menus'
+import StarterKit from '@tiptap/starter-kit'
+import { useEffect, useState, useCallback, useRef } from 'react'
+
+import { usePrompt } from '@/shared/ui/PromptProvider'
 
 interface Props {
-  value: string;
-  onChange: (html: string) => void;
-  placeholder?: string;
-  className?: string;
-  maxLength?: number;
-  onAiImprove?: (selectedText: string) => void;
+  value: string
+  onChange: (html: string) => void
+  placeholder?: string
+  className?: string
+  maxLength?: number
+  onAiImprove?: (selectedText: string) => void
 }
 
 export default function RichEditor({
@@ -24,10 +25,10 @@ export default function RichEditor({
   maxLength,
   onAiImprove,
 }: Props) {
-  const [, setShowAiButton] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const aiButtonRef = useRef<HTMLButtonElement>(null);
-  const prompt = usePrompt();
+  const [, setShowAiButton] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
+  const aiButtonRef = useRef<HTMLButtonElement>(null)
+  const prompt = usePrompt()
 
   const editor = useEditor({
     extensions: [
@@ -60,50 +61,50 @@ export default function RichEditor({
       handleKeyDown: (_view, _event) => {
         // Markdown shortcuts handled by StarterKit's inputRules
         // Additional Ctrl shortcuts
-        return false;
+        return false
       },
     },
     onUpdate: ({ editor }) => {
-      if (editor.isDestroyed) return;
-      const html = editor.getHTML();
-      onChange(html === '<p></p>' ? '' : html);
+      if (editor.isDestroyed) return
+      const html = editor.getHTML()
+      onChange(html === '<p></p>' ? '' : html)
     },
     onSelectionUpdate: ({ editor }) => {
-      const { from, to } = editor.state.selection;
-      setShowAiButton(from !== to);
+      const { from, to } = editor.state.selection
+      setShowAiButton(from !== to)
     },
-  });
+  })
 
   // 외부에서 value가 변경될 때 (초기값 설정)
   useEffect(() => {
     if (editor && !editor.isDestroyed && value && !editor.isFocused) {
-      const currentHtml = editor.getHTML();
+      const currentHtml = editor.getHTML()
       if (currentHtml !== value && value !== '<p></p>') {
-        editor.commands.setContent(value);
+        editor.commands.setContent(value)
       }
     }
-  }, [value, editor]);
+  }, [value, editor])
 
   const handleAiImprove = useCallback(async () => {
-    if (!editor || !onAiImprove) return;
-    const { from, to } = editor.state.selection;
-    if (from === to) return;
-    const selectedText = editor.state.doc.textBetween(from, to, ' ');
-    if (!selectedText.trim()) return;
-    setAiLoading(true);
+    if (!editor || !onAiImprove) return
+    const { from, to } = editor.state.selection
+    if (from === to) return
+    const selectedText = editor.state.doc.textBetween(from, to, ' ')
+    if (!selectedText.trim()) return
+    setAiLoading(true)
     try {
-      onAiImprove(selectedText);
+      onAiImprove(selectedText)
     } finally {
-      setAiLoading(false);
+      setAiLoading(false)
     }
-  }, [editor, onAiImprove]);
+  }, [editor, onAiImprove])
 
-  if (!editor) return null;
+  if (!editor) return null
 
-  const charCount = editor.storage.characterCount?.characters() ?? 0;
-  const wordCount = editor.storage.characterCount?.words() ?? 0;
-  const isOverLimit = maxLength ? charCount > maxLength : false;
-  const charPercentage = maxLength ? Math.min(100, (charCount / maxLength) * 100) : 0;
+  const charCount = editor.storage.characterCount?.characters() ?? 0
+  const wordCount = editor.storage.characterCount?.words() ?? 0
+  const isOverLimit = maxLength ? charCount > maxLength : false
+  const charPercentage = maxLength ? Math.min(100, (charCount / maxLength) * 100) : 0
 
   return (
     <div
@@ -166,14 +167,14 @@ export default function RichEditor({
           active={editor.isActive('link')}
           onClick={async () => {
             if (editor.isActive('link')) {
-              editor.chain().focus().unsetLink().run();
+              editor.chain().focus().unsetLink().run()
             } else {
               const url = await prompt({
                 title: 'URL 입력',
                 label: 'URL',
                 placeholder: 'https://...',
-              });
-              if (url) editor.chain().focus().setLink({ href: url }).run();
+              })
+              if (url) editor.chain().focus().setLink({ href: url }).run()
             }
           }}
           title="링크"
@@ -210,8 +211,8 @@ export default function RichEditor({
             placement: 'top',
           }}
           shouldShow={({ editor }) => {
-            const { from, to } = editor.state.selection;
-            return from !== to;
+            const { from, to } = editor.state.selection
+            return from !== to
           }}
         >
           <button
@@ -280,7 +281,7 @@ export default function RichEditor({
         )}
       </div>
     </div>
-  );
+  )
 }
 
 function ToolbarBtn({
@@ -291,12 +292,12 @@ function ToolbarBtn({
   ariaPressed,
   children,
 }: {
-  active: boolean;
-  onClick: () => void;
-  title: string;
-  ariaLabel?: string;
-  ariaPressed?: boolean;
-  children: React.ReactNode;
+  active: boolean
+  onClick: () => void
+  title: string
+  ariaLabel?: string
+  ariaPressed?: boolean
+  children: React.ReactNode
 }) {
   return (
     <button
@@ -313,5 +314,5 @@ function ToolbarBtn({
     >
       {children}
     </button>
-  );
+  )
 }

@@ -1,21 +1,22 @@
-import { z } from 'zod';
-import { TERMSDESK_BASE, TERMSDESK_URLS } from '@/lib/routes';
+import { z } from 'zod'
+
+import { TERMSDESK_BASE, TERMSDESK_URLS } from '@/lib/routes'
 
 /**
  * 약관/개인정보처리방침 정본은 TermsDesk(중앙 정책 게시 서비스)의 무인증
  * 공개 API에서 가져온다. 자체 백엔드(API_URL)와 무관한 외부 절대 URL이라
  * `useApiQuery` 대신 표준 fetch를 직접 사용한다.
  */
-export const POLICY_SLUGS = ['terms-of-service', 'privacy-policy'] as const;
-export type PolicySlug = (typeof POLICY_SLUGS)[number];
+export const POLICY_SLUGS = ['terms-of-service', 'privacy-policy'] as const
+export type PolicySlug = (typeof POLICY_SLUGS)[number]
 
 export function policyApiUrl(slug: PolicySlug): string {
-  return `${TERMSDESK_BASE}/api/public/resume/policies/${slug}`;
+  return `${TERMSDESK_BASE}/api/public/resume/policies/${slug}`
 }
 
 /** 장애 시 폴백 및 정본 확인용 TermsDesk 원문(렌더된 공개 페이지) URL. */
 export function policyPublicUrl(slug: PolicySlug): string {
-  return slug === 'privacy-policy' ? TERMSDESK_URLS.privacy : TERMSDESK_URLS.terms;
+  return slug === 'privacy-policy' ? TERMSDESK_URLS.privacy : TERMSDESK_URLS.terms
 }
 
 /**
@@ -32,26 +33,26 @@ export const policyDocumentSchema = z.object({
   effectiveAt: z.string().nullable().optional(),
   publishedAt: z.string().nullable().optional(),
   changeSummary: z.string().nullable().optional(),
-});
-export type PolicyDocument = z.infer<typeof policyDocumentSchema>;
+})
+export type PolicyDocument = z.infer<typeof policyDocumentSchema>
 
 export async function fetchPolicy(
   slug: PolicySlug,
-  { signal }: { signal?: AbortSignal } = {},
+  { signal }: { signal?: AbortSignal } = {}
 ): Promise<PolicyDocument> {
   const response = await fetch(policyApiUrl(slug), {
     signal,
     headers: { Accept: 'application/json' },
-  });
+  })
 
   if (!response.ok) {
-    throw new Error(`TermsDesk policy fetch failed: ${response.status}`);
+    throw new Error(`TermsDesk policy fetch failed: ${response.status}`)
   }
 
-  const parsed = policyDocumentSchema.safeParse(await response.json());
+  const parsed = policyDocumentSchema.safeParse(await response.json())
   if (!parsed.success) {
-    throw new Error('TermsDesk policy payload failed validation');
+    throw new Error('TermsDesk policy payload failed validation')
   }
 
-  return parsed.data;
+  return parsed.data
 }

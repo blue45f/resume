@@ -6,29 +6,29 @@
  * - 로딩 스켈레톤
  * - 검색바 slot, 필터 slot (자유롭게 주입)
  */
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react'
 
 export interface AdminTableColumn<T> {
-  key: string;
-  header: ReactNode;
-  render: (item: T) => ReactNode;
-  className?: string;
-  width?: string;
+  key: string
+  header: ReactNode
+  render: (item: T) => ReactNode
+  className?: string
+  width?: string
 }
 
 interface Props<T> {
-  columns: AdminTableColumn<T>[];
-  items: T[];
-  loading?: boolean;
-  emptyLabel?: ReactNode;
-  getKey: (item: T) => string;
-  toolbar?: ReactNode;
-  footer?: ReactNode;
-  page?: number;
-  totalPages?: number;
-  onPageChange?: (page: number) => void;
-  total?: number;
-  rowClassName?: (item: T) => string;
+  columns: AdminTableColumn<T>[]
+  items: T[]
+  loading?: boolean
+  emptyLabel?: ReactNode
+  getKey: (item: T) => string
+  toolbar?: ReactNode
+  footer?: ReactNode
+  page?: number
+  totalPages?: number
+  onPageChange?: (page: number) => void
+  total?: number
+  rowClassName?: (item: T) => string
 }
 
 export function AdminTable<T>(props: Props<T>) {
@@ -45,7 +45,7 @@ export function AdminTable<T>(props: Props<T>) {
     onPageChange,
     total,
     rowClassName,
-  } = props;
+  } = props
 
   return (
     <div className="space-y-3">
@@ -151,7 +151,7 @@ export function AdminTable<T>(props: Props<T>) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
-export default AdminTable;
+export default AdminTable

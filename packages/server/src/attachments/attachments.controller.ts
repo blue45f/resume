@@ -12,22 +12,25 @@ import {
   BadRequestException,
   ForbiddenException,
   UnauthorizedException,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
-import { Response } from 'express';
-import { AttachmentsService } from './attachments.service';
-import { SystemConfigService } from '../system-config/system-config.service';
-import { getErrorMessage } from '../common/error.utils';
-import { requestUserRole } from '../common/request.types';
-import type { AuthenticatedRequest } from '../common/request.types';
+} from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger'
+import { Response } from 'express'
+
+import { getErrorMessage } from '../common/error.utils'
+import { requestUserRole } from '../common/request.types'
+import { SystemConfigService } from '../system-config/system-config.service'
+
+import { AttachmentsService } from './attachments.service'
+
+import type { AuthenticatedRequest } from '../common/request.types'
 
 @ApiTags('attachments')
 @Controller()
 export class AttachmentsController {
   constructor(
     private readonly attachmentsService: AttachmentsService,
-    private readonly config: SystemConfigService,
+    private readonly config: SystemConfigService
   ) {}
 
   @Post('resumes/:resumeId/attachments')
@@ -39,14 +42,14 @@ export class AttachmentsController {
     @UploadedFile() file: Express.Multer.File,
     @Body('category') category: string,
     @Body('description') description: string,
-    @Req() req: AuthenticatedRequest,
+    @Req() req: AuthenticatedRequest
   ) {
-    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
-    if (!file) throw new BadRequestException('파일이 없습니다');
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다')
+    if (!file) throw new BadRequestException('파일이 없습니다')
     try {
-      await this.config.assertUploadAllowed(file);
+      await this.config.assertUploadAllowed(file)
     } catch (e: unknown) {
-      throw new ForbiddenException(getErrorMessage(e, '파일 업로드가 허용되지 않습니다'));
+      throw new ForbiddenException(getErrorMessage(e, '파일 업로드가 허용되지 않습니다'))
     }
     return this.attachmentsService.upload(
       resumeId,
@@ -54,44 +57,44 @@ export class AttachmentsController {
       category,
       description,
       req.user.id,
-      requestUserRole(req),
-    );
+      requestUserRole(req)
+    )
   }
 
   @Get('resumes/:resumeId/attachments')
   @ApiOperation({ summary: '이력서 첨부파일 목록' })
   findAll(@Param('resumeId') resumeId: string, @Req() req: AuthenticatedRequest) {
-    return this.attachmentsService.findAll(resumeId, req.user?.id, requestUserRole(req));
+    return this.attachmentsService.findAll(resumeId, req.user?.id, requestUserRole(req))
   }
 
   @Get('attachments/:id/download')
   @ApiOperation({ summary: '파일 다운로드' })
   async download(@Param('id') id: string, @Req() req: AuthenticatedRequest, @Res() res: Response) {
-    const result = await this.attachmentsService.getFileData(id, req.user?.id);
+    const result = await this.attachmentsService.getFileData(id, req.user?.id)
 
     // Cloudinary URL → 리다이렉트
     if ('redirectUrl' in result && result.redirectUrl) {
-      res.redirect(result.redirectUrl);
-      return;
+      res.redirect(result.redirectUrl)
+      return
     }
 
     if (!('data' in result) || !result.data) {
-      res.status(404).json({ message: '파일을 찾을 수 없습니다' });
-      return;
+      res.status(404).json({ message: '파일을 찾을 수 없습니다' })
+      return
     }
-    const { data, originalName, mimeType } = result;
-    res.setHeader('Content-Type', mimeType);
+    const { data, originalName, mimeType } = result
+    res.setHeader('Content-Type', mimeType)
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename*=UTF-8''${encodeURIComponent(originalName)}`,
-    );
-    res.send(data);
+      `attachment; filename*=UTF-8''${encodeURIComponent(originalName)}`
+    )
+    res.send(data)
   }
 
   @Delete('attachments/:id')
   @ApiOperation({ summary: '파일 삭제 (소유자 전용)' })
   remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
-    return this.attachmentsService.remove(id, req.user.id, requestUserRole(req));
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다')
+    return this.attachmentsService.remove(id, req.user.id, requestUserRole(req))
   }
 }

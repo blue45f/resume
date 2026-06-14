@@ -1,17 +1,18 @@
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { PolicyArticle } from '@/features/policies';
-import { ROUTES } from '@/lib/routes';
+import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { PolicyArticle } from '@/features/policies'
+import { ROUTES } from '@/lib/routes'
 
 export default function PrivacyPage() {
   useEffect(() => {
-    document.title = '개인정보처리방침 — 이력서공방';
+    document.title = '개인정보처리방침 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   return (
     <>
@@ -36,5 +37,5 @@ export default function PrivacyPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

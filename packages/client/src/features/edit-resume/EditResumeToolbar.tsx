@@ -1,15 +1,16 @@
-import type { Resume } from '@/types/resume';
-import { toast } from '@/components/Toast';
-import TagSelector from '@/components/TagSelector';
-import { setResumeVisibility } from '@/lib/api';
+import type { Resume } from '@/types/resume'
+
+import TagSelector from '@/components/TagSelector'
+import { toast } from '@/components/Toast'
+import { setResumeVisibility } from '@/lib/api'
 
 interface EditResumeToolbarProps {
-  id: string | undefined;
-  resume: Resume;
-  onReload: () => void;
-  onShowAttachments: () => void;
-  onShowVersions: () => void;
-  onShowAllowedViewers: () => void;
+  id: string | undefined
+  resume: Resume
+  onReload: () => void
+  onShowAttachments: () => void
+  onShowVersions: () => void
+  onShowAllowedViewers: () => void
 }
 
 export default function EditResumeToolbar({
@@ -27,11 +28,11 @@ export default function EditResumeToolbar({
         <select
           value={resume.visibility || 'private'}
           onChange={async (e) => {
-            const next = e.target.value;
-            const prev = resume.visibility || 'private';
+            const next = e.target.value
+            const prev = resume.visibility || 'private'
             try {
-              await setResumeVisibility(id, next);
-              onReload();
+              await setResumeVisibility(id, next)
+              onReload()
               toast(
                 next === 'public'
                   ? '공개로 전환했습니다'
@@ -40,20 +41,20 @@ export default function EditResumeToolbar({
                     : next === 'selective'
                       ? '선택한 사용자만 볼 수 있도록 변경했습니다'
                       : '비공개로 전환했습니다',
-                'success',
-              );
+                'success'
+              )
             } catch (err) {
               if (import.meta.env.DEV)
-                console.warn('[EditResumePage] setResumeVisibility 실패:', err);
+                console.warn('[EditResumePage] setResumeVisibility 실패:', err)
               toast(
                 err instanceof Error
                   ? err.message
                   : '공개 설정 변경에 실패했습니다. 다시 시도해주세요.',
-                'error',
-              );
+                'error'
+              )
               // revert select to previous value (re-render through query refetch)
-              void prev;
-              onReload();
+              void prev
+              onReload()
             }
           }}
           className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 dark:text-slate-100"
@@ -103,5 +104,5 @@ export default function EditResumeToolbar({
       </button>
       {id && <TagSelector resumeId={id} currentTags={resume.tags || []} onUpdate={onReload} />}
     </div>
-  );
+  )
 }

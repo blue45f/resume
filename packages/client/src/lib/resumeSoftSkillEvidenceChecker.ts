@@ -10,25 +10,25 @@ export type SoftSkillCategory =
   | 'problem_solving' // 문제해결력
   | 'responsibility' // 책임감/성실성
   | 'adaptability' // 유연성/적응력
-  | 'creativity'; // 창의성/혁신
+  | 'creativity' // 창의성/혁신
 
-export type SoftSkillQuality = 'evidenced' | 'bare';
+export type SoftSkillQuality = 'evidenced' | 'bare'
 
 export interface SoftSkillClaim {
-  category: SoftSkillCategory;
-  phrase: string;
-  quality: SoftSkillQuality;
+  category: SoftSkillCategory
+  phrase: string
+  quality: SoftSkillQuality
 }
 
-export type OverallSoftSkillGrade = 'good' | 'mixed' | 'bare' | 'none';
+export type OverallSoftSkillGrade = 'good' | 'mixed' | 'bare' | 'none'
 
 export interface SoftSkillEvidenceReport {
-  claims: SoftSkillClaim[];
-  bareClaims: SoftSkillClaim[];
-  evidencedClaims: SoftSkillClaim[];
-  grade: OverallSoftSkillGrade;
-  score: number; // 0-100 (ratio evidenced / total)
-  suggestion: string;
+  claims: SoftSkillClaim[]
+  bareClaims: SoftSkillClaim[]
+  evidencedClaims: SoftSkillClaim[]
+  grade: OverallSoftSkillGrade
+  score: number // 0-100 (ratio evidenced / total)
+  suggestion: string
 }
 
 // ---------------------------------------------------------------------------
@@ -36,8 +36,8 @@ export interface SoftSkillEvidenceReport {
 // ---------------------------------------------------------------------------
 
 interface SoftSkillPattern {
-  re: RegExp;
-  category: SoftSkillCategory;
+  re: RegExp
+  category: SoftSkillCategory
 }
 
 // Bare claims — isolated keyword with no numeric or story context
@@ -105,7 +105,7 @@ const BARE_PATTERNS: SoftSkillPattern[] = [
     re: /혁신적\s*(?:인|인재|사고)\s*(?:보유)?(?!\s*(?:\d|\s*[가-힣]{0,6}하여))/,
     category: 'creativity',
   },
-];
+]
 
 // Evidenced claims — same keywords followed by quantitative or narrative context
 const EVIDENCED_PATTERNS: SoftSkillPattern[] = [
@@ -172,65 +172,65 @@ const EVIDENCED_PATTERNS: SoftSkillPattern[] = [
     re: /새로운\s*(?:방식|방법|접근법)\s*[가-힣\s]{0,20}(?:제안|도입|적용)\s*(?:하여|하고|해서)\s*[가-힣\s]{0,30}\d+/,
     category: 'creativity',
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function checkSoftSkillEvidence(text: string): SoftSkillEvidenceReport {
-  const t = text ?? '';
-  const claims: SoftSkillClaim[] = [];
-  const seenBare = new Set<SoftSkillCategory>();
-  const seenEvidenced = new Set<SoftSkillCategory>();
+  const t = text ?? ''
+  const claims: SoftSkillClaim[] = []
+  const seenBare = new Set<SoftSkillCategory>()
+  const seenEvidenced = new Set<SoftSkillCategory>()
 
   // Collect evidenced first (higher priority)
   for (const { re, category } of EVIDENCED_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m && !seenEvidenced.has(category)) {
-      seenEvidenced.add(category);
-      claims.push({ category, phrase: m[0].slice(0, 60), quality: 'evidenced' });
+      seenEvidenced.add(category)
+      claims.push({ category, phrase: m[0].slice(0, 60), quality: 'evidenced' })
     }
   }
 
   // Collect bare — only if not already found as evidenced
   for (const { re, category } of BARE_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m && !seenBare.has(category) && !seenEvidenced.has(category)) {
-      seenBare.add(category);
-      claims.push({ category, phrase: m[0].slice(0, 60), quality: 'bare' });
+      seenBare.add(category)
+      claims.push({ category, phrase: m[0].slice(0, 60), quality: 'bare' })
     }
   }
 
-  const bareClaims = claims.filter((c) => c.quality === 'bare');
-  const evidencedClaims = claims.filter((c) => c.quality === 'evidenced');
-  const total = claims.length;
+  const bareClaims = claims.filter((c) => c.quality === 'bare')
+  const evidencedClaims = claims.filter((c) => c.quality === 'evidenced')
+  const total = claims.length
 
-  let grade: OverallSoftSkillGrade;
-  let score: number;
+  let grade: OverallSoftSkillGrade
+  let score: number
 
   if (total === 0) {
-    grade = 'none';
-    score = 0;
+    grade = 'none'
+    score = 0
   } else {
-    score = Math.round((evidencedClaims.length / total) * 100);
-    if (score >= 80) grade = 'good';
-    else if (score >= 30) grade = 'mixed';
-    else grade = 'bare';
+    score = Math.round((evidencedClaims.length / total) * 100)
+    if (score >= 80) grade = 'good'
+    else if (score >= 30) grade = 'mixed'
+    else grade = 'bare'
   }
 
-  let suggestion: string;
+  let suggestion: string
   if (grade === 'good') {
-    suggestion = '소프트 스킬 주장에 구체적인 근거가 잘 뒷받침되어 있습니다.';
+    suggestion = '소프트 스킬 주장에 구체적인 근거가 잘 뒷받침되어 있습니다.'
   } else if (grade === 'mixed') {
     suggestion =
-      '일부 소프트 스킬 주장에 수치나 사례 근거가 부족합니다. 근거를 추가하면 설득력이 높아집니다.';
+      '일부 소프트 스킬 주장에 수치나 사례 근거가 부족합니다. 근거를 추가하면 설득력이 높아집니다.'
   } else if (grade === 'bare') {
     suggestion =
-      '소프트 스킬 주장이 근거 없이 선언형으로 기술되어 있습니다. "커뮤니케이션 능력 우수" 대신 "5개 팀과 협업하여 배포 리드타임 20% 단축"처럼 구체적으로 작성하세요.';
+      '소프트 스킬 주장이 근거 없이 선언형으로 기술되어 있습니다. "커뮤니케이션 능력 우수" 대신 "5개 팀과 협업하여 배포 리드타임 20% 단축"처럼 구체적으로 작성하세요.'
   } else {
-    suggestion = '소프트 스킬 관련 표현이 감지되지 않았습니다.';
+    suggestion = '소프트 스킬 관련 표현이 감지되지 않았습니다.'
   }
 
-  return { claims, bareClaims, evidencedClaims, grade, score, suggestion };
+  return { claims, bareClaims, evidencedClaims, grade, score, suggestion }
 }

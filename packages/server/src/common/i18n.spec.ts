@@ -5,7 +5,7 @@
  * The translation data is copied from src/lib/i18n.ts to avoid import.meta.env issues.
  */
 
-type Locale = 'ko' | 'en' | 'ja';
+type Locale = 'ko' | 'en' | 'ja'
 
 const ko = {
   'common.home': '홈',
@@ -56,7 +56,7 @@ const ko = {
   'resume.summary': '자기소개',
   'footer.copyright': '© 2025 이력서공방',
   'footer.openSource': '오픈소스 프로젝트',
-};
+}
 
 const en = {
   'common.home': 'Home',
@@ -107,7 +107,7 @@ const en = {
   'resume.summary': 'Summary',
   'footer.copyright': '© 2025 Resume Workshop',
   'footer.openSource': 'Open Source Project',
-};
+}
 
 const ja = {
   'common.home': 'ホーム',
@@ -158,74 +158,74 @@ const ja = {
   'resume.summary': '自己紹介',
   'footer.copyright': '© 2025 履歴書工房',
   'footer.openSource': 'オープンソースプロジェクト',
-};
+}
 
-const translations: Record<Locale, Record<string, string>> = { ko, en, ja };
-const LOCALES: Locale[] = ['ko', 'en', 'ja'];
+const translations: Record<Locale, Record<string, string>> = { ko, en, ja }
+const LOCALES: Locale[] = ['ko', 'en', 'ja']
 
 describe('i18n translations', () => {
-  const koKeys = Object.keys(ko).sort();
-  const enKeys = Object.keys(en).sort();
-  const jaKeys = Object.keys(ja).sort();
+  const koKeys = Object.keys(ko).sort()
+  const enKeys = Object.keys(en).sort()
+  const jaKeys = Object.keys(ja).sort()
 
   it('all three locales have the same keys', () => {
-    expect(enKeys).toEqual(koKeys);
-    expect(jaKeys).toEqual(koKeys);
-  });
+    expect(enKeys).toEqual(koKeys)
+    expect(jaKeys).toEqual(koKeys)
+  })
 
   it('key count matches across all locales', () => {
-    expect(Object.keys(ko).length).toBe(Object.keys(en).length);
-    expect(Object.keys(ko).length).toBe(Object.keys(ja).length);
-  });
+    expect(Object.keys(ko).length).toBe(Object.keys(en).length)
+    expect(Object.keys(ko).length).toBe(Object.keys(ja).length)
+  })
 
   it('no missing translations (no empty strings)', () => {
     for (const locale of LOCALES) {
-      const dict = translations[locale];
+      const dict = translations[locale]
       for (const value of Object.values(dict)) {
-        expect(value).toBeTruthy();
-        expect(typeof value).toBe('string');
+        expect(value).toBeTruthy()
+        expect(typeof value).toBe('string')
         // Value must not be empty or whitespace-only
-        expect(value.trim().length).toBeGreaterThan(0);
+        expect(value.trim().length).toBeGreaterThan(0)
       }
     }
-  });
+  })
 
   it('has all expected key prefixes', () => {
-    const prefixes = ['common.', 'nav.', 'home.', 'resume.', 'footer.'];
+    const prefixes = ['common.', 'nav.', 'home.', 'resume.', 'footer.']
     for (const prefix of prefixes) {
-      const matching = koKeys.filter((k) => k.startsWith(prefix));
-      expect(matching.length).toBeGreaterThan(0);
+      const matching = koKeys.filter((k) => k.startsWith(prefix))
+      expect(matching.length).toBeGreaterThan(0)
     }
-  });
+  })
 
   it('specific important Korean translations are correct', () => {
-    expect(ko['common.save']).toBe('저장');
-    expect(ko['common.delete']).toBe('삭제');
-    expect(ko['nav.resumes']).toBe('이력서');
-    expect(ko['home.title']).toBe('내 이력서');
-    expect(ko['resume.experience']).toBe('경력');
-  });
+    expect(ko['common.save']).toBe('저장')
+    expect(ko['common.delete']).toBe('삭제')
+    expect(ko['nav.resumes']).toBe('이력서')
+    expect(ko['home.title']).toBe('내 이력서')
+    expect(ko['resume.experience']).toBe('경력')
+  })
 
   it('specific important English translations are correct', () => {
-    expect(en['common.save']).toBe('Save');
-    expect(en['common.delete']).toBe('Delete');
-    expect(en['nav.resumes']).toBe('Resumes');
-    expect(en['home.title']).toBe('My Resumes');
-    expect(en['resume.experience']).toBe('Experience');
-  });
+    expect(en['common.save']).toBe('Save')
+    expect(en['common.delete']).toBe('Delete')
+    expect(en['nav.resumes']).toBe('Resumes')
+    expect(en['home.title']).toBe('My Resumes')
+    expect(en['resume.experience']).toBe('Experience')
+  })
 
   it('specific important Japanese translations are correct', () => {
-    expect(ja['common.save']).toBe('保存');
-    expect(ja['common.delete']).toBe('削除');
-    expect(ja['nav.resumes']).toBe('履歴書');
-    expect(ja['resume.experience']).toBe('職歴');
-  });
+    expect(ja['common.save']).toBe('保存')
+    expect(ja['common.delete']).toBe('削除')
+    expect(ja['nav.resumes']).toBe('履歴書')
+    expect(ja['resume.experience']).toBe('職歴')
+  })
 
   it('LOCALES array contains exactly ko, en, ja', () => {
-    expect(LOCALES).toEqual(['ko', 'en', 'ja']);
-  });
+    expect(LOCALES).toEqual(['ko', 'en', 'ja'])
+  })
 
   it('has expected number of translation keys (47)', () => {
-    expect(koKeys.length).toBe(47);
-  });
-});
+    expect(koKeys.length).toBe(47)
+  })
+})

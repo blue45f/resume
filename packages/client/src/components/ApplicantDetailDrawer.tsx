@@ -1,33 +1,35 @@
-import { useEffect, useState } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { Link } from 'react-router-dom';
-import { fetchResume } from '@/lib/api';
-import type { Resume } from '@/types/resume';
-import { ROUTES } from '@/lib/routes';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+
+import type { Resume } from '@/types/resume'
+
+import { fetchResume } from '@/lib/api'
+import { ROUTES } from '@/lib/routes'
 
 interface Applicant {
-  id: string; // application id
-  userId: string;
-  name: string;
-  email?: string | null;
-  avatar?: string;
-  position?: string;
-  resumeId?: string | null;
-  coverLetter?: string;
-  stage?: string;
-  createdAt?: string;
+  id: string // application id
+  userId: string
+  name: string
+  email?: string | null
+  avatar?: string
+  position?: string
+  resumeId?: string | null
+  coverLetter?: string
+  stage?: string
+  createdAt?: string
 }
 
 interface Props {
-  applicant: Applicant | null;
-  onClose: () => void;
-  onMessage?: (userId: string, name: string) => void;
+  applicant: Applicant | null
+  onClose: () => void
+  onMessage?: (userId: string, name: string) => void
 }
 
 interface ResumeLoadState {
-  resumeId: string | null;
-  resume: Resume | null;
-  error: string | null;
+  resumeId: string | null
+  resume: Resume | null
+  error: string | null
 }
 
 const STAGE_LABEL: Record<string, string> = {
@@ -37,27 +39,27 @@ const STAGE_LABEL: Record<string, string> = {
   hired: '✅ 채용',
   rejected: '✗ 거절',
   withdrawn: '— 철회',
-};
+}
 
 /**
  * Recruiter 가 applicant row 클릭 → side drawer 로 detail 표시.
  * 이력서 lazy fetch + 자소서 + 채팅/스카우트 CTA.
  */
 export default function ApplicantDetailDrawer({ applicant, onClose }: Props) {
-  const resumeId = applicant?.resumeId ?? null;
+  const resumeId = applicant?.resumeId ?? null
   const [resumeState, setResumeState] = useState<ResumeLoadState>({
     resumeId: null,
     resume: null,
     error: null,
-  });
+  })
 
   useEffect(() => {
-    const id = resumeId;
-    if (!id) return;
-    let cancelled = false;
+    const id = resumeId
+    if (!id) return
+    let cancelled = false
     fetchResume(id)
       .then((r) => {
-        if (!cancelled) setResumeState({ resumeId: id, resume: r, error: null });
+        if (!cancelled) setResumeState({ resumeId: id, resume: r, error: null })
       })
       .catch((e) => {
         if (!cancelled) {
@@ -65,23 +67,23 @@ export default function ApplicantDetailDrawer({ applicant, onClose }: Props) {
             resumeId: id,
             resume: null,
             error: e instanceof Error ? e.message : '이력서를 불러올 수 없습니다',
-          });
+          })
         }
-      });
+      })
     return () => {
-      cancelled = true;
-    };
-  }, [resumeId]);
+      cancelled = true
+    }
+  }, [resumeId])
 
-  const resume = resumeState.resumeId === resumeId ? resumeState.resume : null;
-  const resumeError = resumeState.resumeId === resumeId ? resumeState.error : null;
-  const resumeLoading = Boolean(resumeId && resumeState.resumeId !== resumeId);
+  const resume = resumeState.resumeId === resumeId ? resumeState.resume : null
+  const resumeError = resumeState.resumeId === resumeId ? resumeState.error : null
+  const resumeLoading = Boolean(resumeId && resumeState.resumeId !== resumeId)
 
   // applicant 가 다른 사람으로 바뀌면 이전 resume render 차단 (mismatch 방지)
-  const showResume = resume && resumeId === resume.id ? resume : null;
+  const showResume = resume && resumeId === resume.id ? resume : null
 
-  if (!applicant) return null;
-  const stage = STAGE_LABEL[applicant.stage || 'interested'] || applicant.stage;
+  if (!applicant) return null
+  const stage = STAGE_LABEL[applicant.stage || 'interested'] || applicant.stage
 
   return (
     <RadixDialog.Root open onOpenChange={(o) => !o && onClose()}>
@@ -239,5 +241,5 @@ export default function ApplicantDetailDrawer({ applicant, onClose }: Props) {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

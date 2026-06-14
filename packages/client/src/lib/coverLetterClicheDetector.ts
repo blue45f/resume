@@ -6,43 +6,43 @@ export type ClicheCategory =
   | 'closing' // 기회를 주신다면/뽑아주신다면
   | 'self-intro' // 안녕하세요/저는 ~입니다
   | 'family' // 가족같은/하나의 가족
-  | 'generic-en'; // English filler ("team player", "passionate about")
+  | 'generic-en' // English filler ("team player", "passionate about")
 
-export type ClicheSeverity = 'high' | 'medium' | 'low';
+export type ClicheSeverity = 'high' | 'medium' | 'low'
 
-export type ClicheTone = 'good' | 'neutral' | 'warning';
+export type ClicheTone = 'good' | 'neutral' | 'warning'
 
 export interface ClicheHit {
-  category: ClicheCategory;
-  severity: ClicheSeverity;
-  match: string;
-  excerpt: string;
+  category: ClicheCategory
+  severity: ClicheSeverity
+  match: string
+  excerpt: string
   /** Korean explanation of why this is a cliche. */
-  reason: string;
+  reason: string
   /** Suggested rewrite approach in Korean. */
-  suggestion: string;
+  suggestion: string
 }
 
 export interface ClicheReport {
   /** All detected hits, sorted by severity (high → low) then position. */
-  hits: ClicheHit[];
+  hits: ClicheHit[]
   /** 0-100 score where 100 = no cliches. */
-  score: number;
-  tone: ClicheTone;
+  score: number
+  tone: ClicheTone
   /** Korean short label e.g. "클리셰 3개 검출". */
-  label: string;
+  label: string
   /** Korean one-sentence summary. */
-  summary: string;
+  summary: string
   /** Top 3 categories by hit count. */
-  topCategories: Array<{ category: ClicheCategory; categoryLabel: string; count: number }>;
+  topCategories: Array<{ category: ClicheCategory; categoryLabel: string; count: number }>
 }
 
 interface ClicheRule {
-  category: ClicheCategory;
-  severity: ClicheSeverity;
-  patterns: RegExp[];
-  reason: string;
-  suggestion: string;
+  category: ClicheCategory
+  severity: ClicheSeverity
+  patterns: RegExp[]
+  reason: string
+  suggestion: string
 }
 
 const RULES: ClicheRule[] = [
@@ -152,7 +152,7 @@ const RULES: ClicheRule[] = [
     suggestion:
       'Replace with one concrete outcome (metric + verb): e.g. "shipped X to 50k users in 6 weeks".',
   },
-];
+]
 
 const CATEGORY_LABELS: Record<ClicheCategory, string> = {
   effort: '성실/노력',
@@ -163,22 +163,22 @@ const CATEGORY_LABELS: Record<ClicheCategory, string> = {
   'self-intro': '인사·자기소개',
   family: '가족 같은',
   'generic-en': '영어 클리셰',
-};
+}
 
-const SEVERITY_RANK: Record<ClicheSeverity, number> = { high: 0, medium: 1, low: 2 };
+const SEVERITY_RANK: Record<ClicheSeverity, number> = { high: 0, medium: 1, low: 2 }
 
-const CONTEXT_RADIUS = 24;
+const CONTEXT_RADIUS = 24
 
 function makeExcerpt(text: string, start: number, length: number): string {
-  const left = Math.max(0, start - CONTEXT_RADIUS);
-  const right = Math.min(text.length, start + length + CONTEXT_RADIUS);
-  const prefix = left > 0 ? '…' : '';
-  const suffix = right < text.length ? '…' : '';
-  return `${prefix}${text.slice(left, right).trim()}${suffix}`;
+  const left = Math.max(0, start - CONTEXT_RADIUS)
+  const right = Math.min(text.length, start + length + CONTEXT_RADIUS)
+  const prefix = left > 0 ? '…' : ''
+  const suffix = right < text.length ? '…' : ''
+  return `${prefix}${text.slice(left, right).trim()}${suffix}`
 }
 
 export function buildCoverLetterClicheReport(text: string): ClicheReport {
-  const safe = (text ?? '').trim();
+  const safe = (text ?? '').trim()
   if (!safe) {
     return {
       hits: [],
@@ -187,24 +187,24 @@ export function buildCoverLetterClicheReport(text: string): ClicheReport {
       label: '클리셰 0개',
       summary: '분석할 본문이 비어 있습니다.',
       topCategories: [],
-    };
+    }
   }
 
-  const hits: ClicheHit[] = [];
+  const hits: ClicheHit[] = []
 
   for (const rule of RULES) {
-    const seenStarts = new Set<number>();
+    const seenStarts = new Set<number>()
     for (const pattern of rule.patterns) {
-      const flags = pattern.flags.includes('g') ? pattern.flags : pattern.flags + 'g';
-      const re = new RegExp(pattern.source, flags);
-      let m: RegExpExecArray | null;
+      const flags = pattern.flags.includes('g') ? pattern.flags : pattern.flags + 'g'
+      const re = new RegExp(pattern.source, flags)
+      let m: RegExpExecArray | null
       while ((m = re.exec(safe)) !== null) {
         if (m[0].length === 0) {
-          re.lastIndex += 1;
-          continue;
+          re.lastIndex += 1
+          continue
         }
-        if (seenStarts.has(m.index)) continue;
-        seenStarts.add(m.index);
+        if (seenStarts.has(m.index)) continue
+        seenStarts.add(m.index)
         hits.push({
           category: rule.category,
           severity: rule.severity,
@@ -212,28 +212,28 @@ export function buildCoverLetterClicheReport(text: string): ClicheReport {
           excerpt: makeExcerpt(safe, m.index, m[0].length),
           reason: rule.reason,
           suggestion: rule.suggestion,
-        });
+        })
       }
     }
   }
 
-  hits.sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]);
+  hits.sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity])
 
   // Score: start at 100, subtract penalties (high=15, medium=8, low=4),
   // diminishing return for repeated hits (cap penalty per category at 30).
-  const penaltyPerSeverity: Record<ClicheSeverity, number> = { high: 15, medium: 8, low: 4 };
-  const penaltyByCategory = new Map<ClicheCategory, number>();
+  const penaltyPerSeverity: Record<ClicheSeverity, number> = { high: 15, medium: 8, low: 4 }
+  const penaltyByCategory = new Map<ClicheCategory, number>()
   for (const hit of hits) {
-    const current = penaltyByCategory.get(hit.category) ?? 0;
-    const add = penaltyPerSeverity[hit.severity];
-    penaltyByCategory.set(hit.category, Math.min(30, current + add));
+    const current = penaltyByCategory.get(hit.category) ?? 0
+    const add = penaltyPerSeverity[hit.severity]
+    penaltyByCategory.set(hit.category, Math.min(30, current + add))
   }
-  const totalPenalty = Array.from(penaltyByCategory.values()).reduce((a, b) => a + b, 0);
-  const score = Math.max(0, Math.min(100, 100 - totalPenalty));
+  const totalPenalty = Array.from(penaltyByCategory.values()).reduce((a, b) => a + b, 0)
+  const score = Math.max(0, Math.min(100, 100 - totalPenalty))
 
-  const countByCategory = new Map<ClicheCategory, number>();
+  const countByCategory = new Map<ClicheCategory, number>()
   for (const hit of hits) {
-    countByCategory.set(hit.category, (countByCategory.get(hit.category) ?? 0) + 1);
+    countByCategory.set(hit.category, (countByCategory.get(hit.category) ?? 0) + 1)
   }
   const topCategories = Array.from(countByCategory.entries())
     .sort((a, b) => b[1] - a[1])
@@ -242,23 +242,23 @@ export function buildCoverLetterClicheReport(text: string): ClicheReport {
       category,
       categoryLabel: CATEGORY_LABELS[category],
       count,
-    }));
+    }))
 
-  let tone: ClicheTone;
-  let summary: string;
+  let tone: ClicheTone
+  let summary: string
   if (hits.length === 0) {
-    tone = 'good';
+    tone = 'good'
     summary =
-      '대표적인 자소서 클리셰는 보이지 않습니다. 다음은 정량 성과 + 채용공고 키워드 매칭에 집중하세요.';
+      '대표적인 자소서 클리셰는 보이지 않습니다. 다음은 정량 성과 + 채용공고 키워드 매칭에 집중하세요.'
   } else if (score >= 75) {
-    tone = 'neutral';
-    summary = `클리셰 ${hits.length}개. 큰 흐름은 좋지만 "${topCategories[0]?.categoryLabel ?? '클리셰'}" 표현은 한 번 더 다듬으면 좋습니다.`;
+    tone = 'neutral'
+    summary = `클리셰 ${hits.length}개. 큰 흐름은 좋지만 "${topCategories[0]?.categoryLabel ?? '클리셰'}" 표현은 한 번 더 다듬으면 좋습니다.`
   } else if (score >= 50) {
-    tone = 'warning';
-    summary = `클리셰 ${hits.length}개. "${topCategories[0]?.categoryLabel ?? '클리셰'}" 류 표현이 본문 인상을 평준화시킵니다.`;
+    tone = 'warning'
+    summary = `클리셰 ${hits.length}개. "${topCategories[0]?.categoryLabel ?? '클리셰'}" 류 표현이 본문 인상을 평준화시킵니다.`
   } else {
-    tone = 'warning';
-    summary = `클리셰 ${hits.length}개로 본문의 변별력이 낮습니다. 추상 형용사를 모두 정량 사례로 바꾸세요.`;
+    tone = 'warning'
+    summary = `클리셰 ${hits.length}개로 본문의 변별력이 낮습니다. 추상 형용사를 모두 정량 사례로 바꾸세요.`
   }
 
   return {
@@ -268,7 +268,7 @@ export function buildCoverLetterClicheReport(text: string): ClicheReport {
     label: `클리셰 ${hits.length}개`,
     summary,
     topCategories,
-  };
+  }
 }
 
-export const __CLICHE_CATEGORY_LABELS__ = CATEGORY_LABELS;
+export const __CLICHE_CATEGORY_LABELS__ = CATEGORY_LABELS

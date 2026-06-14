@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { analyzeResumeTechDepth } from '@/lib/resumeTechDepthAnalyzer';
-import type { TechDepthSignalType } from '@/lib/resumeTechDepthAnalyzer';
+import { useMemo } from 'react'
+
+import type { TechDepthSignalType } from '@/lib/resumeTechDepthAnalyzer'
+
+import { analyzeResumeTechDepth } from '@/lib/resumeTechDepthAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const DEPTH_TYPE_LABEL: Record<TechDepthSignalType, string> = {
@@ -13,23 +15,23 @@ const DEPTH_TYPE_LABEL: Record<TechDepthSignalType, string> = {
   system_design: '시스템 설계',
   optimization_detail: '최적화 상세',
   debugging_depth: '디버깅 깊이',
-};
+}
 
 const GRADE_LABEL: Record<string, string> = {
   deep: '깊음',
   adequate: '보통',
   surface: '표면적',
   none: '미감지',
-};
+}
 
 export default function ResumeTechDepthPanel({ text }: Props) {
-  const report = useMemo(() => analyzeResumeTechDepth(text), [text]);
+  const report = useMemo(() => analyzeResumeTechDepth(text), [text])
 
-  if (text.trim().length < 100) return null;
-  if (report.grade === 'deep') return null;
-  if (report.grade === 'none' && report.surfaceSignals.length === 0) return null;
+  if (text.trim().length < 100) return null
+  if (report.grade === 'deep') return null
+  if (report.grade === 'none' && report.surfaceSignals.length === 0) return null
 
-  const isWarning = report.grade === 'surface';
+  const isWarning = report.grade === 'surface'
 
   return (
     <aside
@@ -75,5 +77,5 @@ export default function ResumeTechDepthPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

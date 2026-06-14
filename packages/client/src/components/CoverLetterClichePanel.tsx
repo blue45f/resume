@@ -1,21 +1,22 @@
-import { useMemo, useState } from 'react';
-import { buildCoverLetterClicheReport } from '@/lib/coverLetterClicheDetector';
+import { useMemo, useState } from 'react'
+
+import { buildCoverLetterClicheReport } from '@/lib/coverLetterClicheDetector'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function CoverLetterClichePanel({ text }: Props) {
-  const report = useMemo(() => buildCoverLetterClicheReport(text), [text]);
-  const [expanded, setExpanded] = useState(false);
+  const report = useMemo(() => buildCoverLetterClicheReport(text), [text])
+  const [expanded, setExpanded] = useState(false)
 
   if (!text?.trim() || (report.hits.length === 0 && report.score === 100)) {
-    return null;
+    return null
   }
 
-  const fill = Math.max(0.04, Math.min(1, report.score / 100));
-  const visibleHits = expanded ? report.hits : report.hits.slice(0, 3);
-  const remaining = report.hits.length - visibleHits.length;
+  const fill = Math.max(0.04, Math.min(1, report.score / 100))
+  const visibleHits = expanded ? report.hits : report.hits.slice(0, 3)
+  const remaining = report.hits.length - visibleHits.length
 
   return (
     <aside
@@ -95,5 +96,5 @@ export default function CoverLetterClichePanel({ text }: Props) {
         </button>
       )}
     </aside>
-  );
+  )
 }

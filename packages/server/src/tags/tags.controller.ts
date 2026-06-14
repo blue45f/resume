@@ -1,18 +1,21 @@
-import { Controller, Get, Post, Delete, Body, Param, Req } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { CacheTTL } from '../common/interceptors/cache.interceptor';
-import { Public } from '../auth/auth.guard';
-import { ResumesService } from '../resumes/resumes.service';
-import { TagsService } from './tags.service';
-import { CreateTagDto } from './dto/tag.dto';
-import type { AuthenticatedRequest } from '../common/request.types';
+import { Controller, Get, Post, Delete, Body, Param, Req } from '@nestjs/common'
+import { ApiTags, ApiOperation } from '@nestjs/swagger'
+
+import { Public } from '../auth/auth.guard'
+import { CacheTTL } from '../common/interceptors/cache.interceptor'
+import { ResumesService } from '../resumes/resumes.service'
+
+import { CreateTagDto } from './dto/tag.dto'
+import { TagsService } from './tags.service'
+
+import type { AuthenticatedRequest } from '../common/request.types'
 
 @ApiTags('tags')
 @Controller('tags')
 export class TagsController {
   constructor(
     private readonly tagsService: TagsService,
-    private readonly resumesService: ResumesService,
+    private readonly resumesService: ResumesService
   ) {}
 
   @Get()
@@ -20,19 +23,19 @@ export class TagsController {
   @CacheTTL(120)
   @ApiOperation({ summary: '태그 목록 조회' })
   findAll() {
-    return this.tagsService.findAll();
+    return this.tagsService.findAll()
   }
 
   @Post()
   @ApiOperation({ summary: '태그 생성' })
   create(@Body() dto: CreateTagDto, @Req() req: AuthenticatedRequest) {
-    return this.tagsService.create(dto, req.user?.id);
+    return this.tagsService.create(dto, req.user?.id)
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '태그 삭제' })
   remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    return this.tagsService.remove(id, req.user?.id, req.user?.role);
+    return this.tagsService.remove(id, req.user?.id, req.user?.role)
   }
 
   @Post(':tagId/resumes/:resumeId')
@@ -40,10 +43,10 @@ export class TagsController {
   async addToResume(
     @Param('tagId') tagId: string,
     @Param('resumeId') resumeId: string,
-    @Req() req: AuthenticatedRequest,
+    @Req() req: AuthenticatedRequest
   ) {
-    await this.resumesService.findOne(resumeId, req.user?.id);
-    return this.tagsService.addTagToResume(resumeId, tagId);
+    await this.resumesService.findOne(resumeId, req.user?.id)
+    return this.tagsService.addTagToResume(resumeId, tagId)
   }
 
   @Delete(':tagId/resumes/:resumeId')
@@ -51,9 +54,9 @@ export class TagsController {
   async removeFromResume(
     @Param('tagId') tagId: string,
     @Param('resumeId') resumeId: string,
-    @Req() req: AuthenticatedRequest,
+    @Req() req: AuthenticatedRequest
   ) {
-    await this.resumesService.findOne(resumeId, req.user?.id);
-    return this.tagsService.removeTagFromResume(resumeId, tagId);
+    await this.resumesService.findOne(resumeId, req.user?.id)
+    return this.tagsService.removeTagFromResume(resumeId, tagId)
   }
 }

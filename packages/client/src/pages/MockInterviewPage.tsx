@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { toast } from '@/components/Toast';
-import { CameraInterview } from '@/features/interview-prep';
-import { useJobInterviewQuestions } from '@/hooks/useResources';
-import { t } from '@/lib/i18n';
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { toast } from '@/components/Toast'
+import { CameraInterview } from '@/features/interview-prep'
+import { useJobInterviewQuestions } from '@/hooks/useResources'
+import { t } from '@/lib/i18n'
 
 /**
  * MockInterviewPage
@@ -17,17 +18,17 @@ import { t } from '@/lib/i18n';
  */
 
 interface SavedAnswer {
-  id: string;
-  question: string;
-  note: string;
-  durationSec: number;
-  createdAt: number;
-  fileSizeBytes: number;
+  id: string
+  question: string
+  note: string
+  durationSec: number
+  createdAt: number
+  fileSizeBytes: number
   /** 다운로드 파일명 가이드 (Blob은 저장하지 않음) */
-  filename: string;
+  filename: string
 }
 
-const STORAGE_KEY = 'mock-interview-answers';
+const STORAGE_KEY = 'mock-interview-answers'
 
 const QUESTION_POOL: string[] = [
   '본인에 대해 1분 내로 소개해주세요.',
@@ -40,106 +41,106 @@ const QUESTION_POOL: string[] = [
   '5년 뒤 본인의 커리어 목표는 무엇인가요?',
   '가장 자랑스러운 성과와 그 성과를 낸 방법을 말해주세요.',
   '피드백을 받고 개선한 경험을 구체적으로 들려주세요.',
-];
+]
 
 const TIMER_PRESETS: { label: string; sec: number }[] = [
   { label: '30초', sec: 30 },
   { label: '1분', sec: 60 },
   { label: '2분', sec: 120 },
   { label: '3분', sec: 180 },
-];
+]
 
 function loadSaved(): SavedAnswer[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as SavedAnswer[]) : [];
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as SavedAnswer[]) : []
   } catch {
-    return [];
+    return []
   }
 }
 
 function persistSaved(list: SavedAnswer[]) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
   } catch {
     // localStorage full or unavailable
   }
 }
 
 function formatDate(ts: number): string {
-  const d = new Date(ts);
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const d = new Date(ts)
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 function formatDuration(sec: number): string {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  if (m === 0) return `${s}초`;
-  return `${m}분 ${s}초`;
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  if (m === 0) return `${s}초`
+  return `${m}분 ${s}초`
 }
 
 function pickFromPool(pool: string[], exclude?: string): string {
-  if (pool.length === 0) return '';
-  if (pool.length === 1) return pool[0];
-  let q = pool[Math.floor(Math.random() * pool.length)];
-  let attempts = 0;
+  if (pool.length === 0) return ''
+  if (pool.length === 1) return pool[0]
+  let q = pool[Math.floor(Math.random() * pool.length)]
+  let attempts = 0
   while (q === exclude && attempts < 8) {
-    q = pool[Math.floor(Math.random() * pool.length)];
-    attempts += 1;
+    q = pool[Math.floor(Math.random() * pool.length)]
+    attempts += 1
   }
-  return q;
+  return q
 }
 
 function pickRandomQuestion(exclude?: string): string {
-  return pickFromPool(QUESTION_POOL, exclude);
+  return pickFromPool(QUESTION_POOL, exclude)
 }
 
 export default function MockInterviewPage() {
-  const [searchParams] = useSearchParams();
-  const jobPostId = searchParams.get('jobPostId') || undefined;
-  const curatedJobId = searchParams.get('curatedJobId') || undefined;
-  const presetQuestion = searchParams.get('question') || '';
-  const company = searchParams.get('company') || '';
-  const position = searchParams.get('position') || '';
+  const [searchParams] = useSearchParams()
+  const jobPostId = searchParams.get('jobPostId') || undefined
+  const curatedJobId = searchParams.get('curatedJobId') || undefined
+  const presetQuestion = searchParams.get('question') || ''
+  const company = searchParams.get('company') || ''
+  const position = searchParams.get('position') || ''
 
-  const [question, setQuestion] = useState<string>(() => presetQuestion || pickRandomQuestion());
-  const [maxSec, setMaxSec] = useState<number | undefined>(60);
-  const [pendingBlob, setPendingBlob] = useState<Blob | null>(null);
-  const [pendingDuration, setPendingDuration] = useState<number>(0);
-  const [note, setNote] = useState<string>('');
-  const [saved, setSaved] = useState<SavedAnswer[]>(() => loadSaved());
-  const [sessionKey, setSessionKey] = useState<number>(0);
+  const [question, setQuestion] = useState<string>(() => presetQuestion || pickRandomQuestion())
+  const [maxSec, setMaxSec] = useState<number | undefined>(60)
+  const [pendingBlob, setPendingBlob] = useState<Blob | null>(null)
+  const [pendingDuration, setPendingDuration] = useState<number>(0)
+  const [note, setNote] = useState<string>('')
+  const [saved, setSaved] = useState<SavedAnswer[]>(() => loadSaved())
+  const [sessionKey, setSessionKey] = useState<number>(0)
 
   useEffect(() => {
     document.title =
       company && position
         ? `${company} ${position} 모의 면접 - Resume`
-        : '카메라 모의 면접 - Resume';
-  }, [company, position]);
+        : '카메라 모의 면접 - Resume'
+  }, [company, position])
 
   // Load questions tied to a specific job post / curated job
   const jobQuestionsQuery = useJobInterviewQuestions(
-    jobPostId || curatedJobId ? { jobPostId, curatedJobId, limit: 50 } : {},
-  );
+    jobPostId || curatedJobId ? { jobPostId, curatedJobId, limit: 50 } : {}
+  )
   const jobQuestions = useMemo<string[] | null>(() => {
-    if (!jobPostId && !curatedJobId) return null;
-    if (jobQuestionsQuery.isError) return [];
-    if (!jobQuestionsQuery.data) return null;
+    if (!jobPostId && !curatedJobId) return null
+    if (jobQuestionsQuery.isError) return []
+    if (!jobQuestionsQuery.data) return null
     return jobQuestionsQuery.data
       .map((q) => q.question)
-      .filter((q): q is string => typeof q === 'string' && q.length > 0);
-  }, [jobPostId, curatedJobId, jobQuestionsQuery.data, jobQuestionsQuery.isError]);
+      .filter((q): q is string => typeof q === 'string' && q.length > 0)
+  }, [jobPostId, curatedJobId, jobQuestionsQuery.data, jobQuestionsQuery.isError])
 
   const handleRecordingComplete = useCallback((blob: Blob, duration: number) => {
-    setPendingBlob(blob);
-    setPendingDuration(duration);
-    setNote('');
-  }, []);
+    setPendingBlob(blob)
+    setPendingDuration(duration)
+    setNote('')
+  }, [])
 
   const handleSaveNote = useCallback(() => {
-    if (!pendingBlob) return;
-    const ext = pendingBlob.type.includes('mp4') ? 'mp4' : 'webm';
+    if (!pendingBlob) return
+    const ext = pendingBlob.type.includes('mp4') ? 'mp4' : 'webm'
     const entry: SavedAnswer = {
       id: `mi-${crypto.randomUUID()}`,
       question,
@@ -148,46 +149,46 @@ export default function MockInterviewPage() {
       createdAt: Date.now(),
       fileSizeBytes: pendingBlob.size,
       filename: `mock-interview-${Date.now()}.${ext}`,
-    };
-    const next = [entry, ...saved].slice(0, 50); // 최대 50건 보관
-    setSaved(next);
-    persistSaved(next);
-    setPendingBlob(null);
-    setPendingDuration(0);
-    setNote('');
-    toast('메모가 저장되었습니다.', 'success');
-  }, [pendingBlob, pendingDuration, question, note, saved]);
+    }
+    const next = [entry, ...saved].slice(0, 50) // 최대 50건 보관
+    setSaved(next)
+    persistSaved(next)
+    setPendingBlob(null)
+    setPendingDuration(0)
+    setNote('')
+    toast('메모가 저장되었습니다.', 'success')
+  }, [pendingBlob, pendingDuration, question, note, saved])
 
   const handleDiscardPending = useCallback(() => {
-    setPendingBlob(null);
-    setPendingDuration(0);
-    setNote('');
-  }, []);
+    setPendingBlob(null)
+    setPendingDuration(0)
+    setNote('')
+  }, [])
 
   const handleNewQuestion = useCallback(() => {
     setQuestion((prev) => {
-      const pool = jobQuestions && jobQuestions.length > 0 ? jobQuestions : QUESTION_POOL;
-      return pickFromPool(pool, prev);
-    });
-    setPendingBlob(null);
-    setPendingDuration(0);
-    setNote('');
-    setSessionKey((k) => k + 1);
-  }, [jobQuestions]);
+      const pool = jobQuestions && jobQuestions.length > 0 ? jobQuestions : QUESTION_POOL
+      return pickFromPool(pool, prev)
+    })
+    setPendingBlob(null)
+    setPendingDuration(0)
+    setNote('')
+    setSessionKey((k) => k + 1)
+  }, [jobQuestions])
 
   const handleDeleteSaved = useCallback(
     (id: string) => {
-      const next = saved.filter((s) => s.id !== id);
-      setSaved(next);
-      persistSaved(next);
+      const next = saved.filter((s) => s.id !== id)
+      setSaved(next)
+      persistSaved(next)
     },
-    [saved],
-  );
+    [saved]
+  )
 
   const totalBytes = useMemo(
     () => saved.reduce((sum, s) => sum + (s.fileSizeBytes || 0), 0),
-    [saved],
-  );
+    [saved]
+  )
 
   return (
     <>
@@ -222,12 +223,19 @@ export default function MockInterviewPage() {
         <div className="imp-card p-4 sm:p-5 mb-5">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              <span
+                id="mock-timer-preset-label"
+                className="text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 답변 시간
-              </label>
-              <div className="flex gap-1" role="radiogroup" aria-label="답변 시간 프리셋">
+              </span>
+              <div
+                className="flex gap-1"
+                role="radiogroup"
+                aria-labelledby="mock-timer-preset-label"
+              >
                 {TIMER_PRESETS.map((p) => {
-                  const active = maxSec === p.sec;
+                  const active = maxSec === p.sec
                   return (
                     <button
                       key={p.sec}
@@ -243,7 +251,7 @@ export default function MockInterviewPage() {
                     >
                       {p.label}
                     </button>
-                  );
+                  )
                 })}
                 <button
                   type="button"
@@ -379,5 +387,5 @@ export default function MockInterviewPage() {
 
       <Footer />
     </>
-  );
+  )
 }

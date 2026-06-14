@@ -1,12 +1,14 @@
-import { useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { aiInlineAssist } from '@/lib/api';
-import { getErrorMessage } from '@/lib/errorMessage';
+import { useState } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { aiInlineAssist } from '@/lib/api'
+import { getErrorMessage } from '@/lib/errorMessage'
 
 interface Props {
-  resumeId?: string;
-  resume: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>;
-  onAccept: (summary: string) => void;
+  resumeId?: string
+  resume: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>
+  onAccept: (summary: string) => void
 }
 
 /**
@@ -15,98 +17,98 @@ interface Props {
  * Shows when the summary field is empty.
  */
 export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props) {
-  const [loading, setLoading] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false)
+  const [preview, setPreview] = useState<string | null>(null)
+  const [error, setError] = useState('')
 
-  const plainSummary = (resume.personalInfo.summary || '').replace(/<[^>]*>/g, '').trim();
+  const plainSummary = (resume.personalInfo.summary || '').replace(/<[^>]*>/g, '').trim()
 
   // Only show when summary is empty or very short
-  if (plainSummary.length > 20) return null;
+  if (plainSummary.length > 20) return null
 
   // Build context string from resume data for the AI prompt
   function buildContextForAI(): string {
-    const parts: string[] = [];
+    const parts: string[] = []
 
     if (resume.personalInfo.name) {
-      parts.push(`이름: ${resume.personalInfo.name}`);
+      parts.push(`이름: ${resume.personalInfo.name}`)
     }
 
     if (resume.experiences.length > 0) {
       const expSummary = resume.experiences
         .map((e) => {
-          const period = e.current ? '현재 재직 중' : '';
-          return `${e.company} ${e.position || ''} ${e.department || ''} ${period}`.trim();
+          const period = e.current ? '현재 재직 중' : ''
+          return `${e.company} ${e.position || ''} ${e.department || ''} ${period}`.trim()
         })
-        .join(', ');
-      parts.push(`경력: ${expSummary}`);
+        .join(', ')
+      parts.push(`경력: ${expSummary}`)
     }
 
     if (resume.skills.length > 0) {
-      const skillSummary = resume.skills.map((s) => `${s.category}: ${s.items}`).join('; ');
-      parts.push(`기술: ${skillSummary}`);
+      const skillSummary = resume.skills.map((s) => `${s.category}: ${s.items}`).join('; ')
+      parts.push(`기술: ${skillSummary}`)
     }
 
     if (resume.educations.length > 0) {
       const eduSummary = resume.educations
         .map((e) => `${e.school} ${e.degree || ''} ${e.field || ''}`.trim())
-        .join(', ');
-      parts.push(`학력: ${eduSummary}`);
+        .join(', ')
+      parts.push(`학력: ${eduSummary}`)
     }
 
     if (resume.projects.length > 0) {
-      const projSummary = resume.projects.map((p) => p.name).join(', ');
-      parts.push(`프로젝트: ${projSummary}`);
+      const projSummary = resume.projects.map((p) => p.name).join(', ')
+      parts.push(`프로젝트: ${projSummary}`)
     }
 
     if (resume.certifications.length > 0) {
-      const certSummary = resume.certifications.map((c) => c.name).join(', ');
-      parts.push(`자격증: ${certSummary}`);
+      const certSummary = resume.certifications.map((c) => c.name).join(', ')
+      parts.push(`자격증: ${certSummary}`)
     }
 
-    return parts.join('\n');
+    return parts.join('\n')
   }
 
   const hasEnoughData =
-    resume.experiences.length > 0 || resume.skills.length > 0 || resume.educations.length > 0;
+    resume.experiences.length > 0 || resume.skills.length > 0 || resume.educations.length > 0
 
   const handleGenerate = async () => {
     if (!resumeId) {
-      setError('이력서를 먼저 저장해주세요.');
-      return;
+      setError('이력서를 먼저 저장해주세요.')
+      return
     }
     if (!hasEnoughData) {
-      setError('경력, 기술, 학력 중 최소 1개를 먼저 입력해주세요.');
-      return;
+      setError('경력, 기술, 학력 중 최소 1개를 먼저 입력해주세요.')
+      return
     }
 
-    setLoading(true);
-    setError('');
-    setPreview(null);
+    setLoading(true)
+    setError('')
+    setPreview(null)
 
     try {
-      const context = buildContextForAI();
-      const prompt = `다음 이력서 정보를 바탕으로 전문적인 자기소개 문단을 3-5문장으로 작성해주세요. 1인칭으로, 핵심 역량과 경력 하이라이트를 포함하세요.\n\n${context}`;
-      const res = await aiInlineAssist(resumeId, prompt, 'improve');
-      setPreview(res.improved);
+      const context = buildContextForAI()
+      const prompt = `다음 이력서 정보를 바탕으로 전문적인 자기소개 문단을 3-5문장으로 작성해주세요. 1인칭으로, 핵심 역량과 경력 하이라이트를 포함하세요.\n\n${context}`
+      const res = await aiInlineAssist(resumeId, prompt, 'improve')
+      setPreview(res.improved)
     } catch (err) {
-      setError(getErrorMessage(err, 'AI 요청에 실패했습니다.'));
+      setError(getErrorMessage(err, 'AI 요청에 실패했습니다.'))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleAccept = () => {
     if (preview) {
-      onAccept(preview);
-      setPreview(null);
+      onAccept(preview)
+      setPreview(null)
     }
-  };
+  }
 
   const handleRegenerate = () => {
-    setPreview(null);
-    handleGenerate();
-  };
+    setPreview(null)
+    handleGenerate()
+  }
 
   return (
     <div className="mt-2 rounded-xl border border-dashed border-sky-300 dark:border-sky-700 bg-sky-50/50 dark:bg-sky-900/10 p-4">
@@ -225,5 +227,5 @@ export default function AiSummaryGenerator({ resumeId, resume, onAccept }: Props
         </p>
       )}
     </div>
-  );
+  )
 }

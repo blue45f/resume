@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { analyzeResumeSocialProof } from '@/lib/resumeSocialProofAnalyzer';
-import type { SocialProofType } from '@/lib/resumeSocialProofAnalyzer';
+import { useMemo } from 'react'
+
+import type { SocialProofType } from '@/lib/resumeSocialProofAnalyzer'
+
+import { analyzeResumeSocialProof } from '@/lib/resumeSocialProofAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const TYPE_LABEL: Record<SocialProofType, string> = {
@@ -14,7 +16,7 @@ const TYPE_LABEL: Record<SocialProofType, string> = {
   open_source: '오픈소스',
   teaching: '강의/교육',
   media: '미디어/언론',
-};
+}
 
 const TYPE_ICON: Record<SocialProofType, string> = {
   publication: '📄',
@@ -24,23 +26,23 @@ const TYPE_ICON: Record<SocialProofType, string> = {
   open_source: '⭐',
   teaching: '🎓',
   media: '📺',
-};
+}
 
 const LEVEL_LABEL: Record<string, string> = {
   high: '풍부',
   medium: '보통',
   low: '부족',
   none: '없음',
-};
+}
 
 export default function ResumeSocialProofPanel({ text }: Props) {
-  const report = useMemo(() => analyzeResumeSocialProof(text), [text]);
+  const report = useMemo(() => analyzeResumeSocialProof(text), [text])
 
-  if (text.trim().length < 80) return null;
+  if (text.trim().length < 80) return null
   // Don't show if social proof is already strong
-  if (report.level === 'high') return null;
+  if (report.level === 'high') return null
 
-  const isWarning = report.level === 'none';
+  const isWarning = report.level === 'none'
 
   return (
     <aside
@@ -77,5 +79,5 @@ export default function ResumeSocialProofPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

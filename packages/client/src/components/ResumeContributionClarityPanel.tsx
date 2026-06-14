@@ -1,22 +1,23 @@
-import { useMemo } from 'react';
-import { checkResumeContributionClarity } from '@/lib/resumeContributionClarityChecker';
+import { useMemo } from 'react'
+
+import { checkResumeContributionClarity } from '@/lib/resumeContributionClarityChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const CLARITY_LABEL: Record<string, string> = {
   mixed: '기여 보강',
   unclear: '기여 불명확',
-};
+}
 
 export default function ResumeContributionClarityPanel({ text }: Props) {
-  const report = useMemo(() => checkResumeContributionClarity(text), [text]);
+  const report = useMemo(() => checkResumeContributionClarity(text), [text])
 
-  if (text.trim().length < 40) return null;
-  if (report.clarity === 'clear') return null;
+  if (text.trim().length < 40) return null
+  if (report.clarity === 'clear') return null
 
-  const isUnclear = report.clarity === 'unclear';
+  const isUnclear = report.clarity === 'unclear'
 
   return (
     <aside
@@ -55,5 +56,5 @@ export default function ResumeContributionClarityPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

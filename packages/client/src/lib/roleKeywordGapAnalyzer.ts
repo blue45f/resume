@@ -17,7 +17,7 @@ export type RoleCategory =
   | 'devops'
   | 'data'
   | 'ai_ml'
-  | 'unknown';
+  | 'unknown'
 
 const ROLE_LABEL_KO: Record<RoleCategory, string> = {
   frontend: '프론트엔드',
@@ -29,7 +29,7 @@ const ROLE_LABEL_KO: Record<RoleCategory, string> = {
   data: '데이터 엔지니어링',
   ai_ml: 'AI/ML',
   unknown: '일반',
-};
+}
 
 // ---------------------------------------------------------------------------
 // Role signals — primary keywords that signal a role
@@ -85,7 +85,7 @@ const ROLE_SIGNALS: Record<RoleCategory, string[]> = {
     'GPT',
   ],
   unknown: [],
-};
+}
 
 // ---------------------------------------------------------------------------
 // Standard skills per role — what a strong candidate should mention
@@ -171,15 +171,15 @@ const ROLE_STANDARD_SKILLS: Record<Exclude<RoleCategory, 'unknown'>, string[]> =
     '실험 관리',
     '모델 배포',
   ],
-};
+}
 
 // ---------------------------------------------------------------------------
 // Detection
 // ---------------------------------------------------------------------------
 
 function countSignals(text: string, signals: string[]): number {
-  const t = text.toLowerCase();
-  return signals.filter((s) => t.includes(s.toLowerCase())).length;
+  const t = text.toLowerCase()
+  return signals.filter((s) => t.includes(s.toLowerCase())).length
 }
 
 /**
@@ -187,15 +187,15 @@ function countSignals(text: string, signals: string[]): number {
  * 동점 시 더 상위 카테고리 우선.
  */
 export function detectRoleCategory(text: string): RoleCategory {
-  const t = text ?? '';
+  const t = text ?? ''
   const scores: [RoleCategory, number][] = (
     Object.entries(ROLE_SIGNALS) as [RoleCategory, string[]][]
   )
     .filter(([cat]) => cat !== 'unknown')
-    .map(([cat, signals]) => [cat, countSignals(t, signals)] as [RoleCategory, number]);
+    .map(([cat, signals]) => [cat, countSignals(t, signals)] as [RoleCategory, number])
 
-  scores.sort((a, b) => b[1] - a[1]);
-  return scores[0][1] >= 2 ? scores[0][0] : 'unknown';
+  scores.sort((a, b) => b[1] - a[1])
+  return scores[0][1] >= 2 ? scores[0][0] : 'unknown'
 }
 
 // ---------------------------------------------------------------------------
@@ -203,22 +203,22 @@ export function detectRoleCategory(text: string): RoleCategory {
 // ---------------------------------------------------------------------------
 
 export interface RoleKeywordGapReport {
-  category: RoleCategory;
-  categoryLabel: string;
-  matched: string[];
-  missing: string[];
+  category: RoleCategory
+  categoryLabel: string
+  matched: string[]
+  missing: string[]
   /** 0-100 — matched / total standard skills */
-  score: number;
-  suggestion: string;
+  score: number
+  suggestion: string
 }
 
 /**
  * 감지된 역할 카테고리 기준으로 이력서에 누락된 표준 기술 스택 키워드를 분석.
  */
 export function analyzeRoleKeywordGap(text: string): RoleKeywordGapReport {
-  const t = text ?? '';
-  const category = detectRoleCategory(t);
-  const categoryLabel = ROLE_LABEL_KO[category];
+  const t = text ?? ''
+  const category = detectRoleCategory(t)
+  const categoryLabel = ROLE_LABEL_KO[category]
 
   if (category === 'unknown') {
     return {
@@ -229,23 +229,23 @@ export function analyzeRoleKeywordGap(text: string): RoleKeywordGapReport {
       score: 0,
       suggestion:
         '기술 역할을 감지하지 못했습니다. 기술 스택을 더 명시적으로 기재하면 분석 가능합니다.',
-    };
+    }
   }
 
-  const standard = ROLE_STANDARD_SKILLS[category];
-  const tLow = t.toLowerCase();
-  const matched = standard.filter((s) => tLow.includes(s.toLowerCase()));
-  const missing = standard.filter((s) => !tLow.includes(s.toLowerCase()));
-  const score = Math.round((matched.length / standard.length) * 100);
+  const standard = ROLE_STANDARD_SKILLS[category]
+  const tLow = t.toLowerCase()
+  const matched = standard.filter((s) => tLow.includes(s.toLowerCase()))
+  const missing = standard.filter((s) => !tLow.includes(s.toLowerCase()))
+  const score = Math.round((matched.length / standard.length) * 100)
 
-  let suggestion: string;
+  let suggestion: string
   if (score >= 70) {
-    suggestion = `${categoryLabel} 핵심 기술 스택이 충분히 언급되어 있습니다.`;
+    suggestion = `${categoryLabel} 핵심 기술 스택이 충분히 언급되어 있습니다.`
   } else if (score >= 40) {
-    suggestion = `${categoryLabel} 표준 기술 중 일부가 누락되었습니다. ${missing.slice(0, 3).join(', ')} 등을 추가해 보세요.`;
+    suggestion = `${categoryLabel} 표준 기술 중 일부가 누락되었습니다. ${missing.slice(0, 3).join(', ')} 등을 추가해 보세요.`
   } else {
-    suggestion = `${categoryLabel} 역할의 핵심 기술이 많이 빠져 있습니다. ${missing.slice(0, 4).join(', ')} 등을 경력/기술 섹션에 포함하세요.`;
+    suggestion = `${categoryLabel} 역할의 핵심 기술이 많이 빠져 있습니다. ${missing.slice(0, 4).join(', ')} 등을 경력/기술 섹션에 포함하세요.`
   }
 
-  return { category, categoryLabel, matched, missing, score, suggestion };
+  return { category, categoryLabel, matched, missing, score, suggestion }
 }

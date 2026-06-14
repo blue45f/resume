@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { API_URL } from '@/lib/config';
-import { tx } from '@/lib/i18n';
+import { useState, useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+
+import { API_URL } from '@/lib/config'
+import { tx } from '@/lib/i18n'
 
 interface Step {
-  num: number;
-  title: string;
-  desc: string;
-  href: string;
-  color: string;
+  num: number
+  title: string
+  desc: string
+  href: string
+  color: string
 }
 
 const DEFAULT_STEPS: Step[] = [
@@ -33,51 +34,51 @@ const DEFAULT_STEPS: Step[] = [
     href: '/coaches',
     color: 'from-sky-500 to-sky-700',
   },
-];
+]
 
 export default function OnboardingBanner() {
   const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem('onboarding-dismissed') === 'true',
-  );
-  const [hiding, setHiding] = useState(false);
-  const [steps, setSteps] = useState<Step[]>(DEFAULT_STEPS);
-  const [title, setTitle] = useState(tx('onboarding.welcome'));
-  const [subtitle, setSubtitle] = useState('3단계로 완벽한 이력서를 완성하세요');
-  const location = useLocation();
+    () => localStorage.getItem('onboarding-dismissed') === 'true'
+  )
+  const [hiding, setHiding] = useState(false)
+  const [steps, setSteps] = useState<Step[]>(DEFAULT_STEPS)
+  const [title, setTitle] = useState(tx('onboarding.welcome'))
+  const [subtitle, setSubtitle] = useState('3단계로 완벽한 이력서를 완성하세요')
+  const location = useLocation()
 
   useEffect(() => {
-    if (dismissed) return;
+    if (dismissed) return
     fetch(`${API_URL}/api/system-config/content/onboarding`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (d?.steps?.length) setSteps(d.steps);
-        if (d?.title) setTitle(d.title);
-        if (d?.subtitle) setSubtitle(d.subtitle);
+        if (d?.steps?.length) setSteps(d.steps)
+        if (d?.title) setTitle(d.title)
+        if (d?.subtitle) setSubtitle(d.subtitle)
       })
-      .catch(() => {});
-  }, [dismissed]);
+      .catch(() => {})
+  }, [dismissed])
 
-  if (dismissed) return null;
+  if (dismissed) return null
 
   const handleDismiss = () => {
-    setHiding(true);
+    setHiding(true)
     setTimeout(() => {
-      localStorage.setItem('onboarding-dismissed', 'true');
-      setDismissed(true);
-    }, 300);
-  };
+      localStorage.setItem('onboarding-dismissed', 'true')
+      setDismissed(true)
+    }, 300)
+  }
 
   const handleNeverShow = () => {
-    localStorage.setItem('onboarding-dismissed', 'true');
-    localStorage.setItem('onboarding-never-show', 'true');
-    setDismissed(true);
-  };
+    localStorage.setItem('onboarding-dismissed', 'true')
+    localStorage.setItem('onboarding-never-show', 'true')
+    setDismissed(true)
+  }
 
   const getStepStatus = (href: string) => {
     if (location.pathname.startsWith('/resumes/') && location.pathname.includes('/edit'))
-      return href === '/resumes/new' ? 'active' : 'upcoming';
-    return 'upcoming';
-  };
+      return href === '/resumes/new' ? 'active' : 'upcoming'
+    return 'upcoming'
+  }
 
   return (
     <div
@@ -173,5 +174,5 @@ export default function OnboardingBanner() {
         ))}
       </div>
     </div>
-  );
+  )
 }

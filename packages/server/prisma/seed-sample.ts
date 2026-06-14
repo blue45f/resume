@@ -6,18 +6,18 @@
  * - 샘플 이메일: sample-xxx@sample.local
  * - 어드민 "샘플 데이터 일괄 삭제" 기능으로 삭제 가능
  */
-import 'dotenv/config';
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import 'dotenv/config'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '@prisma/client'
 
-const url = process.env.DATABASE_URL;
-if (!url) throw new Error('DATABASE_URL environment variable is required');
+const url = process.env.DATABASE_URL
+if (!url) throw new Error('DATABASE_URL environment variable is required')
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: url }),
-});
+})
 
 async function main() {
-  console.log('🌱 샘플 데이터 생성 시작...');
+  console.log('🌱 샘플 데이터 생성 시작...')
 
   // ─── 1. 샘플 유저 (10명+) ───────────────────────────────────────
   const sampleUsers = [
@@ -120,15 +120,15 @@ async function main() {
       plan: 'pro',
       role: 'user',
     },
-  ];
+  ]
 
-  const createdUsers: Record<string, string> = {};
+  const createdUsers: Record<string, string> = {}
   for (const u of sampleUsers) {
-    const existing = await prisma.user.findUnique({ where: { email: u.email } });
+    const existing = await prisma.user.findUnique({ where: { email: u.email } })
     if (existing) {
-      createdUsers[u.email] = existing.id;
-      console.log(`  ↩ 기존 유저: ${u.name}`);
-      continue;
+      createdUsers[u.email] = existing.id
+      console.log(`  ↩ 기존 유저: ${u.name}`)
+      continue
     }
     const created = await prisma.user.create({
       data: {
@@ -138,9 +138,9 @@ async function main() {
         providerId: `sample-${u.username}`,
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.username}`,
       },
-    });
-    createdUsers[u.email] = created.id;
-    console.log(`  ✓ 유저: ${u.name} (${u.userType})`);
+    })
+    createdUsers[u.email] = created.id
+    console.log(`  ✓ 유저: ${u.name} (${u.userType})`)
   }
 
   // ─── 2. 샘플 이력서 (20개+) ──────────────────────────────────────
@@ -410,19 +410,19 @@ async function main() {
       ],
       skills: ['Jira', 'Figma', 'SQL'],
     },
-  ];
+  ]
 
-  const resumeIds: string[] = [];
+  const resumeIds: string[] = []
   for (const r of resumeTemplates) {
-    const userId = createdUsers[r.email];
-    if (!userId) continue;
+    const userId = createdUsers[r.email]
+    if (!userId) continue
     const slug =
       r.title
         .replace(/\s+/g, '-')
         .replace(/[^a-zA-Z0-9-가-힣]/g, '')
         .substring(0, 50) +
       '-' +
-      Date.now();
+      Date.now()
     const resume = await prisma.resume.create({
       data: {
         title: r.title,
@@ -459,15 +459,15 @@ async function main() {
           },
         },
       },
-    });
-    resumeIds.push(resume.id);
-    console.log(`  ✓ 이력서: ${r.title}`);
+    })
+    resumeIds.push(resume.id)
+    console.log(`  ✓ 이력서: ${r.title}`)
   }
 
   // ─── 3. 샘플 채용공고 (10개+) ────────────────────────────────────
-  const recruiterId = createdUsers['sample-recruiter1@sample.local'];
-  const recruiterId2 = createdUsers['sample-recruiter2@sample.local'];
-  const companyId = createdUsers['sample-company@sample.local'];
+  const recruiterId = createdUsers['sample-recruiter1@sample.local']
+  const recruiterId2 = createdUsers['sample-recruiter2@sample.local']
+  const companyId = createdUsers['sample-company@sample.local']
 
   const jobPosts = [
     {
@@ -604,12 +604,12 @@ async function main() {
       benefits: '- 정규직 전환 우선 검토\n- 멘토링',
       status: 'active',
     },
-  ];
+  ]
 
   for (const jp of jobPosts) {
-    if (!jp.userId) continue;
-    await prisma.jobPost.create({ data: jp });
-    console.log(`  ✓ 채용공고: ${jp.position} @ ${jp.company}`);
+    if (!jp.userId) continue
+    await prisma.jobPost.create({ data: jp })
+    console.log(`  ✓ 채용공고: ${jp.position} @ ${jp.company}`)
   }
 
   // ─── 4. 스카우트 메시지 (5개) ────────────────────────────────────
@@ -619,7 +619,7 @@ async function main() {
     createdUsers['sample-data@sample.local'],
     createdUsers['sample-pm@sample.local'],
     createdUsers['sample-design@sample.local'],
-  ];
+  ]
 
   const scoutMessages = [
     {
@@ -649,11 +649,11 @@ async function main() {
       position: 'UX 디자이너',
       read: false,
     },
-  ];
+  ]
 
   for (let i = 0; i < scoutMessages.length; i++) {
-    const receiverId = scoutTargets[i];
-    if (!receiverId || !recruiterId) continue;
+    const receiverId = scoutTargets[i]
+    if (!receiverId || !recruiterId) continue
     await prisma.scoutMessage.create({
       data: {
         senderId: recruiterId,
@@ -663,8 +663,8 @@ async function main() {
         message: scoutMessages[i].message,
         read: scoutMessages[i].read,
       },
-    });
-    console.log(`  ✓ 스카우트: ${scoutMessages[i].position}`);
+    })
+    console.log(`  ✓ 스카우트: ${scoutMessages[i].position}`)
   }
 
   // ─── 5. 배너 (3개) ───────────────────────────────────────────────
@@ -693,16 +693,16 @@ async function main() {
       order: 3,
       linkUrl: '/templates',
     },
-  ];
+  ]
 
   for (const b of banners) {
-    const existing = await prisma.banner.findFirst({ where: { title: b.title } });
+    const existing = await prisma.banner.findFirst({ where: { title: b.title } })
     if (existing) {
-      console.log(`  ↩ 기존 배너: ${b.title}`);
-      continue;
+      console.log(`  ↩ 기존 배너: ${b.title}`)
+      continue
     }
-    await prisma.banner.create({ data: b });
-    console.log(`  ✓ 배너: ${b.title}`);
+    await prisma.banner.create({ data: b })
+    console.log(`  ✓ 배너: ${b.title}`)
   }
 
   // ─── 6. 공지사항 (6개) ───────────────────────────────────────────
@@ -753,24 +753,24 @@ async function main() {
       isPopup: false,
       isPinned: false,
     },
-  ];
+  ]
 
   for (const n of notices) {
-    const existing = await prisma.notice.findFirst({ where: { title: n.title } });
+    const existing = await prisma.notice.findFirst({ where: { title: n.title } })
     if (existing) {
-      console.log(`  ↩ 기존 공지: ${n.title}`);
-      continue;
+      console.log(`  ↩ 기존 공지: ${n.title}`)
+      continue
     }
-    await prisma.notice.create({ data: n });
-    console.log(`  ✓ 공지: ${n.title}`);
+    await prisma.notice.create({ data: n })
+    console.log(`  ✓ 공지: ${n.title}`)
   }
 
   // ─── 7. 스터디 그룹 (15개) ───────────────────────────────────────
   const existingUsers = await prisma.user.findMany({
     where: { email: { startsWith: 'sample-' } },
     select: { id: true, email: true, name: true },
-  });
-  const userByIdx = (i: number) => existingUsers[i % Math.max(1, existingUsers.length)];
+  })
+  const userByIdx = (i: number) => existingUsers[i % Math.max(1, existingUsers.length)]
 
   const studyGroupSeeds = [
     {
@@ -923,16 +923,16 @@ async function main() {
       position: 'SW엔지니어',
       maxMembers: 12,
     },
-  ];
+  ]
 
   for (let i = 0; i < studyGroupSeeds.length; i++) {
-    const s = studyGroupSeeds[i];
-    const owner = userByIdx(i);
-    if (!owner) break;
-    const existing = await prisma.studyGroup.findFirst({ where: { name: s.name } });
+    const s = studyGroupSeeds[i]
+    const owner = userByIdx(i)
+    if (!owner) break
+    const existing = await prisma.studyGroup.findFirst({ where: { name: s.name } })
     if (existing) {
-      console.log(`  ↩ 기존 스터디: ${s.name}`);
-      continue;
+      console.log(`  ↩ 기존 스터디: ${s.name}`)
+      continue
     }
     const group = await prisma.studyGroup.create({
       data: {
@@ -941,23 +941,23 @@ async function main() {
         isPrivate: false,
         memberCount: 1,
       },
-    });
+    })
     await prisma.studyGroupMember.create({
       data: { groupId: group.id, userId: owner.id, role: 'owner' },
-    });
+    })
     // 추가 멤버 2-5명 랜덤 가입
-    const joinCount = Math.min(Math.floor(Math.random() * 4) + 2, Math.max(0, s.maxMembers - 1));
-    const extras = existingUsers.filter((u) => u.id !== owner.id).slice(0, joinCount);
+    const joinCount = Math.min(Math.floor(Math.random() * 4) + 2, Math.max(0, s.maxMembers - 1))
+    const extras = existingUsers.filter((u) => u.id !== owner.id).slice(0, joinCount)
     for (const u of extras) {
       await prisma.studyGroupMember.create({
         data: { groupId: group.id, userId: u.id, role: 'member' },
-      });
+      })
     }
     await prisma.studyGroup.update({
       where: { id: group.id },
       data: { memberCount: 1 + extras.length },
-    });
-    console.log(`  ✓ 스터디: ${s.name} (멤버 ${1 + extras.length})`);
+    })
+    console.log(`  ✓ 스터디: ${s.name} (멤버 ${1 + extras.length})`)
   }
 
   // ─── 8. 면접 예상 질문 (20개+) ────────────────────────────────────
@@ -1084,15 +1084,15 @@ async function main() {
       q: '부트캠프에서 배운 것을 실무에 어떻게 적용?',
       a: '...',
     },
-  ];
+  ]
 
   for (const q of questions) {
     const exists = await prisma.jobInterviewQuestion.findFirst({
       where: { question: q.q, companyName: q.c },
-    });
-    if (exists) continue;
-    const author = userByIdx(Math.floor(Math.random() * existingUsers.length));
-    if (!author) continue;
+    })
+    if (exists) continue
+    const author = userByIdx(Math.floor(Math.random() * existingUsers.length))
+    if (!author) continue
     await prisma.jobInterviewQuestion.create({
       data: {
         companyName: q.c,
@@ -1105,9 +1105,9 @@ async function main() {
         upvotes: Math.floor(Math.random() * 20),
         authorId: author.id,
       },
-    });
+    })
   }
-  console.log(`  ✓ 면접 질문 ${questions.length}개`);
+  console.log(`  ✓ 면접 질문 ${questions.length}개`)
 
   // ─── 9. 커뮤니티 게시글 (15개) ────────────────────────────────────
   const posts = [
@@ -1186,13 +1186,13 @@ async function main() {
       c: 'Activity Graph + Wakatime + 언어 통계 + 최근 블로그 글 자동 연동...',
       cat: 'tips',
     },
-  ];
+  ]
 
   for (const p of posts) {
-    const exists = await prisma.communityPost.findFirst({ where: { title: p.t } });
-    if (exists) continue;
-    const author = userByIdx(Math.floor(Math.random() * existingUsers.length));
-    if (!author) continue;
+    const exists = await prisma.communityPost.findFirst({ where: { title: p.t } })
+    if (exists) continue
+    const author = userByIdx(Math.floor(Math.random() * existingUsers.length))
+    if (!author) continue
     await prisma.communityPost.create({
       data: {
         title: p.t,
@@ -1202,9 +1202,9 @@ async function main() {
         viewCount: Math.floor(Math.random() * 500),
         likeCount: Math.floor(Math.random() * 50),
       },
-    });
+    })
   }
-  console.log(`  ✓ 커뮤니티 게시글 ${posts.length}개`);
+  console.log(`  ✓ 커뮤니티 게시글 ${posts.length}개`)
 
   // ─── 10. 코치 프로필 (6명) ───────────────────────────────────────
   const coachSpecs = [
@@ -1244,14 +1244,14 @@ async function main() {
       yrs: 15,
       bio: '헤드헌터 출신. 오퍼 비교 · 네고 스크립트 코칭.',
     },
-  ];
+  ]
   for (let i = 0; i < coachSpecs.length; i++) {
-    const c = coachSpecs[i];
-    const user = userByIdx(i);
-    if (!user) break;
-    const existing = await prisma.coachProfile.findUnique({ where: { userId: user.id } });
-    if (existing) continue;
-    await prisma.user.update({ where: { id: user.id }, data: { userType: 'coach' } });
+    const c = coachSpecs[i]
+    const user = userByIdx(i)
+    if (!user) break
+    const existing = await prisma.coachProfile.findUnique({ where: { userId: user.id } })
+    if (existing) continue
+    await prisma.user.update({ where: { id: user.id }, data: { userType: 'coach' } })
     await prisma.coachProfile.create({
       data: {
         userId: user.id,
@@ -1269,15 +1269,15 @@ async function main() {
         avgRating: 4.0 + Math.random() * 1.0,
         isActive: true,
       },
-    });
-    console.log(`  ✓ 코치: ${user.name} — ${c.specialty}`);
+    })
+    console.log(`  ✓ 코치: ${user.name} — ${c.specialty}`)
   }
 
   // ─── 10b. 스터디 그룹 게시판 샘플 포스트 ───────────────────────────
   const allGroups = await prisma.studyGroup.findMany({
     select: { id: true, name: true, ownerId: true },
     take: 30,
-  });
+  })
 
   const postTemplates = [
     {
@@ -1347,25 +1347,25 @@ async function main() {
       title: '스터디원 맥주 한잔 오프라인 번개 (선택참여)',
       content: '다음 금요일 강남역 7시, 참여 원하시는 분 댓글 부탁드려요. (강요 아님)',
     },
-  ];
+  ]
 
-  let seedPostCount = 0;
+  let seedPostCount = 0
   for (const group of allGroups) {
     // 그룹당 3~6개 포스트 생성
-    const count = 3 + Math.floor(Math.random() * 4);
+    const count = 3 + Math.floor(Math.random() * 4)
     for (let i = 0; i < count; i++) {
-      const tpl = postTemplates[Math.floor(Math.random() * postTemplates.length)];
+      const tpl = postTemplates[Math.floor(Math.random() * postTemplates.length)]
       const authorId =
         Math.random() > 0.3
           ? group.ownerId
-          : userByIdx(Math.floor(Math.random() * existingUsers.length))?.id;
-      if (!authorId) continue;
+          : userByIdx(Math.floor(Math.random() * existingUsers.length))?.id
+      if (!authorId) continue
       // 고유 제목 — 그룹명 + 인덱스 suffix 로 중복 방지
-      const title = `${tpl.title}`;
+      const title = `${tpl.title}`
       const exists = await prisma.studyGroupPost.findFirst({
         where: { groupId: group.id, title },
-      });
-      if (exists) continue;
+      })
+      if (exists) continue
       await prisma.studyGroupPost.create({
         data: {
           group: { connect: { id: group.id } },
@@ -1378,11 +1378,11 @@ async function main() {
           likeCount: Math.floor(Math.random() * 30),
           commentCount: Math.floor(Math.random() * 10),
         },
-      });
-      seedPostCount++;
+      })
+      seedPostCount++
     }
   }
-  console.log(`  ✓ 스터디 게시글 ${seedPostCount}개`);
+  console.log(`  ✓ 스터디 게시글 ${seedPostCount}개`)
 
   // ─── 11. SystemConfig 초기값 ─────────────────────────────────────
   const configs = [
@@ -1390,32 +1390,32 @@ async function main() {
     { key: 'maintenance_mode', value: 'false', label: '점검 모드' },
     { key: 'max_free_resumes', value: '3', label: '무료 플랜 이력서 최대 개수' },
     { key: 'max_ai_transforms_free', value: '10', label: '무료 AI 변환 월 한도' },
-  ];
+  ]
 
   for (const c of configs) {
     await prisma.systemConfig.upsert({
       where: { key: c.key },
       update: {},
       create: c,
-    });
-    console.log(`  ✓ 시스템 설정: ${c.key} = ${c.value}`);
+    })
+    console.log(`  ✓ 시스템 설정: ${c.key} = ${c.value}`)
   }
 
-  console.log('\n✅ 샘플 데이터 생성 완료!');
+  console.log('\n✅ 샘플 데이터 생성 완료!')
   console.log(
-    `   유저: ${sampleUsers.length}명, 이력서: ${resumeTemplates.length}개, 채용공고: ${jobPosts.length}개`,
-  );
+    `   유저: ${sampleUsers.length}명, 이력서: ${resumeTemplates.length}개, 채용공고: ${jobPosts.length}개`
+  )
   console.log(
-    `   스카우트: ${scoutMessages.length}개, 배너: ${banners.length}개, 공지: ${notices.length}개`,
-  );
+    `   스카우트: ${scoutMessages.length}개, 배너: ${banners.length}개, 공지: ${notices.length}개`
+  )
   console.log(
-    `   스터디: ${studyGroupSeeds.length}개, 면접질문: ${questions.length}개, 커뮤니티: ${posts.length}개, 코치: ${coachSpecs.length}명`,
-  );
+    `   스터디: ${studyGroupSeeds.length}개, 면접질문: ${questions.length}개, 커뮤니티: ${posts.length}개, 코치: ${coachSpecs.length}명`
+  )
 }
 
 main()
   .catch((e) => {
-    console.error('❌ 시드 실패:', e);
-    process.exit(1);
+    console.error('❌ 시드 실패:', e)
+    process.exit(1)
   })
-  .finally(() => prisma.$disconnect());
+  .finally(() => prisma.$disconnect())

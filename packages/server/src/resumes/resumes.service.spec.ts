@@ -1,9 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ResumesService } from './resumes.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
-import { SystemConfigService } from '../system-config/system-config.service';
-import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common'
+import { Test, TestingModule } from '@nestjs/testing'
+
+import { NotificationsService } from '../notifications/notifications.service'
+import { PrismaService } from '../prisma/prisma.service'
+import { SystemConfigService } from '../system-config/system-config.service'
+
+import { ResumesService } from './resumes.service'
 
 const mockResume = {
   id: 'resume-1',
@@ -36,7 +38,7 @@ const mockResume = {
   awards: [],
   activities: [],
   tags: [],
-};
+}
 
 const mockPrisma = {
   resume: {
@@ -89,23 +91,23 @@ const mockPrisma = {
   },
   follow: { count: jest.fn().mockResolvedValue(0) },
   $transaction: jest.fn(),
-};
+}
 
 mockPrisma.$transaction.mockImplementation((fn: unknown): unknown => {
-  return (fn as (tx: typeof mockPrisma) => unknown)(mockPrisma);
-});
+  return (fn as (tx: typeof mockPrisma) => unknown)(mockPrisma)
+})
 
 describe('ResumesService', () => {
-  let service: ResumesService;
+  let service: ResumesService
 
   const mockNotifications = {
     create: jest.fn().mockResolvedValue({}),
-  };
+  }
 
   const mockSystemConfig = {
     getReportThreshold: jest.fn().mockResolvedValue(5),
     isFeatureEnabled: jest.fn().mockResolvedValue(true),
-  };
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -118,121 +120,121 @@ describe('ResumesService', () => {
           useValue: mockSystemConfig,
         },
       ],
-    }).compile();
-    service = module.get(ResumesService);
-    jest.clearAllMocks();
+    }).compile()
+    service = module.get(ResumesService)
+    jest.clearAllMocks()
     // Re-set default for bookmark.count after clearAllMocks
-    mockPrisma.bookmark.count.mockResolvedValue(0);
-    mockPrisma.attachment.findMany.mockResolvedValue([]);
-  });
+    mockPrisma.bookmark.count.mockResolvedValue(0)
+    mockPrisma.attachment.findMany.mockResolvedValue([])
+  })
 
   // ──────────────────────────────────────────────────
   // findPublic
   // ──────────────────────────────────────────────────
   describe('findPublic', () => {
     it('기본 페이지네이션 (page=1, limit=20)', async () => {
-      mockPrisma.resume.findMany.mockResolvedValue([{ ...mockResume, visibility: 'public' }]);
-      mockPrisma.resume.count.mockResolvedValue(1);
+      mockPrisma.resume.findMany.mockResolvedValue([{ ...mockResume, visibility: 'public' }])
+      mockPrisma.resume.count.mockResolvedValue(1)
 
-      const result = await service.findPublic();
-      expect(result.page).toBe(1);
-      expect(result.limit).toBe(20);
-      expect(result.total).toBe(1);
-      expect(result.totalPages).toBe(1);
-      expect(result.data).toHaveLength(1);
+      const result = await service.findPublic()
+      expect(result.page).toBe(1)
+      expect(result.limit).toBe(20)
+      expect(result.total).toBe(1)
+      expect(result.totalPages).toBe(1)
+      expect(result.data).toHaveLength(1)
       expect(mockPrisma.resume.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { visibility: 'public', autoHidden: false },
           skip: 0,
           take: 20,
-        }),
-      );
-    });
+        })
+      )
+    })
 
     it('커스텀 페이지네이션 (page=2, limit=5)', async () => {
-      mockPrisma.resume.findMany.mockResolvedValue([]);
-      mockPrisma.resume.count.mockResolvedValue(8);
+      mockPrisma.resume.findMany.mockResolvedValue([])
+      mockPrisma.resume.count.mockResolvedValue(8)
 
-      const result = await service.findPublic(2, 5);
-      expect(result.page).toBe(2);
-      expect(result.limit).toBe(5);
-      expect(result.totalPages).toBe(2); // ceil(8/5) = 2
+      const result = await service.findPublic(2, 5)
+      expect(result.page).toBe(2)
+      expect(result.limit).toBe(5)
+      expect(result.totalPages).toBe(2) // ceil(8/5) = 2
       expect(mockPrisma.resume.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ skip: 5, take: 5 }),
-      );
-    });
+        expect.objectContaining({ skip: 5, take: 5 })
+      )
+    })
 
     it('결과가 0건이면 빈 배열과 totalPages=0', async () => {
-      mockPrisma.resume.findMany.mockResolvedValue([]);
-      mockPrisma.resume.count.mockResolvedValue(0);
+      mockPrisma.resume.findMany.mockResolvedValue([])
+      mockPrisma.resume.count.mockResolvedValue(0)
 
-      const result = await service.findPublic();
-      expect(result.data).toEqual([]);
-      expect(result.total).toBe(0);
-      expect(result.totalPages).toBe(0);
-    });
-  });
+      const result = await service.findPublic()
+      expect(result.data).toEqual([])
+      expect(result.total).toBe(0)
+      expect(result.totalPages).toBe(0)
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // searchPublic
   // ──────────────────────────────────────────────────
   describe('searchPublic', () => {
     it('검색어 + 태그 필터로 공개 이력서 검색', async () => {
-      mockPrisma.resume.findMany.mockResolvedValue([]);
-      mockPrisma.resume.count.mockResolvedValue(0);
+      mockPrisma.resume.findMany.mockResolvedValue([])
+      mockPrisma.resume.count.mockResolvedValue(0)
 
-      const result = await service.searchPublic({ query: '개발자', tag: 'FE', page: 1, limit: 20 });
-      expect(result.data).toEqual([]);
-      expect(result.total).toBe(0);
-      expect(result.page).toBe(1);
-    });
+      const result = await service.searchPublic({ query: '개발자', tag: 'FE', page: 1, limit: 20 })
+      expect(result.data).toEqual([])
+      expect(result.total).toBe(0)
+      expect(result.page).toBe(1)
+    })
 
     it('sort=views 일 때 viewCount 내림차순 정렬', async () => {
-      mockPrisma.resume.findMany.mockResolvedValue([]);
-      mockPrisma.resume.count.mockResolvedValue(0);
+      mockPrisma.resume.findMany.mockResolvedValue([])
+      mockPrisma.resume.count.mockResolvedValue(0)
 
-      await service.searchPublic({ query: 'test', sort: 'views', page: 1, limit: 10 });
+      await service.searchPublic({ query: 'test', sort: 'views', page: 1, limit: 10 })
       expect(mockPrisma.resume.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ orderBy: { viewCount: 'desc' } }),
-      );
-    });
+        expect.objectContaining({ orderBy: { viewCount: 'desc' } })
+      )
+    })
 
     it('sort 미지정 시 updatedAt 내림차순 정렬', async () => {
-      mockPrisma.resume.findMany.mockResolvedValue([]);
-      mockPrisma.resume.count.mockResolvedValue(0);
+      mockPrisma.resume.findMany.mockResolvedValue([])
+      mockPrisma.resume.count.mockResolvedValue(0)
 
-      await service.searchPublic({ page: 1, limit: 10 });
+      await service.searchPublic({ page: 1, limit: 10 })
       expect(mockPrisma.resume.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ orderBy: { updatedAt: 'desc' } }),
-      );
-    });
+        expect.objectContaining({ orderBy: { updatedAt: 'desc' } })
+      )
+    })
 
     it('검색어 없이 태그만으로 필터링', async () => {
-      mockPrisma.resume.findMany.mockResolvedValue([]);
-      mockPrisma.resume.count.mockResolvedValue(0);
+      mockPrisma.resume.findMany.mockResolvedValue([])
+      mockPrisma.resume.count.mockResolvedValue(0)
 
-      await service.searchPublic({ tag: 'Backend', page: 1, limit: 10 });
+      await service.searchPublic({ tag: 'Backend', page: 1, limit: 10 })
       expect(mockPrisma.resume.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
             visibility: 'public',
             tags: { some: { tag: { name: 'Backend' } } },
           }),
-        }),
-      );
-    });
+        })
+      )
+    })
 
     it('페이지네이션 계산이 올바른지 확인', async () => {
-      mockPrisma.resume.findMany.mockResolvedValue([]);
-      mockPrisma.resume.count.mockResolvedValue(25);
+      mockPrisma.resume.findMany.mockResolvedValue([])
+      mockPrisma.resume.count.mockResolvedValue(25)
 
-      const result = await service.searchPublic({ page: 3, limit: 10 });
-      expect(result.totalPages).toBe(3); // ceil(25/10)
+      const result = await service.searchPublic({ page: 3, limit: 10 })
+      expect(result.totalPages).toBe(3) // ceil(25/10)
       expect(mockPrisma.resume.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ skip: 20, take: 10 }),
-      );
-    });
-  });
+        expect.objectContaining({ skip: 20, take: 10 })
+      )
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // create
@@ -244,58 +246,58 @@ describe('ResumesService', () => {
         id: 'new-resume',
         title: '새 이력서',
         slug: '새-이력서',
-      };
-      mockPrisma.resume.create.mockResolvedValue(createdResume);
+      }
+      mockPrisma.resume.create.mockResolvedValue(createdResume)
 
-      const result = await service.create({ title: '새 이력서' }, 'user-1');
-      expect(result.id).toBe('new-resume');
-      expect(result.title).toBe('새 이력서');
+      const result = await service.create({ title: '새 이력서' }, 'user-1')
+      expect(result.id).toBe('new-resume')
+      expect(result.title).toBe('새 이력서')
       expect(mockPrisma.resume.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             title: '새 이력서',
             userId: 'user-1',
           }),
-        }),
-      );
-    });
+        })
+      )
+    })
 
     it('title 없으면 빈 문자열로 생성', async () => {
       mockPrisma.resume.create.mockResolvedValue({
         ...mockResume,
         title: '',
         slug: 'untitled',
-      });
+      })
 
-      const result = await service.create({}, 'user-1');
+      const result = await service.create({}, 'user-1')
       expect(mockPrisma.resume.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ title: '', slug: 'untitled' }),
-        }),
-      );
-      expect(result.title).toBe('');
-    });
+        })
+      )
+      expect(result.title).toBe('')
+    })
 
     it('userId 없이 (비로그인) 생성 가능', async () => {
       mockPrisma.resume.create.mockResolvedValue({
         ...mockResume,
         userId: null,
-      });
+      })
 
-      await service.create({ title: '비로그인 이력서' });
+      await service.create({ title: '비로그인 이력서' })
       expect(mockPrisma.resume.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ userId: null }),
-        }),
-      );
-    });
+        })
+      )
+    })
 
     it('personalInfo와 experiences 포함 생성', async () => {
       mockPrisma.resume.create.mockResolvedValue({
         ...mockResume,
         personalInfo: { name: '김철수', email: 'kim@test.com', phone: '', summary: '', photo: '' },
         experiences: [{ company: '회사A', position: '개발자' }],
-      });
+      })
 
       await service.create(
         {
@@ -303,8 +305,8 @@ describe('ResumesService', () => {
           personalInfo: { name: '김철수', email: 'kim@test.com' },
           experiences: [{ company: '회사A', position: '개발자' }],
         },
-        'user-1',
-      );
+        'user-1'
+      )
 
       expect(mockPrisma.resume.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -318,138 +320,138 @@ describe('ResumesService', () => {
               ]),
             }),
           }),
-        }),
-      );
-    });
-  });
+        })
+      )
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // findOne
   // ──────────────────────────────────────────────────
   describe('findOne', () => {
     it('존재하지 않는 이력서 → NotFoundException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(null);
-      await expect(service.findOne('fake-id')).rejects.toThrow(NotFoundException);
-    });
+      mockPrisma.resume.findUnique.mockResolvedValue(null)
+      await expect(service.findOne('fake-id')).rejects.toThrow(NotFoundException)
+    })
 
     it('비공개 이력서 - 소유자가 아닌 사용자 → ForbiddenException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      await expect(service.findOne('resume-1', 'other-user')).rejects.toThrow(ForbiddenException);
-    });
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      await expect(service.findOne('resume-1', 'other-user')).rejects.toThrow(ForbiddenException)
+    })
 
     it('비공개 이력서 - 소유자 접근 → 성공 (조회수 미증가)', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.resume.update.mockResolvedValue(mockResume);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.resume.update.mockResolvedValue(mockResume)
 
-      const result = await service.findOne('resume-1', 'user-1');
-      expect(result.id).toBe('resume-1');
-      expect(result.title).toBe('테스트 이력서');
+      const result = await service.findOne('resume-1', 'user-1')
+      expect(result.id).toBe('resume-1')
+      expect(result.title).toBe('테스트 이력서')
       // 소유자 조회 시 update(viewCount) 호출되지 않아야 함
-      expect(mockPrisma.resume.update).not.toHaveBeenCalled();
-    });
+      expect(mockPrisma.resume.update).not.toHaveBeenCalled()
+    })
 
     it('공개 이력서 - 비소유자 접근 시 조회수 증가', async () => {
-      const publicResume = { ...mockResume, visibility: 'public' };
-      mockPrisma.resume.findUnique.mockResolvedValue(publicResume);
-      mockPrisma.resume.update.mockResolvedValue(publicResume);
+      const publicResume = { ...mockResume, visibility: 'public' }
+      mockPrisma.resume.findUnique.mockResolvedValue(publicResume)
+      mockPrisma.resume.update.mockResolvedValue(publicResume)
 
-      const result = await service.findOne('resume-1', 'other-user');
-      expect(result.id).toBe('resume-1');
+      const result = await service.findOne('resume-1', 'other-user')
+      expect(result.id).toBe('resume-1')
       expect(mockPrisma.resume.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: { viewCount: { increment: 1 } },
-        }),
-      );
-    });
+        })
+      )
+    })
 
     it('userId 미전달 시 조회수 증가', async () => {
-      const publicResume = { ...mockResume, visibility: 'public', userId: null };
-      mockPrisma.resume.findUnique.mockResolvedValue(publicResume);
-      mockPrisma.resume.update.mockResolvedValue(publicResume);
+      const publicResume = { ...mockResume, visibility: 'public', userId: null }
+      mockPrisma.resume.findUnique.mockResolvedValue(publicResume)
+      mockPrisma.resume.update.mockResolvedValue(publicResume)
 
-      await service.findOne('resume-1');
-      expect(mockPrisma.resume.update).toHaveBeenCalled();
-    });
+      await service.findOne('resume-1')
+      expect(mockPrisma.resume.update).toHaveBeenCalled()
+    })
 
     it('소유자 없는 이력서 - 누구나 접근 가능', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue({ ...mockResume, userId: null });
-      const result = await service.findOne('resume-1', 'any-user');
-      expect(result.id).toBe('resume-1');
-    });
+      mockPrisma.resume.findUnique.mockResolvedValue({ ...mockResume, userId: null })
+      const result = await service.findOne('resume-1', 'any-user')
+      expect(result.id).toBe('resume-1')
+    })
 
     it('반환값에 bookmarkCount 포함', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue({ ...mockResume, visibility: 'public' });
-      mockPrisma.resume.update.mockResolvedValue(mockResume);
-      mockPrisma.bookmark.count.mockResolvedValue(5);
+      mockPrisma.resume.findUnique.mockResolvedValue({ ...mockResume, visibility: 'public' })
+      mockPrisma.resume.update.mockResolvedValue(mockResume)
+      mockPrisma.bookmark.count.mockResolvedValue(5)
 
-      const result = await service.findOne('resume-1', 'other-user');
-      expect(result.bookmarkCount).toBe(5);
-    });
-  });
+      const result = await service.findOne('resume-1', 'other-user')
+      expect(result.bookmarkCount).toBe(5)
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // setVisibility
   // ──────────────────────────────────────────────────
   describe('setVisibility', () => {
     it('유효한 값 public → 성공', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, visibility: 'public' });
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, visibility: 'public' })
 
-      const result = await service.setVisibility('resume-1', 'public', 'user-1');
-      expect(result).toEqual({ id: 'resume-1', visibility: 'public' });
-    });
+      const result = await service.setVisibility('resume-1', 'public', 'user-1')
+      expect(result).toEqual({ id: 'resume-1', visibility: 'public' })
+    })
 
     it('유효한 값 private → 성공', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, visibility: 'private' });
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, visibility: 'private' })
 
-      const result = await service.setVisibility('resume-1', 'private', 'user-1');
-      expect(result).toEqual({ id: 'resume-1', visibility: 'private' });
-    });
+      const result = await service.setVisibility('resume-1', 'private', 'user-1')
+      expect(result).toEqual({ id: 'resume-1', visibility: 'private' })
+    })
 
     it('유효한 값 link-only → 성공', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, visibility: 'link-only' });
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, visibility: 'link-only' })
 
-      const result = await service.setVisibility('resume-1', 'link-only', 'user-1');
-      expect(result).toEqual({ id: 'resume-1', visibility: 'link-only' });
-    });
+      const result = await service.setVisibility('resume-1', 'link-only', 'user-1')
+      expect(result).toEqual({ id: 'resume-1', visibility: 'link-only' })
+    })
 
     it('잘못된 visibility 값 → BadRequestException', async () => {
       await expect(service.setVisibility('resume-1', 'invalid', 'user-1')).rejects.toThrow(
-        BadRequestException,
-      );
-    });
+        BadRequestException
+      )
+    })
 
     it('빈 문자열 visibility → BadRequestException', async () => {
       await expect(service.setVisibility('resume-1', '', 'user-1')).rejects.toThrow(
-        BadRequestException,
-      );
-    });
+        BadRequestException
+      )
+    })
 
     it('다른 사용자가 공개 설정 변경 → ForbiddenException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
       await expect(service.setVisibility('resume-1', 'public', 'other-user')).rejects.toThrow(
-        ForbiddenException,
-      );
-    });
+        ForbiddenException
+      )
+    })
 
     it('admin 역할은 다른 사용자 이력서 공개 설정 변경 가능', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, visibility: 'public' });
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, visibility: 'public' })
 
-      const result = await service.setVisibility('resume-1', 'public', 'admin-user', 'admin');
-      expect(result).toEqual({ id: 'resume-1', visibility: 'public' });
-    });
+      const result = await service.setVisibility('resume-1', 'public', 'admin-user', 'admin')
+      expect(result).toEqual({ id: 'resume-1', visibility: 'public' })
+    })
 
     it('유효한 값 selective → 성공', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, visibility: 'selective' });
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, visibility: 'selective' })
 
-      const result = await service.setVisibility('resume-1', 'selective', 'user-1');
-      expect(result).toEqual({ id: 'resume-1', visibility: 'selective' });
-    });
-  });
+      const result = await service.setVisibility('resume-1', 'selective', 'user-1')
+      expect(result).toEqual({ id: 'resume-1', visibility: 'selective' })
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // 선택 공개 (selective) — viewer 화이트리스트 관리
@@ -457,26 +459,26 @@ describe('ResumesService', () => {
   describe('selective visibility — viewer 화이트리스트', () => {
     describe('addAllowedViewer', () => {
       it('username 으로 추가 → 새 viewer record 생성 + 알림 호출', async () => {
-        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
         mockPrisma.user.findFirst.mockResolvedValue({
           id: 'invitee-1',
           name: '김초대',
           email: 'k@example.com',
-        });
-        mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
+        })
+        mockPrisma.resumeViewer.findUnique.mockResolvedValue(null)
         mockPrisma.resumeViewer.create.mockResolvedValue({
           id: 'rv-1',
           resumeId: 'resume-1',
           userId: 'invitee-1',
           message: '코치 매칭용',
-        });
-        mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', name: '소유자' });
+        })
+        mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', name: '소유자' })
 
         const result = await service.addAllowedViewer(
           'resume-1',
           { username: 'kimchodae', message: '코치 매칭용' },
-          'user-1',
-        );
+          'user-1'
+        )
         expect(mockPrisma.resumeViewer.create).toHaveBeenCalledWith(
           expect.objectContaining({
             data: expect.objectContaining({
@@ -485,158 +487,158 @@ describe('ResumesService', () => {
               addedById: 'user-1',
               message: '코치 매칭용',
             }),
-          }),
-        );
-        expect(result).toMatchObject({ id: 'rv-1', userId: 'invitee-1' });
-      });
+          })
+        )
+        expect(result).toMatchObject({ id: 'rv-1', userId: 'invitee-1' })
+      })
 
       it('이미 추가된 사용자 재추가 → message/expiresAt 만 update (idempotent), 알림 X', async () => {
-        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-        mockPrisma.user.findFirst.mockResolvedValue({ id: 'invitee-1', name: '기존자' });
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+        mockPrisma.user.findFirst.mockResolvedValue({ id: 'invitee-1', name: '기존자' })
         mockPrisma.resumeViewer.findUnique.mockResolvedValue({
           id: 'rv-existing',
           message: 'old',
           expiresAt: null,
-        });
+        })
         mockPrisma.resumeViewer.update.mockResolvedValue({
           id: 'rv-existing',
           message: 'new',
-        });
+        })
 
         const result = await service.addAllowedViewer(
           'resume-1',
           { username: 'existing', message: 'new' },
-          'user-1',
-        );
-        expect(mockPrisma.resumeViewer.update).toHaveBeenCalled();
-        expect(mockPrisma.resumeViewer.create).not.toHaveBeenCalled();
-        expect(mockNotifications.create).not.toHaveBeenCalled();
-        expect(result).toMatchObject({ id: 'rv-existing' });
-      });
+          'user-1'
+        )
+        expect(mockPrisma.resumeViewer.update).toHaveBeenCalled()
+        expect(mockPrisma.resumeViewer.create).not.toHaveBeenCalled()
+        expect(mockNotifications.create).not.toHaveBeenCalled()
+        expect(result).toMatchObject({ id: 'rv-existing' })
+      })
 
       it('본인 추가 시도 → BadRequestException', async () => {
-        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-        mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-1', name: '본인' });
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+        mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-1', name: '본인' })
         await expect(
-          service.addAllowedViewer('resume-1', { username: 'self' }, 'user-1'),
-        ).rejects.toThrow(BadRequestException);
-      });
+          service.addAllowedViewer('resume-1', { username: 'self' }, 'user-1')
+        ).rejects.toThrow(BadRequestException)
+      })
 
       it('존재하지 않는 사용자 → NotFoundException', async () => {
-        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-        mockPrisma.user.findFirst.mockResolvedValue(null);
-        mockPrisma.user.findUnique.mockResolvedValue(null);
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+        mockPrisma.user.findFirst.mockResolvedValue(null)
+        mockPrisma.user.findUnique.mockResolvedValue(null)
         await expect(
-          service.addAllowedViewer('resume-1', { username: 'ghost' }, 'user-1'),
-        ).rejects.toThrow(NotFoundException);
-      });
+          service.addAllowedViewer('resume-1', { username: 'ghost' }, 'user-1')
+        ).rejects.toThrow(NotFoundException)
+      })
 
       it('소유자 아닌 사용자가 추가 시도 → ForbiddenException', async () => {
-        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
         await expect(
-          service.addAllowedViewer('resume-1', { username: 'x' }, 'other-user'),
-        ).rejects.toThrow(ForbiddenException);
-      });
-    });
+          service.addAllowedViewer('resume-1', { username: 'x' }, 'other-user')
+        ).rejects.toThrow(ForbiddenException)
+      })
+    })
 
     describe('removeAllowedViewer', () => {
       it('소유자가 viewer 제거 → removed:true', async () => {
-        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-        mockPrisma.resumeViewer.delete.mockResolvedValue({ id: 'rv-1' });
-        const result = await service.removeAllowedViewer('resume-1', 'invitee-1', 'user-1');
-        expect(result).toEqual({ removed: true });
-      });
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+        mockPrisma.resumeViewer.delete.mockResolvedValue({ id: 'rv-1' })
+        const result = await service.removeAllowedViewer('resume-1', 'invitee-1', 'user-1')
+        expect(result).toEqual({ removed: true })
+      })
 
       it('이미 제거된(없는) viewer 제거 → removed:false (조용히 처리)', async () => {
-        mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-        mockPrisma.resumeViewer.delete.mockRejectedValue(new Error('not found'));
-        const result = await service.removeAllowedViewer('resume-1', 'ghost', 'user-1');
-        expect(result).toEqual({ removed: false });
-      });
-    });
+        mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+        mockPrisma.resumeViewer.delete.mockRejectedValue(new Error('not found'))
+        const result = await service.removeAllowedViewer('resume-1', 'ghost', 'user-1')
+        expect(result).toEqual({ removed: false })
+      })
+    })
 
     describe('listMySharedResumes', () => {
       it('만료 안 된 viewer record 만 반환', async () => {
-        mockPrisma.resumeViewer.findMany.mockResolvedValue([{ id: 'rv-1', resume: { id: 'r1' } }]);
-        const result = await service.listMySharedResumes('viewer-1');
+        mockPrisma.resumeViewer.findMany.mockResolvedValue([{ id: 'rv-1', resume: { id: 'r1' } }])
+        const result = await service.listMySharedResumes('viewer-1')
         expect(mockPrisma.resumeViewer.findMany).toHaveBeenCalledWith(
           expect.objectContaining({
             where: expect.objectContaining({
               userId: 'viewer-1',
               OR: [{ expiresAt: null }, { expiresAt: { gt: expect.any(Date) } }],
             }),
-          }),
-        );
-        expect(result).toHaveLength(1);
-      });
+          })
+        )
+        expect(result).toHaveLength(1)
+      })
 
       it('미로그인 → ForbiddenException', async () => {
-        await expect(service.listMySharedResumes('')).rejects.toThrow(ForbiddenException);
-      });
-    });
-  });
+        await expect(service.listMySharedResumes('')).rejects.toThrow(ForbiddenException)
+      })
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // update - 소유권 검증
   // ──────────────────────────────────────────────────
   describe('update - 소유권 검증', () => {
     it('다른 사용자의 이력서 수정 → ForbiddenException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
       await expect(service.update('resume-1', { title: 'hack' }, 'other-user')).rejects.toThrow(
-        ForbiddenException,
-      );
-    });
+        ForbiddenException
+      )
+    })
 
     it('존재하지 않는 이력서 수정 → NotFoundException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(null);
+      mockPrisma.resume.findUnique.mockResolvedValue(null)
       await expect(service.update('fake', { title: 'x' }, 'user-1')).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-  });
+        NotFoundException
+      )
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // remove - 소유권 검증
   // ──────────────────────────────────────────────────
   describe('remove - 소유권 검증', () => {
     it('다른 사용자의 이력서 삭제 → ForbiddenException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      await expect(service.remove('resume-1', 'other-user')).rejects.toThrow(ForbiddenException);
-    });
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      await expect(service.remove('resume-1', 'other-user')).rejects.toThrow(ForbiddenException)
+    })
 
     it('소유자의 이력서 삭제 → 성공', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.resume.delete.mockResolvedValue(mockResume);
-      const result = await service.remove('resume-1', 'user-1');
-      expect(result).toEqual({ success: true });
-    });
-  });
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.resume.delete.mockResolvedValue(mockResume)
+      const result = await service.remove('resume-1', 'user-1')
+      expect(result).toEqual({ success: true })
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // findAll
   // ──────────────────────────────────────────────────
   describe('findAll', () => {
     it('userId로 필터링된 목록 반환', async () => {
-      mockPrisma.resume.findMany.mockResolvedValue([mockResume]);
-      mockPrisma.resume.count.mockResolvedValue(1);
-      const result = await service.findAll('user-1');
+      mockPrisma.resume.findMany.mockResolvedValue([mockResume])
+      mockPrisma.resume.count.mockResolvedValue(1)
+      const result = await service.findAll('user-1')
       expect(mockPrisma.resume.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { userId: 'user-1' } }),
-      );
-      expect(result.data).toHaveLength(1);
-      expect(result.total).toBe(1);
-      expect(result.page).toBe(1);
-    });
+        expect.objectContaining({ where: { userId: 'user-1' } })
+      )
+      expect(result.data).toHaveLength(1)
+      expect(result.total).toBe(1)
+      expect(result.page).toBe(1)
+    })
 
     it('userId 없으면 전체 목록', async () => {
-      mockPrisma.resume.findMany.mockResolvedValue([]);
-      mockPrisma.resume.count.mockResolvedValue(0);
-      await service.findAll();
+      mockPrisma.resume.findMany.mockResolvedValue([])
+      mockPrisma.resume.count.mockResolvedValue(0)
+      await service.findAll()
       expect(mockPrisma.resume.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: {} }),
-      );
-    });
-  });
+        expect.objectContaining({ where: {} })
+      )
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // findByShortCode
@@ -655,156 +657,156 @@ describe('ResumesService', () => {
       awards: [],
       activities: [],
       tags: [],
-    };
+    }
 
     it('숏코드로 공개 이력서 조회 성공', async () => {
-      mockPrisma.resume.findFirst.mockResolvedValue(publicResume);
-      mockPrisma.resume.update.mockResolvedValue(publicResume);
+      mockPrisma.resume.findFirst.mockResolvedValue(publicResume)
+      mockPrisma.resume.update.mockResolvedValue(publicResume)
 
-      const result = await service.findByShortCode('abcd1234');
-      expect(result).not.toBeNull();
-      expect(result!.id).toBe('abcd1234-full-uuid');
+      const result = await service.findByShortCode('abcd1234')
+      expect(result).not.toBeNull()
+      expect(result!.id).toBe('abcd1234-full-uuid')
       expect(mockPrisma.resume.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
             id: { startsWith: 'abcd1234' },
             visibility: { not: 'private' },
           },
-        }),
-      );
-    });
+        })
+      )
+    })
 
     it('link-only 이력서도 숏코드로 조회 가능', async () => {
-      const linkOnlyResume = { ...publicResume, visibility: 'link-only' };
-      mockPrisma.resume.findFirst.mockResolvedValue(linkOnlyResume);
-      mockPrisma.resume.update.mockResolvedValue(linkOnlyResume);
+      const linkOnlyResume = { ...publicResume, visibility: 'link-only' }
+      mockPrisma.resume.findFirst.mockResolvedValue(linkOnlyResume)
+      mockPrisma.resume.update.mockResolvedValue(linkOnlyResume)
 
-      const result = await service.findByShortCode('abcd1234');
-      expect(result).not.toBeNull();
-    });
+      const result = await service.findByShortCode('abcd1234')
+      expect(result).not.toBeNull()
+    })
 
     it('비공개 이력서는 숏코드로 조회 불가 (not: private 필터)', async () => {
-      mockPrisma.resume.findFirst.mockResolvedValue(null);
+      mockPrisma.resume.findFirst.mockResolvedValue(null)
 
-      const result = await service.findByShortCode('private1');
-      expect(result).toBeNull();
-    });
+      const result = await service.findByShortCode('private1')
+      expect(result).toBeNull()
+    })
 
     it('존재하지 않는 숏코드 → null 반환', async () => {
-      mockPrisma.resume.findFirst.mockResolvedValue(null);
+      mockPrisma.resume.findFirst.mockResolvedValue(null)
 
-      const result = await service.findByShortCode('nonexist');
-      expect(result).toBeNull();
-    });
+      const result = await service.findByShortCode('nonexist')
+      expect(result).toBeNull()
+    })
 
     it('조회 시 viewCount 증가 호출', async () => {
-      mockPrisma.resume.findFirst.mockResolvedValue(publicResume);
-      mockPrisma.resume.update.mockResolvedValue(publicResume);
+      mockPrisma.resume.findFirst.mockResolvedValue(publicResume)
+      mockPrisma.resume.update.mockResolvedValue(publicResume)
 
-      await service.findByShortCode('abcd1234');
+      await service.findByShortCode('abcd1234')
       expect(mockPrisma.resume.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'abcd1234-full-uuid' },
           data: { viewCount: { increment: 1 } },
-        }),
-      );
-    });
-  });
+        })
+      )
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // transferOwnership
   // ──────────────────────────────────────────────────
   describe('transferOwnership', () => {
     it('소유권 이전 성공', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-2', name: '김철수' });
-      mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-2', name: '김철수' });
-      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, userId: 'user-2' });
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-2', name: '김철수' })
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-2', name: '김철수' })
+      mockPrisma.resume.update.mockResolvedValue({ ...mockResume, userId: 'user-2' })
 
-      const result = await service.transferOwnership('resume-1', 'user-2');
-      expect(result.success).toBe(true);
-      expect(result.message).toContain('김철수');
+      const result = await service.transferOwnership('resume-1', 'user-2')
+      expect(result.success).toBe(true)
+      expect(result.message).toContain('김철수')
       expect(mockPrisma.resume.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'resume-1' },
           data: { userId: 'user-2' },
-        }),
-      );
-    });
+        })
+      )
+    })
 
     it('존재하지 않는 이력서 → NotFoundException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(null);
+      mockPrisma.resume.findUnique.mockResolvedValue(null)
 
       await expect(service.transferOwnership('fake-id', 'user-2')).rejects.toThrow(
-        NotFoundException,
-      );
-    });
+        NotFoundException
+      )
+    })
 
     it('존재하지 않는 대상 사용자 → NotFoundException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.user.findUnique.mockResolvedValue(null)
 
       await expect(service.transferOwnership('resume-1', 'fake-user')).rejects.toThrow(
-        NotFoundException,
-      );
+        NotFoundException
+      )
       await expect(service.transferOwnership('resume-1', 'fake-user')).rejects.toThrow(
-        '대상 사용자를 찾을 수 없습니다',
-      );
-    });
-  });
+        '대상 사용자를 찾을 수 없습니다'
+      )
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // remove - visibility cascade on delete
   // ──────────────────────────────────────────────────
   describe('remove - cascade behavior', () => {
     it('소유자 삭제 시 Prisma cascade로 관련 데이터 삭제', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.attachment.findMany.mockResolvedValue([]);
-      mockPrisma.resume.delete.mockResolvedValue(mockResume);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.attachment.findMany.mockResolvedValue([])
+      mockPrisma.resume.delete.mockResolvedValue(mockResume)
 
-      const result = await service.remove('resume-1', 'user-1');
-      expect(result).toEqual({ success: true });
-      expect(mockPrisma.resume.delete).toHaveBeenCalledWith({ where: { id: 'resume-1' } });
-    });
+      const result = await service.remove('resume-1', 'user-1')
+      expect(result).toEqual({ success: true })
+      expect(mockPrisma.resume.delete).toHaveBeenCalledWith({ where: { id: 'resume-1' } })
+    })
 
     it('admin 권한으로 다른 사용자 이력서 삭제 가능', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.attachment.findMany.mockResolvedValue([]);
-      mockPrisma.resume.delete.mockResolvedValue(mockResume);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.attachment.findMany.mockResolvedValue([])
+      mockPrisma.resume.delete.mockResolvedValue(mockResume)
 
-      const result = await service.remove('resume-1', 'admin-user', 'admin');
-      expect(result).toEqual({ success: true });
-    });
+      const result = await service.remove('resume-1', 'admin-user', 'admin')
+      expect(result).toEqual({ success: true })
+    })
 
     it('superadmin 권한으로도 삭제 가능', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.attachment.findMany.mockResolvedValue([]);
-      mockPrisma.resume.delete.mockResolvedValue(mockResume);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.attachment.findMany.mockResolvedValue([])
+      mockPrisma.resume.delete.mockResolvedValue(mockResume)
 
-      const result = await service.remove('resume-1', 'superadmin-user', 'superadmin');
-      expect(result).toEqual({ success: true });
-    });
+      const result = await service.remove('resume-1', 'superadmin-user', 'superadmin')
+      expect(result).toEqual({ success: true })
+    })
 
     it('비소유자 + 일반 권한으로 삭제 → ForbiddenException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
       await expect(service.remove('resume-1', 'other-user', 'user')).rejects.toThrow(
-        ForbiddenException,
-      );
-    });
+        ForbiddenException
+      )
+    })
 
     it('Cloudinary 첨부파일이 있는 이력서 삭제', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
       mockPrisma.attachment.findMany.mockResolvedValue([
         { filename: 'http://res.cloudinary.com/demo/upload/v123/resumes/file.pdf' },
-      ]);
-      mockPrisma.resume.delete.mockResolvedValue(mockResume);
+      ])
+      mockPrisma.resume.delete.mockResolvedValue(mockResume)
 
       // cloudinary import will fail in test env, but remove() catches it
-      const result = await service.remove('resume-1', 'user-1');
-      expect(result).toEqual({ success: true });
-      expect(mockPrisma.resume.delete).toHaveBeenCalledWith({ where: { id: 'resume-1' } });
-    });
-  });
+      const result = await service.remove('resume-1', 'user-1')
+      expect(result).toEqual({ success: true })
+      expect(mockPrisma.resume.delete).toHaveBeenCalledWith({ where: { id: 'resume-1' } })
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // findBySlug
@@ -823,25 +825,25 @@ describe('ResumesService', () => {
         awards: [],
         activities: [],
         tags: [],
-      };
-      mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-1' });
-      mockPrisma.resume.findFirst.mockResolvedValue(publicResume);
-      mockPrisma.resume.update.mockResolvedValue(publicResume);
+      }
+      mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-1' })
+      mockPrisma.resume.findFirst.mockResolvedValue(publicResume)
+      mockPrisma.resume.update.mockResolvedValue(publicResume)
 
-      const result = await service.findBySlug('hong', 'test-resume');
-      expect(result.id).toBe('resume-1');
-    });
+      const result = await service.findBySlug('hong', 'test-resume')
+      expect(result.id).toBe('resume-1')
+    })
 
     it('slug 가 없으면 NotFoundException', async () => {
       // 현재 구현은 username 무관, slug + visibility 만으로 lookup. DB 에 없으면 null → throw.
-      mockPrisma.resume.findFirst.mockResolvedValue(null);
-      await expect(service.findBySlug('unknown', 'test')).rejects.toThrow(NotFoundException);
-    });
+      mockPrisma.resume.findFirst.mockResolvedValue(null)
+      await expect(service.findBySlug('unknown', 'test')).rejects.toThrow(NotFoundException)
+    })
 
     it('visibility 필터: private 는 where 절로 제외 (DB null 반환 시 NotFoundException)', async () => {
       // 실제 DB 에서는 visibility: { not: 'private' } 가 private 이력서를 제외해 null 반환.
-      mockPrisma.resume.findFirst.mockResolvedValue(null);
-      await expect(service.findBySlug('hong', 'private-slug')).rejects.toThrow(NotFoundException);
+      mockPrisma.resume.findFirst.mockResolvedValue(null)
+      await expect(service.findBySlug('hong', 'private-slug')).rejects.toThrow(NotFoundException)
       // where 절에 visibility 필터가 들어갔는지 검증
       expect(mockPrisma.resume.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -849,26 +851,26 @@ describe('ResumesService', () => {
             slug: 'private-slug',
             visibility: { not: 'private' },
           }),
-        }),
-      );
-    });
-  });
+        })
+      )
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // bookmarks
   // ──────────────────────────────────────────────────
   describe('bookmarks', () => {
     it('북마크 추가', async () => {
-      mockPrisma.bookmark.create = jest.fn().mockResolvedValue({ id: 'b1' });
-      const result = await service.addBookmark('resume-1', 'user-1');
-      expect(result.bookmarked).toBe(true);
-    });
+      mockPrisma.bookmark.create = jest.fn().mockResolvedValue({ id: 'b1' })
+      const result = await service.addBookmark('resume-1', 'user-1')
+      expect(result.bookmarked).toBe(true)
+    })
 
     it('북마크 해제', async () => {
-      mockPrisma.bookmark.deleteMany = jest.fn().mockResolvedValue({ count: 1 });
-      const result = await service.removeBookmark('resume-1', 'user-1');
-      expect(result.bookmarked).toBe(false);
-    });
+      mockPrisma.bookmark.deleteMany = jest.fn().mockResolvedValue({ count: 1 })
+      const result = await service.removeBookmark('resume-1', 'user-1')
+      expect(result.bookmarked).toBe(false)
+    })
 
     it('북마크 목록', async () => {
       mockPrisma.bookmark.findMany = jest.fn().mockResolvedValue([
@@ -877,12 +879,12 @@ describe('ResumesService', () => {
           resume: { id: 'r1', title: '테스트', personalInfo: { name: '홍길동' } },
           createdAt: new Date(),
         },
-      ]);
-      const result = await service.getBookmarks('user-1');
-      expect(result).toHaveLength(1);
-      expect(result[0].title).toBe('테스트');
-    });
-  });
+      ])
+      const result = await service.getBookmarks('user-1')
+      expect(result).toHaveLength(1)
+      expect(result[0].title).toBe('테스트')
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // 스킬 추천(Endorsement)
@@ -895,15 +897,15 @@ describe('ResumesService', () => {
         create: jest.fn(),
         delete: jest.fn(),
         count: jest.fn(),
-      };
-      mockPrisma.resume.findUnique.mockResolvedValue({ id: 'resume-1' });
-    });
+      }
+      mockPrisma.resume.findUnique.mockResolvedValue({ id: 'resume-1' })
+    })
 
     it('getEndorsements — 빈 결과 반환', async () => {
-      mockPrisma.skillEndorsement.findMany.mockResolvedValue([]);
-      const result = await service.getEndorsements('resume-1');
-      expect(result).toEqual({});
-    });
+      mockPrisma.skillEndorsement.findMany.mockResolvedValue([])
+      const result = await service.getEndorsements('resume-1')
+      expect(result).toEqual({})
+    })
 
     it('getEndorsements — 추천 수 집계 및 본인 추천 여부 확인', async () => {
       mockPrisma.skillEndorsement.findMany.mockResolvedValue([
@@ -916,82 +918,82 @@ describe('ResumesService', () => {
           skill: 'TypeScript',
           createdAt: new Date(),
         },
-      ]);
-      const result = await service.getEndorsements('resume-1', 'user-1');
-      expect(result['React'].count).toBe(2);
-      expect(result['React'].endorsed).toBe(true);
-      expect(result['TypeScript'].count).toBe(1);
-      expect(result['TypeScript'].endorsed).toBe(true);
-    });
+      ])
+      const result = await service.getEndorsements('resume-1', 'user-1')
+      expect(result['React'].count).toBe(2)
+      expect(result['React'].endorsed).toBe(true)
+      expect(result['TypeScript'].count).toBe(1)
+      expect(result['TypeScript'].endorsed).toBe(true)
+    })
 
     it('getEndorsements — 뷰어가 추천하지 않은 기술', async () => {
       mockPrisma.skillEndorsement.findMany.mockResolvedValue([
         { id: '1', resumeId: 'resume-1', userId: 'user-2', skill: 'React', createdAt: new Date() },
-      ]);
-      const result = await service.getEndorsements('resume-1', 'user-1');
-      expect(result['React'].count).toBe(1);
-      expect(result['React'].endorsed).toBe(false);
-    });
+      ])
+      const result = await service.getEndorsements('resume-1', 'user-1')
+      expect(result['React'].count).toBe(1)
+      expect(result['React'].endorsed).toBe(false)
+    })
 
     it('toggleEndorse — 추천 추가 (없는 경우)', async () => {
-      mockPrisma.skillEndorsement.findUnique.mockResolvedValue(null);
-      mockPrisma.skillEndorsement.create.mockResolvedValue({ id: 'new-1' });
-      mockPrisma.skillEndorsement.count.mockResolvedValue(1);
+      mockPrisma.skillEndorsement.findUnique.mockResolvedValue(null)
+      mockPrisma.skillEndorsement.create.mockResolvedValue({ id: 'new-1' })
+      mockPrisma.skillEndorsement.count.mockResolvedValue(1)
 
-      const result = await service.toggleEndorse('resume-1', 'user-1', 'React');
-      expect(result.endorsed).toBe(true);
-      expect(result.count).toBe(1);
+      const result = await service.toggleEndorse('resume-1', 'user-1', 'React')
+      expect(result.endorsed).toBe(true)
+      expect(result.count).toBe(1)
       expect(mockPrisma.skillEndorsement.create).toHaveBeenCalledWith({
         data: { resumeId: 'resume-1', userId: 'user-1', skill: 'React' },
-      });
-    });
+      })
+    })
 
     it('toggleEndorse — 존재하지 않는 이력서면 NotFoundException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(null);
+      mockPrisma.resume.findUnique.mockResolvedValue(null)
 
       await expect(service.toggleEndorse('missing-resume', 'user-1', 'React')).rejects.toThrow(
-        NotFoundException,
-      );
-      expect(mockPrisma.skillEndorsement.create).not.toHaveBeenCalled();
-    });
+        NotFoundException
+      )
+      expect(mockPrisma.skillEndorsement.create).not.toHaveBeenCalled()
+    })
 
     it('toggleEndorse — 추천 취소 (이미 있는 경우)', async () => {
-      const existing = { id: 'end-1', resumeId: 'resume-1', userId: 'user-1', skill: 'React' };
-      mockPrisma.skillEndorsement.findUnique.mockResolvedValue(existing);
-      mockPrisma.skillEndorsement.delete.mockResolvedValue(existing);
-      mockPrisma.skillEndorsement.count.mockResolvedValue(0);
+      const existing = { id: 'end-1', resumeId: 'resume-1', userId: 'user-1', skill: 'React' }
+      mockPrisma.skillEndorsement.findUnique.mockResolvedValue(existing)
+      mockPrisma.skillEndorsement.delete.mockResolvedValue(existing)
+      mockPrisma.skillEndorsement.count.mockResolvedValue(0)
 
-      const result = await service.toggleEndorse('resume-1', 'user-1', 'React');
-      expect(result.endorsed).toBe(false);
-      expect(result.count).toBe(0);
-      expect(mockPrisma.skillEndorsement.delete).toHaveBeenCalledWith({ where: { id: 'end-1' } });
-    });
+      const result = await service.toggleEndorse('resume-1', 'user-1', 'React')
+      expect(result.endorsed).toBe(false)
+      expect(result.count).toBe(0)
+      expect(mockPrisma.skillEndorsement.delete).toHaveBeenCalledWith({ where: { id: 'end-1' } })
+    })
 
     it('getEndorsements — 비공개 이력서 + 비소유자 → 빈 객체 (정보 노출 차단)', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue({
         id: 'resume-1',
         userId: 'owner-1',
         visibility: 'private',
-      });
-      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
-      const result = await service.getEndorsements('resume-1', 'attacker-2');
-      expect(result).toEqual({});
-      expect(mockPrisma.skillEndorsement.findMany).not.toHaveBeenCalled();
-    });
+      })
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null)
+      const result = await service.getEndorsements('resume-1', 'attacker-2')
+      expect(result).toEqual({})
+      expect(mockPrisma.skillEndorsement.findMany).not.toHaveBeenCalled()
+    })
 
     it('toggleEndorse — 비공개 이력서 + 비소유자 → ForbiddenException (무단 변경 차단)', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue({
         id: 'resume-1',
         userId: 'owner-1',
         visibility: 'private',
-      });
-      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
+      })
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null)
       await expect(service.toggleEndorse('resume-1', 'attacker-2', 'React')).rejects.toThrow(
-        ForbiddenException,
-      );
-      expect(mockPrisma.skillEndorsement.create).not.toHaveBeenCalled();
-    });
-  });
+        ForbiddenException
+      )
+      expect(mockPrisma.skillEndorsement.create).not.toHaveBeenCalled()
+    })
+  })
 
   // ──────────────────────────────────────────────────
   // 가시성 접근 제어 (IDOR 방지) — assertCanAccess / findBySlug / findByShortCode
@@ -1003,64 +1005,64 @@ describe('ResumesService', () => {
       visibility: 'selective',
       userId: 'owner-1',
       slug: 'sel-slug',
-    };
+    }
 
     it('assertCanAccess — 공개 이력서는 비로그인도 통과', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue({
         id: 'pub-1',
         userId: 'owner-1',
         visibility: 'public',
-      });
-      await expect(service.assertCanAccess('pub-1', undefined)).resolves.toBeUndefined();
-    });
+      })
+      await expect(service.assertCanAccess('pub-1', undefined)).resolves.toBeUndefined()
+    })
 
     it('assertCanAccess — 비공개 + 비소유자 → ForbiddenException', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue({
         id: 'priv-1',
         userId: 'owner-1',
         visibility: 'private',
-      });
-      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
+      })
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null)
       await expect(service.assertCanAccess('priv-1', 'attacker-2')).rejects.toThrow(
-        ForbiddenException,
-      );
-    });
+        ForbiddenException
+      )
+    })
 
     it('assertCanAccess — selective + 화이트리스트 미등록 → ForbiddenException', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue({
         id: 'sel-1',
         userId: 'owner-1',
         visibility: 'selective',
-      });
-      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
+      })
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null)
       await expect(service.assertCanAccess('sel-1', 'attacker-2')).rejects.toThrow(
-        ForbiddenException,
-      );
-    });
+        ForbiddenException
+      )
+    })
 
     it('assertCanAccess — selective + 미만료 화이트리스트 등록자 → 통과', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue({
         id: 'sel-1',
         userId: 'owner-1',
         visibility: 'selective',
-      });
-      mockPrisma.resumeViewer.findUnique.mockResolvedValue({ expiresAt: null });
-      await expect(service.assertCanAccess('sel-1', 'viewer-9')).resolves.toBeUndefined();
-    });
+      })
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue({ expiresAt: null })
+      await expect(service.assertCanAccess('sel-1', 'viewer-9')).resolves.toBeUndefined()
+    })
 
     it('findBySlug — selective + 비등록자 → NotFoundException (slug 알아도 차단)', async () => {
-      mockPrisma.resume.findFirst.mockResolvedValue(selectiveResume);
-      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
+      mockPrisma.resume.findFirst.mockResolvedValue(selectiveResume)
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null)
       await expect(service.findBySlug('owner', 'sel-slug', 'attacker-2')).rejects.toThrow(
-        NotFoundException,
-      );
-    });
+        NotFoundException
+      )
+    })
 
     it('findByShortCode — selective + 비등록자 → null (숏코드 알아도 차단)', async () => {
-      mockPrisma.resume.findFirst.mockResolvedValue(selectiveResume);
-      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null);
-      const result = await service.findByShortCode('sel-1', 'attacker-2');
-      expect(result).toBeNull();
-    });
-  });
-});
+      mockPrisma.resume.findFirst.mockResolvedValue(selectiveResume)
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null)
+      const result = await service.findByShortCode('sel-1', 'attacker-2')
+      expect(result).toBeNull()
+    })
+  })
+})

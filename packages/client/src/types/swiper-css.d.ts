@@ -3,5 +3,5 @@
 // bundler can load, but TypeScript's `noUncheckedSideEffectImports` requires
 // explicit module declarations.
 
-declare module 'swiper/css';
-declare module 'swiper/css/*';
+declare module 'swiper/css'
+declare module 'swiper/css/*'

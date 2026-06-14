@@ -1,74 +1,76 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useReactToPrint } from 'react-to-print';
-import Header from '@/components/Header';
-import ResumePreview from '@/components/ResumePreview';
-import PrintFooter from '@/components/PrintFooter';
-import { downloadVCard } from '@/lib/vcard';
-import { copySignatureToClipboard } from '@/lib/emailSignature';
-import { generateHashtags } from '@/lib/metaUtils';
-import { buildResumePlainText } from '@/lib/resumeText';
-import PitchPanel from '@/components/PitchPanel';
-import ReadabilityPanel from '@/components/ReadabilityPanel';
-import SkillProficiencyPanel from '@/components/SkillProficiencyPanel';
-import JdMatchPanel from '@/components/JdMatchPanel';
-import KoreanCheckerPanel from '@/components/KoreanCheckerPanel';
-import AudioSummaryPanel from '@/components/AudioSummaryPanel';
-import NonItAssistantPanel from '@/components/NonItAssistantPanel';
-import DocumentEnhancePanel from '@/components/DocumentEnhancePanel';
-import PanelSection from '@/components/PanelSection';
-import CareerGrowthChart from '@/components/CareerGrowthChart';
-import { downloadSocialCard, downloadSocialCardSvg } from '@/lib/socialCard';
-import { downloadJsonResume } from '@/lib/jsonResume';
-import { copyPlainText, copyMarkdown } from '@/lib/resumeExport';
-import { resumeThemes } from '@/lib/resumeThemes';
-import CompletenessBar from '@/components/CompletenessBar';
-import { ROUTES, withQuery } from '@/lib/routes';
+import { useQueryClient } from '@tanstack/react-query'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useReactToPrint } from 'react-to-print'
+
+import type { Resume } from '@/types/resume'
+
+import AICareerAdvisor from '@/components/AICareerAdvisor'
+import AttachmentList from '@/components/AttachmentList'
+import AudioSummaryPanel from '@/components/AudioSummaryPanel'
+import BookmarkButton from '@/components/BookmarkButton'
+import CareerGrowthChart from '@/components/CareerGrowthChart'
+import CareerPathSuggestion from '@/components/CareerPathSuggestion'
+import CareerTimeline from '@/components/CareerTimeline'
+import CompletenessBar from '@/components/CompletenessBar'
+import DocumentEnhancePanel from '@/components/DocumentEnhancePanel'
+import FollowButton from '@/components/FollowButton'
+import Header from '@/components/Header'
+import JdMatchPanel from '@/components/JdMatchPanel'
+import KeywordAnalysis from '@/components/KeywordAnalysis'
+import KoreanCheckerPanel from '@/components/KoreanCheckerPanel'
+import NonItAssistantPanel from '@/components/NonItAssistantPanel'
+import PanelSection from '@/components/PanelSection'
+import PitchPanel from '@/components/PitchPanel'
+import PrintFooter from '@/components/PrintFooter'
+import PublicLinkSettings from '@/components/PublicLinkSettings'
+import QrCodeModal from '@/components/QrCodeModal'
+import ReadabilityPanel from '@/components/ReadabilityPanel'
+import ReportButton from '@/components/ReportButton'
+import ResumeAnalytics from '@/components/ResumeAnalytics'
+import ResumeAuditPanel from '@/components/ResumeAuditPanel'
+import ResumePreview from '@/components/ResumePreview'
+import ResumeScoreCard from '@/components/ResumeScoreCard'
+import ResumeStats from '@/components/ResumeStats'
+import SendMessageButton from '@/components/SendMessageButton'
+import ShareStats from '@/components/ShareStats'
+import SimilarResumes from '@/components/SimilarResumes'
+import SkillEndorsement from '@/components/SkillEndorsement'
+import SkillProficiencyPanel from '@/components/SkillProficiencyPanel'
+import { toast } from '@/components/Toast'
+import { addRecentView } from '@/features/recent-views'
+import { useResume } from '@/hooks/useResources'
+import { updateResume } from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { copySignatureToClipboard } from '@/lib/emailSignature'
+import { downloadJsonResume } from '@/lib/jsonResume'
+import { generateHashtags } from '@/lib/metaUtils'
+import { copyPlainText, copyMarkdown } from '@/lib/resumeExport'
+import { buildResumePlainText } from '@/lib/resumeText'
+import { resumeThemes } from '@/lib/resumeThemes'
+import { ROUTES, withQuery } from '@/lib/routes'
+import { downloadSocialCard, downloadSocialCardSvg } from '@/lib/socialCard'
+import { downloadVCard } from '@/lib/vcard'
 
 // Lazy-load heavy sub-components that are not visible on initial render
-const LlmTransformPanel = lazy(() => import('@/components/LlmTransformPanel'));
-const VersionPanel = lazy(() => import('@/components/VersionPanel'));
-const AttachmentPanel = lazy(() => import('@/components/AttachmentPanel'));
-const AiAnalysisPanel = lazy(() => import('@/components/AiAnalysisPanel'));
-const CommentSection = lazy(() => import('@/components/CommentSection'));
-const ResumeScoreboard = lazy(() => import('@/components/ResumeScoreboard'));
-const SalaryEstimate = lazy(() => import('@/components/SalaryEstimate'));
-const AtsScorePanel = lazy(() => import('@/components/AtsScorePanel'));
-const JdMatchAnalyzer = lazy(() => import('@/components/JdMatchAnalyzer'));
-const SimilarityPanel = lazy(() => import('@/components/SimilarityPanel'));
-const ResumeChecklist = lazy(() => import('@/components/ResumeChecklist'));
-const TransformHistory = lazy(() => import('@/components/TransformHistory'));
-const ResumeTrend = lazy(() => import('@/components/ResumeTrend'));
-const SkillChart = lazy(() => import('@/components/SkillChart'));
-const ProjectShowcase = lazy(() => import('@/components/ProjectShowcase'));
-const AchievementBadges = lazy(() => import('@/components/AchievementBadges'));
-import SkillEndorsement from '@/components/SkillEndorsement';
-import CareerTimeline from '@/components/CareerTimeline';
-import CareerPathSuggestion from '@/components/CareerPathSuggestion';
-import SimilarResumes from '@/components/SimilarResumes';
-import KeywordAnalysis from '@/components/KeywordAnalysis';
-import AttachmentList from '@/components/AttachmentList';
-import ResumeAnalytics from '@/components/ResumeAnalytics';
-import ResumeStats from '@/components/ResumeStats';
-import AICareerAdvisor from '@/components/AICareerAdvisor';
-import { toast } from '@/components/Toast';
-import ReportButton from '@/components/ReportButton';
-import { updateResume } from '@/lib/api';
-import type { Resume } from '@/types/resume';
-import { useQueryClient } from '@tanstack/react-query';
-import { useResume } from '@/hooks/useResources';
-import { getUser } from '@/lib/auth';
-import BookmarkButton from '@/components/BookmarkButton';
-import FollowButton from '@/components/FollowButton';
-import SendMessageButton from '@/components/SendMessageButton';
-import QrCodeModal from '@/components/QrCodeModal';
-import { addRecentView } from '@/features/recent-views';
-import PublicLinkSettings from '@/components/PublicLinkSettings';
-import ShareStats from '@/components/ShareStats';
-import ResumeAuditPanel from '@/components/ResumeAuditPanel';
-import ResumeScoreCard from '@/components/ResumeScoreCard';
+const LlmTransformPanel = lazy(() => import('@/components/LlmTransformPanel'))
+const VersionPanel = lazy(() => import('@/components/VersionPanel'))
+const AttachmentPanel = lazy(() => import('@/components/AttachmentPanel'))
+const AiAnalysisPanel = lazy(() => import('@/components/AiAnalysisPanel'))
+const CommentSection = lazy(() => import('@/components/CommentSection'))
+const ResumeScoreboard = lazy(() => import('@/components/ResumeScoreboard'))
+const SalaryEstimate = lazy(() => import('@/components/SalaryEstimate'))
+const AtsScorePanel = lazy(() => import('@/components/AtsScorePanel'))
+const JdMatchAnalyzer = lazy(() => import('@/components/JdMatchAnalyzer'))
+const SimilarityPanel = lazy(() => import('@/components/SimilarityPanel'))
+const ResumeChecklist = lazy(() => import('@/components/ResumeChecklist'))
+const TransformHistory = lazy(() => import('@/components/TransformHistory'))
+const ResumeTrend = lazy(() => import('@/components/ResumeTrend'))
+const SkillChart = lazy(() => import('@/components/SkillChart'))
+const ProjectShowcase = lazy(() => import('@/components/ProjectShowcase'))
+const AchievementBadges = lazy(() => import('@/components/AchievementBadges'))
 
-const ZOOM_LEVELS = [75, 100, 125, 150] as const;
+const ZOOM_LEVELS = [75, 100, 125, 150] as const
 
 /** Map theme accentColor to Tailwind classes */
 const accentColorMap: Record<
@@ -112,11 +114,11 @@ const accentColorMap: Record<
     bgLight: 'bg-amber-50',
     border: 'border-amber-400',
   },
-};
+}
 
 /** Estimate reading time for Korean resume content (~200 words/min) */
 function estimateReadingMinutes(resume: Resume): number {
-  const parts: string[] = [];
+  const parts: string[] = []
   const {
     personalInfo,
     experiences,
@@ -127,252 +129,252 @@ function estimateReadingMinutes(resume: Resume): number {
     languages,
     awards,
     activities,
-  } = resume;
-  if (personalInfo.name) parts.push(personalInfo.name);
-  if (personalInfo.email) parts.push(personalInfo.email);
-  if (personalInfo.phone) parts.push(personalInfo.phone);
-  if (personalInfo.summary) parts.push(personalInfo.summary);
+  } = resume
+  if (personalInfo.name) parts.push(personalInfo.name)
+  if (personalInfo.email) parts.push(personalInfo.email)
+  if (personalInfo.phone) parts.push(personalInfo.phone)
+  if (personalInfo.summary) parts.push(personalInfo.summary)
   experiences.forEach((e) => {
-    parts.push(e.company, e.position, e.description ?? '');
-  });
+    parts.push(e.company, e.position, e.description ?? '')
+  })
   educations.forEach((e) => {
-    parts.push(e.school, e.degree, e.field ?? '');
-  });
+    parts.push(e.school, e.degree, e.field ?? '')
+  })
   skills.forEach((s) => {
-    parts.push(s.category, s.items);
-  });
+    parts.push(s.category, s.items)
+  })
   projects.forEach((p) => {
-    parts.push(p.name, p.description ?? '');
-  });
+    parts.push(p.name, p.description ?? '')
+  })
   certifications.forEach((c) => {
-    parts.push(c.name);
-  });
+    parts.push(c.name)
+  })
   languages.forEach((l) => {
-    parts.push(l.name);
-  });
+    parts.push(l.name)
+  })
   awards.forEach((a) => {
-    parts.push(a.name, a.description ?? '');
-  });
+    parts.push(a.name, a.description ?? '')
+  })
   activities.forEach((a) => {
-    parts.push(a.name, a.description ?? '');
-  });
-  const totalChars = parts.join(' ').length;
+    parts.push(a.name, a.description ?? '')
+  })
+  const totalChars = parts.join(' ').length
   // Korean: ~2 chars/word on average => chars/2 = word count => /200 = minutes
-  const minutes = Math.max(1, Math.ceil(totalChars / 2 / 200));
-  return minutes;
+  const minutes = Math.max(1, Math.ceil(totalChars / 2 / 200))
+  return minutes
 }
 
 export default function PreviewPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { data: resumeData, error: resumeError } = useResume(id);
-  const resume: Resume | null = (resumeData as Resume | undefined) ?? null;
-  const notFound = !!resumeError;
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { data: resumeData, error: resumeError } = useResume(id)
+  const resume: Resume | null = (resumeData as Resume | undefined) ?? null
+  const notFound = !!resumeError
   // 'selective' 공개 이력서를 권한 없이 열람한 경우와 일반 not-found 를 구분 (UX 차별화)
-  const errorMessage = resumeError instanceof Error ? resumeError.message : '';
+  const errorMessage = resumeError instanceof Error ? resumeError.message : ''
   const isForbiddenSelective =
     notFound &&
     (errorMessage.includes('접근 권한이 없') ||
       errorMessage.includes('접근할 권한이 없') ||
-      errorMessage.includes('선택 공개'));
+      errorMessage.includes('선택 공개'))
   const setResume = (r: Resume | ((prev: Resume | null) => Resume | null) | null) => {
-    queryClient.setQueryData(['resume', id], typeof r === 'function' ? r(resume) : r);
-  };
+    queryClient.setQueryData(['resume', id], typeof r === 'function' ? r(resume) : r)
+  }
   // setNotFound handled by query error state
-  const [showTransform, setShowTransform] = useState(false);
-  const [showVersions, setShowVersions] = useState(false);
-  const [showAttachments, setShowAttachments] = useState(false);
-  const [showAiAnalysis, setShowAiAnalysis] = useState(false);
-  const [showJdMatch, setShowJdMatch] = useState(false);
-  const [themeId, setThemeId] = useState('classic');
-  const [customAccentHex, setCustomAccentHex] = useState('');
+  const [showTransform, setShowTransform] = useState(false)
+  const [showVersions, setShowVersions] = useState(false)
+  const [showAttachments, setShowAttachments] = useState(false)
+  const [showAiAnalysis, setShowAiAnalysis] = useState(false)
+  const [showJdMatch, setShowJdMatch] = useState(false)
+  const [themeId, setThemeId] = useState('classic')
+  const [customAccentHex, setCustomAccentHex] = useState('')
 
   // 선택된 테마의 accent/header 색상 — 페이지 전체 chrome 에 반영
-  const activeTheme = resumeThemes.find((t) => t.id === themeId) ?? resumeThemes[0];
+  const activeTheme = resumeThemes.find((t) => t.id === themeId) ?? resumeThemes[0]
   const themeAccent =
-    customAccentHex || activeTheme.preview?.accentBar || activeTheme.preview?.headerBg || '#2563eb';
-  const themeHeaderBg = activeTheme.preview?.headerBg || '#f8fafc';
-  const themeCategory = activeTheme.preview?.category || 'basic';
+    customAccentHex || activeTheme.preview?.accentBar || activeTheme.preview?.headerBg || '#2563eb'
+  const themeHeaderBg = activeTheme.preview?.headerBg || '#f8fafc'
+  const themeCategory = activeTheme.preview?.category || 'basic'
 
   // Site-wide theme propagation — PreviewPage 진입 시 <html> 에 data 속성 + CSS 변수
   // 부여해 Header / Footer / 모든 인접 chrome 까지 테마 색이 미치도록 한다 (드라마틱 시각 변화).
   // unmount 또는 다른 페이지 이동 시 정리.
   useEffect(() => {
-    const html = document.documentElement;
-    html.setAttribute('data-active-resume-theme', themeCategory || 'basic');
-    html.style.setProperty('--active-theme-accent', themeAccent);
-    html.style.setProperty('--active-theme-header-bg', themeHeaderBg);
+    const html = document.documentElement
+    html.setAttribute('data-active-resume-theme', themeCategory || 'basic')
+    html.style.setProperty('--active-theme-accent', themeAccent)
+    html.style.setProperty('--active-theme-header-bg', themeHeaderBg)
     return () => {
-      html.removeAttribute('data-active-resume-theme');
-      html.style.removeProperty('--active-theme-accent');
-      html.style.removeProperty('--active-theme-header-bg');
-    };
-  }, [themeAccent, themeHeaderBg, themeCategory]);
-  const [customFont, setCustomFont] = useState('');
-  const [showQr, setShowQr] = useState(false);
-  const [showShareMenu, setShowShareMenu] = useState(false);
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const [showScoreCard, setShowScoreCard] = useState(false);
-  const [printPreparing, setPrintPreparing] = useState(false);
+      html.removeAttribute('data-active-resume-theme')
+      html.style.removeProperty('--active-theme-accent')
+      html.style.removeProperty('--active-theme-header-bg')
+    }
+  }, [themeAccent, themeHeaderBg, themeCategory])
+  const [customFont, setCustomFont] = useState('')
+  const [showQr, setShowQr] = useState(false)
+  const [showShareMenu, setShowShareMenu] = useState(false)
+  const [showMoreMenu, setShowMoreMenu] = useState(false)
+  const [showScoreCard, setShowScoreCard] = useState(false)
+  const [printPreparing, setPrintPreparing] = useState(false)
   // Zoom controls
-  const [zoomLevel, setZoomLevel] = useState(100);
+  const [zoomLevel, setZoomLevel] = useState(100)
   // 모바일에서는 기본값이 fit-to-width — 210mm 이력서가 375px 뷰포트 넘어 가로 스크롤 유발하던 문제 해결
   const [fitToWidth, setFitToWidth] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth < 768 : false,
-  );
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const previewWrapperRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const shareMenuRef = useRef<HTMLDivElement>(null);
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  )
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const previewWrapperRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const shareMenuRef = useRef<HTMLDivElement>(null)
 
   const reactToPrint = useReactToPrint({
     contentRef,
     documentTitle: resume
       ? `${resume.personalInfo?.name || resume.title || '이력서'}_${new Date().toISOString().slice(0, 10)}`
       : '이력서',
-  });
+  })
 
   const handlePrint = useCallback(() => {
-    setPrintPreparing(true);
+    setPrintPreparing(true)
     setTimeout(() => {
-      setPrintPreparing(false);
-      reactToPrint();
-    }, 800);
-  }, [reactToPrint]);
+      setPrintPreparing(false)
+      reactToPrint()
+    }, 800)
+  }, [reactToPrint])
 
   const shareUrl = useMemo(() => {
-    if (!resume) return window.location.href;
+    if (!resume) return window.location.href
     return resume.slug
       ? `${window.location.origin}/@${encodeURIComponent(resume.personalInfo.name || 'user')}/${resume.slug}`
-      : window.location.href;
-  }, [resume]);
+      : window.location.href
+  }, [resume])
 
   const handleCopyLink = useCallback(() => {
     navigator.clipboard.writeText(shareUrl).then(() => {
-      toast('링크가 복사되었습니다', 'success');
-    });
-    setShowShareMenu(false);
-  }, [shareUrl]);
+      toast('링크가 복사되었습니다', 'success')
+    })
+    setShowShareMenu(false)
+  }, [shareUrl])
 
   const handleShareEmail = useCallback(() => {
-    const subject = encodeURIComponent(`${resume?.personalInfo.name || ''}의 이력서`);
-    const body = encodeURIComponent(`이력서를 확인해 보세요:\n${shareUrl}`);
-    window.open(`mailto:?subject=${subject}&body=${body}`, '_self');
-    setShowShareMenu(false);
-  }, [resume, shareUrl]);
+    const subject = encodeURIComponent(`${resume?.personalInfo.name || ''}의 이력서`)
+    const body = encodeURIComponent(`이력서를 확인해 보세요:\n${shareUrl}`)
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_self')
+    setShowShareMenu(false)
+  }, [resume, shareUrl])
 
   const handleShareLinkedIn = useCallback(() => {
     window.open(
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
       '_blank',
-      'noopener',
-    );
-    setShowShareMenu(false);
-  }, [shareUrl]);
+      'noopener'
+    )
+    setShowShareMenu(false)
+  }, [shareUrl])
 
   const handleShareKakao = useCallback(() => {
     // Fallback: copy link and guide user
     navigator.clipboard.writeText(shareUrl).then(() => {
-      toast('링크가 복사되었습니다. 카카오톡에서 붙여넣기 해주세요.', 'info');
-    });
-    setShowShareMenu(false);
-  }, [shareUrl]);
+      toast('링크가 복사되었습니다. 카카오톡에서 붙여넣기 해주세요.', 'info')
+    })
+    setShowShareMenu(false)
+  }, [shareUrl])
 
-  const readingMinutes = useMemo(() => (resume ? estimateReadingMinutes(resume) : 0), [resume]);
+  const readingMinutes = useMemo(() => (resume ? estimateReadingMinutes(resume) : 0), [resume])
 
   // Zoom handlers
   const handleZoomIn = useCallback(() => {
-    setFitToWidth(false);
+    setFitToWidth(false)
     setZoomLevel((prev) => {
-      const idx = ZOOM_LEVELS.indexOf(prev as (typeof ZOOM_LEVELS)[number]);
-      if (idx >= 0 && idx < ZOOM_LEVELS.length - 1) return ZOOM_LEVELS[idx + 1];
-      return prev;
-    });
-  }, []);
+      const idx = ZOOM_LEVELS.indexOf(prev as (typeof ZOOM_LEVELS)[number])
+      if (idx >= 0 && idx < ZOOM_LEVELS.length - 1) return ZOOM_LEVELS[idx + 1]
+      return prev
+    })
+  }, [])
 
   const handleZoomOut = useCallback(() => {
-    setFitToWidth(false);
+    setFitToWidth(false)
     setZoomLevel((prev) => {
-      const idx = ZOOM_LEVELS.indexOf(prev as (typeof ZOOM_LEVELS)[number]);
-      if (idx > 0) return ZOOM_LEVELS[idx - 1];
-      return prev;
-    });
-  }, []);
+      const idx = ZOOM_LEVELS.indexOf(prev as (typeof ZOOM_LEVELS)[number])
+      if (idx > 0) return ZOOM_LEVELS[idx - 1]
+      return prev
+    })
+  }, [])
 
   const handleFitToWidth = useCallback(() => {
-    setFitToWidth((prev) => !prev);
-  }, []);
+    setFitToWidth((prev) => !prev)
+  }, [])
 
   const handleFullscreen = useCallback(() => {
-    if (!previewWrapperRef.current) return;
+    if (!previewWrapperRef.current) return
     if (!document.fullscreenElement) {
       previewWrapperRef.current
         .requestFullscreen()
         .then(() => setIsFullscreen(true))
-        .catch(() => {});
+        .catch(() => {})
     } else {
       document
         .exitFullscreen()
         .then(() => setIsFullscreen(false))
-        .catch(() => {});
+        .catch(() => {})
     }
-  }, []);
+  }, [])
 
   // Listen for fullscreen exit
   useEffect(() => {
     const handleFsChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFsChange);
-    return () => document.removeEventListener('fullscreenchange', handleFsChange);
-  }, []);
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener('fullscreenchange', handleFsChange)
+    return () => document.removeEventListener('fullscreenchange', handleFsChange)
+  }, [])
 
   // Close share menu when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (shareMenuRef.current && !shareMenuRef.current.contains(e.target as Node)) {
-        setShowShareMenu(false);
+        setShowShareMenu(false)
       }
     }
     if (showShareMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [showShareMenu]);
+  }, [showShareMenu])
 
   const loadResume = () => {
-    queryClient.invalidateQueries({ queryKey: ['resume', id] });
-  };
+    queryClient.invalidateQueries({ queryKey: ['resume', id] })
+  }
 
   useEffect(() => {
-    if (resume) addRecentView(resume.id, resume.title || '이력서', resume.personalInfo?.name);
-  }, [resume]);
+    if (resume) addRecentView(resume.id, resume.title || '이력서', resume.personalInfo?.name)
+  }, [resume])
 
   useEffect(() => {
     if (resume) {
-      const name = resume.personalInfo.name || resume.title || '이력서';
-      const desc = (resume.personalInfo.summary || '').replace(/<[^>]*>/g, '').slice(0, 150);
-      document.title = `${name} — 이력서공방`;
+      const name = resume.personalInfo.name || resume.title || '이력서'
+      const desc = (resume.personalInfo.summary || '').replace(/<[^>]*>/g, '').slice(0, 150)
+      document.title = `${name} — 이력서공방`
 
       const setMeta = (property: string, content: string) => {
-        let tag = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement;
+        let tag = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement
         if (!tag) {
-          tag = document.createElement('meta');
-          tag.setAttribute('property', property);
-          document.head.appendChild(tag);
+          tag = document.createElement('meta')
+          tag.setAttribute('property', property)
+          document.head.appendChild(tag)
         }
-        tag.content = content;
-      };
-      setMeta('og:title', `${name} — 이력서공방`);
-      setMeta('og:description', desc || 'AI 기반 이력서 관리 플랫폼');
-      setMeta('og:url', window.location.href);
-      setMeta('og:type', 'profile');
+        tag.content = content
+      }
+      setMeta('og:title', `${name} — 이력서공방`)
+      setMeta('og:description', desc || 'AI 기반 이력서 관리 플랫폼')
+      setMeta('og:url', window.location.href)
+      setMeta('og:type', 'profile')
     }
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, [resume]);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [resume])
 
   if (notFound) {
     return (
@@ -408,7 +410,7 @@ export default function PreviewPage() {
           </div>
         </main>
       </>
-    );
+    )
   }
 
   if (!resume) {
@@ -436,7 +438,7 @@ export default function PreviewPage() {
           </div>
         </main>
       </>
-    );
+    )
   }
 
   return (
@@ -582,8 +584,8 @@ export default function PreviewPage() {
                     {/* 좁은 화면에서 toolbar 에 안 보이는 버튼들 — md 미만은 리뷰/면접준비, lg 미만은 JD 매칭, xl 미만은 점수 공유/변환 */}
                     <button
                       onClick={() => {
-                        if (id) navigate(ROUTES.resume.review(id));
-                        setShowMoreMenu(false);
+                        if (id) navigate(ROUTES.resume.review(id))
+                        setShowMoreMenu(false)
                       }}
                       className="md:hidden w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                     >
@@ -594,8 +596,8 @@ export default function PreviewPage() {
                     </button>
                     <button
                       onClick={() => {
-                        setShowJdMatch(true);
-                        setShowMoreMenu(false);
+                        setShowJdMatch(true)
+                        setShowMoreMenu(false)
                       }}
                       className="lg:hidden w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                     >
@@ -606,8 +608,8 @@ export default function PreviewPage() {
                     </button>
                     <button
                       onClick={() => {
-                        if (id) navigate(withQuery(ROUTES.interview.prep, { resumeId: id }));
-                        setShowMoreMenu(false);
+                        if (id) navigate(withQuery(ROUTES.interview.prep, { resumeId: id }))
+                        setShowMoreMenu(false)
                       }}
                       className="md:hidden w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                     >
@@ -618,8 +620,8 @@ export default function PreviewPage() {
                     </button>
                     <button
                       onClick={() => {
-                        setShowScoreCard(true);
-                        setShowMoreMenu(false);
+                        setShowScoreCard(true)
+                        setShowMoreMenu(false)
                       }}
                       className="xl:hidden w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                     >
@@ -630,8 +632,8 @@ export default function PreviewPage() {
                     </button>
                     <button
                       onClick={() => {
-                        setShowTransform(true);
-                        setShowMoreMenu(false);
+                        setShowTransform(true)
+                        setShowMoreMenu(false)
                       }}
                       className="xl:hidden w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                     >
@@ -647,8 +649,8 @@ export default function PreviewPage() {
                     />
                     <button
                       onClick={() => {
-                        handleCopyLink();
-                        setShowMoreMenu(false);
+                        handleCopyLink()
+                        setShowMoreMenu(false)
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                     >
@@ -669,8 +671,8 @@ export default function PreviewPage() {
                     </button>
                     <button
                       onClick={() => {
-                        setShowShareMenu(true);
-                        setShowMoreMenu(false);
+                        setShowShareMenu(true)
+                        setShowMoreMenu(false)
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                     >
@@ -691,8 +693,8 @@ export default function PreviewPage() {
                     </button>
                     <button
                       onClick={() => {
-                        setShowQr(true);
-                        setShowMoreMenu(false);
+                        setShowQr(true)
+                        setShowMoreMenu(false)
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                     >
@@ -713,9 +715,9 @@ export default function PreviewPage() {
                     </button>
                     <button
                       onClick={() => {
-                        downloadVCard(resume);
-                        setShowMoreMenu(false);
-                        toast('연락처(.vcf) 다운로드 완료', 'success');
+                        downloadVCard(resume)
+                        setShowMoreMenu(false)
+                        toast('연락처(.vcf) 다운로드 완료', 'success')
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                       title="연락처를 주소록에 바로 추가할 수 있는 vCard 파일 다운로드"
@@ -741,12 +743,12 @@ export default function PreviewPage() {
                           await copySignatureToClipboard(resume, {
                             shareUrl: window.location.href,
                             accent: themeAccent,
-                          });
-                          toast('이메일 서명 복사됨 — Gmail/Outlook 에 붙여넣기', 'success');
+                          })
+                          toast('이메일 서명 복사됨 — Gmail/Outlook 에 붙여넣기', 'success')
                         } catch {
-                          toast('복사 실패 — 브라우저 권한 확인', 'error');
+                          toast('복사 실패 — 브라우저 권한 확인', 'error')
                         }
-                        setShowMoreMenu(false);
+                        setShowMoreMenu(false)
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                       title="이메일 서명을 HTML 로 클립보드에 복사"
@@ -768,16 +770,16 @@ export default function PreviewPage() {
                     </button>
                     <button
                       onClick={() => {
-                        const text = resume ? buildResumePlainText(resume) : '';
-                        const tags = generateHashtags(text, 8);
+                        const text = resume ? buildResumePlainText(resume) : ''
+                        const tags = generateHashtags(text, 8)
                         if (!tags.length) {
-                          toast('키워드를 추출하지 못했습니다.', 'error');
-                          return;
+                          toast('키워드를 추출하지 못했습니다.', 'error')
+                          return
                         }
                         navigator.clipboard.writeText(tags.join(' ')).then(() => {
-                          toast(`LinkedIn 해시태그 복사됨 (${tags.length}개)`, 'success');
-                        });
-                        setShowMoreMenu(false);
+                          toast(`LinkedIn 해시태그 복사됨 (${tags.length}개)`, 'success')
+                        })
+                        setShowMoreMenu(false)
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                       title="이력서 키워드 기반 LinkedIn 포스팅용 해시태그 생성"
@@ -803,16 +805,16 @@ export default function PreviewPage() {
                           await downloadSocialCard(resume, {
                             shareUrl: window.location.href,
                             accent: themeAccent,
-                          });
-                          toast('공유 카드(PNG) 다운로드 완료', 'success');
+                          })
+                          toast('공유 카드(PNG) 다운로드 완료', 'success')
                         } catch {
-                          toast('카드 생성 실패 — SVG 다운로드로 대체', 'error');
+                          toast('카드 생성 실패 — SVG 다운로드로 대체', 'error')
                           downloadSocialCardSvg(resume, {
                             shareUrl: window.location.href,
                             accent: themeAccent,
-                          });
+                          })
                         }
-                        setShowMoreMenu(false);
+                        setShowMoreMenu(false)
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                       title="카카오·슬랙 공유용 1200×630 PNG 카드 다운로드"
@@ -834,9 +836,9 @@ export default function PreviewPage() {
                     </button>
                     <button
                       onClick={() => {
-                        downloadJsonResume(resume, { canonical: window.location.href });
-                        toast('JSON Resume (.json) 다운로드 완료', 'success');
-                        setShowMoreMenu(false);
+                        downloadJsonResume(resume, { canonical: window.location.href })
+                        toast('JSON Resume (.json) 다운로드 완료', 'success')
+                        setShowMoreMenu(false)
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                       title="jsonresume.org 표준 포맷으로 내보내기 (다른 툴 임포트 가능)"
@@ -859,12 +861,12 @@ export default function PreviewPage() {
                     <button
                       onClick={async () => {
                         try {
-                          await copyPlainText(resume);
-                          toast('ATS-friendly 텍스트 복사됨', 'success');
+                          await copyPlainText(resume)
+                          toast('ATS-friendly 텍스트 복사됨', 'success')
                         } catch {
-                          toast('복사 실패', 'error');
+                          toast('복사 실패', 'error')
                         }
-                        setShowMoreMenu(false);
+                        setShowMoreMenu(false)
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                       title="포맷 제거된 plain text — ATS 파서 친화적"
@@ -887,12 +889,12 @@ export default function PreviewPage() {
                     <button
                       onClick={async () => {
                         try {
-                          await copyMarkdown(resume);
-                          toast('Markdown 복사됨 — GitHub README/Notion 에 붙여넣기', 'success');
+                          await copyMarkdown(resume)
+                          toast('Markdown 복사됨 — GitHub README/Notion 에 붙여넣기', 'success')
                         } catch {
-                          toast('복사 실패', 'error');
+                          toast('복사 실패', 'error')
                         }
-                        setShowMoreMenu(false);
+                        setShowMoreMenu(false)
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                       title="GitHub README / dev.to / Notion 용 Markdown 복사"
@@ -915,8 +917,8 @@ export default function PreviewPage() {
                     <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                     <button
                       onClick={() => {
-                        setShowAttachments(true);
-                        setShowMoreMenu(false);
+                        setShowAttachments(true)
+                        setShowMoreMenu(false)
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                     >
@@ -937,8 +939,8 @@ export default function PreviewPage() {
                     </button>
                     <button
                       onClick={() => {
-                        setShowVersions(true);
-                        setShowMoreMenu(false);
+                        setShowVersions(true)
+                        setShowMoreMenu(false)
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                     >
@@ -964,10 +966,9 @@ export default function PreviewPage() {
               {/* Bookmark & Social */}
               {resume.visibility === 'public' && <BookmarkButton resumeId={id!} />}
               {(() => {
-                const currentUser = getUser();
-                const isOtherUser =
-                  currentUser && resume.userId && currentUser.id !== resume.userId;
-                if (!isOtherUser) return null;
+                const currentUser = getUser()
+                const isOtherUser = currentUser && resume.userId && currentUser.id !== resume.userId
+                if (!isOtherUser) return null
                 return (
                   <>
                     <FollowButton userId={resume.userId!} />
@@ -979,7 +980,7 @@ export default function PreviewPage() {
                       <ReportButton endpoint={`/api/resumes/${id!}/report`} targetLabel="이력서" />
                     )}
                   </>
-                );
+                )
               })()}
             </div>
           </div>
@@ -987,25 +988,25 @@ export default function PreviewPage() {
           {/* Theme selector — visual thumbnail strip */}
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-2.5 flex items-center gap-2 overflow-x-auto scrollbar-none">
             {resumeThemes.map((t) => {
-              const currentUser = getUser();
+              const currentUser = getUser()
               const isAdminUser =
-                currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+                currentUser?.role === 'admin' || currentUser?.role === 'superadmin'
               const locked =
-                t.premium && !isAdminUser && (!currentUser?.plan || currentUser.plan === 'free');
-              const colors = accentColorMap[t.accentColor] || accentColorMap.slate;
-              const isSelected = themeId === t.id;
+                t.premium && !isAdminUser && (!currentUser?.plan || currentUser.plan === 'free')
+              const colors = accentColorMap[t.accentColor] || accentColorMap.slate
+              const isSelected = themeId === t.id
               const hasColorHeader =
                 t.headerStyle.includes('bg-gradient') ||
                 t.headerStyle.includes('bg-[') ||
-                t.headerStyle.includes('bg-slate-900');
+                t.headerStyle.includes('bg-slate-900')
 
               return (
                 <button
                   key={t.id}
                   onClick={() => {
-                    if (locked) return;
-                    setThemeId(t.id);
-                    toast(`테마: ${t.name}`, 'success');
+                    if (locked) return
+                    setThemeId(t.id)
+                    toast(`테마: ${t.name}`, 'success')
                   }}
                   disabled={locked}
                   className={`flex-shrink-0 flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all duration-200 border-2 focus-ring-accent ${
@@ -1061,7 +1062,7 @@ export default function PreviewPage() {
                     {locked && <span className="text-[10px]">🔒</span>}
                   </div>
                 </button>
-              );
+              )
             })}
           </div>
 
@@ -1078,7 +1079,7 @@ export default function PreviewPage() {
               { hex: '#ec4899', label: '핑크' },
               { hex: '#0ea5e9', label: '스카이' },
               { hex: '#64748b', label: '슬레이트' },
-            ];
+            ]
             const FONTS = [
               { value: '', label: '기본 폰트' },
               { value: "'Pretendard', -apple-system, sans-serif", label: 'Pretendard' },
@@ -1086,16 +1087,16 @@ export default function PreviewPage() {
               { value: "'Nanum Gothic', sans-serif", label: '나눔고딕' },
               { value: "'Georgia', serif", label: 'Georgia (영문)' },
               { value: "'Times New Roman', serif", label: 'Times (영문)' },
-            ];
+            ]
             const isOwner = (() => {
-              const u = getUser();
+              const u = getUser()
               return (
                 u &&
                 resume &&
                 (u.id === resume.userId || u.role === 'admin' || u.role === 'superadmin')
-              );
-            })();
-            if (!isOwner) return null;
+              )
+            })()
+            if (!isOwner) return null
             return (
               <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-3 flex flex-wrap items-center gap-3">
                 {/* Color presets */}
@@ -1152,7 +1153,7 @@ export default function PreviewPage() {
                   </select>
                 </div>
               </div>
-            );
+            )
           })()}
 
           {/* Reading time indicator — mobile only (inline in toolbar) */}
@@ -1172,9 +1173,9 @@ export default function PreviewPage() {
 
             {/* Public link customization */}
             {(() => {
-              const currentUser = getUser();
-              const isOwner = currentUser && resume.userId && currentUser.id === resume.userId;
-              if (!isOwner && resume.userId) return null;
+              const currentUser = getUser()
+              const isOwner = currentUser && resume.userId && currentUser.id === resume.userId
+              if (!isOwner && resume.userId) return null
               return (
                 <PublicLinkSettings
                   resumeId={id!}
@@ -1184,7 +1185,7 @@ export default function PreviewPage() {
                     setResume((prev) => (prev ? { ...prev, slug: newSlug } : prev))
                   }
                 />
-              );
+              )
             })()}
 
             <CompletenessBar resume={resume} />
@@ -1201,13 +1202,13 @@ export default function PreviewPage() {
                 resume={resume}
                 resumeId={id}
                 onApplyFix={async (fixed) => {
-                  if (!id) return;
-                  const { id: _omit, createdAt: _c, updatedAt: _u, ...payload } = fixed;
-                  void _omit;
-                  void _c;
-                  void _u;
-                  await updateResume(id, payload);
-                  setResume(fixed);
+                  if (!id) return
+                  const { id: _omit, createdAt: _c, updatedAt: _u, ...payload } = fixed
+                  void _omit
+                  void _c
+                  void _u
+                  await updateResume(id, payload)
+                  setResume(fixed)
                 }}
               />
               <Suspense
@@ -1300,10 +1301,10 @@ export default function PreviewPage() {
                 value={fitToWidth ? 'fit' : zoomLevel}
                 onChange={(e) => {
                   if (e.target.value === 'fit') {
-                    setFitToWidth(true);
+                    setFitToWidth(true)
                   } else {
-                    setFitToWidth(false);
-                    setZoomLevel(Number(e.target.value));
+                    setFitToWidth(false)
+                    setZoomLevel(Number(e.target.value))
                   }
                 }}
                 className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-transparent border-none focus:ring-0 cursor-pointer px-1 py-0.5 text-center"
@@ -1579,7 +1580,7 @@ export default function PreviewPage() {
             resumeId={id}
             onClose={() => setShowVersions(false)}
             onRestore={() => {
-              queryClient.invalidateQueries({ queryKey: ['resume', id] });
+              queryClient.invalidateQueries({ queryKey: ['resume', id] })
             }}
           />
         </Suspense>
@@ -1615,5 +1616,5 @@ export default function PreviewPage() {
         </div>
       )}
     </>
-  );
+  )
 }

@@ -1,6 +1,7 @@
-import { Module, Global } from '@nestjs/common';
-import { ForbiddenWordsController } from './forbidden-words.controller';
-import { ForbiddenWordsService } from './forbidden-words.service';
+import { Module, Global } from '@nestjs/common'
+
+import { ForbiddenWordsController } from './forbidden-words.controller'
+import { ForbiddenWordsService } from './forbidden-words.service'
 
 @Global()
 @Module({

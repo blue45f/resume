@@ -1,19 +1,19 @@
-import { Suspense, lazy } from 'react';
-import { Link } from 'react-router-dom';
+import { Suspense, lazy } from 'react'
+import { Link } from 'react-router-dom'
 
-const BannerSlider = lazy(() => import('@/components/BannerSlider'));
+const BannerSlider = lazy(() => import('@/components/BannerSlider'))
 
 /**
  * HomeHero — 메인 히어로 섹션 (위젯 레이어)
  * Swiper 기반 배너 + CTA 버튼 그룹을 하나의 응집된 UI로 조합.
  */
 interface HomeHeroProps {
-  userType?: 'personal' | 'recruiter' | 'company' | 'coach';
-  isAuthenticated?: boolean;
+  userType?: 'personal' | 'recruiter' | 'company' | 'coach'
+  isAuthenticated?: boolean
 }
 
 export default function HomeHero({ userType, isAuthenticated }: HomeHeroProps) {
-  const isRecruiter = userType === 'recruiter' || userType === 'company';
+  const isRecruiter = userType === 'recruiter' || userType === 'company'
 
   return (
     <section className="w-full animate-in fade-in-0 duration-300" aria-label="메인 히어로">
@@ -80,7 +80,7 @@ export default function HomeHero({ userType, isAuthenticated }: HomeHeroProps) {
         </div>
       )}
     </section>
-  );
+  )
 }
 
 function HeroSkeleton() {
@@ -88,5 +88,5 @@ function HeroSkeleton() {
     <div className="w-full max-w-6xl mx-auto px-4">
       <div className="aspect-[16/6] skeleton-soft rounded-2xl" />
     </div>
-  );
+  )
 }

@@ -1,6 +1,6 @@
 interface Props {
-  message?: string;
-  onRetry: () => void;
+  message?: string
+  onRetry: () => void
 }
 
 export default function ErrorRetry({ message = '서버에 연결할 수 없습니다', onRetry }: Props) {
@@ -30,5 +30,5 @@ export default function ErrorRetry({ message = '서버에 연결할 수 없습�
         다시 시도
       </button>
     </div>
-  );
+  )
 }

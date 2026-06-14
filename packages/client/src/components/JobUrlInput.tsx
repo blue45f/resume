@@ -1,16 +1,17 @@
-import { useState } from 'react';
-import { parseJobUrl, type ParsedJob } from '@/lib/api';
-import { toast } from '@/components/Toast';
-import { tx } from '@/lib/i18n';
+import { useState } from 'react'
+
+import { toast } from '@/components/Toast'
+import { parseJobUrl, type ParsedJob } from '@/lib/api'
+import { tx } from '@/lib/i18n'
 
 interface Props {
   /** 파싱 성공 시 호출 — 부모가 form 필드 prefill */
-  onParsed: (parsed: ParsedJob) => void;
+  onParsed: (parsed: ParsedJob) => void
   /** 비활성화 (이미 fetch 중 등) */
-  disabled?: boolean;
+  disabled?: boolean
   /** 한 줄 짜리 안내 — 페이지 컨텍스트에 맞춰 변경 */
-  hint?: string;
-  className?: string;
+  hint?: string
+  className?: string
 }
 
 const KNOWN_SITES = [
@@ -22,11 +23,11 @@ const KNOWN_SITES = [
   { match: /rocketpunch\.com/, label: '로켓펀치' },
   { match: /greetinghr\.com/, label: '그리팅' },
   { match: /linkedin\.com\/jobs/, label: 'LinkedIn' },
-];
+]
 
 function detectSite(url: string): string | null {
-  for (const s of KNOWN_SITES) if (s.match.test(url)) return s.label;
-  return null;
+  for (const s of KNOWN_SITES) if (s.match.test(url)) return s.label
+  return null
 }
 
 /**
@@ -38,18 +39,18 @@ function detectSite(url: string): string | null {
  * 한국 채용 사이트 (원티드/잡코리아/사람인 등) 우선 지원. 알려진 사이트면 배지로 표시.
  */
 export default function JobUrlInput({ onParsed, disabled = false, hint, className = '' }: Props) {
-  const [url, setUrl] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [url, setUrl] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const detectedSite = detectSite(url);
+  const detectedSite = detectSite(url)
 
   const handleParse = async () => {
-    const trimmed = url.trim();
-    if (!trimmed) return;
-    setLoading(true);
+    const trimmed = url.trim()
+    if (!trimmed) return
+    setLoading(true)
     try {
-      const parsed = await parseJobUrl(trimmed);
-      onParsed(parsed);
+      const parsed = await parseJobUrl(trimmed)
+      onParsed(parsed)
       const sourceLabel = tx(
         parsed.source === 'json-ld'
           ? 'jobUrl.sourceJsonLd'
@@ -57,15 +58,15 @@ export default function JobUrlInput({ onParsed, disabled = false, hint, classNam
             ? 'jobUrl.sourceLlm'
             : parsed.source === 'partial'
               ? 'jobUrl.sourcePartial'
-              : 'jobUrl.sourceOg',
-      );
-      toast(tx('jobUrl.success', { source: sourceLabel }), 'success');
+              : 'jobUrl.sourceOg'
+      )
+      toast(tx('jobUrl.success', { source: sourceLabel }), 'success')
     } catch (err) {
-      toast(err instanceof Error ? err.message : tx('jobUrl.error'), 'error');
+      toast(err instanceof Error ? err.message : tx('jobUrl.error'), 'error')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div
@@ -85,8 +86,8 @@ export default function JobUrlInput({ onParsed, disabled = false, hint, classNam
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && url.trim() && !loading && !disabled) {
-              e.preventDefault();
-              handleParse();
+              e.preventDefault()
+              handleParse()
             }
           }}
           placeholder={tx('jobUrl.placeholder')}
@@ -150,5 +151,5 @@ export default function JobUrlInput({ onParsed, disabled = false, hint, classNam
         )}
       </div>
     </div>
-  );
+  )
 }

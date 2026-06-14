@@ -1,20 +1,21 @@
-import { useMemo } from 'react';
-import { countAchievements, analyzeActionVerbs } from '@/lib/achievementSignals';
+import { useMemo } from 'react'
+
+import { countAchievements, analyzeActionVerbs } from '@/lib/achievementSignals'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeAchievementPanel({ text }: Props) {
-  const achievements = useMemo(() => countAchievements(text), [text]);
-  const verbs = useMemo(() => analyzeActionVerbs(text), [text]);
+  const achievements = useMemo(() => countAchievements(text), [text])
+  const verbs = useMemo(() => analyzeActionVerbs(text), [text])
 
-  const achIssue = achievements.level === 'low';
-  const verbIssue = verbs.level === 'low';
-  if (!achIssue && !verbIssue && achievements.total === 0) return null;
-  if (text.trim().length < 100) return null;
+  const achIssue = achievements.level === 'low'
+  const verbIssue = verbs.level === 'low'
+  if (!achIssue && !verbIssue && achievements.total === 0) return null
+  if (text.trim().length < 100) return null
 
-  const tone = achIssue && verbIssue ? 'warning' : achIssue || verbIssue ? 'neutral' : 'good';
+  const tone = achIssue && verbIssue ? 'warning' : achIssue || verbIssue ? 'neutral' : 'good'
 
   return (
     <aside
@@ -81,5 +82,5 @@ export default function ResumeAchievementPanel({ text }: Props) {
         </section>
       )}
     </aside>
-  );
+  )
 }

@@ -17,10 +17,10 @@ export function ErrorState({
   onRetry,
   className = '',
 }: {
-  message?: string;
-  hint?: string;
-  onRetry: () => void;
-  className?: string;
+  message?: string
+  hint?: string
+  onRetry: () => void
+  className?: string
 }) {
   return (
     <div
@@ -55,5 +55,5 @@ export function ErrorState({
         재시도
       </button>
     </div>
-  );
+  )
 }

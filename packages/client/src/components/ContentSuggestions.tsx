@@ -1,15 +1,15 @@
-import { useState } from 'react';
+import { useState } from 'react'
 
 /** Pre-written content suggestions by job title (LiveCareer-inspired) */
 
 interface SuggestionCategory {
-  label: string;
-  items: string[];
+  label: string
+  items: string[]
 }
 
 interface JobSuggestions {
-  title: string;
-  categories: SuggestionCategory[];
+  title: string
+  categories: SuggestionCategory[]
 }
 
 const JOB_SUGGESTIONS: JobSuggestions[] = [
@@ -373,19 +373,19 @@ const JOB_SUGGESTIONS: JobSuggestions[] = [
       },
     ],
   },
-];
+]
 
 interface ContentSuggestionsProps {
-  jobTitle: string;
-  onInsert: (text: string) => void;
+  jobTitle: string
+  onInsert: (text: string) => void
 }
 
 const contentSuggestions = function ContentSuggestions({
   jobTitle,
   onInsert,
 }: ContentSuggestionsProps) {
-  const [expanded, setExpanded] = useState(true);
-  const [selectedJob, setSelectedJob] = useState(jobTitle || '');
+  const [expanded, setExpanded] = useState(true)
+  const [selectedJob, setSelectedJob] = useState(jobTitle || '')
 
   // Find matching suggestions (partial match)
   const matchedJob = JOB_SUGGESTIONS.find(
@@ -393,8 +393,8 @@ const contentSuggestions = function ContentSuggestions({
       selectedJob &&
       (j.title.includes(selectedJob) ||
         selectedJob.includes(j.title) ||
-        j.title.toLowerCase().includes(selectedJob.toLowerCase())),
-  );
+        j.title.toLowerCase().includes(selectedJob.toLowerCase()))
+  )
 
   return (
     <div className="border border-amber-200 dark:border-amber-800 rounded-xl bg-amber-50/50 dark:bg-amber-900/10 overflow-hidden">
@@ -435,10 +435,14 @@ const contentSuggestions = function ContentSuggestions({
         <div className="px-4 pb-4 space-y-3">
           {/* Job selector */}
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+            <label
+              htmlFor="contentsuggestions-field-1"
+              className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1"
+            >
               직종 선택
             </label>
             <select
+              id="contentsuggestions-field-1"
               value={selectedJob}
               onChange={(e) => setSelectedJob(e.target.value)}
               className="w-full px-3 py-2 text-sm border border-amber-200 dark:border-amber-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
@@ -493,10 +497,10 @@ const contentSuggestions = function ContentSuggestions({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default contentSuggestions;
+export default contentSuggestions
 
 /** Exported job titles list for use in wizard */
-export const JOB_TITLE_LIST = JOB_SUGGESTIONS.map((j) => j.title);
+export const JOB_TITLE_LIST = JOB_SUGGESTIONS.map((j) => j.title)

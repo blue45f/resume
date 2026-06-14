@@ -1,5 +1,5 @@
-import Header from '@/components/Header';
-import { FormSkeleton } from '@/components/Skeleton';
+import Header from '@/components/Header'
+import { FormSkeleton } from '@/components/Skeleton'
 
 export default function EditResumeLoading() {
   return (
@@ -16,5 +16,5 @@ export default function EditResumeLoading() {
         </div>
       </main>
     </>
-  );
+  )
 }

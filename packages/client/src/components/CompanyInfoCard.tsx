@@ -1,23 +1,23 @@
-import { useMemo } from 'react';
+import { useMemo } from 'react'
 
 interface JobPost {
-  id: string;
-  company: string;
-  position: string;
-  location: string;
-  salary: string;
-  type: string;
-  skills: string;
-  description: string;
-  status: string;
-  createdAt: string;
-  user: { id: string; name: string; companyName?: string };
+  id: string
+  company: string
+  position: string
+  location: string
+  salary: string
+  type: string
+  skills: string
+  description: string
+  status: string
+  createdAt: string
+  user: { id: string; name: string; companyName?: string }
 }
 
 interface Props {
-  job: JobPost;
-  allJobs: JobPost[];
-  onSelectJob: (id: string) => void;
+  job: JobPost
+  allJobs: JobPost[]
+  onSelectJob: (id: string) => void
 }
 
 const INDUSTRY_BADGES: Record<string, { label: string; color: string }> = {
@@ -37,7 +37,7 @@ const INDUSTRY_BADGES: Record<string, { label: string; color: string }> = {
     label: '기타',
     color: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400',
   },
-};
+}
 
 const SIZE_BADGES = [
   {
@@ -60,55 +60,52 @@ const SIZE_BADGES = [
     label: '기업',
     color: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400',
   },
-];
+]
 
 function parseSalaryToNumber(salary: string): number | null {
-  if (!salary) return null;
-  const cleaned = salary.replace(/[^0-9]/g, '');
-  if (!cleaned) return null;
-  return parseInt(cleaned, 10);
+  if (!salary) return null
+  const cleaned = salary.replace(/[^0-9]/g, '')
+  if (!cleaned) return null
+  return parseInt(cleaned, 10)
 }
 
 function detectIndustry(job: JobPost): string {
-  const text = `${job.skills} ${job.description} ${job.position}`.toLowerCase();
+  const text = `${job.skills} ${job.description} ${job.position}`.toLowerCase()
   if (/react|node|python|java|개발|프론트|백엔드|devops|cloud|aws|데이터|ai|ml/.test(text))
-    return 'IT';
-  if (/금융|은행|보험|투자|핀테크/.test(text)) return 'finance';
-  if (/제조|생산|공장|설비/.test(text)) return 'manufacturing';
-  return 'default';
+    return 'IT'
+  if (/금융|은행|보험|투자|핀테크/.test(text)) return 'finance'
+  if (/제조|생산|공장|설비/.test(text)) return 'manufacturing'
+  return 'default'
 }
 
 function estimateCompanySize(jobCount: number) {
   for (const badge of SIZE_BADGES) {
-    if (jobCount >= badge.min) return badge;
+    if (jobCount >= badge.min) return badge
   }
-  return SIZE_BADGES[SIZE_BADGES.length - 1];
+  return SIZE_BADGES[SIZE_BADGES.length - 1]
 }
 
 export default function CompanyInfoCard({ job, allJobs, onSelectJob }: Props) {
   const companyJobs = useMemo(
     () => allJobs.filter((j) => j.company === job.company && j.status === 'active'),
-    [allJobs, job.company],
-  );
-  const otherJobs = useMemo(
-    () => companyJobs.filter((j) => j.id !== job.id),
-    [companyJobs, job.id],
-  );
+    [allJobs, job.company]
+  )
+  const otherJobs = useMemo(() => companyJobs.filter((j) => j.id !== job.id), [companyJobs, job.id])
 
   const salaryStats = useMemo(() => {
     const salaries = companyJobs
       .map((j) => parseSalaryToNumber(j.salary))
-      .filter((n): n is number => n !== null);
-    if (salaries.length === 0) return null;
-    const min = Math.min(...salaries);
-    const max = Math.max(...salaries);
-    const avg = Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length);
-    return { min, max, avg };
-  }, [companyJobs]);
+      .filter((n): n is number => n !== null)
+    if (salaries.length === 0) return null
+    const min = Math.min(...salaries)
+    const max = Math.max(...salaries)
+    const avg = Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length)
+    return { min, max, avg }
+  }, [companyJobs])
 
-  const industry = detectIndustry(job);
-  const industryBadge = INDUSTRY_BADGES[industry] || INDUSTRY_BADGES.default;
-  const sizeBadge = estimateCompanySize(companyJobs.length);
+  const industry = detectIndustry(job)
+  const industryBadge = INDUSTRY_BADGES[industry] || INDUSTRY_BADGES.default
+  const sizeBadge = estimateCompanySize(companyJobs.length)
 
   return (
     <div className="bg-slate-50/30 dark:from-slate-800 dark:to-blue-900/10 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-5">
@@ -225,5 +222,5 @@ export default function CompanyInfoCard({ job, allJobs, onSelectJob }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

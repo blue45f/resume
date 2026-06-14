@@ -1,13 +1,15 @@
-import { memo, useMemo } from 'react';
-import type { ResumeSummary } from '@/types/resume';
-import { resumeThemes, type ResumeTheme } from '@/lib/resumeThemes';
-import { computeResumeCompletion } from '@/lib/resumeCompletion';
+import { memo, useMemo } from 'react'
+
+import type { ResumeSummary } from '@/types/resume'
+
+import { computeResumeCompletion } from '@/lib/resumeCompletion'
+import { resumeThemes, type ResumeTheme } from '@/lib/resumeThemes'
 
 interface Props {
-  resume: ResumeSummary;
-  themeId?: string;
-  onClick?: () => void;
-  index?: number;
+  resume: ResumeSummary
+  themeId?: string
+  onClick?: () => void
+  index?: number
 }
 
 /** Map accent color names to Tailwind-compatible hex values for the thumbnail */
@@ -18,12 +20,12 @@ const accentHex: Record<string, string> = {
   purple: '#a855f7',
   indigo: '#6366f1',
   amber: '#f59e0b',
-};
+}
 
 /** Extract a usable background color from the theme headerStyle */
 function extractHeaderBg(theme: ResumeTheme): string {
   // Check for bg-gradient — pick the "from" color
-  const gradientMatch = theme.headerStyle.match(/from-(\w+-\d+)/);
+  const gradientMatch = theme.headerStyle.match(/from-(\w+-\d+)/)
   if (gradientMatch) {
     const map: Record<string, string> = {
       'purple-600': '#9333ea',
@@ -33,40 +35,40 @@ function extractHeaderBg(theme: ResumeTheme): string {
       'indigo-700': '#4338ca',
       'blue-500': '#3b82f6',
       'amber-50': '#fffbeb',
-    };
-    return map[gradientMatch[1]] || accentHex[theme.accentColor] || '#475569';
+    }
+    return map[gradientMatch[1]] || accentHex[theme.accentColor] || '#475569'
   }
   // Check for explicit bg color
-  const bgMatch = theme.headerStyle.match(/bg-\[([^\]]+)\]/);
-  if (bgMatch) return bgMatch[1];
+  const bgMatch = theme.headerStyle.match(/bg-\[([^\]]+)\]/)
+  if (bgMatch) return bgMatch[1]
   // Check for bg-slate-900 etc
-  if (theme.headerStyle.includes('bg-slate-900')) return '#0f172a';
-  if (theme.headerStyle.includes('bg-blue-50')) return '#eff6ff';
+  if (theme.headerStyle.includes('bg-slate-900')) return '#0f172a'
+  if (theme.headerStyle.includes('bg-blue-50')) return '#eff6ff'
   // Fallback to accent color
-  return accentHex[theme.accentColor] || '#475569';
+  return accentHex[theme.accentColor] || '#475569'
 }
 
 /** Format relative time in Korean */
 function formatRelativeTime(dateStr: string): string {
   try {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 60) return `${mins}분 전`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}시간 전`;
-    const days = Math.floor(hrs / 24);
-    if (days < 30) return `${days}일 전`;
-    return `${Math.floor(days / 30)}개월 전`;
+    const diff = Date.now() - new Date(dateStr).getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 60) return `${mins}분 전`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}시간 전`
+    const days = Math.floor(hrs / 24)
+    if (days < 30) return `${days}일 전`
+    return `${Math.floor(days / 30)}개월 전`
   } catch {
-    return '';
+    return ''
   }
 }
 
 /** Circular progress SVG */
 function CircularProgress({ pct, color }: { pct: number; color: string }) {
-  const r = 9;
-  const circumference = 2 * Math.PI * r;
-  const offset = circumference - (pct / 100) * circumference;
+  const r = 9
+  const circumference = 2 * Math.PI * r
+  const offset = circumference - (pct / 100) * circumference
   return (
     <svg width="26" height="26" viewBox="0 0 26 26" className="rotate-[-90deg]" aria-hidden="true">
       <circle cx="13" cy="13" r={r} fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2.5" />
@@ -83,7 +85,7 @@ function CircularProgress({ pct, color }: { pct: number; color: string }) {
         style={{ transition: 'stroke-dashoffset 0.6s ease' }}
       />
     </svg>
-  );
+  )
 }
 
 const ResumeThumbnail = memo(function ResumeThumbnail({
@@ -95,16 +97,16 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
 }: Props & { showOpenToWork?: boolean }) {
   const theme = useMemo(
     () => resumeThemes.find((t) => t.id === (themeId || 'classic')) || resumeThemes[0],
-    [themeId],
-  );
+    [themeId]
+  )
 
-  const headerBg = useMemo(() => extractHeaderBg(theme), [theme]);
-  const completionResult = useMemo(() => computeResumeCompletion(resume), [resume]);
-  const completion = completionResult.pct;
+  const headerBg = useMemo(() => extractHeaderBg(theme), [theme])
+  const completionResult = useMemo(() => computeResumeCompletion(resume), [resume])
+  const completion = completionResult.pct
   const isLightHeader =
-    headerBg.startsWith('#fff') || headerBg.startsWith('#eff') || headerBg.startsWith('#fce');
-  const headerTextColor = isLightHeader ? '#1e293b' : '#ffffff';
-  const accentColor = accentHex[theme.accentColor] || '#6366f1';
+    headerBg.startsWith('#fff') || headerBg.startsWith('#eff') || headerBg.startsWith('#fce')
+  const headerTextColor = isLightHeader ? '#1e293b' : '#ffffff'
+  const accentColor = accentHex[theme.accentColor] || '#6366f1'
   // Grade-based progress color for at-a-glance signal (excellent=emerald, good=blue, fair=amber, low=red)
   const gradeColor =
     completionResult.grade === 'excellent'
@@ -113,8 +115,8 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
         ? '#3b82f6'
         : completionResult.grade === 'fair'
           ? '#f59e0b'
-          : '#ef4444';
-  const progressColor = isLightHeader ? gradeColor : '#ffffff';
+          : '#ef4444'
+  const progressColor = isLightHeader ? gradeColor : '#ffffff'
   // Tooltip: show top 3 missing items so users know exactly what to improve
   const missingHint =
     completionResult.missingItems.length > 0
@@ -123,10 +125,10 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
           .slice(0, 3)
           .map((m) => `• ${m.label}${m.hint ? ` — ${m.hint}` : ''}`)
           .join('\n')
-      : '';
-  const relativeTime = formatRelativeTime(resume.updatedAt);
-  const staggerClass = `stagger-${Math.min(index + 1, 6)}`;
-  const isPublic = resume.visibility === 'public';
+      : ''
+  const relativeTime = formatRelativeTime(resume.updatedAt)
+  const staggerClass = `stagger-${Math.min(index + 1, 6)}`
+  const isPublic = resume.visibility === 'public'
 
   return (
     <button
@@ -309,14 +311,14 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
           { key: 'depth', label: '내용 깊이', color: '#0891b2' },
           { key: 'web', label: '외부 링크', color: '#10b981' },
           { key: 'discoverability', label: '공개도', color: '#f59e0b' },
-        ] as const;
+        ] as const
         const breakdown = cats.map((c) => {
-          const items = completionResult.items.filter((i) => i.category === c.key);
-          const score = items.reduce((s, i) => s + i.score, 0);
-          const max = items.reduce((s, i) => s + i.max, 0);
-          const pct = max > 0 ? Math.round((score / max) * 100) : 0;
-          return { ...c, pct };
-        });
+          const items = completionResult.items.filter((i) => i.category === c.key)
+          const score = items.reduce((s, i) => s + i.score, 0)
+          const max = items.reduce((s, i) => s + i.max, 0)
+          const pct = max > 0 ? Math.round((score / max) * 100) : 0
+          return { ...c, pct }
+        })
         return (
           <div className="absolute bottom-6 left-2 right-2 flex gap-0.5" aria-hidden="true">
             {breakdown.map((b) => (
@@ -332,7 +334,7 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
               </div>
             ))}
           </div>
-        );
+        )
       })()}
 
       {/* Bottom info bar */}
@@ -356,7 +358,7 @@ const ResumeThumbnail = memo(function ResumeThumbnail({
         </span>
       </div>
     </button>
-  );
-});
+  )
+})
 
-export default ResumeThumbnail;
+export default ResumeThumbnail

@@ -1,18 +1,19 @@
-import { useMemo } from 'react';
-import { detectSoftSkills, detectAbbreviations } from '@/lib/softSkills';
+import { useMemo } from 'react'
+
+import { detectSoftSkills, detectAbbreviations } from '@/lib/softSkills'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeSoftSkillsPanel({ text }: Props) {
-  const softSkills = useMemo(() => detectSoftSkills(text), [text]);
-  const abbrev = useMemo(() => detectAbbreviations(text), [text]);
+  const softSkills = useMemo(() => detectSoftSkills(text), [text])
+  const abbrev = useMemo(() => detectAbbreviations(text), [text])
 
-  const skillIssue = softSkills.distinctCount < 3;
-  const abbrevIssue = abbrev.unexplained.length > 0;
+  const skillIssue = softSkills.distinctCount < 3
+  const abbrevIssue = abbrev.unexplained.length > 0
 
-  if (!skillIssue && !abbrevIssue) return null;
+  if (!skillIssue && !abbrevIssue) return null
 
   return (
     <aside className="soft-skills-card" aria-label="소프트 스킬 및 축약어 분석">
@@ -61,5 +62,5 @@ export default function ResumeSoftSkillsPanel({ text }: Props) {
         </div>
       )}
     </aside>
-  );
+  )
 }

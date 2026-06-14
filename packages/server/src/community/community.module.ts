@@ -1,12 +1,14 @@
-import { Module } from '@nestjs/common';
-import { CommunityController } from './community.controller';
-import { CommunityAdminController } from './community-admin.controller';
-import { CommunityService } from './community.service';
-import { PrismaModule } from '../prisma/prisma.module';
-import { NotificationsModule } from '../notifications/notifications.module';
-import { ConfigModule } from '@nestjs/config';
-import { MulterModule } from '@nestjs/platform-express';
-import * as multer from 'multer';
+import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import { MulterModule } from '@nestjs/platform-express'
+import * as multer from 'multer'
+
+import { NotificationsModule } from '../notifications/notifications.module'
+import { PrismaModule } from '../prisma/prisma.module'
+
+import { CommunityAdminController } from './community-admin.controller'
+import { CommunityController } from './community.controller'
+import { CommunityService } from './community.service'
 
 @Module({
   imports: [

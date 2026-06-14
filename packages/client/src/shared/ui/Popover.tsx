@@ -9,9 +9,10 @@
  *     </Popover.Content>
  *   </Popover.Root>
  */
-import * as Radix from '@radix-ui/react-popover';
-import type { ComponentPropsWithoutRef, ElementRef } from 'react';
-import { forwardRef } from 'react';
+import * as Radix from '@radix-ui/react-popover'
+import { forwardRef } from 'react'
+
+import type { ComponentPropsWithoutRef, ElementRef } from 'react'
 
 const contentClass = [
   'z-[100] w-72',
@@ -26,7 +27,7 @@ const contentClass = [
   'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-[0.96]',
   'motion-reduce:animate-none',
   'max-h-[calc(100dvh-3rem)] overflow-y-auto',
-].join(' ');
+].join(' ')
 
 const Content = forwardRef<
   ElementRef<typeof Radix.Content>,
@@ -41,8 +42,8 @@ const Content = forwardRef<
       {...props}
     />
   </Radix.Portal>
-));
-Content.displayName = 'PopoverContent';
+))
+Content.displayName = 'PopoverContent'
 
 const Popover = {
   Root: Radix.Root,
@@ -52,6 +53,6 @@ const Popover = {
   Arrow: Radix.Arrow,
   Close: Radix.Close,
   Content,
-};
+}
 
-export default Popover;
+export default Popover

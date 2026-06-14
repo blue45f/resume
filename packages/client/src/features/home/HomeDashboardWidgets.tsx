@@ -1,40 +1,43 @@
-import { lazy, Suspense } from 'react';
-import { Link } from 'react-router-dom';
-import { ROUTES } from '@/lib/routes';
-import type { ResumeSummary, Resume } from '@/types/resume';
-import type { User } from '@/lib/auth';
-import type { JobApplication } from '@/lib/api';
-import ProfileViewers from '@/components/ProfileViewers';
-import NetworkStats from '@/components/NetworkStats';
-import RecentActivity from '@/components/RecentActivity';
-import HiringTrends from '@/components/HiringTrends';
-import OnboardingBanner from '@/components/OnboardingBanner';
-import WeeklyRecapCard from '@/components/WeeklyRecapCard';
-import ApplicationReadinessPanel from '@/components/ApplicationReadinessPanel';
-import ApplicationStreakStrip from '@/components/ApplicationStreakStrip';
-import ProfileCompleteness from '@/components/ProfileCompleteness';
-import ProfileWizard from '@/components/ProfileWizard';
-import ResumeHealthRing from '@/widgets/resume-health-ring';
-import InterviewRoulette from '@/widgets/interview-roulette';
-import CareerLevel from '@/widgets/career-level';
-import { ResumeHealthBoost } from '@/widgets/resume-health-boost';
-import SharedWithMeSection from '@/components/SharedWithMeSection';
-import { t } from '@/lib/i18n';
-import CommunityWidget from './CommunityWidget';
-import InterviewDiscoveryWidget from './InterviewDiscoveryWidget';
-import WeeklyGoalWidget from './WeeklyGoalWidget';
+import { lazy, Suspense } from 'react'
+import { Link } from 'react-router-dom'
+
+import CommunityWidget from './CommunityWidget'
+import InterviewDiscoveryWidget from './InterviewDiscoveryWidget'
+import WeeklyGoalWidget from './WeeklyGoalWidget'
+
+import type { JobApplication } from '@/lib/api'
+import type { User } from '@/lib/auth'
+import type { ResumeSummary, Resume } from '@/types/resume'
+
+import ApplicationReadinessPanel from '@/components/ApplicationReadinessPanel'
+import ApplicationStreakStrip from '@/components/ApplicationStreakStrip'
+import HiringTrends from '@/components/HiringTrends'
+import NetworkStats from '@/components/NetworkStats'
+import OnboardingBanner from '@/components/OnboardingBanner'
+import ProfileCompleteness from '@/components/ProfileCompleteness'
+import ProfileViewers from '@/components/ProfileViewers'
+import ProfileWizard from '@/components/ProfileWizard'
+import RecentActivity from '@/components/RecentActivity'
+import SharedWithMeSection from '@/components/SharedWithMeSection'
+import WeeklyRecapCard from '@/components/WeeklyRecapCard'
+import { t } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+import CareerLevel from '@/widgets/career-level'
+import InterviewRoulette from '@/widgets/interview-roulette'
+import { ResumeHealthBoost } from '@/widgets/resume-health-boost'
+import ResumeHealthRing from '@/widgets/resume-health-ring'
 
 // 차트 의존(recharts ~437KB)이 무거워 lazy load — 홈 진입 후 점진 로딩.
-const DashboardStats = lazy(() => import('@/components/DashboardStats'));
-const CareerInsights = lazy(() => import('@/components/CareerInsights'));
+const DashboardStats = lazy(() => import('@/components/DashboardStats'))
+const CareerInsights = lazy(() => import('@/components/CareerInsights'))
 
 interface HomeDashboardWidgetsProps {
-  user: User | null;
-  resumes: ResumeSummary[];
-  applications: JobApplication[];
-  bookmarks: { id: string; resumeId: string; title: string; name: string }[];
-  filteredCount: number;
-  wizardResume: Resume | null;
+  user: User | null
+  resumes: ResumeSummary[]
+  applications: JobApplication[]
+  bookmarks: { id: string; resumeId: string; title: string; name: string }[]
+  filteredCount: number
+  wizardResume: Resume | null
 }
 
 export default function HomeDashboardWidgets({
@@ -134,5 +137,5 @@ export default function HomeDashboardWidgets({
       {/* 이력서 건강도 진단 — 다음 한 걸음 인사이트 */}
       {resumes.length > 0 && <ResumeHealthBoost resumes={resumes} />}
     </>
-  );
+  )
 }

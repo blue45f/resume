@@ -1,13 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable } from '@nestjs/common'
+
+import { PrismaService } from '../prisma/prisma.service'
+
+import type { Prisma } from '@prisma/client'
 
 @Injectable()
 export class BannersService {
   constructor(private prisma: PrismaService) {}
 
   async getActive() {
-    const now = new Date();
+    const now = new Date()
     return this.prisma.banner.findMany({
       where: {
         isActive: true,
@@ -15,28 +17,28 @@ export class BannersService {
         AND: [{ OR: [{ endAt: null }, { endAt: { gte: now } }] }],
       },
       orderBy: { order: 'asc' },
-    });
+    })
   }
 
   async getAll() {
-    return this.prisma.banner.findMany({ orderBy: { order: 'asc' } });
+    return this.prisma.banner.findMany({ orderBy: { order: 'asc' } })
   }
 
   async create(data: Prisma.BannerCreateInput) {
-    return this.prisma.banner.create({ data });
+    return this.prisma.banner.create({ data })
   }
 
   async update(id: string, data: Prisma.BannerUpdateInput) {
-    return this.prisma.banner.update({ where: { id }, data });
+    return this.prisma.banner.update({ where: { id }, data })
   }
 
   async remove(id: string) {
-    return this.prisma.banner.delete({ where: { id } });
+    return this.prisma.banner.delete({ where: { id } })
   }
 
   async reorder(ids: string[]) {
     return Promise.all(
-      ids.map((id, index) => this.prisma.banner.update({ where: { id }, data: { order: index } })),
-    );
+      ids.map((id, index) => this.prisma.banner.update({ where: { id }, data: { order: index } }))
+    )
   }
 }

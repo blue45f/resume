@@ -1,114 +1,116 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import { useScrollRevealAll } from '@/hooks/useScrollReveal';
-import { CardGridSkeleton } from '@/components/Skeleton';
-import { toast } from '@/components/Toast';
-import QuickImportModal from '@/components/QuickImportModal';
-import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog';
-import Footer from '@/components/Footer';
-import { ROUTES } from '@/lib/routes';
-import type { ResumeSummary, Tag, Resume } from '@/types/resume';
-import { deleteResume, duplicateResume, fetchResume } from '@/lib/api';
-import {
-  useResumes,
-  useTags,
-  useBookmarks,
-  useApplications,
-  useSystemContent,
-} from '@/hooks/useResources';
-import NoticePopup from '@/components/NoticePopup';
-import WhatsNewModal from '@/components/WhatsNewModal';
-import { getUser } from '@/lib/auth';
+import { useQueryClient } from '@tanstack/react-query'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+
+import type { ResumeSummary, Tag, Resume } from '@/types/resume'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import NoticePopup from '@/components/NoticePopup'
+import QuickImportModal from '@/components/QuickImportModal'
+import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog'
+import { CardGridSkeleton } from '@/components/Skeleton'
+import { toast } from '@/components/Toast'
+import WhatsNewModal from '@/components/WhatsNewModal'
+import HomeDashboardWidgets from '@/features/home/HomeDashboardWidgets'
+import HomeLanding from '@/features/home/HomeLanding'
+import MyResumesSection from '@/features/home/MyResumesSection'
 import {
   DEFAULT_FEATURES,
   DEFAULT_HIGHLIGHTS,
   DEFAULT_TESTIMONIALS,
   type HomeContent,
   type ResumeSortBy,
-} from '@/features/home/types';
-import HomeLanding from '@/features/home/HomeLanding';
-import HomeDashboardWidgets from '@/features/home/HomeDashboardWidgets';
-import MyResumesSection from '@/features/home/MyResumesSection';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+} from '@/features/home/types'
+import {
+  useResumes,
+  useTags,
+  useBookmarks,
+  useApplications,
+  useSystemContent,
+} from '@/hooks/useResources'
+import { useScrollRevealAll } from '@/hooks/useScrollReveal'
+import { deleteResume, duplicateResume, fetchResume } from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
-const BannerSlider = lazy(() => import('@/components/BannerSlider'));
+const BannerSlider = lazy(() => import('@/components/BannerSlider'))
 
 export default function HomePage() {
-  const queryClient = useQueryClient();
-  const user = getUser();
-  const resumesQuery = useResumes(!!user);
-  const resumes: ResumeSummary[] = (resumesQuery.data as ResumeSummary[] | undefined) ?? [];
-  const tagsQuery = useTags(!!user);
+  const queryClient = useQueryClient()
+  const user = getUser()
+  const resumesQuery = useResumes(!!user)
+  const resumes: ResumeSummary[] = (resumesQuery.data as ResumeSummary[] | undefined) ?? []
+  const tagsQuery = useTags(!!user)
   const tags: (Tag & { resumeCount: number })[] =
-    (tagsQuery.data as (Tag & { resumeCount: number })[] | undefined) ?? [];
-  const bookmarksQuery = useBookmarks(!!user);
+    (tagsQuery.data as (Tag & { resumeCount: number })[] | undefined) ?? []
+  const bookmarksQuery = useBookmarks(!!user)
   const bookmarks =
     (bookmarksQuery.data as
       | { id: string; resumeId: string; title: string; name: string }[]
-      | undefined) ?? [];
-  const applicationsQuery = useApplications();
-  const applications = applicationsQuery.data ?? [];
-  const userId = user?.id;
-  const loading = !!user && (resumesQuery.isLoading || tagsQuery.isLoading);
-  const serverError = !!resumesQuery.error;
-  const [filterTag, setFilterTag] = useState<string | null>(null);
-  const [filterVisibility, setFilterVisibility] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<ResumeSortBy>('updatedAt');
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
-  const [showImport, setShowImport] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [selectMode, setSelectMode] = useState(false);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const navigate = useNavigate();
-  const confirm = useConfirm();
+      | undefined) ?? []
+  const applicationsQuery = useApplications()
+  const applications = applicationsQuery.data ?? []
+  const userId = user?.id
+  const loading = !!user && (resumesQuery.isLoading || tagsQuery.isLoading)
+  const serverError = !!resumesQuery.error
+  const [filterTag, setFilterTag] = useState<string | null>(null)
+  const [filterVisibility, setFilterVisibility] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState<ResumeSortBy>('updatedAt')
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc')
+  const [showImport, setShowImport] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [selectMode, setSelectMode] = useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const navigate = useNavigate()
+  const confirm = useConfirm()
 
-  useScrollRevealAll('.reveal');
+  useScrollRevealAll('.reveal')
 
   const load = () => {
-    queryClient.invalidateQueries({ queryKey: ['resumes'] });
-    queryClient.invalidateQueries({ queryKey: ['tags'] });
-    queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
-  };
+    queryClient.invalidateQueries({ queryKey: ['resumes'] })
+    queryClient.invalidateQueries({ queryKey: ['tags'] })
+    queryClient.invalidateQueries({ queryKey: ['bookmarks'] })
+  }
 
   // Load first resume for ProfileWizard
-  const firstResumeId = resumes[0]?.id;
+  const firstResumeId = resumes[0]?.id
   const [wizardResumeState, setWizardResumeState] = useState<{
-    resumeId: string | null;
-    resume: Resume | null;
-  }>({ resumeId: null, resume: null });
+    resumeId: string | null
+    resume: Resume | null
+  }>({ resumeId: null, resume: null })
   useEffect(() => {
     if (firstResumeId && userId) {
       fetchResume(firstResumeId)
         .then((resume) => setWizardResumeState({ resumeId: firstResumeId, resume }))
-        .catch(() => {});
+        .catch(() => {})
     }
-  }, [firstResumeId, userId]);
+  }, [firstResumeId, userId])
   const wizardResume =
-    wizardResumeState.resumeId === firstResumeId ? wizardResumeState.resume : null;
+    wizardResumeState.resumeId === firstResumeId ? wizardResumeState.resume : null
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
       if (e.key === 'n' && !e.ctrlKey && !e.metaKey) {
-        window.location.href = '/resumes/new';
+        window.location.href = '/resumes/new'
       }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, []);
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
-  const { data: homeContent = {} } = useSystemContent<HomeContent>('homepage');
-  const safeContent: HomeContent = homeContent ?? {};
-  const highlights = safeContent.highlights?.length ? safeContent.highlights : DEFAULT_HIGHLIGHTS;
-  const features = safeContent.features?.length ? safeContent.features : DEFAULT_FEATURES;
+  const { data: homeContent = {} } = useSystemContent<HomeContent>('homepage')
+  const safeContent: HomeContent = homeContent ?? {}
+  const highlights = safeContent.highlights?.length ? safeContent.highlights : DEFAULT_HIGHLIGHTS
+  const features = safeContent.features?.length ? safeContent.features : DEFAULT_FEATURES
   const testimonials = safeContent.testimonials?.length
     ? safeContent.testimonials
-    : DEFAULT_TESTIMONIALS;
-  const socialProofTitle = safeContent.socialProofTitle || '이미 수천 명이 선택했습니다';
+    : DEFAULT_TESTIMONIALS
+  const socialProofTitle = safeContent.socialProofTitle || '이미 수천 명이 선택했습니다'
 
   const handleDelete = async (id: string, title: string) => {
     if (
@@ -118,39 +120,39 @@ export default function HomePage() {
         confirmText: '삭제',
       }))
     )
-      return;
+      return
     try {
-      await deleteResume(id);
-      toast('이력서가 삭제되었습니다', 'success');
-      load();
+      await deleteResume(id)
+      toast('이력서가 삭제되었습니다', 'success')
+      load()
     } catch {
-      toast('삭제에 실패했습니다', 'error');
+      toast('삭제에 실패했습니다', 'error')
     }
-  };
+  }
 
   const handleDuplicate = async (id: string) => {
     try {
-      await duplicateResume(id);
-      toast('이력서가 복제되었습니다', 'success');
-      load();
+      await duplicateResume(id)
+      toast('이력서가 복제되었습니다', 'success')
+      load()
     } catch {
-      toast('복제에 실패했습니다', 'error');
+      toast('복제에 실패했습니다', 'error')
     }
-  };
+  }
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   const selectAll = () => {
-    if (selectedIds.size === filtered.length) setSelectedIds(new Set());
-    else setSelectedIds(new Set(filtered.map((r) => r.id)));
-  };
+    if (selectedIds.size === filtered.length) setSelectedIds(new Set())
+    else setSelectedIds(new Set(filtered.map((r) => r.id)))
+  }
 
   const handleBulkDelete = async () => {
     if (
@@ -160,17 +162,17 @@ export default function HomePage() {
         confirmText: '삭제',
       }))
     )
-      return;
+      return
     for (const id of selectedIds) {
       try {
-        await deleteResume(id);
+        await deleteResume(id)
       } catch {}
     }
-    toast(`${selectedIds.size}개 이력서가 삭제되었습니다`, 'success');
-    setSelectedIds(new Set());
-    setSelectMode(false);
-    load();
-  };
+    toast(`${selectedIds.size}개 이력서가 삭제되었습니다`, 'success')
+    setSelectedIds(new Set())
+    setSelectMode(false)
+    load()
+  }
 
   const filtered = resumes
     .filter((r) => (filterTag ? r.tags?.some((t) => t.id === filterTag) : true))
@@ -179,25 +181,25 @@ export default function HomePage() {
       (r) =>
         !searchQuery ||
         (r.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (r.personalInfo?.name || '').toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+        (r.personalInfo?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+    )
 
   const sorted = [...filtered].sort((a, b) => {
-    let cmp: number;
+    let cmp: number
     switch (sortBy) {
       case 'title':
-        cmp = (a.title || '').localeCompare(b.title || '', 'ko');
-        break;
+        cmp = (a.title || '').localeCompare(b.title || '', 'ko')
+        break
       case 'viewCount':
-        cmp = (a.viewCount || 0) - (b.viewCount || 0);
-        break;
+        cmp = (a.viewCount || 0) - (b.viewCount || 0)
+        break
       case 'updatedAt':
       default:
-        cmp = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
-        break;
+        cmp = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+        break
     }
-    return sortOrder === 'desc' ? -cmp : cmp;
-  });
+    return sortOrder === 'desc' ? -cmp : cmp
+  })
 
   if (loading) {
     return (
@@ -217,7 +219,7 @@ export default function HomePage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
   return (
@@ -255,7 +257,7 @@ export default function HomePage() {
             </div>
             <button
               onClick={() => {
-                load();
+                load()
               }}
               className="home-hover-dim shrink-0 px-3 py-1 bg-amber-600 text-white text-xs font-medium rounded-lg"
             >
@@ -330,8 +332,8 @@ export default function HomePage() {
         <QuickImportModal
           onClose={() => setShowImport(false)}
           onSuccess={(id) => {
-            setShowImport(false);
-            navigate(ROUTES.resume.edit(id));
+            setShowImport(false)
+            navigate(ROUTES.resume.edit(id))
           }}
         />
       )}
@@ -341,5 +343,5 @@ export default function HomePage() {
         context="general"
       />
     </>
-  );
+  )
 }

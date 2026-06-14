@@ -1,15 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable } from '@nestjs/common'
+
+import { PrismaService } from '../prisma/prisma.service'
 
 @Injectable()
 export class AdminStatsService {
   constructor(private prisma: PrismaService) {}
 
   async getStats() {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
 
     const [
       totalUsers,
@@ -57,23 +58,23 @@ export class AdminStatsService {
         where: { status: { in: ['completed', 'confirmed'] } },
         _sum: { commission: true },
       }),
-    ]);
+    ])
 
     const recentUsers = await this.prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
       take: 5,
       select: { id: true, name: true, email: true, provider: true, createdAt: true },
-    });
+    })
 
     // i18n 통계 — preferredLocale 별 사용자 수. 빈 문자열은 'unset' 으로.
     const localeGroups = await this.prisma.user.groupBy({
       by: ['preferredLocale'],
       _count: { _all: true },
-    });
-    const localeStats: Record<string, number> = { unset: 0, ko: 0, en: 0, ja: 0 };
+    })
+    const localeStats: Record<string, number> = { unset: 0, ko: 0, en: 0, ja: 0 }
     for (const g of localeGroups) {
-      const key = g.preferredLocale || 'unset';
-      localeStats[key] = (localeStats[key] || 0) + (g._count?._all || 0);
+      const key = g.preferredLocale || 'unset'
+      localeStats[key] = (localeStats[key] || 0) + (g._count?._all || 0)
     }
 
     // 신규 기능 사용량 — 2026-04 사이클 추가 기능들
@@ -102,25 +103,25 @@ export class AdminStatsService {
       this.prisma.interviewAnswer.count({ where: { createdAt: { gte: weekAgo } } }),
       // 아바타 업로드: User.avatar 가 cloudinary URL 인 사용자 수 (대략적 추정)
       this.prisma.user.count({ where: { avatar: { contains: 'cloudinary' } } }),
-    ]);
+    ])
 
     // Aggregate coaching status counts
-    const statusList = Array.isArray(sessionsByStatus) ? sessionsByStatus : [];
+    const statusList = Array.isArray(sessionsByStatus) ? sessionsByStatus : []
     const statusCounts: Record<string, number> = {
       requested: 0,
       confirmed: 0,
       completed: 0,
       cancelled: 0,
       refunded: 0,
-    };
-    let totalSessions = 0;
-    for (const row of statusList) {
-      const key = String(row?.status ?? '');
-      const n = Number(row?._count?._all ?? 0);
-      statusCounts[key] = (statusCounts[key] || 0) + n;
-      totalSessions += n;
     }
-    const totalCommission = Number(commissionAgg._sum.commission ?? 0);
+    let totalSessions = 0
+    for (const row of statusList) {
+      const key = String(row?.status ?? '')
+      const n = Number(row?._count?._all ?? 0)
+      statusCounts[key] = (statusCounts[key] || 0) + n
+      totalSessions += n
+    }
+    const totalCommission = Number(commissionAgg._sum.commission ?? 0)
 
     return {
       users: { total: totalUsers, today: newUsersToday, week: newUsersWeek, month: newUsersMonth },
@@ -180,6 +181,6 @@ export class AdminStatsService {
         provider: u.provider,
         createdAt: u.createdAt.toISOString(),
       })),
-    };
+    }
   }
 }

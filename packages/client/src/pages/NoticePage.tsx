@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { usePublicGet } from '@/hooks/useResources';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
-import { formatDate } from '@/lib/time';
+import { useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { usePublicGet } from '@/hooks/useResources'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+import { formatDate } from '@/lib/time'
 
 const TYPE_COLOR: Record<string, { color: string; icon: string }> = {
   GENERAL: {
@@ -20,54 +21,54 @@ const TYPE_COLOR: Record<string, { color: string; icon: string }> = {
     icon: '🎉',
     color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
   },
-};
+}
 const getTYPE_INFO = (): Record<string, { label: string; color: string; icon: string }> => ({
   GENERAL: { label: tx('notice.types.GENERAL'), ...TYPE_COLOR.GENERAL },
   MAINTENANCE: { label: tx('notice.types.MAINTENANCE'), ...TYPE_COLOR.MAINTENANCE },
   EVENT: { label: tx('notice.types.EVENT'), ...TYPE_COLOR.EVENT },
-});
+})
 
 function timeAgo(date: string) {
-  const diff = Date.now() - new Date(date).getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days === 0) return '오늘';
-  if (days < 7) return `${days}일 전`;
-  return formatDate(date);
+  const diff = Date.now() - new Date(date).getTime()
+  const days = Math.floor(diff / 86400000)
+  if (days === 0) return '오늘'
+  if (days < 7) return `${days}일 전`
+  return formatDate(date)
 }
 
 interface Notice {
-  id: string;
-  title: string;
-  content: string;
-  type: string;
-  isPinned: boolean;
-  isPopup: boolean;
-  startAt?: string;
-  endAt?: string;
-  createdAt: string;
+  id: string
+  title: string
+  content: string
+  type: string
+  isPinned: boolean
+  isPopup: boolean
+  startAt?: string
+  endAt?: string
+  createdAt: string
 }
 
 interface NoticeListResponse {
-  items?: Notice[];
-  total?: number;
+  items?: Notice[]
+  total?: number
 }
 
 function NoticeList() {
-  const [type, setType] = useState('all');
-  const [page, setPage] = useState(1);
+  const [type, setType] = useState('all')
+  const [page, setPage] = useState(1)
 
-  const queryParams = new URLSearchParams({ page: String(page), limit: '20' });
-  if (type !== 'all') queryParams.set('type', type);
+  const queryParams = new URLSearchParams({ page: String(page), limit: '20' })
+  if (type !== 'all') queryParams.set('type', type)
 
   const { data, isLoading: loading } = usePublicGet<NoticeListResponse | Notice[]>(
     ['notices', type, page],
     `/api/notices?${queryParams}`,
-    { staleTime: 30_000 },
-  );
-  const notices: Notice[] = Array.isArray(data) ? data : data?.items || [];
-  const total: number = Array.isArray(data) ? data.length : data?.total || 0;
+    { staleTime: 30_000 }
+  )
+  const notices: Notice[] = Array.isArray(data) ? data : data?.items || []
+  const total: number = Array.isArray(data) ? data.length : data?.total || 0
 
-  const totalPages = Math.ceil(total / 20);
+  const totalPages = Math.ceil(total / 20)
 
   return (
     <>
@@ -104,8 +105,8 @@ function NoticeList() {
             <button
               key={t.id}
               onClick={() => {
-                setType(t.id);
-                setPage(1);
+                setType(t.id)
+                setPage(1)
               }}
               className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-xl transition-all ${
                 type === t.id
@@ -136,7 +137,7 @@ function NoticeList() {
           <>
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-700">
               {notices.map((notice) => {
-                const typeInfo = getTYPE_INFO()[notice.type] || getTYPE_INFO().GENERAL;
+                const typeInfo = getTYPE_INFO()[notice.type] || getTYPE_INFO().GENERAL
                 return (
                   <Link
                     key={notice.id}
@@ -162,7 +163,7 @@ function NoticeList() {
                       {timeAgo(notice.createdAt)}
                     </span>
                   </Link>
-                );
+                )
               })}
             </div>
 
@@ -212,18 +213,18 @@ function NoticeList() {
       </main>
       <Footer />
     </>
-  );
+  )
 }
 
 function NoticeDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>()
   const { data: notice, isLoading: loading } = usePublicGet<Notice>(
     ['notice', id],
     `/api/notices/${id}`,
-    { enabled: !!id, staleTime: 60_000 },
-  );
+    { enabled: !!id, staleTime: 60_000 }
+  )
 
-  const typeInfo = notice ? getTYPE_INFO()[notice.type] || getTYPE_INFO().GENERAL : null;
+  const typeInfo = notice ? getTYPE_INFO()[notice.type] || getTYPE_INFO().GENERAL : null
 
   return (
     <>
@@ -292,10 +293,10 @@ function NoticeDetail() {
       </main>
       <Footer />
     </>
-  );
+  )
 }
 
 export default function NoticePage() {
-  const { id } = useParams<{ id: string }>();
-  return id ? <NoticeDetail /> : <NoticeList />;
+  const { id } = useParams<{ id: string }>()
+  return id ? <NoticeDetail /> : <NoticeList />
 }

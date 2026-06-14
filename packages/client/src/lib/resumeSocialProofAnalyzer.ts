@@ -10,20 +10,20 @@ export type SocialProofType =
   | 'award' // 수상
   | 'open_source' // 오픈소스 기여/스타
   | 'teaching' // 강의/튜터링
-  | 'media'; // 인터뷰/언론 보도/팟캐스트
+  | 'media' // 인터뷰/언론 보도/팟캐스트
 
 export interface SocialProofSignal {
-  type: SocialProofType;
-  phrase: string;
+  type: SocialProofType
+  phrase: string
 }
 
 export interface SocialProofReport {
-  signals: SocialProofSignal[];
-  types: Set<SocialProofType>;
-  score: number; // 0-100
-  level: 'high' | 'medium' | 'low' | 'none';
-  suggestion: string;
-  missingTips: string[];
+  signals: SocialProofSignal[]
+  types: Set<SocialProofType>
+  score: number // 0-100
+  level: 'high' | 'medium' | 'low' | 'none'
+  suggestion: string
+  missingTips: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -31,9 +31,9 @@ export interface SocialProofReport {
 // ---------------------------------------------------------------------------
 
 interface ProofPattern {
-  re: RegExp;
-  type: SocialProofType;
-  weight: number;
+  re: RegExp
+  type: SocialProofType
+  weight: number
 }
 
 const PROOF_PATTERNS: ProofPattern[] = [
@@ -128,58 +128,58 @@ const PROOF_PATTERNS: ProofPattern[] = [
     type: 'media',
     weight: 10,
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function analyzeResumeSocialProof(text: string): SocialProofReport {
-  const t = text ?? '';
-  const signals: SocialProofSignal[] = [];
-  const types = new Set<SocialProofType>();
-  let totalWeight = 0;
+  const t = text ?? ''
+  const signals: SocialProofSignal[] = []
+  const types = new Set<SocialProofType>()
+  let totalWeight = 0
 
   for (const { re, type, weight } of PROOF_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m) {
-      signals.push({ type, phrase: m[0].slice(0, 60) });
+      signals.push({ type, phrase: m[0].slice(0, 60) })
       if (!types.has(type)) {
-        types.add(type);
-        totalWeight += weight;
+        types.add(type)
+        totalWeight += weight
       }
     }
   }
 
-  const score = Math.min(100, totalWeight);
+  const score = Math.min(100, totalWeight)
 
-  let level: SocialProofReport['level'];
-  if (score >= 50) level = 'high';
-  else if (score >= 20) level = 'medium';
-  else if (score >= 5) level = 'low';
-  else level = 'none';
+  let level: SocialProofReport['level']
+  if (score >= 50) level = 'high'
+  else if (score >= 20) level = 'medium'
+  else if (score >= 5) level = 'low'
+  else level = 'none'
 
-  let suggestion: string;
+  let suggestion: string
   if (level === 'high') {
-    suggestion = '외부 검증 신호가 풍부합니다. 서류 전형과 면접에서 강력한 차별화 요소가 됩니다.';
+    suggestion = '외부 검증 신호가 풍부합니다. 서류 전형과 면접에서 강력한 차별화 요소가 됩니다.'
   } else if (level === 'medium') {
-    suggestion = '일부 소셜 프루프 신호가 있습니다. 더 추가할 수 있는 항목을 확인하세요.';
+    suggestion = '일부 소셜 프루프 신호가 있습니다. 더 추가할 수 있는 항목을 확인하세요.'
   } else if (level === 'low') {
-    suggestion = '소셜 프루프 신호가 적습니다. 외부 검증 활동이 경쟁력을 높입니다.';
+    suggestion = '소셜 프루프 신호가 적습니다. 외부 검증 활동이 경쟁력을 높입니다.'
   } else {
-    suggestion = '논문·특허·수상·오픈소스·발표 등 외부 검증 신호가 없습니다.';
+    suggestion = '논문·특허·수상·오픈소스·발표 등 외부 검증 신호가 없습니다.'
   }
 
-  const missingTips: string[] = [];
+  const missingTips: string[] = []
   if (!types.has('open_source')) {
-    missingTips.push('GitHub 오픈소스 기여 또는 개인 라이브러리 배포 이력을 추가하세요.');
+    missingTips.push('GitHub 오픈소스 기여 또는 개인 라이브러리 배포 이력을 추가하세요.')
   }
   if (!types.has('award') && !types.has('conference_talk')) {
-    missingTips.push('해커톤 수상, 컨퍼런스 발표 경험이 있다면 반드시 기재하세요.');
+    missingTips.push('해커톤 수상, 컨퍼런스 발표 경험이 있다면 반드시 기재하세요.')
   }
   if (!types.has('publication') && !types.has('teaching')) {
-    missingTips.push('기술 블로그 연재, 사내 Tech Talk 진행, 논문 게재 이력이 있으면 추가하세요.');
+    missingTips.push('기술 블로그 연재, 사내 Tech Talk 진행, 논문 게재 이력이 있으면 추가하세요.')
   }
 
-  return { signals, types, score, level, suggestion, missingTips };
+  return { signals, types, score, level, suggestion, missingTips }
 }

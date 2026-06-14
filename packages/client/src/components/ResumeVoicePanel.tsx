@@ -1,26 +1,27 @@
-import { useMemo } from 'react';
+import { useMemo } from 'react'
+
 import {
   analyzePassiveVoice,
   analyzeSentenceEndings,
   analyzeSentenceStarts,
-} from '@/lib/sentenceStructure';
+} from '@/lib/sentenceStructure'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeVoicePanel({ text }: Props) {
-  const passive = useMemo(() => analyzePassiveVoice(text), [text]);
-  const endings = useMemo(() => analyzeSentenceEndings(text), [text]);
-  const starts = useMemo(() => analyzeSentenceStarts(text), [text]);
+  const passive = useMemo(() => analyzePassiveVoice(text), [text])
+  const endings = useMemo(() => analyzeSentenceEndings(text), [text])
+  const starts = useMemo(() => analyzeSentenceStarts(text), [text])
 
-  const passiveIssue = passive.level === 'high' || passive.level === 'medium';
-  const endingIssue = endings.monotonyScore >= 60;
-  const startsIssue = starts.repeatedStartRatio >= 0.4 && starts.totalSentences >= 5;
-  if (!passiveIssue && !endingIssue && !startsIssue) return null;
+  const passiveIssue = passive.level === 'high' || passive.level === 'medium'
+  const endingIssue = endings.monotonyScore >= 60
+  const startsIssue = starts.repeatedStartRatio >= 0.4 && starts.totalSentences >= 5
+  if (!passiveIssue && !endingIssue && !startsIssue) return null
 
-  const issueCount = [passiveIssue, endingIssue, startsIssue].filter(Boolean).length;
-  const tone = passive.level === 'high' || endings.monotonyScore >= 80 ? 'warning' : 'neutral';
+  const issueCount = [passiveIssue, endingIssue, startsIssue].filter(Boolean).length
+  const tone = passive.level === 'high' || endings.monotonyScore >= 80 ? 'warning' : 'neutral'
 
   return (
     <aside
@@ -122,5 +123,5 @@ export default function ResumeVoicePanel({ text }: Props) {
         )}
       </ul>
     </aside>
-  );
+  )
 }

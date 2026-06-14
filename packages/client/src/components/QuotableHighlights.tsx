@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
-import { extractQuotableLines } from '@/lib/koreanChecker';
-import { tx } from '@/lib/i18n';
+import { useMemo } from 'react'
+
+import { tx } from '@/lib/i18n'
+import { extractQuotableLines } from '@/lib/koreanChecker'
 
 interface Props {
-  text: string;
-  topN?: number;
-  minLength?: number;
-  className?: string;
+  text: string
+  topN?: number
+  minLength?: number
+  className?: string
 }
 
 /**
@@ -20,13 +21,13 @@ export default function QuotableHighlights({
   className = '',
 }: Props) {
   const lines = useMemo(() => {
-    if (!text || text.length < minLength) return [];
-    return extractQuotableLines(text, topN);
-  }, [text, topN, minLength]);
+    if (!text || text.length < minLength) return []
+    return extractQuotableLines(text, topN)
+  }, [text, topN, minLength])
 
-  if (lines.length === 0) return null;
+  if (lines.length === 0) return null
 
-  const titleId = 'quotable-highlights-title';
+  const titleId = 'quotable-highlights-title'
   return (
     <section className={`mt-3 ${className}`} aria-labelledby={titleId}>
       <h3
@@ -74,5 +75,5 @@ export default function QuotableHighlights({
         ))}
       </ul>
     </section>
-  );
+  )
 }

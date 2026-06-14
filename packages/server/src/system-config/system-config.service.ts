@@ -1,30 +1,31 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable } from '@nestjs/common'
+
+import { PrismaService } from '../prisma/prisma.service'
 
 @Injectable()
 export class SystemConfigService {
   constructor(private prisma: PrismaService) {}
 
   async getAll() {
-    return this.prisma.systemConfig.findMany({ orderBy: { key: 'asc' } });
+    return this.prisma.systemConfig.findMany({ orderBy: { key: 'asc' } })
   }
 
   async get(key: string): Promise<string | null> {
-    const config = await this.prisma.systemConfig.findUnique({ where: { key } });
-    return config?.value ?? null;
+    const config = await this.prisma.systemConfig.findUnique({ where: { key } })
+    return config?.value ?? null
   }
 
   async getBoolean(key: string, defaultValue = false): Promise<boolean> {
-    const val = await this.get(key);
-    if (val === null) return defaultValue;
-    return val === 'true';
+    const val = await this.get(key)
+    if (val === null) return defaultValue
+    return val === 'true'
   }
 
   async getNumber(key: string, defaultValue = 0): Promise<number> {
-    const val = await this.get(key);
-    if (val === null) return defaultValue;
-    const n = parseInt(val, 10);
-    return isNaN(n) ? defaultValue : n;
+    const val = await this.get(key)
+    if (val === null) return defaultValue
+    const n = parseInt(val, 10)
+    return isNaN(n) ? defaultValue : n
   }
 
   async set(key: string, value: string) {
@@ -32,11 +33,11 @@ export class SystemConfigService {
       where: { key },
       update: { value },
       create: { key, value },
-    });
+    })
   }
 
   async setMany(configs: { key: string; value: string }[]) {
-    return Promise.all(configs.map((c) => this.set(c.key, c.value)));
+    return Promise.all(configs.map((c) => this.set(c.key, c.value)))
   }
 
   async getPublicConfig() {
@@ -46,43 +47,43 @@ export class SystemConfigService {
       'monetization_enabled',
       'maintenance_mode',
       'allow_signup',
-    ];
-    const configs = await this.prisma.systemConfig.findMany({ where: { key: { in: keys } } });
-    return Object.fromEntries(configs.map((c) => [c.key, c.value]));
+    ]
+    const configs = await this.prisma.systemConfig.findMany({ where: { key: { in: keys } } })
+    return Object.fromEntries(configs.map((c) => [c.key, c.value]))
   }
 
   // ── 이력서 신고 임계치 (auto-hide threshold) ──────────────────
-  static readonly REPORT_THRESHOLD_KEY = 'moderation.resume.reportThreshold';
-  static readonly REPORT_THRESHOLD_DEFAULT = 5;
+  static readonly REPORT_THRESHOLD_KEY = 'moderation.resume.reportThreshold'
+  static readonly REPORT_THRESHOLD_DEFAULT = 5
 
   async getReportThreshold(): Promise<number> {
     return this.getNumber(
       SystemConfigService.REPORT_THRESHOLD_KEY,
-      SystemConfigService.REPORT_THRESHOLD_DEFAULT,
-    );
+      SystemConfigService.REPORT_THRESHOLD_DEFAULT
+    )
   }
 
   // ── CoffeeChat rate-limit (P3-7) ─────────────────────────────
-  static readonly COFFEE_CHAT_RATE_LIMIT_DAYS_KEY = 'coffeeChat.rateLimit.days';
-  static readonly COFFEE_CHAT_RATE_LIMIT_MAX_KEY = 'coffeeChat.rateLimit.max';
-  static readonly COFFEE_CHAT_RATE_LIMIT_DAYS_DEFAULT = 30;
-  static readonly COFFEE_CHAT_RATE_LIMIT_MAX_DEFAULT = 3;
+  static readonly COFFEE_CHAT_RATE_LIMIT_DAYS_KEY = 'coffeeChat.rateLimit.days'
+  static readonly COFFEE_CHAT_RATE_LIMIT_MAX_KEY = 'coffeeChat.rateLimit.max'
+  static readonly COFFEE_CHAT_RATE_LIMIT_DAYS_DEFAULT = 30
+  static readonly COFFEE_CHAT_RATE_LIMIT_MAX_DEFAULT = 3
 
   async getCoffeeChatRateLimit(): Promise<{ days: number; max: number }> {
     const [days, max] = await Promise.all([
       this.getNumber(
         SystemConfigService.COFFEE_CHAT_RATE_LIMIT_DAYS_KEY,
-        SystemConfigService.COFFEE_CHAT_RATE_LIMIT_DAYS_DEFAULT,
+        SystemConfigService.COFFEE_CHAT_RATE_LIMIT_DAYS_DEFAULT
       ),
       this.getNumber(
         SystemConfigService.COFFEE_CHAT_RATE_LIMIT_MAX_KEY,
-        SystemConfigService.COFFEE_CHAT_RATE_LIMIT_MAX_DEFAULT,
+        SystemConfigService.COFFEE_CHAT_RATE_LIMIT_MAX_DEFAULT
       ),
-    ]);
+    ])
     return {
       days: Math.max(1, Math.min(365, days)),
       max: Math.max(1, Math.min(100, max)),
-    };
+    }
   }
 
   // ── 기능 토글 (feature.X.enabled) ─────────────────────────────
@@ -98,7 +99,7 @@ export class SystemConfigService {
     'community.create', // 커뮤니티 게시물 작성
     'community.comment', // 커뮤니티 댓글 작성
     'publicResume', // 공개 이력서 기능
-  ] as const;
+  ] as const
 
   static readonly FEATURE_DEFAULTS: Record<string, boolean> = {
     'ai.resume': true,
@@ -111,46 +112,46 @@ export class SystemConfigService {
     'community.create': true,
     'community.comment': true,
     publicResume: true,
-  };
+  }
 
   private featureKey(name: string): string {
-    return `feature.${name}.enabled`;
+    return `feature.${name}.enabled`
   }
 
   async isFeatureEnabled(name: string): Promise<boolean> {
-    const def = SystemConfigService.FEATURE_DEFAULTS[name] ?? true;
-    return this.getBoolean(this.featureKey(name), def);
+    const def = SystemConfigService.FEATURE_DEFAULTS[name] ?? true
+    return this.getBoolean(this.featureKey(name), def)
   }
 
   async assertFeatureEnabled(name: string, errorMsg?: string): Promise<void> {
     if (!(await this.isFeatureEnabled(name))) {
-      throw new Error(errorMsg || `'${name}' 기능이 관리자에 의해 비활성화되었습니다`);
+      throw new Error(errorMsg || `'${name}' 기능이 관리자에 의해 비활성화되었습니다`)
     }
   }
 
   async getAllFeatureToggles(): Promise<Record<string, boolean>> {
     const entries = await Promise.all(
       SystemConfigService.FEATURE_TOGGLES.map(
-        async (name) => [name, await this.isFeatureEnabled(name)] as const,
-      ),
-    );
-    return Object.fromEntries(entries);
+        async (name) => [name, await this.isFeatureEnabled(name)] as const
+      )
+    )
+    return Object.fromEntries(entries)
   }
 
   async setFeatureToggles(toggles: Record<string, boolean>): Promise<Record<string, boolean>> {
-    const validKeys = new Set(SystemConfigService.FEATURE_TOGGLES as readonly string[]);
+    const validKeys = new Set(SystemConfigService.FEATURE_TOGGLES as readonly string[])
     const configs = Object.entries(toggles)
       .filter(([k]) => validKeys.has(k))
-      .map(([key, value]) => ({ key: this.featureKey(key), value: String(!!value) }));
-    if (configs.length > 0) await this.setMany(configs);
-    return this.getAllFeatureToggles();
+      .map(([key, value]) => ({ key: this.featureKey(key), value: String(!!value) }))
+    if (configs.length > 0) await this.setMany(configs)
+    return this.getAllFeatureToggles()
   }
 
   // ── 파일 업로드 설정 (전역 토글) ─────────────────────────────
   /** 파일 업로드 기능 활성화 여부 — admin이 /admin/system-config 에서 토글 */
-  static readonly UPLOAD_KEY_ENABLED = 'feature.fileUpload.enabled';
-  static readonly UPLOAD_KEY_MAX_MB = 'feature.fileUpload.maxSizeMb';
-  static readonly UPLOAD_KEY_MIME = 'feature.fileUpload.allowedMime';
+  static readonly UPLOAD_KEY_ENABLED = 'feature.fileUpload.enabled'
+  static readonly UPLOAD_KEY_MAX_MB = 'feature.fileUpload.maxSizeMb'
+  static readonly UPLOAD_KEY_MIME = 'feature.fileUpload.allowedMime'
   static readonly UPLOAD_DEFAULTS = {
     enabled: true,
     maxSizeMb: 10,
@@ -165,52 +166,52 @@ export class SystemConfigService {
       'application/vnd.ms-powerpoint',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     ].join(','),
-  };
+  }
 
   async getUploadSettings(): Promise<{
-    enabled: boolean;
-    maxSizeMb: number;
-    allowedMime: string;
+    enabled: boolean
+    maxSizeMb: number
+    allowedMime: string
   }> {
     const [enabled, maxSizeMb, mime] = await Promise.all([
       this.getBoolean(
         SystemConfigService.UPLOAD_KEY_ENABLED,
-        SystemConfigService.UPLOAD_DEFAULTS.enabled,
+        SystemConfigService.UPLOAD_DEFAULTS.enabled
       ),
       this.getNumber(
         SystemConfigService.UPLOAD_KEY_MAX_MB,
-        SystemConfigService.UPLOAD_DEFAULTS.maxSizeMb,
+        SystemConfigService.UPLOAD_DEFAULTS.maxSizeMb
       ),
       this.get(SystemConfigService.UPLOAD_KEY_MIME),
-    ]);
+    ])
     return {
       enabled,
       maxSizeMb,
       allowedMime: mime ?? SystemConfigService.UPLOAD_DEFAULTS.allowedMime,
-    };
+    }
   }
 
   async assertUploadAllowed(file: { size: number; mimetype: string }): Promise<void> {
-    const settings = await this.getUploadSettings();
+    const settings = await this.getUploadSettings()
     if (!settings.enabled) {
-      throw new Error('파일 업로드가 관리자에 의해 비활성화되었습니다');
+      throw new Error('파일 업로드가 관리자에 의해 비활성화되었습니다')
     }
-    const maxBytes = settings.maxSizeMb * 1024 * 1024;
+    const maxBytes = settings.maxSizeMb * 1024 * 1024
     if (file.size > maxBytes) {
-      throw new Error(`파일 크기가 ${settings.maxSizeMb}MB 를 초과합니다`);
+      throw new Error(`파일 크기가 ${settings.maxSizeMb}MB 를 초과합니다`)
     }
     const patterns = settings.allowedMime
       .split(',')
       .map((p) => p.trim())
-      .filter(Boolean);
-    if (patterns.length === 0) return;
+      .filter(Boolean)
+    if (patterns.length === 0) return
     const matched = patterns.some((p) => {
-      if (p === '*/*') return true;
-      if (p.endsWith('/*')) return file.mimetype.startsWith(p.slice(0, -1));
-      return file.mimetype === p;
-    });
+      if (p === '*/*') return true
+      if (p.endsWith('/*')) return file.mimetype.startsWith(p.slice(0, -1))
+      return file.mimetype === p
+    })
     if (!matched) {
-      throw new Error(`허용되지 않은 파일 형식입니다 (${file.mimetype})`);
+      throw new Error(`허용되지 않은 파일 형식입니다 (${file.mimetype})`)
     }
   }
 
@@ -235,46 +236,46 @@ export class SystemConfigService {
     'perm.banners.create': 'admin',
     'perm.banners.edit': 'admin',
     'perm.banners.delete': 'admin',
-  };
+  }
 
   async getPermissions(): Promise<Record<string, string>> {
-    const keys = Object.keys(SystemConfigService.PERMISSION_DEFAULTS);
+    const keys = Object.keys(SystemConfigService.PERMISSION_DEFAULTS)
     const configs = await this.prisma.systemConfig.findMany({
       where: { key: { in: keys } },
-    });
-    const stored = Object.fromEntries(configs.map((c) => [c.key, c.value]));
-    return { ...SystemConfigService.PERMISSION_DEFAULTS, ...stored };
+    })
+    const stored = Object.fromEntries(configs.map((c) => [c.key, c.value]))
+    return { ...SystemConfigService.PERMISSION_DEFAULTS, ...stored }
   }
 
   async setPermissions(perms: Record<string, string>) {
-    const validKeys = new Set(Object.keys(SystemConfigService.PERMISSION_DEFAULTS));
+    const validKeys = new Set(Object.keys(SystemConfigService.PERMISSION_DEFAULTS))
     const configs = Object.entries(perms)
       .filter(([k]) => validKeys.has(k))
-      .map(([key, value]) => ({ key, value }));
-    await this.setMany(configs);
-    return this.getPermissions();
+      .map(([key, value]) => ({ key, value }))
+    await this.setMany(configs)
+    return this.getPermissions()
   }
 
   async checkPermission(
     permKey: string,
     user: { id?: string; role?: string; userType?: string } | null,
-    authorId?: string | null,
+    authorId?: string | null
   ): Promise<boolean> {
-    const perms = await this.getPermissions();
-    const allowed = (perms[permKey] || 'admin').split(',').map((r) => r.trim());
+    const perms = await this.getPermissions()
+    const allowed = (perms[permKey] || 'admin').split(',').map((r) => r.trim())
 
-    if (allowed.includes('all')) return true;
-    if (!user) return false;
+    if (allowed.includes('all')) return true
+    if (!user) return false
 
-    const isAdmin = user.role === 'admin' || user.role === 'superadmin';
-    const isRecruiter = user.userType === 'recruiter' || user.userType === 'company';
-    const isAuthor = authorId ? user.id === authorId : false;
+    const isAdmin = user.role === 'admin' || user.role === 'superadmin'
+    const isRecruiter = user.userType === 'recruiter' || user.userType === 'company'
+    const isAuthor = authorId ? user.id === authorId : false
 
-    if (allowed.includes('admin') && isAdmin) return true;
-    if (allowed.includes('recruiter') && isRecruiter) return true;
-    if (allowed.includes('author') && isAuthor) return true;
-    if (allowed.includes('user') && user.id) return true;
+    if (allowed.includes('admin') && isAdmin) return true
+    if (allowed.includes('recruiter') && isRecruiter) return true
+    if (allowed.includes('author') && isAuthor) return true
+    if (allowed.includes('user') && user.id) return true
 
-    return false;
+    return false
   }
 }

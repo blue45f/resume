@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { computeSectionHealth } from '@/lib/sectionAnalyzers';
+import { useMemo } from 'react'
+
+import { computeSectionHealth } from '@/lib/sectionAnalyzers'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const TIER_LABEL: Record<string, string> = {
@@ -10,19 +11,19 @@ const TIER_LABEL: Record<string, string> = {
   good: '양호',
   fair: '보통',
   poor: '개선 필요',
-};
+}
 
 const SCORE_LABELS = [
   { key: 'balanceScore', label: '섹션 균형' },
   { key: 'orderScore', label: '배치 순서' },
   { key: 'densityScore', label: '내용 밀도' },
-] as const;
+] as const
 
 export default function ResumeSectionHealthPanel({ text }: Props) {
-  const report = useMemo(() => computeSectionHealth(text), [text]);
+  const report = useMemo(() => computeSectionHealth(text), [text])
 
-  if (report.tier === 'excellent') return null;
-  if (report.overall === 0 && report.topHints.length === 0) return null;
+  if (report.tier === 'excellent') return null
+  if (report.overall === 0 && report.topHints.length === 0) return null
 
   return (
     <aside
@@ -78,5 +79,5 @@ export default function ResumeSectionHealthPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

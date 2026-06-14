@@ -4,16 +4,16 @@
  * package install adds zero runtime cost because `init()` short-circuits.
  * Call once from `main.tsx` (before render, around the ErrorBoundary).
  */
-import * as Sentry from '@sentry/react';
+import * as Sentry from '@sentry/react'
 
-let initialised = false;
+let initialised = false
 
 export function initSentry() {
-  if (initialised) return;
-  initialised = true;
+  if (initialised) return
+  initialised = true
 
-  const dsn = import.meta.env.VITE_SENTRY_DSN;
-  if (!dsn) return;
+  const dsn = import.meta.env.VITE_SENTRY_DSN
+  if (!dsn) return
 
   Sentry.init({
     dsn,
@@ -23,5 +23,5 @@ export function initSentry() {
     replaysSessionSampleRate: Number(import.meta.env.VITE_SENTRY_REPLAYS_SAMPLE_RATE ?? 0),
     replaysOnErrorSampleRate: 1.0,
     sendDefaultPii: false,
-  });
+  })
 }

@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { analyzeSkillProficiency, type ProficiencyLevel } from '@/lib/skillProficiency';
+import { useMemo, useState } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { analyzeSkillProficiency, type ProficiencyLevel } from '@/lib/skillProficiency'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 const LEVEL_META: Record<
@@ -34,19 +36,19 @@ const LEVEL_META: Record<
     bar: '#94a3b8',
     chip: 'text-slate-700 bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300',
   },
-};
+}
 
 /**
  * SkillProficiencyPanel — 이력서 분석으로 각 스킬의 숙련도를 자동 추정.
  * 경력 년수·프로젝트 사용·본문 언급을 종합해 Novice→Expert 4단계로 분류.
  */
 export default function SkillProficiencyPanel({ resume }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [filter, setFilter] = useState<ProficiencyLevel | 'all'>('all');
+  const [expanded, setExpanded] = useState(false)
+  const [filter, setFilter] = useState<ProficiencyLevel | 'all'>('all')
 
-  const analysis = useMemo(() => analyzeSkillProficiency(resume), [resume]);
+  const analysis = useMemo(() => analyzeSkillProficiency(resume), [resume])
 
-  const filtered = filter === 'all' ? analysis : analysis.filter((a) => a.level === filter);
+  const filtered = filter === 'all' ? analysis : analysis.filter((a) => a.level === filter)
 
   const levelCounts = useMemo(() => {
     const counts: Record<ProficiencyLevel, number> = {
@@ -54,12 +56,12 @@ export default function SkillProficiencyPanel({ resume }: Props) {
       Advanced: 0,
       Intermediate: 0,
       Novice: 0,
-    };
-    for (const a of analysis) counts[a.level]++;
-    return counts;
-  }, [analysis]);
+    }
+    for (const a of analysis) counts[a.level]++
+    return counts
+  }, [analysis])
 
-  if (analysis.length === 0) return null;
+  if (analysis.length === 0) return null
 
   return (
     <div className="imp-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -113,7 +115,7 @@ export default function SkillProficiencyPanel({ resume }: Props) {
           {/* 스킬 리스트 */}
           <div className="space-y-2">
             {filtered.map((p) => {
-              const meta = LEVEL_META[p.level];
+              const meta = LEVEL_META[p.level]
               return (
                 <div
                   key={p.skill}
@@ -146,7 +148,7 @@ export default function SkillProficiencyPanel({ resume }: Props) {
                     </div>
                   </div>
                 </div>
-              );
+              )
             })}
           </div>
 
@@ -157,7 +159,7 @@ export default function SkillProficiencyPanel({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 function FilterChip({
@@ -167,13 +169,13 @@ function FilterChip({
   count,
   children,
 }: {
-  active: boolean;
-  onClick: () => void;
-  level?: ProficiencyLevel;
-  count?: number;
-  children?: React.ReactNode;
+  active: boolean
+  onClick: () => void
+  level?: ProficiencyLevel
+  count?: number
+  children?: React.ReactNode
 }) {
-  const levelBg = level ? LEVEL_META[level].bar : '#2563eb';
+  const levelBg = level ? LEVEL_META[level].bar : '#2563eb'
   return (
     <button
       onClick={onClick}
@@ -187,5 +189,5 @@ function FilterChip({
       {children ??
         `${level ? LEVEL_META[level].label : ''}${count !== undefined ? ` ${count}` : ''}`}
     </button>
-  );
+  )
 }

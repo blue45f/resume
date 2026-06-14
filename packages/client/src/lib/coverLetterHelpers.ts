@@ -6,12 +6,12 @@
  * - analyzeCallToAction: 마지막 문단 CTA("기여하고 싶습니다" 등) 존재 확인
  */
 
-import { detectSkillMentions } from './jdKeywords';
-import { estimateJobLevel } from './resumeScoring';
+import { detectSkillMentions } from './jdKeywords'
+import { estimateJobLevel } from './resumeScoring'
 
 export interface OpenerSuggestion {
-  style: 'achievement' | 'passion' | 'pragmatic';
-  text: string;
+  style: 'achievement' | 'passion' | 'pragmatic'
+  text: string
 }
 
 /**
@@ -21,15 +21,15 @@ export interface OpenerSuggestion {
 export function recommendCoverLetterOpeners(
   resumeText: string,
   company: string = '귀사',
-  role: string = '해당 포지션',
+  role: string = '해당 포지션'
 ): OpenerSuggestion[] {
   const skills = detectSkillMentions(resumeText, 3)
     .slice(0, 3)
-    .map((s) => s.skill);
-  const topSkills = skills.length > 0 ? skills.join(' · ') : '다양한 프로젝트';
-  const level = estimateJobLevel(resumeText);
-  const years = level.years;
-  const yearsText = years > 0 ? `${years}년간 ` : '';
+    .map((s) => s.skill)
+  const topSkills = skills.length > 0 ? skills.join(' · ') : '다양한 프로젝트'
+  const level = estimateJobLevel(resumeText)
+  const years = level.years
+  const yearsText = years > 0 ? `${years}년간 ` : ''
 
   return [
     {
@@ -44,7 +44,7 @@ export function recommendCoverLetterOpeners(
       style: 'pragmatic',
       text: `${yearsText}쌓아 온 ${topSkills} 경험이 ${company} ${role}의 현재 과제와 맞물리는 지점을 확인했습니다. 다음 세 가지 영역에서 기여할 수 있습니다.`,
     },
-  ];
+  ]
 }
 
 const SELF_DEPRECATION_PATTERNS: Array<{ re: RegExp; phrase: string; reason: string }> = [
@@ -72,19 +72,19 @@ const SELF_DEPRECATION_PATTERNS: Array<{ re: RegExp; phrase: string; reason: str
   },
   { re: /잘\s*모르지만/g, phrase: '잘 모르지만', reason: '무지 인정 — 학습 의지로 전환.' },
   { re: /서투르지만/g, phrase: '서투르지만', reason: '기술 부족 인정 — 배움의 자세로 표현.' },
-];
+]
 
 export interface SelfDeprecationHit {
-  phrase: string;
-  index: number;
-  reason: string;
+  phrase: string
+  index: number
+  reason: string
 }
 
 export interface SelfDeprecationAnalysis {
-  hits: SelfDeprecationHit[];
-  count: number;
-  level: 'none' | 'few' | 'many';
-  suggestion: string;
+  hits: SelfDeprecationHit[]
+  count: number
+  level: 'none' | 'few' | 'many'
+  suggestion: string
 }
 
 /**
@@ -92,28 +92,27 @@ export interface SelfDeprecationAnalysis {
  * 자신감 결여 신호.
  */
 export function detectSelfDeprecation(text: string): SelfDeprecationAnalysis {
-  const t = text ?? '';
-  const hits: SelfDeprecationHit[] = [];
+  const t = text ?? ''
+  const hits: SelfDeprecationHit[] = []
   for (const p of SELF_DEPRECATION_PATTERNS) {
-    const re = new RegExp(p.re.source, 'g');
-    let m: RegExpExecArray | null;
+    const re = new RegExp(p.re.source, 'g')
+    let m: RegExpExecArray | null
     while ((m = re.exec(t))) {
-      hits.push({ phrase: p.phrase, index: m.index, reason: p.reason });
-      if (hits.length > 30) break;
+      hits.push({ phrase: p.phrase, index: m.index, reason: p.reason })
+      if (hits.length > 30) break
     }
-    if (hits.length > 30) break;
+    if (hits.length > 30) break
   }
-  hits.sort((a, b) => a.index - b.index);
-  const count = hits.length;
-  const level: SelfDeprecationAnalysis['level'] =
-    count === 0 ? 'none' : count <= 2 ? 'few' : 'many';
+  hits.sort((a, b) => a.index - b.index)
+  const count = hits.length
+  const level: SelfDeprecationAnalysis['level'] = count === 0 ? 'none' : count <= 2 ? 'few' : 'many'
   const suggestion =
     level === 'none'
       ? '자기비하 표현이 감지되지 않았습니다.'
       : level === 'few'
         ? `자기비하 ${count}건 — 자신감 있는 표현으로 교체하세요.`
-        : `자기비하가 ${count}건으로 많습니다. 공식 문서에서는 성과·학습 의지 중심으로 재작성하세요.`;
-  return { hits: hits.slice(0, 20), count, level, suggestion };
+        : `자기비하가 ${count}건으로 많습니다. 공식 문서에서는 성과·학습 의지 중심으로 재작성하세요.`
+  return { hits: hits.slice(0, 20), count, level, suggestion }
 }
 
 const CTA_PATTERNS = [
@@ -126,13 +125,13 @@ const CTA_PATTERNS = [
   /합류하(?:고 싶|기)/,
   /기대하(?:고 있|겠)/,
   /감사합니다/,
-];
+]
 
 export interface CallToActionAnalysis {
-  hasCTA: boolean;
-  matched: string[];
-  lastParagraph: string;
-  suggestion: string;
+  hasCTA: boolean
+  matched: string[]
+  lastParagraph: string
+  suggestion: string
 }
 
 /**
@@ -140,20 +139,20 @@ export interface CallToActionAnalysis {
  * 행동 유발 마무리가 있는지 확인.
  */
 export function analyzeCallToAction(text: string): CallToActionAnalysis {
-  const t = (text ?? '').trim();
+  const t = (text ?? '').trim()
   if (!t) {
-    return { hasCTA: false, matched: [], lastParagraph: '', suggestion: '본문이 비어 있습니다.' };
+    return { hasCTA: false, matched: [], lastParagraph: '', suggestion: '본문이 비어 있습니다.' }
   }
-  const paragraphs = t.split(/\n{2,}/).filter((p) => p.trim().length > 0);
-  const lastParagraph = (paragraphs[paragraphs.length - 1] ?? '').trim();
-  const matched: string[] = [];
+  const paragraphs = t.split(/\n{2,}/).filter((p) => p.trim().length > 0)
+  const lastParagraph = (paragraphs[paragraphs.length - 1] ?? '').trim()
+  const matched: string[] = []
   for (const re of CTA_PATTERNS) {
-    const m = lastParagraph.match(re);
-    if (m) matched.push(m[0]);
+    const m = lastParagraph.match(re)
+    if (m) matched.push(m[0])
   }
-  const hasCTA = matched.length > 0;
+  const hasCTA = matched.length > 0
   const suggestion = hasCTA
     ? `마지막 문단에 CTA 표현 ${matched.length}건 감지 — "${matched[0]}" 등 행동 유발 마무리가 있습니다.`
-    : '마지막 문단에 명시적 CTA(기여/함께/성장/도전/감사합니다) 가 없습니다 — 인상적인 마무리를 추가하세요.';
-  return { hasCTA, matched, lastParagraph: lastParagraph.slice(0, 100), suggestion };
+    : '마지막 문단에 명시적 CTA(기여/함께/성장/도전/감사합니다) 가 없습니다 — 인상적인 마무리를 추가하세요.'
+  return { hasCTA, matched, lastParagraph: lastParagraph.slice(0, 100), suggestion }
 }

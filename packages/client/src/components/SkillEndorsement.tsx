@@ -1,47 +1,48 @@
-import { useState, useEffect, useCallback } from 'react';
-import { API_URL } from '@/lib/config';
-import { getUser } from '@/lib/auth';
+import { useState, useEffect, useCallback } from 'react'
+
+import { getUser } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
 
 interface EndorsementData {
   [skill: string]: {
-    count: number;
-    endorsed: boolean;
-  };
+    count: number
+    endorsed: boolean
+  }
 }
 
 interface Props {
-  resumeId: string;
-  skills: { id: string; category: string; items: string }[];
+  resumeId: string
+  skills: { id: string; category: string; items: string }[]
 }
 
 export default function SkillEndorsement({ resumeId, skills }: Props) {
-  const [endorsements, setEndorsements] = useState<EndorsementData>({});
-  const [loading, setLoading] = useState<string | null>(null);
-  const user = getUser();
+  const [endorsements, setEndorsements] = useState<EndorsementData>({})
+  const [loading, setLoading] = useState<string | null>(null)
+  const user = getUser()
 
   const allSkillNames = skills.flatMap((s) =>
     s.items
       .split(',')
       .map((item) => item.trim())
-      .filter(Boolean),
-  );
+      .filter(Boolean)
+  )
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const token = localStorage.getItem('token')
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
 
     fetch(`${API_URL}/api/resumes/${resumeId}/endorsements`, { headers })
       .then((r) => (r.ok ? r.json() : {}))
       .then((data: EndorsementData) => setEndorsements(data))
-      .catch(() => {});
-  }, [resumeId]);
+      .catch(() => {})
+  }, [resumeId])
 
   const toggleEndorse = useCallback(
     async (skill: string) => {
-      if (!user) return;
-      setLoading(skill);
-      const token = localStorage.getItem('token');
+      if (!user) return
+      setLoading(skill)
+      const token = localStorage.getItem('token')
       try {
         const res = await fetch(`${API_URL}/api/resumes/${resumeId}/endorse`, {
           method: 'POST',
@@ -50,9 +51,9 @@ export default function SkillEndorsement({ resumeId, skills }: Props) {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({ skill }),
-        });
+        })
         if (res.ok) {
-          const result = await res.json();
+          const result = await res.json()
           setEndorsements((prev) => ({
             ...prev,
             [skill]: {
@@ -63,18 +64,18 @@ export default function SkillEndorsement({ resumeId, skills }: Props) {
                   : (prev[skill]?.count || 0) + 1),
               endorsed: result.endorsed ?? !prev[skill]?.endorsed,
             },
-          }));
+          }))
         }
       } catch {
         // silent fail
       } finally {
-        setLoading(null);
+        setLoading(null)
       }
     },
-    [resumeId, user],
-  );
+    [resumeId, user]
+  )
 
-  if (allSkillNames.length === 0) return null;
+  if (allSkillNames.length === 0) return null
 
   return (
     <div className="mt-4 no-print">
@@ -101,10 +102,10 @@ export default function SkillEndorsement({ resumeId, skills }: Props) {
       </div>
       <div className="flex flex-wrap gap-2">
         {allSkillNames.map((skill) => {
-          const data = endorsements[skill];
-          const count = data?.count || 0;
-          const endorsed = data?.endorsed || false;
-          const isLoading = loading === skill;
+          const data = endorsements[skill]
+          const count = data?.count || 0
+          const endorsed = data?.endorsed || false
+          const isLoading = loading === skill
 
           return (
             <button
@@ -152,9 +153,9 @@ export default function SkillEndorsement({ resumeId, skills }: Props) {
                 </span>
               )}
             </button>
-          );
+          )
         })}
       </div>
     </div>
-  );
+  )
 }

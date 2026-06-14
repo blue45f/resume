@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { fetchJobInterviewQuestions, type JobInterviewQuestion } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+
+import { fetchJobInterviewQuestions, type JobInterviewQuestion } from '@/lib/api'
 
 /**
  * InterviewRoulette — 면접 질문 룰렛.
@@ -14,7 +15,7 @@ import { fetchJobInterviewQuestions, type JobInterviewQuestion } from '@/lib/api
 
 interface Props {
   /** 컴팩트 모드 (다른 위젯과 2열로 정렬될 때) */
-  compact?: boolean;
+  compact?: boolean
 }
 
 const DIFFICULTY_COLORS: Record<string, string> = {
@@ -22,18 +23,18 @@ const DIFFICULTY_COLORS: Record<string, string> = {
   보통: 'bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300 border-sky-200 dark:border-sky-800',
   어려움:
     'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800',
-};
+}
 
 function pickRandom<T>(arr: T[], exclude?: T): T | null {
-  if (!arr.length) return null;
-  if (arr.length === 1) return arr[0];
-  let pick = arr[Math.floor(Math.random() * arr.length)];
-  let guard = 0;
+  if (!arr.length) return null
+  if (arr.length === 1) return arr[0]
+  let pick = arr[Math.floor(Math.random() * arr.length)]
+  let guard = 0
   while (exclude && pick === exclude && guard < 8) {
-    pick = arr[Math.floor(Math.random() * arr.length)];
-    guard++;
+    pick = arr[Math.floor(Math.random() * arr.length)]
+    guard++
   }
-  return pick;
+  return pick
 }
 
 export default function InterviewRoulette({ compact = false }: Props) {
@@ -41,56 +42,53 @@ export default function InterviewRoulette({ compact = false }: Props) {
     queryKey: ['roulette-job-interview-questions', { limit: 40 }],
     queryFn: () => fetchJobInterviewQuestions({ limit: 40 }),
     staleTime: 5 * 60_000,
-  });
+  })
 
-  const questions = useMemo<JobInterviewQuestion[]>(
-    () => (Array.isArray(data) ? data : []),
-    [data],
-  );
+  const questions = useMemo<JobInterviewQuestion[]>(() => (Array.isArray(data) ? data : []), [data])
 
-  const [current, setCurrent] = useState<JobInterviewQuestion | null>(null);
-  const [spinning, setSpinning] = useState(false);
-  const [tickText, setTickText] = useState('');
-  const intervalRef = useRef<number | null>(null);
+  const [current, setCurrent] = useState<JobInterviewQuestion | null>(null)
+  const [spinning, setSpinning] = useState(false)
+  const [tickText, setTickText] = useState('')
+  const intervalRef = useRef<number | null>(null)
 
   useEffect(() => {
     return () => {
-      if (intervalRef.current !== null) window.clearInterval(intervalRef.current);
-    };
-  }, []);
+      if (intervalRef.current !== null) window.clearInterval(intervalRef.current)
+    }
+  }, [])
 
   const roll = () => {
-    if (!questions.length || spinning) return;
+    if (!questions.length || spinning) return
 
     const prefersReduce =
       typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
     if (prefersReduce) {
-      setCurrent(pickRandom(questions, question ?? undefined));
-      return;
+      setCurrent(pickRandom(questions, question ?? undefined))
+      return
     }
 
-    setSpinning(true);
-    const SPIN_MS = 900; // well over 200ms, feels punchy
+    setSpinning(true)
+    const SPIN_MS = 900 // well over 200ms, feels punchy
     // Rapid flicker of question previews during spin
     intervalRef.current = window.setInterval(() => {
-      const sneak = pickRandom(questions);
-      if (sneak) setTickText(sneak.question);
-    }, 70);
+      const sneak = pickRandom(questions)
+      if (sneak) setTickText(sneak.question)
+    }, 70)
 
-    const final = pickRandom(questions, question ?? undefined);
+    const final = pickRandom(questions, question ?? undefined)
 
     window.setTimeout(() => {
       if (intervalRef.current !== null) {
-        window.clearInterval(intervalRef.current);
-        intervalRef.current = null;
+        window.clearInterval(intervalRef.current)
+        intervalRef.current = null
       }
-      setCurrent(final);
-      setTickText('');
-      setSpinning(false);
-    }, SPIN_MS);
-  };
+      setCurrent(final)
+      setTickText('')
+      setSpinning(false)
+    }, SPIN_MS)
+  }
 
   if (isLoading) {
     return (
@@ -98,21 +96,21 @@ export default function InterviewRoulette({ compact = false }: Props) {
         <div className="h-4 w-40 bg-slate-100 dark:bg-slate-800 rounded animate-pulse mb-3" />
         <div className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
       </div>
-    );
+    )
   }
 
-  if (!questions.length) return null;
+  if (!questions.length) return null
 
-  const question = current ?? questions[0] ?? null;
-  const difficulty = question?.difficulty ?? '보통';
-  const difficultyClass = DIFFICULTY_COLORS[difficulty] ?? DIFFICULTY_COLORS['보통'];
+  const question = current ?? questions[0] ?? null
+  const difficulty = question?.difficulty ?? '보통'
+  const difficultyClass = DIFFICULTY_COLORS[difficulty] ?? DIFFICULTY_COLORS['보통']
 
   // MockInterview 연결 (query param 키: question / position / company)
   const practiceHref = question
     ? `/mock-interview?question=${encodeURIComponent(question.question)}${
         question.position ? `&position=${encodeURIComponent(question.position)}` : ''
       }${question.companyName ? `&company=${encodeURIComponent(question.companyName)}` : ''}`
-    : '/mock-interview';
+    : '/mock-interview'
 
   return (
     <div
@@ -229,5 +227,5 @@ export default function InterviewRoulette({ compact = false }: Props) {
         )}
       </div>
     </div>
-  );
+  )
 }

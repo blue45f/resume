@@ -9,33 +9,33 @@ export type HookStrengthType =
   | 'data_hook' // 수치·통계로 시작
   | 'insight_hook' // 통찰·역설적 관점으로 시작
   | 'problem_hook' // 해결한 문제로 시작
-  | 'achievement_hook'; // 성과·성취로 시작
+  | 'achievement_hook' // 성과·성취로 시작
 
 export type GenericOpeningType =
   | 'greeting_formula' // "안녕하세요, ~에 지원합니다"
   | 'motivation_cliche' // "지원하게 된 동기는~"
   | 'self_intro_formula' // "저는 XX 전공의 홍길동입니다"
-  | 'aspiration_cliche'; // "꿈을 이루기 위해", "성장하고 싶어서"
+  | 'aspiration_cliche' // "꿈을 이루기 위해", "성장하고 싶어서"
 
 export interface HookSignal {
-  type: HookStrengthType;
-  excerpt: string;
+  type: HookStrengthType
+  excerpt: string
 }
 
 export interface GenericOpeningSignal {
-  type: GenericOpeningType;
-  excerpt: string;
+  type: GenericOpeningType
+  excerpt: string
 }
 
-export type OpeningHookGrade = 'strong' | 'adequate' | 'weak' | 'generic';
+export type OpeningHookGrade = 'strong' | 'adequate' | 'weak' | 'generic'
 
 export interface CoverLetterOpeningHookReport {
-  hookSignals: HookSignal[];
-  genericSignals: GenericOpeningSignal[];
-  hookScore: number; // 0–100
-  grade: OpeningHookGrade;
-  summary: string;
-  suggestions: string[];
+  hookSignals: HookSignal[]
+  genericSignals: GenericOpeningSignal[]
+  hookScore: number // 0–100
+  grade: OpeningHookGrade
+  summary: string
+  suggestions: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -43,10 +43,10 @@ export interface CoverLetterOpeningHookReport {
 // ---------------------------------------------------------------------------
 
 function extractFirstParagraph(text: string): string {
-  const trimmed = (text ?? '').trim();
-  const firstBreak = trimmed.search(/\n\s*\n|\r\n\s*\r\n/);
-  const candidate = firstBreak > 0 ? trimmed.slice(0, firstBreak) : trimmed.slice(0, 200);
-  return candidate.trim();
+  const trimmed = (text ?? '').trim()
+  const firstBreak = trimmed.search(/\n\s*\n|\r\n\s*\r\n/)
+  const candidate = firstBreak > 0 ? trimmed.slice(0, firstBreak) : trimmed.slice(0, 200)
+  return candidate.trim()
 }
 
 // ---------------------------------------------------------------------------
@@ -54,9 +54,9 @@ function extractFirstParagraph(text: string): string {
 // ---------------------------------------------------------------------------
 
 interface HookPattern {
-  re: RegExp;
-  type: HookStrengthType;
-  weight: number;
+  re: RegExp
+  type: HookStrengthType
+  weight: number
 }
 
 const HOOK_PATTERNS: HookPattern[] = [
@@ -124,16 +124,16 @@ const HOOK_PATTERNS: HookPattern[] = [
     type: 'achievement_hook',
     weight: 25,
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Generic / cliché opening patterns (negative)
 // ---------------------------------------------------------------------------
 
 interface GenericPattern {
-  re: RegExp;
-  type: GenericOpeningType;
-  penalty: number;
+  re: RegExp
+  type: GenericOpeningType
+  penalty: number
 }
 
 const GENERIC_PATTERNS: GenericPattern[] = [
@@ -180,14 +180,14 @@ const GENERIC_PATTERNS: GenericPattern[] = [
     type: 'aspiration_cliche',
     penalty: 10,
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function analyzeCoverLetterOpeningHook(text: string): CoverLetterOpeningHookReport {
-  const firstPara = extractFirstParagraph(text);
+  const firstPara = extractFirstParagraph(text)
   if (!firstPara) {
     return {
       hookSignals: [],
@@ -196,64 +196,64 @@ export function analyzeCoverLetterOpeningHook(text: string): CoverLetterOpeningH
       grade: 'generic',
       summary: '도입부가 감지되지 않았습니다.',
       suggestions: [],
-    };
+    }
   }
 
-  const hookSignals: HookSignal[] = [];
-  const genericSignals: GenericOpeningSignal[] = [];
-  let hookRaw = 0;
-  let genericPenalty = 0;
+  const hookSignals: HookSignal[] = []
+  const genericSignals: GenericOpeningSignal[] = []
+  let hookRaw = 0
+  let genericPenalty = 0
 
   for (const { re, type, weight } of HOOK_PATTERNS) {
-    const m = firstPara.match(re);
+    const m = firstPara.match(re)
     if (m) {
-      hookSignals.push({ type, excerpt: m[0].slice(0, 60) });
-      hookRaw += weight;
+      hookSignals.push({ type, excerpt: m[0].slice(0, 60) })
+      hookRaw += weight
     }
   }
 
   for (const { re, type, penalty } of GENERIC_PATTERNS) {
-    const m = firstPara.match(re);
+    const m = firstPara.match(re)
     if (m) {
-      genericSignals.push({ type, excerpt: m[0].slice(0, 60) });
-      genericPenalty += penalty;
+      genericSignals.push({ type, excerpt: m[0].slice(0, 60) })
+      genericPenalty += penalty
     }
   }
 
-  const hookScore = Math.min(100, Math.max(0, hookRaw - genericPenalty));
+  const hookScore = Math.min(100, Math.max(0, hookRaw - genericPenalty))
 
-  let grade: OpeningHookGrade;
-  if (genericPenalty >= 20 && hookRaw === 0) grade = 'generic';
-  else if (hookScore >= 40) grade = 'strong';
-  else if (hookScore >= 15) grade = 'adequate';
-  else if (genericPenalty >= 10) grade = 'weak';
-  else grade = 'adequate';
+  let grade: OpeningHookGrade
+  if (genericPenalty >= 20 && hookRaw === 0) grade = 'generic'
+  else if (hookScore >= 40) grade = 'strong'
+  else if (hookScore >= 15) grade = 'adequate'
+  else if (genericPenalty >= 10) grade = 'weak'
+  else grade = 'adequate'
 
-  let summary: string;
+  let summary: string
   if (grade === 'strong') {
-    summary = '도입부가 구체적인 훅(일화·수치·성과)으로 시작되어 면접관의 흥미를 끌기 좋습니다.';
+    summary = '도입부가 구체적인 훅(일화·수치·성과)으로 시작되어 면접관의 흥미를 끌기 좋습니다.'
   } else if (grade === 'adequate') {
-    summary = '도입부가 무난합니다. 구체적 에피소드나 수치로 시작하면 더 인상적입니다.';
+    summary = '도입부가 무난합니다. 구체적 에피소드나 수치로 시작하면 더 인상적입니다.'
   } else if (grade === 'weak') {
     summary =
-      '도입부가 약합니다. "안녕하세요", "지원 동기는", "저는 ~입니다" 패턴을 줄이고 훅으로 시작하세요.';
+      '도입부가 약합니다. "안녕하세요", "지원 동기는", "저는 ~입니다" 패턴을 줄이고 훅으로 시작하세요.'
   } else {
     summary =
-      '도입부가 천편일률적 표현으로 가득합니다. 구체적 에피소드나 성과 수치로 첫 문장을 시작하세요.';
+      '도입부가 천편일률적 표현으로 가득합니다. 구체적 에피소드나 성과 수치로 첫 문장을 시작하세요.'
   }
 
-  const suggestions: string[] = [];
+  const suggestions: string[] = []
   if (hookSignals.length === 0) {
     suggestions.push(
-      '첫 문장을 구체적인 수치나 에피소드로 시작해보세요. ("N명의 사용자가 쓰는 서비스를...")',
-    );
+      '첫 문장을 구체적인 수치나 에피소드로 시작해보세요. ("N명의 사용자가 쓰는 서비스를...")'
+    )
   }
   if (genericSignals.some((s) => s.type === 'greeting_formula')) {
-    suggestions.push('"안녕하세요" 인사말 없이 바로 본론으로 시작하세요.');
+    suggestions.push('"안녕하세요" 인사말 없이 바로 본론으로 시작하세요.')
   }
   if (genericSignals.some((s) => s.type === 'motivation_cliche')) {
-    suggestions.push('"지원 동기" 나열 대신 그 동기를 보여주는 구체적 경험을 서술하세요.');
+    suggestions.push('"지원 동기" 나열 대신 그 동기를 보여주는 구체적 경험을 서술하세요.')
   }
 
-  return { hookSignals, genericSignals, hookScore, grade, summary, suggestions };
+  return { hookSignals, genericSignals, hookScore, grade, summary, suggestions }
 }

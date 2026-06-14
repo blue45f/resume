@@ -1,16 +1,17 @@
-import { API_URL } from '@/lib/config';
-import { useEffect, useState } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useEffect, useState } from 'react'
+
+import { API_URL } from '@/lib/config'
 
 interface Notice {
-  id: string;
-  title: string;
-  content: string;
-  type: string;
+  id: string
+  title: string
+  content: string
+  type: string
 }
 
-const DISMISSED_KEY = 'dismissed_notices';
-const TODAY_KEY = 'dismissed_notices_today';
+const DISMISSED_KEY = 'dismissed_notices'
+const TODAY_KEY = 'dismissed_notices_today'
 
 /**
  * "오늘 하루 보지 않기" 상태는 localStorage에 `{date, ids}` 형태로 저장.
@@ -22,31 +23,31 @@ const TODAY_KEY = 'dismissed_notices_today';
  */
 function getDismissedToday(): string[] {
   try {
-    const raw = localStorage.getItem(TODAY_KEY);
-    if (!raw) return [];
-    const stored = JSON.parse(raw) as { date?: string; ids?: string[] };
-    const today = new Date().toDateString();
-    return stored.date === today && Array.isArray(stored.ids) ? stored.ids : [];
+    const raw = localStorage.getItem(TODAY_KEY)
+    if (!raw) return []
+    const stored = JSON.parse(raw) as { date?: string; ids?: string[] }
+    const today = new Date().toDateString()
+    return stored.date === today && Array.isArray(stored.ids) ? stored.ids : []
   } catch {
-    return [];
+    return []
   }
 }
 
 function setDismissedToday(id: string): boolean {
   try {
-    const existing = getDismissedToday();
-    if (existing.includes(id)) return true; // idempotent
+    const existing = getDismissedToday()
+    if (existing.includes(id)) return true // idempotent
     const next = {
       date: new Date().toDateString(),
       ids: [...existing, id],
-    };
-    localStorage.setItem(TODAY_KEY, JSON.stringify(next));
+    }
+    localStorage.setItem(TODAY_KEY, JSON.stringify(next))
     // Read-back 검증: 어떤 환경(private mode 등)에서는 write가 silently fail.
-    const readBack = getDismissedToday();
-    return readBack.includes(id);
+    const readBack = getDismissedToday()
+    return readBack.includes(id)
   } catch (e) {
-    if (import.meta.env.DEV) console.warn('[NoticePopup] dismissToday persist failed:', e);
-    return false;
+    if (import.meta.env.DEV) console.warn('[NoticePopup] dismissToday persist failed:', e)
+    return false
   }
 }
 
@@ -66,57 +67,57 @@ const TYPE_CONFIG: Record<string, { label: string; badge: string; border: string
     badge: 'bg-blue-500 text-white',
     border: 'border-blue-200 dark:border-blue-800',
   },
-};
+}
 
 export default function NoticePopup() {
-  const [notices, setNotices] = useState<Notice[]>([]);
-  const [index, setIndex] = useState(0);
+  const [notices, setNotices] = useState<Notice[]>([])
+  const [index, setIndex] = useState(0)
 
   useEffect(() => {
     fetch(`${API_URL}/api/notices/popup`)
       .then((r) => (r.ok ? r.json() : []))
       .then((data: Notice[]) => {
         const permanentlyDismissed = JSON.parse(
-          localStorage.getItem(DISMISSED_KEY) || '[]',
-        ) as string[];
-        const todayDismissed = getDismissedToday();
+          localStorage.getItem(DISMISSED_KEY) || '[]'
+        ) as string[]
+        const todayDismissed = getDismissedToday()
         const visible = data.filter(
-          (n) => !permanentlyDismissed.includes(n.id) && !todayDismissed.includes(n.id),
-        );
-        setNotices(visible);
+          (n) => !permanentlyDismissed.includes(n.id) && !todayDismissed.includes(n.id)
+        )
+        setNotices(visible)
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {})
+  }, [])
 
   const dismiss = (id: string, permanently = false) => {
     if (permanently) {
-      const prev = JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]') as string[];
-      localStorage.setItem(DISMISSED_KEY, JSON.stringify([...prev, id]));
+      const prev = JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]') as string[]
+      localStorage.setItem(DISMISSED_KEY, JSON.stringify([...prev, id]))
     }
-    const next = notices.filter((n) => n.id !== id);
-    setNotices(next);
-    if (index >= next.length) setIndex(Math.max(0, next.length - 1));
-  };
+    const next = notices.filter((n) => n.id !== id)
+    setNotices(next)
+    if (index >= next.length) setIndex(Math.max(0, next.length - 1))
+  }
 
   const dismissToday = (id: string) => {
-    const persisted = setDismissedToday(id);
+    const persisted = setDismissedToday(id)
     if (!persisted && import.meta.env.DEV) {
       // 이 환경에서 localStorage가 막혀 있으면 다음 새로고침 시 다시 표시될 것.
       // 사용자에게 토스트로 안내해도 좋지만, 우선 dev 경고만 (운영에선 silent).
-      console.warn('[NoticePopup] "오늘 하루 보지 않기"가 저장되지 않았습니다.');
+      console.warn('[NoticePopup] "오늘 하루 보지 않기"가 저장되지 않았습니다.')
     }
-    dismiss(id);
-  };
+    dismiss(id)
+  }
 
-  if (!notices.length) return null;
-  const notice = notices[index];
-  const cfg = TYPE_CONFIG[notice.type] || TYPE_CONFIG.GENERAL;
+  if (!notices.length) return null
+  const notice = notices[index]
+  const cfg = TYPE_CONFIG[notice.type] || TYPE_CONFIG.GENERAL
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) dismiss(notice.id);
+        if (!o) dismiss(notice.id)
       }}
     >
       <RadixDialog.Portal>
@@ -202,5 +203,5 @@ export default function NoticePopup() {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

@@ -1,36 +1,37 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { getUser, getToken } from '@/lib/auth';
-import { fetchResumes } from '@/lib/api';
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+import { fetchResumes } from '@/lib/api'
+import { getUser, getToken } from '@/lib/auth'
 
 interface ProfileResumeSummary {
-  id?: string;
-  visibility?: string;
+  id?: string
+  visibility?: string
 }
 
 interface CheckItem {
-  key: string;
-  label: string;
-  done: boolean;
-  link: string;
-  icon: string;
+  key: string
+  label: string
+  done: boolean
+  link: string
+  icon: string
 }
 
 export default function ProfileCompleteness() {
-  const [items, setItems] = useState<CheckItem[]>([]);
+  const [items, setItems] = useState<CheckItem[]>([])
   const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem('profile-completeness-dismissed') === 'true',
-  );
-  const user = getUser();
+    () => localStorage.getItem('profile-completeness-dismissed') === 'true'
+  )
+  const user = getUser()
 
   useEffect(() => {
-    if (!user || !getToken() || dismissed) return;
+    if (!user || !getToken() || dismissed) return
 
     fetchResumes()
       .then((resumes) => {
-        const resumeList: ProfileResumeSummary[] = Array.isArray(resumes) ? resumes : [];
-        const hasResume = resumeList.length > 0;
-        const hasPublicResume = resumeList.some((r) => r.visibility === 'public');
+        const resumeList: ProfileResumeSummary[] = Array.isArray(resumes) ? resumes : []
+        const hasResume = resumeList.length > 0
+        const hasPublicResume = resumeList.some((r) => r.visibility === 'public')
 
         const checks: CheckItem[] = [
           {
@@ -68,20 +69,20 @@ export default function ProfileCompleteness() {
             link: '/settings',
             icon: '🏷️',
           },
-        ];
+        ]
 
-        setItems(checks);
+        setItems(checks)
       })
-      .catch(() => {});
-  }, [user, dismissed]);
+      .catch(() => {})
+  }, [user, dismissed])
 
-  if (dismissed || !user || items.length === 0) return null;
+  if (dismissed || !user || items.length === 0) return null
 
-  const doneCount = items.filter((i) => i.done).length;
-  const total = items.length;
-  const pct = Math.round((doneCount / total) * 100);
+  const doneCount = items.filter((i) => i.done).length
+  const total = items.length
+  const pct = Math.round((doneCount / total) * 100)
 
-  if (pct === 100) return null;
+  if (pct === 100) return null
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 mb-6 animate-fade-in-up">
@@ -113,8 +114,8 @@ export default function ProfileCompleteness() {
         </div>
         <button
           onClick={() => {
-            localStorage.setItem('profile-completeness-dismissed', 'true');
-            setDismissed(true);
+            localStorage.setItem('profile-completeness-dismissed', 'true')
+            setDismissed(true)
           }}
           className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"
           aria-label="닫기"
@@ -180,5 +181,5 @@ export default function ProfileCompleteness() {
         ))}
       </div>
     </div>
-  );
+  )
 }

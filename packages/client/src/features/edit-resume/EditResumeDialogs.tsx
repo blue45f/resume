@@ -1,16 +1,16 @@
-import AttachmentPanel from '@/components/AttachmentPanel';
-import VersionPanel from '@/components/VersionPanel';
-import AllowedViewersDialog from '@/components/AllowedViewersDialog';
+import AllowedViewersDialog from '@/components/AllowedViewersDialog'
+import AttachmentPanel from '@/components/AttachmentPanel'
+import VersionPanel from '@/components/VersionPanel'
 
 interface EditResumeDialogsProps {
-  id: string | undefined;
-  showAttachments: boolean;
-  showVersions: boolean;
-  showAllowedViewers: boolean;
-  onCloseAttachments: () => void;
-  onCloseVersions: () => void;
-  onCloseAllowedViewers: () => void;
-  onRestoreVersion: () => void;
+  id: string | undefined
+  showAttachments: boolean
+  showVersions: boolean
+  showAllowedViewers: boolean
+  onCloseAttachments: () => void
+  onCloseVersions: () => void
+  onCloseAllowedViewers: () => void
+  onRestoreVersion: () => void
 }
 
 export default function EditResumeDialogs({
@@ -33,5 +33,5 @@ export default function EditResumeDialogs({
         <AllowedViewersDialog resumeId={id} onClose={onCloseAllowedViewers} />
       )}
     </>
-  );
+  )
 }

@@ -1,31 +1,33 @@
-import { useState, useRef } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import type { Resume } from '@/types/resume';
-import { calculateCompleteness } from '@/lib/completeness';
-import { toast } from '@/components/Toast';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useState, useRef } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { toast } from '@/components/Toast'
+import { calculateCompleteness } from '@/lib/completeness'
 
 interface Props {
-  resume: Resume;
-  onClose: () => void;
+  resume: Resume
+  onClose: () => void
 }
 
 function getGradeEmoji(grade: string): string {
-  return { S: '🏆', A: '⭐', B: '✅', C: '📈', D: '💪' }[grade] || '📄';
+  return { S: '🏆', A: '⭐', B: '✅', C: '📈', D: '💪' }[grade] || '📄'
 }
 
 function getGradeMessage(grade: string, _pct: number): string {
-  if (grade === 'S') return `상위 5% 수준의 완성도! 채용 담당자가 주목할 이력서입니다.`;
-  if (grade === 'A') return `높은 완성도! 대부분의 지원자보다 잘 작성된 이력서입니다.`;
-  if (grade === 'B') return `양호한 수준. 몇 가지만 보완하면 A등급이 가능합니다.`;
-  if (grade === 'C') return `기본기는 갖췄습니다. 경력 상세화와 기술 스택 보강을 권장합니다.`;
-  return `이력서 작성을 시작했습니다. 각 섹션을 채워나가 보세요!`;
+  if (grade === 'S') return `상위 5% 수준의 완성도! 채용 담당자가 주목할 이력서입니다.`
+  if (grade === 'A') return `높은 완성도! 대부분의 지원자보다 잘 작성된 이력서입니다.`
+  if (grade === 'B') return `양호한 수준. 몇 가지만 보완하면 A등급이 가능합니다.`
+  if (grade === 'C') return `기본기는 갖췄습니다. 경력 상세화와 기술 스택 보강을 권장합니다.`
+  return `이력서 작성을 시작했습니다. 각 섹션을 채워나가 보세요!`
 }
 
 export default function ResumeScoreCard({ resume, onClose }: Props) {
-  const result = calculateCompleteness(resume);
-  const { percentage: pct, grade, sections } = result;
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [copied, setCopied] = useState(false);
+  const result = calculateCompleteness(resume)
+  const { percentage: pct, grade, sections } = result
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [copied, setCopied] = useState(false)
 
   const color =
     grade === 'S'
@@ -36,17 +38,17 @@ export default function ResumeScoreCard({ resume, onClose }: Props) {
           ? '#22c55e'
           : grade === 'C'
             ? '#f97316'
-            : '#ef4444';
+            : '#ef4444'
   const topSkills = resume.skills
     .flatMap((s) =>
       s.items
         .split(',')
         .map((i) => i.trim())
-        .filter(Boolean),
+        .filter(Boolean)
     )
-    .slice(0, 5);
-  const expYears = resume.experiences.length;
-  const name = resume.personalInfo.name || resume.title || '이력서';
+    .slice(0, 5)
+  const expYears = resume.experiences.length
+  const name = resume.personalInfo.name || resume.title || '이력서'
 
   const shareText = [
     `📄 이력서공방에서 이력서 진단을 받았습니다!`,
@@ -62,41 +64,41 @@ export default function ResumeScoreCard({ resume, onClose }: Props) {
     `https://이력서공방.com`,
   ]
     .filter((l) => l !== null && l !== undefined && !(l === '' && topSkills.length === 0))
-    .join('\n');
+    .join('\n')
 
   const handleCopyText = async () => {
     try {
-      await navigator.clipboard.writeText(shareText);
-      setCopied(true);
-      toast('공유 텍스트가 복사되었습니다', 'success');
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(shareText)
+      setCopied(true)
+      toast('공유 텍스트가 복사되었습니다', 'success')
+      setTimeout(() => setCopied(false), 2000)
     } catch {
-      toast('복사에 실패했습니다', 'error');
+      toast('복사에 실패했습니다', 'error')
     }
-  };
+  }
 
   const handleShareLinkedIn = () => {
     const text = encodeURIComponent(
-      `이력서공방에서 이력서 진단 ${pct}% (${grade}등급)을 받았습니다! 무료로 이력서 진단받기 → 이력서공방.com #이력서 #취업 #이직`,
-    );
+      `이력서공방에서 이력서 진단 ${pct}% (${grade}등급)을 받았습니다! 무료로 이력서 진단받기 → 이력서공방.com #이력서 #취업 #이직`
+    )
     window.open(
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://이력서공방.com')}&summary=${text}`,
-      '_blank',
-    );
-  };
+      '_blank'
+    )
+  }
 
   const handleShareTwitter = () => {
     const text = encodeURIComponent(
-      `이력서공방 이력서 진단 결과 🎯\n\n완성도 ${pct}% / ${grade}등급 달성!\n\n${getGradeMessage(grade, pct)}\n\n무료로 내 이력서도 진단받기 👇`,
-    );
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
-  };
+      `이력서공방 이력서 진단 결과 🎯\n\n완성도 ${pct}% / ${grade}등급 달성!\n\n${getGradeMessage(grade, pct)}\n\n무료로 내 이력서도 진단받기 👇`
+    )
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank')
+  }
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -237,5 +239,5 @@ export default function ResumeScoreCard({ resume, onClose }: Props) {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

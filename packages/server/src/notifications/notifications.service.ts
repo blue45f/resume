@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import type { NotificationType } from '@resume/shared';
+import { Injectable } from '@nestjs/common'
+
+import { PrismaService } from '../prisma/prisma.service'
+
+import type { NotificationType } from '@resume/shared'
 
 @Injectable()
 export class NotificationsService {
@@ -11,7 +13,7 @@ export class NotificationsService {
       where: { userId, read: false },
       orderBy: { createdAt: 'desc' },
       take: 20,
-    });
+    })
   }
 
   async getAll(userId: string) {
@@ -19,7 +21,7 @@ export class NotificationsService {
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: 50,
-    });
+    })
   }
 
   async markAsRead(userId: string, notificationId?: string) {
@@ -27,20 +29,20 @@ export class NotificationsService {
       await this.prisma.notification.updateMany({
         where: { id: notificationId, userId },
         data: { read: true },
-      });
+      })
     } else {
       await this.prisma.notification.updateMany({
         where: { userId, read: false },
         data: { read: true },
-      });
+      })
     }
-    return { success: true };
+    return { success: true }
   }
 
   async create(userId: string, type: NotificationType, message: string, link?: string) {
     return this.prisma.notification.create({
       data: { userId, type, message, link },
-    });
+    })
   }
 
   /**
@@ -54,49 +56,49 @@ export class NotificationsService {
     userIds: string[],
     type: NotificationType,
     message: string,
-    link?: string,
+    link?: string
   ): Promise<{ sent: number; skipped: number }> {
-    if (!userIds.length) return { sent: 0, skipped: 0 };
+    if (!userIds.length) return { sent: 0, skipped: 0 }
     // 이미 같은 announcement 받은 사용자 제외
     const existing = await this.prisma.notification.findMany({
       where: { userId: { in: userIds }, type, message },
       select: { userId: true },
-    });
-    const seenSet = new Set(existing.map((n) => n.userId));
-    const targets = userIds.filter((id) => !seenSet.has(id));
-    if (targets.length === 0) return { sent: 0, skipped: userIds.length };
+    })
+    const seenSet = new Set(existing.map((n) => n.userId))
+    const targets = userIds.filter((id) => !seenSet.has(id))
+    if (targets.length === 0) return { sent: 0, skipped: userIds.length }
 
     await this.prisma.notification.createMany({
       data: targets.map((userId) => ({ userId, type, message, link })),
       skipDuplicates: true,
-    });
-    return { sent: targets.length, skipped: userIds.length - targets.length };
+    })
+    return { sent: targets.length, skipped: userIds.length - targets.length }
   }
 
   async getUnreadCount(userId: string): Promise<number> {
     return this.prisma.notification.count({
       where: { userId, read: false },
-    });
+    })
   }
 
   async deleteOne(userId: string, id: string) {
-    await this.prisma.notification.deleteMany({ where: { id, userId } });
-    return { success: true };
+    await this.prisma.notification.deleteMany({ where: { id, userId } })
+    return { success: true }
   }
 
   async deleteBulk(userId: string, ids: string[]) {
     const { count } = await this.prisma.notification.deleteMany({
       where: { id: { in: ids }, userId },
-    });
-    return { success: true, deleted: count };
+    })
+    return { success: true, deleted: count }
   }
 
   async cleanupOld() {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
     const { count } = await this.prisma.notification.deleteMany({
       where: { read: true, createdAt: { lt: thirtyDaysAgo } },
-    });
-    return { deleted: count };
+    })
+    return { deleted: count }
   }
 }

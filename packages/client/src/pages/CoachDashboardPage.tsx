@@ -1,147 +1,148 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import { useQuery } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import SendMessageButton from '@/components/SendMessageButton'
+import { useMyCoachingSessions } from '@/hooks/useResources'
 import {
   type CoachingSession,
   type MySessionsResponse,
   type CoffeeChat,
   fetchCoffeeChats,
-} from '@/lib/api';
-import { useMyCoachingSessions } from '@/hooks/useResources';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
-import SendMessageButton from '@/components/SendMessageButton';
-import { getErrorMessage } from '@/lib/errorMessage';
+} from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
 
 interface NotificationRow {
-  type?: string;
-  read?: boolean;
+  type?: string
+  read?: boolean
 }
 
 function formatDate(iso: string) {
   try {
-    const d = new Date(iso);
+    const d = new Date(iso)
     return d.toLocaleString('ko-KR', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    });
+    })
   } catch {
-    return iso;
+    return iso
   }
 }
 
 function formatRelative(iso: string) {
   try {
-    const d = new Date(iso).getTime();
-    const now = Date.now();
-    const diff = d - now;
-    const abs = Math.abs(diff);
-    const min = 60 * 1000;
-    const hour = 60 * min;
-    const day = 24 * hour;
-    if (abs < hour) return `${Math.round(diff / min)}분 ${diff >= 0 ? '후' : '전'}`;
-    if (abs < day) return `${Math.round(diff / hour)}시간 ${diff >= 0 ? '후' : '전'}`;
-    return `${Math.round(diff / day)}일 ${diff >= 0 ? '후' : '전'}`;
+    const d = new Date(iso).getTime()
+    const now = Date.now()
+    const diff = d - now
+    const abs = Math.abs(diff)
+    const min = 60 * 1000
+    const hour = 60 * min
+    const day = 24 * hour
+    if (abs < hour) return `${Math.round(diff / min)}분 ${diff >= 0 ? '후' : '전'}`
+    if (abs < day) return `${Math.round(diff / hour)}시간 ${diff >= 0 ? '후' : '전'}`
+    return `${Math.round(diff / day)}일 ${diff >= 0 ? '후' : '전'}`
   } catch {
-    return '';
+    return ''
   }
 }
 
 export default function CoachDashboardPage() {
-  const navigate = useNavigate();
-  const user = getUser();
-  const isCoach = !!user && user.userType === 'coach';
-  const sessionsQuery = useMyCoachingSessions();
+  const navigate = useNavigate()
+  const user = getUser()
+  const isCoach = !!user && user.userType === 'coach'
+  const sessionsQuery = useMyCoachingSessions()
   const data: MySessionsResponse | null =
-    (sessionsQuery.data as MySessionsResponse | undefined) ?? null;
-  const loading = isCoach && sessionsQuery.isLoading;
+    (sessionsQuery.data as MySessionsResponse | undefined) ?? null
+  const loading = isCoach && sessionsQuery.isLoading
   const error: string | null = sessionsQuery.error
     ? getErrorMessage(sessionsQuery.error, '데이터를 불러오지 못했습니다')
-    : null;
+    : null
   const { data: coffeeChats = [], isLoading: coffeeChatsLoading } = useQuery<CoffeeChat[]>({
     queryKey: ['coach-dashboard-coffee-chats'],
     queryFn: () => fetchCoffeeChats('received', 'pending').then((rows) => rows ?? []),
     enabled: isCoach,
     staleTime: 30_000,
-  });
-  const [unreadReviewNotifs, setUnreadReviewNotifs] = useState<number>(0);
-  const [nowMs] = useState(() => Date.now());
+  })
+  const [unreadReviewNotifs, setUnreadReviewNotifs] = useState<number>(0)
+  const [nowMs] = useState(() => Date.now())
 
   useEffect(() => {
-    if (!isCoach) return;
+    if (!isCoach) return
     // 받은 평점/리뷰 알림 미읽음 count
     fetch('/api/notifications', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` },
     })
       .then((r): Promise<NotificationRow[]> => (r.ok ? r.json() : Promise.resolve([])))
       .then((rows) => {
-        const cnt = rows.filter((n) => n?.type === 'coaching_review_received' && !n.read).length;
-        setUnreadReviewNotifs(cnt);
+        const cnt = rows.filter((n) => n?.type === 'coaching_review_received' && !n.read).length
+        setUnreadReviewNotifs(cnt)
       })
-      .catch(() => setUnreadReviewNotifs(0));
-  }, [isCoach]);
+      .catch(() => setUnreadReviewNotifs(0))
+  }, [isCoach])
 
   useEffect(() => {
-    document.title = '코치 대시보드 — 이력서공방';
+    document.title = '코치 대시보드 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   useEffect(() => {
     if (!user) {
-      navigate(ROUTES.login);
-      return;
+      navigate(ROUTES.login)
+      return
     }
     if (user.userType !== 'coach') {
-      navigate(ROUTES.coaching.profileEdit);
-      return;
+      navigate(ROUTES.coaching.profileEdit)
+      return
     }
-  }, [user, navigate]);
+  }, [user, navigate])
 
-  const coachSessions = useMemo<CoachingSession[]>(() => data?.asCoach ?? [], [data?.asCoach]);
+  const coachSessions = useMemo<CoachingSession[]>(() => data?.asCoach ?? [], [data?.asCoach])
 
   const stats = useMemo(() => {
-    const total = coachSessions.length;
-    const now = new Date();
+    const total = coachSessions.length
+    const now = new Date()
     const thisMonth = coachSessions.filter((s) => {
-      if (s.status !== 'completed') return false;
-      const d = new Date(s.updatedAt || s.scheduledAt);
-      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-    });
-    const monthEarnings = thisMonth.reduce((sum, s) => sum + (s.coachEarn || 0), 0);
-    const rated = coachSessions.filter((s) => s.rating != null && s.rating > 0);
+      if (s.status !== 'completed') return false
+      const d = new Date(s.updatedAt || s.scheduledAt)
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+    })
+    const monthEarnings = thisMonth.reduce((sum, s) => sum + (s.coachEarn || 0), 0)
+    const rated = coachSessions.filter((s) => s.rating != null && s.rating > 0)
     const avgRating =
-      rated.length > 0 ? rated.reduce((sum, s) => sum + (s.rating || 0), 0) / rated.length : 0;
-    const pending = coachSessions.filter((s) => s.status === 'requested').length;
-    return { total, monthEarnings, avgRating, pending };
-  }, [coachSessions]);
+      rated.length > 0 ? rated.reduce((sum, s) => sum + (s.rating || 0), 0) / rated.length : 0
+    const pending = coachSessions.filter((s) => s.status === 'requested').length
+    return { total, monthEarnings, avgRating, pending }
+  }, [coachSessions])
 
   const upcoming = useMemo(() => {
     return coachSessions
       .filter(
         (s) =>
           (s.status === 'confirmed' || s.status === 'requested') &&
-          new Date(s.scheduledAt).getTime() >= nowMs - 60 * 60 * 1000,
+          new Date(s.scheduledAt).getTime() >= nowMs - 60 * 60 * 1000
       )
       .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
-      .slice(0, 8);
-  }, [coachSessions, nowMs]);
+      .slice(0, 8)
+  }, [coachSessions, nowMs])
 
   const recentReviews = useMemo(() => {
     return coachSessions
       .filter((s) => s.rating != null && s.rating > 0)
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-      .slice(0, 6);
-  }, [coachSessions]);
+      .slice(0, 6)
+  }, [coachSessions])
 
-  if (!user) return null;
+  if (!user) return null
 
   return (
     <>
@@ -278,7 +279,7 @@ export default function CoachDashboardPage() {
                           ? '🎥 화상'
                           : c.modality === 'voice'
                             ? '🎙 음성'
-                            : '💬 채팅';
+                            : '💬 채팅'
                       return (
                         <li key={c.id}>
                           <Link
@@ -311,7 +312,7 @@ export default function CoachDashboardPage() {
                             </span>
                           </Link>
                         </li>
-                      );
+                      )
                     })}
                   </ul>
                 )}
@@ -359,8 +360,8 @@ export default function CoachDashboardPage() {
                         : {
                             label: '확정',
                             cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
-                          };
-                    const clientName = s.client?.name || '고객';
+                          }
+                    const clientName = s.client?.name || '고객'
                     return (
                       <li key={s.id} className="ml-4">
                         <span
@@ -407,7 +408,7 @@ export default function CoachDashboardPage() {
                           </div>
                         </div>
                       </li>
-                    );
+                    )
                   })}
                 </ol>
               )}
@@ -518,5 +519,5 @@ export default function CoachDashboardPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { detectInformalLanguage } from '@/lib/informalLanguage';
+import { useMemo } from 'react'
+
+import { detectInformalLanguage } from '@/lib/informalLanguage'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -11,22 +12,22 @@ const CATEGORY_LABEL: Record<string, string> = {
   slang: '은어',
   casual: '구어체',
   exclaim: '반복 부호',
-};
+}
 
 export default function CoverLetterInformalPanel({ text }: Props) {
-  const analysis = useMemo(() => detectInformalLanguage(text), [text]);
+  const analysis = useMemo(() => detectInformalLanguage(text), [text])
 
-  if (analysis.level === 'none') return null;
+  if (analysis.level === 'none') return null
 
   const uniqueHits = Array.from(
     analysis.hits
       .reduce((m, h) => {
-        const key = h.phrase;
-        if (!m.has(key)) m.set(key, h);
-        return m;
+        const key = h.phrase
+        if (!m.has(key)) m.set(key, h)
+        return m
       }, new Map<string, (typeof analysis.hits)[0]>())
-      .values(),
-  ).slice(0, 10);
+      .values()
+  ).slice(0, 10)
 
   return (
     <aside
@@ -54,5 +55,5 @@ export default function CoverLetterInformalPanel({ text }: Props) {
 
       {uniqueHits[0] && <p className="cl-informal-card__reason">{uniqueHits[0].reason}</p>}
     </aside>
-  );
+  )
 }

@@ -1,14 +1,15 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
+import { useState, useEffect, useMemo } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
 import {
   appendCommunityDemoLog,
   readCommunityDemoLog,
   summarizeCommunityDemoLog,
-} from '@/lib/communityDemoLog';
+} from '@/lib/communityDemoLog'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
 
 const steps = [
   {
@@ -53,7 +54,7 @@ const steps = [
               >
                 {s}
               </span>
-            ),
+            )
           )}
         </div>
         <div className="p-3 bg-amber-50 rounded-lg border border-amber-100 text-sm text-amber-800">
@@ -327,7 +328,7 @@ const steps = [
       </div>
     ),
   },
-];
+]
 
 const recruiterSteps = [
   {
@@ -404,7 +405,7 @@ const recruiterSteps = [
       </div>
     ),
   },
-];
+]
 
 // ── 추가 가이드: 면접 코칭 ─────────────────────────────────────────
 const coachingSteps = [
@@ -466,7 +467,7 @@ const coachingSteps = [
       </div>
     ),
   },
-];
+]
 
 // ── 추가 가이드: 스터디 그룹 ───────────────────────────────────────
 const studySteps = [
@@ -522,7 +523,7 @@ const studySteps = [
       </div>
     ),
   },
-];
+]
 
 // ── 추가 가이드: 자기소개서 ─────────────────────────────────────────
 const coverLetterSteps = [
@@ -575,7 +576,7 @@ const coverLetterSteps = [
       </div>
     ),
   },
-];
+]
 
 // ── 추가 가이드: 모의 면접·면접 준비 ─────────────────────────────────
 const interviewSteps = [
@@ -635,7 +636,7 @@ const interviewSteps = [
       </div>
     ),
   },
-];
+]
 
 const newFeatureSteps = [
   {
@@ -921,7 +922,7 @@ const newFeatureSteps = [
       </div>
     ),
   },
-];
+]
 
 const GUIDE_REGISTRY = {
   personal: { steps, label: '구직자', icon: '👤' },
@@ -931,8 +932,8 @@ const GUIDE_REGISTRY = {
   study: { steps: studySteps, label: '스터디 그룹', icon: '🤝' },
   'cover-letter': { steps: coverLetterSteps, label: '자기소개서', icon: '✍️' },
   interview: { steps: interviewSteps, label: '모의 면접', icon: '🎥' },
-} as const;
-type GuideType = keyof typeof GUIDE_REGISTRY;
+} as const
+type GuideType = keyof typeof GUIDE_REGISTRY
 
 /** 가이드 유형별 메인 CTA — 각 유형의 가장 자주 쓰이는 진입점 1-3개 */
 function GuideCallToAction({ guideType }: { guideType: GuideType }) {
@@ -963,7 +964,7 @@ function GuideCallToAction({ guideType }: { guideType: GuideType }) {
       { to: ROUTES.resume.autoGenerate, label: '🚀 AI 자동 생성 시작', primary: true },
       { to: ROUTES.coaching.coaches, label: '☕ 커피챗 코치 둘러보기' },
     ],
-  };
+  }
   return (
     <div className="mt-8 flex flex-wrap justify-center gap-3">
       {ctas[guideType].map((cta) => (
@@ -980,27 +981,27 @@ function GuideCallToAction({ guideType }: { guideType: GuideType }) {
         </Link>
       ))}
     </div>
-  );
+  )
 }
 
 export default function TutorialPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams()
   // ?guide= 쿼리로 직접 가이드 진입 (announcement deeplink). 유효하지 않으면 personal.
   const initialGuide = (() => {
-    const q = searchParams.get('guide');
-    if (q && q in GUIDE_REGISTRY) return q as GuideType;
-    return 'personal' as GuideType;
-  })();
+    const q = searchParams.get('guide')
+    if (q && q in GUIDE_REGISTRY) return q as GuideType
+    return 'personal' as GuideType
+  })()
   const [openStep, setOpenStep] = useState<string | null>(() => {
-    const firstStep = GUIDE_REGISTRY[initialGuide].steps[0]?.id;
-    return firstStep || 'create';
-  });
-  const [guideType, setGuideTypeState] = useState<GuideType>(initialGuide);
-  const [communityLogs, setCommunityLogs] = useState(() => readCommunityDemoLog());
+    const firstStep = GUIDE_REGISTRY[initialGuide].steps[0]?.id
+    return firstStep || 'create'
+  })
+  const [guideType, setGuideTypeState] = useState<GuideType>(initialGuide)
+  const [communityLogs, setCommunityLogs] = useState(() => readCommunityDemoLog())
   const communityDemoSummary = useMemo(
     () => summarizeCommunityDemoLog(communityLogs),
-    [communityLogs],
-  );
+    [communityLogs]
+  )
   const tutorialChecks = useMemo(
     () => [
       {
@@ -1014,32 +1015,32 @@ export default function TutorialPage() {
       },
       { label: '가이드 유형 전환', done: communityDemoSummary.tutorialCount > 0 },
     ],
-    [communityDemoSummary],
-  );
+    [communityDemoSummary]
+  )
   const tutorialDemoRate = Math.round(
-    (tutorialChecks.filter((check) => check.done).length / tutorialChecks.length) * 100,
-  );
+    (tutorialChecks.filter((check) => check.done).length / tutorialChecks.length) * 100
+  )
 
   // guideType 변경 시 URL 동기화 (북마크/공유 가능)
   const setGuideType = (next: GuideType) => {
     setCommunityLogs(
-      appendCommunityDemoLog('tutorial-guide', '튜토리얼 가이드 전환', GUIDE_REGISTRY[next].label),
-    );
-    setGuideTypeState(next);
-    const params = new URLSearchParams(searchParams);
-    if (next === 'personal') params.delete('guide');
-    else params.set('guide', next);
-    setSearchParams(params, { replace: true });
+      appendCommunityDemoLog('tutorial-guide', '튜토리얼 가이드 전환', GUIDE_REGISTRY[next].label)
+    )
+    setGuideTypeState(next)
+    const params = new URLSearchParams(searchParams)
+    if (next === 'personal') params.delete('guide')
+    else params.set('guide', next)
+    setSearchParams(params, { replace: true })
     // 새 가이드의 첫 step 으로 reset
-    setOpenStep(GUIDE_REGISTRY[next].steps[0]?.id || null);
-  };
+    setOpenStep(GUIDE_REGISTRY[next].steps[0]?.id || null)
+  }
 
   useEffect(() => {
-    document.title = '사용 가이드 — 이력서공방';
+    document.title = '사용 가이드 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   return (
     <>
@@ -1125,8 +1126,8 @@ export default function TutorialPage() {
         >
           <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 mx-auto whitespace-nowrap min-w-full sm:min-w-0 sm:w-fit">
             {(Object.keys(GUIDE_REGISTRY) as GuideType[]).map((key) => {
-              const g = GUIDE_REGISTRY[key];
-              const active = guideType === key;
+              const g = GUIDE_REGISTRY[key]
+              const active = guideType === key
               return (
                 <button
                   key={key}
@@ -1144,7 +1145,7 @@ export default function TutorialPage() {
                   </span>
                   {g.label}
                 </button>
-              );
+              )
             })}
           </div>
         </div>
@@ -1212,5 +1213,5 @@ export default function TutorialPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

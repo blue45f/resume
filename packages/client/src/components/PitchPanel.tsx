@@ -1,36 +1,38 @@
-import { useMemo, useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { generatePitch, type PitchTone } from '@/lib/pitchGenerator';
-import { toast } from '@/components/Toast';
+import { useMemo, useState } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { toast } from '@/components/Toast'
+import { generatePitch, type PitchTone } from '@/lib/pitchGenerator'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 const TONES: Array<{ id: PitchTone; label: string; emoji: string; hint: string }> = [
   { id: 'professional', label: '공식', emoji: '💼', hint: '면접·이력서 제출용' },
   { id: 'casual', label: '캐주얼', emoji: '👋', hint: 'Slack·Notion About' },
   { id: 'networking', label: '네트워킹', emoji: '🤝', hint: 'LinkedIn·커피챗' },
-];
+]
 
 /**
  * PitchPanel — 이력서 데이터로 3가지 톤의 자기 PR 한 줄 소개 즉시 생성.
  * LLM 호출 없음, 사용자가 톤만 고르면 바로 복사 가능.
  */
 export default function PitchPanel({ resume }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [tone, setTone] = useState<PitchTone>('professional');
+  const [expanded, setExpanded] = useState(false)
+  const [tone, setTone] = useState<PitchTone>('professional')
 
-  const pitch = useMemo(() => generatePitch(resume, { tone }), [resume, tone]);
+  const pitch = useMemo(() => generatePitch(resume, { tone }), [resume, tone])
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(pitch);
-      toast('한 줄 소개 복사됨', 'success');
+      await navigator.clipboard.writeText(pitch)
+      toast('한 줄 소개 복사됨', 'success')
     } catch {
-      toast('복사 실패', 'error');
+      toast('복사 실패', 'error')
     }
-  };
+  }
 
   return (
     <div className="imp-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -66,7 +68,7 @@ export default function PitchPanel({ resume }: Props) {
           {/* 톤 선택 */}
           <div className="flex flex-wrap gap-2">
             {TONES.map((t) => {
-              const active = tone === t.id;
+              const active = tone === t.id
               return (
                 <button
                   key={t.id}
@@ -83,7 +85,7 @@ export default function PitchPanel({ resume }: Props) {
                   </span>
                   {t.label}
                 </button>
-              );
+              )
             })}
           </div>
 
@@ -108,5 +110,5 @@ export default function PitchPanel({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

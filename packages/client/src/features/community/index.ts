@@ -1,1 +1,1 @@
-export * from './api/useCommunityPosts';
+export * from './api/useCommunityPosts'

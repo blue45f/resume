@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { checkResumeContactInfo } from '@/lib/resumeContactInfoChecker';
-import type { ContactField } from '@/lib/resumeContactInfoChecker';
+import { useMemo } from 'react'
+
+import type { ContactField } from '@/lib/resumeContactInfoChecker'
+
+import { checkResumeContactInfo } from '@/lib/resumeContactInfoChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const FIELD_LABEL: Record<ContactField, string> = {
@@ -13,24 +15,24 @@ const FIELD_LABEL: Record<ContactField, string> = {
   github: 'GitHub',
   location: '지역',
   portfolio: '포트폴리오',
-};
+}
 
 const COMPLETENESS_LABEL: Record<string, string> = {
   complete: '완성',
   good: '양호',
   partial: '부분',
   minimal: '미흡',
-};
+}
 
 export default function ResumeContactInfoPanel({ text }: Props) {
-  const report = useMemo(() => checkResumeContactInfo(text), [text]);
+  const report = useMemo(() => checkResumeContactInfo(text), [text])
 
-  if (report.completeness === 'complete') return null;
-  if (text.trim().length < 20) return null;
+  if (report.completeness === 'complete') return null
+  if (text.trim().length < 20) return null
 
-  const isMinimal = report.completeness === 'minimal' || report.completeness === 'partial';
+  const isMinimal = report.completeness === 'minimal' || report.completeness === 'partial'
 
-  const ALL_FIELDS: ContactField[] = ['phone', 'email', 'linkedin', 'github', 'location'];
+  const ALL_FIELDS: ContactField[] = ['phone', 'email', 'linkedin', 'github', 'location']
 
   return (
     <aside
@@ -48,7 +50,7 @@ export default function ResumeContactInfoPanel({ text }: Props) {
 
       <div className="contact-info-card__fields" aria-label="연락처 항목 현황">
         {ALL_FIELDS.map((field) => {
-          const found = report.foundFields.includes(field);
+          const found = report.foundFields.includes(field)
           return (
             <span
               key={field}
@@ -56,7 +58,7 @@ export default function ResumeContactInfoPanel({ text }: Props) {
             >
               {FIELD_LABEL[field]}
             </span>
-          );
+          )
         })}
       </div>
 
@@ -72,5 +74,5 @@ export default function ResumeContactInfoPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

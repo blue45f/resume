@@ -1,12 +1,13 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import Popover from '@/shared/ui/Popover';
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import Popover from '@/shared/ui/Popover'
 
 const meta: Meta = {
   title: 'UI Primitives/Popover',
   parameters: { layout: 'centered' },
-};
-export default meta;
-type Story = StoryObj;
+}
+export default meta
+type Story = StoryObj
 
 export const Default: Story = {
   render: () => (
@@ -24,7 +25,7 @@ export const Default: Story = {
       </Popover.Content>
     </Popover.Root>
   ),
-};
+}
 
 export const Form: Story = {
   render: () => (
@@ -34,8 +35,11 @@ export const Form: Story = {
       </Popover.Trigger>
       <Popover.Content>
         <div className="space-y-2">
-          <label className="block text-xs font-medium">키워드</label>
+          <label htmlFor="popoverstories-field-1" className="block text-xs font-medium">
+            키워드
+          </label>
           <input
+            id="popoverstories-field-1"
             type="text"
             placeholder="예: TypeScript"
             className="w-full px-2 py-1.5 text-xs border border-slate-200 rounded-md"
@@ -47,4 +51,4 @@ export const Form: Story = {
       </Popover.Content>
     </Popover.Root>
   ),
-};
+}

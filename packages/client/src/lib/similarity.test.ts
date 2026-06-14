@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { findDuplicates } from './similarity';
-import type { Resume } from '@/types/resume';
+import { describe, expect, it } from 'vitest'
+
+import { findDuplicates } from './similarity'
+
+import type { Resume } from '@/types/resume'
 
 function makeResume(overrides: Partial<Resume> = {}): Resume {
   return {
@@ -25,16 +27,16 @@ function makeResume(overrides: Partial<Resume> = {}): Resume {
     awards: [],
     activities: [],
     ...overrides,
-  } as Resume;
+  } as Resume
 }
 
 describe('findDuplicates', () => {
   it('returns no issues for empty resume', () => {
-    expect(findDuplicates(makeResume())).toEqual([]);
-  });
+    expect(findDuplicates(makeResume())).toEqual([])
+  })
 
   it('detects duplicate experience descriptions', () => {
-    const desc = '결제 시스템을 설계하고 트래픽을 30% 개선했습니다.';
+    const desc = '결제 시스템을 설계하고 트래픽을 30% 개선했습니다.'
     const r = makeResume({
       experiences: [
         {
@@ -60,12 +62,12 @@ describe('findDuplicates', () => {
           techStack: '',
         },
       ],
-    });
-    const issues = findDuplicates(r);
-    expect(issues.length).toBeGreaterThan(0);
-    expect(issues[0].section).toBe('경력');
-    expect(issues[0].similarity).toBeGreaterThanOrEqual(60);
-  });
+    })
+    const issues = findDuplicates(r)
+    expect(issues.length).toBeGreaterThan(0)
+    expect(issues[0].section).toBe('경력')
+    expect(issues[0].similarity).toBeGreaterThanOrEqual(60)
+  })
 
   it('does not flag short / dissimilar descriptions', () => {
     const r = makeResume({
@@ -93,7 +95,7 @@ describe('findDuplicates', () => {
           techStack: '',
         },
       ],
-    });
-    expect(findDuplicates(r)).toEqual([]);
-  });
-});
+    })
+    expect(findDuplicates(r)).toEqual([])
+  })
+})

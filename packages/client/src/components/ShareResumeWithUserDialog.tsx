@@ -1,39 +1,41 @@
-import { useEffect, useState } from 'react';
-import Dialog from '@/shared/ui/Dialog';
-import { toast } from '@/components/Toast';
+import { useEffect, useState } from 'react'
+
+import type { ResumeSummary } from '@/types/resume'
+
+import { toast } from '@/components/Toast'
 import {
   fetchResumes,
   setResumeVisibility,
   addAllowedViewer,
   searchUsers,
   type UserSearchResult,
-} from '@/lib/api';
-import type { ResumeSummary } from '@/types/resume';
-import { tx } from '@/lib/i18n';
+} from '@/lib/api'
+import { tx } from '@/lib/i18n'
+import Dialog from '@/shared/ui/Dialog'
 
 interface Props {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
+  open: boolean
+  onOpenChange: (v: boolean) => void
   /** 공유 대상 사용자 — 보통 코치/리쿠르터 user.id. 비워두면 dialog 안에서 검색 */
-  targetUserId?: string;
-  targetUserName?: string;
+  targetUserId?: string
+  targetUserName?: string
   /** 공유 컨텍스트 (코치/리쿠르터 등) — 라벨/메시지 prefill 용 */
-  context?: 'coach' | 'recruiter' | 'general';
+  context?: 'coach' | 'recruiter' | 'general'
   /** 공유 완료 콜백 (parent 가 토스트 후 후속 동작 처리하고 싶을 때) */
-  onShared?: () => void;
+  onShared?: () => void
 }
 
 const TITLE_KEY: Record<NonNullable<Props['context']>, string> = {
   coach: 'sharing.shareToCoach',
   recruiter: 'sharing.shareToRecruiter',
   general: 'sharing.shareGeneral',
-};
+}
 
 const DEFAULT_MESSAGE_KEY: Record<NonNullable<Props['context']>, string> = {
   coach: 'sharing.defaultMessageCoach',
   recruiter: 'sharing.defaultMessageRecruiter',
   general: 'sharing.defaultMessageGeneral',
-};
+}
 
 /**
  * 내 이력서 → 특정 사용자에게 1-click 선택 공개.
@@ -54,73 +56,73 @@ export default function ShareResumeWithUserDialog({
   context = 'general',
   onShared,
 }: Props) {
-  const [resumes, setResumes] = useState<ResumeSummary[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedId, setSelectedId] = useState<string>('');
-  const [message, setMessage] = useState(tx(DEFAULT_MESSAGE_KEY[context]));
-  const [submitting, setSubmitting] = useState(false);
+  const [resumes, setResumes] = useState<ResumeSummary[]>([])
+  const [loading, setLoading] = useState(false)
+  const [selectedId, setSelectedId] = useState<string>('')
+  const [message, setMessage] = useState(tx(DEFAULT_MESSAGE_KEY[context]))
+  const [submitting, setSubmitting] = useState(false)
 
   // user 검색 모드 — targetUserId 없을 때
-  const [pickedUser, setPickedUser] = useState<UserSearchResult | null>(null);
-  const [userQuery, setUserQuery] = useState('');
-  const [userSuggestions, setUserSuggestions] = useState<UserSearchResult[]>([]);
-  const [showUserSuggestions, setShowUserSuggestions] = useState(false);
+  const [pickedUser, setPickedUser] = useState<UserSearchResult | null>(null)
+  const [userQuery, setUserQuery] = useState('')
+  const [userSuggestions, setUserSuggestions] = useState<UserSearchResult[]>([])
+  const [showUserSuggestions, setShowUserSuggestions] = useState(false)
 
   useEffect(() => {
-    if (targetUserId) return; // 외부에서 target 받았으면 검색 안 함
-    const q = userQuery.trim();
-    if (pickedUser) return;
-    if (q.length < 2) return;
+    if (targetUserId) return // 외부에서 target 받았으면 검색 안 함
+    const q = userQuery.trim()
+    if (pickedUser) return
+    if (q.length < 2) return
     const t = setTimeout(() => {
       searchUsers(q)
         .then((rows) => {
-          setUserSuggestions(rows.slice(0, 6));
-          setShowUserSuggestions(true);
+          setUserSuggestions(rows.slice(0, 6))
+          setShowUserSuggestions(true)
         })
-        .catch(() => setUserSuggestions([]));
-    }, 220);
-    return () => clearTimeout(t);
-  }, [userQuery, pickedUser, targetUserId]);
+        .catch(() => setUserSuggestions([]))
+    }, 220)
+    return () => clearTimeout(t)
+  }, [userQuery, pickedUser, targetUserId])
 
-  const effectiveTargetId = targetUserId || pickedUser?.id || '';
-  const effectiveTargetName = targetUserName || pickedUser?.name || '';
+  const effectiveTargetId = targetUserId || pickedUser?.id || ''
+  const effectiveTargetName = targetUserName || pickedUser?.name || ''
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) return
     fetchResumes()
       .then((list) => {
-        setResumes(list);
-        setSelectedId((prev) => prev || (list[0]?.id ?? ''));
+        setResumes(list)
+        setSelectedId((prev) => prev || (list[0]?.id ?? ''))
       })
       .catch((err) =>
-        toast(err instanceof Error ? err.message : tx('sharing.loadResumeError'), 'error'),
+        toast(err instanceof Error ? err.message : tx('sharing.loadResumeError'), 'error')
       )
-      .finally(() => setLoading(false));
-  }, [open]);
+      .finally(() => setLoading(false))
+  }, [open])
 
   const handleShare = async () => {
-    if (!selectedId || !effectiveTargetId) return;
-    const resume = resumes.find((r) => r.id === selectedId);
-    if (!resume) return;
-    setSubmitting(true);
+    if (!selectedId || !effectiveTargetId) return
+    const resume = resumes.find((r) => r.id === selectedId)
+    if (!resume) return
+    setSubmitting(true)
     try {
       // 이미 selective 가 아니면 전환 (public/link-only 도 selective 로 좁히는 게 안전)
       if (resume.visibility !== 'selective') {
-        await setResumeVisibility(selectedId, 'selective');
+        await setResumeVisibility(selectedId, 'selective')
       }
       await addAllowedViewer(selectedId, {
         userId: effectiveTargetId,
         message: message.trim() || undefined,
-      });
-      toast(tx('sharing.sharedSuccess', { name: effectiveTargetName }), 'success');
-      onShared?.();
-      onOpenChange(false);
+      })
+      toast(tx('sharing.sharedSuccess', { name: effectiveTargetName }), 'success')
+      onShared?.()
+      onOpenChange(false)
     } catch (err) {
-      toast(err instanceof Error ? err.message : tx('sharing.shareError'), 'error');
+      toast(err instanceof Error ? err.message : tx('sharing.shareError'), 'error')
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   return (
     <Dialog
@@ -134,7 +136,10 @@ export default function ShareResumeWithUserDialog({
         {/* 사용자 검색 — targetUserId 가 외부에서 안 들어왔을 때만 */}
         {!targetUserId && (
           <div className="relative">
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label
+              htmlFor="share-user-search"
+              className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+            >
               공유할 사용자 검색
             </label>
             {pickedUser ? (
@@ -158,8 +163,8 @@ export default function ShareResumeWithUserDialog({
                 <button
                   type="button"
                   onClick={() => {
-                    setPickedUser(null);
-                    setUserQuery('');
+                    setPickedUser(null)
+                    setUserQuery('')
                   }}
                   className="shrink-0 text-xs text-slate-500 hover:text-rose-600"
                 >
@@ -169,14 +174,15 @@ export default function ShareResumeWithUserDialog({
             ) : (
               <>
                 <input
+                  id="share-user-search"
                   type="text"
                   value={userQuery}
                   onChange={(e) => {
-                    const nextQuery = e.target.value;
-                    setUserQuery(nextQuery);
+                    const nextQuery = e.target.value
+                    setUserQuery(nextQuery)
                     if (nextQuery.trim().length < 2) {
-                      setUserSuggestions([]);
-                      setShowUserSuggestions(false);
+                      setUserSuggestions([])
+                      setShowUserSuggestions(false)
                     }
                   }}
                   onFocus={() => userSuggestions.length > 0 && setShowUserSuggestions(true)}
@@ -185,14 +191,21 @@ export default function ShareResumeWithUserDialog({
                   className="w-full px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 {showUserSuggestions && userSuggestions.length > 0 && (
-                  <ul className="scroll-inner absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg divide-y divide-slate-100 dark:divide-slate-700/60">
+                  <ul
+                    role="listbox"
+                    aria-label="사용자 검색 결과"
+                    className="scroll-inner absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg divide-y divide-slate-100 dark:divide-slate-700/60"
+                  >
                     {userSuggestions.map((u) => (
                       <li
                         key={u.id}
+                        role="option"
+                        // 이 목록은 pickedUser 가 없을 때만(else 분기) 렌더되므로 선택 상태가 없다.
+                        aria-selected={false}
                         onMouseDown={(e) => {
-                          e.preventDefault();
-                          setPickedUser(u);
-                          setShowUserSuggestions(false);
+                          e.preventDefault()
+                          setPickedUser(u)
+                          setShowUserSuggestions(false)
                         }}
                         className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/40"
                       >
@@ -249,6 +262,7 @@ export default function ShareResumeWithUserDialog({
                     value={r.id}
                     checked={selectedId === r.id}
                     onChange={() => setSelectedId(r.id)}
+                    aria-label={r.title || '제목 없음'}
                     className="mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500"
                   />
                   <div className="flex-1 min-w-0">
@@ -278,10 +292,14 @@ export default function ShareResumeWithUserDialog({
 
         {/* 메시지 */}
         <div>
-          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label
+            htmlFor="shareresumewithuserdialog-field-1"
+            className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+          >
             메시지 <span className="text-slate-400 dark:text-slate-500 font-normal">(선택)</span>
           </label>
           <textarea
+            id="shareresumewithuserdialog-field-1"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="공유 의도를 간단히 적어주세요"
@@ -323,5 +341,5 @@ export default function ShareResumeWithUserDialog({
         </div>
       </div>
     </Dialog>
-  );
+  )
 }

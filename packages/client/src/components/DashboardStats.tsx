@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { API_URL } from '@/lib/config';
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   ResponsiveContainer,
   AreaChart,
@@ -12,32 +11,36 @@ import {
   PieChart,
   Pie,
   Cell,
-} from 'recharts';
+} from 'recharts'
+
+// CHART_COLORS 의 단일 정의는 lib/chartColors. 여기는 alias.
+import { CHART_COLORS } from '@/lib/chartColors'
+import { API_URL } from '@/lib/config'
 
 interface DashboardData {
   summary: {
-    totalResumes: number;
-    publicResumes: number;
-    totalViews: number;
-    totalTransforms: number;
-    recentEdits: number;
-  };
+    totalResumes: number
+    publicResumes: number
+    totalViews: number
+    totalTransforms: number
+    recentEdits: number
+  }
   previousMonth?: {
-    totalResumes: number;
-    publicResumes: number;
-    totalViews: number;
-    totalTransforms: number;
-    recentEdits: number;
-  };
-  dailyViews?: number[];
+    totalResumes: number
+    publicResumes: number
+    totalViews: number
+    totalTransforms: number
+    recentEdits: number
+  }
+  dailyViews?: number[]
 }
 
 function TrendIndicator({ current, previous }: { current: number; previous: number }) {
-  if (previous === 0 && current === 0) return null;
-  const diff = current - previous;
-  const pct = previous === 0 ? (current > 0 ? 100 : 0) : Math.round((diff / previous) * 100);
-  if (pct === 0) return null;
-  const isUp = pct > 0;
+  if (previous === 0 && current === 0) return null
+  const diff = current - previous
+  const pct = previous === 0 ? (current > 0 ? 100 : 0) : Math.round((diff / previous) * 100)
+  if (pct === 0) return null
+  const isUp = pct > 0
   return (
     <span
       className={`inline-flex items-center text-[10px] font-medium ${isUp ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}
@@ -51,27 +54,24 @@ function TrendIndicator({ current, previous }: { current: number; previous: numb
       </svg>
       {Math.abs(pct)}%
     </span>
-  );
+  )
 }
 
-// CHART_COLORS 의 단일 정의는 lib/chartColors. 여기는 alias.
-import { CHART_COLORS } from '@/lib/chartColors';
-
 export default function DashboardStats() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const navigate = useNavigate();
+  const [data, setData] = useState<DashboardData | null>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
+    const token = localStorage.getItem('token')
+    if (!token) return
+    const headers: Record<string, string> = { Authorization: `Bearer ${token}` }
     fetch(`${API_URL}/api/resumes/dashboard/analytics`, { headers })
       .then((r) => (r.ok ? r.json() : null))
       .then(setData)
-      .catch(() => {});
-  }, []);
+      .catch(() => {})
+  }, [])
 
-  if (!data) return null;
+  if (!data) return null
 
   const prev = data.previousMonth || {
     totalResumes: 0,
@@ -79,7 +79,7 @@ export default function DashboardStats() {
     totalViews: 0,
     totalTransforms: 0,
     recentEdits: 0,
-  };
+  }
 
   const stats = [
     {
@@ -122,22 +122,22 @@ export default function DashboardStats() {
       color: 'text-blue-700',
       link: '/',
     },
-  ];
+  ]
 
   // 조회수 AreaChart 데이터 (최근 7일)
   const viewsChartData = data.dailyViews
     ? data.dailyViews.slice(-7).map((v, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() - (6 - i));
-        return { name: `${d.getMonth() + 1}/${d.getDate()}`, value: v };
+        const d = new Date()
+        d.setDate(d.getDate() - (6 - i))
+        return { name: `${d.getMonth() + 1}/${d.getDate()}`, value: v }
       })
-    : [];
+    : []
 
   // 상태 분포 PieChart 데이터
   const pieData = [
     { name: '비공개', value: Math.max(0, data.summary.totalResumes - data.summary.publicResumes) },
     { name: '공개', value: data.summary.publicResumes },
-  ];
+  ]
 
   return (
     <div className="space-y-4 mb-6">
@@ -267,5 +267,5 @@ export default function DashboardStats() {
         </div>
       )}
     </div>
-  );
+  )
 }

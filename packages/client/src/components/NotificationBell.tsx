@@ -1,61 +1,62 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import Popover from '@/shared/ui/Popover';
-import { timeAgo } from '@/lib/time';
-import { fetchNotifications as apiFetchNotifications, markAllNotificationsRead } from '@/lib/api';
-import { getToken } from '@/lib/auth';
-import { API_URL } from '@/lib/config';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+import { fetchNotifications as apiFetchNotifications, markAllNotificationsRead } from '@/lib/api'
+import { getToken } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+import { timeAgo } from '@/lib/time'
+import Popover from '@/shared/ui/Popover'
 
 interface Notification {
-  id: string;
-  type: string;
-  message: string;
-  link?: string;
-  read: boolean;
-  createdAt: string;
+  id: string
+  type: string
+  message: string
+  link?: string
+  read: boolean
+  createdAt: string
 }
 
 export default function NotificationBell() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [count, setCount] = useState(0);
-  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [count, setCount] = useState(0)
+  const [open, setOpen] = useState(false)
 
   const fetchCount = () => {
-    if (!getToken()) return;
+    if (!getToken()) return
     fetch(`${API_URL}/api/notifications/count`, {
       headers: { Authorization: `Bearer ${getToken()}` },
     })
       .then((r) => (r.ok ? r.json() : { count: 0 }))
       .then((d) => setCount(d.count))
-      .catch(() => {});
-  };
+      .catch(() => {})
+  }
 
   const fetchAll = () => {
-    if (!getToken()) return;
+    if (!getToken()) return
     apiFetchNotifications()
       .then((all) => setNotifications(all.filter((n: Notification) => !n.read)))
-      .catch(() => {});
-  };
+      .catch(() => {})
+  }
 
   useEffect(() => {
-    fetchCount();
-    const interval = setInterval(fetchCount, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    fetchCount()
+    const interval = setInterval(fetchCount, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleOpenChange = (next: boolean) => {
-    setOpen(next);
-    if (next) fetchAll();
-  };
+    setOpen(next)
+    if (next) fetchAll()
+  }
 
   const markAllRead = async () => {
-    if (!getToken()) return;
-    await markAllNotificationsRead();
-    setCount(0);
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
+    if (!getToken()) return
+    await markAllNotificationsRead()
+    setCount(0)
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }
 
   const getNotifIcon = (type: string) => {
     const icons: Record<string, { icon: string; color: string }> = {
@@ -79,9 +80,9 @@ export default function NotificationBell() {
       message: { icon: '✉️', color: 'bg-blue-100 dark:bg-blue-900/30' },
       endorsement: { icon: '⭐', color: 'bg-yellow-100 dark:bg-yellow-900/30' },
       bookmark: { icon: '🔖', color: 'bg-blue-100 dark:bg-blue-900/30' },
-    };
-    return icons[type] || { icon: '🔔', color: 'bg-neutral-100 dark:bg-neutral-700' };
-  };
+    }
+    return icons[type] || { icon: '🔔', color: 'bg-neutral-100 dark:bg-neutral-700' }
+  }
 
   return (
     <Popover.Root open={open} onOpenChange={handleOpenChange}>
@@ -123,7 +124,7 @@ export default function NotificationBell() {
             </p>
           ) : (
             notifications.map((n) => {
-              const notifStyle = getNotifIcon(n.type);
+              const notifStyle = getNotifIcon(n.type)
               return (
                 <Link
                   key={n.id}
@@ -154,7 +155,7 @@ export default function NotificationBell() {
                     />
                   )}
                 </Link>
-              );
+              )
             })
           )}
         </div>
@@ -167,5 +168,5 @@ export default function NotificationBell() {
         </Link>
       </Popover.Content>
     </Popover.Root>
-  );
+  )
 }

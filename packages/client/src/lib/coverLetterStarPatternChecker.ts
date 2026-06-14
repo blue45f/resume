@@ -3,22 +3,22 @@
  * 각 요소가 얼마나 포함되어 있는지 측정하고 빈 요소를 알린다.
  */
 
-export type StarElement = 'situation' | 'task' | 'action' | 'result';
+export type StarElement = 'situation' | 'task' | 'action' | 'result'
 
 export interface StarElementSignal {
-  element: StarElement;
-  excerpt: string;
+  element: StarElement
+  excerpt: string
 }
 
-export type StarUsageGrade = 'strong' | 'partial' | 'weak' | 'absent';
+export type StarUsageGrade = 'strong' | 'partial' | 'weak' | 'absent'
 
 export interface CoverLetterStarReport {
-  foundElements: StarElement[];
-  missingElements: StarElement[];
-  signals: StarElementSignal[];
-  grade: StarUsageGrade;
-  summary: string;
-  tips: string[];
+  foundElements: StarElement[]
+  missingElements: StarElement[]
+  signals: StarElementSignal[]
+  grade: StarUsageGrade
+  summary: string
+  tips: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -26,8 +26,8 @@ export interface CoverLetterStarReport {
 // ---------------------------------------------------------------------------
 
 interface StarPattern {
-  element: StarElement;
-  re: RegExp;
+  element: StarElement
+  re: RegExp
 }
 
 const STAR_PATTERNS: StarPattern[] = [
@@ -110,72 +110,72 @@ const STAR_PATTERNS: StarPattern[] = [
     element: 'result',
     re: /(?:그\s*결과|이를\s*통해|덕분에)\s*(?:[^.。]{5,})\s*(?:수\s*있었|할\s*수\s*있었|었습니다)/,
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function checkCoverLetterStarPattern(text: string): CoverLetterStarReport {
-  const t = text ?? '';
+  const t = text ?? ''
 
-  const foundSet = new Set<StarElement>();
-  const signals: StarElementSignal[] = [];
+  const foundSet = new Set<StarElement>()
+  const signals: StarElementSignal[] = []
 
   for (const { element, re } of STAR_PATTERNS) {
-    if (foundSet.has(element)) continue; // one match per element is enough
-    const m = t.match(re);
+    if (foundSet.has(element)) continue // one match per element is enough
+    const m = t.match(re)
     if (m) {
-      foundSet.add(element);
-      signals.push({ element, excerpt: m[0].slice(0, 50) });
+      foundSet.add(element)
+      signals.push({ element, excerpt: m[0].slice(0, 50) })
     }
   }
 
-  const ALL_ELEMENTS: StarElement[] = ['situation', 'task', 'action', 'result'];
-  const foundElements = ALL_ELEMENTS.filter((e) => foundSet.has(e));
-  const missingElements = ALL_ELEMENTS.filter((e) => !foundSet.has(e));
+  const ALL_ELEMENTS: StarElement[] = ['situation', 'task', 'action', 'result']
+  const foundElements = ALL_ELEMENTS.filter((e) => foundSet.has(e))
+  const missingElements = ALL_ELEMENTS.filter((e) => !foundSet.has(e))
 
-  let grade: StarUsageGrade;
-  if (foundElements.length === 4) grade = 'strong';
-  else if (foundElements.length >= 2) grade = 'partial';
-  else if (foundElements.length === 1) grade = 'weak';
-  else grade = 'absent';
+  let grade: StarUsageGrade
+  if (foundElements.length === 4) grade = 'strong'
+  else if (foundElements.length >= 2) grade = 'partial'
+  else if (foundElements.length === 1) grade = 'weak'
+  else grade = 'absent'
 
   const ELEM_KO: Record<StarElement, string> = {
     situation: 'Situation(배경)',
     task: 'Task(역할)',
     action: 'Action(행동)',
     result: 'Result(결과)',
-  };
+  }
 
-  let summary: string;
+  let summary: string
   if (grade === 'strong') {
-    summary = 'STAR 4요소(배경·역할·행동·결과)가 모두 포함되어 있습니다.';
+    summary = 'STAR 4요소(배경·역할·행동·결과)가 모두 포함되어 있습니다.'
   } else if (grade === 'partial') {
-    const missing = missingElements.map((e) => ELEM_KO[e]).join(', ');
-    summary = `STAR 구조 중 ${missing} 가 부족합니다. 추가하면 설득력이 높아집니다.`;
+    const missing = missingElements.map((e) => ELEM_KO[e]).join(', ')
+    summary = `STAR 구조 중 ${missing} 가 부족합니다. 추가하면 설득력이 높아집니다.`
   } else if (grade === 'weak') {
-    summary = 'STAR 구조가 거의 없습니다. 구체적 배경·행동·결과를 서술해 보세요.';
+    summary = 'STAR 구조가 거의 없습니다. 구체적 배경·행동·결과를 서술해 보세요.'
   } else {
     summary =
-      'STAR 구조가 감지되지 않습니다. Situation → Task → Action → Result 흐름으로 재작성하세요.';
+      'STAR 구조가 감지되지 않습니다. Situation → Task → Action → Result 흐름으로 재작성하세요.'
   }
 
-  const tips: string[] = [];
+  const tips: string[] = []
   if (missingElements.includes('situation')) {
-    tips.push('배경: "당시 팀에서 OO 문제가 있었습니다." 처럼 맥락을 먼저 설명하세요.');
+    tips.push('배경: "당시 팀에서 OO 문제가 있었습니다." 처럼 맥락을 먼저 설명하세요.')
   }
   if (missingElements.includes('task')) {
-    tips.push('역할: "저는 OO 기능 개발을 단독으로 담당했습니다." 처럼 본인 책임 범위를 밝히세요.');
+    tips.push('역할: "저는 OO 기능 개발을 단독으로 담당했습니다." 처럼 본인 책임 범위를 밝히세요.')
   }
   if (missingElements.includes('action')) {
     tips.push(
-      '행동: "이를 위해 직접 X를 도입하고 Y를 리팩토링했습니다." 처럼 구체적 행동을 쓰세요.',
-    );
+      '행동: "이를 위해 직접 X를 도입하고 Y를 리팩토링했습니다." 처럼 구체적 행동을 쓰세요.'
+    )
   }
   if (missingElements.includes('result')) {
-    tips.push('결과: "그 결과 응답 시간 40% 단축" 처럼 수치화된 성과를 반드시 포함하세요.');
+    tips.push('결과: "그 결과 응답 시간 40% 단축" 처럼 수치화된 성과를 반드시 포함하세요.')
   }
 
-  return { foundElements, missingElements, signals, grade, summary, tips };
+  return { foundElements, missingElements, signals, grade, summary, tips }
 }

@@ -1,12 +1,13 @@
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { ROUTES, withQuery } from '@/lib/routes';
+import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
+
 import {
   fetchStudyGroups,
   fetchJobInterviewQuestions,
   type StudyGroup,
   type JobInterviewQuestion,
-} from '@/lib/api';
+} from '@/lib/api'
+import { ROUTES, withQuery } from '@/lib/routes'
 
 /* ── 면접 크로스 추천 위젯 (스터디 그룹 + 예상 질문) ─────────────── */
 export default function InterviewDiscoveryWidget() {
@@ -14,21 +15,21 @@ export default function InterviewDiscoveryWidget() {
     queryKey: ['home-study-groups', { limit: 20 }],
     queryFn: () => fetchStudyGroups({ limit: 20 }),
     staleTime: 60_000,
-  });
+  })
   const questionsQuery = useQuery({
     queryKey: ['home-job-interview-questions', { limit: 20 }],
     queryFn: () => fetchJobInterviewQuestions({ limit: 20 }),
     staleTime: 60_000,
-  });
-  const loading = groupsQuery.isLoading || questionsQuery.isLoading;
+  })
+  const loading = groupsQuery.isLoading || questionsQuery.isLoading
   const groups: StudyGroup[] = groupsQuery.data
     ? [...groupsQuery.data.items].sort((a, b) => b.memberCount - a.memberCount).slice(0, 5)
-    : [];
+    : []
   const questions: JobInterviewQuestion[] = questionsQuery.data
     ? [...questionsQuery.data]
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 5)
-    : [];
+    : []
 
   if (loading) {
     return (
@@ -47,10 +48,10 @@ export default function InterviewDiscoveryWidget() {
           </div>
         ))}
       </div>
-    );
+    )
   }
 
-  if (groups.length === 0 && questions.length === 0) return null;
+  if (groups.length === 0 && questions.length === 0) return null
 
   return (
     <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -128,5 +129,5 @@ export default function InterviewDiscoveryWidget() {
         </div>
       )}
     </div>
-  );
+  )
 }

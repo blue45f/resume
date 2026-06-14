@@ -8,12 +8,12 @@
  * 순수 함수(no DOM/network) — vitest 로 검증.
  */
 
-export type ResonanceTone = 'good' | 'neutral' | 'warning';
+export type ResonanceTone = 'good' | 'neutral' | 'warning'
 
 interface ThemeDef {
-  id: string;
-  label: string;
-  cue: RegExp; // JD/자소서 공통 단서 패턴
+  id: string
+  label: string
+  cue: RegExp // JD/자소서 공통 단서 패턴
 }
 
 const THEMES: ThemeDef[] = [
@@ -31,29 +31,29 @@ const THEMES: ThemeDef[] = [
   { id: 'challenge', label: '도전·혁신', cue: /도전|혁신|새로운|변화|개척|실험|시도/i },
   { id: 'problem', label: '문제 해결', cue: /문제\s*해결|해결|개선|트러블|이슈\s*대응|원인/i },
   { id: 'global', label: '글로벌', cue: /글로벌|해외|영어|english|global|다국어|현지화/i },
-];
+]
 
 export interface ResonanceTheme {
-  id: string;
-  label: string;
-  resonant: boolean; // JD가 강조 + 자소서도 반영
-  jdEvidence: string; // JD에서의 근거
-  clEvidence: string | null; // 자소서에서의 근거
+  id: string
+  label: string
+  resonant: boolean // JD가 강조 + 자소서도 반영
+  jdEvidence: string // JD에서의 근거
+  clEvidence: string | null // 자소서에서의 근거
 }
 
 export interface CoverLetterJdResonanceReport {
-  resonanceScore: number; // 0-100 (JD 테마 중 자소서가 반영한 비율)
-  themes: ResonanceTheme[]; // JD가 강조한 테마들 (resonant 여부 포함)
-  resonantLabels: string[];
-  missingLabels: string[]; // JD는 강조하나 자소서에 없음
-  tone: ResonanceTone;
-  summary: string;
-  suggestion: string;
+  resonanceScore: number // 0-100 (JD 테마 중 자소서가 반영한 비율)
+  themes: ResonanceTheme[] // JD가 강조한 테마들 (resonant 여부 포함)
+  resonantLabels: string[]
+  missingLabels: string[] // JD는 강조하나 자소서에 없음
+  tone: ResonanceTone
+  summary: string
+  suggestion: string
 }
 
 function firstMatch(re: RegExp, text: string): string | null {
-  const m = text.match(re);
-  return m ? m[0] : null;
+  const m = text.match(re)
+  return m ? m[0] : null
 }
 
 /**
@@ -63,56 +63,56 @@ function firstMatch(re: RegExp, text: string): string | null {
  */
 export function analyzeCoverLetterJdResonance(
   coverLetter: string,
-  jd: string,
+  jd: string
 ): CoverLetterJdResonanceReport {
-  const cl = coverLetter ?? '';
-  const jdText = jd ?? '';
+  const cl = coverLetter ?? ''
+  const jdText = jd ?? ''
 
   // JD가 강조한 테마만 평가 대상
   const jdThemes = THEMES.map((t) => {
-    const jdEvidence = firstMatch(t.cue, jdText);
-    return { def: t, jdEvidence };
-  }).filter((x) => x.jdEvidence);
+    const jdEvidence = firstMatch(t.cue, jdText)
+    return { def: t, jdEvidence }
+  }).filter((x) => x.jdEvidence)
 
   const themes: ResonanceTheme[] = jdThemes.map(({ def, jdEvidence }) => {
-    const clEvidence = firstMatch(def.cue, cl);
+    const clEvidence = firstMatch(def.cue, cl)
     return {
       id: def.id,
       label: def.label,
       resonant: !!clEvidence,
       jdEvidence: jdEvidence as string,
       clEvidence,
-    };
-  });
+    }
+  })
 
-  const resonantLabels = themes.filter((t) => t.resonant).map((t) => t.label);
-  const missingLabels = themes.filter((t) => !t.resonant).map((t) => t.label);
+  const resonantLabels = themes.filter((t) => t.resonant).map((t) => t.label)
+  const missingLabels = themes.filter((t) => !t.resonant).map((t) => t.label)
   const resonanceScore = themes.length
     ? Math.round((resonantLabels.length / themes.length) * 100)
-    : 0;
+    : 0
 
-  let tone: ResonanceTone;
-  if (themes.length === 0) tone = 'neutral';
-  else if (resonanceScore >= 70) tone = 'good';
-  else if (resonanceScore >= 40) tone = 'neutral';
-  else tone = 'warning';
+  let tone: ResonanceTone
+  if (themes.length === 0) tone = 'neutral'
+  else if (resonanceScore >= 70) tone = 'good'
+  else if (resonanceScore >= 40) tone = 'neutral'
+  else tone = 'warning'
 
-  let summary: string;
-  let suggestion: string;
+  let summary: string
+  let suggestion: string
   if (themes.length === 0) {
-    summary = '공고에서 뚜렷한 가치·문화 테마가 감지되지 않았습니다.';
-    suggestion = '채용공고 본문을 더 붙여넣으면 가치 정합성을 분석할 수 있습니다.';
+    summary = '공고에서 뚜렷한 가치·문화 테마가 감지되지 않았습니다.'
+    suggestion = '채용공고 본문을 더 붙여넣으면 가치 정합성을 분석할 수 있습니다.'
   } else if (tone === 'good') {
-    summary = `공고가 강조한 ${themes.length}개 테마 중 ${resonantLabels.length}개를 자소서가 잘 반영했습니다.`;
+    summary = `공고가 강조한 ${themes.length}개 테마 중 ${resonantLabels.length}개를 자소서가 잘 반영했습니다.`
     suggestion = missingLabels.length
       ? `"${missingLabels[0]}" 가치를 한 문장 더 녹이면 정합성이 완벽해집니다.`
-      : '공고의 핵심 가치를 빠짐없이 반영했습니다. 구체 사례로 뒷받침되는지 확인하세요.';
+      : '공고의 핵심 가치를 빠짐없이 반영했습니다. 구체 사례로 뒷받침되는지 확인하세요.'
   } else if (tone === 'neutral') {
-    summary = `정합성 ${resonanceScore}% — 일부 핵심 가치가 자소서에 빠져 있습니다.`;
-    suggestion = `공고가 강조하는 "${missingLabels.slice(0, 2).join('", "')}" 를 본인 경험과 연결해 보강하세요.`;
+    summary = `정합성 ${resonanceScore}% — 일부 핵심 가치가 자소서에 빠져 있습니다.`
+    suggestion = `공고가 강조하는 "${missingLabels.slice(0, 2).join('", "')}" 를 본인 경험과 연결해 보강하세요.`
   } else {
-    summary = `정합성 ${resonanceScore}% — 공고의 가치·문화가 자소서에 거의 드러나지 않습니다.`;
-    suggestion = `이 회사는 "${missingLabels.slice(0, 2).join('", "')}" 를 중시합니다. 해당 경험을 구체적으로 추가하세요.`;
+    summary = `정합성 ${resonanceScore}% — 공고의 가치·문화가 자소서에 거의 드러나지 않습니다.`
+    suggestion = `이 회사는 "${missingLabels.slice(0, 2).join('", "')}" 를 중시합니다. 해당 경험을 구체적으로 추가하세요.`
   }
 
   return {
@@ -123,5 +123,5 @@ export function analyzeCoverLetterJdResonance(
     tone,
     summary,
     suggestion,
-  };
+  }
 }

@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { buildCoverLetterFlowMap, FLOW_BLOCK_LABEL } from '@/lib/coverLetterFlowMap';
-import type { FlowBlock } from '@/lib/coverLetterFlowMap';
+import { useMemo } from 'react'
+
+import type { FlowBlock } from '@/lib/coverLetterFlowMap'
+
+import { buildCoverLetterFlowMap, FLOW_BLOCK_LABEL } from '@/lib/coverLetterFlowMap'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const LEGEND_ORDER: FlowBlock[] = [
@@ -12,15 +14,15 @@ const LEGEND_ORDER: FlowBlock[] = [
   'experience',
   'aspiration',
   'narrative',
-];
+]
 
 export default function CoverLetterFlowStrip({ text }: Props) {
-  const report = useMemo(() => buildCoverLetterFlowMap(text), [text]);
+  const report = useMemo(() => buildCoverLetterFlowMap(text), [text])
 
-  if (text.trim().length < 80) return null;
-  if (report.paragraphCount === 0) return null;
+  if (text.trim().length < 80) return null
+  if (report.paragraphCount === 0) return null
 
-  const usedBlocks = LEGEND_ORDER.filter((b) => report.segments.some((s) => s.block === b));
+  const usedBlocks = LEGEND_ORDER.filter((b) => report.segments.some((s) => s.block === b))
 
   return (
     <section className="flow-strip" aria-label="자기소개서 흐름 맵">
@@ -60,5 +62,5 @@ export default function CoverLetterFlowStrip({ text }: Props) {
         </ul>
       )}
     </section>
-  );
+  )
 }

@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { checkCoverLetterCompanyKnowledge } from '@/lib/coverLetterCompanyKnowledgeChecker';
-import type { CompanyKnowledgeSignalType } from '@/lib/coverLetterCompanyKnowledgeChecker';
+import { useMemo } from 'react'
+
+import type { CompanyKnowledgeSignalType } from '@/lib/coverLetterCompanyKnowledgeChecker'
+
+import { checkCoverLetterCompanyKnowledge } from '@/lib/coverLetterCompanyKnowledgeChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const KNOWLEDGE_TYPE_LABEL: Record<CompanyKnowledgeSignalType, string> = {
@@ -13,23 +15,23 @@ const KNOWLEDGE_TYPE_LABEL: Record<CompanyKnowledgeSignalType, string> = {
   initiative_reference: '이니셔티브',
   culture_alignment: '문화 정렬',
   milestone_reference: '이정표',
-};
+}
 
 const DEPTH_LABEL: Record<string, string> = {
   specific: '구체적',
   moderate: '보통',
   generic: '추상적',
   none: '미언급',
-};
+}
 
 export default function CoverLetterCompanyKnowledgePanel({ text }: Props) {
-  const report = useMemo(() => checkCoverLetterCompanyKnowledge(text), [text]);
+  const report = useMemo(() => checkCoverLetterCompanyKnowledge(text), [text])
 
-  if (text.trim().length < 80) return null;
-  if (report.depth === 'specific') return null;
-  if (report.depth === 'none' && report.vaguePraiseCount === 0) return null;
+  if (text.trim().length < 80) return null
+  if (report.depth === 'specific') return null
+  if (report.depth === 'none' && report.vaguePraiseCount === 0) return null
 
-  const isWarning = report.depth === 'generic';
+  const isWarning = report.depth === 'generic'
 
   return (
     <aside
@@ -66,5 +68,5 @@ export default function CoverLetterCompanyKnowledgePanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

@@ -1,63 +1,64 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { CardGridSkeleton } from '@/components/Skeleton';
-import FollowButton from '@/components/FollowButton';
-import SendMessageButton from '@/components/SendMessageButton';
-import { getUser } from '@/lib/auth';
-import { useFollowers, useFollowing } from '@/hooks/useResources';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
+import { useState, useEffect, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+
+import FollowButton from '@/components/FollowButton'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import SendMessageButton from '@/components/SendMessageButton'
+import { CardGridSkeleton } from '@/components/Skeleton'
+import { useFollowers, useFollowing } from '@/hooks/useResources'
+import { getUser } from '@/lib/auth'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
 
 interface FollowUser {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  recentResumeTitle?: string;
+  id: string
+  name: string
+  email: string
+  avatar?: string
+  recentResumeTitle?: string
 }
 
 export default function FollowListPage() {
-  const user = getUser();
-  const [tab, setTab] = useState<'followers' | 'following'>('followers');
-  const followersQuery = useFollowers();
-  const followingQuery = useFollowing();
+  const user = getUser()
+  const [tab, setTab] = useState<'followers' | 'following'>('followers')
+  const followersQuery = useFollowers()
+  const followingQuery = useFollowing()
   const followers: FollowUser[] = useMemo(
     () => (followersQuery.data as FollowUser[] | undefined) ?? [],
-    [followersQuery.data],
-  );
+    [followersQuery.data]
+  )
   const following: FollowUser[] = useMemo(
     () => (followingQuery.data as FollowUser[] | undefined) ?? [],
-    [followingQuery.data],
-  );
-  const loading = followersQuery.isLoading || followingQuery.isLoading;
-  const [search, setSearch] = useState('');
+    [followingQuery.data]
+  )
+  const loading = followersQuery.isLoading || followingQuery.isLoading
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
-    document.title = '팔로워 / 팔로잉 — 이력서공방';
+    document.title = '팔로워 / 팔로잉 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
-  const followingIds = useMemo(() => new Set(following.map((u) => u.id)), [following]);
-  const followerIds = useMemo(() => new Set(followers.map((u) => u.id)), [followers]);
+  const followingIds = useMemo(() => new Set(following.map((u) => u.id)), [following])
+  const followerIds = useMemo(() => new Set(followers.map((u) => u.id)), [followers])
 
-  const isMutual = (userId: string) => followingIds.has(userId) && followerIds.has(userId);
+  const isMutual = (userId: string) => followingIds.has(userId) && followerIds.has(userId)
 
-  const currentList = tab === 'followers' ? followers : following;
+  const currentList = tab === 'followers' ? followers : following
 
   const filteredList = useMemo(() => {
-    if (!search.trim()) return currentList;
-    const q = search.toLowerCase();
+    if (!search.trim()) return currentList
+    const q = search.toLowerCase()
     return currentList.filter(
       (u) =>
         u.name.toLowerCase().includes(q) ||
         u.email.toLowerCase().includes(q) ||
-        (u.recentResumeTitle && u.recentResumeTitle.toLowerCase().includes(q)),
-    );
-  }, [currentList, search]);
+        (u.recentResumeTitle && u.recentResumeTitle.toLowerCase().includes(q))
+    )
+  }, [currentList, search])
 
   return (
     <>
@@ -96,8 +97,8 @@ export default function FollowListPage() {
         <div className="flex gap-1 mb-4 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit">
           <button
             onClick={() => {
-              setTab('followers');
-              setSearch('');
+              setTab('followers')
+              setSearch('')
             }}
             className={`px-4 py-2 text-sm rounded-lg transition-colors ${
               tab === 'followers'
@@ -110,8 +111,8 @@ export default function FollowListPage() {
           </button>
           <button
             onClick={() => {
-              setTab('following');
-              setSearch('');
+              setTab('following')
+              setSearch('')
             }}
             className={`px-4 py-2 text-sm rounded-lg transition-colors ${
               tab === 'following'
@@ -190,8 +191,8 @@ export default function FollowListPage() {
         ) : (
           <div className="space-y-2">
             {filteredList.map((u) => {
-              const mutual = isMutual(u.id);
-              const isFollowingUser = followingIds.has(u.id);
+              const mutual = isMutual(u.id)
+              const isFollowingUser = followingIds.has(u.id)
               return (
                 <div
                   key={u.id}
@@ -243,12 +244,12 @@ export default function FollowListPage() {
                     )}
                   </div>
                 </div>
-              );
+              )
             })}
           </div>
         )}
       </main>
       <Footer />
     </>
-  );
+  )
 }

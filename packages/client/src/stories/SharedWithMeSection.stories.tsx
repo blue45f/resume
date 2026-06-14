@@ -1,15 +1,18 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useEffect } from 'react';
-import SharedWithMeSection from '@/components/SharedWithMeSection';
-import { installFetchMock, uninstallFetchMock } from './_mockFetch';
+import { useEffect } from 'react'
+
+import { installFetchMock, uninstallFetchMock } from './_mockFetch'
+
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import SharedWithMeSection from '@/components/SharedWithMeSection'
 
 const meta: Meta<typeof SharedWithMeSection> = {
   title: 'Sharing & Job/SharedWithMeSection',
   component: SharedWithMeSection,
   parameters: { layout: 'padded' },
-};
-export default meta;
-type Story = StoryObj<typeof SharedWithMeSection>;
+}
+export default meta
+type Story = StoryObj<typeof SharedWithMeSection>
 
 const sharedMany = [
   {
@@ -45,19 +48,19 @@ const sharedMany = [
     },
     addedBy: { id: 'u3', name: '박민호' },
   },
-];
+]
 
 export const WithItems: Story = {
   decorators: [
     (Story) => {
       useEffect(() => {
-        installFetchMock({ '/api/resumes/shared/list': sharedMany });
-        return () => uninstallFetchMock();
-      }, []);
-      return <Story />;
+        installFetchMock({ '/api/resumes/shared/list': sharedMany })
+        return () => uninstallFetchMock()
+      }, [])
+      return <Story />
     },
   ],
-};
+}
 
 /**
  * 빈 응답 — 컴포넌트는 null 반환 (UI 비어있음). 의도된 동작.
@@ -66,10 +69,10 @@ export const Empty: Story = {
   decorators: [
     (Story) => {
       useEffect(() => {
-        installFetchMock({ '/api/resumes/shared/list': [] });
-        return () => uninstallFetchMock();
-      }, []);
-      return <Story />;
+        installFetchMock({ '/api/resumes/shared/list': [] })
+        return () => uninstallFetchMock()
+      }, [])
+      return <Story />
     },
   ],
-};
+}

@@ -7,85 +7,87 @@
  * 좌측: 모든 이력서의 가중 평균 점수 (dial)
  * 우측: 가장 임팩트 큰 missing 항목 1개 + 채우면 예상 +X% + CTA
  */
-import { Link } from 'react-router-dom';
-import { useMemo } from 'react';
-import type { ResumeSummary } from '@/types/resume';
-import { computeResumeCompletion, type CompletionItem } from '@/lib/resumeCompletion';
-import { ROUTES } from '@/lib/routes';
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
+
+import type { ResumeSummary } from '@/types/resume'
+
+import { computeResumeCompletion, type CompletionItem } from '@/lib/resumeCompletion'
+import { ROUTES } from '@/lib/routes'
 
 interface Props {
-  resumes: ResumeSummary[];
+  resumes: ResumeSummary[]
 }
 
 interface Snapshot {
-  avgPct: number;
-  totalCount: number;
-  top: (CompletionItem & { resumeId: string; resumeTitle: string }) | null;
-  projectedPct: number;
-  delta: number;
+  avgPct: number
+  totalCount: number
+  top: (CompletionItem & { resumeId: string; resumeTitle: string }) | null
+  projectedPct: number
+  delta: number
   /** 카테고리별 평균 비율 (0..1) — segmented arc 시각화용 */
-  categoryStats: Array<{ key: string; pct: number }>;
+  categoryStats: Array<{ key: string; pct: number }>
 }
 
 function buildSnapshot(resumes: ResumeSummary[]): Snapshot | null {
-  if (resumes.length === 0) return null;
-  const summaries = resumes.map((r) => ({ resume: r, c: computeResumeCompletion(r) }));
-  const totalScore = summaries.reduce((s, x) => s + x.c.score, 0);
-  const totalMax = summaries.reduce((s, x) => s + x.c.max, 0);
-  const avgPct = Math.round((totalScore / totalMax) * 100);
+  if (resumes.length === 0) return null
+  const summaries = resumes.map((r) => ({ resume: r, c: computeResumeCompletion(r) }))
+  const totalScore = summaries.reduce((s, x) => s + x.c.score, 0)
+  const totalMax = summaries.reduce((s, x) => s + x.c.max, 0)
+  const avgPct = Math.round((totalScore / totalMax) * 100)
 
   const allMissing = summaries.flatMap((s) =>
     s.c.missingItems.map((m) => ({
       ...m,
       resumeId: s.resume.id,
       resumeTitle: s.resume.title?.trim() || '제목 없음',
-    })),
-  );
-  const top = allMissing.sort((a, b) => b.max - a.max)[0] || null;
+    }))
+  )
+  const top = allMissing.sort((a, b) => b.max - a.max)[0] || null
 
-  let projectedPct = avgPct;
-  let delta = 0;
+  let projectedPct = avgPct
+  let delta = 0
   if (top) {
     // Filling this single item on the relevant resume bumps that resume's score by item.max.
-    const projectedScore = totalScore + top.max;
-    projectedPct = Math.min(100, Math.round((projectedScore / totalMax) * 100));
-    delta = Math.max(0, projectedPct - avgPct);
+    const projectedScore = totalScore + top.max
+    projectedPct = Math.min(100, Math.round((projectedScore / totalMax) * 100))
+    delta = Math.max(0, projectedPct - avgPct)
   }
 
   // 카테고리별 가중 평균 — segmented arc 시각화용
-  const categories = ['identity', 'depth', 'web', 'discoverability'] as const;
+  const categories = ['identity', 'depth', 'web', 'discoverability'] as const
   const categoryStats = categories.map((cat) => {
-    let s = 0;
-    let m = 0;
+    let s = 0
+    let m = 0
     summaries.forEach(({ c }) => {
       c.items
         .filter((i) => i.category === cat)
         .forEach((i) => {
-          s += i.score;
-          m += i.max;
-        });
-    });
-    return { key: cat, pct: m > 0 ? s / m : 0 };
-  });
+          s += i.score
+          m += i.max
+        })
+    })
+    return { key: cat, pct: m > 0 ? s / m : 0 }
+  })
 
-  return { avgPct, totalCount: resumes.length, top, projectedPct, delta, categoryStats };
+  return { avgPct, totalCount: resumes.length, top, projectedPct, delta, categoryStats }
 }
 
-const RADIUS = 40;
-const C = 2 * Math.PI * RADIUS;
+const RADIUS = 40
+const C = 2 * Math.PI * RADIUS
 
 function gradeRingClass(pct: number): string {
-  if (pct >= 85) return 'text-emerald-600 dark:text-emerald-400';
-  if (pct >= 65) return 'text-sky-700 dark:text-sky-400';
-  if (pct >= 40) return 'text-amber-600 dark:text-amber-400';
-  return 'text-rose-600 dark:text-rose-400';
+  if (pct >= 85) return 'text-emerald-600 dark:text-emerald-400'
+  if (pct >= 65) return 'text-sky-700 dark:text-sky-400'
+  if (pct >= 40) return 'text-amber-600 dark:text-amber-400'
+  return 'text-rose-600 dark:text-rose-400'
 }
 
 export default function ResumeHealthBoost({ resumes }: Props) {
-  const snap = useMemo(() => buildSnapshot(resumes), [resumes]);
-  if (!snap) return null;
+  const snap = useMemo(() => buildSnapshot(resumes), [resumes])
+  if (!snap) return null
 
-  const ring = gradeRingClass(snap.avgPct);
+  const ring = gradeRingClass(snap.avgPct)
 
   return (
     <section
@@ -122,11 +124,11 @@ export default function ResumeHealthBoost({ resumes }: Props) {
               {/* segmented progress — 4 카테고리 호 (각 90°, 2° gap).
                   Identity / Depth / Web / Discoverability 가 동시에 visualized. */}
               {(() => {
-                const segColors = ['#0c4a6e', '#0891b2', '#10b981', '#f59e0b'];
-                const segLen = C / 4 - 2; // 90° per segment, with 1° gap each side
+                const segColors = ['#0c4a6e', '#0891b2', '#10b981', '#f59e0b']
+                const segLen = C / 4 - 2 // 90° per segment, with 1° gap each side
                 return snap.categoryStats.map((stat, i) => {
-                  const segOffset = -i * (C / 4) + 1;
-                  const filledLen = segLen * stat.pct;
+                  const segOffset = -i * (C / 4) + 1
+                  const filledLen = segLen * stat.pct
                   return (
                     <circle
                       key={stat.key}
@@ -143,8 +145,8 @@ export default function ResumeHealthBoost({ resumes }: Props) {
                         transition: 'stroke-dasharray 1.1s cubic-bezier(0.25, 1, 0.5, 1)',
                       }}
                     />
-                  );
-                });
+                  )
+                })
               })()}
               {/* fallback overall ring (lower opacity) — average baseline 시각 표시 */}
               <circle
@@ -165,11 +167,11 @@ export default function ResumeHealthBoost({ resumes }: Props) {
               />
               {/* tick marks — refined dial vibe (12 ticks, every 30°) */}
               {Array.from({ length: 12 }).map((_, i) => {
-                const angle = (i / 12) * 2 * Math.PI;
-                const x1 = 52 + Math.cos(angle) * 30;
-                const y1 = 52 + Math.sin(angle) * 30;
-                const x2 = 52 + Math.cos(angle) * 33;
-                const y2 = 52 + Math.sin(angle) * 33;
+                const angle = (i / 12) * 2 * Math.PI
+                const x1 = 52 + Math.cos(angle) * 30
+                const y1 = 52 + Math.sin(angle) * 30
+                const x2 = 52 + Math.cos(angle) * 33
+                const y2 = 52 + Math.sin(angle) * 33
                 return (
                   <line
                     key={i}
@@ -181,7 +183,7 @@ export default function ResumeHealthBoost({ resumes }: Props) {
                     strokeWidth="1"
                     className="text-slate-300 dark:text-slate-700"
                   />
-                );
+                )
               })}
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -281,5 +283,5 @@ export default function ResumeHealthBoost({ resumes }: Props) {
         )}
       </div>
     </section>
-  );
+  )
 }

@@ -1,47 +1,48 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ROUTES } from '@/lib/routes';
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+
+import { ROUTES } from '@/lib/routes'
 
 /* ── 주간 지원 목표 위젯 ─────────────────────────────── */
 function getWeekKey(): string {
-  const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const week = Math.floor((now.getTime() - startOfYear.getTime()) / (7 * 86400000));
-  return `${now.getFullYear()}-W${week}`;
+  const now = new Date()
+  const startOfYear = new Date(now.getFullYear(), 0, 1)
+  const week = Math.floor((now.getTime() - startOfYear.getTime()) / (7 * 86400000))
+  return `${now.getFullYear()}-W${week}`
 }
 
 export default function WeeklyGoalWidget() {
   const [goal, setGoal] = useState<number>(() => {
-    return parseInt(localStorage.getItem('weekly-goal') || '5', 10);
-  });
+    return parseInt(localStorage.getItem('weekly-goal') || '5', 10)
+  })
   const [applied, setApplied] = useState<number>(() => {
-    const stored = localStorage.getItem(`weekly-applied-${getWeekKey()}`);
-    return stored ? parseInt(stored, 10) : 0;
-  });
-  const [editingGoal, setEditingGoal] = useState(false);
-  const [tempGoal, setTempGoal] = useState(goal);
+    const stored = localStorage.getItem(`weekly-applied-${getWeekKey()}`)
+    return stored ? parseInt(stored, 10) : 0
+  })
+  const [editingGoal, setEditingGoal] = useState(false)
+  const [tempGoal, setTempGoal] = useState(goal)
 
-  const pct = Math.min(100, Math.round((applied / goal) * 100));
-  const r = 28;
-  const circumference = 2 * Math.PI * r;
-  const offset = circumference - (pct / 100) * circumference;
+  const pct = Math.min(100, Math.round((applied / goal) * 100))
+  const r = 28
+  const circumference = 2 * Math.PI * r
+  const offset = circumference - (pct / 100) * circumference
 
   const addOne = () => {
-    const next = applied + 1;
-    setApplied(next);
-    localStorage.setItem(`weekly-applied-${getWeekKey()}`, String(next));
-  };
+    const next = applied + 1
+    setApplied(next)
+    localStorage.setItem(`weekly-applied-${getWeekKey()}`, String(next))
+  }
 
   const saveGoal = () => {
     if (tempGoal > 0 && tempGoal <= 50) {
-      setGoal(tempGoal);
-      localStorage.setItem('weekly-goal', String(tempGoal));
+      setGoal(tempGoal)
+      localStorage.setItem('weekly-goal', String(tempGoal))
     }
-    setEditingGoal(false);
-  };
+    setEditingGoal(false)
+  }
 
   const goalColor =
-    pct >= 100 ? '#10b981' : pct >= 60 ? '#2563eb' : pct >= 30 ? '#f59e0b' : '#ef4444';
+    pct >= 100 ? '#10b981' : pct >= 60 ? '#2563eb' : pct >= 30 ? '#f59e0b' : '#ef4444'
 
   return (
     <div className="mb-6 imp-card p-5">
@@ -64,8 +65,8 @@ export default function WeeklyGoalWidget() {
               onChange={(e) => setTempGoal(Number(e.target.value))}
               className="home-field-control w-16 px-2 py-1 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
               onKeyDown={(e) => {
-                if (e.key === 'Enter') saveGoal();
-                if (e.key === 'Escape') setEditingGoal(false);
+                if (e.key === 'Enter') saveGoal()
+                if (e.key === 'Escape') setEditingGoal(false)
               }}
               autoFocus
             />
@@ -85,8 +86,8 @@ export default function WeeklyGoalWidget() {
         ) : (
           <button
             onClick={() => {
-              setTempGoal(goal);
-              setEditingGoal(true);
+              setTempGoal(goal)
+              setEditingGoal(true)
             }}
             className="home-quiet-link text-xs text-slate-500 dark:text-slate-400"
           >
@@ -160,5 +161,5 @@ export default function WeeklyGoalWidget() {
         </div>
       </div>
     </div>
-  );
+  )
 }

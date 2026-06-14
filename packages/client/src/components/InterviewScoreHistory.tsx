@@ -1,76 +1,77 @@
-import { useEffect, useState } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useEffect, useState } from 'react'
+
 import {
   fetchInterviewScoreHistory,
   fetchInterviewAnswerDetail,
   type InterviewScorePoint,
   type InterviewAnswerDetail,
-} from '@/lib/api';
-import { formatDate } from '@/lib/time';
+} from '@/lib/api'
+import { formatDate } from '@/lib/time'
 
 /**
  * 면접 답변 점수 추세 mini-chart — 최근 30개 분석 결과를 가로 bar 로 시각화.
  * 점수 색상: ≥80 emerald · ≥60 sky · ≥40 amber · <40 rose.
  * 데이터 없으면 null 반환 (자리 차지 안 함).
  */
-type ViewMode = 'daily' | 'weekly';
+type ViewMode = 'daily' | 'weekly'
 
 export default function InterviewScoreHistory() {
-  const [points, setPoints] = useState<InterviewScorePoint[]>([]);
-  const [allPoints, setAllPoints] = useState<InterviewScorePoint[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [detail, setDetail] = useState<InterviewAnswerDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('daily');
+  const [points, setPoints] = useState<InterviewScorePoint[]>([])
+  const [allPoints, setAllPoints] = useState<InterviewScorePoint[]>([])
+  const [loading, setLoading] = useState(true)
+  const [detail, setDetail] = useState<InterviewAnswerDetail | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('daily')
 
   useEffect(() => {
     fetchInterviewScoreHistory()
       .then((rows) => {
-        setAllPoints(rows);
-        setPoints(rows.slice(-30));
+        setAllPoints(rows)
+        setPoints(rows.slice(-30))
       })
       .catch(() => setPoints([]))
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => setLoading(false))
+  }, [])
 
   const openDetail = async (id: string) => {
-    setDetailLoading(true);
+    setDetailLoading(true)
     try {
-      const d = await fetchInterviewAnswerDetail(id);
-      setDetail(d);
+      const d = await fetchInterviewAnswerDetail(id)
+      setDetail(d)
     } catch {
       // toast 는 request 에서 이미 처리
     } finally {
-      setDetailLoading(false);
+      setDetailLoading(false)
     }
-  };
+  }
 
-  if (loading) return null;
-  if (points.length === 0) return null;
+  if (loading) return null
+  if (points.length === 0) return null
 
-  const avg = Math.round(points.reduce((a, p) => a + p.analysisScore, 0) / points.length);
-  const latest = points[points.length - 1];
+  const avg = Math.round(points.reduce((a, p) => a + p.analysisScore, 0) / points.length)
+  const latest = points[points.length - 1]
   const trend =
-    points.length >= 2 ? latest.analysisScore - points[points.length - 2].analysisScore : 0;
+    points.length >= 2 ? latest.analysisScore - points[points.length - 2].analysisScore : 0
 
   // Weekly aggregation — ISO week 단위 평균
   const weekKey = (iso: string) => {
-    const d = new Date(iso);
-    const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-    const day = t.getUTCDay() || 7;
-    t.setUTCDate(t.getUTCDate() + 4 - day);
-    const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil(((+t - +yearStart) / 86400000 + 1) / 7);
-    return `${t.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
-  };
-  const weeklyMap = new Map<string, { sum: number; count: number; latestId: string }>();
+    const d = new Date(iso)
+    const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
+    const day = t.getUTCDay() || 7
+    t.setUTCDate(t.getUTCDate() + 4 - day)
+    const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1))
+    const weekNo = Math.ceil(((+t - +yearStart) / 86400000 + 1) / 7)
+    return `${t.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`
+  }
+  const weeklyMap = new Map<string, { sum: number; count: number; latestId: string }>()
   for (const p of allPoints) {
-    const k = weekKey(p.createdAt);
-    const cur = weeklyMap.get(k) || { sum: 0, count: 0, latestId: p.id };
-    cur.sum += p.analysisScore;
-    cur.count++;
-    cur.latestId = p.id;
-    weeklyMap.set(k, cur);
+    const k = weekKey(p.createdAt)
+    const cur = weeklyMap.get(k) || { sum: 0, count: 0, latestId: p.id }
+    cur.sum += p.analysisScore
+    cur.count++
+    cur.latestId = p.id
+    weeklyMap.set(k, cur)
   }
   const weeklyPoints = Array.from(weeklyMap.entries())
     .map(([week, v]) => ({
@@ -79,29 +80,29 @@ export default function InterviewScoreHistory() {
       avgScore: Math.round(v.sum / v.count),
       count: v.count,
     }))
-    .slice(-12); // 최근 12주
+    .slice(-12) // 최근 12주
 
   // 같은 질문 재답변 grouping — question text 기준
-  const byQuestion = new Map<string, InterviewScorePoint[]>();
+  const byQuestion = new Map<string, InterviewScorePoint[]>()
   points.forEach((p) => {
-    const key = p.question.trim();
-    if (!byQuestion.has(key)) byQuestion.set(key, []);
-    byQuestion.get(key)!.push(p);
-  });
+    const key = p.question.trim()
+    if (!byQuestion.has(key)) byQuestion.set(key, [])
+    byQuestion.get(key)!.push(p)
+  })
   const repeatedQuestions = Array.from(byQuestion.entries())
     .filter(([, arr]) => arr.length >= 2)
     .map(([q, arr]) => {
-      const first = arr[0].analysisScore;
-      const last = arr[arr.length - 1].analysisScore;
+      const first = arr[0].analysisScore
+      const last = arr[arr.length - 1].analysisScore
       return {
         question: q,
         attempts: arr.length,
         delta: last - first,
         latestId: arr[arr.length - 1].id,
-      };
+      }
     })
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
-    .slice(0, 3);
+    .slice(0, 3)
 
   return (
     <section className="imp-card p-4 mb-4" aria-label="면접 답변 점수 추세">
@@ -187,7 +188,7 @@ export default function InterviewScoreHistory() {
                     ? 'bg-sky-500'
                     : p.analysisScore >= 40
                       ? 'bg-amber-500'
-                      : 'bg-rose-500';
+                      : 'bg-rose-500'
               return (
                 <button
                   key={p.id}
@@ -202,7 +203,7 @@ export default function InterviewScoreHistory() {
                     aria-label={`${p.analysisScore}점 — 클릭해서 답변 보기`}
                   />
                 </button>
-              );
+              )
             })
           : weeklyPoints.map((w) => {
               const color =
@@ -212,7 +213,7 @@ export default function InterviewScoreHistory() {
                     ? 'bg-sky-500'
                     : w.avgScore >= 40
                       ? 'bg-amber-500'
-                      : 'bg-rose-500';
+                      : 'bg-rose-500'
               return (
                 <button
                   key={w.week}
@@ -230,7 +231,7 @@ export default function InterviewScoreHistory() {
                     {w.week.slice(-3)}
                   </span>
                 </button>
-              );
+              )
             })}
       </div>
 
@@ -318,5 +319,5 @@ export default function InterviewScoreHistory() {
         </RadixDialog.Portal>
       </RadixDialog.Root>
     </section>
-  );
+  )
 }

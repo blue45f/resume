@@ -1,31 +1,32 @@
-import { useMemo } from 'react';
+import { useMemo } from 'react'
+
 import {
   analyzeLexicalDiversity,
   analyzeRedundancy,
   detectRepeatedPhrases,
   detectDuplicateSentences,
-} from '@/lib/repetitionAnalyzers';
+} from '@/lib/repetitionAnalyzers'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeRepetitionPanel({ text }: Props) {
-  const diversity = useMemo(() => analyzeLexicalDiversity(text), [text]);
-  const redundancy = useMemo(() => analyzeRedundancy(text), [text]);
-  const phrases = useMemo(() => detectRepeatedPhrases(text), [text]);
-  const duplicates = useMemo(() => detectDuplicateSentences(text), [text]);
+  const diversity = useMemo(() => analyzeLexicalDiversity(text), [text])
+  const redundancy = useMemo(() => analyzeRedundancy(text), [text])
+  const phrases = useMemo(() => detectRepeatedPhrases(text), [text])
+  const duplicates = useMemo(() => detectDuplicateSentences(text), [text])
 
   const hasIssue =
     diversity.level === 'low' ||
     redundancy.hits.length > 0 ||
     phrases.length > 0 ||
-    duplicates.length > 0;
+    duplicates.length > 0
 
-  if (!hasIssue) return null;
+  if (!hasIssue) return null
 
-  const ttrPercent = Math.round(diversity.ttr * 100);
-  const ttrFill = Math.max(0.04, diversity.ttr);
+  const ttrPercent = Math.round(diversity.ttr * 100)
+  const ttrFill = Math.max(0.04, diversity.ttr)
 
   return (
     <aside className="rep-card" aria-label="반복 표현 분석">
@@ -101,5 +102,5 @@ export default function ResumeRepetitionPanel({ text }: Props) {
         </div>
       )}
     </aside>
-  );
+  )
 }

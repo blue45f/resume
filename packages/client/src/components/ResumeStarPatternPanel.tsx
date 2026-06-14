@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { analyzeStarPattern } from '@/lib/starPattern';
+import { useMemo } from 'react'
+
+import { analyzeStarPattern } from '@/lib/starPattern'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const TIER_LABEL: Record<string, string> = {
@@ -10,21 +11,21 @@ const TIER_LABEL: Record<string, string> = {
   good: '양호',
   fair: '보통',
   poor: '미흡',
-};
+}
 
 const ELEMENT_LABEL = [
   { key: 'hasSituation', label: 'S', title: '상황(Situation)' },
   { key: 'hasTask', label: 'T', title: '과제(Task)' },
   { key: 'hasAction', label: 'A', title: '행동(Action)' },
   { key: 'hasResult', label: 'R', title: '결과(Result)' },
-] as const;
+] as const
 
 export default function ResumeStarPatternPanel({ text }: Props) {
-  const report = useMemo(() => analyzeStarPattern(text), [text]);
+  const report = useMemo(() => analyzeStarPattern(text), [text])
 
-  if (report.analyzed === 0 || report.tier === 'excellent') return null;
+  if (report.analyzed === 0 || report.tier === 'excellent') return null
 
-  const fill = Math.max(0.04, report.coverage / 100);
+  const fill = Math.max(0.04, report.coverage / 100)
 
   return (
     <aside className={`star-card star-card--${report.tier}`} aria-label="STAR 구조 분석">
@@ -84,5 +85,5 @@ export default function ResumeStarPatternPanel({ text }: Props) {
           : '미흡한 불릿에 구체적인 수치 결과를 추가하면 점수가 올라갑니다.'}
       </p>
     </aside>
-  );
+  )
 }

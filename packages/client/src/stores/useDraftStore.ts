@@ -15,24 +15,24 @@
  *   // 삭제
  *   useDraftStore.getState().clearDraft('community_post');
  */
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
-export type DraftType = 'community_post' | 'resume' | 'cover_letter';
+export type DraftType = 'community_post' | 'resume' | 'cover_letter'
 
 export interface DraftEntry<T = unknown> {
-  data: T;
-  savedAt: string; // ISO timestamp
+  data: T
+  savedAt: string // ISO timestamp
 }
 
-type DraftMap = Partial<Record<DraftType, DraftEntry>>;
+type DraftMap = Partial<Record<DraftType, DraftEntry>>
 
 interface DraftState {
-  drafts: DraftMap;
-  saveDraft: <T = unknown>(type: DraftType, data: T) => void;
-  loadDraft: <T = unknown>(type: DraftType) => DraftEntry<T> | null;
-  clearDraft: (type: DraftType) => void;
-  clearAllDrafts: () => void;
+  drafts: DraftMap
+  saveDraft: <T = unknown>(type: DraftType, data: T) => void
+  loadDraft: <T = unknown>(type: DraftType) => DraftEntry<T> | null
+  clearDraft: (type: DraftType) => void
+  clearAllDrafts: () => void
 }
 
 export const useDraftStore = create<DraftState>()(
@@ -46,20 +46,20 @@ export const useDraftStore = create<DraftState>()(
             ...state.drafts,
             [type]: { data, savedAt: new Date().toISOString() },
           },
-        }));
+        }))
       },
 
       loadDraft: <T>(type: DraftType) => {
-        const entry = get().drafts[type];
-        return (entry as DraftEntry<T> | undefined) ?? null;
+        const entry = get().drafts[type]
+        return (entry as DraftEntry<T> | undefined) ?? null
       },
 
       clearDraft: (type) => {
         set((state) => {
-          const next: DraftMap = { ...state.drafts };
-          delete next[type];
-          return { drafts: next };
-        });
+          const next: DraftMap = { ...state.drafts }
+          delete next[type]
+          return { drafts: next }
+        })
       },
 
       clearAllDrafts: () => set({ drafts: {} }),
@@ -67,6 +67,6 @@ export const useDraftStore = create<DraftState>()(
     {
       name: 'draft-storage',
       storage: createJSONStorage(() => localStorage),
-    },
-  ),
-);
+    }
+  )
+)

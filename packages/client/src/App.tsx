@@ -1,34 +1,35 @@
-import { lazy, Suspense, useEffect, type ComponentType } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '@/lib/queryClient';
+import { QueryClientProvider } from '@tanstack/react-query'
+import { lazy, Suspense, useEffect, type ComponentType } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+
+import AnnouncementBanner from '@/components/AnnouncementBanner'
+import AuthGuard from '@/components/AuthGuard'
+import CommandPalette from '@/components/CommandPalette'
+import CookieConsent from '@/components/CookieConsent'
+import ErrorBoundary from '@/components/ErrorBoundary'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts'
+import MobileBottomNav from '@/components/MobileBottomNav'
+import OfflineBanner from '@/components/OfflineBanner'
+import QuickActions from '@/components/QuickActions'
+import RouteAnnouncer from '@/components/RouteAnnouncer'
+import ScrollReset from '@/components/ScrollReset'
+import ScrollToTop from '@/components/ScrollToTop'
+import { ToastContainer } from '@/components/Toast'
+import TooltipProvider from '@/components/TooltipProvider'
+import { fetchMe } from '@/lib/auth'
+import { queryClient } from '@/lib/queryClient'
+import AuthCallbackPage from '@/pages/AuthCallbackPage'
+import HomePage from '@/pages/HomePage'
+import LoginPage from '@/pages/LoginPage'
+import { ConfirmProvider } from '@/shared/ui/ConfirmProvider'
+import { PromptProvider } from '@/shared/ui/PromptProvider'
 
 // React Query devtools — dev 전용 lazy chunk (prod 번들에서 완전 분리)
 const ReactQueryDevtools = import.meta.env.DEV
   ? lazy(() =>
-      import('@tanstack/react-query-devtools').then((m) => ({ default: m.ReactQueryDevtools })),
+      import('@tanstack/react-query-devtools').then((m) => ({ default: m.ReactQueryDevtools }))
     )
-  : null;
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { ToastContainer } from '@/components/Toast';
-import OfflineBanner from '@/components/OfflineBanner';
-import CookieConsent from '@/components/CookieConsent';
-import TooltipProvider from '@/components/TooltipProvider';
-import { ConfirmProvider } from '@/shared/ui/ConfirmProvider';
-import { PromptProvider } from '@/shared/ui/PromptProvider';
-import HomePage from '@/pages/HomePage';
-import LoginPage from '@/pages/LoginPage';
-import AuthCallbackPage from '@/pages/AuthCallbackPage';
-import KeyboardShortcuts from '@/components/KeyboardShortcuts';
-import CommandPalette from '@/components/CommandPalette';
-import ScrollToTop from '@/components/ScrollToTop';
-import ScrollReset from '@/components/ScrollReset';
-import RouteAnnouncer from '@/components/RouteAnnouncer';
-import QuickActions from '@/components/QuickActions';
-import MobileBottomNav from '@/components/MobileBottomNav';
-import AnnouncementBanner from '@/components/AnnouncementBanner';
-import AuthGuard from '@/components/AuthGuard';
-import { fetchMe } from '@/lib/auth';
+  : null
 
 // Lazy import with auto-retry on chunk load failure (배포 후 해시 변경 대응).
 // 가드 키는 reload 너머까지 유지하고 '성공 로드 시'에만 해제한다 — reload 직전에
@@ -36,80 +37,80 @@ import { fetchMe } from '@/lib/auth';
 // 두 번째 실패는 throw 해서 ErrorBoundary 로 노출한다.
 function lazyRetry<T extends ComponentType<never>>(factory: () => Promise<{ default: T }>): T {
   return lazy(async (): Promise<{ default: ComponentType }> => {
-    const KEY = 'resume-gongbang-chunk-retry';
+    const KEY = 'resume-gongbang-chunk-retry'
     try {
-      const mod = await factory();
-      sessionStorage.removeItem(KEY);
-      return mod as unknown as { default: ComponentType };
+      const mod = await factory()
+      sessionStorage.removeItem(KEY)
+      return mod as unknown as { default: ComponentType }
     } catch (err) {
       if (!sessionStorage.getItem(KEY)) {
-        sessionStorage.setItem(KEY, '1');
+        sessionStorage.setItem(KEY, '1')
         // 배포로 해시가 바뀐 경우 새 index.html 을 받도록 1회 새로고침
-        window.location.reload();
+        window.location.reload()
         // reload 가 완료될 때까지 Suspense fallback 유지 (settle 되지 않는 Promise)
-        return new Promise<never>(() => {});
+        return new Promise<never>(() => {})
       }
-      throw err;
+      throw err
     }
-  }) as unknown as T;
+  }) as unknown as T
 }
 
 // Lazy-loaded pages (non-critical path)
-const NewResumePage = lazyRetry(() => import('@/pages/NewResumePage'));
-const EditResumePage = lazyRetry(() => import('@/pages/EditResumePage'));
-const PreviewPage = lazyRetry(() => import('@/pages/PreviewPage'));
-const TemplatesPage = lazyRetry(() => import('@/pages/TemplatesPage'));
-const TagsPage = lazyRetry(() => import('@/pages/TagsPage'));
-const AutoGeneratePage = lazyRetry(() => import('@/pages/AutoGeneratePage'));
-const ExplorePage = lazyRetry(() => import('@/pages/ExplorePage'));
-const AboutPage = lazyRetry(() => import('@/pages/AboutPage'));
-const TutorialPage = lazyRetry(() => import('@/pages/TutorialPage'));
-const TermsPage = lazyRetry(() => import('@/pages/TermsPage'));
-const PrivacyPage = lazyRetry(() => import('@/pages/PrivacyPage'));
-const ProfileResumePage = lazyRetry(() => import('@/pages/ProfileResumePage'));
-const ApplicationsPage = lazyRetry(() => import('@/pages/ApplicationsPage'));
-const CoverLetterPage = lazyRetry(() => import('@/pages/CoverLetterPage'));
-const MyCoverLettersPage = lazyRetry(() => import('@/pages/MyCoverLettersPage'));
-const ComparePage = lazyRetry(() => import('@/pages/ComparePage'));
-const TranslatePage = lazyRetry(() => import('@/pages/TranslatePage'));
-const PricingPage = lazyRetry(() => import('@/pages/PricingPage'));
-const PaymentPage = lazyRetry(() => import('@/pages/PaymentPage'));
-const PaymentResultPage = lazyRetry(() => import('@/pages/PaymentResultPage'));
-const SettingsPage = lazyRetry(() => import('@/pages/SettingsPage'));
-const AdminPage = lazyRetry(() => import('@/pages/AdminPage'));
-const BookmarksPage = lazyRetry(() => import('@/pages/BookmarksPage'));
-const MessagesPage = lazyRetry(() => import('@/pages/MessagesPage'));
-const ScoutsPage = lazyRetry(() => import('@/pages/ScoutsPage'));
-const JobsPage = lazyRetry(() => import('@/pages/JobsPage'));
-const JobPostPage = lazyRetry(() => import('@/pages/JobPostPage'));
-const RecruiterDashboardPage = lazyRetry(() => import('@/pages/RecruiterDashboardPage'));
-const InterviewPrepPage = lazyRetry(() => import('@/pages/InterviewPrepPage'));
-const MockInterviewPage = lazyRetry(() => import('@/pages/MockInterviewPage'));
-const ResumeReviewPage = lazyRetry(() => import('@/pages/ResumeReviewPage'));
-const NotificationsPage = lazyRetry(() => import('@/pages/NotificationsPage'));
-const ShortLinkPage = lazyRetry(() => import('@/pages/ShortLinkPage'));
-const FollowListPage = lazyRetry(() => import('@/pages/FollowListPage'));
-const FeedbackPage = lazyRetry(() => import('@/pages/FeedbackPage'));
-const SitemapPage = lazyRetry(() => import('@/pages/SitemapPage'));
-const CompanyPage = lazyRetry(() => import('@/pages/CompanyPage'));
-const CommunityPage = lazyRetry(() => import('@/pages/CommunityPage'));
-const CommunityPostPage = lazyRetry(() => import('@/pages/CommunityPostPage'));
-const CommunityWritePage = lazyRetry(() => import('@/pages/CommunityWritePage'));
-const NoticePage = lazyRetry(() => import('@/pages/NoticePage'));
-const NotFoundPage = lazyRetry(() => import('@/pages/NotFoundPage'));
-const HelpPage = lazyRetry(() => import('@/pages/HelpPage'));
-const StatsPage = lazyRetry(() => import('@/pages/StatsPage'));
-const PortfolioPage = lazyRetry(() => import('@/pages/PortfolioPage'));
-const StudyGroupsPage = lazyRetry(() => import('@/pages/StudyGroupsPage'));
-const NewStudyGroupPage = lazyRetry(() => import('@/pages/NewStudyGroupPage'));
-const StudyGroupDetailPage = lazyRetry(() => import('@/pages/StudyGroupDetailPage'));
-const CoachesPage = lazyRetry(() => import('@/pages/CoachesPage'));
-const CoachDetailPage = lazyRetry(() => import('@/pages/CoachDetailPage'));
-const CoachingSessionsPage = lazyRetry(() => import('@/pages/CoachingSessionsPage'));
-const CoachProfileEditPage = lazyRetry(() => import('@/pages/CoachProfileEditPage'));
-const CoachDashboardPage = lazyRetry(() => import('@/pages/CoachDashboardPage'));
-const CoffeeChatsPage = lazyRetry(() => import('@/pages/CoffeeChatsPage'));
-const CoffeeChatRoomPage = lazyRetry(() => import('@/pages/CoffeeChatRoomPage'));
+const NewResumePage = lazyRetry(() => import('@/pages/NewResumePage'))
+const EditResumePage = lazyRetry(() => import('@/pages/EditResumePage'))
+const PreviewPage = lazyRetry(() => import('@/pages/PreviewPage'))
+const TemplatesPage = lazyRetry(() => import('@/pages/TemplatesPage'))
+const TagsPage = lazyRetry(() => import('@/pages/TagsPage'))
+const AutoGeneratePage = lazyRetry(() => import('@/pages/AutoGeneratePage'))
+const ExplorePage = lazyRetry(() => import('@/pages/ExplorePage'))
+const AboutPage = lazyRetry(() => import('@/pages/AboutPage'))
+const TutorialPage = lazyRetry(() => import('@/pages/TutorialPage'))
+const TermsPage = lazyRetry(() => import('@/pages/TermsPage'))
+const PrivacyPage = lazyRetry(() => import('@/pages/PrivacyPage'))
+const ProfileResumePage = lazyRetry(() => import('@/pages/ProfileResumePage'))
+const ApplicationsPage = lazyRetry(() => import('@/pages/ApplicationsPage'))
+const CoverLetterPage = lazyRetry(() => import('@/pages/CoverLetterPage'))
+const MyCoverLettersPage = lazyRetry(() => import('@/pages/MyCoverLettersPage'))
+const ComparePage = lazyRetry(() => import('@/pages/ComparePage'))
+const TranslatePage = lazyRetry(() => import('@/pages/TranslatePage'))
+const PricingPage = lazyRetry(() => import('@/pages/PricingPage'))
+const PaymentPage = lazyRetry(() => import('@/pages/PaymentPage'))
+const PaymentResultPage = lazyRetry(() => import('@/pages/PaymentResultPage'))
+const SettingsPage = lazyRetry(() => import('@/pages/SettingsPage'))
+const AdminPage = lazyRetry(() => import('@/pages/AdminPage'))
+const BookmarksPage = lazyRetry(() => import('@/pages/BookmarksPage'))
+const MessagesPage = lazyRetry(() => import('@/pages/MessagesPage'))
+const ScoutsPage = lazyRetry(() => import('@/pages/ScoutsPage'))
+const JobsPage = lazyRetry(() => import('@/pages/JobsPage'))
+const JobPostPage = lazyRetry(() => import('@/pages/JobPostPage'))
+const RecruiterDashboardPage = lazyRetry(() => import('@/pages/RecruiterDashboardPage'))
+const InterviewPrepPage = lazyRetry(() => import('@/pages/InterviewPrepPage'))
+const MockInterviewPage = lazyRetry(() => import('@/pages/MockInterviewPage'))
+const ResumeReviewPage = lazyRetry(() => import('@/pages/ResumeReviewPage'))
+const NotificationsPage = lazyRetry(() => import('@/pages/NotificationsPage'))
+const ShortLinkPage = lazyRetry(() => import('@/pages/ShortLinkPage'))
+const FollowListPage = lazyRetry(() => import('@/pages/FollowListPage'))
+const FeedbackPage = lazyRetry(() => import('@/pages/FeedbackPage'))
+const SitemapPage = lazyRetry(() => import('@/pages/SitemapPage'))
+const CompanyPage = lazyRetry(() => import('@/pages/CompanyPage'))
+const CommunityPage = lazyRetry(() => import('@/pages/CommunityPage'))
+const CommunityPostPage = lazyRetry(() => import('@/pages/CommunityPostPage'))
+const CommunityWritePage = lazyRetry(() => import('@/pages/CommunityWritePage'))
+const NoticePage = lazyRetry(() => import('@/pages/NoticePage'))
+const NotFoundPage = lazyRetry(() => import('@/pages/NotFoundPage'))
+const HelpPage = lazyRetry(() => import('@/pages/HelpPage'))
+const StatsPage = lazyRetry(() => import('@/pages/StatsPage'))
+const PortfolioPage = lazyRetry(() => import('@/pages/PortfolioPage'))
+const StudyGroupsPage = lazyRetry(() => import('@/pages/StudyGroupsPage'))
+const NewStudyGroupPage = lazyRetry(() => import('@/pages/NewStudyGroupPage'))
+const StudyGroupDetailPage = lazyRetry(() => import('@/pages/StudyGroupDetailPage'))
+const CoachesPage = lazyRetry(() => import('@/pages/CoachesPage'))
+const CoachDetailPage = lazyRetry(() => import('@/pages/CoachDetailPage'))
+const CoachingSessionsPage = lazyRetry(() => import('@/pages/CoachingSessionsPage'))
+const CoachProfileEditPage = lazyRetry(() => import('@/pages/CoachProfileEditPage'))
+const CoachDashboardPage = lazyRetry(() => import('@/pages/CoachDashboardPage'))
+const CoffeeChatsPage = lazyRetry(() => import('@/pages/CoffeeChatsPage'))
+const CoffeeChatRoomPage = lazyRetry(() => import('@/pages/CoffeeChatRoomPage'))
 
 function PageLoader() {
   // flex-1 (not min-h-screen) so the loader participates in the app shell's
@@ -124,14 +125,14 @@ function PageLoader() {
         <p className="text-xs text-slate-500 dark:text-slate-400 animate-pulse">로딩 중...</p>
       </div>
     </div>
-  );
+  )
 }
 
 export default function App() {
   // 앱 시작 시 서버에서 최신 프로필 동기화 (role/plan 등)
   useEffect(() => {
-    fetchMe().catch(() => {});
-  }, []);
+    fetchMe().catch(() => {})
+  }, [])
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -681,5 +682,5 @@ export default function App() {
         </TooltipProvider>
       </ErrorBoundary>
     </QueryClientProvider>
-  );
+  )
 }

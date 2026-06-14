@@ -1,8 +1,8 @@
 interface Props {
-  resumeCount: number;
-  commentCount?: number;
-  isAdmin?: boolean;
-  userType?: string;
+  resumeCount: number
+  commentCount?: number
+  isAdmin?: boolean
+  userType?: string
 }
 
 const badges = [
@@ -22,11 +22,11 @@ const badges = [
     condition: (p: Props) => p.userType === 'recruiter',
   },
   { id: 'company', label: '기업', icon: '🏢', condition: (p: Props) => p.userType === 'company' },
-];
+]
 
 export default function ProfileBadges(props: Props) {
-  const earned = badges.filter((b) => b.condition(props));
-  if (earned.length === 0) return null;
+  const earned = badges.filter((b) => b.condition(props))
+  if (earned.length === 0) return null
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -36,5 +36,5 @@ export default function ProfileBadges(props: Props) {
         </span>
       ))}
     </div>
-  );
+  )
 }

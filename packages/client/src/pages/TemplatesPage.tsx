@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import ThemePreviewCard from '@/components/ThemePreviewCard';
-import ThemePreviewModal from '@/components/ThemePreviewModal';
-import type { Template } from '@/types/resume';
-import { createTemplate, updateTemplate, deleteTemplate } from '@/lib/api';
-import { useTemplates } from '@/hooks/useResources';
-import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes';
-import { t } from '@/lib/i18n';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+
+import type { Template } from '@/types/resume'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import ThemePreviewCard from '@/components/ThemePreviewCard'
+import ThemePreviewModal from '@/components/ThemePreviewModal'
+import { useTemplates } from '@/hooks/useResources'
+import { createTemplate, updateTemplate, deleteTemplate } from '@/lib/api'
+import { t } from '@/lib/i18n'
+import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 const SECTION_OPTIONS = [
   { value: 'personalInfo', label: '인적사항' },
@@ -22,7 +24,7 @@ const SECTION_OPTIONS = [
   { value: 'languages', label: '어학' },
   { value: 'awards', label: '수상' },
   { value: 'activities', label: '활동' },
-];
+]
 
 const CATEGORY_OPTIONS = [
   { value: 'general', label: '일반' },
@@ -49,7 +51,7 @@ const CATEGORY_OPTIONS = [
   { value: 'freelance', label: '프리랜서' },
   { value: 'international', label: '해외/영문' },
   { value: 'custom', label: '커스텀' },
-];
+]
 
 const DATE_FORMAT_OPTIONS = [
   { value: 'dot', label: '2024.03' },
@@ -58,123 +60,123 @@ const DATE_FORMAT_OPTIONS = [
   { value: 'dot-day', label: '2024.03.15' },
   { value: 'dash-day', label: '2024-03-15' },
   { value: 'text-day', label: '2024년 3월 15일' },
-];
+]
 
 interface LayoutConfig {
-  sections: string[];
-  dateFormat: string;
-  style: string;
+  sections: string[]
+  dateFormat: string
+  style: string
 }
 
 function parseLayout(layout: string): LayoutConfig {
   try {
-    const parsed = JSON.parse(layout);
+    const parsed = JSON.parse(layout)
     return {
       sections: parsed.sections || SECTION_OPTIONS.map((s) => s.value),
       dateFormat: parsed.dateFormat || 'dot',
       style: parsed.style || 'formal',
-    };
+    }
   } catch {
     return {
       sections: SECTION_OPTIONS.map((s) => s.value),
       dateFormat: 'dot',
       style: 'formal',
-    };
+    }
   }
 }
 
 export default function TemplatesPage() {
-  const queryClient = useQueryClient();
-  const confirm = useConfirm();
-  const { data: templatesData, isLoading: loading } = useTemplates();
-  const templates: Template[] = templatesData ?? [];
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [showCreate, setShowCreate] = useState(false);
-  const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'popular'>('name');
-  const [previewTheme, setPreviewTheme] = useState<ResumeTheme | null>(null);
-  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
-  const [themeGalleryFilter, setThemeGalleryFilter] = useState<string>('all');
+  const queryClient = useQueryClient()
+  const confirm = useConfirm()
+  const { data: templatesData, isLoading: loading } = useTemplates()
+  const templates: Template[] = templatesData ?? []
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [showCreate, setShowCreate] = useState(false)
+  const [filterCategory, setFilterCategory] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState<'name' | 'popular'>('name')
+  const [previewTheme, setPreviewTheme] = useState<ResumeTheme | null>(null)
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({})
+  const [themeGalleryFilter, setThemeGalleryFilter] = useState<string>('all')
 
   const toggleCategoryCollapse = (cat: string) => {
-    setCollapsedCategories((prev) => ({ ...prev, [cat]: !prev[cat] }));
-  };
+    setCollapsedCategories((prev) => ({ ...prev, [cat]: !prev[cat] }))
+  }
 
   // Form state
-  const [formName, setFormName] = useState('');
-  const [formDesc, setFormDesc] = useState('');
-  const [formCategory, setFormCategory] = useState('general');
-  const [formPrompt, setFormPrompt] = useState('');
-  const [formSections, setFormSections] = useState<string[]>(SECTION_OPTIONS.map((s) => s.value));
-  const [formDateFormat, setFormDateFormat] = useState('dot');
-  const [saving, setSaving] = useState(false);
+  const [formName, setFormName] = useState('')
+  const [formDesc, setFormDesc] = useState('')
+  const [formCategory, setFormCategory] = useState('general')
+  const [formPrompt, setFormPrompt] = useState('')
+  const [formSections, setFormSections] = useState<string[]>(SECTION_OPTIONS.map((s) => s.value))
+  const [formDateFormat, setFormDateFormat] = useState('dot')
+  const [saving, setSaving] = useState(false)
 
   const load = () => {
-    queryClient.invalidateQueries({ queryKey: ['templates'] });
-  };
+    queryClient.invalidateQueries({ queryKey: ['templates'] })
+  }
 
   useEffect(() => {
-    document.title = '템플릿 관리 — 이력서공방';
+    document.title = '템플릿 관리 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const createMutation = useMutation({
     mutationFn: (data: Parameters<typeof createTemplate>[0]) => createTemplate(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['templates'] }),
-  });
+  })
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Template> }) => updateTemplate(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['templates'] }),
-  });
+  })
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTemplate(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['templates'] }),
-  });
+  })
 
   const resetForm = () => {
-    setFormName('');
-    setFormDesc('');
-    setFormCategory('general');
-    setFormPrompt('');
-    setFormSections(SECTION_OPTIONS.map((s) => s.value));
-    setFormDateFormat('dot');
-  };
+    setFormName('')
+    setFormDesc('')
+    setFormCategory('general')
+    setFormPrompt('')
+    setFormSections(SECTION_OPTIONS.map((s) => s.value))
+    setFormDateFormat('dot')
+  }
 
   const startEdit = (t: Template) => {
-    setEditingId(t.id);
-    setShowCreate(false);
-    setFormName(t.name);
-    setFormDesc(t.description);
-    setFormCategory(t.category);
-    setFormPrompt(t.prompt);
-    const layout = parseLayout(t.layout || '{}');
-    setFormSections(layout.sections);
-    setFormDateFormat(layout.dateFormat);
-  };
+    setEditingId(t.id)
+    setShowCreate(false)
+    setFormName(t.name)
+    setFormDesc(t.description)
+    setFormCategory(t.category)
+    setFormPrompt(t.prompt)
+    const layout = parseLayout(t.layout || '{}')
+    setFormSections(layout.sections)
+    setFormDateFormat(layout.dateFormat)
+  }
 
   const startCreate = () => {
-    setEditingId(null);
-    setShowCreate(true);
-    resetForm();
-  };
+    setEditingId(null)
+    setShowCreate(true)
+    resetForm()
+  }
 
   const cancelEdit = () => {
-    setEditingId(null);
-    setShowCreate(false);
-    resetForm();
-  };
+    setEditingId(null)
+    setShowCreate(false)
+    resetForm()
+  }
 
   const handleSave = async () => {
-    if (!formName.trim()) return;
-    setSaving(true);
+    if (!formName.trim()) return
+    setSaving(true)
     const layout = JSON.stringify({
       sections: formSections,
       dateFormat: formDateFormat,
       style: 'formal',
-    });
+    })
     try {
       if (editingId) {
         await updateMutation.mutateAsync({
@@ -186,7 +188,7 @@ export default function TemplatesPage() {
             prompt: formPrompt,
             layout,
           },
-        });
+        })
       } else {
         await createMutation.mutateAsync({
           name: formName,
@@ -194,13 +196,13 @@ export default function TemplatesPage() {
           category: formCategory,
           prompt: formPrompt,
           layout,
-        });
+        })
       }
-      cancelEdit();
+      cancelEdit()
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const handleDelete = async (id: string, name: string) => {
     if (
@@ -210,71 +212,71 @@ export default function TemplatesPage() {
         confirmText: '삭제',
       }))
     )
-      return;
-    await deleteMutation.mutateAsync(id);
-    if (editingId === id) cancelEdit();
-  };
+      return
+    await deleteMutation.mutateAsync(id)
+    if (editingId === id) cancelEdit()
+  }
 
   const toggleSection = (value: string) => {
     setFormSections((prev) =>
-      prev.includes(value) ? prev.filter((s) => s !== value) : [...prev, value],
-    );
-  };
+      prev.includes(value) ? prev.filter((s) => s !== value) : [...prev, value]
+    )
+  }
 
   const moveSection = (index: number, direction: -1 | 1) => {
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= formSections.length) return;
+    const newIndex = index + direction
+    if (newIndex < 0 || newIndex >= formSections.length) return
     setFormSections((prev) => {
-      const arr = [...prev];
-      [arr[index], arr[newIndex]] = [arr[newIndex], arr[index]];
-      return arr;
-    });
-  };
+      const arr = [...prev]
+      ;[arr[index], arr[newIndex]] = [arr[newIndex], arr[index]]
+      return arr
+    })
+  }
 
   // Drag and drop
-  const [dragIdx, setDragIdx] = useState<number | null>(null);
-  const [overIdx, setOverIdx] = useState<number | null>(null);
+  const [dragIdx, setDragIdx] = useState<number | null>(null)
+  const [overIdx, setOverIdx] = useState<number | null>(null)
 
   const onDragStart = (e: React.DragEvent, index: number) => {
-    setDragIdx(index);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', String(index));
-  };
+    setDragIdx(index)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(index))
+  }
 
   const onDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setOverIdx(index);
-  };
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setOverIdx(index)
+  }
 
   const onDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    const fromIndex = dragIdx;
+    e.preventDefault()
+    const fromIndex = dragIdx
     if (fromIndex === null || fromIndex === dropIndex) {
-      setDragIdx(null);
-      setOverIdx(null);
-      return;
+      setDragIdx(null)
+      setOverIdx(null)
+      return
     }
     setFormSections((prev) => {
-      const arr = [...prev];
-      const [dragged] = arr.splice(fromIndex, 1);
-      arr.splice(dropIndex, 0, dragged);
-      return arr;
-    });
-    setDragIdx(null);
-    setOverIdx(null);
-  };
+      const arr = [...prev]
+      const [dragged] = arr.splice(fromIndex, 1)
+      arr.splice(dropIndex, 0, dragged)
+      return arr
+    })
+    setDragIdx(null)
+    setOverIdx(null)
+  }
 
   const onDragEnd = () => {
-    setDragIdx(null);
-    setOverIdx(null);
-  };
+    setDragIdx(null)
+    setOverIdx(null)
+  }
 
-  const isEditing = editingId !== null || showCreate;
+  const isEditing = editingId !== null || showCreate
 
   const inputClass =
-    'w-full px-3 py-2 border border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
-  const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1';
+    'w-full px-3 py-2 border border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+  const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1'
 
   return (
     <>
@@ -360,10 +362,10 @@ export default function TemplatesPage() {
                 {/* 선택된 섹션 (순서대로, 드래그 가능) */}
                 <div className="space-y-1 mb-3">
                   {formSections.map((value, idx) => {
-                    const opt = SECTION_OPTIONS.find((o) => o.value === value);
-                    if (!opt) return null;
-                    const isDragged = dragIdx === idx;
-                    const isOver = overIdx === idx && dragIdx !== null && dragIdx !== idx;
+                    const opt = SECTION_OPTIONS.find((o) => o.value === value)
+                    if (!opt) return null
+                    const isDragged = dragIdx === idx
+                    const isOver = overIdx === idx && dragIdx !== null && dragIdx !== idx
                     return (
                       <div
                         key={value}
@@ -455,7 +457,7 @@ export default function TemplatesPage() {
                           </button>
                         </div>
                       </div>
-                    );
+                    )
                   })}
                 </div>
 
@@ -574,7 +576,7 @@ export default function TemplatesPage() {
                   전체
                 </button>
                 {Object.entries(THEME_CATEGORY_LABELS).map(([key, label]) => {
-                  const count = resumeThemes.filter((t) => t.preview?.category === key).length;
+                  const count = resumeThemes.filter((t) => t.preview?.category === key).length
                   return (
                     <button
                       key={key}
@@ -587,7 +589,7 @@ export default function TemplatesPage() {
                     >
                       {label} ({count})
                     </button>
-                  );
+                  )
                 })}
               </div>
 
@@ -620,9 +622,9 @@ export default function TemplatesPage() {
               /* Grouped by category with collapsible sections */
               <div className="space-y-6">
                 {Object.entries(THEME_CATEGORY_LABELS).map(([catKey, catLabel]) => {
-                  const themesInCat = resumeThemes.filter((t) => t.preview?.category === catKey);
-                  if (themesInCat.length === 0) return null;
-                  const isCollapsed = collapsedCategories[catKey];
+                  const themesInCat = resumeThemes.filter((t) => t.preview?.category === catKey)
+                  if (themesInCat.length === 0) return null
+                  const isCollapsed = collapsedCategories[catKey]
 
                   return (
                     <div key={catKey}>
@@ -664,7 +666,7 @@ export default function TemplatesPage() {
                         </div>
                       )}
                     </div>
-                  );
+                  )
                 })}
               </div>
             ) : (
@@ -673,16 +675,16 @@ export default function TemplatesPage() {
                 {resumeThemes
                   .filter(
                     (t) =>
-                      themeGalleryFilter === 'all' || t.preview?.category === themeGalleryFilter,
+                      themeGalleryFilter === 'all' || t.preview?.category === themeGalleryFilter
                   )
                   .sort((a, b) => {
                     if (sortBy === 'popular') {
                       // Premium themes first as a proxy for popularity, then non-premium
-                      if (a.premium && !b.premium) return -1;
-                      if (!a.premium && b.premium) return 1;
-                      return 0;
+                      if (a.premium && !b.premium) return -1
+                      if (!a.premium && b.premium) return 1
+                      return 0
                     }
-                    return a.name.localeCompare(b.name, 'ko');
+                    return a.name.localeCompare(b.name, 'ko')
                   })
                   .map((theme) => (
                     <ThemePreviewCard
@@ -703,7 +705,7 @@ export default function TemplatesPage() {
             theme={previewTheme}
             onClose={() => setPreviewTheme(null)}
             onSelect={() => {
-              setPreviewTheme(null);
+              setPreviewTheme(null)
               // In template management, just close after preview
             }}
           />
@@ -736,8 +738,8 @@ export default function TemplatesPage() {
                 전체 ({templates.length})
               </button>
               {[...new Set(templates.map((t) => t.category))].map((cat) => {
-                const label = CATEGORY_OPTIONS.find((c) => c.value === cat)?.label || cat;
-                const count = templates.filter((t) => t.category === cat).length;
+                const label = CATEGORY_OPTIONS.find((c) => c.value === cat)?.label || cat
+                const count = templates.filter((t) => t.category === cat).length
                 return (
                   <button
                     key={cat}
@@ -746,7 +748,7 @@ export default function TemplatesPage() {
                   >
                     {label} ({count})
                   </button>
-                );
+                )
               })}
             </div>
           </div>
@@ -772,16 +774,16 @@ export default function TemplatesPage() {
                 (t) =>
                   !searchQuery ||
                   t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  t.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+                  t.description?.toLowerCase().includes(searchQuery.toLowerCase())
               )
               .sort((a, b) => {
-                if (sortBy === 'popular') return (b.usageCount || 0) - (a.usageCount || 0);
-                return a.name.localeCompare(b.name, 'ko');
+                if (sortBy === 'popular') return (b.usageCount || 0) - (a.usageCount || 0)
+                return a.name.localeCompare(b.name, 'ko')
               })
               .map((t) => {
-                const layout = parseLayout(t.layout || '{}');
+                const layout = parseLayout(t.layout || '{}')
                 const categoryLabel =
-                  CATEGORY_OPTIONS.find((c) => c.value === t.category)?.label || t.category;
+                  CATEGORY_OPTIONS.find((c) => c.value === t.category)?.label || t.category
 
                 return (
                   <article
@@ -824,7 +826,7 @@ export default function TemplatesPage() {
                     {/* Section badges */}
                     <div className="flex flex-wrap gap-1 mb-3">
                       {layout.sections.slice(0, 5).map((s) => {
-                        const label = SECTION_OPTIONS.find((o) => o.value === s)?.label || s;
+                        const label = SECTION_OPTIONS.find((o) => o.value === s)?.label || s
                         return (
                           <span
                             key={s}
@@ -832,7 +834,7 @@ export default function TemplatesPage() {
                           >
                             {label}
                           </span>
-                        );
+                        )
                       })}
                       {layout.sections.length > 5 && (
                         <span className="px-1.5 py-1 text-xs bg-slate-50 dark:bg-slate-700 text-slate-400 rounded">
@@ -857,9 +859,9 @@ export default function TemplatesPage() {
                       </button>
                       <button
                         onClick={async () => {
-                          const newVis = t.visibility === 'public' ? 'private' : 'public';
-                          await updateTemplate(t.id, { visibility: newVis });
-                          load();
+                          const newVis = t.visibility === 'public' ? 'private' : 'public'
+                          await updateTemplate(t.id, { visibility: newVis })
+                          load()
                         }}
                         className="text-xs px-2 py-1 bg-slate-50 dark:bg-slate-700 text-slate-500 rounded-lg hover:bg-slate-100 transition-colors"
                       >
@@ -867,12 +869,12 @@ export default function TemplatesPage() {
                       </button>
                     </div>
                   </article>
-                );
+                )
               })}
           </div>
         )}
       </main>
       <Footer />
     </>
-  );
+  )
 }

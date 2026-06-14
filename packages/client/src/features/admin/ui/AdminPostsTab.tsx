@@ -1,71 +1,73 @@
 /**
  * 커뮤니티 게시물 관리 탭 (AdminPage 내에서 사용)
  */
-import { useState, useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_URL } from '@/lib/config';
-import { formatDate } from '@/lib/time';
-import { toast } from '@/components/Toast';
-import AlertDialog from '@/shared/ui/AlertDialog';
-import { AdminTable, type AdminTableColumn } from './AdminTable';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useMemo, useCallback } from 'react'
+
+import { AdminTable, type AdminTableColumn } from './AdminTable'
+
+import { toast } from '@/components/Toast'
+import { API_URL } from '@/lib/config'
+import { formatDate } from '@/lib/time'
+import AlertDialog from '@/shared/ui/AlertDialog'
 
 type Post = {
-  id: string;
-  title: string;
-  category: string;
-  viewCount: number;
-  likeCount: number;
-  isPinned: boolean;
-  isHidden: boolean;
-  createdAt: string;
-  user?: { id?: string; name?: string; email?: string; username?: string };
-  _count?: { comments?: number; likes?: number };
-};
-
-interface BulkActionResult {
-  affected?: number;
+  id: string
+  title: string
+  category: string
+  viewCount: number
+  likeCount: number
+  isPinned: boolean
+  isHidden: boolean
+  createdAt: string
+  user?: { id?: string; name?: string; email?: string; username?: string }
+  _count?: { comments?: number; likes?: number }
 }
 
-const CATEGORIES = ['free', 'tips', 'resume', 'cover-letter', 'question'];
+interface BulkActionResult {
+  affected?: number
+}
+
+const CATEGORIES = ['free', 'tips', 'resume', 'cover-letter', 'question']
 
 function authHeader(): Record<string, string> {
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
 export default function AdminPostsTab() {
-  const qc = useQueryClient();
-  const [q, setQ] = useState('');
-  const [category, setCategory] = useState<string>('all');
-  const [hidden, setHidden] = useState<string>('all'); // all | true | false
-  const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const qc = useQueryClient()
+  const [q, setQ] = useState('')
+  const [category, setCategory] = useState<string>('all')
+  const [hidden, setHidden] = useState<string>('all') // all | true | false
+  const [page, setPage] = useState(1)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
   const [confirm, setConfirm] = useState<
     { kind: 'delete'; id: string } | { kind: 'bulk-delete' } | null
-  >(null);
+  >(null)
 
-  const key = ['admin-posts', { q, category, hidden, page }];
+  const key = ['admin-posts', { q, category, hidden, page }]
   const query = useQuery<{
-    items: Post[];
-    total: number;
-    totalPages: number;
+    items: Post[]
+    total: number
+    totalPages: number
   } | null>({
     queryKey: key,
     queryFn: async () => {
-      const params = new URLSearchParams({ page: String(page), limit: '20' });
-      if (q) params.set('q', q);
-      if (category !== 'all') params.set('category', category);
-      if (hidden !== 'all') params.set('hidden', hidden);
+      const params = new URLSearchParams({ page: String(page), limit: '20' })
+      if (q) params.set('q', q)
+      if (category !== 'all') params.set('category', category)
+      if (hidden !== 'all') params.set('hidden', hidden)
       const res = await fetch(`${API_URL}/api/community/admin/posts?${params}`, {
         headers: authHeader(),
-      });
-      if (!res.ok) return null;
-      return res.json();
+      })
+      if (!res.ok) return null
+      return res.json()
     },
     staleTime: 10_000,
-  });
+  })
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['admin-posts'] });
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['admin-posts'] })
 
   const mHide = useMutation({
     mutationFn: async (id: string) => {
@@ -73,16 +75,16 @@ export default function AdminPostsTab() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({}),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('게시물 숨김 상태가 변경되었습니다', 'success');
-      invalidate();
+      toast('게시물 숨김 상태가 변경되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('변경에 실패했습니다', 'error'),
-  });
+  })
 
   const mPin = useMutation({
     mutationFn: async (id: string) => {
@@ -90,16 +92,16 @@ export default function AdminPostsTab() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({}),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('핀 상태가 변경되었습니다', 'success');
-      invalidate();
+      toast('핀 상태가 변경되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('변경에 실패했습니다', 'error'),
-  });
+  })
 
   const mCategory = useMutation({
     mutationFn: async (params: { id: string; category: string }) => {
@@ -107,67 +109,67 @@ export default function AdminPostsTab() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({ category: params.category }),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('카테고리가 변경되었습니다', 'success');
-      invalidate();
+      toast('카테고리가 변경되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('변경에 실패했습니다', 'error'),
-  });
+  })
 
   const mDelete = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/api/community/admin/posts/${id}`, {
         method: 'DELETE',
         headers: authHeader(),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('게시물이 삭제되었습니다', 'success');
-      invalidate();
+      toast('게시물이 삭제되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('삭제에 실패했습니다', 'error'),
-  });
+  })
 
   const mBulk = useMutation({
     mutationFn: async (action: 'hide' | 'delete' | 'show') => {
-      const ids = Array.from(selected);
+      const ids = Array.from(selected)
       const res = await fetch(`${API_URL}/api/community/admin/posts/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({ action, ids }),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: (res: BulkActionResult | null) => {
-      toast(`${res?.affected ?? 0}건 처리되었습니다`, 'success');
-      setSelected(new Set());
-      invalidate();
+      toast(`${res?.affected ?? 0}건 처리되었습니다`, 'success')
+      setSelected(new Set())
+      invalidate()
     },
     onError: () => toast('처리에 실패했습니다', 'error'),
-  });
+  })
 
-  const items = useMemo(() => query.data?.items ?? [], [query.data?.items]);
+  const items = useMemo(() => query.data?.items ?? [], [query.data?.items])
 
   const toggleSelectAll = useCallback(() => {
-    if (selected.size === items.length) setSelected(new Set());
-    else setSelected(new Set(items.map((p) => p.id)));
-  }, [items, selected.size]);
+    if (selected.size === items.length) setSelected(new Set())
+    else setSelected(new Set(items.map((p) => p.id)))
+  }, [items, selected.size])
   const toggleSelect = useCallback(
     (id: string) => {
-      const next = new Set(selected);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      setSelected(next);
+      const next = new Set(selected)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      setSelected(next)
     },
-    [selected],
-  );
+    [selected]
+  )
 
   const columns = useMemo<AdminTableColumn<Post>[]>(
     () => [
@@ -303,8 +305,8 @@ export default function AdminPostsTab() {
         ),
       },
     ],
-    [items, selected, mHide, mPin, mCategory, toggleSelect, toggleSelectAll],
-  );
+    [items, selected, mHide, mPin, mCategory, toggleSelect, toggleSelectAll]
+  )
 
   return (
     <div className="animate-fade-in-up">
@@ -324,8 +326,8 @@ export default function AdminPostsTab() {
               type="search"
               value={q}
               onChange={(e) => {
-                setQ(e.target.value);
-                setPage(1);
+                setQ(e.target.value)
+                setPage(1)
               }}
               placeholder="제목/내용 검색"
               className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
@@ -333,8 +335,8 @@ export default function AdminPostsTab() {
             <select
               value={category}
               onChange={(e) => {
-                setCategory(e.target.value);
-                setPage(1);
+                setCategory(e.target.value)
+                setPage(1)
               }}
               className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
             >
@@ -348,8 +350,8 @@ export default function AdminPostsTab() {
             <select
               value={hidden}
               onChange={(e) => {
-                setHidden(e.target.value);
-                setPage(1);
+                setHidden(e.target.value)
+                setPage(1)
               }}
               className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
             >
@@ -393,12 +395,12 @@ export default function AdminPostsTab() {
         confirmText="삭제"
         danger
         onConfirm={() => {
-          if (!confirm) return;
-          if (confirm.kind === 'delete') mDelete.mutate(confirm.id);
-          if (confirm.kind === 'bulk-delete') mBulk.mutate('delete');
-          setConfirm(null);
+          if (!confirm) return
+          if (confirm.kind === 'delete') mDelete.mutate(confirm.id)
+          if (confirm.kind === 'bulk-delete') mBulk.mutate('delete')
+          setConfirm(null)
         }}
       />
     </div>
-  );
+  )
 }

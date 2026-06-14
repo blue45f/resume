@@ -4,22 +4,22 @@ import {
   OnModuleDestroy,
   Logger,
   BeforeApplicationShutdown,
-} from '@nestjs/common';
-import { PrismaClient, type Prisma } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+} from '@nestjs/common'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient, type Prisma } from '@prisma/client'
 
 @Injectable()
 export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy, BeforeApplicationShutdown
 {
-  private readonly logger = new Logger(PrismaService.name);
-  private isConnected = false;
+  private readonly logger = new Logger(PrismaService.name)
+  private isConnected = false
 
   constructor() {
-    const url = process.env.DATABASE_URL;
+    const url = process.env.DATABASE_URL
     if (!url) {
-      throw new Error('DATABASE_URL environment variable is required');
+      throw new Error('DATABASE_URL environment variable is required')
     }
     super({
       log:
@@ -30,52 +30,52 @@ export class PrismaService
               { emit: 'event', level: 'error' },
             ],
       adapter: new PrismaPg({ connectionString: url }),
-    });
+    })
 
     if (process.env.NODE_ENV !== 'production') {
       this.$on('query' as never, (e: Prisma.QueryEvent) => {
         if (e.duration > 100) {
-          this.logger.warn(`Slow query (${e.duration}ms): ${e.query}`);
+          this.logger.warn(`Slow query (${e.duration}ms): ${e.query}`)
         }
-      });
+      })
     }
 
     // Log connection pool warnings in production
     this.$on('warn' as never, (e: Prisma.LogEvent) => {
-      this.logger.warn(`Prisma warning: ${e.message}`);
-    });
+      this.logger.warn(`Prisma warning: ${e.message}`)
+    })
 
     this.$on('error' as never, (e: Prisma.LogEvent) => {
-      this.logger.error(`Prisma error: ${e.message}`);
-    });
+      this.logger.error(`Prisma error: ${e.message}`)
+    })
   }
 
   async onModuleInit() {
     try {
-      await this.$connect();
-      this.isConnected = true;
-      this.logger.log('Database connection established');
+      await this.$connect()
+      this.isConnected = true
+      this.logger.log('Database connection established')
     } catch (error) {
-      this.logger.error('Failed to connect to database', error);
-      throw error;
+      this.logger.error('Failed to connect to database', error)
+      throw error
     }
   }
 
   async beforeApplicationShutdown(signal?: string) {
     this.logger.log(
-      `Application shutting down (signal: ${signal}), closing database connections...`,
-    );
+      `Application shutting down (signal: ${signal}), closing database connections...`
+    )
     if (this.isConnected) {
-      await this.$disconnect();
-      this.isConnected = false;
-      this.logger.log('Database connections closed');
+      await this.$disconnect()
+      this.isConnected = false
+      this.logger.log('Database connections closed')
     }
   }
 
   async onModuleDestroy() {
     if (this.isConnected) {
-      await this.$disconnect();
-      this.isConnected = false;
+      await this.$disconnect()
+      this.isConnected = false
     }
   }
 }

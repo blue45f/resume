@@ -1,16 +1,18 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import type { Resume } from '@/types/resume';
-import { ROUTES } from '@/lib/routes';
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+
+import type { Resume } from '@/types/resume'
+
 import {
   detectNonItCategory,
   NON_IT_GUIDES,
   NON_IT_CATEGORY_KEYS,
   type NonItCategory,
-} from '@/lib/nonItGuide';
+} from '@/lib/nonItGuide'
+import { ROUTES } from '@/lib/routes'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 /**
@@ -20,19 +22,19 @@ interface Props {
  * - NCS 안내 (공기업/공무원)
  */
 export default function NonItAssistantPanel({ resume }: Props) {
-  const detected = useMemo(() => detectNonItCategory(resume), [resume]);
-  const [category, setCategory] = useState<NonItCategory>(detected ?? 'other-it');
-  const [expanded, setExpanded] = useState(false);
-  const [tab, setTab] = useState<'achieve' | 'cert' | 'cover' | 'interview'>('achieve');
-  const guide = NON_IT_GUIDES[category];
+  const detected = useMemo(() => detectNonItCategory(resume), [resume])
+  const [category, setCategory] = useState<NonItCategory>(detected ?? 'other-it')
+  const [expanded, setExpanded] = useState(false)
+  const [tab, setTab] = useState<'achieve' | 'cert' | 'cover' | 'interview'>('achieve')
+  const guide = NON_IT_GUIDES[category]
 
   const copy = async (txt: string) => {
     try {
-      await navigator.clipboard.writeText(txt);
+      await navigator.clipboard.writeText(txt)
     } catch {
       /* noop */
     }
-  };
+  }
 
   return (
     <div className="imp-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -270,5 +272,5 @@ export default function NonItAssistantPanel({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

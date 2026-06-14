@@ -1,24 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { fetchFollowers, fetchFollowing, fetchScouts } from '@/lib/api';
-import { API_URL } from '@/lib/config';
-import { ROUTES, withQuery } from '@/lib/routes';
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+import { fetchFollowers, fetchFollowing, fetchScouts } from '@/lib/api'
+import { API_URL } from '@/lib/config'
+import { ROUTES, withQuery } from '@/lib/routes'
 
 interface NetworkData {
-  followers: number;
-  following: number;
-  weeklyViews: number;
-  scoutCount: number;
+  followers: number
+  following: number
+  weeklyViews: number
+  scoutCount: number
 }
 
 export default function NetworkStats() {
-  const [data, setData] = useState<NetworkData | null>(null);
+  const [data, setData] = useState<NetworkData | null>(null)
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    const token = localStorage.getItem('token')
+    if (!token) return
 
-    const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
+    const headers: Record<string, string> = { Authorization: `Bearer ${token}` }
 
     Promise.all([
       fetchFollowers().catch(() => []),
@@ -30,17 +31,17 @@ export default function NetworkStats() {
     ]).then(([followers, following, scouts, analytics]) => {
       const weeklyViews = (analytics?.dailyViews || [])
         .slice(-7)
-        .reduce((sum: number, v: number) => sum + v, 0);
+        .reduce((sum: number, v: number) => sum + v, 0)
       setData({
         followers: Array.isArray(followers) ? followers.length : 0,
         following: Array.isArray(following) ? following.length : 0,
         weeklyViews,
         scoutCount: Array.isArray(scouts) ? scouts.length : 0,
-      });
-    });
-  }, []);
+      })
+    })
+  }, [])
 
-  if (!data) return null;
+  if (!data) return null
 
   const items = [
     {
@@ -123,7 +124,7 @@ export default function NetworkStats() {
       ),
       link: '/messages',
     },
-  ];
+  ]
 
   return (
     <div className="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
@@ -174,5 +175,5 @@ export default function NetworkStats() {
         ))}
       </div>
     </div>
-  );
+  )
 }

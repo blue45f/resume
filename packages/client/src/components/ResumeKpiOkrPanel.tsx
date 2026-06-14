@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { analyzeKpiOkrAchievements } from '@/lib/resumeKpiOkrAnalyzer';
+import { useMemo } from 'react'
+
+import { analyzeKpiOkrAchievements } from '@/lib/resumeKpiOkrAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const GRADE_LABEL: Record<string, string> = {
@@ -10,15 +11,15 @@ const GRADE_LABEL: Record<string, string> = {
   adequate: '수치 있음',
   weak: '근거 미흡',
   none: '해당 없음',
-};
+}
 
 export default function ResumeKpiOkrPanel({ text }: Props) {
-  const report = useMemo(() => analyzeKpiOkrAchievements(text), [text]);
+  const report = useMemo(() => analyzeKpiOkrAchievements(text), [text])
 
-  if (text.trim().length < 80) return null;
-  if (report.grade === 'none' || report.grade === 'strong') return null;
+  if (text.trim().length < 80) return null
+  if (report.grade === 'none' || report.grade === 'strong') return null
 
-  const isWarning = report.grade === 'weak';
+  const isWarning = report.grade === 'weak'
 
   return (
     <aside
@@ -57,5 +58,5 @@ export default function ResumeKpiOkrPanel({ text }: Props) {
         )}
       </div>
     </aside>
-  );
+  )
 }

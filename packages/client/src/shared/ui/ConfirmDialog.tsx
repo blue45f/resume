@@ -1,14 +1,14 @@
-import Dialog from '@/shared/ui/Dialog';
+import Dialog from '@/shared/ui/Dialog'
 
 interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title: string;
-  description?: string;
-  confirmText?: string;
-  cancelText?: string;
-  danger?: boolean;
-  onConfirm: () => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title: string
+  description?: string
+  confirmText?: string
+  cancelText?: string
+  danger?: boolean
+  onConfirm: () => void
 }
 
 export default function ConfirmDialog({
@@ -45,8 +45,8 @@ export default function ConfirmDialog({
         <button
           type="button"
           onClick={() => {
-            onConfirm();
-            onOpenChange(false);
+            onConfirm()
+            onOpenChange(false)
           }}
           className={`imp-btn px-4 h-10 text-sm font-semibold rounded-[var(--radius-md)]
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
@@ -60,5 +60,5 @@ export default function ConfirmDialog({
         </button>
       </div>
     </Dialog>
-  );
+  )
 }

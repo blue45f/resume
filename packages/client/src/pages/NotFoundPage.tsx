@@ -1,19 +1,20 @@
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { useRecentViews } from '@/features/recent-views';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
+import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { useRecentViews } from '@/features/recent-views'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
 
 export default function NotFoundPage() {
-  const { views: recentViews } = useRecentViews();
+  const { views: recentViews } = useRecentViews()
   useEffect(() => {
-    document.title = '페이지를 찾을 수 없습니다 — 이력서공방';
+    document.title = '페이지를 찾을 수 없습니다 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   return (
     <>
@@ -86,5 +87,5 @@ export default function NotFoundPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

@@ -10,64 +10,64 @@
  * 상세 페이지(`Resume` 전체)에서는 별도 분석기를 사용한다 (`koreanChecker` 계열).
  */
 
-import type { ResumeSummary } from '@/types/resume';
+import type { ResumeSummary } from '@/types/resume'
 
-export type CompletionCategory = 'identity' | 'depth' | 'web' | 'discoverability';
+export type CompletionCategory = 'identity' | 'depth' | 'web' | 'discoverability'
 
 export interface CompletionItem {
   /** Stable key for tooltip i18n / sorting */
-  key: string;
+  key: string
   /** Korean label for UX surfaces */
-  label: string;
+  label: string
   /** Earned score for this item (may be partial under tiered checks) */
-  score: number;
+  score: number
   /** Max possible score for this item */
-  max: number;
+  max: number
   /** Higher-level grouping (used for color/section) */
-  category: CompletionCategory;
+  category: CompletionCategory
   /** True when item is empty or below the recommended tier */
-  missing: boolean;
+  missing: boolean
   /** Optional human hint shown when missing */
-  hint?: string;
+  hint?: string
 }
 
 export interface CompletionResult {
   /** Rounded percentage 0..100 */
-  pct: number;
+  pct: number
   /** Numeric score and ceiling (useful for animations) */
-  score: number;
-  max: number;
+  score: number
+  max: number
   /** Grade label suitable for color/badging */
-  grade: 'excellent' | 'good' | 'fair' | 'low';
+  grade: 'excellent' | 'good' | 'fair' | 'low'
   /** All 11 items in display order */
-  items: CompletionItem[];
+  items: CompletionItem[]
   /** Items with `missing===true`, ordered by max desc (most impactful first) */
-  missingItems: CompletionItem[];
+  missingItems: CompletionItem[]
 }
 
 /** Score for summary length, in tiers (0–15) */
 function summaryTier(len: number): number {
-  if (len >= 200) return 15;
-  if (len >= 100) return 11;
-  if (len >= 30) return 6;
-  return 0;
+  if (len >= 200) return 15
+  if (len >= 100) return 11
+  if (len >= 30) return 6
+  return 0
 }
 
 /** Score for skills count, in tiers (0–15) */
 function skillsTier(n: number): number {
-  if (n >= 11) return 15;
-  if (n >= 6) return 13;
-  if (n >= 3) return 9;
-  if (n >= 1) return 4;
-  return 0;
+  if (n >= 11) return 15
+  if (n >= 6) return 13
+  if (n >= 3) return 9
+  if (n >= 1) return 4
+  return 0
 }
 
 export function computeResumeCompletion(resume: ResumeSummary): CompletionResult {
-  const pi = resume.personalInfo;
-  const summary = (pi.summary ?? '').trim();
-  const summaryLen = summary.length;
-  const skillsCount = resume.skills?.length ?? 0;
-  const tagsCount = resume.tags?.length ?? 0;
+  const pi = resume.personalInfo
+  const summary = (pi.summary ?? '').trim()
+  const summaryLen = summary.length
+  const skillsCount = resume.skills?.length ?? 0
+  const tagsCount = resume.tags?.length ?? 0
 
   const items: CompletionItem[] = [
     // ── identity (35점) ────────────────────────────────────────
@@ -194,16 +194,16 @@ export function computeResumeCompletion(resume: ResumeSummary): CompletionResult
       missing: !resume.isOpenToWork,
       hint: '구직 의사를 알리면 매칭 빈도가 늘어납니다',
     },
-  ];
+  ]
 
-  const score = items.reduce((s, i) => s + i.score, 0);
-  const max = items.reduce((s, i) => s + i.max, 0);
-  const pct = Math.min(100, Math.round((score / max) * 100));
+  const score = items.reduce((s, i) => s + i.score, 0)
+  const max = items.reduce((s, i) => s + i.max, 0)
+  const pct = Math.min(100, Math.round((score / max) * 100))
 
   const grade: CompletionResult['grade'] =
-    pct >= 85 ? 'excellent' : pct >= 65 ? 'good' : pct >= 40 ? 'fair' : 'low';
+    pct >= 85 ? 'excellent' : pct >= 65 ? 'good' : pct >= 40 ? 'fair' : 'low'
 
-  const missingItems = items.filter((i) => i.missing).sort((a, b) => b.max - a.max);
+  const missingItems = items.filter((i) => i.missing).sort((a, b) => b.max - a.max)
 
-  return { pct, score, max, grade, items, missingItems };
+  return { pct, score, max, grade, items, missingItems }
 }

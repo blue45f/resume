@@ -1,11 +1,13 @@
-import { useMemo } from 'react';
-import type { CSSProperties } from 'react';
-import { buildCoverLetterScore } from '@/lib/coverLetterScore';
-import type { CoverLetterScoreGrade } from '@/lib/coverLetterScore';
-import { useCountUp } from '@/hooks/useCountUp';
+import { useMemo } from 'react'
+
+import type { CoverLetterScoreGrade } from '@/lib/coverLetterScore'
+import type { CSSProperties } from 'react'
+
+import { useCountUp } from '@/hooks/useCountUp'
+import { buildCoverLetterScore } from '@/lib/coverLetterScore'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const GRADE_LABEL: Record<CoverLetterScoreGrade, string> = {
@@ -13,24 +15,24 @@ const GRADE_LABEL: Record<CoverLetterScoreGrade, string> = {
   good: '양호',
   fair: '보통',
   weak: '보강 필요',
-};
+}
 
-const RADIUS = 48;
-const CIRC = 2 * Math.PI * RADIUS;
+const RADIUS = 48
+const CIRC = 2 * Math.PI * RADIUS
 
 export default function CoverLetterScoreRing({ text }: Props) {
-  const report = useMemo(() => buildCoverLetterScore(text), [text]);
-  const hasEnoughText = text.trim().length >= 80;
+  const report = useMemo(() => buildCoverLetterScore(text), [text])
+  const hasEnoughText = text.trim().length >= 80
   // hooks 는 조건부 return 전에 호출 (Rules of Hooks). 링 채움(0.85s)과 같은 호흡으로 count-up.
-  const animatedOverall = useCountUp(hasEnoughText ? report.overall : 0, { durationMs: 900 });
+  const animatedOverall = useCountUp(hasEnoughText ? report.overall : 0, { durationMs: 900 })
 
-  if (!hasEnoughText) return null;
+  if (!hasEnoughText) return null
 
-  const offset = CIRC * (1 - report.overall / 100);
+  const offset = CIRC * (1 - report.overall / 100)
   const ringStyle = {
     '--ring-c': `${CIRC}`,
     '--ring-offset': `${offset}`,
-  } as CSSProperties;
+  } as CSSProperties
 
   return (
     <section className={`cl-ring cl-ring--${report.grade}`} aria-label="자기소개서 종합 점수">
@@ -77,5 +79,5 @@ export default function CoverLetterScoreRing({ text }: Props) {
         </ul>
       </div>
     </section>
-  );
+  )
 }

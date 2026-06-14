@@ -1,22 +1,23 @@
-import { useMemo } from 'react';
-import { detectCliches, detectJargon, detectExaggeration } from '@/lib/languageRisks';
+import { useMemo } from 'react'
+
+import { detectCliches, detectJargon, detectExaggeration } from '@/lib/languageRisks'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeLanguageRisksPanel({ text }: Props) {
-  const cliches = useMemo(() => detectCliches(text), [text]);
-  const jargon = useMemo(() => detectJargon(text), [text]);
-  const exaggeration = useMemo(() => detectExaggeration(text), [text]);
+  const cliches = useMemo(() => detectCliches(text), [text])
+  const jargon = useMemo(() => detectJargon(text), [text])
+  const exaggeration = useMemo(() => detectExaggeration(text), [text])
 
   const hasIssue =
-    cliches.level !== 'none' || jargon.level !== 'none' || exaggeration.level !== 'none';
+    cliches.level !== 'none' || jargon.level !== 'none' || exaggeration.level !== 'none'
 
-  if (!hasIssue) return null;
+  if (!hasIssue) return null
 
-  const totalIssues = cliches.count + jargon.totalCount + exaggeration.count;
-  const severity = exaggeration.level === 'many' || cliches.level === 'many' ? 'warning' : 'mild';
+  const totalIssues = cliches.count + jargon.totalCount + exaggeration.count
+  const severity = exaggeration.level === 'many' || cliches.level === 'many' ? 'warning' : 'mild'
 
   return (
     <aside className={`lang-risk-card lang-risk-card--${severity}`} aria-label="언어 위험 분석">
@@ -75,5 +76,5 @@ export default function ResumeLanguageRisksPanel({ text }: Props) {
         </div>
       )}
     </aside>
-  );
+  )
 }

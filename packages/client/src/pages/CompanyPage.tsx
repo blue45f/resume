@@ -1,48 +1,49 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import ErrorRetry from '@/components/ErrorRetry';
-import { toast } from '@/components/Toast';
-import { timeAgo } from '@/lib/time';
-import { getUser } from '@/lib/auth';
-import { useJobs } from '@/hooks/useResources';
-import { ROUTES, withQuery } from '@/lib/routes';
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useParams, Link } from 'react-router-dom'
+
+import ErrorRetry from '@/components/ErrorRetry'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { toast } from '@/components/Toast'
+import { useJobs } from '@/hooks/useResources'
+import { getUser } from '@/lib/auth'
+import { ROUTES, withQuery } from '@/lib/routes'
+import { timeAgo } from '@/lib/time'
 
 // ── Company Review System (localStorage-based) ─────────────────────────────
 
 interface CompanyReview {
-  id: string;
-  companyName: string;
-  position: string;
-  rating: number; // 1~5 overall
-  culture: number; // 1~5
-  worklife: number; // 1~5
-  growth: number; // 1~5
-  salary: number; // 1~5
-  pros: string;
-  cons: string;
-  recommend: boolean;
-  anonymous: boolean;
-  createdAt: string;
-  reviewerName?: string;
+  id: string
+  companyName: string
+  position: string
+  rating: number // 1~5 overall
+  culture: number // 1~5
+  worklife: number // 1~5
+  growth: number // 1~5
+  salary: number // 1~5
+  pros: string
+  cons: string
+  recommend: boolean
+  anonymous: boolean
+  createdAt: string
+  reviewerName?: string
 }
 
-const REVIEWS_KEY = 'company-reviews';
+const REVIEWS_KEY = 'company-reviews'
 
 function getReviews(companyName: string): CompanyReview[] {
   try {
-    const all = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]') as CompanyReview[];
-    return all.filter((r) => r.companyName === companyName);
+    const all = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]') as CompanyReview[]
+    return all.filter((r) => r.companyName === companyName)
   } catch {
-    return [];
+    return []
   }
 }
 
 function saveReview(review: CompanyReview) {
   try {
-    const all = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]') as CompanyReview[];
-    localStorage.setItem(REVIEWS_KEY, JSON.stringify([...all, review]));
+    const all = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]') as CompanyReview[]
+    localStorage.setItem(REVIEWS_KEY, JSON.stringify([...all, review]))
   } catch {}
 }
 
@@ -50,15 +51,17 @@ function StarRating({
   value,
   onChange,
   size = 'md',
+  labelledBy,
 }: {
-  value: number;
-  onChange?: (v: number) => void;
-  size?: 'sm' | 'md';
+  value: number
+  onChange?: (v: number) => void
+  size?: 'sm' | 'md'
+  labelledBy?: string
 }) {
-  const [hovered, setHovered] = useState(0);
-  const sz = size === 'sm' ? 'w-4 h-4' : 'w-6 h-6';
+  const [hovered, setHovered] = useState(0)
+  const sz = size === 'sm' ? 'w-4 h-4' : 'w-6 h-6'
   return (
-    <div className="flex gap-0.5">
+    <div className="flex gap-0.5" role="group" aria-labelledby={labelledBy}>
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}
@@ -81,7 +84,7 @@ function StarRating({
         </button>
       ))}
     </div>
-  );
+  )
 }
 
 const RATING_LABELS: Record<string, string> = {
@@ -89,7 +92,7 @@ const RATING_LABELS: Record<string, string> = {
   worklife: '워라밸',
   growth: '성장 기회',
   salary: '급여/복지',
-};
+}
 
 function ReviewCard({ review }: { review: CompanyReview }) {
   return (
@@ -137,7 +140,7 @@ function ReviewCard({ review }: { review: CompanyReview }) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 const DEFAULT_REVIEW_FORM = {
@@ -151,21 +154,21 @@ const DEFAULT_REVIEW_FORM = {
   cons: '',
   recommend: true,
   anonymous: true,
-};
+}
 
 function CompanyReviewSection({ companyName }: { companyName: string }) {
-  const [reviewVersion, setReviewVersion] = useState(0);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(DEFAULT_REVIEW_FORM);
-  const [submitting, setSubmitting] = useState(false);
-  const user = getUser();
+  const [reviewVersion, setReviewVersion] = useState(0)
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState(DEFAULT_REVIEW_FORM)
+  const [submitting, setSubmitting] = useState(false)
+  const user = getUser()
   const reviews = useMemo(
     () => (reviewVersion >= 0 ? getReviews(companyName) : []),
-    [companyName, reviewVersion],
-  );
+    [companyName, reviewVersion]
+  )
 
   const avgRatings = useMemo(() => {
-    if (!reviews.length) return null;
+    if (!reviews.length) return null
     const sum = reviews.reduce(
       (acc, r) => ({
         rating: acc.rating + r.rating,
@@ -174,28 +177,28 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
         growth: acc.growth + r.growth,
         salary: acc.salary + r.salary,
       }),
-      { rating: 0, culture: 0, worklife: 0, growth: 0, salary: 0 },
-    );
-    const n = reviews.length;
+      { rating: 0, culture: 0, worklife: 0, growth: 0, salary: 0 }
+    )
+    const n = reviews.length
     return {
       rating: +(sum.rating / n).toFixed(1),
       culture: +(sum.culture / n).toFixed(1),
       worklife: +(sum.worklife / n).toFixed(1),
       growth: +(sum.growth / n).toFixed(1),
       salary: +(sum.salary / n).toFixed(1),
-    };
-  }, [reviews]);
+    }
+  }, [reviews])
 
   const handleSubmit = useCallback(() => {
     if (form.rating === 0) {
-      toast('전체 평점을 선택해주세요', 'error');
-      return;
+      toast('전체 평점을 선택해주세요', 'error')
+      return
     }
     if (!form.pros.trim() && !form.cons.trim()) {
-      toast('장점 또는 단점을 작성해주세요', 'error');
-      return;
+      toast('장점 또는 단점을 작성해주세요', 'error')
+      return
     }
-    setSubmitting(true);
+    setSubmitting(true)
     const review: CompanyReview = {
       id: crypto.randomUUID(),
       companyName,
@@ -211,18 +214,18 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
       anonymous: form.anonymous,
       createdAt: new Date().toISOString(),
       reviewerName: form.anonymous ? undefined : user?.name || '익명',
-    };
-    saveReview(review);
-    setReviewVersion((version) => version + 1);
-    setForm(DEFAULT_REVIEW_FORM);
-    setShowForm(false);
-    setSubmitting(false);
-  }, [form, companyName, user]);
+    }
+    saveReview(review)
+    setReviewVersion((version) => version + 1)
+    setForm(DEFAULT_REVIEW_FORM)
+    setShowForm(false)
+    setSubmitting(false)
+  }, [form, companyName, user])
 
   const recommendRate =
     reviews.length > 0
       ? Math.round((reviews.filter((r) => r.recommend).length / reviews.length) * 100)
-      : null;
+      : null
 
   return (
     <div className="mt-6">
@@ -286,19 +289,27 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
 
           <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+              <span
+                id="company-rating-label"
+                className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5"
+              >
                 전체 평점 *
-              </label>
+              </span>
               <StarRating
                 value={form.rating}
                 onChange={(v) => setForm((prev) => ({ ...prev, rating: v }))}
+                labelledBy="company-rating-label"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+              <label
+                htmlFor="companypage-field-1"
+                className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5"
+              >
                 직책 (선택)
               </label>
               <input
+                id="companypage-field-1"
                 type="text"
                 value={form.position}
                 onChange={(e) => setForm((prev) => ({ ...prev, position: e.target.value }))}
@@ -323,10 +334,14 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+            <label
+              htmlFor="companypage-field-2"
+              className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5"
+            >
               장점
             </label>
             <textarea
+              id="companypage-field-2"
               value={form.pros}
               onChange={(e) => setForm((prev) => ({ ...prev, pros: e.target.value }))}
               placeholder="이 회사의 좋은 점을 알려주세요"
@@ -335,10 +350,14 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+            <label
+              htmlFor="companypage-field-3"
+              className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5"
+            >
               단점
             </label>
             <textarea
+              id="companypage-field-3"
               value={form.cons}
               onChange={(e) => setForm((prev) => ({ ...prev, cons: e.target.value }))}
               placeholder="아쉬운 점을 알려주세요"
@@ -396,21 +415,21 @@ function CompanyReviewSection({ companyName }: { companyName: string }) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 interface JobPost {
-  id: string;
-  company: string;
-  position: string;
-  location: string;
-  salary: string;
-  type: string;
-  skills: string;
-  description: string;
-  status: string;
-  createdAt: string;
-  user: { id: string; name: string; companyName?: string };
+  id: string
+  company: string
+  position: string
+  location: string
+  salary: string
+  type: string
+  skills: string
+  description: string
+  status: string
+  createdAt: string
+  user: { id: string; name: string; companyName?: string }
 }
 
 const JOB_TYPES: Record<string, string> = {
@@ -418,90 +437,90 @@ const JOB_TYPES: Record<string, string> = {
   contract: '계약직',
   parttime: '파트타임',
   intern: '인턴',
-};
+}
 
 function parseSalaryToNumber(salary: string): number | null {
-  if (!salary) return null;
-  const cleaned = salary.replace(/[^0-9]/g, '');
-  return cleaned ? parseInt(cleaned, 10) : null;
+  if (!salary) return null
+  const cleaned = salary.replace(/[^0-9]/g, '')
+  return cleaned ? parseInt(cleaned, 10) : null
 }
 
 function detectIndustry(jobs: JobPost[]): string {
   const text = jobs
     .map((j) => `${j.skills} ${j.description} ${j.position}`)
     .join(' ')
-    .toLowerCase();
+    .toLowerCase()
   if (/react|node|python|java|개발|프론트|백엔드|devops|cloud|aws|데이터|ai|ml/.test(text))
-    return 'IT/소프트웨어';
-  if (/금융|은행|보험|투자|핀테크/.test(text)) return '금융';
-  if (/제조|생산|공장|설비/.test(text)) return '제조';
-  if (/마케팅|광고|홍보|pr/.test(text)) return '마케팅';
-  if (/디자인|ui|ux/.test(text)) return '디자인';
-  return '기타';
+    return 'IT/소프트웨어'
+  if (/금융|은행|보험|투자|핀테크/.test(text)) return '금융'
+  if (/제조|생산|공장|설비/.test(text)) return '제조'
+  if (/마케팅|광고|홍보|pr/.test(text)) return '마케팅'
+  if (/디자인|ui|ux/.test(text)) return '디자인'
+  return '기타'
 }
 
 export default function CompanyPage() {
-  const { name } = useParams<{ name: string }>();
-  const companyName = decodeURIComponent(name || '');
-  const { data, isLoading: loading, error: queryError, refetch } = useJobs();
-  const allJobs: JobPost[] = useMemo(() => (data as JobPost[] | undefined) ?? [], [data]);
-  const error = !!queryError;
+  const { name } = useParams<{ name: string }>()
+  const companyName = decodeURIComponent(name || '')
+  const { data, isLoading: loading, error: queryError, refetch } = useJobs()
+  const allJobs: JobPost[] = useMemo(() => (data as JobPost[] | undefined) ?? [], [data])
+  const error = !!queryError
   const loadJobs = () => {
-    refetch();
-  };
+    refetch()
+  }
 
   useEffect(() => {
-    document.title = `${companyName} — 회사 정보 — 이력서공방`;
+    document.title = `${companyName} — 회사 정보 — 이력서공방`
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, [companyName]);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [companyName])
 
   const companyJobs = useMemo(
     () => allJobs.filter((j) => j.company === companyName),
-    [allJobs, companyName],
-  );
-  const activeJobs = useMemo(() => companyJobs.filter((j) => j.status === 'active'), [companyJobs]);
+    [allJobs, companyName]
+  )
+  const activeJobs = useMemo(() => companyJobs.filter((j) => j.status === 'active'), [companyJobs])
 
   const locations = useMemo(() => {
-    const locs = new Set<string>();
+    const locs = new Set<string>()
     companyJobs.forEach((j) => {
-      if (j.location) locs.add(j.location);
-    });
-    return Array.from(locs);
-  }, [companyJobs]);
+      if (j.location) locs.add(j.location)
+    })
+    return Array.from(locs)
+  }, [companyJobs])
 
   const allSkills = useMemo(() => {
-    const skillMap = new Map<string, number>();
+    const skillMap = new Map<string, number>()
     companyJobs.forEach((j) => {
       if (j.skills) {
         j.skills.split(',').forEach((s) => {
-          const trimmed = s.trim();
-          if (trimmed) skillMap.set(trimmed, (skillMap.get(trimmed) || 0) + 1);
-        });
+          const trimmed = s.trim()
+          if (trimmed) skillMap.set(trimmed, (skillMap.get(trimmed) || 0) + 1)
+        })
       }
-    });
-    return Array.from(skillMap.entries()).sort((a, b) => b[1] - a[1]);
-  }, [companyJobs]);
+    })
+    return Array.from(skillMap.entries()).sort((a, b) => b[1] - a[1])
+  }, [companyJobs])
 
   const salaryStats = useMemo(() => {
     const salaries = companyJobs
       .map((j) => parseSalaryToNumber(j.salary))
-      .filter((n): n is number => n !== null);
-    if (salaries.length === 0) return null;
-    const min = Math.min(...salaries);
-    const max = Math.max(...salaries);
-    const avg = Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length);
-    return { min, max, avg };
-  }, [companyJobs]);
+      .filter((n): n is number => n !== null)
+    if (salaries.length === 0) return null
+    const min = Math.min(...salaries)
+    const max = Math.max(...salaries)
+    const avg = Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length)
+    return { min, max, avg }
+  }, [companyJobs])
 
   const jobTypes = useMemo(() => {
-    const types = new Map<string, number>();
-    companyJobs.forEach((j) => types.set(j.type, (types.get(j.type) || 0) + 1));
-    return Array.from(types.entries());
-  }, [companyJobs]);
+    const types = new Map<string, number>()
+    companyJobs.forEach((j) => types.set(j.type, (types.get(j.type) || 0) + 1))
+    return Array.from(types.entries())
+  }, [companyJobs])
 
-  const industry = useMemo(() => detectIndustry(companyJobs), [companyJobs]);
+  const industry = useMemo(() => detectIndustry(companyJobs), [companyJobs])
 
   const estimatedSize =
     companyJobs.length >= 10
@@ -510,7 +529,7 @@ export default function CompanyPage() {
         ? '중견기업'
         : companyJobs.length >= 2
           ? '중소기업'
-          : '스타트업';
+          : '스타트업'
 
   if (error) {
     return (
@@ -521,7 +540,7 @@ export default function CompanyPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
   if (loading) {
@@ -541,7 +560,7 @@ export default function CompanyPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
   if (companyJobs.length === 0) {
@@ -577,10 +596,10 @@ export default function CompanyPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
-  const companyUser = companyJobs[0]?.user;
+  const companyUser = companyJobs[0]?.user
 
   return (
     <>
@@ -855,5 +874,5 @@ export default function CompanyPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }
