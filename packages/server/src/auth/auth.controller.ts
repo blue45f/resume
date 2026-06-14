@@ -26,7 +26,13 @@ import { requireRequestUserId } from '../common/request.types'
 
 import { Public } from './auth.guard'
 import { AuthService } from './auth.service'
-import { RegisterDto, LoginDto, ChangePasswordDto, UpdateProfileDto } from './dto/auth.dto'
+import {
+  RegisterDto,
+  LoginDto,
+  ChangePasswordDto,
+  UpdateProfileDto,
+  GoogleIdTokenDto,
+} from './dto/auth.dto'
 
 import type { AuthenticatedRequest } from '../common/request.types'
 
@@ -88,6 +94,31 @@ export class AuthController {
       res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`)
     } catch {
       res.redirect(`${this.authService.getFrontendUrl()}/login?error=google_failed`)
+    }
+  }
+
+  // ---- Google Identity Services (GIS) — ID-token 로그인 ----
+  // 프론트가 GIS 로 받은 credential(ID 토큰)을 POST → 서버가 검증 후 우리 JWT 발급.
+  // 이메일/비밀번호 로그인과 동일한 응답 계약({ token } + httpOnly 쿠키)을 따른다.
+  @Post('google/token')
+  @Public()
+  @Throttle({ short: { limit: 10, ttl: 60000 } }) // 10 attempts/min per IP
+  @ApiOperation({ summary: 'Google Identity Services ID 토큰 로그인' })
+  @ApiResponse({ status: 200, description: '로그인 성공, JWT 토큰 반환' })
+  @ApiResponse({ status: 401, description: 'Google ID 토큰 검증 실패' })
+  async googleIdTokenLogin(@Body() dto: GoogleIdTokenDto, @Res() res: Response) {
+    try {
+      const token = await this.authService.loginWithGoogleIdToken(dto.credential)
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
+      })
+      res.json({ token })
+    } catch (e: unknown) {
+      res.status(401).json({ message: getErrorMessage(e, 'Google 로그인에 실패했습니다') })
     }
   }
 

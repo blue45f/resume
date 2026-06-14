@@ -12,6 +12,7 @@ const mockAuthService = {
   getGithubAuthUrl: jest.fn(),
   getKakaoAuthUrl: jest.fn(),
   handleGoogleCallback: jest.fn(),
+  loginWithGoogleIdToken: jest.fn(),
   handleGithubCallback: jest.fn(),
   handleKakaoCallback: jest.fn(),
   getFrontendUrl: jest.fn().mockReturnValue('http://localhost:5173'),
@@ -105,6 +106,34 @@ describe('AuthController', () => {
       const res = mockResponse()
       await controller.googleCallback('code', 'state', res)
       expect(res.redirect).toHaveBeenCalledWith('http://localhost:5173/login?error=google_failed')
+    })
+  })
+
+  describe('Google Identity Services (GIS) ID-token', () => {
+    it('성공 → token JSON 반환 + httpOnly 쿠키 설정', async () => {
+      mockAuthService.loginWithGoogleIdToken.mockResolvedValue('jwt-gis-123')
+      const res = mockResponse()
+      await controller.googleIdTokenLogin({ credential: 'id-token' }, res)
+      expect(mockAuthService.loginWithGoogleIdToken).toHaveBeenCalledWith('id-token')
+      expect(res.cookie).toHaveBeenCalledWith(
+        'token',
+        'jwt-gis-123',
+        expect.objectContaining({ httpOnly: true, path: '/' })
+      )
+      expect(res.json).toHaveBeenCalledWith({ token: 'jwt-gis-123' })
+    })
+
+    it('검증 실패 → 401 + 메시지', async () => {
+      mockAuthService.loginWithGoogleIdToken.mockRejectedValue(
+        new Error('이메일이 인증되지 않은 Google 계정입니다')
+      )
+      const res = mockResponse()
+      await controller.googleIdTokenLogin({ credential: 'bad' }, res)
+      expect(res.status).toHaveBeenCalledWith(401)
+      expect(res.json).toHaveBeenCalledWith({
+        message: '이메일이 인증되지 않은 Google 계정입니다',
+      })
+      expect(res.cookie).not.toHaveBeenCalled()
     })
   })
 

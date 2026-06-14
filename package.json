@@ -91,6 +91,7 @@
     "dompurify": "^3.4.7",
     "dotenv": "^17.4.2",
     "express": "^5.1.0",
+    "google-auth-library": "^10.7.0",
     "heic2any": "0.0.4",
     "helmet": "^8.2.0",
     "i18next": "^26.3.1",

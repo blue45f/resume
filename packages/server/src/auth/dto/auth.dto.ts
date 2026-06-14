@@ -26,6 +26,14 @@ export const loginSchema = z
   .strict()
 export class LoginDto extends createZodDto(loginSchema) {}
 
+// GIS (Google Identity Services) ID-token 로그인 — 프론트가 받은 credential(JWT)을 전달.
+export const googleIdTokenSchema = z
+  .object({
+    credential: z.string().min(1).max(8192),
+  })
+  .strict()
+export class GoogleIdTokenDto extends createZodDto(googleIdTokenSchema) {}
+
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1).max(200),
