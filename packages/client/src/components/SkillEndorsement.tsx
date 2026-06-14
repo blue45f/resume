@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 
 import { getUser } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface EndorsementData {
   [skill: string]: {
@@ -32,7 +33,7 @@ export default function SkillEndorsement({ resumeId, skills }: Props) {
     const headers: Record<string, string> = {}
     if (token) headers['Authorization'] = `Bearer ${token}`
 
-    fetch(`${API_URL}/api/resumes/${resumeId}/endorsements`, { headers })
+    httpClient(`${API_URL}/api/resumes/${resumeId}/endorsements`, { headers })
       .then((r) => (r.ok ? r.json() : {}))
       .then((data: EndorsementData) => setEndorsements(data))
       .catch(() => {})
@@ -44,7 +45,7 @@ export default function SkillEndorsement({ resumeId, skills }: Props) {
       setLoading(skill)
       const token = localStorage.getItem('token')
       try {
-        const res = await fetch(`${API_URL}/api/resumes/${resumeId}/endorse`, {
+        const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/endorse`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

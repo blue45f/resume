@@ -12,6 +12,7 @@ import SendMessageButton from '@/components/SendMessageButton'
 import { toast } from '@/components/Toast'
 import { getUser } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 import { formatDate } from '@/lib/time'
 import { communityCommentSchema, type CommunityCommentFormValues } from '@/shared/lib/schemas'
@@ -303,7 +304,7 @@ export default function CommunityPostPage() {
     queryFn: async () => {
       const token = localStorage.getItem('token')
       const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
-      const r = await fetch(`${API_URL}/api/community/${id}`, { headers })
+      const r = await httpClient(`${API_URL}/api/community/${id}`, { headers })
       return r.ok ? await r.json() : null
     },
     enabled: !!id,
@@ -380,7 +381,7 @@ export default function CommunityPostPage() {
     setPost((p) => (p ? { ...p, liked: !p.liked, likeCount: p.likeCount + (p.liked ? -1 : 1) } : p))
 
     const token = localStorage.getItem('token')
-    const r = await fetch(`${API_URL}/api/community/${post.id}/like`, {
+    const r = await httpClient(`${API_URL}/api/community/${post.id}/like`, {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })
@@ -403,7 +404,7 @@ export default function CommunityPostPage() {
     if (token) (headers as Record<string, string>).Authorization = `Bearer ${token}`
     const body: Record<string, unknown> = { content: data.content.trim() }
     if (!user && data.authorName) body.authorName = data.authorName
-    const r = await fetch(`${API_URL}/api/community/${id}/comments`, {
+    const r = await httpClient(`${API_URL}/api/community/${id}/comments`, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
@@ -420,7 +421,7 @@ export default function CommunityPostPage() {
     if (!(await confirm({ title: '댓글을 삭제하시겠습니까?', danger: true, confirmText: '삭제' })))
       return
     const token = localStorage.getItem('token')
-    const r = await fetch(`${API_URL}/api/community/${id}/comments/${commentId}`, {
+    const r = await httpClient(`${API_URL}/api/community/${id}/comments/${commentId}`, {
       method: 'DELETE',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })
@@ -435,7 +436,7 @@ export default function CommunityPostPage() {
     if (token) (headers as Record<string, string>).Authorization = `Bearer ${token}`
     const body: Record<string, unknown> = { content: data.content.trim(), parentId }
     if (!user && data.authorName) body.authorName = data.authorName
-    const r = await fetch(`${API_URL}/api/community/${id}/comments`, {
+    const r = await httpClient(`${API_URL}/api/community/${id}/comments`, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
@@ -456,7 +457,7 @@ export default function CommunityPostPage() {
       return
     setDeleting(true)
     const token = localStorage.getItem('token')
-    const r = await fetch(`${API_URL}/api/community/${id}`, {
+    const r = await httpClient(`${API_URL}/api/community/${id}`, {
       method: 'DELETE',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })

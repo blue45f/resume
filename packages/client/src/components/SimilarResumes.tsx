@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import type { Resume } from '@/types/resume'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 
 interface Props {
@@ -29,7 +30,7 @@ export default function SimilarResumes({ resume }: Props) {
     if (topSkills.length === 0) return
 
     const query = topSkills[0]
-    fetch(`${API_URL}/api/resumes/public?q=${encodeURIComponent(query)}&limit=5`)
+    httpClient(`${API_URL}/api/resumes/public?q=${encodeURIComponent(query)}&limit=5`)
       .then((r) => (r.ok ? r.json() : { data: [] }))
       .then((d: unknown) => {
         const data = typeof d === 'object' && d !== null && 'data' in d ? d.data : []

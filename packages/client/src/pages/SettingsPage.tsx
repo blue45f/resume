@@ -20,6 +20,7 @@ import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
 import { getErrorMessage } from '@/lib/errorMessage'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { getPlan } from '@/lib/plans'
 import { ROUTES } from '@/lib/routes'
 import { getTheme, setTheme } from '@/lib/theme'
@@ -342,7 +343,7 @@ export default function SettingsPage() {
   const onSaveName = nameForm.handleSubmit(async (values) => {
     try {
       const token = getToken()
-      const res = await fetch(`${API_URL}/api/auth/profile`, {
+      const res = await httpClient(`${API_URL}/api/auth/profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -364,7 +365,7 @@ export default function SettingsPage() {
     const cleaned = values.username.trim().toLowerCase()
     try {
       const token = getToken()
-      const res = await fetch(`${API_URL}/api/auth/profile`, {
+      const res = await httpClient(`${API_URL}/api/auth/profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -860,7 +861,7 @@ export default function SettingsPage() {
                     setSwitchingType(true)
                     try {
                       const token = getToken()
-                      const res = await fetch(`${API_URL}/api/auth/profile`, {
+                      const res = await httpClient(`${API_URL}/api/auth/profile`, {
                         method: 'PATCH',
                         headers: {
                           'Content-Type': 'application/json',
@@ -977,7 +978,7 @@ export default function SettingsPage() {
                   setSavingOpenToWork(true)
                   try {
                     const token = getToken()
-                    const res = await fetch(`${API_URL}/api/auth/profile`, {
+                    const res = await httpClient(`${API_URL}/api/auth/profile`, {
                       method: 'PATCH',
                       headers: {
                         'Content-Type': 'application/json',

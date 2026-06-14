@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, type ReactElement } from 'react'
 import { Link } from 'react-router-dom'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { timeAgo } from '@/lib/time'
 
 interface Activity {
@@ -212,7 +213,7 @@ export default function RecentActivity() {
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) return
-    fetch(`${API_URL}/api/resumes/dashboard/analytics`, {
+    httpClient(`${API_URL}/api/resumes/dashboard/analytics`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => (r.ok ? r.json() : null))
@@ -272,7 +273,7 @@ export default function RecentActivity() {
     ]
 
     for (const ep of socialEndpoints) {
-      fetch(ep.url, { headers: { Authorization: `Bearer ${token}` } })
+      httpClient(ep.url, { headers: { Authorization: `Bearer ${token}` } })
         .then((r) => (r.ok ? r.json() : []))
         .then((items: unknown) => {
           if (!Array.isArray(items) || items.length === 0) return
@@ -298,12 +299,12 @@ export default function RecentActivity() {
 
     // Fetch recent comments on user's resumes
     const currentUserId = getCurrentUserId()
-    fetch(`${API_URL}/api/resumes`, { headers: { Authorization: `Bearer ${token}` } })
+    httpClient(`${API_URL}/api/resumes`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : []))
       .then((resumes: unknown) => {
         if (!Array.isArray(resumes)) return
         const commentPromises = (resumes as ResumeCommentSource[]).slice(0, 5).map((resume) =>
-          fetch(`${API_URL}/api/resumes/${resume.id}/comments`, {
+          httpClient(`${API_URL}/api/resumes/${resume.id}/comments`, {
             headers: { Authorization: `Bearer ${token}` },
           })
             .then((r) => (r.ok ? r.json() : []))

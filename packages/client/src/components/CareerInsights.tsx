@@ -18,6 +18,7 @@ import type { ResumeSummary } from '@/types/resume'
 import { fetchResumes } from '@/lib/api'
 import { getUser } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 import { formatDate } from '@/lib/time'
 
@@ -400,11 +401,11 @@ export default function CareerInsights({ now }: CareerInsightsProps = {}) {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API_URL}/api/jobs?limit=200`)
+      httpClient(`${API_URL}/api/jobs?limit=200`)
         .then((r) => (r.ok ? r.json() : []))
         .catch(() => []),
       fetchResumes().catch(() => []),
-      fetch(`${API_URL}/api/health/news-rss`)
+      httpClient(`${API_URL}/api/health/news-rss`)
         .then((r) => (r.ok ? r.json() : []))
         .then(toNewsItems)
         .catch(() => []),

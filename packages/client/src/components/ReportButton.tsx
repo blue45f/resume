@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { toast } from '@/components/Toast'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 export type ReportReason = 'spam' | 'inappropriate' | 'fake' | 'copyright' | 'other'
 
@@ -40,7 +41,7 @@ export default function ReportButton({
     }
     setSubmitting(true)
     try {
-      const res = await fetch(`${API_URL}${endpoint}`, {
+      const res = await httpClient(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

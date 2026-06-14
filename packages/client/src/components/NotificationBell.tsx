@@ -5,6 +5,7 @@ import { fetchNotifications as apiFetchNotifications, markAllNotificationsRead }
 import { getToken } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 import { timeAgo } from '@/lib/time'
 import Popover from '@/shared/ui/Popover'
@@ -25,7 +26,7 @@ export default function NotificationBell() {
 
   const fetchCount = () => {
     if (!getToken()) return
-    fetch(`${API_URL}/api/notifications/count`, {
+    httpClient(`${API_URL}/api/notifications/count`, {
       headers: { Authorization: `Bearer ${getToken()}` },
     })
       .then((r) => (r.ok ? r.json() : { count: 0 }))

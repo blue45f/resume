@@ -59,6 +59,7 @@ import {
   detectUnquantifiedClaims,
   scoreInterviewability,
 } from '@/lib/koreanChecker'
+import { httpClient } from '@/lib/ky'
 import { formatDate } from '@/lib/time'
 
 type PageMode = 'generate' | 'feedback'
@@ -384,7 +385,7 @@ export default function CoverLetterPage() {
               .join('\n\n')
           : ''
 
-        const res = await fetch(`${API_URL}/api/resumes/${selectedResumeId}/transform`, {
+        const res = await httpClient(`${API_URL}/api/resumes/${selectedResumeId}/transform`, {
           method: 'POST',
           headers,
           body: JSON.stringify({
@@ -414,7 +415,7 @@ export default function CoverLetterPage() {
         // Auto-save
         const saveToken = localStorage.getItem('token')
         if (saveToken) {
-          fetch(`${API_URL}/api/cover-letters`, {
+          httpClient(`${API_URL}/api/cover-letters`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${saveToken}` },
             body: JSON.stringify({

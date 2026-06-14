@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { timeAgo } from '@/lib/time'
 
 interface Viewer {
@@ -31,7 +32,7 @@ export default function ProfileViewers() {
     const token = localStorage.getItem('token')
     if (!token) return
 
-    fetch(`${API_URL}/api/resumes/dashboard/viewers`, {
+    httpClient(`${API_URL}/api/resumes/dashboard/viewers`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => (r.ok ? r.json() : null))
@@ -40,7 +41,7 @@ export default function ProfileViewers() {
           setData(d)
         } else {
           // Fallback: display view count stats from analytics without random data
-          fetch(`${API_URL}/api/resumes/dashboard/analytics`, {
+          httpClient(`${API_URL}/api/resumes/dashboard/analytics`, {
             headers: { Authorization: `Bearer ${token}` },
           })
             .then((r) => (r.ok ? r.json() : null))

@@ -8,6 +8,7 @@ import { AdminTable, type AdminTableColumn } from './AdminTable'
 
 import { toast } from '@/components/Toast'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import AlertDialog from '@/shared/ui/AlertDialog'
 
 type Question = {
@@ -48,7 +49,7 @@ export default function AdminInterviewQuestionsTab() {
       const params = new URLSearchParams({ page: String(page), limit: '20' })
       if (status !== 'all') params.set('status', status)
       if (q) params.set('q', q)
-      const res = await fetch(`${API_URL}/api/job-interview-questions/admin/all?${params}`, {
+      const res = await httpClient(`${API_URL}/api/job-interview-questions/admin/all?${params}`, {
         headers: authHeader(),
       })
       if (!res.ok) return null
@@ -61,7 +62,7 @@ export default function AdminInterviewQuestionsTab() {
 
   const mApprove = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API_URL}/api/job-interview-questions/admin/${id}/approve`, {
+      const res = await httpClient(`${API_URL}/api/job-interview-questions/admin/${id}/approve`, {
         method: 'PATCH',
         headers: authHeader(),
       })
@@ -77,7 +78,7 @@ export default function AdminInterviewQuestionsTab() {
 
   const mReject = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API_URL}/api/job-interview-questions/admin/${id}/reject`, {
+      const res = await httpClient(`${API_URL}/api/job-interview-questions/admin/${id}/reject`, {
         method: 'PATCH',
         headers: authHeader(),
       })
@@ -93,11 +94,14 @@ export default function AdminInterviewQuestionsTab() {
 
   const mUpvotes = useMutation({
     mutationFn: async (vars: { id: string; upvotes: number }) => {
-      const res = await fetch(`${API_URL}/api/job-interview-questions/admin/${vars.id}/upvotes`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...authHeader() },
-        body: JSON.stringify({ upvotes: vars.upvotes }),
-      })
+      const res = await httpClient(
+        `${API_URL}/api/job-interview-questions/admin/${vars.id}/upvotes`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', ...authHeader() },
+          body: JSON.stringify({ upvotes: vars.upvotes }),
+        }
+      )
       if (!res.ok) throw new Error('failed')
       return res.json()
     },
@@ -107,7 +111,7 @@ export default function AdminInterviewQuestionsTab() {
 
   const mDelete = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API_URL}/api/job-interview-questions/admin/${id}`, {
+      const res = await httpClient(`${API_URL}/api/job-interview-questions/admin/${id}`, {
         method: 'DELETE',
         headers: authHeader(),
       })

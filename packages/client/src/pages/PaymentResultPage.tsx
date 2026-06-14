@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import Header from '@/components/Header'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 import { formatDate } from '@/lib/time'
 
@@ -48,7 +49,7 @@ export default function PaymentResultPage() {
     if (!token) return
     ;(async () => {
       try {
-        const res = await fetch(`${API_URL}/api/billing/me/verify-recent`, {
+        const res = await httpClient(`${API_URL}/api/billing/me/verify-recent`, {
           headers: { Authorization: `Bearer ${token}` },
           signal: ctrl.signal,
         })

@@ -7,6 +7,7 @@ import Header from '@/components/Header'
 import { getUser } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { PLANS, RECRUITER_PLANS, formatPrice, isMonetizationEnabled } from '@/lib/plans'
 import { ROUTES } from '@/lib/routes'
 
@@ -94,7 +95,7 @@ export default function PricingPage() {
   const { data: dynamicFaq } = useQuery<typeof DEFAULT_FAQ | null>({
     queryKey: ['pricing-faq'],
     queryFn: () =>
-      fetch(`${API_URL}/api/system-config/content/pricing_faq`).then((r) =>
+      httpClient(`${API_URL}/api/system-config/content/pricing_faq`).then((r) =>
         r.ok ? r.json() : null
       ),
     staleTime: 5 * 60_000,

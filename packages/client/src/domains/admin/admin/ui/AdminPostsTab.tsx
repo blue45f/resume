@@ -8,6 +8,7 @@ import { AdminTable, type AdminTableColumn } from './AdminTable'
 
 import { toast } from '@/components/Toast'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { formatDate } from '@/lib/time'
 import AlertDialog from '@/shared/ui/AlertDialog'
 
@@ -58,7 +59,7 @@ export default function AdminPostsTab() {
       if (q) params.set('q', q)
       if (category !== 'all') params.set('category', category)
       if (hidden !== 'all') params.set('hidden', hidden)
-      const res = await fetch(`${API_URL}/api/community/admin/posts?${params}`, {
+      const res = await httpClient(`${API_URL}/api/community/admin/posts?${params}`, {
         headers: authHeader(),
       })
       if (!res.ok) return null
@@ -71,7 +72,7 @@ export default function AdminPostsTab() {
 
   const mHide = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API_URL}/api/community/admin/posts/${id}/hide`, {
+      const res = await httpClient(`${API_URL}/api/community/admin/posts/${id}/hide`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({}),
@@ -88,7 +89,7 @@ export default function AdminPostsTab() {
 
   const mPin = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API_URL}/api/community/admin/posts/${id}/pin`, {
+      const res = await httpClient(`${API_URL}/api/community/admin/posts/${id}/pin`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({}),
@@ -105,7 +106,7 @@ export default function AdminPostsTab() {
 
   const mCategory = useMutation({
     mutationFn: async (params: { id: string; category: string }) => {
-      const res = await fetch(`${API_URL}/api/community/admin/posts/${params.id}/category`, {
+      const res = await httpClient(`${API_URL}/api/community/admin/posts/${params.id}/category`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({ category: params.category }),
@@ -122,7 +123,7 @@ export default function AdminPostsTab() {
 
   const mDelete = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API_URL}/api/community/admin/posts/${id}`, {
+      const res = await httpClient(`${API_URL}/api/community/admin/posts/${id}`, {
         method: 'DELETE',
         headers: authHeader(),
       })
@@ -139,7 +140,7 @@ export default function AdminPostsTab() {
   const mBulk = useMutation({
     mutationFn: async (action: 'hide' | 'delete' | 'show') => {
       const ids = Array.from(selected)
-      const res = await fetch(`${API_URL}/api/community/admin/posts/bulk`, {
+      const res = await httpClient(`${API_URL}/api/community/admin/posts/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({ action, ids }),

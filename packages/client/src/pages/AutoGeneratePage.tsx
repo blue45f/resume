@@ -12,6 +12,7 @@ import { useTemplates, useResumes } from '@/hooks/useResources'
 import { API_URL } from '@/lib/config'
 import { getErrorMessage } from '@/lib/errorMessage'
 import { t, tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 import { formatDate } from '@/lib/time'
 
@@ -213,7 +214,7 @@ export default function AutoGeneratePage() {
       if (!isFormData) headers['Content-Type'] = 'application/json'
       if (token) headers['Authorization'] = `Bearer ${token}`
 
-      const res = await fetch(`${API_URL}/api/auto-generate/preview`, {
+      const res = await httpClient(`${API_URL}/api/auto-generate/preview`, {
         method: 'POST',
         headers,
         body,
@@ -246,7 +247,7 @@ export default function AutoGeneratePage() {
       if (!isFormData) headers['Content-Type'] = 'application/json'
       if (token) headers['Authorization'] = `Bearer ${token}`
 
-      const res = await fetch(`${API_URL}/api/auto-generate/create`, {
+      const res = await httpClient(`${API_URL}/api/auto-generate/create`, {
         method: 'POST',
         headers,
         body,

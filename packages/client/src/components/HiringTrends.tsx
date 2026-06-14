@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 
 interface TrendItem {
@@ -22,7 +23,7 @@ export default function HiringTrends() {
   const [jobs, setJobs] = useState<TrendItem[]>([])
 
   useEffect(() => {
-    fetch(`${API_URL}/api/jobs?limit=5`)
+    httpClient(`${API_URL}/api/jobs?limit=5`)
       .then((r) => (r.ok ? r.json() : []))
       .then((data: unknown) => {
         const items = Array.isArray(data) ? (data as JobTrendResponseItem[]) : []

@@ -1,4 +1,5 @@
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 export interface User {
   id: string
@@ -40,7 +41,9 @@ export function clearAuth() {
   localStorage.removeItem('token')
   localStorage.removeItem('user')
   // Clear httpOnly cookie via server endpoint
-  fetch(`${API_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {})
+  httpClient(`${API_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' }).catch(
+    () => {}
+  )
 }
 
 export function authHeaders(): Record<string, string> {
@@ -51,7 +54,7 @@ export function authHeaders(): Record<string, string> {
 // OAuth 콜백에서 토큰을 받아 유저 정보 조회 + 저장
 export async function handleAuthCallback(token: string): Promise<User> {
   localStorage.setItem('token', token)
-  const res = await fetch(`${API_URL}/api/auth/me`, {
+  const res = await httpClient(`${API_URL}/api/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!res.ok) {
@@ -72,7 +75,7 @@ export async function fetchMe(): Promise<User | null> {
   const token = getToken()
   if (!token) return null
   try {
-    const res = await fetch(`${API_URL}/api/auth/me`, {
+    const res = await httpClient(`${API_URL}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     if (!res.ok) {

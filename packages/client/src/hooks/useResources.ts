@@ -47,6 +47,7 @@ import {
   type ListJobQuestionsParams,
 } from '@/lib/api'
 import { getToken } from '@/lib/auth'
+import { httpClient } from '@/lib/ky'
 
 const hasToken = () => !!getToken()
 
@@ -418,7 +419,7 @@ export function useSystemContent<T = unknown>(key: string, enabled = true) {
     queryKey: ['system-content', key],
     queryFn: async () => {
       const { API_URL } = await import('@/lib/config')
-      const res = await fetch(`${API_URL}/api/system-config/content/${key}`)
+      const res = await httpClient(`${API_URL}/api/system-config/content/${key}`)
       if (!res.ok) return null
       return (await res.json()) as T
     },
@@ -439,7 +440,7 @@ export function useUploadSettings() {
     queryKey: ['upload-settings'],
     queryFn: async () => {
       const { API_URL } = await import('@/lib/config')
-      const res = await fetch(`${API_URL}/api/system-config/upload-settings`)
+      const res = await httpClient(`${API_URL}/api/system-config/upload-settings`)
       if (!res.ok) {
         return { enabled: true, maxSizeMb: 10, allowedMime: 'image/*,application/pdf' }
       }
@@ -458,7 +459,7 @@ export function useFeatureToggles() {
     queryKey: ['feature-toggles'],
     queryFn: async () => {
       const { API_URL } = await import('@/lib/config')
-      const res = await fetch(`${API_URL}/api/system-config/feature-toggles`)
+      const res = await httpClient(`${API_URL}/api/system-config/feature-toggles`)
       if (!res.ok) return {}
       return (await res.json()) as FeatureToggleMap
     },
@@ -494,7 +495,7 @@ export function useSiteStatsPublic() {
     queryKey: ['site-stats-public'],
     queryFn: async () => {
       const { API_URL } = await import('@/lib/config')
-      const res = await fetch(`${API_URL}/api/health/stats`)
+      const res = await httpClient(`${API_URL}/api/health/stats`)
       if (!res.ok) return null
       return res.json()
     },
@@ -513,7 +514,7 @@ export function usePublicGet<T = unknown>(
     queryFn: async () => {
       const { API_URL } = await import('@/lib/config')
       const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`
-      const res = await fetch(fullUrl)
+      const res = await httpClient(fullUrl)
       if (!res.ok) return null
       const text = await res.text()
       return (text ? JSON.parse(text) : null) as T
@@ -535,7 +536,7 @@ export function useAuthedGet<T = unknown>(
       const { API_URL } = await import('@/lib/config')
       const token = getToken()
       const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`
-      const res = await fetch(fullUrl, {
+      const res = await httpClient(fullUrl, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
       if (!res.ok) return null

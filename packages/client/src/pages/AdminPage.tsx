@@ -31,6 +31,7 @@ import { getUser } from '@/lib/auth'
 import { CHART_COLORS } from '@/lib/chartColors'
 import { API_URL } from '@/lib/config'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { PLANS, type PlanConfig } from '@/lib/plans'
 import { ROUTES } from '@/lib/routes'
 import { formatDate } from '@/lib/time'
@@ -163,7 +164,7 @@ export default function AdminPage() {
     queryKey: ['admin-stats'],
     queryFn: async () => {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${API_URL}/api/health/admin/stats`, {
+      const res = await httpClient(`${API_URL}/api/health/admin/stats`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
       if (!res.ok) return null
@@ -764,7 +765,7 @@ function AnnouncementPushPanel() {
     setResult(null)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${API_URL}/api/notifications/admin/announce`, {
+      const res = await httpClient(`${API_URL}/api/notifications/admin/announce`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1249,7 +1250,7 @@ function ReportedContentQueue() {
     queryKey: ['admin-reports'],
     queryFn: async () => {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${API_URL}/api/health/admin/reports`, {
+      const res = await httpClient(`${API_URL}/api/health/admin/reports`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) return []
@@ -1265,7 +1266,7 @@ function ReportedContentQueue() {
     const reason = action === 'reject' ? rejectReason[itemId] || REJECT_REASONS[0] : undefined
     const token = localStorage.getItem('token')
     try {
-      const res = await fetch(`${API_URL}/api/health/admin/reports/${itemId}`, {
+      const res = await httpClient(`${API_URL}/api/health/admin/reports/${itemId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ action, reason }),
@@ -1482,7 +1483,7 @@ function AdminBannersTab() {
   const bannersQuery = useQuery<Banner[]>({
     queryKey: ['admin-banners'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/banners`, {
+      const res = await httpClient(`${API_URL}/api/banners`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) return []
@@ -1498,7 +1499,7 @@ function AdminBannersTab() {
   const handleSave = async () => {
     const method = editing ? 'PATCH' : 'POST'
     const url = editing ? `${API_URL}/api/banners/${editing.id}` : `${API_URL}/api/banners`
-    const res = await fetch(url, {
+    const res = await httpClient(url, {
       method,
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(form),
@@ -1517,7 +1518,7 @@ function AdminBannersTab() {
   const handleDelete = async (id: string) => {
     if (!(await confirm({ title: '배너를 삭제하시겠습니까?', danger: true, confirmText: '삭제' })))
       return
-    const res = await fetch(`${API_URL}/api/banners/${id}`, {
+    const res = await httpClient(`${API_URL}/api/banners/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -1528,7 +1529,7 @@ function AdminBannersTab() {
   }
 
   const handleToggleActive = async (b: Banner) => {
-    const res = await fetch(`${API_URL}/api/banners/${b.id}`, {
+    const res = await httpClient(`${API_URL}/api/banners/${b.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ isActive: !b.isActive }),
@@ -1882,7 +1883,7 @@ function AdminNoticesTab() {
   const noticesQuery = useQuery<{ items: Notice[] }>({
     queryKey: ['admin-notices'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/notices?limit=100`, {
+      const res = await httpClient(`${API_URL}/api/notices?limit=100`, {
         headers: { Authorization: `Bearer ${token ?? ''}` },
       })
       if (!res.ok) return { items: [] }
@@ -1898,7 +1899,7 @@ function AdminNoticesTab() {
     const method = editing ? 'PATCH' : 'POST'
     const url = editing ? `${API_URL}/api/notices/${editing.id}` : `${API_URL}/api/notices`
     const body = editing ? { ...form, reason: editReason } : form
-    const res = await fetch(url, {
+    const res = await httpClient(url, {
       method,
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` },
       body: JSON.stringify(body),
@@ -1920,7 +1921,7 @@ function AdminNoticesTab() {
       !(await confirm({ title: '공지사항을 삭제하시겠습니까?', danger: true, confirmText: '삭제' }))
     )
       return
-    const res = await fetch(`${API_URL}/api/notices/${id}`, {
+    const res = await httpClient(`${API_URL}/api/notices/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token ?? ''}` },
     })
@@ -1931,7 +1932,7 @@ function AdminNoticesTab() {
   }
 
   const handleToggleComments = async (n: Notice) => {
-    const res = await fetch(`${API_URL}/api/notices/${n.id}/toggle-comments`, {
+    const res = await httpClient(`${API_URL}/api/notices/${n.id}/toggle-comments`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` },
       body: JSON.stringify({ allow: !n.allowComments }),
@@ -1945,7 +1946,7 @@ function AdminNoticesTab() {
   const handleShowHistory = async (n: Notice) => {
     setHistoryNotice(n)
     setHistoryLoading(true)
-    const res = await fetch(`${API_URL}/api/notices/${n.id}/history`, {
+    const res = await httpClient(`${API_URL}/api/notices/${n.id}/history`, {
       headers: { Authorization: `Bearer ${token ?? ''}` },
     })
     if (res.ok) setHistory(await res.json())
@@ -2294,7 +2295,7 @@ function AdminCommunityTab() {
       if (category !== 'all') params.set('category', category)
       if (search) params.set('search', search)
       if (showHidden) params.set('showHidden', 'true')
-      const r = await fetch(`${API_URL}/api/community?${params}`, {
+      const r = await httpClient(`${API_URL}/api/community?${params}`, {
         headers: { Authorization: `Bearer ${token ?? ''}` },
       })
       if (!r.ok) return { items: [], total: 0 }
@@ -2318,7 +2319,7 @@ function AdminCommunityTab() {
     )
       return
     setActionId(id)
-    const r = await fetch(`${API_URL}/api/community/${id}`, {
+    const r = await httpClient(`${API_URL}/api/community/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token ?? ''}` },
     })
@@ -2330,7 +2331,7 @@ function AdminCommunityTab() {
 
   const patchPost = async (id: string, data: Record<string, unknown>) => {
     setActionId(id)
-    const r = await fetch(`${API_URL}/api/community/${id}`, {
+    const r = await httpClient(`${API_URL}/api/community/${id}`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token ?? ''}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -2612,7 +2613,7 @@ function FeatureTogglesSection() {
   const { data, isLoading } = useQuery<Record<string, boolean>>({
     queryKey: ['admin-feature-toggles'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/system-config/feature-toggles`)
+      const res = await httpClient(`${API_URL}/api/system-config/feature-toggles`)
       if (!res.ok) return {}
       return res.json()
     },
@@ -2631,7 +2632,7 @@ function FeatureTogglesSection() {
   const save = async () => {
     setSaving(true)
     try {
-      const res = await fetch(`${API_URL}/api/system-config/feature-toggles`, {
+      const res = await httpClient(`${API_URL}/api/system-config/feature-toggles`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(toggles),
@@ -2748,7 +2749,7 @@ function UploadSettingsSection() {
   const { data, isLoading } = useQuery<UploadSettings>({
     queryKey: ['admin-upload-settings'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/system-config/upload-settings`)
+      const res = await httpClient(`${API_URL}/api/system-config/upload-settings`)
       if (!res.ok) return { enabled: true, maxSizeMb: 10, allowedMime: 'image/*,application/pdf' }
       return res.json()
     },
@@ -2769,7 +2770,7 @@ function UploadSettingsSection() {
         { key: 'feature.fileUpload.maxSizeMb', value: String(maxSizeMb) },
         { key: 'feature.fileUpload.allowedMime', value: mime },
       ]
-      const res = await fetch(`${API_URL}/api/system-config`, {
+      const res = await httpClient(`${API_URL}/api/system-config`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ configs }),
@@ -2880,7 +2881,7 @@ function SystemSettings() {
   const sysConfigQuery = useQuery<SystemConfigPublic | null>({
     queryKey: ['admin-system-config-public'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/system-config/public`)
+      const res = await httpClient(`${API_URL}/api/system-config/public`)
       if (!res.ok) return null
       return res.json()
     },
@@ -2898,7 +2899,7 @@ function SystemSettings() {
 
   const toggleSysConfig = async (key: string, value: boolean) => {
     try {
-      await fetch(`${API_URL}/api/system-config`, {
+      await httpClient(`${API_URL}/api/system-config`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ [key]: String(value) }),
@@ -2963,7 +2964,7 @@ function SystemSettings() {
     // Try to persist to backend
     const token = localStorage.getItem('token')
     try {
-      await fetch(`${API_URL}/api/health/admin/settings`, {
+      await httpClient(`${API_URL}/api/health/admin/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ maintenance, announcement }),
@@ -3228,7 +3229,7 @@ function RecentResumes() {
   const recentResumesQuery = useQuery<{ data: AdminRecentResume[] }>({
     queryKey: ['admin-recent-resumes'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/resumes/public?limit=50`)
+      const res = await httpClient(`${API_URL}/api/resumes/public?limit=50`)
       if (!res.ok) return { data: [] }
       return res.json()
     },
@@ -3256,7 +3257,7 @@ function RecentResumes() {
     )
       return
     const token = localStorage.getItem('token')
-    const res = await fetch(`${API_URL}/api/resumes/${id}/visibility`, {
+    const res = await httpClient(`${API_URL}/api/resumes/${id}/visibility`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ visibility: 'private' }),
@@ -3278,7 +3279,7 @@ function RecentResumes() {
     )
       return
     const token = localStorage.getItem('token')
-    const res = await fetch(`${API_URL}/api/resumes/${id}`, {
+    const res = await httpClient(`${API_URL}/api/resumes/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -3524,7 +3525,7 @@ function ResumeReportsQueue() {
   const reportsQuery = useQuery<{ items: ResumeReportItem[]; total: number }>({
     queryKey: ['admin-resume-reports'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/resumes/admin/reports?limit=50`, {
+      const res = await httpClient(`${API_URL}/api/resumes/admin/reports?limit=50`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) return { items: [], total: 0 }
@@ -3535,7 +3536,7 @@ function ResumeReportsQueue() {
   const hiddenQuery = useQuery<AutoHiddenResume[]>({
     queryKey: ['admin-auto-hidden'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/resumes/admin/auto-hidden`, {
+      const res = await httpClient(`${API_URL}/api/resumes/admin/auto-hidden`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) return []
@@ -3553,7 +3554,7 @@ function ResumeReportsQueue() {
       }))
     )
       return
-    const res = await fetch(`${API_URL}/api/resumes/admin/${id}/unhide`, {
+    const res = await httpClient(`${API_URL}/api/resumes/admin/${id}/unhide`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -3576,7 +3577,7 @@ function ResumeReportsQueue() {
       }))
     )
       return
-    const res = await fetch(`${API_URL}/api/resumes/admin/reports/${reportId}`, {
+    const res = await httpClient(`${API_URL}/api/resumes/admin/reports/${reportId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -3706,7 +3707,7 @@ function CommunityPostReportsQueue() {
   const { data } = useQuery<{ items: CommunityReportItem[]; total: number }>({
     queryKey: ['admin-community-reports'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/community/admin/reports?limit=50`, {
+      const res = await httpClient(`${API_URL}/api/community/admin/reports?limit=50`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) return { items: [], total: 0 }
@@ -3723,7 +3724,7 @@ function CommunityPostReportsQueue() {
       }))
     )
       return
-    const res = await fetch(`${API_URL}/api/community/admin/${id}/unhide`, {
+    const res = await httpClient(`${API_URL}/api/community/admin/${id}/unhide`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -3930,7 +3931,7 @@ function AdminExtLinksTab() {
   const extLinksQuery = useQuery<ExtLink[]>({
     queryKey: ['admin-ext-links'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/jobs/external-links/list`)
+      const res = await httpClient(`${API_URL}/api/jobs/external-links/list`)
       if (!res.ok) return []
       const data = await res.json()
       return Array.isArray(data) ? data : []
@@ -3949,7 +3950,7 @@ function AdminExtLinksTab() {
       const url = editing.id
         ? `${API_URL}/api/jobs/external-links/${editing.id}`
         : `${API_URL}/api/jobs/external-links`
-      const res = await fetch(url, { method, headers, body: JSON.stringify(editing) })
+      const res = await httpClient(url, { method, headers, body: JSON.stringify(editing) })
       if (!res.ok) throw new Error()
       toast(editing.id ? '수정되었습니다' : '등록되었습니다', 'success')
       setEditing(null)
@@ -3963,7 +3964,7 @@ function AdminExtLinksTab() {
   const handleDelete = async (id: string) => {
     if (!(await confirm({ title: '정말 삭제하시겠습니까?', danger: true, confirmText: '삭제' })))
       return
-    const res = await fetch(`${API_URL}/api/jobs/external-links/${id}`, {
+    const res = await httpClient(`${API_URL}/api/jobs/external-links/${id}`, {
       method: 'DELETE',
       headers,
     })
@@ -3974,7 +3975,7 @@ function AdminExtLinksTab() {
   }
 
   const handleToggleActive = async (link: ExtLink) => {
-    await fetch(`${API_URL}/api/jobs/external-links/${link.id}`, {
+    await httpClient(`${API_URL}/api/jobs/external-links/${link.id}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify({ isActive: !link.isActive }),
@@ -4425,7 +4426,7 @@ function AdminPermissionsTab() {
   const permsQuery = useQuery<Record<string, string>>({
     queryKey: ['admin-permissions'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/system-config/permissions`)
+      const res = await httpClient(`${API_URL}/api/system-config/permissions`)
       if (!res.ok) return {}
       return res.json()
     },
@@ -4464,7 +4465,7 @@ function AdminPermissionsTab() {
     setSaving(true)
     const token = localStorage.getItem('token')
     try {
-      const res = await fetch(`${API_URL}/api/system-config/permissions`, {
+      const res = await httpClient(`${API_URL}/api/system-config/permissions`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -4677,7 +4678,7 @@ function AdminForbiddenWordsTab() {
       const params = new URLSearchParams({ page: String(page), limit: '30' })
       if (search) params.set('search', search)
       if (filterCat !== 'all') params.set('category', filterCat)
-      const r = await fetch(`${API_URL}/api/forbidden-words?${params}`, { headers })
+      const r = await httpClient(`${API_URL}/api/forbidden-words?${params}`, { headers })
       if (!r.ok) return { items: [], total: 0 }
       return r.json()
     },
@@ -4686,7 +4687,7 @@ function AdminForbiddenWordsTab() {
   const statsQueryFW = useQuery<ForbiddenWordsStats | null>({
     queryKey: ['forbidden-words-stats'],
     queryFn: async () => {
-      const r = await fetch(`${API_URL}/api/forbidden-words/stats`, { headers })
+      const r = await httpClient(`${API_URL}/api/forbidden-words/stats`, { headers })
       if (!r.ok) return null
       return r.json()
     },
@@ -4706,7 +4707,7 @@ function AdminForbiddenWordsTab() {
     setSubmitting(true)
     try {
       if (formMode === 'single') {
-        const r = await fetch(`${API_URL}/api/forbidden-words`, {
+        const r = await httpClient(`${API_URL}/api/forbidden-words`, {
           method: 'POST',
           headers,
           body: JSON.stringify({
@@ -4730,7 +4731,7 @@ function AdminForbiddenWordsTab() {
           .map((w) => w.trim())
           .filter(Boolean)
         if (!wordList.length) return
-        const r = await fetch(`${API_URL}/api/forbidden-words/bulk`, {
+        const r = await httpClient(`${API_URL}/api/forbidden-words/bulk`, {
           method: 'POST',
           headers,
           body: JSON.stringify({ words: wordList, category: newCategory, severity: newSeverity }),
@@ -4751,7 +4752,7 @@ function AdminForbiddenWordsTab() {
   }
 
   const handleUpdate = async (id: string) => {
-    const r = await fetch(`${API_URL}/api/forbidden-words/${id}`, {
+    const r = await httpClient(`${API_URL}/api/forbidden-words/${id}`, {
       method: 'PATCH',
       headers,
       body: JSON.stringify({ word: editWord, category: editCat, severity: editSev }),
@@ -4765,7 +4766,7 @@ function AdminForbiddenWordsTab() {
   }
 
   const handleToggleActive = async (id: string, isActive: boolean) => {
-    await fetch(`${API_URL}/api/forbidden-words/${id}`, {
+    await httpClient(`${API_URL}/api/forbidden-words/${id}`, {
       method: 'PATCH',
       headers,
       body: JSON.stringify({ isActive: !isActive }),
@@ -4777,7 +4778,7 @@ function AdminForbiddenWordsTab() {
   const handleDelete = async (id: string) => {
     if (!(await confirm({ title: '정말 삭제하시겠습니까?', danger: true, confirmText: '삭제' })))
       return
-    await fetch(`${API_URL}/api/forbidden-words/${id}`, { method: 'DELETE', headers })
+    await httpClient(`${API_URL}/api/forbidden-words/${id}`, { method: 'DELETE', headers })
     load()
     loadStats()
   }
@@ -4792,7 +4793,7 @@ function AdminForbiddenWordsTab() {
       }))
     )
       return
-    await fetch(`${API_URL}/api/forbidden-words/bulk`, {
+    await httpClient(`${API_URL}/api/forbidden-words/bulk`, {
       method: 'DELETE',
       headers,
       body: JSON.stringify({ ids: [...selected] }),
@@ -4804,7 +4805,7 @@ function AdminForbiddenWordsTab() {
 
   const handleTest = async () => {
     if (!testText.trim()) return
-    const r = await fetch(`${API_URL}/api/forbidden-words/check`, {
+    const r = await httpClient(`${API_URL}/api/forbidden-words/check`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ text: testText }),

@@ -3,16 +3,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { ResumeSummary } from '@/types/resume'
 
 import { toast } from '@/components/Toast'
-import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem('token')
+  // ky 기반(httpClient). throwHttpErrors:false 라 기존 `!res.ok → throw new Error(status)` 계약 보존.
+  // Authorization 은 ky beforeRequest 훅이 자동 주입. Content-Type 은 JSON 본문일 때만 명시.
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(options?.body ? { 'Content-Type': 'application/json' } : {}),
     ...((options?.headers as Record<string, string>) || {}),
   }
-  if (token) headers['Authorization'] = `Bearer ${token}`
-  const res = await fetch(`${API_URL}${url}`, { ...options, headers })
+  const res = await httpClient(url, { ...options, headers })
   if (!res.ok) throw new Error(`${res.status}`)
   const text = await res.text()
   return (text ? JSON.parse(text) : null) as T

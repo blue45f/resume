@@ -16,6 +16,7 @@ import { createResume, fetchResume, duplicateResume } from '@/lib/api'
 import { getUser } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
 import { getErrorMessage } from '@/lib/errorMessage'
+import { httpClient } from '@/lib/ky'
 import { getPlan } from '@/lib/plans'
 import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes'
 import { ROUTES } from '@/lib/routes'
@@ -1209,7 +1210,7 @@ export default function NewResumePage() {
 
       setAiProgress('AI가 이력서 항목을 추출하고 있습니다...')
       headers['Content-Type'] = 'application/json'
-      const res = await fetch(`${API_URL}/api/auto-generate/preview`, {
+      const res = await httpClient(`${API_URL}/api/auto-generate/preview`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ rawText: bodyText }),

@@ -15,6 +15,7 @@ import {
 } from 'recharts'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface Analytics {
   viewCount: number
@@ -160,7 +161,7 @@ export default function ResumeAnalytics({ resumeId }: Props) {
     const token = localStorage.getItem('token')
     const headers: Record<string, string> = {}
     if (token) headers['Authorization'] = `Bearer ${token}`
-    fetch(`${API_URL}/api/resumes/analytics/${resumeId}`, { headers })
+    httpClient(`${API_URL}/api/resumes/analytics/${resumeId}`, { headers })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         setData(d)

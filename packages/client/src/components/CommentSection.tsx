@@ -6,6 +6,7 @@ import SendMessageButton from '@/components/SendMessageButton'
 import { toast } from '@/components/Toast'
 import { getUser } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { timeAgo } from '@/lib/time'
 import { commentSchema, type CommentFormValues } from '@/shared/lib/schemas'
 
@@ -69,7 +70,7 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
   const replyText = useWatch({ control: replyForm.control, name: 'content' }) ?? ''
 
   const load = useCallback(() => {
-    fetch(`${API_URL}/api/resumes/${resumeId}/comments`)
+    httpClient(`${API_URL}/api/resumes/${resumeId}/comments`)
       .then((r) => (r.ok ? r.json() : []))
       .then(setFlat)
       .catch(() => {})
@@ -86,7 +87,7 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
       const token = localStorage.getItem('token')
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       if (token) headers['Authorization'] = `Bearer ${token}`
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/comments`, {
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/comments`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ content: data.content }),
@@ -105,7 +106,7 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
       const token = localStorage.getItem('token')
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       if (token) headers['Authorization'] = `Bearer ${token}`
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/comments`, {
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/comments`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ content: data.content, parentId }),
@@ -123,7 +124,7 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
   const handleDelete = async (id: string) => {
     const token = localStorage.getItem('token')
     if (!token) return
-    await fetch(`${API_URL}/api/resumes/${resumeId}/comments/${id}`, {
+    await httpClient(`${API_URL}/api/resumes/${resumeId}/comments/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })

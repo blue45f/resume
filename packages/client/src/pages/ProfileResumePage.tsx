@@ -13,6 +13,7 @@ import ShareMenu from '@/components/ShareMenu'
 import { toast } from '@/components/Toast'
 import { getUser } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 
 // Lazy-load heavy sub-components
@@ -28,7 +29,7 @@ export default function ProfileResumePage() {
   } = useQuery<Resume>({
     queryKey: ['resume', 'profile', username, slug],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/resumes/@${username}/${slug}`)
+      const res = await httpClient(`${API_URL}/api/resumes/@${username}/${slug}`)
       if (!res.ok) throw new Error('Not found')
       return res.json()
     },
@@ -77,7 +78,7 @@ export default function ProfileResumePage() {
     setSendingScout(true)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${API_URL}/api/social/scout`, {
+      const res = await httpClient(`${API_URL}/api/social/scout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({

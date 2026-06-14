@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface Attachment {
   id: string
@@ -40,7 +41,7 @@ export default function AttachmentList({ resumeId }: Props) {
   const [attachments, setAttachments] = useState<Attachment[]>([])
 
   useEffect(() => {
-    fetch(`${API_URL}/api/resumes/${resumeId}/attachments`)
+    httpClient(`${API_URL}/api/resumes/${resumeId}/attachments`)
       .then((r) => (r.ok ? r.json() : []))
       .then(setAttachments)
       .catch(() => {})

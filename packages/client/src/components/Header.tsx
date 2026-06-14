@@ -7,6 +7,7 @@ import { fetchFollowers, fetchFollowing } from '@/lib/api'
 import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
 import { t, tx, getLocale, setLocale, LOCALES, getLocaleName, type Locale } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 import { getTheme, setTheme } from '@/lib/theme'
 
@@ -43,7 +44,7 @@ export default function Header() {
     const newType = isRecruiter ? 'personal' : 'recruiter'
     try {
       const token = getToken()
-      const res = await fetch(`${API_URL}/api/auth/profile`, {
+      const res = await httpClient(`${API_URL}/api/auth/profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

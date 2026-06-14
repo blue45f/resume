@@ -4,6 +4,7 @@ import { useForm, useWatch } from 'react-hook-form'
 
 import { toast } from '@/components/Toast'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { timeAgo } from '@/lib/time'
 import { commentSchema, type CommentFormValues } from '@/shared/lib/schemas'
 
@@ -38,7 +39,7 @@ export default function AppCommentSection({ applicationId, isPublic }: Props) {
   const content = useWatch({ control, name: 'content' }) ?? ''
 
   const load = useCallback(() => {
-    fetch(`${API_URL}/api/applications/${applicationId}/comments`)
+    httpClient(`${API_URL}/api/applications/${applicationId}/comments`)
       .then((r) => (r.ok ? r.json() : []))
       .then(setComments)
       .catch(() => {})
@@ -72,7 +73,7 @@ export default function AppCommentSection({ applicationId, isPublic }: Props) {
       const token = localStorage.getItem('token')
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       if (token) headers['Authorization'] = `Bearer ${token}`
-      const res = await fetch(`${API_URL}/api/applications/${applicationId}/comments`, {
+      const res = await httpClient(`${API_URL}/api/applications/${applicationId}/comments`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ content: savedContent }),

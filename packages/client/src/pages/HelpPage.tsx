@@ -6,6 +6,7 @@ import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import { API_URL } from '@/lib/config'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 
 interface FAQItem {
   q: string
@@ -142,7 +143,9 @@ export default function HelpPage() {
   const { data: dynamicFaq } = useQuery<FAQItem[]>({
     queryKey: ['help-faq'],
     queryFn: () =>
-      fetch(`${API_URL}/api/system-config/content/help_faq`).then((r) => (r.ok ? r.json() : null)),
+      httpClient(`${API_URL}/api/system-config/content/help_faq`).then((r) =>
+        r.ok ? r.json() : null
+      ),
     staleTime: 5 * 60_000,
   })
 

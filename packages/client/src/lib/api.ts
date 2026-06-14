@@ -1,5 +1,6 @@
 import { getCached, setCache } from './cache'
 import { API_URL } from './config'
+import { httpClient, getApiMessage, type ApiRecord } from './ky'
 
 import type {
   Resume,
@@ -16,16 +17,7 @@ import { toast } from '@/components/Toast'
 // 프로덕션: VITE_API_URL 환경변수로 백엔드 URL 지정
 const BASE = `${API_URL}/api`
 
-export type ApiRecord = Record<string, unknown>
-
-function isApiRecord(value: unknown): value is ApiRecord {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function getApiMessage(value: unknown): string | undefined {
-  if (!isApiRecord(value)) return undefined
-  return typeof value.message === 'string' ? value.message : undefined
-}
+export type { ApiRecord }
 
 // ── Global loading progress bar ──────────────────────────────────
 let activeRequests = 0
@@ -99,30 +91,33 @@ function trackRequestEnd() {
   }
 }
 
-async function fetchWithTimeout(
-  url: string,
-  options: RequestInit,
-  timeoutMs = 30000
-): Promise<Response> {
-  const controller = new AbortController()
-  const id = setTimeout(() => controller.abort(), timeoutMs)
-  try {
-    return await fetch(url, { ...options, signal: controller.signal })
-  } finally {
-    clearTimeout(id)
-  }
+// 네트워크/타임아웃 판별 — ky 는 raw network 실패를 NetworkError, 타임아웃을 TimeoutError 로 던진다.
+// 마이그 전 raw fetch 의 TypeError(네트워크) / AbortError(타임아웃) 동작을 보존하기 위해
+// ky 에러 이름과 기존 DOM 에러를 함께 본다.
+function isTimeoutErr(err: unknown): boolean {
+  return (
+    (err instanceof DOMException && err.name === 'AbortError') ||
+    (err instanceof Error && err.name === 'TimeoutError')
+  )
+}
+function isConnectErr(err: unknown): boolean {
+  return err instanceof TypeError || (err instanceof Error && err.name === 'NetworkError')
 }
 
 async function request<T>(url: string, options?: RequestInit, retries = 2): Promise<T> {
-  const token = localStorage.getItem('token')
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (token) headers['Authorization'] = `Bearer ${token}`
+  // Content-Type 은 JSON 본문일 때만(FormData 는 호출부에서 직접 처리). Authorization 은 ky 훅이 주입.
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...((options?.headers as Record<string, string>) || {}),
+  }
 
   const isTopLevel = retries === 2
   if (isTopLevel) trackRequestStart()
 
   const attempt = async (): Promise<T> => {
-    const res = await fetchWithTimeout(url, { headers, ...options }, 30000)
+    // httpClient(throwHttpErrors:false) 는 항상 Response 반환 → 기존 status 분기 그대로 보존.
+    // 401 토큰 정리는 ky afterResponse 훅이 처리하지만, user 키 정리까지 명시적으로 보장.
+    const res = await httpClient(url, { ...options, headers })
     if (res.status === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
@@ -134,7 +129,8 @@ async function request<T>(url: string, options?: RequestInit, retries = 2): Prom
       const error = await res.json().catch(() => ({ message: res.statusText }))
       throw new Error(getApiMessage(error) || `Request failed: ${res.status}`)
     }
-    return res.json()
+    const text = await res.text()
+    return (text ? JSON.parse(text) : null) as T
   }
 
   try {
@@ -143,20 +139,19 @@ async function request<T>(url: string, options?: RequestInit, retries = 2): Prom
     return result
   } catch (err) {
     // Render 무료 플랜 cold start / 배포 중 대응: exponential backoff 재시도
-    const isNetworkError =
-      err instanceof TypeError || (err instanceof DOMException && err.name === 'AbortError')
-    if (retries > 0 && isNetworkError) {
+    const isRetryable = isConnectErr(err) || isTimeoutErr(err)
+    if (retries > 0 && isRetryable) {
       const delay = (3 - retries) * 3000 // 3초, 6초
       await new Promise((r) => setTimeout(r, delay))
       return request<T>(url, options, retries - 1)
     }
     if (isTopLevel) trackRequestEnd()
-    if (err instanceof DOMException && err.name === 'AbortError') {
+    if (isTimeoutErr(err)) {
       const msg = '서버가 배포 중이거나 시작 중입니다. 30초 후 다시 시도해주세요.'
       toast(msg, 'error')
       throw new Error(msg, { cause: err })
     }
-    if (err instanceof TypeError) {
+    if (isConnectErr(err)) {
       const msg = '서버에 연결할 수 없습니다. 배포 중일 수 있으니 잠시 후 다시 시도해주세요.'
       toast(msg, 'error')
       throw new Error(msg, { cause: err })
@@ -325,14 +320,11 @@ export const recordWebrtcTelemetry = (body: {
   durationMs?: number
   errorName?: string
 }) =>
-  fetch(`${BASE}/coffee-chats/signal/telemetry`, {
+  httpClient(`${BASE}/coffee-chats/signal/telemetry`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-  }).catch(() => {}) // fire-and-forget — 실패해도 통화에 영향 X
+  }).catch(() => {}) // fire-and-forget — 실패해도 통화에 영향 X (Authorization 은 ky 훅이 주입)
 
 export interface PipelineStats {
   total: number
@@ -536,6 +528,8 @@ export const fetchLlmProviders = (resumeId: string) =>
   request<LlmProvider[]>(`${BASE}/resumes/${resumeId}/transform/providers`)
 
 // LLM Transform Streaming
+// NOTE: SSE 스트리밍은 의도적으로 raw fetch 유지 — ky 는 ReadableStream 본문을 그대로
+// 노출하지 않아(응답을 파싱/소비) 토큰 단위 점진 렌더링에 부적합. 인증 헤더만 수동 부착.
 export async function* transformResumeStream(
   resumeId: string,
   data: {
@@ -785,12 +779,9 @@ export const uploadAttachment = async (
   formData.append('file', file)
   if (category) formData.append('category', category)
   if (description) formData.append('description', description)
-  const token = localStorage.getItem('token')
-  const headers: Record<string, string> = {}
-  if (token) headers['Authorization'] = `Bearer ${token}`
-  const res = await fetch(`${BASE}/resumes/${resumeId}/attachments`, {
+  // FormData 는 브라우저가 boundary 를 직접 설정 — Content-Type 미지정. Authorization 은 ky 훅 주입.
+  const res = await httpClient(`${BASE}/resumes/${resumeId}/attachments`, {
     method: 'POST',
-    headers,
     body: formData,
   })
   if (!res.ok) throw new Error('Upload failed')
@@ -983,17 +974,15 @@ export const fetchLinkedAccounts = () =>
 
 // ── 프로필 아바타 ───────────────────────────────────────
 export const uploadAvatar = async (file: File): Promise<{ avatar: string }> => {
-  const token = localStorage.getItem('token')
   const formData = new FormData()
   formData.append('file', file)
-  const res = await fetch(`${BASE}/auth/avatar`, {
+  const res = await httpClient(`${BASE}/auth/avatar`, {
     method: 'POST',
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: '업로드 실패' }))
-    throw new Error(err.message || '업로드 실패')
+    throw new Error(getApiMessage(err) || '업로드 실패')
   }
   return res.json()
 }
@@ -1071,10 +1060,9 @@ export const leaveCoffeeChatFeedback = (id: string, feedback: string) =>
   })
 
 export const downloadCoffeeChatIcs = (id: string) => {
-  const token = localStorage.getItem('token') || ''
   const url = `${BASE}/coffee-chats/${id}/ics`
-  // 새 탭에 token 못 보내므로 fetch + blob 다운로드
-  return fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+  // 새 탭에 token 못 보내므로 fetch + blob 다운로드 (Authorization 은 ky 훅이 주입)
+  return httpClient(url)
     .then((r) => {
       if (!r.ok) throw new Error('ICS export 실패')
       return r.blob()
@@ -1547,18 +1535,15 @@ export const uploadStudyGroupPostAttachment = async (
 ): Promise<StudyGroupPost['attachments'][number]> => {
   const formData = new FormData()
   formData.append('file', file)
-  const token = localStorage.getItem('token')
-  const headers: Record<string, string> = {}
-  if (token) headers['Authorization'] = `Bearer ${token}`
-  const res = await fetch(`${BASE}/study-groups/${groupId}/attachments`, {
+  // FormData — Content-Type 미지정(브라우저 boundary). Authorization 은 ky 훅 주입.
+  const res = await httpClient(`${BASE}/study-groups/${groupId}/attachments`, {
     method: 'POST',
-    headers,
     body: formData,
   })
   if (!res.ok) {
     let message = ''
     try {
-      const body = await res.json()
+      const body = (await res.json()) as { message?: string | string[] }
       message = Array.isArray(body?.message) ? body.message[0] : body?.message || ''
     } catch {
       /* 서버가 JSON 이 아닌 에러를 반환한 경우 — 호출부 기본 문구 사용 */

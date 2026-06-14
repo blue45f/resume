@@ -12,6 +12,7 @@ import { initSentry } from './lib/sentry'
 import { initTheme } from './lib/theme'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 // Error tracking — no-op unless VITE_SENTRY_DSN is set at build time.
 initSentry()
@@ -19,7 +20,7 @@ initTheme()
 
 function loadPublicConfig() {
   // 앱 시작 시 유료화 설정 로드 (비동기, 실패해도 기본값 유지)
-  return fetch(`${API_URL}/api/system-config/public`)
+  return httpClient(`${API_URL}/api/system-config/public`)
     .then((r) => (r.ok ? r.json() : null))
     .then((d) => {
       if (d && 'monetization_enabled' in d) {

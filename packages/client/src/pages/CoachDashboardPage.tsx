@@ -15,6 +15,7 @@ import {
 import { getUser } from '@/lib/auth'
 import { getErrorMessage } from '@/lib/errorMessage'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 
 interface NotificationRow {
@@ -77,7 +78,7 @@ export default function CoachDashboardPage() {
   useEffect(() => {
     if (!isCoach) return
     // 받은 평점/리뷰 알림 미읽음 count
-    fetch('/api/notifications', {
+    httpClient('/api/notifications', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` },
     })
       .then((r): Promise<NotificationRow[]> => (r.ok ? r.json() : Promise.resolve([])))

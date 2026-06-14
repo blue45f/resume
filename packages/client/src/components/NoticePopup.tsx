@@ -2,6 +2,7 @@ import * as RadixDialog from '@radix-ui/react-dialog'
 import { useEffect, useState } from 'react'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface Notice {
   id: string
@@ -74,7 +75,7 @@ export default function NoticePopup() {
   const [index, setIndex] = useState(0)
 
   useEffect(() => {
-    fetch(`${API_URL}/api/notices/popup`)
+    httpClient(`${API_URL}/api/notices/popup`)
       .then((r) => (r.ok ? r.json() : []))
       .then((data: Notice[]) => {
         const permanentlyDismissed = JSON.parse(

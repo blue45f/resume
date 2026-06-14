@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { toast } from '@/components/Toast'
 import { getUser } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { messageSchema, type MessageFormValues } from '@/shared/lib/schemas'
 import Dialog from '@/shared/ui/Dialog'
 
@@ -49,7 +50,7 @@ export default memo(function SendMessageButton({
   const onSubmit = async (data: MessageFormValues) => {
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${API_URL}/api/social/messages/${recipientId}`, {
+      const res = await httpClient(`${API_URL}/api/social/messages/${recipientId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

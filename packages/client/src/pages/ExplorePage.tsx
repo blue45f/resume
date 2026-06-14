@@ -15,6 +15,7 @@ import { useTags, usePopularSkills, useResumes, usePublicGet } from '@/hooks/use
 import { getUser } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 import { timeAgo } from '@/lib/time'
 
@@ -392,7 +393,7 @@ export default function ExplorePage() {
       if (sortBy !== 'recent') qs.set('sort', sortBy)
       qs.set('page', String(page))
       qs.set('limit', limit)
-      const res = await fetch(`${API_URL}/api/resumes/public?${qs}`)
+      const res = await httpClient(`${API_URL}/api/resumes/public?${qs}`)
       if (!res.ok) throw new Error('Failed to fetch public resumes')
       return res.json()
     },

@@ -2,6 +2,7 @@ import * as RadixDialog from '@radix-ui/react-dialog'
 import { useState, useEffect, useRef, useCallback } from 'react'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 interface Attachment {
@@ -54,7 +55,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/attachments`)
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/attachments`)
       if (res.ok) setAttachments(await res.json())
     } finally {
       setLoading(false)
@@ -63,7 +64,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
 
   useEffect(() => {
     let cancelled = false
-    fetch(`${API_URL}/api/resumes/${resumeId}/attachments`)
+    httpClient(`${API_URL}/api/resumes/${resumeId}/attachments`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (!cancelled) setAttachments(data)
@@ -91,7 +92,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
         const token = localStorage.getItem('token')
         const headers: Record<string, string> = {}
         if (token) headers['Authorization'] = `Bearer ${token}`
-        const res = await fetch(`${API_URL}/api/resumes/${resumeId}/attachments`, {
+        const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/attachments`, {
           method: 'POST',
           headers,
           body: formData,
@@ -122,7 +123,7 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
       }))
     )
       return
-    await fetch(`${API_URL}/api/attachments/${id}`, { method: 'DELETE' })
+    await httpClient(`${API_URL}/api/attachments/${id}`, { method: 'DELETE' })
     load()
   }
 

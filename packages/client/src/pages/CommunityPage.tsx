@@ -14,6 +14,7 @@ import {
 } from '@/lib/communityDemoLog'
 import { API_URL } from '@/lib/config'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 import { formatDate } from '@/lib/time'
 
@@ -161,7 +162,7 @@ export default function CommunityPage() {
         try {
           const scrappedIds: string[] = JSON.parse(localStorage.getItem('scrapped-posts') || '[]')
           if (scrappedIds.length === 0) return { items: [], total: 0, totalPages: 1 }
-          const r = await fetch(`${API_URL}/api/community?limit=100`)
+          const r = await httpClient(`${API_URL}/api/community?limit=100`)
           if (!r.ok) return { items: [], total: 0, totalPages: 1 }
           const data = (await r.json()) as { items?: Post[] }
           const all = Array.isArray(data.items) ? data.items : []
@@ -177,7 +178,7 @@ export default function CommunityPage() {
       params.set('page', String(page))
       params.set('limit', '20')
       params.set('sort', sortBy)
-      const r = await fetch(`${API_URL}/api/community?${params}`)
+      const r = await httpClient(`${API_URL}/api/community?${params}`)
       if (!r.ok) return null
       const data = await r.json()
       return { items: data.items || [], total: data.total || 0, totalPages: data.totalPages || 1 }

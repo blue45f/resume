@@ -16,6 +16,7 @@ import { toast } from '@/components/Toast'
 import { useConversations, useMessages } from '@/hooks/useResources'
 import { API_URL } from '@/lib/config'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { timeAgo } from '@/lib/time'
 
 const replyComposeSchema = z.object({
@@ -177,7 +178,7 @@ export default function MessagesPage() {
         body.fileName = attachedFile.name
         body.fileType = attachedFile.type
       }
-      await fetch(`${API_URL}/api/social/messages/${selectedPartnerId}`, {
+      await httpClient(`${API_URL}/api/social/messages/${selectedPartnerId}`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(body),

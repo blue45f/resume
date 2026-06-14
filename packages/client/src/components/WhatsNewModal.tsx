@@ -2,6 +2,7 @@ import * as RadixDialog from '@radix-ui/react-dialog'
 import { useState, useEffect } from 'react'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 const STORAGE_KEY = 'whats-new-seen-v'
 
@@ -77,7 +78,7 @@ export default function WhatsNewModal() {
   const [data, setData] = useState<WhatsNewData | null>(null)
 
   useEffect(() => {
-    fetch(`${API_URL}/api/system-config/content/whats_new`)
+    httpClient(`${API_URL}/api/system-config/content/whats_new`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         const content: WhatsNewData = d && d.version ? d : FALLBACK

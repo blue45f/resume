@@ -9,6 +9,7 @@ import { AdminTable, type AdminTableColumn } from './AdminTable'
 
 import { toast } from '@/components/Toast'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import AlertDialog from '@/shared/ui/AlertDialog'
 
 type Group = {
@@ -152,7 +153,7 @@ function GroupsSection() {
       if (tier !== 'all') params.set('tier', tier)
       if (cafe !== 'all') params.set('cafe', cafe)
       if (level !== 'all') params.set('experienceLevel', level)
-      const res = await fetch(`${API_URL}/api/study-groups/admin/all?${params}`, {
+      const res = await httpClient(`${API_URL}/api/study-groups/admin/all?${params}`, {
         headers: authHeader(),
       })
       if (!res.ok) return null
@@ -165,7 +166,7 @@ function GroupsSection() {
 
   const mForce = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API_URL}/api/study-groups/admin/${id}/force-close`, {
+      const res = await httpClient(`${API_URL}/api/study-groups/admin/${id}/force-close`, {
         method: 'PATCH',
         headers: authHeader(),
       })
@@ -181,7 +182,7 @@ function GroupsSection() {
 
   const mUpdate = useMutation({
     mutationFn: async (vars: { id: string; patch: GroupPatch }) => {
-      const res = await fetch(`${API_URL}/api/study-groups/admin/${vars.id}`, {
+      const res = await httpClient(`${API_URL}/api/study-groups/admin/${vars.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify(vars.patch),
@@ -199,7 +200,7 @@ function GroupsSection() {
 
   const mDelete = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API_URL}/api/study-groups/admin/${id}`, {
+      const res = await httpClient(`${API_URL}/api/study-groups/admin/${id}`, {
         method: 'DELETE',
         headers: authHeader(),
       })
@@ -570,7 +571,7 @@ function PostsModerationSection() {
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), limit: '20' })
       if (q) params.set('q', q)
-      const res = await fetch(`${API_URL}/api/study-groups/admin/posts?${params}`, {
+      const res = await httpClient(`${API_URL}/api/study-groups/admin/posts?${params}`, {
         headers: authHeader(),
       })
       if (!res.ok) return null
@@ -583,7 +584,7 @@ function PostsModerationSection() {
 
   const mDeletePost = useMutation({
     mutationFn: async (postId: string) => {
-      const res = await fetch(`${API_URL}/api/study-groups/admin/posts/${postId}`, {
+      const res = await httpClient(`${API_URL}/api/study-groups/admin/posts/${postId}`, {
         method: 'DELETE',
         headers: authHeader(),
       })
@@ -599,7 +600,7 @@ function PostsModerationSection() {
 
   const mRemoveAttachment = useMutation({
     mutationFn: async (vars: { postId: string; url: string }) => {
-      const res = await fetch(
+      const res = await httpClient(
         `${API_URL}/api/study-groups/admin/posts/${vars.postId}/attachments`,
         {
           method: 'PATCH',
@@ -784,7 +785,7 @@ function PostCommentsDialog({
   const query = useQuery<ModComment[] | null>({
     queryKey: commentsKey,
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/study-groups/admin/posts/${post.id}/comments`, {
+      const res = await httpClient(`${API_URL}/api/study-groups/admin/posts/${post.id}/comments`, {
         headers: authHeader(),
       })
       if (!res.ok) return null
@@ -794,7 +795,7 @@ function PostCommentsDialog({
 
   const mDelete = useMutation({
     mutationFn: async (commentId: string) => {
-      const res = await fetch(`${API_URL}/api/study-groups/admin/comments/${commentId}`, {
+      const res = await httpClient(`${API_URL}/api/study-groups/admin/comments/${commentId}`, {
         method: 'DELETE',
         headers: authHeader(),
       })
@@ -892,7 +893,7 @@ function AnswersModerationSection() {
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), limit: '20' })
       if (q) params.set('q', q)
-      const res = await fetch(`${API_URL}/api/study-groups/admin/answers?${params}`, {
+      const res = await httpClient(`${API_URL}/api/study-groups/admin/answers?${params}`, {
         headers: authHeader(),
       })
       if (!res.ok) return null
@@ -903,7 +904,7 @@ function AnswersModerationSection() {
 
   const mDelete = useMutation({
     mutationFn: async (answerId: string) => {
-      const res = await fetch(`${API_URL}/api/study-groups/admin/answers/${answerId}`, {
+      const res = await httpClient(`${API_URL}/api/study-groups/admin/answers/${answerId}`, {
         method: 'DELETE',
         headers: authHeader(),
       })

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 
 import { API_URL } from '@/lib/config'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 
 interface Step {
   num: number
@@ -48,7 +49,7 @@ export default function OnboardingBanner() {
 
   useEffect(() => {
     if (dismissed) return
-    fetch(`${API_URL}/api/system-config/content/onboarding`)
+    httpClient(`${API_URL}/api/system-config/content/onboarding`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (d?.steps?.length) setSteps(d.steps)

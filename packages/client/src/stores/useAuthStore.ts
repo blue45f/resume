@@ -20,6 +20,8 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
+import { httpClient } from '@/lib/ky'
+
 export interface AuthUser {
   id: string
   email: string
@@ -68,7 +70,7 @@ export const useAuthStore = create<AuthState>()(
         const token = get().token
         if (!token) return null
         try {
-          const res = await fetch('/api/auth/me', {
+          const res = await httpClient('/api/auth/me', {
             headers: { Authorization: `Bearer ${token}` },
           })
           if (!res.ok) {

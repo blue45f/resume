@@ -44,6 +44,7 @@ import { analyzeJdTeamStructure } from '@/lib/jdTeamStructureAnalyzer'
 import { detectJdTechObsolescence } from '@/lib/jdTechObsolescenceDetector'
 import { analyzeJdWorkLifeBalance } from '@/lib/jdWorkLifeBalanceAnalyzer'
 import { buildWorkModalityReport } from '@/lib/jdWorkModality'
+import { httpClient } from '@/lib/ky'
 import { buildResumePlainText } from '@/lib/resumeText'
 import { formatDate } from '@/lib/time'
 
@@ -174,7 +175,7 @@ async function evaluateAnswer(
   if (token) headers['Authorization'] = `Bearer ${token}`
 
   try {
-    const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform/interview`, {
+    const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/transform/interview`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -2268,15 +2269,18 @@ export default function InterviewPrepPage() {
       const token = localStorage.getItem('token')
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       if (token) headers['Authorization'] = `Bearer ${token}`
-      const res = await fetch(`${API_URL}/api/resumes/${selectedResumeId}/transform/interview`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          jobRole: jobRole || undefined,
-          difficulty,
-          jobDescription: jobDescription || undefined,
-        }),
-      })
+      const res = await httpClient(
+        `${API_URL}/api/resumes/${selectedResumeId}/transform/interview`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            jobRole: jobRole || undefined,
+            difficulty,
+            jobDescription: jobDescription || undefined,
+          }),
+        }
+      )
       if (!res.ok) throw new Error('생성에 실패했습니다')
       const data = await res.json()
       const text = data.text || data.data?.text || ''

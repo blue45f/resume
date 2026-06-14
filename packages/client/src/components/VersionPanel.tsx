@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, type ReactNode } from 'react'
 
 import { fetchVersions, restoreVersion } from '@/lib/api'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { timeAgo } from '@/lib/time'
 import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
@@ -339,7 +340,7 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
   const fetchSnapshot = async (versionId: string): Promise<Record<string, unknown> | null> => {
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/versions/${versionId}`, {
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/versions/${versionId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (res.ok) {

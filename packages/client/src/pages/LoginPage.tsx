@@ -5,6 +5,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 
 import { getSocialLoginUrl } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 import {
   loginSchema,
@@ -129,7 +130,7 @@ export default function LoginPage() {
   const performAuth = async (endpoint: string, body: unknown) => {
     // endpoint 는 '/api/auth/login' 같은 path — production Vercel 은 /api/* rewrite 없으므로
     // VITE_API_URL (Cloud Run) 을 prefix 해서 절대 URL 로 호출. dev 는 API_URL='' → vite proxy.
-    const res = await fetch(`${API_URL}${endpoint}`, {
+    const res = await httpClient(`${API_URL}${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -151,7 +152,7 @@ export default function LoginPage() {
     if (!data.token) throw new Error('인증 토큰을 받지 못했습니다')
     localStorage.setItem('token', data.token)
     let me: { userType?: string } | null = null
-    const meRes = await fetch(`${API_URL}/api/auth/me`, {
+    const meRes = await httpClient(`${API_URL}/api/auth/me`, {
       headers: { Authorization: `Bearer ${data.token}` },
     })
     if (meRes.ok) {

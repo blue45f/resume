@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { API_URL } from '@/lib/config'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 
 interface SearchResult {
   type: 'resume' | 'job' | 'community' | 'user'
@@ -64,7 +65,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate()
 
   useEffect(() => {
-    fetch(`${API_URL}/api/resumes/popular-skills`)
+    httpClient(`${API_URL}/api/resumes/popular-skills`)
       .then((r) => (r.ok ? r.json() : []))
       .then((skills: unknown) => {
         const items = Array.isArray(skills) ? (skills as PopularSkill[]) : []
@@ -87,15 +88,18 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
       if (token) headers['Authorization'] = `Bearer ${token}`
 
       const [resumes, jobs, posts] = await Promise.all([
-        fetch(`${API_URL}/api/resumes?search=${encodeURIComponent(q)}&limit=3&visibility=public`, {
-          headers,
-        })
+        httpClient(
+          `${API_URL}/api/resumes?search=${encodeURIComponent(q)}&limit=3&visibility=public`,
+          {
+            headers,
+          }
+        )
           .then((r) => (r.ok ? r.json() : { items: [] }))
           .catch(() => ({ items: [] })),
-        fetch(`${API_URL}/api/jobs?search=${encodeURIComponent(q)}&limit=3`, { headers })
+        httpClient(`${API_URL}/api/jobs?search=${encodeURIComponent(q)}&limit=3`, { headers })
           .then((r) => (r.ok ? r.json() : { items: [] }))
           .catch(() => ({ items: [] })),
-        fetch(`${API_URL}/api/community?search=${encodeURIComponent(q)}&limit=3`, { headers })
+        httpClient(`${API_URL}/api/community?search=${encodeURIComponent(q)}&limit=3`, { headers })
           .then((r) => (r.ok ? r.json() : { items: [] }))
           .catch(() => ({ items: [] })),
       ])

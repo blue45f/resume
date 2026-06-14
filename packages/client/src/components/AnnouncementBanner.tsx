@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface Announcement {
   id: string
@@ -80,7 +81,7 @@ export default function AnnouncementBanner() {
   useEffect(() => {
     if (hasStoredAnnouncementRef.current) return
 
-    fetch(`${API_URL}/api/health/announcement`)
+    httpClient(`${API_URL}/api/health/announcement`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: unknown) => {
         if (isAnnouncement(data) && readDismissedAnnouncementId() !== data.id) {

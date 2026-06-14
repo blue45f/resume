@@ -16,6 +16,7 @@ import {
 // CHART_COLORS 의 단일 정의는 lib/chartColors. 여기는 alias.
 import { CHART_COLORS } from '@/lib/chartColors'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface DashboardData {
   summary: {
@@ -65,7 +66,7 @@ export default function DashboardStats() {
     const token = localStorage.getItem('token')
     if (!token) return
     const headers: Record<string, string> = { Authorization: `Bearer ${token}` }
-    fetch(`${API_URL}/api/resumes/dashboard/analytics`, { headers })
+    httpClient(`${API_URL}/api/resumes/dashboard/analytics`, { headers })
       .then((r) => (r.ok ? r.json() : null))
       .then(setData)
       .catch(() => {})

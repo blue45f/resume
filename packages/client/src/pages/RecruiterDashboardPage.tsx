@@ -10,6 +10,7 @@ import SendMessageButton from '@/components/SendMessageButton'
 import { getUser } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
 import { t } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { ROUTES, withQuery } from '@/lib/routes'
 import { timeAgo } from '@/lib/time'
 
@@ -108,7 +109,7 @@ const EMPTY_PIPELINE_STATS: PipelineStats = {
 const authedFetch = async <T,>(url: string, fallback: T): Promise<T> => {
   const token = localStorage.getItem('token')
   const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
-  const res = await fetch(`${API_URL}${url}`, { headers })
+  const res = await httpClient(`${API_URL}${url}`, { headers })
   if (!res.ok) return fallback
   const data = await res.json()
   return (data ?? fallback) as T
@@ -195,7 +196,7 @@ export default function RecruiterDashboardPage() {
   const stageMutation = useMutation({
     mutationFn: async ({ candidateId, newStage }: { candidateId: string; newStage: string }) => {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${API_URL}/api/jobs/pipeline/${candidateId}`, {
+      const res = await httpClient(`${API_URL}/api/jobs/pipeline/${candidateId}`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ stage: newStage }),

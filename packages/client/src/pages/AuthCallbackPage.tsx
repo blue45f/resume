@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { handleAuthCallback } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 
 type UserType = 'personal' | 'recruiter' | 'company'
@@ -85,12 +86,12 @@ export default function AuthCallbackPage() {
     try {
       const token = localStorage.getItem('token')
       if (token && selectedType !== 'personal') {
-        await fetch(`${API_URL}/api/auth/profile`, {
+        await httpClient(`${API_URL}/api/auth/profile`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ userType: selectedType }),
         })
-        const me = await fetch(`${API_URL}/api/auth/me`, {
+        const me = await httpClient(`${API_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (me.ok) {

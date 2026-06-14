@@ -7,6 +7,7 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface Banner {
   id: string
@@ -22,7 +23,7 @@ export default function BannerSlider() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    fetch(`${API_URL}/api/banners/active`)
+    httpClient(`${API_URL}/api/banners/active`)
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => setBanners(Array.isArray(data) ? data : []))
       .catch((err) => {

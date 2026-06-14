@@ -80,11 +80,14 @@ describe('<CareerInsights />', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async (input: RequestInfo | URL) => {
-        const url = String(input)
-        return {
-          ok: true,
-          json: async () => (url.includes('/api/jobs') ? jobs : []),
-        } as Response
+        // ky 는 fetch 를 Request 객체로 호출하므로 url 은 Request.url 에서 읽는다.
+        const url = input instanceof Request ? input.url : String(input)
+        const body = url.includes('/api/jobs') ? jobs : []
+        // ky 가 응답을 clone() 하므로 실제 Response 를 반환해야 한다(plain object 불가).
+        return new Response(JSON.stringify(body), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
       })
     )
   })

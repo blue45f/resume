@@ -10,6 +10,7 @@ import { useResumes, useResume } from '@/hooks/useResources'
 import { API_URL } from '@/lib/config'
 import { getErrorMessage } from '@/lib/errorMessage'
 import { t } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 
 const LANGUAGE_PAIRS = [
   {
@@ -194,7 +195,7 @@ export default function TranslatePage() {
         ? ` 다음 섹션만 번역하세요: ${selectedSections.map((k) => TRANSLATABLE_SECTIONS.find((s) => s.key === k)?.label || k).join(', ')}. 나머지 섹션은 원본 그대로 유지하세요.`
         : ''
 
-      const res = await fetch(`${API_URL}/api/resumes/${selectedResumeId}/transform`, {
+      const res = await httpClient(`${API_URL}/api/resumes/${selectedResumeId}/transform`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -493,7 +494,7 @@ export default function TranslatePage() {
                           }
                           if (token) headers['Authorization'] = `Bearer ${token}`
                           const langLabel = LANGUAGE_PAIRS[selectedPairIndex]?.label || ''
-                          const res = await fetch(`${API_URL}/api/auto-generate/create`, {
+                          const res = await httpClient(`${API_URL}/api/auto-generate/create`, {
                             method: 'POST',
                             headers,
                             body: JSON.stringify({

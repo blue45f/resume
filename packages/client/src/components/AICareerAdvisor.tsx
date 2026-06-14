@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import type { Resume } from '@/types/resume'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface Props {
   resume: Resume
@@ -193,15 +194,18 @@ export default function AICareerAdvisor({ resume }: Props) {
       try {
         // Try server-side AI first
         const resumeSummary = summarizeResume(resume)
-        const res = await fetch(`${API_URL}/api/resumes/${resume.id}/transform/inline-assist`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            text: `[이력서 요약]\n${resumeSummary}\n\n[질문]\n${question}`,
-            type: 'career-advice',
-          }),
-        })
+        const res = await httpClient(
+          `${API_URL}/api/resumes/${resume.id}/transform/inline-assist`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              text: `[이력서 요약]\n${resumeSummary}\n\n[질문]\n${question}`,
+              type: 'career-advice',
+            }),
+          }
+        )
 
         if (res.ok) {
           const data = await res.json()

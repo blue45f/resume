@@ -59,9 +59,9 @@ describe('useApiQuery', () => {
       wrapper: makeWrapper(),
     })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    const call = spy.mock.calls[0]
-    const headers = (call[1] as RequestInit).headers as Record<string, string>
-    expect(headers.Authorization).toBe('Bearer tok123')
+    // ky 는 fetch(Request, options) 로 호출 — 헤더/메서드/본문은 Request 에 실린다.
+    const request = spy.mock.calls[0][0] as Request
+    expect(request.headers.get('Authorization')).toBe('Bearer tok123')
   })
 
   it('respects enabled=false (no fetch)', async () => {
@@ -84,7 +84,18 @@ describe('useApiMutation', () => {
   })
 
   it('posts payload and returns response', async () => {
-    const spy = mockFetchJson({ id: 'new' })
+    // ky 가 Request 본문을 소비하므로 호출 시점에 본문을 읽어 캡처한다.
+    let sentBody = ''
+    let sentMethod = ''
+    const spy = vi.fn().mockImplementation(async (req: Request) => {
+      sentMethod = req.method
+      sentBody = await req.clone().text()
+      return new Response(JSON.stringify({ id: 'new' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    })
+    ;(globalThis as { fetch?: unknown }).fetch = spy
     const { result } = renderHook(
       () => useApiMutation<{ id: string }, { name: string }>('/api/new'),
       {
@@ -94,9 +105,8 @@ describe('useApiMutation', () => {
     result.current.mutate({ name: 'x' })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(result.current.data).toEqual({ id: 'new' })
-    const call = spy.mock.calls[0]
-    expect((call[1] as RequestInit).method).toBe('POST')
-    expect((call[1] as RequestInit).body).toBe('{"name":"x"}')
+    expect(sentMethod).toBe('POST')
+    expect(sentBody).toBe('{"name":"x"}')
   })
 })
 
@@ -134,7 +144,7 @@ describe('useApiMutation — optimistic update', () => {
     await waitFor(() => expect(client.getQueryData(['items'])).toEqual([{ id: '1' }, { id: '2' }]))
     expect(result.current.isPending).toBe(true)
 
-    resolveFetch({ ok: true, status: 200, text: async () => '{}' })
+    resolveFetch(new Response('{}', { status: 200 }))
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(toast).not.toHaveBeenCalled()
   })

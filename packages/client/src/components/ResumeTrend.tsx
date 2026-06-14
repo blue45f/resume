@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface TrendPoint {
   version: number
@@ -19,7 +20,7 @@ export default function ResumeTrend({ resumeId }: Props) {
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) return
-    fetch(`${API_URL}/api/resumes/trend/${resumeId}`, {
+    httpClient(`${API_URL}/api/resumes/trend/${resumeId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => (r.ok ? r.json() : []))

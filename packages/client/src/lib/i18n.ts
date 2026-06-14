@@ -7,6 +7,7 @@ import jsonEn from '@/i18n/locales/en.json'
 import jsonJa from '@/i18n/locales/ja.json'
 import jsonKo from '@/i18n/locales/ko.json'
 import jsonZhCN from '@/i18n/locales/zh-CN.json'
+import { httpClient } from '@/lib/ky'
 
 export type Locale = 'ko' | 'en' | 'ja' | 'zh-CN'
 
@@ -35,7 +36,7 @@ export function setLocale(locale: Locale) {
   // 실패는 silent — 로컬 설정이 source of truth.
   const token = localStorage.getItem('token')
   if (token) {
-    fetch(
+    httpClient(
       `${(import.meta as unknown as { env: Record<string, string> }).env.VITE_API_URL || ''}/api/auth/profile`,
       {
         method: 'PATCH',

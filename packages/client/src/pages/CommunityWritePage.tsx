@@ -12,6 +12,7 @@ import { getUser } from '@/lib/auth'
 import { appendCommunityDemoLog } from '@/lib/communityDemoLog'
 import { API_URL } from '@/lib/config'
 import { t, tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 
 const CATEGORY_PATTERN = /^[\w가-힣 ·/\-()]{1,24}$/
@@ -293,7 +294,7 @@ export default function CommunityWritePage() {
     if (isEdit || !userId) return
     const token = localStorage.getItem('token')
     if (!token) return
-    fetch(`${API_URL}/api/health/drafts/community_post`, {
+    httpClient(`${API_URL}/api/health/drafts/community_post`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => (r.ok ? r.json() : null))
@@ -312,7 +313,7 @@ export default function CommunityWritePage() {
       if (title?.trim() || content?.trim()) {
         const token = localStorage.getItem('token')
         if (!token) return
-        fetch(`${API_URL}/api/health/drafts/community_post`, {
+        httpClient(`${API_URL}/api/health/drafts/community_post`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ title, content, category }),
@@ -333,7 +334,7 @@ export default function CommunityWritePage() {
   const clearDraft = () => {
     const token = localStorage.getItem('token')
     if (token)
-      fetch(`${API_URL}/api/health/drafts/community_post`, {
+      httpClient(`${API_URL}/api/health/drafts/community_post`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       }).catch(() => {})
@@ -348,7 +349,7 @@ export default function CommunityWritePage() {
   const { data: editData } = useQuery({
     queryKey: ['community-post', id],
     queryFn: async () => {
-      const r = await fetch(`${API_URL}/api/community/${id}`)
+      const r = await httpClient(`${API_URL}/api/community/${id}`)
       return r.ok ? await r.json() : null
     },
     enabled: !!isEdit && !!id,
@@ -387,7 +388,7 @@ export default function CommunityWritePage() {
       }
       const formData = new FormData()
       formData.append('file', file)
-      const r = await fetch(`${API_URL}/api/community/upload`, {
+      const r = await httpClient(`${API_URL}/api/community/upload`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -520,7 +521,7 @@ export default function CommunityWritePage() {
     const url = isEdit ? `${API_URL}/api/community/${id}` : `${API_URL}/api/community`
     const method = isEdit ? 'PATCH' : 'POST'
 
-    const r = await fetch(url, {
+    const r = await httpClient(url, {
       method,
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({

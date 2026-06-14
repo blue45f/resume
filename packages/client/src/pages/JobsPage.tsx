@@ -19,6 +19,7 @@ import { getUser } from '@/lib/auth'
 import { API_URL } from '@/lib/config'
 import { getErrorMessage } from '@/lib/errorMessage'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { ROUTES, withQuery } from '@/lib/routes'
 import { timeAgo } from '@/lib/time'
 import { useConfirm } from '@/shared/ui/ConfirmProvider'
@@ -128,7 +129,7 @@ function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () =
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const token = localStorage.getItem('token')
-    fetch(`${API_URL}/api/salary-data`, {
+    httpClient(`${API_URL}/api/salary-data`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -580,7 +581,7 @@ function ExternalJobLinks({
       if (jobType !== 'all') params.set('jobType', jobType)
       if (location !== 'all') params.set('location', location)
       if (q) params.set('q', q)
-      const res = await fetch(`${API_URL}/api/jobs/external-links/list?${params}`)
+      const res = await httpClient(`${API_URL}/api/jobs/external-links/list?${params}`)
       if (!res.ok) return []
       const data = await res.json()
       return Array.isArray(data) ? data : []
@@ -592,7 +593,9 @@ function ExternalJobLinks({
   const loadLinks = () => linksQuery.refetch()
 
   const handleClick = async (link: ExternalLink) => {
-    fetch(`${API_URL}/api/jobs/external-links/${link.id}/click`, { method: 'POST' }).catch(() => {})
+    httpClient(`${API_URL}/api/jobs/external-links/${link.id}/click`, { method: 'POST' }).catch(
+      () => {}
+    )
     window.open(link.url, '_blank', 'noopener,noreferrer')
   }
 
@@ -611,7 +614,7 @@ function ExternalJobLinks({
     const url = isEdit
       ? `${API_URL}/api/jobs/external-links/${editingLink!.id}`
       : `${API_URL}/api/jobs/external-links`
-    const res = await fetch(url, {
+    const res = await httpClient(url, {
       method: isEdit ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -639,7 +642,7 @@ function ExternalJobLinks({
     )
       return
     const token = localStorage.getItem('token')
-    const res = await fetch(`${API_URL}/api/jobs/external-links/${link.id}`, {
+    const res = await httpClient(`${API_URL}/api/jobs/external-links/${link.id}`, {
       method: 'DELETE',
       headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     })
@@ -1200,7 +1203,7 @@ function usePermissions() {
   const { data: permsData } = useQuery<Record<string, string>>({
     queryKey: ['system-permissions'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/system-config/permissions`)
+      const res = await httpClient(`${API_URL}/api/system-config/permissions`)
       if (!res.ok) return {}
       return res.json()
     },
@@ -1709,7 +1712,7 @@ function CuratedJobsTab() {
       if (excludeExpired) params.set('excludeExpired', '1')
       params.set('page', String(page))
       params.set('limit', '20')
-      const res = await fetch(`${API_URL}/api/jobs/curated/list?${params}`)
+      const res = await httpClient(`${API_URL}/api/jobs/curated/list?${params}`)
       if (!res.ok) return { items: [], total: 0 }
       return res.json()
     },
@@ -1721,7 +1724,7 @@ function CuratedJobsTab() {
   const loadJobs = () => jobsQuery.refetch()
 
   const handleClick = (job: CuratedJob) => {
-    fetch(`${API_URL}/api/jobs/curated/${job.id}/click`, { method: 'POST' }).catch(() => {})
+    httpClient(`${API_URL}/api/jobs/curated/${job.id}/click`, { method: 'POST' }).catch(() => {})
     // 로그인 상태에서 외부 채용공고를 클릭하면 지원 내역에 자동 기록 (중복은 서버가 7일 이내 중복 방지)
     const token = localStorage.getItem('token')
     if (token) {
@@ -1755,7 +1758,7 @@ function CuratedJobsTab() {
     )
       return
     const token = localStorage.getItem('token')
-    const res = await fetch(`${API_URL}/api/jobs/curated/${job.id}`, {
+    const res = await httpClient(`${API_URL}/api/jobs/curated/${job.id}`, {
       method: 'DELETE',
       headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     })
@@ -1773,7 +1776,7 @@ function CuratedJobsTab() {
     const url = isEdit
       ? `${API_URL}/api/jobs/curated/${editingJob!.id}`
       : `${API_URL}/api/jobs/curated`
-    const res = await fetch(url, {
+    const res = await httpClient(url, {
       method: isEdit ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2484,7 +2487,7 @@ export default function JobsPage() {
     queryKey: ['internal-jobs', activeQuery],
     queryFn: async () => {
       const qs = activeQuery ? `?q=${encodeURIComponent(activeQuery)}` : ''
-      const res = await fetch(`${API_URL}/api/jobs${qs}`)
+      const res = await httpClient(`${API_URL}/api/jobs${qs}`)
       if (!res.ok) throw new Error('Failed to fetch jobs')
       return res.json()
     },

@@ -6,6 +6,7 @@ import type { Resume } from '@/types/resume'
 import FeatureGate from '@/components/FeatureGate'
 import { toast } from '@/components/Toast'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 type ResumeData = Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>
 
@@ -430,7 +431,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
 - 학력 수: ${educations.length}개
 - 프로젝트 수: ${projects.length}개`
 
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform`, {
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/transform`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ templateType: 'custom', jobDescription: prompt }),

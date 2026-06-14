@@ -6,6 +6,7 @@ import type { Resume } from '@/types/resume'
 import { toast } from '@/components/Toast'
 import { API_URL } from '@/lib/config'
 import { getErrorMessage } from '@/lib/errorMessage'
+import { httpClient } from '@/lib/ky'
 import { formatDate } from '@/lib/time'
 
 interface Props {
@@ -268,7 +269,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
     setResult(null)
 
     try {
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform/job-match`, {
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/transform/job-match`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({ jobDescription: jd }),
@@ -373,7 +374,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
     setError('')
 
     try {
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform`, {
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/transform`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
@@ -400,7 +401,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
     setCoverLetter('')
 
     try {
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform/job-match`, {
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/transform/job-match`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({

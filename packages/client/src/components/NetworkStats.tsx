@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 
 import { fetchFollowers, fetchFollowing, fetchScouts } from '@/lib/api'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { ROUTES, withQuery } from '@/lib/routes'
 
 interface NetworkData {
@@ -25,7 +26,7 @@ export default function NetworkStats() {
       fetchFollowers().catch(() => []),
       fetchFollowing().catch(() => []),
       fetchScouts().catch(() => []),
-      fetch(`${API_URL}/api/resumes/dashboard/analytics`, { headers })
+      httpClient(`${API_URL}/api/resumes/dashboard/analytics`, { headers })
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null),
     ]).then(([followers, following, scouts, analytics]) => {

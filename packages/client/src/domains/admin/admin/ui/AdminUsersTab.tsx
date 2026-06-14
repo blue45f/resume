@@ -8,6 +8,7 @@ import { AdminTable, type AdminTableColumn } from './AdminTable'
 
 import { toast } from '@/components/Toast'
 import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 import { formatDate } from '@/lib/time'
 import AlertDialog from '@/shared/ui/AlertDialog'
 
@@ -45,7 +46,7 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
   const query = useQuery<UserRow[]>({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/auth/admin/users`, {
+      const res = await httpClient(`${API_URL}/api/auth/admin/users`, {
         headers: authHeader(),
       })
       if (!res.ok) return []
@@ -59,7 +60,7 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
 
   const mRole = useMutation({
     mutationFn: async (vars: { id: string; role: string }) => {
-      const res = await fetch(`${API_URL}/api/auth/admin/users/${vars.id}/role`, {
+      const res = await httpClient(`${API_URL}/api/auth/admin/users/${vars.id}/role`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({ role: vars.role }),
@@ -77,7 +78,7 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
   const mSuspend = useMutation({
     mutationFn: async (vars: { id: string; suspend: boolean }) => {
       const url = `${API_URL}/api/auth/admin/users/${vars.id}/${vars.suspend ? 'suspend' : 'resume'}`
-      const res = await fetch(url, { method: 'PATCH', headers: authHeader() })
+      const res = await httpClient(url, { method: 'PATCH', headers: authHeader() })
       if (!res.ok) throw new Error('failed')
       return res.json()
     },
@@ -90,7 +91,7 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
 
   const mDelete = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API_URL}/api/auth/admin/users/${id}`, {
+      const res = await httpClient(`${API_URL}/api/auth/admin/users/${id}`, {
         method: 'DELETE',
         headers: authHeader(),
       })

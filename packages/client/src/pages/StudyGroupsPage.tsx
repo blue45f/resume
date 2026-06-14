@@ -9,6 +9,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { API_URL } from '@/lib/config'
 import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 import { ErrorState } from '@/shared/ui/ErrorState'
 
@@ -90,7 +91,7 @@ export default function StudyGroupsPage() {
       if (openOnly) sp.set('openOnly', '1')
       if (minMembers) sp.set('minMembers', minMembers)
       if (search) sp.set('q', search)
-      const res = await fetch(`${API_URL}/api/study-groups?${sp}`)
+      const res = await httpClient(`${API_URL}/api/study-groups?${sp}`)
       if (!res.ok) throw new Error('Failed')
       return res.json() as Promise<{ items: StudyGroup[]; total: number }>
     },
